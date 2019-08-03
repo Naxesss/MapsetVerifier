@@ -3,7 +3,7 @@ Mapset Verifier saves you from much of the tedious checking required for a beatm
 
 This is solved by automatic checking, in the same way AiMod and Modding Assistant work. Of course, not everything can be checked this way. Things like metadata and timing are a bit too complicated to fully cover with a program, but about half of the Ranking Criteria can be covered this way, which is pretty good.
 
-![](https://i.imgur.com/rfvGT2x.gif)
+![](https://i.imgur.com/MsCDemh.gif)
 
 # Features
 - Automatic song folder detection
