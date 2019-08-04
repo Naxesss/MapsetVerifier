@@ -3,6 +3,8 @@ Mapset Verifier saves you from much of the tedious checking required for a beatm
 
 This is solved by automatic checking, in the same way AiMod and Modding Assistant work. Of course, not everything can be checked this way. Things like metadata and timing are a bit too complicated to fully cover with a program, but about half of the Ranking Criteria can be covered this way, which is pretty good.
 
+Mapset Verifier is made up of [MapsetParser](https://github.com/Naxesss/MapsetParser), [MapsetChecks](https://github.com/Naxesss/MapsetChecks), [MapsetSnapshotter](https://github.com/Naxesss/MapsetSnapshotter), [MapsetVerifierFramework](https://github.com/Naxesss/MapsetVerifierFramework), and [MapsetVerifierBackend](https://github.com/Naxesss/MapsetVerifierBackend). All of these are open source. The remaining electron files are available in the program itself, `/Mapset Verifier/resources/app`.
+
 ![](https://i.imgur.com/F6HhxPU.gif)
 
 # Features
@@ -104,3 +106,4 @@ Current taiko, catch, and mania checks are not specific to those modes, they jus
 # Note
 - Always use your own judgment. False positives and negatives may exist (as with any modding tool), meaning some detections will happen even if they shouldn't and visa versa.
 - Game modes apart from standard do not have star ratings implemented and don't have specific checks either by default. The tool can still be used to check for general/all mode things like audio/metadata/files/unsnaps etc, though.
+- Do be careful about which check plugins you use, as they can be malicious. The plugins are executed by the backend of the application, so they can pretty much do anything the rest of the application can.
