@@ -53,7 +53,7 @@ Mapset Verifier is made up of [MapsetParser](https://github.com/Naxesss/MapsetPa
 - **(Audio)** Incorrect hit sound format.
 - **(Audio)** Imbalanced hit sounds.
 - **(Audio)** Too short hit sounds.
-- **(Audio)** Multiple audio files.
+- **(Audio)** Multiple or missing audio files.
 ### All Modes
 - **(Timing)** Two inherited or uninherited concurrent timing lines.
 - **(Timing)** First line toggles kiai or is inherited.
