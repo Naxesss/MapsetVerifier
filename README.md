@@ -15,7 +15,7 @@ Mapset Verifier is made up of [MapsetParser](https://github.com/Naxesss/MapsetPa
 - Changeable difficulty interpretation
 - Verbose mode (minor issues)
 - Plugin support (add check DLLs to %APPDATA%/Mapset Verifier Externals/checks)
-- Open source (see MapsetParser, MapsetChecks, etc)
+- Open source (see [MapsetParser](https://github.com/Naxesss/MapsetParser), [MapsetChecks](https://github.com/Naxesss/MapsetChecks), etc)
 - Timeline Comparison (supports all modes except mania)
 
 # Examples of fixed false positives/negatives
