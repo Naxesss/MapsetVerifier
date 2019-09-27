@@ -16,6 +16,7 @@ Mapset Verifier is made up of [MapsetParser](https://github.com/Naxesss/MapsetPa
 - Verbose mode (minor issues)
 - Plugin support (add check DLLs to %APPDATA%/Mapset Verifier Externals/checks)
 - Open source (see MapsetParser, MapsetChecks, etc)
+- Timeline Comparison (supports all modes except mania)
 
 # Examples of fixed false positives/negatives
 ### Modding Assistant
@@ -24,17 +25,20 @@ Mapset Verifier is made up of [MapsetParser](https://github.com/Naxesss/MapsetPa
 - misinterpreting hit sounds on slider bodies as hit sounds on heads/tails.
 - completely ignoring storyboard variables and animation frames.
 
-### AiMod
+### AiMod *
 - failing to detect unsnaps when they are 2 ms too early.
 - not accounting for stacking.
 - using a vastly outdated star rating system, saying you need an easy/normal when you already have one.
 - using inaccurate playfield measurements to detect offscreen hit objects.
 
-# Checks (as of 2019-08-03)
+* As of the release of MV, some have been fixed since
+
+# Checks (as of 2019-09-27)
 ### General
 - **(Resources)** Missing background.
 - **(Resources)** Too high or low background resolution.
 - **(Resources)** Multiple videos.
+- **(Resources)** Overlay layer usage.
 - **(Resources)** Too high sprite resolution.
 - **(Resources)** Inconsistent video offset.
 - **(Resources)** Too high video resolution.
@@ -42,11 +46,13 @@ Mapset Verifier is made up of [MapsetParser](https://github.com/Naxesss/MapsetPa
 - **(Metadata)** Inconsistent metadata.
 - **(Metadata)** Incorrect marker format.
 - **(Metadata)** Incorrect marker spacing.
+- **(Metadata)** BMS used as source.
 - **(Metadata)** Unicode in romanized fields.
 - **(Metadata)** Incorrect format of (TV Size) / (Game Ver.) / (Short Ver.) in title.
 - **(Files)** Unused files.
 - **(Files)** Issues with updating or downloading.
 - **(Files)** 0-byte files.
+- **(Audio)** Incorrect audio format.
 - **(Audio)** Audio channels in video.
 - **(Audio)** Too high or low audio bitrate.
 - **(Audio)** Delayed hit sounds.
@@ -55,7 +61,7 @@ Mapset Verifier is made up of [MapsetParser](https://github.com/Naxesss/MapsetPa
 - **(Audio)** Too short hit sounds.
 - **(Audio)** Multiple or missing audio files.
 ### All Modes
-- **(Timing)** Two inherited or uninherited concurrent timing lines.
+- **(Timing)** Concurrent or conflicting timing lines.
 - **(Timing)** First line toggles kiai or is inherited.
 - **(Timing)** Inconsistent uninherited lines, meter signatures or BPM.
 - **(Timing)** Unsnapped kiai.
