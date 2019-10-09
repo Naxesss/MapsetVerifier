@@ -31,7 +31,7 @@ Mapset Verifier is made up of [MapsetParser](https://github.com/Naxesss/MapsetPa
 - using a vastly outdated star rating system, saying you need an easy/normal when you already have one.
 - using inaccurate playfield measurements to detect offscreen hit objects.
 
-* As of the release of MV, some have been fixed since
+\* As of the release of MV, some have been fixed since
 
 # Checks (as of 2019-09-27)
 ### General
