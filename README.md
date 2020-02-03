@@ -1,10 +1,16 @@
-# Mapset Verifier
-This desktop app tests a large amount of quantifyable issues in beatmapsets from the rhythm game osu!, such as unsnapped objects and unused files. Many of these issues would otherwise disqualify the map from being ranked (i.e. promoted as official, awarding performance points). Although mainly aimed at Beatmap Nominators, this can also be used by mapset creators and reviewers to speed up the ranking process.
+| README.md |
+|:----------|
 
-Mapset Verifier is a successor to the game's built-in [AiMod](https://osu.ppy.sh/help/wiki/Beatmap_Editor/AiMod) and [Sieg's Modding Assistant](https://osu.ppy.sh/community/forums/topics/359381), providing more features and greater scalability. Some examples include auto-updates, plugin support, and integrated documentation and diff utilities.
+![Mapset Verifier](https://i.imgur.com/O4d2jTa.png)
 
-Note that some issues are not easily quantified, especially ones related to metadata and timing; far from everything is covered. Also note that false positives and negatives may exist, as with any similar tool, meaning some detections will happen even if they shouldn't and visa versa. As such, always use your own judgement and be critical about what the program points out, especially warnings.
+Mapset Verifier (MV) is a desktop app which tests quantifyable issues in [beatmapsets](https://osu.ppy.sh/help/wiki/Beatmaps) [osu!](https://en.wikipedia.org/wiki/Osu!), such as unsnapped objects and unused files. Many of these issues would otherwise disqualify the map from being [ranked](https://osu.ppy.sh/help/wiki/Beatmap_ranking_procedure#ranked). Although mainly aimed at [Beatmap Nominators](https://osu.ppy.sh/help/wiki/Beatmap%20Nominators), this can also be used by mapset creators and reviewers to speed up [the ranking process](https://osu.ppy.sh/help/wiki/Beatmap_ranking_procedure).
 
+MV is a successor to the game's built-in [AiMod](https://osu.ppy.sh/help/wiki/Beatmap_Editor/AiMod) and [Sieg's Modding Assistant](https://osu.ppy.sh/community/forums/topics/359381), providing more features and greater scalability. Some examples include auto-updates, plugin support, and integrated documentation and diff utilities.
+
+### Note
+Some issues are not easily quantified, especially ones related to [metadata](https://osu.ppy.sh/help/wiki/Ranking_Criteria#metadata) and [timing](https://osu.ppy.sh/help/wiki/Ranking_Criteria#timing). [False positives and false negatives](https://en.wikipedia.org/wiki/False_positives_and_false_negatives) may occur, as with any similar tool, so always use your own judgement and be critical about what the program points out, especially warnings.
+
+##
 ![](https://i.imgur.com/F6HhxPU.gif?sanitize=true)
 
 ## Download
