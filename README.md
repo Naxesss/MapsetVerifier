@@ -61,11 +61,12 @@ The remaining HTML/CSS/JS files are available in the application, see `/Mapset V
 Add check DLLs to `%APPDATA%/Mapset Verifier Externals/checks` to have them load in just like the default checks. To create these DLLs, have a look at how [MapsetChecks](https://github.com/Naxesss/MapsetChecks) was created. [This](https://github.com/rorre/MV-SliderOnly#building) is probably also useful.
 
 Third-party plugins (that I'm aware of):
-- [CatchCheck](https://github.com/rorre/CatchCheck), adds osu!catch-specific checks.
+- [CatchCheck](https://github.com/rorre/CatchCheck) by Keitaro-, adds osu!catch-specific checks.
+- [MapsetChecksCatch](https://github.com/Darius-Wattimena/MapsetChecksCatch) by Greaper, adds osu!catch-specific checks.
 
 In general, do be careful about which check plugins you use, as they can be malicious. The plugins are executed by the back end of the application, so they can pretty much do anything the rest of the application can.
 
-## Checks (last updated 2019-11-09)
+## Checks (last updated 2020-03-01)
 ### General
 
 | Category | Issue Message |
@@ -90,6 +91,7 @@ In general, do be careful about which check plugins you use, as they can be mali
 | **Audio** | Incorrect audio format. |
 | **Audio** | Audio channels in video. |
 | **Audio** | Too high or low audio bitrate. |
+| **Audio** | Frequent finish hit sounds. |
 | **Audio** | Delayed hit sounds. |
 | **Audio** | Incorrect hit sound format. |
 | **Audio** | Imbalanced hit sounds. |
@@ -106,7 +108,7 @@ In general, do be careful about which check plugins you use, as they can be mali
 | **Timing** | Unsnapped kiai. |
 | **Timing** | Inconsistent or unset preview time. |
 | **Timing** | Unsnapped hit objects. |
-| **Timing** | Unused uninherited lines. |
+| **Timing** | Unused timing lines. |
 | **Timing** | Wrongly or inconsistently snapped hit objects. |
 | **Spread** | Lowest difficulty too difficult for the given drain/play time(s). |
 | **Settings** | Abnormal difficulty settings. |
@@ -156,13 +158,7 @@ In general, do be careful about which check plugins you use, as they can be mali
 | **Hit Sounds** | Long periods without hit sounding. |
 | **Events** | Storyboarded hit sounds. |
 
-### Mania
-
-| Category | Issue Message |
-| --- | --- |
-| **Hit Sounds** | Long periods without hit sounding. |
-
-Current taiko, catch, and mania checks are not specific to those modes, they just don't fit into All Modes due to one or more modes being excluded for the respective checks. These modes also do not have their SRs implemented, so difficulty level guessing may be off sometimes.
+Current taiko and catch checks are not specific to those modes, they just don't fit into All Modes due to one or more modes being excluded for the respective checks. These modes, as well as mania, do not have their SRs implemented, so difficulty level guessing may be off sometimes.
 
 ## Reporting Bugs
 
