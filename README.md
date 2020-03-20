@@ -66,7 +66,7 @@ Third-party plugins (that I'm aware of):
 
 In general, do be careful about which check plugins you use, as they can be malicious. The plugins are executed by the back end of the application, so they can pretty much do anything the rest of the application can.
 
-## Checks (last updated 2020-03-01)
+## Checks (last updated 2020-03-20)
 ### General
 
 | Category | Issue Message |
@@ -78,13 +78,12 @@ In general, do be careful about which check plugins you use, as they can be mali
 | **Resources** | Too high sprite resolution. |
 | **Resources** | Inconsistent video offset. |
 | **Resources** | Too high video resolution. |
-| **Metadata** | Additional markers in title. |
 | **Metadata** | Inconsistent metadata. |
 | **Metadata** | Incorrect marker format. |
 | **Metadata** | Incorrect marker spacing. |
 | **Metadata** | BMS used as source. |
 | **Metadata** | Unicode in romanized fields. |
-| **Metadata** | Incorrect format of (TV Size) / (Game Ver.) / (Short Ver.) in title. |
+| **Metadata** | Incorrect format of (TV Size) / (Game Ver.) / (Short Ver.) / (Sped Up Ver.) in title. |
 | **Files** | Unused files. |
 | **Files** | Issues with updating or downloading. |
 | **Files** | 0-byte files. |
