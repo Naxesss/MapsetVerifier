@@ -12,7 +12,28 @@ Some issues are not easily quantified, especially ones related to [metadata](htt
 
 ## Download
 
-See the latest [release](https://github.com/Naxesss/MapsetVerifier/releases/latest). On Windows, get the exe file. On Linux, get the tar.gz.
+See [the latest release](https://github.com/Naxesss/MapsetVerifier/releases/latest). On Windows, get the exe file. On Linux, get the tar.gz.
+
+| Version | Date Released | Windows | Linux |
+| ---     | ---           | ---     | ---   |
+| 1.6.6   | 2020-08-04    | ![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.6.6/mapsetverifier-setup-1.6.6.exe.svg) | ![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.6.6/mapsetverifier-1.6.6.tar.gz.svg) |
+| 1.6.5   | 2020-07-03    | ![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.6.5/mapsetverifier-setup-1.6.5.exe.svg) | ![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.6.5/mapsetverifier-1.6.5.tar.gz.svg) |
+| 1.6.4   | 2020-06-17    | ![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.6.4/mapsetverifier-setup-1.6.4.exe.svg) | ![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.6.4/mapsetverifier-1.6.4.tar.gz.svg) |
+| 1.6.3   | 2020-06-06    | ![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.6.3/mapsetverifier-setup-1.6.3.exe.svg) | ![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.6.3/mapsetverifier-1.6.3.tar.gz.svg) |
+
+## Common Problems
+
+- **Windows protected pc**
+    - Solution: More info > Run anyway *OR* Right click installer > Properties > Unblock
+    - Reason: Installer has no signed certificate (costs)
+
+- **Stuck on install screen on reinstall**
+    - Solution: Uninstall before reinstalling
+    - Reason: Limitation in electron-builder
+
+- **Infinite loading, windows 7**
+    - Solution: Get [KB2533623](https://support.microsoft.com/en-us/help/2533623/microsoft-security-advisory-insecure-library-loading-could-allow-remot)
+    - Reason: Backend blocked from running due to DLL loading being insecure without patch
 
 ## Components
 
@@ -66,18 +87,19 @@ Third-party plugins (that I'm aware of):
 
 In general, do be careful about which check plugins you use, as they can be malicious. The plugins are executed by the back end of the application, so they can pretty much do anything the rest of the application can.
 
-## Checks (last updated 2020-03-20)
+## Checks (last updated 2020-08-04)
 ### General
 
 | Category | Issue Message |
 | --- | --- |
 | **Resources** | Missing background. |
 | **Resources** | Too high or low background resolution. |
-| **Resources** | Multiple videos. |
+| **Resources** | Inconsistent video usage. |
 | **Resources** | Overlay layer usage. |
 | **Resources** | Too high sprite resolution. |
 | **Resources** | Inconsistent video offset. |
 | **Resources** | Too high video resolution. |
+| **Metadata** | Missing genre/language in tags. |
 | **Metadata** | Inconsistent metadata. |
 | **Metadata** | Incorrect marker format. |
 | **Metadata** | Incorrect marker spacing. |
@@ -89,6 +111,7 @@ In general, do be careful about which check plugins you use, as they can be mali
 | **Files** | 0-byte files. |
 | **Audio** | Incorrect audio format. |
 | **Audio** | Audio channels in video. |
+| **Audio** | More than 20% unused audio at the end. |
 | **Audio** | Too high or low audio bitrate. |
 | **Audio** | Frequent finish hit sounds. |
 | **Audio** | Delayed hit sounds. |
@@ -116,7 +139,6 @@ In general, do be careful about which check plugins you use, as they can be mali
 | **Hit Sounds** | Low volume hit sounding. |
 | **Events** | Breaks only achievable through .osu editing. |
 | **Compose** | Abnormal amount of slider nodes. |
-| **Compose** | More than 20% unused audio at the end. |
 | **Compose** | Concurrent hit objects. |
 | **Compose** | Too short drain time. |
 | **Compose** | Invisible sliders. |
@@ -125,7 +147,7 @@ In general, do be careful about which check plugins you use, as they can be mali
 
 | Category | Issue Message |
 | --- | --- |
-| **Timing** | Hit object is slightly behind a line which would modify it. |
+| **Timing** | Hit object is unaffected by a line very close to it. |
 | **Spread** | Objects close in time not overlapping. |
 | **Spread** | Multiple reverses on too short sliders. |
 | **Spread** | Too short sliders. |
@@ -146,14 +168,14 @@ In general, do be careful about which check plugins you use, as they can be mali
 
 | Category | Issue Message |
 | --- | --- |
-| **Timing** | Hit object is slightly behind a line which would modify it. |
+| **Timing** | Hit object is unaffected by a line very close to it. |
 | **Events** | Storyboarded hit sounds. |
 
 ### Catch
 
 | Category | Issue Message |
 | --- | --- |
-| **Timing** | Hit object is slightly behind a line which would modify it. |
+| **Timing** | Hit object is unaffected by a line very close to it. |
 | **Hit Sounds** | Long periods without hit sounding. |
 | **Events** | Storyboarded hit sounds. |
 
