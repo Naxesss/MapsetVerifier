@@ -31,7 +31,11 @@ See [the latest release](https://github.com/Naxesss/MapsetVerifier/releases/late
     - Solution: Uninstall before reinstalling
     - Reason: Limitation in electron-builder
 
-- **Infinite loading, windows 7**
+- **Backend closed / infinite loading, no MapsetVerifierBackend.exe in `/app/api/win-x86`**
+    - Solution: Uninstall, reinstall, then whitelist this exe in your antivirus before running again
+    - Reason: Antivirus false positive, deletes the backend (part that does checks) on first run
+
+- **Infinite loading, windows 7 version before KB2533623**
     - Solution: Get [KB2533623](https://support.microsoft.com/en-us/help/2533623/microsoft-security-advisory-insecure-library-loading-could-allow-remot)
     - Reason: Backend blocked from running due to DLL loading being insecure without patch
 
