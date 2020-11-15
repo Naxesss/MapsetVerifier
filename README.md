@@ -12,7 +12,7 @@ Some issues are not easily quantified, especially ones related to [metadata](htt
 
 ## Download
 
-See [the latest release](https://github.com/Naxesss/MapsetVerifier/releases/latest). On Windows, get the exe file. On Linux, get the tar.gz.
+See [the latest release](https://github.com/Naxesss/MapsetVerifier/releases/latest). On Windows, get the exe file. On Linux, get the tar.gz / [use this package on archlinux](https://aur.archlinux.org/packages/mapset-verifier-bin/).
 
 | Version | Date Released | Windows | Linux |
 | ---     | ---           | ---     | ---   |
