@@ -32,7 +32,7 @@ See [the latest release](https://github.com/Naxesss/MapsetVerifier/releases/late
     - Solution: Uninstall before reinstalling
     - Reason: Limitation in electron-builder
 
-- **Backend closed / infinite loading, no MapsetVerifierBackend.exe in `/app/api/win-x86`**
+- **Javascript error ENOENT, no MapsetVerifierBackend.exe in `/app/api/win-x86`**
     - Solution: Uninstall, reinstall, then whitelist this exe in your antivirus before running again
     - Reason: Antivirus false positive, deletes the backend (part that does checks) on first run
 
