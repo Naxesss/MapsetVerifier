@@ -7,6 +7,8 @@ MV is a successor to the game's built-in [AiMod](https://osu.ppy.sh/help/wiki/Be
 ### Note
 Some issues are not easily quantified, especially ones related to [metadata](https://osu.ppy.sh/help/wiki/Ranking_Criteria#metadata) and [timing](https://osu.ppy.sh/help/wiki/Ranking_Criteria#timing); far from everything is covered. Also, [false positives and false negatives](https://en.wikipedia.org/wiki/False_positives_and_false_negatives) may occur, as with any similar tool. So always use your own judgement and be critical about what the program points out, especially warnings.
 
+*This is currently being ported to osu!lazer. [You can track its progress here!](https://github.com/ppy/osu/issues/12091#issuecomment-878760791)*
+
 ##
 ![](https://i.imgur.com/F6HhxPU.gif?sanitize=true)
 
