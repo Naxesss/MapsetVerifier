@@ -16,6 +16,7 @@ See [the latest release](https://github.com/Naxesss/MapsetVerifier/releases/late
 
 | Version | Date Released | Windows | Linux |
 | ---     | ---           | ---     | ---   |
+| 1.8.0   | 2021-09-14    | [![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.8.0/mapsetverifier-setup-1.8.0.exe.svg)](https://github.com/Naxesss/MapsetVerifier/releases/download/v1.8.0/mapsetverifier-setup-1.8.0.exe) | [![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.8.0/mapsetverifier-1.8.0.tar.gz.svg)](https://github.com/Naxesss/MapsetVerifier/releases/download/v1.8.0/mapsetverifier-1.8.0.tar.gz) |
 | 1.7.2   | 2020-10-07    | [![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.7.2/mapsetverifier-setup-1.7.2.exe.svg)](https://github.com/Naxesss/MapsetVerifier/releases/download/v1.7.2/mapsetverifier-setup-1.7.2.exe) | [![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.7.2/mapsetverifier-1.7.2.tar.gz.svg)](https://github.com/Naxesss/MapsetVerifier/releases/download/v1.7.2/mapsetverifier-1.7.2.tar.gz) |
 | 1.7.1   | 2020-10-03    | [![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.7.1/mapsetverifier-setup-1.7.1.exe.svg)](https://github.com/Naxesss/MapsetVerifier/releases/download/v1.7.1/mapsetverifier-setup-1.7.1.exe) | [![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.7.1/mapsetverifier-1.7.1.tar.gz.svg)](https://github.com/Naxesss/MapsetVerifier/releases/download/v1.7.1/mapsetverifier-1.7.1.tar.gz) |
 | 1.7.0   | 2020-09-28    | [![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.7.0/mapsetverifier-setup-1.7.0.exe.svg)](https://github.com/Naxesss/MapsetVerifier/releases/download/v1.7.0/mapsetverifier-setup-1.7.0.exe) | [![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.7.0/mapsetverifier-1.7.0.tar.gz.svg)](https://github.com/Naxesss/MapsetVerifier/releases/download/v1.7.0/mapsetverifier-1.7.0.tar.gz) |
@@ -67,7 +68,7 @@ The remaining HTML/CSS/JS files are available in the application, see `/Mapset V
 | Verbose Mode | ✅ | ⬜️ | ✅ |
 | Plugin Support | ✅ | ⬜️ | ⬜️ |
 | Open Source | ✅ | ⬜️ | ⬜️ |
-| Difficulty Graph | ⬜️ | ✅ (Outdated SR) | ⬜️ |
+| Difficulty Graph | ✅ | ✅ (Outdated SR) | ⬜️ |
 
 ## Examples of fixed false positives/negatives
 ### Modding Assistant
@@ -92,7 +93,7 @@ Third-party plugins (that I'm aware of):
 
 In general, do be careful about which check plugins you use, as they can be malicious. The plugins are executed by the back end of the application, so they can pretty much do anything the rest of the application can.
 
-## Checks (last updated 2020-08-04)
+## Checks (last updated 2021-09-14)
 ### General
 
 | Category | Issue Message |
@@ -104,17 +105,16 @@ In general, do be careful about which check plugins you use, as they can be mali
 | **Resources** | Too high sprite resolution. |
 | **Resources** | Inconsistent video offset. |
 | **Resources** | Too high video resolution. |
-| **Metadata** | Missing genre/language in tags. |
 | **Metadata** | Inconsistent metadata. |
 | **Metadata** | Incorrect marker format. |
 | **Metadata** | Incorrect marker spacing. |
 | **Metadata** | BMS used as source. |
+| **Metadata** | Incorrect format of (TV Size) / (Game Ver.) / (Short Ver.) / (Cut Ver.) / (Sped Up Ver.) in title. |
 | **Metadata** | Unicode in romanized fields. |
-| **Metadata** | Incorrect format of (TV Size) / (Game Ver.) / (Short Ver.) / (Sped Up Ver.) in title. |
-| **Files** | Unused files. |
+| **Metadata** | Missing genre/language in tags. |
 | **Files** | Issues with updating or downloading. |
 | **Files** | 0-byte files. |
-| **Audio** | Incorrect audio format. |
+| **Files** | Unused files. |
 | **Audio** | Audio channels in video. |
 | **Audio** | More than 20% unused audio at the end. |
 | **Audio** | Too high or low audio bitrate. |
@@ -124,6 +124,7 @@ In general, do be careful about which check plugins you use, as they can be mali
 | **Audio** | Imbalanced hit sounds. |
 | **Audio** | Too short hit sounds. |
 | **Audio** | Multiple or missing audio files.  |
+| **Audio** | Incorrect audio format. |
 
 ### All Modes
 
@@ -141,38 +142,42 @@ In general, do be careful about which check plugins you use, as they can be mali
 | **Settings** | Abnormal difficulty settings. |
 | **Settings** | Inconsistent mapset id, countdown, epilepsy warning, etc. |
 | **Settings** | Slider tick rates not aligning with any common beat snap divisor. |
+| **Settings** | Abnormal difficulty settings. |
 | **Hit Sounds** | Low volume hit sounding. |
 | **Events** | Breaks only achievable through .osu editing. |
 | **Compose** | Abnormal amount of slider nodes. |
 | **Compose** | Concurrent hit objects. |
 | **Compose** | Too short drain time. |
 | **Compose** | Invisible sliders. |
+| **Compose** | Abnormal amount of slider nodes. |
 
 ### Standard
 
 | Category | Issue Message |
 | --- | --- |
 | **Timing** | Hit object is unaffected by a line very close to it. |
-| **Spread** | Objects close in time not overlapping. |
 | **Spread** | Multiple reverses on too short sliders. |
 | **Spread** | Too short sliders. |
 | **Spread** | Object too close or far away from previous. |
 | **Spread** | Too short spinner time or spinner recovery time. |
 | **Spread** | Perfect stacks too close in time. |
+| **Spread** | Objects close in time not overlapping. |
 | **Settings** | Default combo colours without forced skin. |
 | **Settings** | Too dark or bright combo colours or slider borders. |
 | **Hit Sounds** | Long periods without hit sounding. |
 | **Events** | Storyboarded hit sounds. |
-| **Compose** | Perfectly overlapping combination of tail, head or red anchors. |
 | **Compose** | Burai slider. |
 | **Compose** | Too short spinner. |
 | **Compose** | Obscured reverse arrows. |
 | **Compose** | Offscreen hit objects. |
+| **Compose** | Abnormally large spacing. |
+| **Compose** | Ambiguous slider intersection. |
 
 ### Taiko
 
 | Category | Issue Message |
 | --- | --- |
+| **Timing** | Inconsistent omitted bar lines. |
 | **Timing** | Hit object is unaffected by a line very close to it. |
 | **Events** | Storyboarded hit sounds. |
 
@@ -181,10 +186,13 @@ In general, do be careful about which check plugins you use, as they can be mali
 | Category | Issue Message |
 | --- | --- |
 | **Timing** | Hit object is unaffected by a line very close to it. |
+| **Settings** | Default combo colours without forced skin. |
+| **Settings** | Too dark or bright combo colours or slider borders. |
 | **Hit Sounds** | Long periods without hit sounding. |
 | **Events** | Storyboarded hit sounds. |
+| **Compose** | Spinner gap too small. |
 
-Current taiko and catch checks are not specific to those modes, they just don't fit into All Modes due to one or more modes being excluded for the respective checks. These modes, as well as mania, do not have their SRs implemented, so difficulty level guessing may be off sometimes.
+Modes apart from standard do not have their SRs implemented, so difficulty levels will likely be wrong.
 
 ## Reporting Bugs
 
