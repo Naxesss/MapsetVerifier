@@ -4,10 +4,10 @@ Mapset Verifier (MV) is a desktop app which tests quantifyable issues in [beatma
 
 MV is a successor to the game's built-in [AiMod](https://osu.ppy.sh/help/wiki/Beatmap_Editor/AiMod) and [Sieg's Modding Assistant](https://osu.ppy.sh/community/forums/topics/359381), providing more features and greater scalability. Some examples include auto-updates, plugin support, and integrated documentation and diff utilities.
 
+*This is currently being ported to osu!lazer. [You can track its progress here!](https://github.com/ppy/osu/issues/12091#issuecomment-878760791)*
+
 ### Note
 Some issues are not easily quantified, especially ones related to [metadata](https://osu.ppy.sh/help/wiki/Ranking_Criteria#metadata) and [timing](https://osu.ppy.sh/help/wiki/Ranking_Criteria#timing); far from everything is covered. Also, [false positives and false negatives](https://en.wikipedia.org/wiki/False_positives_and_false_negatives) may occur, as with any similar tool. So always use your own judgement and be critical about what the program points out, especially warnings.
-
-*This is currently being ported to osu!lazer. [You can track its progress here!](https://github.com/ppy/osu/issues/12091#issuecomment-878760791)*
 
 ##
 ![](https://i.imgur.com/F6HhxPU.gif?sanitize=true)
@@ -18,6 +18,7 @@ See [the latest release](https://github.com/Naxesss/MapsetVerifier/releases/late
 
 | Version | Date Released | Windows | Linux |
 | ---     | ---           | ---     | ---   |
+| 1.8.1   | 2021-09-21    | [![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.8.1/mapsetverifier-setup-1.8.1.exe.svg)](https://github.com/Naxesss/MapsetVerifier/releases/download/v1.8.1/mapsetverifier-setup-1.8.1.exe) | [![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.8.1/mapsetverifier-1.8.1.tar.gz.svg)](https://github.com/Naxesss/MapsetVerifier/releases/download/v1.8.1/mapsetverifier-1.8.1.tar.gz) |
 | 1.8.0   | 2021-09-14    | [![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.8.0/mapsetverifier-setup-1.8.0.exe.svg)](https://github.com/Naxesss/MapsetVerifier/releases/download/v1.8.0/mapsetverifier-setup-1.8.0.exe) | [![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.8.0/mapsetverifier-1.8.0.tar.gz.svg)](https://github.com/Naxesss/MapsetVerifier/releases/download/v1.8.0/mapsetverifier-1.8.0.tar.gz) |
 | 1.7.2   | 2020-10-07    | [![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.7.2/mapsetverifier-setup-1.7.2.exe.svg)](https://github.com/Naxesss/MapsetVerifier/releases/download/v1.7.2/mapsetverifier-setup-1.7.2.exe) | [![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.7.2/mapsetverifier-1.7.2.tar.gz.svg)](https://github.com/Naxesss/MapsetVerifier/releases/download/v1.7.2/mapsetverifier-1.7.2.tar.gz) |
 | 1.7.1   | 2020-10-03    | [![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.7.1/mapsetverifier-setup-1.7.1.exe.svg)](https://github.com/Naxesss/MapsetVerifier/releases/download/v1.7.1/mapsetverifier-setup-1.7.1.exe) | [![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.7.1/mapsetverifier-1.7.1.tar.gz.svg)](https://github.com/Naxesss/MapsetVerifier/releases/download/v1.7.1/mapsetverifier-1.7.1.tar.gz) |
