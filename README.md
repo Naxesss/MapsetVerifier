@@ -199,4 +199,4 @@ Modes apart from standard do not have their SRs implemented, so difficulty level
 
 ## Reporting Bugs
 
-Either post an issue here or contact me on discord Naxess#7180, give beatmapset and reproduction steps if applicable. If you don't have me on discord just join the [Aiess Project](https://discord.gg/2XV5dcW), after which you should be able to message me.
+Either post an issue here or contact me on Discord @naxess. Give beatmapset and reproduction steps if applicable. If you don't have me on discord just join the [Aiess Project](https://discord.gg/2XV5dcW), after which you should be able to message me.
