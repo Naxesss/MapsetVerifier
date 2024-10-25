@@ -26,9 +26,14 @@ jobs:
           BASE_COMMIT=$(git merge-base HEAD origin/main)
           PREVIOUS_VERSION=""
 
+          echo "Current version is $CURRENT_VERSION."
+
           for commit in $(git rev-list $BASE_COMMIT..HEAD); do
             VERSION=$(git show $commit:app/package.json | jq -r '.version')
+            echo "In a previous commit, the version was $VERSION."
+            
             if [ "$VERSION" != "$CURRENT_VERSION" ]; then
+              echo "Previous version is $PREVIOUS_VERSION."
               PREVIOUS_VERSION=$VERSION
               break
             fi
