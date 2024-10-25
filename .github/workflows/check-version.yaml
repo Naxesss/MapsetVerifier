@@ -25,11 +25,13 @@ jobs:
 
       - name: Get current and previous versions
         id: version_check
+        outputs:
+          version_changed: ${{ steps.check-version.outputs.version_changed }}
         run: |
           git fetch origin ${{ github.event.before }} ${{ github.event.after }}
 
-          BEFORE_VERSION=$(git show ${{ github.event.before }}:package.json | jq -r '.version')
-          AFTER_VERSION=$(git show ${{ github.event.after }}:package.json | jq -r '.version')
+          BEFORE_VERSION=$(git show ${{ github.event.before }}:app/package.json | jq -r '.version')
+          AFTER_VERSION=$(git show ${{ github.event.after }}:app/package.json | jq -r '.version')
 
           echo "Before version: $BEFORE_VERSION"
           echo "After version: $AFTER_VERSION"
@@ -37,7 +39,7 @@ jobs:
           echo "before_version=$BEFORE_VERSION" >> $GITHUB_OUTPUT
           echo "after_version=$AFTER_VERSION" >> $GITHUB_OUTPUT
 
-          if [ -n "$BEFORE_VERSION" ]; then
+          if [ "$BEFORE_VERSION" != "$AFTER_VERSION" ]; then
             echo "Version changed from $BEFORE_VERSION to $AFTER_VERSION."
             echo "version_changed=true" >> $GITHUB_OUTPUT
           else
