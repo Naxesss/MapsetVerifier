@@ -77,4 +77,5 @@ jobs:
       - name: Run npm release script
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          USE_HARD_LINKS: false
         run: npm run release
