@@ -73,9 +73,9 @@ See [the latest release](https://github.com/Naxesss/MapsetVerifier/releases/late
 Add check DLLs to `%APPDATA%/Mapset Verifier Externals/checks` to have them load in just like the default checks. To create these DLLs, have a look at how [MapsetChecks](https://github.com/Naxesss/MapsetChecks) was created. [This](https://github.com/rorre/MV-SliderOnly#building) is probably also useful.
 
 Third-party plugins (that I'm aware of):
-- [CatchCheck](https://github.com/rorre/CatchCheck) by -Keitaro, adds osu!catch-specific checks.
-- [MapsetChecksCatch](https://github.com/Darius-Wattimena/MapsetChecksCatch) by Greaper, adds osu!catch-specific checks.
-- [MVTaikoChecks](https://github.com/Hiviexd/MVTaikoChecks) by Hivie, adds osu!taiko-specific checks.
+- [CatchCheck](https://github.com/rorre/CatchCheck) by [-Keitaro](https://osu.ppy.sh/users/3378391), adds osu!catch-specific checks.
+- [MapsetChecksCatch](https://github.com/Darius-Wattimena/MapsetChecksCatch) by [Greaper](https://osu.ppy.sh/users/2369776), adds osu!catch-specific checks.
+- [MVTaikoChecks](https://github.com/Hiviexd/MVTaikoChecks) by [Hivie](https://osu.ppy.sh/users/14102976), adds osu!taiko-specific checks.
 
 In general, do be careful about which check plugins you use, as they can be malicious. The plugins are executed by the back end of the application, so they can pretty much do anything the rest of the application can.
 
