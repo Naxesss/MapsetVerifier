@@ -117,11 +117,11 @@ function startApi()
 	var childProcess = require("child_process");
 	
 	// Start the correct backend executable for the current operating system.
-	var apipath = path.join(__dirname, "api/win-x86/MapsetVerifierBackend.exe");
+	var apipath = path.join(__dirname, "api/win-x86/MapsetVerifier.exe");
 	if (os.platform() === "darwin")
-		apipath = path.join(__dirname, "api/osx-x64/MapsetVerifierBackend");
+		apipath = path.join(__dirname, "api/osx-x64/MapsetVerifier");
 	else if (os.platform() === "linux")
-		apipath = path.join(__dirname, "api/linux-x64/MapsetVerifierBackend");
+		apipath = path.join(__dirname, "api/linux-x64/MapsetVerifier");
 	
 	// bass.dll needs to be 32-bit for 32-bit programs, which run on both 64-bit and 32-bit windows.
 	// If bass.dll would be 64-bit, it would only run for 64-bit programs, which only run on 64-bit windows.
