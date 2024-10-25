@@ -1,6 +1,7 @@
 name: Check Version
 
 on:
+  workflow-dispatch:
   push:
     branches:
       - main
