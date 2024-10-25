@@ -32,7 +32,7 @@ See [the latest release](https://github.com/Naxesss/MapsetVerifier/releases/late
     - Solution: More info > Run anyway *OR* Right click installer > Properties > Unblock
     - Reason: Installer has no signed certificate (costs)
 
-- **Stuck on install screen on reinstall**
+- **Stuck on install screen when reinstalling**
     - Solution: Uninstall before reinstalling
     - Reason: Limitation in electron-builder
 
