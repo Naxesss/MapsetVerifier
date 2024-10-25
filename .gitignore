@@ -1,0 +1,37 @@
+# Dependencies are generated from `package.lock` files.
+**/node_modules/
+
+# Temporary files
+*.swp
+*~
+.DS_Store
+*.pyc
+
+# IDEs
+.vscode/
+.idea/
+.vs/
+.fleet/
+.cr/
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+src/[Dd]ebug/
+src/[Dd]ebugPublic/
+src/[Rr]elease/
+src/[Rr]eleases/
+src/x64/
+src/x86/
+src/build/
+src/bld/
+src/[Bb]in/
+src/[Oo]bj/
+src/[Oo]ut/
+src/msbuild.log
+src/msbuild.err
+src/msbuild.wrn

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+	<link rel="stylesheet" href="style.css">
+    <title>Mapset Verifier</title>
+</head>
+<body>
+	<div id="back">
+		<div id="front">
+			<div class="front-bg" id="front-default-bg"></div>
+			<div class="front-bg" id="front-beatmap-bg"></div>
+		</div>
+		<div id="notify"></div>
+		<div id="top">
+			<div id="top-logo">
+				<div id="top-logo-image"></div>
+				<div id="top-logo-text">Mapset Verifier</div>
+			</div>
+			<div id="top-button-container">
+				<div class="top-button" id="top-button-minimize">
+					<div class="top-button-icon" id="top-button-minimize-icon"></div>
+				</div>
+				<div class="top-button" id="top-button-maximize">
+					<div class="top-button-icon" id="top-button-maximize-icon"></div>
+				</div>
+				<div class="top-button" id="top-button-close">
+					<div class="top-button-icon" id="top-button-close-icon"></div>
+				</div>
+			</div>
+		</div>
+		<div id="wrapper">
+			<div id="overlay">
+				<div id="overlay-outer">
+					<div id="overlay-inner"></div>
+				</div>
+			</div>
+			<div id="non-overlay">
+				<div id="left">
+					<div id="left-content">
+						<div id="left-content-top">
+							<input class="left-content-search-button folder-icon" id="left-content-search-folder" type="button" data-tooltip="Select song folder"></input>
+							<input class="left-content-search-button" id="left-content-search-reload" type="button" data-tooltip="Reload search"></input>
+						</div>
+						<div id="left-content-search">
+							<input id="left-content-search-bar" type="text" data-pretext="Search beatmapsets..." data-tooltip="This uses full-match searching. Each beatmapset can be found through the format Artist - Title | Creator (BeatmapID, BeatmapSetID)."></input>
+						</div>
+						<div id="left-content-mapsets"></div>
+					</div>
+				</div>
+				
+				<div id="main">
+					<div class="main-content" data-category="documentation">
+						<div class="main-content-loading">
+							<div class="main-content-loading-icon"></div>
+							<div class="load-info-container"></div>
+						</div>
+						<div class="content-paste" data-category="documentation"></div>
+					</div>
+					<div class="main-content" data-category="checks">
+						<div class="main-content-loading">
+							<div class="main-content-loading-icon"></div>
+							<div class="load-info-container"></div>
+						</div>
+						<div class="content-paste" data-category="checks">
+							<div class="content-paste-placeholder">
+								<div class="content-paste-placeholder-text">
+									Select a beatmapset
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="main-content" data-category="snapshots">
+						<div class="main-content-loading">
+							<div class="main-content-loading-icon"></div>
+							<div class="load-info-container"></div>
+						</div>
+						<div class="content-paste" data-category="snapshots">
+							<div class="content-paste-placeholder">
+								<div class="content-paste-placeholder-text">
+									Select a beatmapset
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="main-content" data-category="overview">
+						<div class="main-content-loading">
+							<div class="main-content-loading-icon"></div>
+							<div class="load-info-container"></div>
+						</div>
+						<div class="content-paste" data-category="overview">
+							<div class="content-paste-placeholder">
+								<div class="content-paste-placeholder-text">
+									Select a beatmapset
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<div id="right">
+					<div class="top-icon cogwheel-icon" id="right-options-overflow" data-tooltip="Settings"></div>
+					<div id="right-category-overflow" class="noselect nodrag">
+						<div class="right-category-option" data-category="Documentation"></div>
+						<div class="right-category-option" data-category="Checks"></div>
+						<div class="right-category-option" data-category="Snapshots"></div>
+						<div class="right-category-option" data-category="Overview"></div>
+					</div>
+					
+					<div id="right-content">
+						<div class="right-options">
+						
+							<div class="right-options-title">General</div>
+							<div class="right-option flex" data-tooltip="Hides the list to the left of the screen, allowing everything else to take more space,
+								but makes it impossible to load beatmaps.">
+								<div id="option-toggle-left" class="option-box"><div class="option-tick"></div></div>
+								<div class="option-desc">Hide beatmap listing</div>
+							</div>
+							<div class="right-option flex" data-tooltip="Disables the background shown when first starting the program or when hiding beatmap
+								backgrounds, making the background plain gray.">
+								<div id="option-toggle-default-bg" class="option-box"><div class="option-tick"></div></div>
+								<div class="option-desc">Disable default background</div>
+							</div>
+							<div class="right-option flex" data-tooltip="Disables the backgrounds of loaded beatmaps from replacing the default background.">
+								<div id="option-toggle-beatmap-bg" class="option-box"><div class="option-tick"></div></div>
+								<div class="option-desc">Disable beatmap background</div>
+							</div>
+							<div class="right-option flex" data-tooltip="Prevents the program from flashing its taskbar icon whenever a beatmap is loaded
+								and the program is unfocused.">
+								<div id="option-disable-flashing" class="option-box"><div class="option-tick"></div></div>
+								<div class="option-desc">Disable taskbar flashing</div>
+							</div>
+							
+							<div class="right-options-title">Checks</div>
+							<div class="right-option flex" data-tooltip="Shows any instance of checkmarks, including categories and details. Works best 
+								with contract categories.">
+								<div id="option-show-checks" class="option-box"><div class="option-tick"></div></div>
+								<div class="option-desc">Show <div class="small-icon inline-icon check-icon"></div></div>
+							</div>
+							<div class="right-option flex" data-tooltip="Shows all instances of negligible issues. Would advise against using this for
+								modding.">
+								<div id="option-show-minor" class="option-box"><div class="option-tick"></div></div>
+								<div class="option-desc">Show <div class="small-icon inline-icon minor-icon"></div></div>
+							</div>
+							<div class="right-option flex" data-tooltip="Automatically contracts all categories in both the Checks and Snapshots tabs.">
+								<div id="option-contract-categories" class="option-box"><div class="option-tick"></div></div>
+								<div class="option-desc">Contract categories</div>
+							</div>
+							
+							<div class="right-options-title">Overview</div>
+							<div class="right-option flex" data-tooltip="Shows N/A fields in the overview tab.">
+								<div id="option-show-NA" class="option-box"><div class="option-tick"></div></div>
+								<div class="option-desc">Show N/A</div></div>
+							</div>
+
+							<div class="right-options-title">Shortcuts</div>
+							<div id="option-shortcut-app" class="medium-icon folder-icon beatmap-option beatmap-option-filter" data-tooltip="Open application folder"></div>
+							<div id="option-shortcut-externals" class="medium-icon folder-external-icon beatmap-option beatmap-option-filter" data-tooltip="Open externals folder"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<script src="base.js"></script>
+	<script src="tooltip.js"></script>
+	<script src="script.js"></script>
+</body>
+</html>

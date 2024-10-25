@@ -1,0 +1,86 @@
+{
+	"name": "mapsetverifier",
+	"version": "1.0.0",
+	"author": "Naxess <naxess.w@gmail.com>",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Naxesss/MapsetVerifier.git"
+	},
+	"main": "./app/main.js",
+	"devDependencies": {
+		"electron": "^5.0.6",
+		"electron-builder": "^20.43.0"
+	},
+	"dependencies": {
+		"@aspnet/signalr": "^1.1.4",
+		"chart.js": "^2.9.4",
+		"electron-localshortcut": "^3.1.0",
+		"electron-updater": "^4.0.14",
+		"jquery": "^3.5.1",
+		"winreg": "^1.2.4"
+	},
+	"scripts": {
+		"postinstall": "install-app-deps",
+		"start": "npm install && electron ./app",
+		"pack": "build --dir",
+		"dist": "electron-builder --x64 -w",
+		"dist-all": "electron-builder --ia32 --x64 -wl",
+		"release": "build -wl"
+	},
+	"build": {
+		"appId": "mapsetverifier",
+		"productName": "Mapset Verifier",
+		"asar": false,
+		"extraFiles": [
+			{
+				"from": "./app/bass.dll",
+				"to": "."
+			},
+			"bass.dll",
+			{
+				"from": "./app/libbass.so",
+				"to": "."
+			},
+			"libbass.so"
+		],
+		"publish": [
+			{
+				"provider": "github"
+			}
+		],
+		"linux": {
+			"target": "tar.gz",
+			"files": [
+				"!**/win-x86/*"
+			]
+		},
+		"mac": {
+			"target": "dmg",
+			"icon": "build/icon.icns"
+		},
+		"win": {
+			"target": [
+				{
+					"target": "nsis",
+					"arch": [
+						"x64",
+						"ia32"
+					]
+				}
+			],
+			"icon": "build/icon.png",
+			"files": [
+				"!**/linux-x64/*"
+			]
+		},
+		"nsis": {
+			"uninstallDisplayName": "${productName} Uninstaller.exe",
+			"oneClick": false,
+			"perMachine": true,
+			"runAfterFinish": true,
+			"allowElevation": true,
+			"allowToChangeInstallationDirectory": true,
+			"artifactName": "${productName} Installer.exe"
+		}
+	}
+}
