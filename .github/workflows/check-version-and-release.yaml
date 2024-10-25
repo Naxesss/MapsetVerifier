@@ -49,7 +49,7 @@ jobs:
           fi
 
   release:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: check-version
     if: needs.check-version.outputs.version_changed == 'true'
     steps:
