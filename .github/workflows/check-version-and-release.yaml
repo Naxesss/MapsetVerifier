@@ -1,4 +1,4 @@
-name: Check Version
+name: Check Version & Release
 
 on:
   push:
