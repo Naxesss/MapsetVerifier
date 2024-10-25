@@ -40,10 +40,6 @@ See [the latest release](https://github.com/Naxesss/MapsetVerifier/releases/late
     - Solution: Uninstall, reinstall, then whitelist this exe in your antivirus before running again
     - Reason: Antivirus false positive, deletes the backend (part that does checks) on first run
 
-- **Infinite loading, windows 7 version before KB2533623**
-    - Solution: Get [KB2533623](https://support.microsoft.com/en-us/help/2533623/microsoft-security-advisory-insecure-library-loading-could-allow-remot)
-    - Reason: Backend blocked from running due to DLL loading being insecure without patch
-
 ## Components
 
 Mapset Verifier is comprised of the following open source .NET Core components:
