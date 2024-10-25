@@ -34,11 +34,11 @@ jobs:
             fi
           done
 
-          echo "current_version=$CURRENT_VERSION" >> $GITHUB_ENV
-          echo "previous_version=$PREVIOUS_VERSION" >> $GITHUB_ENV
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "previous_version=$PREVIOUS_VERSION" >> $GITHUB_OUTPUT
 
           if [ -n "$PREVIOUS_VERSION" ]; then
-            echo "Version changed from ${{ env.previous_version }} to ${{ env.current_version }}."
+            echo "Version changed from $PREVIOUS_VERSION to $CURRENT_VERSION."
           else
             echo "Version did not change."
           fi
@@ -46,9 +46,9 @@ jobs:
   release:
     runs-on: ubuntu-latest
     needs: version-check
-    if: env.previous_version != ''
+    if: needs.version-check.outputs.previous_version != ''
 
     steps:
       - name: Release
         run: |
-          echo "TODO: Make a release as version `${{ env.current_version }}`."
+          echo "TODO: Make a release as version `${{ needs.version-check.outputs.current_version }}`."
