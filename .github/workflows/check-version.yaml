@@ -32,10 +32,12 @@ jobs:
           echo "Current version is $CURRENT_VERSION."
 
           # Get the list of commit IDs from the event
-          COMMITS=$(echo "${{ toJson(github.event.commits) }}" | jq -r '.[].id')
+          COMMITS=$(echo "${{ toJson(github.event.commits) }}" | jq -r ".[].id")
+          
+          echo "Commits $COMMITS."
 
           for commit in $COMMITS; do
-            VERSION=$(git show $commit:app/package.json | jq -r '.version')
+            VERSION=$(git show $commit:app/package.json | jq -r ".version")
             echo "In the commit, $commit, the version was $VERSION."
 
             if [ "$VERSION" != "$CURRENT_VERSION" ]; then
