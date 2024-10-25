@@ -32,7 +32,7 @@ jobs:
           echo "Current version is $CURRENT_VERSION."
 
           # Get the list of commit IDs from the event
-          COMMITS=$(echo '${{ toJson(github.event.commits) }}' | jq -r '.[].id')
+          COMMITS=$(echo '${{ github.event.before }}' && echo '${{ toJson(github.event.commits) }}' | jq -r '.[].id')
           
           echo "Commits $COMMITS."
 
