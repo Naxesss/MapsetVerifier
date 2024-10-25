@@ -10,7 +10,8 @@ on:
 jobs:
   check-version:
     runs-on: ubuntu-latest
-
+    outputs:
+        version_changed: ${{ steps.check-version.outputs.version_changed }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -25,8 +26,6 @@ jobs:
 
       - name: Get current and previous versions
         id: version_check
-        outputs:
-          version_changed: ${{ steps.check-version.outputs.version_changed }}
         run: |
           git fetch origin ${{ github.event.before }} ${{ github.event.after }}
 
