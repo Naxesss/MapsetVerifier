@@ -11,6 +11,8 @@ jobs:
   check-version:
     runs-on: ubuntu-latest
     outputs:
+        before_version: ${{ steps.check-version.outputs.before_version }}
+        after_version: ${{ steps.check-version.outputs.after_version }}
         version_changed: ${{ steps.check-version.outputs.version_changed }}
     steps:
       - name: Checkout repository
