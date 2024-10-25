@@ -40,20 +40,6 @@ See [the latest release](https://github.com/Naxesss/MapsetVerifier/releases/late
     - Solution: Uninstall, reinstall, then whitelist this exe in your antivirus before running again
     - Reason: Antivirus false positive, deletes the backend (part that does checks) on first run
 
-## Components
-
-Mapset Verifier is comprised of the following open source .NET Core components:
-
-| Component | Description |
-| --- | --- |
-| [MapsetParser](https://github.com/Naxesss/MapsetParser) | Parses .osu and .osb files in the given mapset folder |
-| [MapsetChecks](https://github.com/Naxesss/MapsetChecks) | The default plugin for MV. Includes all-mode and standard checks |
-| [MapsetSnapshotter](https://github.com/Naxesss/MapsetSnapshotter) | A diff utility. Provides a summary of changes within a mapset since a snapshot |
-| [MapsetVerifierFramework](https://github.com/Naxesss/MapsetVerifierFramework) | A plugin framework for loading and running check DLLs |
-| [MapsetVerifierBackend](https://github.com/Naxesss/MapsetVerifierBackend) | Handles rendering and communication between the framework and Electron client |
-
-The remaining HTML/CSS/JS files are available in the application, see `/Mapset Verifier/resources/app`.
-
 ## Feature Comparison
 
 | Feature | Mapset Verifier | Modding Assistant | AiMod |
