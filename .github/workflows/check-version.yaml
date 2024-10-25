@@ -23,12 +23,13 @@ jobs:
         id: version_check
         run: |
           CURRENT_VERSION=$(jq -r '.version' app/package.json)
-          PREVIOUS_COMMIT=$GITHUB_EVENT_BEFORE
           PREVIOUS_VERSION=""
 
           echo "Current version is $CURRENT_VERSION."
+          echo "Current commit is $(git rev-parse HEAD)."
+          echo "Previous commit was $GITHUB_EVENT_BEFORE."
 
-          for commit in $(git rev-list $PREVIOUS_COMMIT..HEAD); do
+          for commit in $(git rev-list $GITHUB_EVENT_BEFORE..HEAD); do
             VERSION=$(git show $commit:app/package.json | jq -r '.version')
             echo "In a previous commit, the version was $VERSION."
 
