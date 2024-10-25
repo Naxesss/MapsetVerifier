@@ -53,6 +53,27 @@ jobs:
     needs: check-version
     if: needs.check-version.outputs.version_changed == 'true'
     steps:
-      - name: Release
-        run: |
-          echo "TODO: Make a release as version `${{ needs.check-version.outputs.after_version }}`."
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '3.1.x'
+
+      - name: Build `src` into `app/api/`
+        run: dotnet build src -c Release -r win-x86 -o app/api/win-x86
+        run: dotnet build src -c Release -r linux-x64 -o app/api/linux-x64
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+
+      - name: Install npm dependencies
+        run: npm install
+
+      - name: Run npm release script
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: npm run release
