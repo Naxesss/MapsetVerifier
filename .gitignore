@@ -1,3 +1,6 @@
+# `api` simply contains the built `src`.
+app/api
+
 # Dependencies are generated from `package.lock` files.
 **/node_modules/
 
