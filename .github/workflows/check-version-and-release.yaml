@@ -31,7 +31,7 @@ jobs:
         run: |
           git fetch origin ${{ github.event.before }} ${{ github.event.after }}
 
-          BEFORE_VERSION=$(git show ${{ github.event.before }}:app/package.json | jq -r '.version')
+          BEFORE_VERSION=$(git describe --tags --abbrev=0 | sed 's/^v//')
           AFTER_VERSION=$(git show ${{ github.event.after }}:app/package.json | jq -r '.version')
 
           echo "Before version: $BEFORE_VERSION"
