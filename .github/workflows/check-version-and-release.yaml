@@ -42,13 +42,13 @@ jobs:
 
           if [ "$BEFORE_VERSION" != "$AFTER_VERSION" ]; then
             {
-              echo "# 🏷️ Version \`$BEFORE_VERSION\` changed to \`$AFTER_VERSION\`!"
+              echo "### 🏷️ Version \`$BEFORE_VERSION\` changed to \`$AFTER_VERSION\`!"
               echo "*A new draft release will be created.*"
             } >> $GITHUB_STEP_SUMMARY
             echo "version_changed=true" >> $GITHUB_OUTPUT
           else
             {
-              echo "# 🏷️ Version \`$BEFORE_VERSION\` did not change."
+              echo "### 🏷️ Version \`$BEFORE_VERSION\` did not change."
               echo "*No new draft release will be created.*"
             } >> $GITHUB_STEP_SUMMARY
             echo "version_changed=false" >> $GITHUB_OUTPUT
