@@ -1,6 +1,9 @@
 # `api` simply contains the built `src`.
 app/api
 
+# `dist` is the local electron-builder product.
+dist
+
 # Dependencies are generated from `package.lock` files.
 **/node_modules/
 
