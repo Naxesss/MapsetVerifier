@@ -79,6 +79,12 @@ Third-party plugins (that I'm aware of):
 
 In general, do be careful about which check plugins you use, as they can be malicious. The plugins are executed by the back end of the application, so they can pretty much do anything the rest of the application can.
 
+## Technical Overview
+
+The backend is written in C#/.NET and frontend in HTML, CSS, and JS/JQuery, using Electron. They communicate with SignalR. Upon selecting a mapset, the frontend requests tabs to be rendered, and the backend returns HTML.
+
+![](https://i.imgur.com/3kHWOmH.png?sanitize=true)
+
 ## Checks (last updated 2021-09-14)
 ### General
 
