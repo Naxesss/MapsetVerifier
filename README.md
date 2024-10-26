@@ -81,7 +81,7 @@ In general, do be careful about which check plugins you use, as they can be mali
 
 ## Technical Overview
 
-The backend is written in C#/.NET and frontend in HTML, CSS, and JS/JQuery, using Electron. They communicate with SignalR. Upon selecting a mapset, the frontend requests tabs to be rendered, and the backend returns HTML.
+The backend is written in [C#/.NET](https://dotnet.microsoft.com/), with a simple [ASP.NET Core](https://dotnet.microsoft.com/en-us/apps/aspnet) server. The frontend is an [Electron](https://www.electronjs.org/) desktop application written in HTML, CSS, and [JS/JQuery](https://jquery.com/). The server-client communication is done with [SignalR](https://dotnet.microsoft.com/en-us/apps/aspnet/signalr). Upon selecting a mapset, the frontend requests tabs to be rendered, and the backend returns HTML.
 
 ![](https://i.imgur.com/3kHWOmH.png?sanitize=true)
 
