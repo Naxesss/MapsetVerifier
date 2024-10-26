@@ -13,7 +13,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
     public class CheckZeroBytes : GeneralCheck
     {
         public override CheckMetadata GetMetadata() =>
-            new CheckMetadata
+            new()
             {
                 Category = "Files",
                 Message = "0-byte files.",
@@ -42,7 +42,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "0-byte",

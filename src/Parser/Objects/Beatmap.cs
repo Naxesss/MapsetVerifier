@@ -46,7 +46,7 @@ namespace MapsetVerifier.Parser.Objects
         ///     like "Lunatic", "Another", or "Special" which could be either Insane or top diff is no good.
         ///     See https://osu.ppy.sh/help/wiki/Ranking_Criteria/Difficulty_Naming for reference.
         /// </summary>
-        private static readonly Dictionary<Mode, Dictionary<Difficulty, IEnumerable<string>>> nameDiffPairs = new Dictionary<Mode, Dictionary<Difficulty, IEnumerable<string>>>
+        private static readonly Dictionary<Mode, Dictionary<Difficulty, IEnumerable<string>>> nameDiffPairs = new()
         {
             {
                 Mode.Standard,
@@ -930,7 +930,7 @@ namespace MapsetVerifier.Parser.Objects
         private static class ThreadSafeCacheHelper<T>
         {
             // Works under the assumption that hit objects and timing lines are immutable per beatmap id, which is the case.
-            internal static readonly ConcurrentDictionary<(string, Type), List<T>> cache = new ConcurrentDictionary<(string, Type), List<T>>();
+            internal static readonly ConcurrentDictionary<(string, Type), List<T>> cache = new();
         }
     }
 }

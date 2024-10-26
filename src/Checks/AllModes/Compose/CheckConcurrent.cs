@@ -47,7 +47,7 @@ namespace MapsetVerifier.Checks.AllModes.Compose
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "Concurrent Objects",

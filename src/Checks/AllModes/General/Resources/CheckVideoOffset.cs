@@ -10,7 +10,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
     public class CheckVideoOffset : GeneralCheck
     {
         public override CheckMetadata GetMetadata() =>
-            new CheckMetadata
+            new()
             {
                 Category = "Resources",
                 Message = "Inconsistent video offset.",
@@ -39,7 +39,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "Multiple",

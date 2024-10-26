@@ -34,7 +34,7 @@ namespace MapsetVerifier.Framework.Objects.Metadata
         ///         this should convince them it is.
         ///     </para>
         /// </summary>
-        public Dictionary<string, string> Documentation { get; set; } = new Dictionary<string, string>();
+        public Dictionary<string, string> Documentation { get; set; } = new();
 
         public virtual string GetMode() => "General";
     }

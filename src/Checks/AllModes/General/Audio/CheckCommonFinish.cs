@@ -41,7 +41,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "Warning Common",

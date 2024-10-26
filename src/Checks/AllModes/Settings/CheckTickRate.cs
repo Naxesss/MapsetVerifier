@@ -39,7 +39,7 @@ namespace MapsetVerifier.Checks.AllModes.Settings
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "Tick Rate",

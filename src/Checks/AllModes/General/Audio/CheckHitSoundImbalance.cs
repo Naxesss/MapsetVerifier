@@ -14,7 +14,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
     public class CheckHitSoundImbalance : GeneralCheck
     {
         public override CheckMetadata GetMetadata() =>
-            new CheckMetadata
+            new()
             {
                 Category = "Audio",
                 Message = "Imbalanced hit sounds.",
@@ -41,7 +41,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "Warning Silent",

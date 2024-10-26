@@ -60,7 +60,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 // warnings
                 {

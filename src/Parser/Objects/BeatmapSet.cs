@@ -16,7 +16,7 @@ namespace MapsetVerifier.Parser.Objects
         public List<string> HitSoundFiles { get; }
 
         public Osb Osb { get; private set; }
-        public List<string> SongFilePaths  { get; } = new List<string>();
+        public List<string> SongFilePaths  { get; } = new();
 
         public string SongPath { get; }
 

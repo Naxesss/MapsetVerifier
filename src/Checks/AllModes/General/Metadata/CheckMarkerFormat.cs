@@ -20,7 +20,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
         };
 
         public override CheckMetadata GetMetadata() =>
-            new CheckMetadata
+            new()
             {
                 Category = "Metadata",
                 Message = "Incorrect marker format.",
@@ -49,7 +49,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "Wrong Format",

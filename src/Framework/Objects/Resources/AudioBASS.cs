@@ -8,7 +8,7 @@ namespace MapsetVerifier.Framework.Objects.Resources
 {
     public static class AudioBASS
     {
-        private static readonly ConcurrentDictionary<string, object> locks = new ConcurrentDictionary<string, object>();
+        private static readonly ConcurrentDictionary<string, object> locks = new();
         private static bool isInitialized;
 
         private static void Initialize()

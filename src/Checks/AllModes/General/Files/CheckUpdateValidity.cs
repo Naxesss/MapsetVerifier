@@ -13,7 +13,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
     public class CheckUpdateValidity : GeneralCheck
     {
         public override CheckMetadata GetMetadata() =>
-            new CheckMetadata
+            new()
             {
                 Category = "Files",
                 Message = "Issues with updating or downloading.",
@@ -54,7 +54,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "File Size",

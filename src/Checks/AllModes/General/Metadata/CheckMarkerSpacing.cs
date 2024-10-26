@@ -13,7 +13,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
     public class CheckMarkerSpacing : GeneralCheck
     {
         public override CheckMetadata GetMetadata() =>
-            new CheckMetadata
+            new()
             {
                 Category = "Metadata",
                 Message = "Incorrect marker spacing.",
@@ -43,7 +43,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "Problem",
@@ -100,8 +100,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
 
             var fields = new List<Field>
             {
-                new Field("artist", metadata.artist),
-                new Field("artist unicode", metadata.artistUnicode)
+                new("artist", metadata.artist),
+                new("artist unicode", metadata.artistUnicode)
             };
 
             var fieldIssues = new List<FieldIssue>();

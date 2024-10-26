@@ -28,7 +28,7 @@ namespace MapsetVerifier.Parser.StarRating.Taiko.Preprocessing.Colour.Data
         /// <summary>
         ///     List of <see cref="DifficultyHitObject" />s that are encoded within this <see cref="MonoStreak" />.
         /// </summary>
-        public List<TaikoDifficultyHitObject> HitObjects { get; } = new List<TaikoDifficultyHitObject>();
+        public List<TaikoDifficultyHitObject> HitObjects { get; } = new();
 
         /// <summary>
         ///     The first <see cref="TaikoDifficultyHitObject" /> in this <see cref="MonoStreak" />.

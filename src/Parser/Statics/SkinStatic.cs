@@ -362,7 +362,7 @@ namespace MapsetVerifier.Parser.Statics
             "sectionfail.wav", "sectionfail.mp3", "sectionfail.ogg"
         };
 
-        private static readonly List<SkinCondition> skinConditions = new List<SkinCondition>();
+        private static readonly List<SkinCondition> skinConditions = new();
 
         private static void AddElements(string[] elements, Func<BeatmapSet, bool> useCondition = null) => skinConditions.Add(new SkinCondition(elements, useCondition));
 

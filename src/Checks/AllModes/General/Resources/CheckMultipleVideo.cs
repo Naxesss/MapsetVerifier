@@ -11,7 +11,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
     public class CheckMultipleVideo : GeneralCheck
     {
         public override CheckMetadata GetMetadata() =>
-            new CheckMetadata
+            new()
             {
                 Category = "Resources",
                 Message = "Inconsistent video usage.",
@@ -40,7 +40,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "Same Mode",

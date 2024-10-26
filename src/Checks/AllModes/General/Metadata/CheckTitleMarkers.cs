@@ -12,7 +12,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
     [Check]
     public class CheckTitleMarkers : GeneralCheck
     {
-        private static readonly List<MarkerFormat> MarkerFormats = new List<MarkerFormat>
+        private static readonly List<MarkerFormat> MarkerFormats = new()
         {
             new MarkerFormat(Marker.TV_SIZE, new Regex(@"(?i)(tv (size|ver))")),
             new MarkerFormat(Marker.GAME_VER, new Regex(@"(?i)(game (size|ver))")),
@@ -31,7 +31,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
         };
 
         public override CheckMetadata GetMetadata() =>
-            new CheckMetadata
+            new()
             {
                 Category = "Metadata",
                 Message = "Incorrect format of (TV Size) / (Game Ver.) / (Short Ver.) / (Cut Ver.) / (Sped Up Ver.) / etc in title.",
@@ -60,7 +60,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "Problem",
@@ -131,8 +131,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
 
             var substitutionPairs = new List<SubstitutionPair>
             {
-                new SubstitutionPair(Marker.SPED_UP_VER, Marker.NIGHTCORE_MIX),
-                new SubstitutionPair(Marker.SPED_UP_CUT_VER, Marker.NIGHTCORE_CUT_VER)
+                new(Marker.SPED_UP_VER, Marker.NIGHTCORE_MIX),
+                new(Marker.SPED_UP_CUT_VER, Marker.NIGHTCORE_CUT_VER)
             };
 
             foreach (var pair in substitutionPairs)
@@ -147,14 +147,14 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
 
             public string Value { get; }
 
-            public static Marker TV_SIZE => new Marker("(TV Size)");
-            public static Marker GAME_VER => new Marker("(Game Ver.)");
-            public static Marker SHORT_VER => new Marker("(Short Ver.)");
-            public static Marker CUT_VER => new Marker("(Cut Ver.)");
-            public static Marker SPED_UP_VER => new Marker("(Sped Up Ver.)");
-            public static Marker NIGHTCORE_MIX => new Marker("(Nightcore Mix)");
-            public static Marker SPED_UP_CUT_VER => new Marker("(Sped Up & Cut Ver.)");
-            public static Marker NIGHTCORE_CUT_VER => new Marker("(Nightcore & Cut Ver.)");
+            public static Marker TV_SIZE => new("(TV Size)");
+            public static Marker GAME_VER => new("(Game Ver.)");
+            public static Marker SHORT_VER => new("(Short Ver.)");
+            public static Marker CUT_VER => new("(Cut Ver.)");
+            public static Marker SPED_UP_VER => new("(Sped Up Ver.)");
+            public static Marker NIGHTCORE_MIX => new("(Nightcore Mix)");
+            public static Marker SPED_UP_CUT_VER => new("(Sped Up & Cut Ver.)");
+            public static Marker NIGHTCORE_CUT_VER => new("(Nightcore & Cut Ver.)");
         }
 
         private readonly struct MarkerFormat

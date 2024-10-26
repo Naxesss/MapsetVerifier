@@ -60,7 +60,7 @@ namespace MapsetVerifier.Parser.Objects
         public readonly int? volume;
         public readonly string filename;
 
-        public List<HitSample> usedHitSamples = new List<HitSample>();
+        public List<HitSample> usedHitSamples = new();
 
         public HitObject(string[] args, Beatmap beatmap)
         {

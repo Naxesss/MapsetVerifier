@@ -6,7 +6,7 @@ namespace MapsetVerifier.Snapshots
 {
     public static class TranslatorRegistry
     {
-        private static readonly List<DiffTranslator> translators = new List<DiffTranslator>();
+        private static readonly List<DiffTranslator> translators = new();
         private static bool initialized;
 
         public static void InitalizeTranslators()

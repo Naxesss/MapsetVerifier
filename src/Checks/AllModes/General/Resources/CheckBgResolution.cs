@@ -13,7 +13,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
     public class CheckBgResolution : GeneralCheck
     {
         public override CheckMetadata GetMetadata() =>
-            new CheckMetadata
+            new()
             {
                 Category = "Resources",
                 Message = "Too high or low background resolution.",
@@ -45,7 +45,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "Too high",

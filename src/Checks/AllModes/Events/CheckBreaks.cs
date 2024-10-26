@@ -40,7 +40,7 @@ namespace MapsetVerifier.Checks.AllModes.Events
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "Too early or late",

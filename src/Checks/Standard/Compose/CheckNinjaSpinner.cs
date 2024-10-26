@@ -41,7 +41,7 @@ namespace MapsetVerifier.Checks.Standard.Compose
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "Problem",

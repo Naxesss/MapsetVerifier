@@ -40,7 +40,7 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "Warning Volume",

@@ -43,7 +43,7 @@ namespace MapsetVerifier.Checks.Catch.Compose
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "SpinnerBefore",

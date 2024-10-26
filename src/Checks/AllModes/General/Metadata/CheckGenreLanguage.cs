@@ -71,7 +71,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
         };
 
         public override CheckMetadata GetMetadata() =>
-            new CheckMetadata
+            new()
             {
                 Category = "Metadata",
                 Message = "Missing genre/language in tags.",
@@ -108,7 +108,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
         }
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "Genre",

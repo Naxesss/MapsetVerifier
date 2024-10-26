@@ -41,7 +41,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "Inconsistent",

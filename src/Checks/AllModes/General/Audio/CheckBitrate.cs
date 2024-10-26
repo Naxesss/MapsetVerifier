@@ -15,7 +15,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
     public class CheckBitrate : GeneralCheck
     {
         public override CheckMetadata GetMetadata() =>
-            new CheckMetadata
+            new()
             {
                 Category = "Audio",
                 Message = "Too high or low audio bitrate.",
@@ -59,7 +59,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "Bitrate",

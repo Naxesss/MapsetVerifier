@@ -16,7 +16,7 @@ namespace MapsetVerifier.Checks.AllModes.Settings
 
         private static readonly Func<Beatmap, Beatmap, BeatmapSet, bool> StoryboardCondition = (beatmap, otherBeatmap, beatmapSet) => (beatmap.HasDifficultySpecificStoryboard() && otherBeatmap.HasDifficultySpecificStoryboard()) || beatmapSet.Osb != null;
 
-        private static readonly List<InconsistencyTemplate> InconsistencyTemplates = new List<InconsistencyTemplate>
+        private static readonly List<InconsistencyTemplate> InconsistencyTemplates = new()
         {
             new InconsistencyTemplate("Problem", "beatmapset id", beatmap => beatmap.MetadataSettings.beatmapSetId != null ? beatmap.MetadataSettings.beatmapSetId.ToString() : "-1" // Beatmapset IDs are set to -1 for unsubmitted mapsets.
             ),
@@ -68,7 +68,7 @@ namespace MapsetVerifier.Checks.AllModes.Settings
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "Problem",

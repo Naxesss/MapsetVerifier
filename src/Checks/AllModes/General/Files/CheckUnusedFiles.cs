@@ -12,7 +12,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
     public class CheckUnusedFiles : GeneralCheck
     {
         public override CheckMetadata GetMetadata() =>
-            new CheckMetadata
+            new()
             {
                 Category = "Files",
                 Message = "Unused files.",
@@ -54,7 +54,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "Unused",

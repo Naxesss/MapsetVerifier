@@ -11,7 +11,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
     public class CheckUnicode : GeneralCheck
     {
         public override CheckMetadata GetMetadata() =>
-            new CheckMetadata
+            new()
             {
                 Category = "Metadata",
                 Message = "Unicode in romanized fields.",
@@ -47,7 +47,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "Problem",

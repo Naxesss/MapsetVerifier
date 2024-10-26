@@ -13,7 +13,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
     public class CheckHitSoundLength : GeneralCheck
     {
         public override CheckMetadata GetMetadata() =>
-            new CheckMetadata
+            new()
             {
                 Category = "Audio",
                 Message = "Too short hit sounds.",
@@ -46,7 +46,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "Length",

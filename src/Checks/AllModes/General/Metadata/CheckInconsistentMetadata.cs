@@ -12,7 +12,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
     public class CheckInconsistentMetadata : GeneralCheck
     {
         public override CheckMetadata GetMetadata() =>
-            new CheckMetadata
+            new()
             {
                 Category = "Metadata",
                 Message = "Inconsistent metadata.",
@@ -40,7 +40,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "Tags",

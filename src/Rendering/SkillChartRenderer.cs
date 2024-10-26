@@ -17,9 +17,9 @@ namespace MapsetVerifier.Rendering
         ///     Used to keep track of the amount of times a specific difficulty is drawn,
         ///     such that the color of all series in a chart are unique.
         /// </summary>
-        private static readonly Dictionary<LineChart, List<Beatmap>> mapsUsedInChart = new Dictionary<LineChart, List<Beatmap>>();
+        private static readonly Dictionary<LineChart, List<Beatmap>> mapsUsedInChart = new();
 
-        private static readonly Dictionary<Beatmap.Difficulty, Color> difficultyColor = new Dictionary<Beatmap.Difficulty, Color>
+        private static readonly Dictionary<Beatmap.Difficulty, Color> difficultyColor = new()
         {
             { Beatmap.Difficulty.Easy, Color.FromArgb(125, 180, 0) },
             { Beatmap.Difficulty.Normal, Color.FromArgb(80, 215, 255) },

@@ -14,7 +14,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
     public class CheckAudioUsage : GeneralCheck
     {
         public override CheckMetadata GetMetadata() =>
-            new CheckMetadata
+            new()
             {
                 Category = "Audio",
                 Message = "More than 20% unused audio at the end.",
@@ -45,7 +45,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "Without Video/Storyboard",

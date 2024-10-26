@@ -14,7 +14,7 @@ namespace MapsetVerifier.Parser.StarRating.Taiko.Preprocessing.Colour.Data
         /// <summary>
         ///     <see cref="MonoStreak" />s that are grouped together within this <see cref="AlternatingMonoPattern" />.
         /// </summary>
-        public readonly List<MonoStreak> MonoStreaks = new List<MonoStreak>();
+        public readonly List<MonoStreak> MonoStreaks = new();
 
         /// <summary>
         ///     Index of this <see cref="AlternatingMonoPattern" /> within it's parent <see cref="RepeatingHitPatterns" />

@@ -12,7 +12,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
     public class CheckAudioInVideo : GeneralCheck
     {
         public override CheckMetadata GetMetadata() =>
-            new CheckMetadata
+            new()
             {
                 Category = "Audio",
                 Message = "Audio channels in video.",
@@ -36,7 +36,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "Audio",

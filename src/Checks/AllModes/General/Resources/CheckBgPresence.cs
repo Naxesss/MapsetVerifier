@@ -12,7 +12,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
     public class CheckBgPresence : GeneralCheck
     {
         public override CheckMetadata GetMetadata() =>
-            new CheckMetadata
+            new()
             {
                 Category = "Resources",
                 Message = "Missing background.",
@@ -38,7 +38,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "All",

@@ -9,9 +9,9 @@ namespace MapsetVerifier.Parser.StarRating.Taiko.Scoring
     {
         private static readonly DifficultyRange[] taiko_ranges =
         {
-            new DifficultyRange(HitResult.Great, 50, 35, 20),
-            new DifficultyRange(HitResult.Ok, 120, 80, 50),
-            new DifficultyRange(HitResult.Miss, 135, 95, 70)
+            new(HitResult.Great, 50, 35, 20),
+            new(HitResult.Ok, 120, 80, 50),
+            new(HitResult.Miss, 135, 95, 70)
         };
 
         public override bool IsHitResultAllowed(HitResult result)

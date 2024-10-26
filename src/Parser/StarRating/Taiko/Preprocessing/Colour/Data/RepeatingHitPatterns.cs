@@ -23,7 +23,7 @@ namespace MapsetVerifier.Parser.StarRating.Taiko.Preprocessing.Colour.Data
         ///     The <see cref="AlternatingMonoPattern" />s that are grouped together within this
         ///     <see cref="RepeatingHitPatterns" />.
         /// </summary>
-        public readonly List<AlternatingMonoPattern> AlternatingMonoPatterns = new List<AlternatingMonoPattern>();
+        public readonly List<AlternatingMonoPattern> AlternatingMonoPatterns = new();
 
         /// <summary>
         ///     The previous <see cref="RepeatingHitPatterns" />. This is used to determine the repetition interval.

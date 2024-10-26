@@ -15,7 +15,7 @@ namespace MapsetVerifier.Parser.StarRating.Skills
     /// </summary>
     public abstract class StrainSkill : Skill
     {
-        private readonly List<double> strainPeaks = new List<double>();
+        private readonly List<double> strainPeaks = new();
 
         private double currentSectionEnd;
 

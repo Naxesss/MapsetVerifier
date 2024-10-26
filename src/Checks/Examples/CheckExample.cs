@@ -43,7 +43,7 @@ namespace MapsetVerifier.Checks.Examples
         ///     etc.
         /// </summary>
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "DiffName",

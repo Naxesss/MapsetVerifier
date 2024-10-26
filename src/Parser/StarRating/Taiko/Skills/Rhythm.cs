@@ -31,7 +31,7 @@ namespace MapsetVerifier.Parser.StarRating.Taiko.Skills
         /// <summary>
         ///     Contains the last <see cref="rhythm_history_max_length" /> changes in note sequence rhythms.
         /// </summary>
-        private readonly LimitedCapacityQueue<TaikoDifficultyHitObject> rhythmHistory = new LimitedCapacityQueue<TaikoDifficultyHitObject>(rhythm_history_max_length);
+        private readonly LimitedCapacityQueue<TaikoDifficultyHitObject> rhythmHistory = new(rhythm_history_max_length);
 
         /// <summary>
         ///     Contains the rolling rhythm strain.

@@ -11,10 +11,10 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
     public class CheckGuestTags : GeneralCheck
     {
         private readonly char[] collabChars = { ',', '&', '|', '/' };
-        private readonly Regex possessorRegex = new Regex(@"(.+)(?:'s|(s)')", RegexOptions.IgnoreCase);
+        private readonly Regex possessorRegex = new(@"(.+)(?:'s|(s)')", RegexOptions.IgnoreCase);
 
         public override CheckMetadata GetMetadata() =>
-            new CheckMetadata
+            new()
             {
                 Category = "Metadata",
                 Message = "Missing GDers in tags.",
@@ -37,7 +37,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
-            new Dictionary<string, IssueTemplate>
+            new()
             {
                 {
                     "Warning",
