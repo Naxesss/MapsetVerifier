@@ -67,7 +67,7 @@ jobs:
           dotnet build src -c Release -r linux-x64 -o app/api/linux-x64 --self-contained
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20.x'
 
