@@ -46,8 +46,10 @@ jobs:
           for i in 0 1 2; do
             if [[ ${AFTER_NUMBER[i]:-0} -gt ${BEFORE_NUMBER[i]:-0} ]]; then
               RESULT="greater"
+              break
             elif [[ ${AFTER_NUMBER[i]:-0} -lt ${BEFORE_NUMBER[i]:-0} ]]; then
               RESULT="less"
+              break
             fi
           done
           
