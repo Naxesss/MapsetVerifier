@@ -14,13 +14,13 @@ namespace MapsetVerifier.Checks.Catch.Compose
     public class CheckSpinnerGap : BeatmapCheck
     {
         // Allowed spinner gaps in milliseconds.          Cup  Salad  Platter  Rain  Overdose, Overdose+
-        private static readonly int[] ThresholdBefore = { 250, 250, 125, 125, 62, 62 };
-        private static readonly int[] ThresholdAfter = { 250, 250, 250, 125, 125, 125 };
+        private static readonly int[] ThresholdBefore = [250, 250, 125, 125, 62, 62];
+        private static readonly int[] ThresholdAfter = [250, 250, 250, 125, 125, 125];
 
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
-                Modes = new[] { Mode.Catch },
+                Modes = [Mode.Catch],
                 Category = "Compose",
                 Message = "Spinner gap too small.",
                 Author = "Greaper",

@@ -147,7 +147,7 @@ namespace MapsetVerifier.Checks
                     }
                     catch (DirectoryNotFoundException)
                     {
-                        files = new string[] { };
+                        files = [];
                     }
 
                     if (files.Length > 0)

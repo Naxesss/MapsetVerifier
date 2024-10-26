@@ -20,10 +20,10 @@ namespace MapsetVerifier.Checks.Standard.Spread
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
-                Modes = new[]
-                {
+                Modes =
+                [
                     Beatmap.Mode.Standard
-                },
+                ],
                 Category = "Spread",
                 Message = "Too short spinner time or spinner recovery time.",
                 Author = "Naxess",
@@ -87,7 +87,7 @@ namespace MapsetVerifier.Checks.Standard.Spread
         private IEnumerable<Issue> GetLengthIssues(Beatmap beatmap, Spinner spinner)
         {
             var spinnerTime = spinner.endTime - spinner.time;
-            double[] spinnerTimeExpected = { 1000, 750, 500 }; // 4, 3 and 2 beats respectively, 240 bpm
+            double[] spinnerTimeExpected = [1000, 750, 500]; // 4, 3 and 2 beats respectively, 240 bpm
 
             for (var diffIndex = 0; diffIndex < spinnerTimeExpected.Length; ++diffIndex)
             {
@@ -118,7 +118,7 @@ namespace MapsetVerifier.Checks.Standard.Spread
             var bpmScaling = GetScaledTiming(line.bpm);
             var recoveryTimeScaled = recoveryTime / bpmScaling;
 
-            double[] recoveryTimeExpected = { 1000, 500, 250 }; // 4, 2 and 1 beats respectively, 240 bpm
+            double[] recoveryTimeExpected = [1000, 500, 250]; // 4, 2 and 1 beats respectively, 240 bpm
 
             // Tries both scaled and regular recoveries, and only if both are exceeded does it create an issue.
             for (var diffIndex = 0; diffIndex < recoveryTimeExpected.Length; ++diffIndex)

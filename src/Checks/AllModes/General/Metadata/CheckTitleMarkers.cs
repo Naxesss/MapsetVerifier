@@ -12,23 +12,23 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
     [Check]
     public class CheckTitleMarkers : GeneralCheck
     {
-        private static readonly List<MarkerFormat> MarkerFormats = new()
-        {
-            new MarkerFormat(Marker.TV_SIZE, new Regex(@"(?i)(tv (size|ver))")),
-            new MarkerFormat(Marker.GAME_VER, new Regex(@"(?i)(game (size|ver))")),
-            new MarkerFormat(Marker.SHORT_VER, new Regex(@"(?i)(short (size|ver))")),
-            new MarkerFormat(Marker.CUT_VER, new Regex(@"(?i)(?<!& )(cut (size|ver))")),
-            new MarkerFormat(Marker.SPED_UP_VER, new Regex(@"(?i)(?<!& )(sped|speed) ?up ver")),
-            new MarkerFormat(Marker.NIGHTCORE_MIX, new Regex(@"(?i)(?<!& )(nightcore|night core) (ver|mix)")),
-            new MarkerFormat(Marker.SPED_UP_CUT_VER, new Regex(@"(?i)(sped|speed) ?up (ver)? ?& cut (size|ver)")),
-            new MarkerFormat(Marker.NIGHTCORE_CUT_VER, new Regex(@"(?i)(nightcore|night core) (ver|mix)? ?& cut (size|ver)"))
-        };
+        private static readonly List<MarkerFormat> MarkerFormats =
+        [
+            new(Marker.TV_SIZE, new Regex(@"(?i)(tv (size|ver))")),
+            new(Marker.GAME_VER, new Regex(@"(?i)(game (size|ver))")),
+            new(Marker.SHORT_VER, new Regex(@"(?i)(short (size|ver))")),
+            new(Marker.CUT_VER, new Regex(@"(?i)(?<!& )(cut (size|ver))")),
+            new(Marker.SPED_UP_VER, new Regex(@"(?i)(?<!& )(sped|speed) ?up ver")),
+            new(Marker.NIGHTCORE_MIX, new Regex(@"(?i)(?<!& )(nightcore|night core) (ver|mix)")),
+            new(Marker.SPED_UP_CUT_VER, new Regex(@"(?i)(sped|speed) ?up (ver)? ?& cut (size|ver)")),
+            new(Marker.NIGHTCORE_CUT_VER, new Regex(@"(?i)(nightcore|night core) (ver|mix)? ?& cut (size|ver)"))
+        ];
 
-        private static readonly IEnumerable<TitleType> TitleTypes = new[]
-        {
-            new TitleType("romanized", beatmap => beatmap.MetadataSettings.title),
-            new TitleType("unicode", beatmap => beatmap.MetadataSettings.titleUnicode)
-        };
+        private static readonly IEnumerable<TitleType> TitleTypes =
+        [
+            new("romanized", beatmap => beatmap.MetadataSettings.title),
+            new("unicode", beatmap => beatmap.MetadataSettings.titleUnicode)
+        ];
 
         public override CheckMetadata GetMetadata() =>
             new()

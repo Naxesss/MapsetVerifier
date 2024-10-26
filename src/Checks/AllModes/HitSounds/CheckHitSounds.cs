@@ -16,12 +16,12 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
-                Modes = new[]
-                {
+                Modes =
+                [
                     // This check would take on another meaning if applied to taiko, since there you basically map with hit sounds.
                     Beatmap.Mode.Standard,
                     Beatmap.Mode.Catch
-                },
+                ],
                 Category = "Hit Sounds",
                 Message = "Long periods without hit sounding.",
                 Author = "Naxess",

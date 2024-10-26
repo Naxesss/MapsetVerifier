@@ -12,12 +12,12 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
     [Check]
     public class CheckMarkerFormat : GeneralCheck
     {
-        private static readonly IEnumerable<Marker> Markers = new[]
-        {
-            new Marker("vs.", new Regex(@"(?i)( vs\.?[^A-Za-z0-9])"), new Regex(@"vs\.")),
-            new Marker("CV:", new Regex(@"(?i)((\(| |（)cv(:|：)?[^A-Za-z0-9])"), new Regex(@"CV(:|：)")),
-            new Marker("feat.", new Regex(@"(?i)((\(| |（)(ft|feat)\.?[^A-Za-z0-9])"), new Regex(@"feat\."))
-        };
+        private static readonly IEnumerable<Marker> Markers =
+        [
+            new("vs.", new Regex(@"(?i)( vs\.?[^A-Za-z0-9])"), new Regex(@"vs\.")),
+            new("CV:", new Regex(@"(?i)((\(| |（)cv(:|：)?[^A-Za-z0-9])"), new Regex(@"CV(:|：)")),
+            new("feat.", new Regex(@"(?i)((\(| |（)(ft|feat)\.?[^A-Za-z0-9])"), new Regex(@"feat\."))
+        ];
 
         public override CheckMetadata GetMetadata() =>
             new()

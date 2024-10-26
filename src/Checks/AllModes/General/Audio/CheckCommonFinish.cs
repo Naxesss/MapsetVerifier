@@ -12,13 +12,13 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
-                Modes = new[]
-                {
+                Modes =
+                [
                     // This check would take on another meaning if applied to taiko, since there you basically map with hit sounds.
                     Beatmap.Mode.Standard,
                     Beatmap.Mode.Catch,
                     Beatmap.Mode.Mania
-                },
+                ],
                 Category = "Audio",
                 Message = "Frequent finish hit sounds.",
                 Author = "Naxess",

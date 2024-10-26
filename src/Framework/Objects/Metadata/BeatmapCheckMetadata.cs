@@ -16,23 +16,23 @@ namespace MapsetVerifier.Framework.Objects.Metadata
 
         /// <summary> The mode(s) this check applies to, by default all. </summary>
         public Beatmap.Mode[] Modes { get; set; } =
-        {
+        [
             Beatmap.Mode.Standard,
             Beatmap.Mode.Taiko,
             Beatmap.Mode.Catch,
             Beatmap.Mode.Mania
-        };
+        ];
 
         /// <summary> The difficulties this check applies to, by default all. </summary>
         public Beatmap.Difficulty[] Difficulties { get; set; } =
-        {
+        [
             Beatmap.Difficulty.Easy,
             Beatmap.Difficulty.Normal,
             Beatmap.Difficulty.Hard,
             Beatmap.Difficulty.Insane,
             Beatmap.Difficulty.Expert,
             Beatmap.Difficulty.Ultra
-        };
+        ];
 
         public override string GetMode()
         {

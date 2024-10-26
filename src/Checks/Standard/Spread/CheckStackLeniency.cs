@@ -15,17 +15,17 @@ namespace MapsetVerifier.Checks.Standard.Spread
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
-                Modes = new[]
-                {
+                Modes =
+                [
                     Beatmap.Mode.Standard
-                },
-                Difficulties = new[]
-                {
+                ],
+                Difficulties =
+                [
                     Beatmap.Difficulty.Easy,
                     Beatmap.Difficulty.Normal,
                     Beatmap.Difficulty.Hard,
                     Beatmap.Difficulty.Insane
-                },
+                ],
                 Category = "Spread",
                 Message = "Perfect stacks too close in time.",
                 Author = "Naxess",
@@ -68,7 +68,7 @@ namespace MapsetVerifier.Checks.Standard.Spread
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
         {
-            double[] snapping = { 1, 1, 0.5, 0.25 };
+            double[] snapping = [1, 1, 0.5, 0.25];
 
             for (var diffIndex = 0; diffIndex < snapping.Length; ++diffIndex)
             {

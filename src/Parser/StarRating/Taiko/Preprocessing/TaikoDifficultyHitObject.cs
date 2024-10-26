@@ -33,7 +33,7 @@ namespace MapsetVerifier.Parser.StarRating.Taiko.Preprocessing
         ///     </list>
         /// </remarks>
         private static readonly TaikoDifficultyHitObjectRhythm[] common_rhythms =
-        {
+        [
             new(1, 1, 0.0),
             new(2, 1, 0.3),
             new(1, 2, 0.5),
@@ -43,7 +43,7 @@ namespace MapsetVerifier.Parser.StarRating.Taiko.Preprocessing
             new(2, 3, 0.4),
             new(5, 4, 0.5),
             new(4, 5, 0.7)
-        };
+        ];
 
         /// <summary>
         ///     Colour data for this hit object. This is used by colour evaluator to calculate colour difficulty, but can be used

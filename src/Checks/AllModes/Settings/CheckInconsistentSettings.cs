@@ -16,27 +16,30 @@ namespace MapsetVerifier.Checks.AllModes.Settings
 
         private static readonly Func<Beatmap, Beatmap, BeatmapSet, bool> StoryboardCondition = (beatmap, otherBeatmap, beatmapSet) => (beatmap.HasDifficultySpecificStoryboard() && otherBeatmap.HasDifficultySpecificStoryboard()) || beatmapSet.Osb != null;
 
-        private static readonly List<InconsistencyTemplate> InconsistencyTemplates = new()
-        {
-            new InconsistencyTemplate("Problem", "beatmapset id", beatmap => beatmap.MetadataSettings.beatmapSetId != null ? beatmap.MetadataSettings.beatmapSetId.ToString() : "-1" // Beatmapset IDs are set to -1 for unsubmitted mapsets.
+        private static readonly List<InconsistencyTemplate> InconsistencyTemplates =
+        [
+            new("Problem", "beatmapset id", beatmap => beatmap.MetadataSettings.beatmapSetId != null ? beatmap.MetadataSettings.beatmapSetId.ToString() : "-1" // Beatmapset IDs are set to -1 for unsubmitted mapsets.
             ),
-            new InconsistencyTemplate("Warning", "countdown speed", beatmap => beatmap.GeneralSettings.countdown, (beatmap, otherBeatmap, beatmapSet) => CountdownSettingCondition(beatmap, otherBeatmap, beatmapSet) &&
-                                                                                                                                                         // CountdownStartBeat < 0 means no countdown.
-                                                                                                                                                         beatmap.GetCountdownStartBeat() >= 0 && otherBeatmap.GetCountdownStartBeat() >= 0),
-            new InconsistencyTemplate("Warning", "countdown offset", beatmap => beatmap.GeneralSettings.countdownBeatOffset, (beatmap, otherBeatmap, beatmapSet) => CountdownSettingCondition(beatmap, otherBeatmap, beatmapSet) && beatmap.GetCountdownStartBeat() >= 0 && otherBeatmap.GetCountdownStartBeat() >= 0),
-            new InconsistencyTemplate("Warning", "countdown", beatmap => beatmap.GeneralSettings.countdown, (beatmap, otherBeatmap, beatmapSet) => CountdownSettingCondition(beatmap, otherBeatmap, beatmapSet) &&
-                                                                                                                                                   // One map has countdown, the other not.
-                                                                                                                                                   beatmap.GetCountdownStartBeat() >= 0 != otherBeatmap.GetCountdownStartBeat() >= 0),
-            new InconsistencyTemplate("Warning", "letterbox", beatmap => beatmap.GeneralSettings.letterbox, (beatmap, otherBeatmap, beatmapSet) => beatmap.GeneralSettings.mode == otherBeatmap.GeneralSettings.mode && beatmap.Breaks.Count > 0 && otherBeatmap.Breaks.Count > 0),
-            new InconsistencyTemplate("Warning", "widescreen support", beatmap => beatmap.GeneralSettings.widescreenSupport, StoryboardCondition),
-            new InconsistencyTemplate("Warning", "storyboard in front of combo fire", beatmap => beatmap.GeneralSettings.storyInFrontOfFire, StoryboardCondition),
-            new InconsistencyTemplate("Warning", "usage of skin sprites in storyboard", beatmap => beatmap.GeneralSettings.useSkinSprites, StoryboardCondition),
-            new InconsistencyTemplate("Warning", "difficulty-specific storyboard presence", beatmap => beatmap.HasDifficultySpecificStoryboard()),
-            new InconsistencyTemplate("Warning", "epilepsy warning", beatmap => beatmap.GeneralSettings.epilepsyWarning, (beatmap, otherBeatmap, beatmapSet) => StoryboardCondition(beatmap, otherBeatmap, beatmapSet) || (beatmap.Videos.Count > 0 && otherBeatmap.Videos.Count > 0)),
-            new InconsistencyTemplate("Warning", "audio lead-in", beatmap => beatmap.GeneralSettings.audioLeadIn),
-            new InconsistencyTemplate("Warning", "skin preference", beatmap => beatmap.GeneralSettings.skinPreference),
-            new InconsistencyTemplate("Minor", "slider tick rate", beatmap => beatmap.DifficultySettings.sliderTickRate, (beatmap, otherBeatmap, beatmapSet) => beatmap.GeneralSettings.mode == otherBeatmap.GeneralSettings.mode)
-        };
+
+            new("Warning", "countdown speed", beatmap => beatmap.GeneralSettings.countdown, (beatmap, otherBeatmap, beatmapSet) => CountdownSettingCondition(beatmap, otherBeatmap, beatmapSet) &&
+                                                                                                                                   // CountdownStartBeat < 0 means no countdown.
+                                                                                                                                   beatmap.GetCountdownStartBeat() >= 0 && otherBeatmap.GetCountdownStartBeat() >= 0),
+
+            new("Warning", "countdown offset", beatmap => beatmap.GeneralSettings.countdownBeatOffset, (beatmap, otherBeatmap, beatmapSet) => CountdownSettingCondition(beatmap, otherBeatmap, beatmapSet) && beatmap.GetCountdownStartBeat() >= 0 && otherBeatmap.GetCountdownStartBeat() >= 0),
+            new("Warning", "countdown", beatmap => beatmap.GeneralSettings.countdown, (beatmap, otherBeatmap, beatmapSet) => CountdownSettingCondition(beatmap, otherBeatmap, beatmapSet) &&
+                                                                                                                             // One map has countdown, the other not.
+                                                                                                                             beatmap.GetCountdownStartBeat() >= 0 != otherBeatmap.GetCountdownStartBeat() >= 0),
+
+            new("Warning", "letterbox", beatmap => beatmap.GeneralSettings.letterbox, (beatmap, otherBeatmap, beatmapSet) => beatmap.GeneralSettings.mode == otherBeatmap.GeneralSettings.mode && beatmap.Breaks.Count > 0 && otherBeatmap.Breaks.Count > 0),
+            new("Warning", "widescreen support", beatmap => beatmap.GeneralSettings.widescreenSupport, StoryboardCondition),
+            new("Warning", "storyboard in front of combo fire", beatmap => beatmap.GeneralSettings.storyInFrontOfFire, StoryboardCondition),
+            new("Warning", "usage of skin sprites in storyboard", beatmap => beatmap.GeneralSettings.useSkinSprites, StoryboardCondition),
+            new("Warning", "difficulty-specific storyboard presence", beatmap => beatmap.HasDifficultySpecificStoryboard()),
+            new("Warning", "epilepsy warning", beatmap => beatmap.GeneralSettings.epilepsyWarning, (beatmap, otherBeatmap, beatmapSet) => StoryboardCondition(beatmap, otherBeatmap, beatmapSet) || (beatmap.Videos.Count > 0 && otherBeatmap.Videos.Count > 0)),
+            new("Warning", "audio lead-in", beatmap => beatmap.GeneralSettings.audioLeadIn),
+            new("Warning", "skin preference", beatmap => beatmap.GeneralSettings.skinPreference),
+            new("Minor", "slider tick rate", beatmap => beatmap.DifficultySettings.sliderTickRate, (beatmap, otherBeatmap, beatmapSet) => beatmap.GeneralSettings.mode == otherBeatmap.GeneralSettings.mode)
+        ];
 
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata

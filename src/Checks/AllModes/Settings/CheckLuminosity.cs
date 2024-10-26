@@ -17,13 +17,13 @@ namespace MapsetVerifier.Checks.AllModes.Settings
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
-                Modes = new[]
-                {
+                Modes =
+                [
                     // Does not apply to taiko, due to always using red/blue.
                     // Does not apply to mania, due to not having combo colours (based on column instead).
                     Beatmap.Mode.Standard,
                     Beatmap.Mode.Catch
-                },
+                ],
                 Category = "Settings",
                 Message = "Too dark or bright combo colours or slider borders.",
                 Author = "Naxess",

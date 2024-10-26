@@ -15,14 +15,14 @@ namespace MapsetVerifier.Checks.Standard.Spread
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
-                Modes = new[]
-                {
+                Modes =
+                [
                     Beatmap.Mode.Standard
-                },
-                Difficulties = new[]
-                {
+                ],
+                Difficulties =
+                [
                     Beatmap.Difficulty.Easy
-                },
+                ],
                 Category = "Spread",
                 Message = "Too short sliders.",
                 Author = "Naxess",

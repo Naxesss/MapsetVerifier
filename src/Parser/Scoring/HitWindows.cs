@@ -14,14 +14,14 @@ namespace MapsetVerifier.Parser.Scoring
     public class HitWindows
     {
         private static readonly DifficultyRange[] base_ranges =
-        {
+        [
             new(HitResult.Perfect, 22.4D, 19.4D, 13.9D),
             new(HitResult.Great, 64, 49, 34),
             new(HitResult.Good, 97, 82, 67),
             new(HitResult.Ok, 127, 112, 97),
             new(HitResult.Meh, 151, 136, 121),
             new(HitResult.Miss, 188, 173, 158)
-        };
+        ];
 
         private double good;
         private double great;
@@ -184,10 +184,10 @@ namespace MapsetVerifier.Parser.Scoring
         public class EmptyHitWindows : HitWindows
         {
             private static readonly DifficultyRange[] ranges =
-            {
+            [
                 new(HitResult.Perfect, 0, 0, 0),
                 new(HitResult.Miss, 0, 0, 0)
-            };
+            ];
 
             public override bool IsHitResultAllowed(HitResult result)
             {

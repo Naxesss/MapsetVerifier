@@ -17,10 +17,10 @@ namespace MapsetVerifier.Checks.Standard.Spread
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
-                Modes = new[]
-                {
+                Modes =
+                [
                     Beatmap.Mode.Standard
-                },
+                ],
                 Category = "Spread",
                 Message = "Objects close in time not overlapping.",
                 Author = "Naxess",

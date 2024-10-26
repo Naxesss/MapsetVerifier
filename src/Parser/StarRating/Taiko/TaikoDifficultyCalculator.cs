@@ -23,10 +23,9 @@ namespace MapsetVerifier.Parser.StarRating.Taiko
         public TaikoDifficultyCalculator(Beatmap beatmap) : base(beatmap) { }
 
         protected override Skill[] CreateSkills(Beatmap beatmap) =>
-            new Skill[]
-            {
-                new Peaks()
-            };
+        [
+            new Peaks()
+        ];
 
         protected override IEnumerable<DifficultyHitObject> CreateDifficultyHitObjects(Beatmap beatmap)
         {

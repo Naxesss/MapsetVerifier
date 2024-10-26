@@ -14,10 +14,10 @@ namespace MapsetVerifier.Checks.Standard.Compose
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
-                Modes = new[]
-                {
+                Modes =
+                [
                     Beatmap.Mode.Standard
-                },
+                ],
                 Category = "Compose",
                 Message = "Too short spinner.",
                 Author = "Naxess",

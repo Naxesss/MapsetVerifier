@@ -8,11 +8,11 @@ namespace MapsetVerifier.Parser.StarRating.Taiko.Scoring
     public class TaikoHitWindows : HitWindows
     {
         private static readonly DifficultyRange[] taiko_ranges =
-        {
+        [
             new(HitResult.Great, 50, 35, 20),
             new(HitResult.Ok, 120, 80, 50),
             new(HitResult.Miss, 135, 95, 70)
-        };
+        ];
 
         public override bool IsHitResultAllowed(HitResult result)
         {

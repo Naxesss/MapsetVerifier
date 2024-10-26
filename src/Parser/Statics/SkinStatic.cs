@@ -12,7 +12,7 @@ namespace MapsetVerifier.Parser.Statics
         private static bool isInitialized;
 
         private static readonly string[] skinGeneral =
-        {
+        [
             // cursor
             "cursor.png",
             "cursormiddle.png",
@@ -98,10 +98,10 @@ namespace MapsetVerifier.Parser.Statics
             "failsound.wav", "failsound.mp3", "failsound.ogg",
             // sounds in the pause screen
             "pause-loop.wav", "pause-loop.mp3", "pause-loop.ogg"
-        };
+        ];
 
         private static readonly string[] skinStandard =
-        {
+        [
             // hit bursts
             "hit0-{n}.png",
             "hit50-{n}.png",
@@ -137,10 +137,10 @@ namespace MapsetVerifier.Parser.Statics
             "followpoint.png",
             "followpoint-{n}.png",
             "lighting.png"
-        };
+        ];
 
         private static readonly string[] skinMania =
-        {
+        [
             // mod icons
             "selection-mod-fadein.png",
             "selection-mod-key1.png",
@@ -173,10 +173,10 @@ namespace MapsetVerifier.Parser.Statics
             // stages
             "mania-stage-left.png",
             "mania-stage-right.png"
-        };
+        ];
 
         private static readonly string[] skinTaiko =
-        {
+        [
             // pippidon
             "pippidonclear.png",
             "pippidonfail.png",
@@ -210,24 +210,24 @@ namespace MapsetVerifier.Parser.Statics
             "taiko-slider.png", // beatmap skinnable, but "taiko-slider-fail.png" is not, so probably a bug
             "taiko-flower-group.png",
             "taiko-flower-group-{n}.png"
-        };
+        ];
 
         private static readonly string[] skinTaikoSlider =
-        {
+        [
             // drumrolls
             "taiko-roll-middle.png",
             "taiko-roll-end.png",
             "sliderscorepoint.png"
-        };
+        ];
 
         private static readonly string[] skinTaikoSpinner =
-        {
+        [
             // shaker
             "spinner-warning.png"
-        };
+        ];
 
         private static readonly string[] skinCatch =
-        {
+        [
             // hit burst exception, appears in both modes' result screens
             // it does but the beatmap-specific skins don't have an effect there
             // "hit0.png",
@@ -258,26 +258,26 @@ namespace MapsetVerifier.Parser.Statics
             "fruit-orange-overlay.png",
             "fruit-orange-0.png", // can apparently be "animated", but only the first frame is actually used
             "fruit-orange-overlay-0.png"
-        };
+        ];
 
         private static readonly string[] skinCatchSlider =
-        {
+        [
             // according to my other note beatmap skins don't have an effect in the scoreboard
             // this doesn't really matter, though, since they're part of a set with the main catch files
             "fruit-drop.png",
             "fruit-drop-overlay.png"
-        };
+        ];
 
         private static readonly string[] skinCatchSpinner =
-        {
+        [
             // according to my other note beatmap skins don't have an effect in the scoreboard
             // this doesn't really matter, though, since they're part of a set with the main catch files
             "fruit-bananas.png",
             "fruit-bananas-overlay.png"
-        };
+        ];
 
         private static readonly string[] skinNotMania =
-        {
+        [
             // scorebar exception, bar is in a different position and excludes this element because of that
             // marker is currently unused (contradicting the wiki), but it's part of the scorebar skin set and may be used in the future
             "scorebar-marker.png",
@@ -287,10 +287,10 @@ namespace MapsetVerifier.Parser.Statics
             "scorebar-kidanger2.png",
             // mod icons exception, in mania there's no difference between something clicking for you and just using auto
             "selection-mod-relax.png"
-        };
+        ];
 
         private static readonly string[] skinCountdown =
-        {
+        [
             // playfield
             "count1.png",
             "count2.png",
@@ -303,10 +303,10 @@ namespace MapsetVerifier.Parser.Statics
             "count3s.wav", "count3s.mp3", "count3s.ogg",
             "gos.wav", "gos.mp3", "gos.ogg",
             "readys.wav", "readys.mp3", "readys.ogg"
-        };
+        ];
 
         private static readonly string[] skinStandardSlider =
-        {
+        [
             // slider
             "sliderstartcircle.png",
             "sliderstartcircleoverlay.png",
@@ -323,10 +323,10 @@ namespace MapsetVerifier.Parser.Statics
             "sliderscorepoint.png",
             "sliderpoint10.png",
             "sliderpoint30.png"
-        };
+        ];
 
         private static readonly string[] skinStandardSpinner =
-        {
+        [
             // spinner
             "spinner-approachcircle.png",
             "spinner-rpm.png",
@@ -345,28 +345,28 @@ namespace MapsetVerifier.Parser.Statics
             // sounds
             "spinnerspin.wav", "spinnerspin.mp3", "spinnerspin.ogg",
             "spinnerbonus.wav", "spinnerbonus.mp3", "spinnerbonus.ogg"
-        };
+        ];
 
         private static readonly string[] skinNotSliderb =
-        {
+        [
             "sliderb-nd.png",
             "sliderb-spec.png"
-        };
+        ];
 
         private static readonly string[] skinBreak =
-        {
+        [
             "section-fail.png",
             "section-pass.png",
             // sounds
             "sectionpass.wav", "sectionpass.mp3", "sectionpass.ogg",
             "sectionfail.wav", "sectionfail.mp3", "sectionfail.ogg"
-        };
+        ];
 
-        private static readonly List<SkinCondition> skinConditions = new();
+        private static readonly List<SkinCondition> skinConditions = [];
 
         private static void AddElements(string[] elements, Func<BeatmapSet, bool> useCondition = null) => skinConditions.Add(new SkinCondition(elements, useCondition));
 
-        private static void AddElement(string element, Func<BeatmapSet, bool> useCondition = null) => skinConditions.Add(new SkinCondition(new[] { element }, useCondition));
+        private static void AddElement(string element, Func<BeatmapSet, bool> useCondition = null) => skinConditions.Add(new SkinCondition([element], useCondition));
 
         private static void Initialize()
         {

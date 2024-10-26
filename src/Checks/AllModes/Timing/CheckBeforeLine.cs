@@ -17,12 +17,12 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             new BeatmapCheckMetadata
             {
                 // Mania doesn't have this issue since SV affects scroll speed rather than properties of objects.
-                Modes = new[]
-                {
+                Modes =
+                [
                     Beatmap.Mode.Standard,
                     Beatmap.Mode.Taiko,
                     Beatmap.Mode.Catch
-                },
+                ],
 
                 Category = "Timing",
                 Message = "Hit object is unaffected by a line very close to it.",

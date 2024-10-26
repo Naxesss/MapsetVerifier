@@ -16,17 +16,17 @@ namespace MapsetVerifier.Checks.Standard.Compose
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
-                Modes = new[]
-                {
+                Modes =
+                [
                     Beatmap.Mode.Standard
-                },
-                Difficulties = new[]
-                {
+                ],
+                Difficulties =
+                [
                     Beatmap.Difficulty.Easy,
                     Beatmap.Difficulty.Normal,
                     Beatmap.Difficulty.Hard,
                     Beatmap.Difficulty.Insane
-                },
+                ],
                 Category = "Compose",
                 Message = "Obscured reverse arrows.",
                 Author = "Naxess",
@@ -107,9 +107,9 @@ namespace MapsetVerifier.Checks.Standard.Compose
                     List<HitObject> hitObjects;
 
                     if (hitObject.time > otherHitObject.time)
-                        hitObjects = new List<HitObject> { otherHitObject, hitObject };
+                        hitObjects = [otherHitObject, hitObject];
                     else
-                        hitObjects = new List<HitObject> { hitObject, otherHitObject };
+                        hitObjects = [hitObject, otherHitObject];
 
                     selectedObjects.AddRange(hitObjects);
 

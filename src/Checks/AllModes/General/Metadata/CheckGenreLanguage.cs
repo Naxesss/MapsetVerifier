@@ -12,63 +12,63 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
     public class CheckGenreLanguage : GeneralCheck
     {
         private static readonly string[][] GenreTagCombinations =
-        {
-            new[] { "Video", "Game" },
-            new[] { "Anime" },
-            new[] { "Rock" },
-            new[] { "Pop" },
-            new[] { "Novelty" },
-            new[] { "Hip", "Hop" },
-            new[] { "Electronic" },
-            new[] { "Metal" },
-            new[] { "Classical" },
-            new[] { "Folk" },
-            new[] { "Jazz" }
-        };
+        [
+            ["Video", "Game"],
+            ["Anime"],
+            ["Rock"],
+            ["Pop"],
+            ["Novelty"],
+            ["Hip", "Hop"],
+            ["Electronic"],
+            ["Metal"],
+            ["Classical"],
+            ["Folk"],
+            ["Jazz"]
+        ];
 
         private static readonly string[][] LanguageTagCombinations =
-        {
-            new[] { "English" },
-            new[] { "Chinese" },
-            new[] { "French" },
-            new[] { "German" },
-            new[] { "Italian" },
-            new[] { "Japanese" },
-            new[] { "Korean" },
-            new[] { "Spanish" },
-            new[] { "Swedish" },
-            new[] { "Russian" },
-            new[] { "Polish" },
-            new[] { "Instrumental" },
+        [
+            ["English"],
+            ["Chinese"],
+            ["French"],
+            ["German"],
+            ["Italian"],
+            ["Japanese"],
+            ["Korean"],
+            ["Spanish"],
+            ["Swedish"],
+            ["Russian"],
+            ["Polish"],
+            ["Instrumental"],
 
             // Following are not web languages, but if we find these in the tags,
             // web would need to be "Other" anyway, so no point in warning.
-            new[] { "Conlang" },
-            new[] { "Hindi" },
-            new[] { "Arabic" },
-            new[] { "Portugese" },
-            new[] { "Turkish" },
-            new[] { "Vietnamese" },
-            new[] { "Persian" },
-            new[] { "Indonesian" },
-            new[] { "Ukrainian" },
-            new[] { "Romanian" },
-            new[] { "Dutch" },
-            new[] { "Thai" },
-            new[] { "Greek" },
-            new[] { "Somali" },
-            new[] { "Malay" },
-            new[] { "Hungarian" },
-            new[] { "Czech" },
-            new[] { "Norwegian" },
-            new[] { "Finnish" },
-            new[] { "Danish" },
-            new[] { "Latvia" },
-            new[] { "Lithuanian" },
-            new[] { "Estonian" },
-            new[] { "Punjabi" },
-            new[] { "Bengali" }
-        };
+            ["Conlang"],
+            ["Hindi"],
+            ["Arabic"],
+            ["Portugese"],
+            ["Turkish"],
+            ["Vietnamese"],
+            ["Persian"],
+            ["Indonesian"],
+            ["Ukrainian"],
+            ["Romanian"],
+            ["Dutch"],
+            ["Thai"],
+            ["Greek"],
+            ["Somali"],
+            ["Malay"],
+            ["Hungarian"],
+            ["Czech"],
+            ["Norwegian"],
+            ["Finnish"],
+            ["Danish"],
+            ["Latvia"],
+            ["Lithuanian"],
+            ["Estonian"],
+            ["Punjabi"],
+            ["Bengali"]
+        ];
 
         public override CheckMetadata GetMetadata() =>
             new()

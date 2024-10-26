@@ -14,13 +14,13 @@ namespace MapsetVerifier.Checks.AllModes.Events
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
-                Modes = new[]
-                {
+                Modes =
+                [
                     // Mania uses storyboarded hit sounding due to hit sounds playing individually for each column otherwise.
                     Beatmap.Mode.Standard,
                     Beatmap.Mode.Taiko,
                     Beatmap.Mode.Catch
-                },
+                ],
                 Category = "Events",
                 Message = "Storyboarded hit sounds.",
                 Author = "Naxess",

@@ -85,11 +85,11 @@ namespace MapsetVerifier.Server
                         LoadBeatmapSet(value);
 
                         Func<string, Task>[] actions =
-                        {
+                        [
                             RequestSnapshots,
                             RequestChecks,
                             RequestOverview
-                        };
+                        ];
 
                         if (State.LoadedBeatmapSetPath != value)
                             return;

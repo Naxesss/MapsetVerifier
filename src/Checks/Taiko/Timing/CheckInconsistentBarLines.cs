@@ -15,10 +15,10 @@ namespace MapsetVerifier.Checks.Taiko.Timing
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
-                Modes = new[]
-                {
+                Modes =
+                [
                     Beatmap.Mode.Taiko
-                },
+                ],
                 Category = "Timing",
                 Message = "Inconsistent omitted bar lines.",
                 Author = "Naxess",

@@ -16,7 +16,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
     [Check]
     public class CheckWrongSnapping : BeatmapSetCheck
     {
-        private readonly int[] divisors = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 16 };
+        private readonly int[] divisors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 16];
         private List<int> countMinorDivisors;
         private List<Tuple<int, string>> countMinorStamps;
 
@@ -94,7 +94,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
         {
             foreach (var beatmap in beatmapSet.Beatmaps)
             {
-                inconsistencies = new ConcurrentBag<Inconsistency>();
+                inconsistencies = [];
 
                 // Essentially if our `otherBeatmaps` simplify rhythms from our `beatmap`, then that's an issue.
                 // So the reason `otherBeatmaps` is all higher difficulties is because lower difficulties are expected to simplify rhythms.
@@ -140,10 +140,10 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             const double percentWarning = 0.005;
             const double percentMinor = 0.05;
 
-            countWarningDivisors = new List<int>();
-            countMinorDivisors = new List<int>();
-            percentWarningDivisors = new List<int>();
-            percentMinorDivisors = new List<int>();
+            countWarningDivisors = [];
+            countMinorDivisors = [];
+            percentWarningDivisors = [];
+            percentMinorDivisors = [];
 
             var divisorGroups = beatmap.HitObjects.SelectMany(hitObject => hitObject.GetEdgeTimes().Select(beatmap.GetLowestDivisor)).Where(divisor => divisor != 0).GroupBy(divisor => divisor).Select(group => new
             {
@@ -168,10 +168,10 @@ namespace MapsetVerifier.Checks.AllModes.Timing
         /// <summary> Populates the warnings and minor issues for rare divisors in the given beatmap. </summary>
         private void PopulateRareDivisors(Beatmap beatmap)
         {
-            countWarningStamps = new List<Tuple<int, string>>();
-            countMinorStamps = new List<Tuple<int, string>>();
-            percentWarningStamps = new List<Tuple<int, string>>();
-            percentMinorStamps = new List<Tuple<int, string>>();
+            countWarningStamps = [];
+            countMinorStamps = [];
+            percentWarningStamps = [];
+            percentMinorStamps = [];
 
             foreach (var hitObject in beatmap.HitObjects)
                 foreach (var edgeTime in hitObject.GetEdgeTimes())

@@ -70,10 +70,9 @@ namespace MapsetVerifier.Parser.StarRating.Osu
         }
 
         protected override Skill[] CreateSkills(Beatmap beatmap) =>
-            new Skill[]
-            {
-                new Aim(),
+        [
+            new Aim(),
                 new Speed()
-            };
+        ];
     }
 }

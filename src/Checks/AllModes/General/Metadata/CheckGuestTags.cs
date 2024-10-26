@@ -10,7 +10,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
     [Check]
     public class CheckGuestTags : GeneralCheck
     {
-        private readonly char[] collabChars = { ',', '&', '|', '/' };
+        private readonly char[] collabChars = [',', '&', '|', '/'];
         private readonly Regex possessorRegex = new(@"(.+)(?:'s|(s)')", RegexOptions.IgnoreCase);
 
         public override CheckMetadata GetMetadata() =>

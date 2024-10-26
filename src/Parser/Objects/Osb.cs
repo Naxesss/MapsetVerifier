@@ -21,7 +21,7 @@ namespace MapsetVerifier.Parser.Objects
         {
             this.code = code;
 
-            var lines = code.Split(new[] { "\n" }, StringSplitOptions.None);
+            var lines = code.Split(["\n"], StringSplitOptions.None);
 
             // substitute variables in the code before looking at the event part
             var substitutions = new List<KeyValuePair<string, string>>();
@@ -39,14 +39,14 @@ namespace MapsetVerifier.Parser.Objects
                 substitutedCode = substitutedCode.Replace(substitution.Key, substitution.Value);
 
             var codeResult = substitutedCode;
-            var linesResult = codeResult.Split(new[] { "\n" }, StringSplitOptions.None);
+            var linesResult = codeResult.Split(["\n"], StringSplitOptions.None);
 
-            backgrounds = GetEvents(linesResult, new List<string> { "Background", "0" }, args => new Background(args));
-            videos = GetEvents(linesResult, new List<string> { "Video", "1" }, args => new Video(args));
-            breaks = GetEvents(linesResult, new List<string> { "Break", "2" }, args => new Break(args));
-            sprites = GetEvents(linesResult, new List<string> { "Sprite", "4" }, args => new Sprite(args));
-            samples = GetEvents(linesResult, new List<string> { "Sample", "5" }, args => new Sample(args));
-            animations = GetEvents(linesResult, new List<string> { "Animation", "6" }, args => new Animation(args));
+            backgrounds = GetEvents(linesResult, ["Background", "0"], args => new Background(args));
+            videos = GetEvents(linesResult, ["Video", "1"], args => new Video(args));
+            breaks = GetEvents(linesResult, ["Break", "2"], args => new Break(args));
+            sprites = GetEvents(linesResult, ["Sprite", "4"], args => new Sprite(args));
+            samples = GetEvents(linesResult, ["Sample", "5"], args => new Sample(args));
+            animations = GetEvents(linesResult, ["Animation", "6"], args => new Animation(args));
         }
 
         /// <summary> Returns whether the .osb file is actually used as a storyboard (or if it's just empty). </summary>

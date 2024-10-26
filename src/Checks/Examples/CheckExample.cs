@@ -17,17 +17,17 @@ namespace MapsetVerifier.Checks.Examples
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
-                Modes = new[]
-                {
+                Modes =
+                [
                     Beatmap.Mode.Standard,
                     Beatmap.Mode.Catch
-                },
-                Difficulties = new[]
-                {
+                ],
+                Difficulties =
+                [
                     Beatmap.Difficulty.Easy,
                     Beatmap.Difficulty.Normal,
                     Beatmap.Difficulty.Hard
-                },
+                ],
                 Category = "Example",
                 Message = "Difficulty name is present in the beatmap.",
                 Author = "Naxess",

@@ -39,7 +39,7 @@ namespace MapsetVerifier.Parser.Objects
             Mania
         }
 
-        private static readonly int[] divisors = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 16 };
+        private static readonly int[] divisors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 16];
 
         /// <summary>
         ///     A list of aliases for difficulty levels. Can't be ambigious with named top diffs, so something
@@ -134,7 +134,7 @@ namespace MapsetVerifier.Parser.Objects
             SongPath = songPath;
             MapPath = mapPath;
 
-            var lines = code.Split(new[] { "\n" }, StringSplitOptions.None);
+            var lines = code.Split(["\n"], StringSplitOptions.None);
 
             GeneralSettings = ParserStatic.GetSettings(lines, "General", sectionLines => new GeneralSettings(sectionLines));
             MetadataSettings = ParserStatic.GetSettings(lines, "Metadata", sectionLines => new MetadataSettings(sectionLines));
@@ -143,12 +143,12 @@ namespace MapsetVerifier.Parser.Objects
 
             // event type 3 seems to be "background colour transformation" https://i.imgur.com/Tqlz3s5.png
 
-            Backgrounds = GetEvents(lines, new List<string> { "Background", "0" }, args => new Background(args));
-            Videos = GetEvents(lines, new List<string> { "Video", "1" }, args => new Video(args));
-            Breaks = GetEvents(lines, new List<string> { "Break", "2" }, args => new Break(args));
-            Sprites = GetEvents(lines, new List<string> { "Sprite", "4" }, args => new Sprite(args));
-            Samples = GetEvents(lines, new List<string> { "Sample", "5" }, args => new Sample(args));
-            Animations = GetEvents(lines, new List<string> { "Animation", "6" }, args => new Animation(args));
+            Backgrounds = GetEvents(lines, ["Background", "0"], args => new Background(args));
+            Videos = GetEvents(lines, ["Video", "1"], args => new Video(args));
+            Breaks = GetEvents(lines, ["Break", "2"], args => new Break(args));
+            Sprites = GetEvents(lines, ["Sprite", "4"], args => new Sprite(args));
+            Samples = GetEvents(lines, ["Sample", "5"], args => new Sample(args));
+            Animations = GetEvents(lines, ["Animation", "6"], args => new Animation(args));
 
             TimingLines = GetTimingLines(lines);
             HitObjects = GetHitobjects(lines);
@@ -741,13 +741,13 @@ namespace MapsetVerifier.Parser.Objects
             var line = GetTimingLine<UninheritedLine>(time);
 
             double[] theoreticalUnsnaps =
-            {
+            [
                 GetTheoreticalUnsnap(time, 16, line),
                 GetTheoreticalUnsnap(time, 12, line),
                 GetTheoreticalUnsnap(time, 9, line),
                 GetTheoreticalUnsnap(time, 7, line),
                 GetTheoreticalUnsnap(time, 5, line)
-            };
+            ];
 
             // Assume the closest possible snapping & retain signed values.
             var minUnsnap = theoreticalUnsnaps.Min(Math.Abs);
@@ -789,13 +789,13 @@ namespace MapsetVerifier.Parser.Objects
             // 35601 - (int)(35601 - 1.23) > 35601 - (int)(35601 - (-1.70)).
             // (Giving unsnaps of 2 ms and 1 ms respectively).
             double[] practicalUnsnaps =
-            {
+            [
                 GetPracticalUnsnap(time, 16, line),
                 GetPracticalUnsnap(time, 12, line),
                 GetPracticalUnsnap(time, 9, line),
                 GetPracticalUnsnap(time, 7, line),
                 GetPracticalUnsnap(time, 5, line)
-            };
+            ];
 
             // Assume the closest possible snapping & retain signed values.
             var minUnsnap = practicalUnsnaps.Min(Math.Abs);

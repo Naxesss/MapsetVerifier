@@ -55,7 +55,7 @@ namespace MapsetVerifier.Rendering
                 srChart.Data.Add(GetStarRatingSeries(beatmap, srChart));
 
                 if (!mapsUsedInChart.ContainsKey(srChart))
-                    mapsUsedInChart[srChart] = new List<Beatmap> { beatmap };
+                    mapsUsedInChart[srChart] = [beatmap];
                 else
                     mapsUsedInChart[srChart].Add(beatmap);
             }
@@ -84,7 +84,7 @@ namespace MapsetVerifier.Rendering
                     skillCharts[skill].Data.Add(skillSeries);
 
                     if (!mapsUsedInChart.ContainsKey(skillCharts[skill]))
-                        mapsUsedInChart[skillCharts[skill]] = new List<Beatmap> { beatmap };
+                        mapsUsedInChart[skillCharts[skill]] = [beatmap];
                     else
                         mapsUsedInChart[skillCharts[skill]].Add(beatmap);
                 }
@@ -113,7 +113,7 @@ namespace MapsetVerifier.Rendering
                     if (accumulatedPeaks.ContainsKey(index))
                         accumulatedPeaks[index].Add((float)strainPeaks[index]);
                     else
-                        accumulatedPeaks[index] = new List<float> { (float)strainPeaks[index] };
+                        accumulatedPeaks[index] = [(float)strainPeaks[index]];
             }
 
             return GetPeakSeries(beatmap, accumulatedPeaks, peak =>

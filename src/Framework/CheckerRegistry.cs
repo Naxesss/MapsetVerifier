@@ -6,7 +6,7 @@ namespace MapsetVerifier.Framework
 {
     public static class CheckerRegistry
     {
-        private static readonly List<Check> checks = new();
+        private static readonly List<Check> checks = [];
 
         /// <summary> Adds the given check to the list of checks to process when checking for issues. </summary>
         public static void RegisterCheck(Check check)
@@ -18,7 +18,7 @@ namespace MapsetVerifier.Framework
         }
 
         /// <summary> Returns all checks which are processed when checking for issues. </summary>
-        public static List<Check> GetChecks() => new(checks);
+        public static List<Check> GetChecks() => [..checks];
 
         /// <summary>
         ///     Returns checks which are processed beatmap-wise when checking for issues.

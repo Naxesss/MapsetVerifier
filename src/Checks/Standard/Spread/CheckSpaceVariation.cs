@@ -16,15 +16,15 @@ namespace MapsetVerifier.Checks.Standard.Spread
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
-                Modes = new[]
-                {
+                Modes =
+                [
                     Beatmap.Mode.Standard
-                },
-                Difficulties = new[]
-                {
+                ],
+                Difficulties =
+                [
                     Beatmap.Difficulty.Easy,
                     Beatmap.Difficulty.Normal
-                },
+                ],
                 Category = "Spread",
                 Message = "Object too close or far away from previous.",
                 Author = "Naxess",
