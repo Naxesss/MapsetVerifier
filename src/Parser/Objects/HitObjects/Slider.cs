@@ -100,7 +100,7 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
         public Vector2 UnstackedEndPosition { get; }
         public Vector2 EndPosition => UnstackedEndPosition + Position - UnstackedPosition;
 
-        public Vector2 LazyEndPosition { get; set; }
+        public Vector2? LazyEndPosition { get; set; }
         public double LazyTravelDistance { get; set; }
 
         /*

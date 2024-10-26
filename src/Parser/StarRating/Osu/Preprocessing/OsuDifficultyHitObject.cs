@@ -103,7 +103,7 @@ namespace MapsetVerifier.Parser.StarRating.Osu.Preprocessing
             var computeVertex = new Action<double>(t =>
             {
                 // ReSharper disable once PossibleInvalidOperationException (bugged in current r# version)
-                var diff = slider.Position + slider.GetPathPosition(t) - slider.LazyEndPosition;
+                var diff = slider.Position + slider.GetPathPosition(t) - slider.LazyEndPosition.Value;
                 var dist = diff.Length();
 
                 if (dist > approxFollowCircleRadius)
@@ -130,7 +130,7 @@ namespace MapsetVerifier.Parser.StarRating.Osu.Preprocessing
             if (hitObject is Slider slider)
             {
                 ComputeSliderCursorPosition(slider);
-                pos = slider.LazyEndPosition;
+                pos = slider.LazyEndPosition.GetValueOrDefault(pos);
             }
 
             return pos;
