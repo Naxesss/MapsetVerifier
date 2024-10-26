@@ -74,12 +74,12 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
 
                 // Object-specific volume overrides line-specific volume for circles and hold notes
                 // (feature for Mania hit sounding) when it is > 0. However, this applies to other modes as well.
-                var volume = !(hitObject is Slider) && hitObject.volume > 0 && hitObject.volume != null ? hitObject.volume.GetValueOrDefault() : GetTimingLine(beatmap, ref lineIndex, hitObject.time).Volume;
+                var volume = hitObject is not Slider && hitObject.volume > 0 && hitObject.volume != null ? hitObject.volume.GetValueOrDefault() : GetTimingLine(beatmap, ref lineIndex, hitObject.time).Volume;
 
                 foreach (var issue in GetIssue(hitObject, hitObject.time, volume, true))
                     yield return issue;
 
-                if (!(hitObject is Slider slider))
+                if (hitObject is not Slider slider)
                     continue;
 
                 for (var edgeIndex = 1; edgeIndex <= slider.EdgeAmount; ++edgeIndex)

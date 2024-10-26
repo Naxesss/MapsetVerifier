@@ -80,7 +80,7 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                         yield return new Issue(GetTemplate("Concurrent Objects"), beatmap, Timestamp.Get(hitObject, otherHitObject), ObjectsAsString(hitObject, otherHitObject));
 
                     // Spinners can be 1 ms or further apart from the previous end time, but not at the same milisecond.
-                    else if (msApart <= 10 && !(otherHitObject is Spinner))
+                    else if (msApart <= 10 && otherHitObject is not Spinner)
                         yield return new Issue(GetTemplate("Almost Concurrent Objects"), beatmap, Timestamp.Get(hitObject, otherHitObject), msApart);
 
                     else

@@ -46,7 +46,7 @@ namespace MapsetVerifier.Parser.StarRating.Taiko.Evaluators
         /// </summary>
         public static double EvaluateDifficultyOf(DifficultyHitObject current)
         {
-            if (!(current.BaseObject is Circle)) return 0.0;
+            if (current.BaseObject is not Circle) return 0.0;
 
             // Find the previous hit object hit by the current finger, which is n notes prior, n being the number of
             // available fingers.

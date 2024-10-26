@@ -60,7 +60,7 @@ namespace MapsetVerifier.Checks.Catch.Compose
             foreach (var spinner in beatmap.HitObjects.OfType<Spinner>())
             {
                 // Check the gap after the spinner.
-                if (spinner.Next() is HitObject next && !(next is Spinner))
+                if (spinner.Next() is HitObject next && next is not Spinner)
                 {
                     var nextGap = Timestamp.Round(next.time) - Timestamp.Round(spinner.endTime);
 
@@ -71,7 +71,7 @@ namespace MapsetVerifier.Checks.Catch.Compose
 
                 // Check the gap before the spinner.
                 // ReSharper disable once InvertIf (More clearly a variation of the above if-statement like this.)
-                if (spinner.Prev() is HitObject prev && !(prev is Spinner))
+                if (spinner.Prev() is HitObject prev && prev is not Spinner)
                 {
                     var prevGap = Timestamp.Round(spinner.time) - Timestamp.Round(prev.GetEndTime());
 

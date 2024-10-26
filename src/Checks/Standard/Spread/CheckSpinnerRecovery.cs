@@ -73,7 +73,7 @@ namespace MapsetVerifier.Checks.Standard.Spread
         {
             foreach (var hitObject in beatmap.HitObjects)
             {
-                if (!(hitObject is Spinner spinner))
+                if (hitObject is not Spinner spinner)
                     continue;
 
                 foreach (var issue in GetLengthIssues(beatmap, spinner))

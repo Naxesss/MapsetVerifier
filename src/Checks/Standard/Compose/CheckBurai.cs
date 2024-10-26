@@ -79,7 +79,7 @@ namespace MapsetVerifier.Checks.Standard.Compose
         {
             foreach (var hitObject in beatmap.HitObjects)
             {
-                if (!(hitObject is Slider { CurveType: Slider.Curve.Bezier } slider))
+                if (hitObject is not Slider { CurveType: Slider.Curve.Bezier } slider)
                     continue;
 
                 // Make sure the path doesn't go back on itself (basically the angle shouldn't be too similar

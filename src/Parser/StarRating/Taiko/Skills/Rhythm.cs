@@ -52,7 +52,7 @@ namespace MapsetVerifier.Parser.StarRating.Taiko.Skills
         protected override double StrainValueOf(DifficultyHitObject current)
         {
             // drum rolls and swells are exempt.
-            if (!(current.BaseObject is Circle))
+            if (current.BaseObject is not Circle)
             {
                 resetRhythmAndStrain();
 

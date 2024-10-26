@@ -73,7 +73,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     hitObject is HoldNote ? "Hold note" : "Spinner";
 
                 // SV in taiko and mania speed up all objects, whereas in catch and standard it only affects sliders.
-                if (!(hitObject is Slider) && !IsSVAffectingAR(beatmap))
+                if (hitObject is not Slider && !IsSVAffectingAR(beatmap))
                     continue;
 
                 foreach (var issue in GetIssue(type, hitObject.time, beatmap))

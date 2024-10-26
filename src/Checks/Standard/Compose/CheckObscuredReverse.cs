@@ -74,7 +74,7 @@ namespace MapsetVerifier.Checks.Standard.Compose
 
             foreach (var hitObject in beatmap.HitObjects)
             {
-                if (!(hitObject is Slider slider) || slider.EdgeAmount <= 1)
+                if (hitObject is not Slider slider || slider.EdgeAmount <= 1)
                     continue;
 
                 var reverseTime = slider.time + slider.GetCurveDuration();

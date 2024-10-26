@@ -74,7 +74,7 @@ namespace MapsetVerifier.Parser.StarRating.Osu.Preprocessing
             var lastCursorPosition = GetEndCursorPosition(lastObject);
 
             // Don't need to jump to reach spinners
-            if (!(BaseObject is Spinner))
+            if (BaseObject is not Spinner)
                 JumpDistance = (BaseObject.Position * scalingFactor - lastCursorPosition * scalingFactor).Length();
 
             if (lastLastObject != null)

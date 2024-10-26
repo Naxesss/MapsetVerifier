@@ -42,7 +42,7 @@ namespace MapsetVerifier.Framework.Objects
         /// <summary> Whether this issue applies to the given difficulty level according to the metadata and interpretation. </summary>
         public bool AppliesToDifficulty(Beatmap.Difficulty difficulty)
         {
-            var appliesByMetadata = !(CheckOrigin.GetMetadata() is BeatmapCheckMetadata metadata) || metadata.Difficulties.Contains(difficulty);
+            var appliesByMetadata = CheckOrigin.GetMetadata() is not BeatmapCheckMetadata metadata || metadata.Difficulties.Contains(difficulty);
 
             var appliesByInterpretation = !InterpretationPairs.Any() || InterpretationPairs.Any(pair => pair.Key == "difficulty" && (Beatmap.Difficulty)pair.Value == difficulty);
 

@@ -255,7 +255,7 @@ namespace MapsetVerifier.Parser.Objects
                             if (IsStacked(hitObject, otherHitObject)) break;
                         }
 
-                        if (!(hitObject is Slider slider))
+                        if (hitObject is not Slider slider)
                             continue;
 
                         if (ShouldStackTail(slider, otherHitObject))

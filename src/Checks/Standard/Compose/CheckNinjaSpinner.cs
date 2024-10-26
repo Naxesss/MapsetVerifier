@@ -58,7 +58,7 @@ namespace MapsetVerifier.Checks.Standard.Compose
         {
             foreach (var hitObject in beatmap.HitObjects)
             {
-                if (!(hitObject is Spinner spinner))
+                if (hitObject is not Spinner spinner)
                     continue;
 
                 double od = beatmap.DifficultySettings.overallDifficulty;

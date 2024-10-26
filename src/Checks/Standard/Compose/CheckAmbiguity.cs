@@ -75,7 +75,7 @@ namespace MapsetVerifier.Checks.Standard.Compose
         {
             foreach (var hitObject in beatmap.HitObjects)
             {
-                if (!(hitObject is Slider slider))
+                if (hitObject is not Slider slider)
                     continue;
 
                 var tailPosition = slider.GetPathPosition(slider.time + slider.GetCurveDuration());

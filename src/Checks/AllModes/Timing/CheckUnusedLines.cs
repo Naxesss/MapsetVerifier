@@ -87,7 +87,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
 
             for (var i = 1; i < lines.Count; ++i)
             {
-                if (!(lines[i] is UninheritedLine currentLine))
+                if (lines[i] is not UninheritedLine currentLine)
                     continue;
 
                 // Can't do lines[i - 1] since that could give a green line on the same offset, which we don't want.
@@ -146,7 +146,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
 
             for (var i = 1; i < lines.Count; ++i)
             {
-                if (!(lines[i] is InheritedLine currentLine))
+                if (lines[i] is not InheritedLine currentLine)
                     continue;
 
                 var previousLine = lines[i - 1];

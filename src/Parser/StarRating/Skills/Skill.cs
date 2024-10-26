@@ -25,7 +25,7 @@ namespace MapsetVerifier.Parser.StarRating.Skills
 
         public override bool Equals(object obj)
         {
-            if (!(obj is Skill skill))
+            if (obj is not Skill skill)
                 return false;
 
             return skill.SkillName() == SkillName();

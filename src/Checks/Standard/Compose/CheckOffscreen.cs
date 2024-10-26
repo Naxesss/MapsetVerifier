@@ -88,7 +88,7 @@ namespace MapsetVerifier.Checks.Standard.Compose
             {
                 var type = hitObject is Circle ? "Circle" : "Slider head";
 
-                if (!(hitObject is Circle) && !(hitObject is Slider))
+                if (hitObject is not Circle && hitObject is not Slider)
                     continue;
 
                 var circleRadius = beatmap.DifficultySettings.GetCircleRadius();
@@ -124,7 +124,7 @@ namespace MapsetVerifier.Checks.Standard.Compose
                         yield return new Issue(GetTemplate("Prevented"), beatmap, Timestamp.Get(hitObject), type);
                 }
 
-                if (!(hitObject is Slider slider))
+                if (hitObject is not Slider slider)
                     continue;
 
                 if (GetOffscreenBy(slider.EndPosition, beatmap) > 0)

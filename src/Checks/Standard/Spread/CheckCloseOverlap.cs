@@ -77,11 +77,11 @@ namespace MapsetVerifier.Checks.Standard.Spread
 
                 foreach (var hitObject in beatmap.HitObjects)
                 {
-                    if (!(hitObject.Next() is HitObject nextObject))
+                    if (hitObject.Next() is not HitObject nextObject)
                         continue;
 
                     // Slider ends do not need to overlap, same with spinners, spinners should be ignored overall.
-                    if (!(hitObject is Circle) || nextObject is Spinner)
+                    if (hitObject is not Circle || nextObject is Spinner)
                         continue;
 
                     if (nextObject.time - hitObject.time >= WarningThreshold)

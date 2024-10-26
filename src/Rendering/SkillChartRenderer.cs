@@ -74,7 +74,7 @@ namespace MapsetVerifier.Rendering
 
                 foreach (var skill in beatmap.DifficultyAttributes.Skills)
                 {
-                    if (!(skill is StrainSkill strainSkill))
+                    if (skill is not StrainSkill strainSkill)
                         continue;
 
                     if (!skillCharts.ContainsKey(skill))
@@ -104,7 +104,7 @@ namespace MapsetVerifier.Rendering
 
             foreach (var skill in beatmap.DifficultyAttributes.Skills)
             {
-                if (!(skill is StrainSkill strainSkill))
+                if (skill is not StrainSkill strainSkill)
                     continue;
 
                 var strainPeaks = strainSkill.GetCurrentStrainPeaks().ToList();

@@ -93,7 +93,7 @@ namespace MapsetVerifier.Parser.Objects
 
             // Sliders and spinners include additional edges which support hit sounding, so we
             // should handle that after those edges are initialized in Slider/Spinner instead.
-            if (!(this is Slider) && !(this is Spinner))
+            if (this is not Slider && this is not Spinner)
                 usedHitSamples = GetUsedHitSamples().ToList();
         }
 
@@ -387,7 +387,7 @@ namespace MapsetVerifier.Parser.Objects
         private IEnumerable<HitSample> GetUsedHitSamplesNonTaiko()
         {
             // Spinners have no impact sound.
-            if (!(this is Spinner))
+            if (this is not Spinner)
             {
                 // Head
                 foreach (var splitStartHitSound in SplitHitSound(GetStartHitSound().GetValueOrDefault()))
@@ -397,7 +397,7 @@ namespace MapsetVerifier.Parser.Objects
             }
 
             // Hold notes can not have a hit sounds on their tails.
-            if (!(this is HoldNote))
+            if (this is not HoldNote)
             {
                 // Tail
                 foreach (var splitEndHitSound in SplitHitSound(GetEndHitSound().GetValueOrDefault()))
@@ -550,7 +550,7 @@ namespace MapsetVerifier.Parser.Objects
                 isClose(GetEndTime(), time) || isClose(GetEdgeTimes().Last(), time) ? "tail" :
                 GetEdgeTimes().Any(edgeTime => isClose(edgeTime, time)) ? "reverse" : "body";
 
-            return GetObjectType() + (!(this is Circle) ? " " + edgeType : "");
+            return GetObjectType() + (this is not Circle ? " " + edgeType : "");
         }
 
         /// <summary> Returns the name of the object in general, for example "Slider", "Circle", "Hold note", etc. </summary>
