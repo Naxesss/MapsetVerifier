@@ -71,15 +71,15 @@ namespace MapsetVerifier.Checks.AllModes.Spread
 
                 if (mode is Beatmap.Mode.Catch or Beatmap.Mode.Mania)
                 {
-                    hardThreshold = createThreshold(2, 30);
-                    insaneThreshold = createThreshold(3, 15);
-                    expertThreshold = createThreshold(4, 0);
+                    hardThreshold = CreateThreshold(2, 30);
+                    insaneThreshold = CreateThreshold(3, 15);
+                    expertThreshold = CreateThreshold(4, 0);
                 }
                 else
                 {
-                    hardThreshold = createThreshold(3, 30);
-                    insaneThreshold = createThreshold(4, 15);
-                    expertThreshold = createThreshold(5, 0);
+                    hardThreshold = CreateThreshold(3, 30);
+                    insaneThreshold = CreateThreshold(4, 15);
+                    expertThreshold = CreateThreshold(5, 0);
                 }
                 
                 var modeBeatmaps = modeBeatmapGroup.ToList();
@@ -110,27 +110,27 @@ namespace MapsetVerifier.Checks.AllModes.Spread
                     }
 
                     if (effectiveTime < hardThreshold - thresholdReduction)
-                        yield return new Issue(GetTemplate("Problem"), lowestBeatmap, Beatmap.Difficulty.Hard,
-                                canUsePlayTime ? "play" : "drain", beatmap,
-                                Timestamp.Get(hardThreshold - thresholdReduction), Timestamp.Get(effectiveTime))
+                    {
+                        yield return new Issue(GetTemplate("Problem"), lowestBeatmap, Beatmap.Difficulty.Hard, canUsePlayTime ? "play" : "drain", beatmap, Timestamp.Get(hardThreshold - thresholdReduction), Timestamp.Get(effectiveTime))
                             .ForDifficulties(Beatmap.Difficulty.Hard);
+                    }
 
                     if (effectiveTime < insaneThreshold - thresholdReduction)
-                        yield return new Issue(GetTemplate("Problem"), lowestBeatmap, Beatmap.Difficulty.Insane,
-                                canUsePlayTime ? "play" : "drain", beatmap,
-                                Timestamp.Get(insaneThreshold - thresholdReduction), Timestamp.Get(effectiveTime))
+                    {
+                        yield return new Issue(GetTemplate("Problem"), lowestBeatmap, Beatmap.Difficulty.Insane, canUsePlayTime ? "play" : "drain", beatmap, Timestamp.Get(insaneThreshold - thresholdReduction), Timestamp.Get(effectiveTime))
                             .ForDifficulties(Beatmap.Difficulty.Insane);
+                    }
 
                     if (effectiveTime < expertThreshold - thresholdReduction)
-                        yield return new Issue(GetTemplate("Problem"), lowestBeatmap, Beatmap.Difficulty.Expert,
-                                canUsePlayTime ? "play" : "drain", beatmap,
-                                Timestamp.Get(expertThreshold - thresholdReduction), Timestamp.Get(effectiveTime))
+                    {
+                        yield return new Issue(GetTemplate("Problem"), lowestBeatmap, Beatmap.Difficulty.Expert, canUsePlayTime ? "play" : "drain", beatmap, Timestamp.Get(expertThreshold - thresholdReduction), Timestamp.Get(effectiveTime))
                             .ForDifficulties(Beatmap.Difficulty.Expert, Beatmap.Difficulty.Ultra);
+                    }
                 }
             }
         }
         
-        private int createThreshold(int minutes, int seconds)
+        private static int CreateThreshold(int minutes, int seconds)
         {
             // Thresholds need to be in milliseconds
             return (minutes * 60 + seconds) * 1000;
