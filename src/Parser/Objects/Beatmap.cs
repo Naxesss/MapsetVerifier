@@ -590,6 +590,19 @@ namespace MapsetVerifier.Parser.Objects
         /// </summary>
         public Difficulty GetDifficulty()
         {
+            var difficultyFromName = GetDifficultyFromName();
+            if (difficultyFromName == null && GeneralSettings.mode is Mode.Catch or Mode.Mania)
+            {
+                // Assume custom diff names are always experts for modes we can't calculate star rating for
+                return Difficulty.Expert;
+            }
+
+            if (difficultyFromName != null)
+            {
+                return (Difficulty) difficultyFromName;
+            }
+            
+            // We can't determine the difficulty by name so instead use star rating
             Difficulty difficulty;
 
             if (StarRating < 2.0f) difficulty = Difficulty.Easy;
@@ -599,7 +612,7 @@ namespace MapsetVerifier.Parser.Objects
             else if (StarRating < 6.5f) difficulty = Difficulty.Expert;
             else difficulty = Difficulty.Ultra;
 
-            return GetDifficultyFromName() ?? difficulty;
+            return difficulty;
         }
 
         public Difficulty? GetDifficultyFromName()
