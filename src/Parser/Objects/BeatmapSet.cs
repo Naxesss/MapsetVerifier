@@ -34,7 +34,7 @@ namespace MapsetVerifier.Parser.Objects
             HitSoundFiles = GetUsedHitSoundFiles().ToList();
             hsTrack.Complete();
 
-            Beatmaps = Beatmaps.OrderBy(beatmap => beatmap.GeneralSettings.mode).ThenBy(beatmap => beatmap.GetDifficulty(true)).ThenBy(beatmap => beatmap.StarRating).ThenBy(beatmap => beatmap.GetObjectDensity()).ToList();
+            Beatmaps = Beatmaps.OrderBy(beatmap => beatmap.GeneralSettings.mode).ThenBy(beatmap => beatmap.GetDifficulty()).ThenBy(beatmap => beatmap.StarRating).ThenBy(beatmap => beatmap.GetObjectDensity()).ToList();
 
             mapsetTrack.Complete();
         }

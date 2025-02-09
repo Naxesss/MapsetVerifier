@@ -144,7 +144,7 @@ namespace MapsetVerifier.Rendering
 
         private static Beatmap.Difficulty DifficultyOf(Beatmap map)
         {
-            var diff = map.GetDifficulty(true);
+            var diff = map.GetDifficulty();
 
             // Ultra uses a completely black color, which blends into the background too much, hence treat like Expert instead.
             return diff == Beatmap.Difficulty.Ultra ? Beatmap.Difficulty.Expert : diff;

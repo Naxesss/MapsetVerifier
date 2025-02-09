@@ -588,7 +588,7 @@ namespace MapsetVerifier.Parser.Objects
         ///     Returns the interpreted difficulty level based on the star rating of the beatmap
         ///     (may be inaccurate since recent sr reworks were done), can optionally consider diff names.
         /// </summary>
-        public Difficulty GetDifficulty(bool considerName = false)
+        public Difficulty GetDifficulty()
         {
             Difficulty difficulty;
 
@@ -598,9 +598,6 @@ namespace MapsetVerifier.Parser.Objects
             else if (StarRating < 5.3f) difficulty = Difficulty.Insane;
             else if (StarRating < 6.5f) difficulty = Difficulty.Expert;
             else difficulty = Difficulty.Ultra;
-
-            if (!considerName)
-                return difficulty;
 
             return GetDifficultyFromName() ?? difficulty;
         }
