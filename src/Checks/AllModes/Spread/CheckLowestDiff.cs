@@ -56,10 +56,6 @@ namespace MapsetVerifier.Checks.AllModes.Spread
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
-            const double hardThreshold = (3 * 60 + 30) * 1000;
-            const double insaneThreshold = (4 * 60 + 15) * 1000;
-            const double expertThreshold = 5 * 60 * 1000;
-
             const double breakTimeLeniency = 30 * 1000;
 
             // Check for each mode separately as hybrids all need to apply to their drain time rules
@@ -68,6 +64,24 @@ namespace MapsetVerifier.Checks.AllModes.Spread
 
             foreach (var modeBeatmapGroup in groupedModeBeatmaps)
             {
+                var mode = modeBeatmapGroup.Key;
+                double hardThreshold;
+                double insaneThreshold;
+                double expertThreshold;
+
+                if (mode is Beatmap.Mode.Catch or Beatmap.Mode.Mania)
+                {
+                    hardThreshold = createThreshold(2, 30);
+                    insaneThreshold = createThreshold(3, 15);
+                    expertThreshold = createThreshold(4, 0);
+                }
+                else
+                {
+                    hardThreshold = createThreshold(3, 30);
+                    insaneThreshold = createThreshold(4, 15);
+                    expertThreshold = createThreshold(5, 0);
+                }
+                
                 var modeBeatmaps = modeBeatmapGroup.ToList();
 
                 var lowestBeatmap = modeBeatmaps.First();
@@ -114,6 +128,12 @@ namespace MapsetVerifier.Checks.AllModes.Spread
                             .ForDifficulties(Beatmap.Difficulty.Expert, Beatmap.Difficulty.Ultra);
                 }
             }
+        }
+        
+        private int createThreshold(int minutes, int seconds)
+        {
+            // Thresholds need to be in milliseconds
+            return (minutes * 60 + seconds) * 1000;
         }
     }
 }
