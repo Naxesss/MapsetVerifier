@@ -23,7 +23,7 @@
 		"postinstall": "install-app-deps",
 		"start": "npm install && electron ./app",
 		"dist": "electron-builder --x64 -w",
-		"dist-all": "electron-builder --ia32 --x64 -wl",
+		"dist-all": "electron-builder --x64 -wl",
 		"release": "build -wl"
 	},
 	"build": {
@@ -50,7 +50,7 @@
 		"linux": {
 			"target": "tar.gz",
 			"files": [
-				"!**/win-x86/*"
+				"!**/win-x64/*"
 			]
 		},
 		"mac": {
@@ -62,8 +62,7 @@
 				{
 					"target": "nsis",
 					"arch": [
-						"x64",
-						"ia32"
+						"x64"
 					]
 				}
 			],

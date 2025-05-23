@@ -117,7 +117,7 @@ function startApi()
 	var childProcess = require("child_process");
 	
 	// Start the correct backend executable for the current operating system.
-	var apipath = path.join(__dirname, "api/win-x86/MapsetVerifier.exe");
+	var apipath = path.join(__dirname, "api/win-x64/MapsetVerifier.exe");
 	if (os.platform() === "darwin")
 		apipath = path.join(__dirname, "api/osx-x64/MapsetVerifier");
 	else if (os.platform() === "linux")
@@ -129,6 +129,8 @@ function startApi()
 	
 	//else if (process.arch === 'x64' || process.env.hasOwnProperty('PROCESSOR_ARCHITEW6432'))
 	//	apipath = path.join(__dirname, "api/win-x64/MapsetVerifierBackend.exe");
+
+	// Update, it's all 64-bit now. 32-bit is dead.
 	
 	try
 	{
