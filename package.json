@@ -67,7 +67,7 @@
 					]
 				}
 			],
-			"icon": "build/icon.ico",
+			"icon": "icon.ico",
 			"files": [
 				"!**/linux-x64/*"
 			]
@@ -80,8 +80,8 @@
 			"allowElevation": true,
 			"allowToChangeInstallationDirectory": true,
 			"artifactName": "${productName} Installer.exe",
-			"installerIcon": "build/icon.ico",
-      			"installerHeaderIcon": "build/icon.ico"
+			"installerIcon": "icon.ico",
+      			"installerHeaderIcon": "icon.ico"
 		}
 	}
 }
