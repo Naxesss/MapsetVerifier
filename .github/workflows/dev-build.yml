@@ -1,0 +1,41 @@
+name: Publish Development Build
+on: push
+
+env:
+  USE_HARD_LINKS: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Dotnet build for linux-x64
+        run: dotnet build src -c Release -r linux-x64 -o app/api/linux-x64 --self-contained
+
+      - name: Install Node.js dependencies
+        run: npm install
+
+      - name: Build for linux
+        run: npm run dist-linux
+
+      - name: Release
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: '${{ secrets.GITHUB_TOKEN }}'
+          automatic_release_tag: linux-snapshot
+          prerelease: true
+          title: Linux Dev Build
+          files: |
+            ./dist/*.{tar.gz}

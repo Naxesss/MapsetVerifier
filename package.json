@@ -22,9 +22,9 @@
 	"scripts": {
 		"postinstall": "install-app-deps",
 		"start": "npm install && electron ./app",
-		"dist": "electron-builder --x64 -w",
-		"dist-linux": "electron-builder --x64 -l",
-		"dist-all": "electron-builder --x64 -wl",
+		"dist": "electron-builder --x64 -w --publish never",
+		"dist-linux": "electron-builder --x64 -l --publish never",
+		"dist-all": "electron-builder --x64 -wl --publish never",
 		"release": "build -wl"
 	},
 	"build": {
