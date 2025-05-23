@@ -23,6 +23,7 @@
 		"postinstall": "install-app-deps",
 		"start": "npm install && electron ./app",
 		"dist": "electron-builder --x64 -w",
+		"dist-linux": "electron-builder --x64 -l",
 		"dist-all": "electron-builder --x64 -wl",
 		"release": "build -wl"
 	},
@@ -38,7 +39,7 @@
 			"bass.dll",
 			{
 				"from": "./app/libbass.so",
-				"to": "."
+				"to": "./resources/app/api/linux-x64/libbass.so"
 			},
 			"libbass.so"
 		],
