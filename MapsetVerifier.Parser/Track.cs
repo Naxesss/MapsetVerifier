@@ -1,8 +1,8 @@
 ﻿using MapsetVerifier.Parser.Statics;
 
-namespace MapsetVerifier
+namespace MapsetVerifier.Parser
 {
-    internal class Track
+    public class Track
     {
         private readonly string message;
 

@@ -290,7 +290,7 @@ namespace MapsetVerifier.Parser.Objects
         }
 
         /// <summary> Returns the custom index for the object, if any, otherwise for the line, if any, otherwise 1. </summary>
-        public int GetCustomIndex(TimingLine line = null)
+        public int GetCustomIndex(TimingLine? line = null)
         {
             if (line == null)
                 line = beatmap.GetTimingLine(time);
