@@ -1,5 +1,6 @@
 ﻿import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { readTextFile, writeTextFile, exists, BaseDirectory, mkdir } from '@tauri-apps/plugin-fs';
+import { invoke } from '@tauri-apps/api/core';
 
 // Type-safe Settings type
 export type Settings = {
@@ -69,8 +70,26 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         }
     }
 
+    async function findOsuLocationAndSet() {
+        try {
+            console.log('[Settings] Invoking find_osu_location command...');
+            const path = await invoke<string | null>('find_osu_location');
+            if (path) {
+                console.log('[Settings] Found osu! location:', path);
+                setSettings(prev => ({ ...prev, songFolder: path }));
+            } else {
+                console.log('[Settings] osu! location not found.');
+            }
+        } catch (e) {
+            console.error('[Settings] Error finding osu! location:', e);
+        }
+    }
+
     useEffect(() => {
-        loadSettings();
+        loadSettings().then(() => {
+            console.log('[Settings] Settings loaded.');
+            findOsuLocationAndSet();
+        })
     }, []);
 
     useEffect(() => {

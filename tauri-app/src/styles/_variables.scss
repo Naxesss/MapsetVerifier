@@ -1,0 +1,70 @@
+﻿@use "sass:color";
+
+$color-background: #2a2a2a;
+$color-background-panel: color.adjust($color-background, $lightness: -3%);
+$color-primary: #5988aa;
+$color-secondary: #3e3e56;
+$color-accent: #6eb4ff;
+$color-text: #ffffff;
+
+$font-size: 1em;
+$font-size-smallest: 0.75em;
+$font-size-small: 0.875em;
+$font-size-large: 1.25em;
+
+// Paddings
+$padding-smallest: 0.25em;
+$padding-small: 0.5em;
+$padding: 1em;
+$padding-large: 2em;
+
+$border-radius: 10px;
+$border-radius-large: 20px;
+$box-shadow: 1px 1px 20px $color-background;
+
+//$color-mapset-text: #ffffff;
+//$color-logo-text: rgba(165,210,255,1);
+//$color-darker-text: rgba(190,200,220,1);
+//$color-interpret-explain-text: rgba(220,228,240,0.5);
+//$color-cyan: rgb(220,228,240);
+//$color-cyan-alpha: rgba(220,228,240,0.05);
+//$color-cyan-alpha2: rgba(220,228,240,0.025);
+//$color-horizontal-line: rgb(220,228,255);
+//$color-top: rgba(0,0,0,0.2);
+//$color-button-hover: rgba(255,255,255,0.1);
+//$color-exception: rgba(255,140,160,0.5);
+//$color-link: rgb(110,180,255);
+//$color-hover: rgb(62,62,86);
+//$color-selected: rgb(51,54,90);
+//$color-overlay: rgb(26,28,38);
+//$color-overlay-shadow: rgba(0,0,0,0.75);
+//$color-notify-bg: rgba(90,100,120,0.15);
+//$color-notify-bg-hover: rgba(90,100,120,0.3);
+//$color-main-bg: rgba(255,255,255,0.02);
+//$color-tooltip-bg: rgba(10,11,13,0.9);
+//$color-option-box: rgba(190,200,255,0.125);
+//$color-option-tick: rgb(155,170,190);
+//$color-category-options: rgb(100,110,130);
+//$color-category-options-hover: rgb(130,140,200);
+//$color-category-options-selected: rgb(150,160,255);
+//$color-note-border: rgb(60,120,255);
+//$color-note-bg: rgba(60,120,255,0.05);
+//$color-note-text: rgb(120,180,255);
+//$color-search-focused: rgb(255,255,255);
+//$color-search-unfocused: rgba(255,255,255,0.5);
+//$color-overlay-check-bg: rgb(210,140,90);
+//$color-overlay-check-alpha: rgba(210,140,90,0.05);
+//$color-overlay-check-text: rgb(255,210,120);
+//$color-overlay-check-cause: rgba(160,130,90,1);
+//$color-interpret-text: rgba(220,228,240,0.5);
+//$color-interpret-text-hover: rgba(220,228,240,0.8);
+//$color-interpret-bg: rgba(220,228,240,0.05);
+//$color-interpret-bg-hover: rgba(220,228,240,0.15);
+//$color-interpret-bg-selected: rgba(220,228,255,0.2);
+//$color-scroll-thumb: rgba(180,200,255,0.15);
+//$color-doc-box-left: rgba(68,72,78,0.25);
+//$color-doc-box-left-hover: rgba(68,72,78,0.5);
+//$color-doc-box-right: rgba(50,54,58,0.25);
+//$color-doc-box-right-hover: rgba(50,54,58,0.5);
+//$color-doc-box-hover: rgba(200,220,255,0.1);
+//$color-doc-box-footer: rgba(200,220,255,0.25);
