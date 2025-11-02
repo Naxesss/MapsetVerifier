@@ -68,11 +68,11 @@ namespace MapsetVerifier.Checks.Standard.Spread
             foreach (var beatmap in beatmapSet.Beatmaps)
             {
                 // Beatmaps are sorted by interpreted difficulty.
-                if (beatmap.GetDifficulty(true) > skipAfterDifficulty)
+                if (beatmap.GetDifficulty() > skipAfterDifficulty)
                     break;
 
                 // This check only applies to easy/lowest diff normals, so if we find an easy, normals cannot not be lowest diff.
-                if (beatmap.GetDifficulty(true) == Beatmap.Difficulty.Easy)
+                if (beatmap.GetDifficulty() == Beatmap.Difficulty.Easy)
                     skipAfterDifficulty = Beatmap.Difficulty.Easy;
 
                 foreach (var hitObject in beatmap.HitObjects)

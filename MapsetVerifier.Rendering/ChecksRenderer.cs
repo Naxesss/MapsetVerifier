@@ -53,7 +53,7 @@ namespace MapsetVerifier.Rendering
                         var version = Encode(beatmap.MetadataSettings.version);
 
                         return DivAttr("card-difficulty", DataAttr("difficulty", version),
-                            RenderBeatmapInterpretation(beatmap, beatmap.GetDifficulty(true)),
+                            RenderBeatmapInterpretation(beatmap, beatmap.GetDifficulty()),
                             RenderBeatmapCategories(beatmapIssues, version));
                     }))) +
                 Div("paste-separator select-separator") +
