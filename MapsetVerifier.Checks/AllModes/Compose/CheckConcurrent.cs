@@ -1,17 +1,17 @@
-﻿using System.Collections.Generic;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
-using MathNet.Numerics;
 
 namespace MapsetVerifier.Checks.AllModes.Compose
 {
     [Check]
     public class CheckConcurrent : BeatmapCheck
     {
+        private const int ManiaConcurrentThresholdMs = 30;
+        private const int OtherModesConcurrentThresholdMs = 10;
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
@@ -70,19 +70,39 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                     var hitObject = beatmap.HitObjects[i];
                     var otherHitObject = beatmap.HitObjects[j];
 
-                    if (beatmap.GeneralSettings.mode == Beatmap.Mode.Mania && hitObject.Position.X.AlmostEqual(otherHitObject.Position.X))
-                        continue;
-
-                    // Only need to check forwards, as any previous object will already have looked behind this one.
+                    // Only need to check forwards, as any previous object will already have looked behind this one
                     var msApart = otherHitObject.time - hitObject.GetEndTime();
+                    
+                    // No need to check further if the next object is far apart from the current hit object
+                    if (msApart > 30) break;
+                    
+                    if (beatmap.GeneralSettings.mode == Beatmap.Mode.Mania)
+                    {
+                        var keys = (int) beatmap.DifficultySettings.circleSize;
+                        
+                        // In mania hit objects can be concurrent so we only need to check if they are in the same column
+                        var hitObjectColumn = GetManiaColumn(hitObject, keys);
+                        var otherHitObjectColumn = GetManiaColumn(otherHitObject, keys);
+                        
+                        if (hitObjectColumn != otherHitObjectColumn)
+                        {
+                            // Skip the object if they are not in the same column
+                            continue;
+                        }
+                    }
+                    
+                    var timestamp = Timestamp.Get(hitObject);
+                    var otherTimestamp = Timestamp.Get(otherHitObject);
 
                     if (msApart <= 0)
-                        yield return new Issue(GetTemplate("Concurrent Objects"), beatmap, Timestamp.Get(hitObject, otherHitObject), ObjectsAsString(hitObject, otherHitObject));
-
-                    // Spinners can be 1 ms or further apart from the previous end time, but not at the same milisecond.
-                    else if (msApart <= 10 && otherHitObject is not Spinner)
-                        yield return new Issue(GetTemplate("Almost Concurrent Objects"), beatmap, Timestamp.Get(hitObject, otherHitObject), msApart);
-
+                        yield return new Issue(GetTemplate("Concurrent Objects"), beatmap, timestamp, otherTimestamp, ObjectsAsString(hitObject, otherHitObject));
+                    
+                    // Mania has only 1 input per column, so we need a bigger gap.
+                    else if ((beatmap.GeneralSettings.mode == Beatmap.Mode.Mania && msApart <= ManiaConcurrentThresholdMs) ||
+                             // Spinners can be 1 ms or further apart from the previous end time, but not at the same millisecond.
+                             (msApart <= OtherModesConcurrentThresholdMs && otherHitObject is not Spinner))
+                        yield return new Issue(GetTemplate("Almost Concurrent Objects"), beatmap, timestamp,
+                            otherTimestamp, msApart);
                     else
                         // Hit objects are sorted by time, meaning if the next one is > 10 ms away, any remaining will be too.
                         break;
@@ -95,6 +115,13 @@ namespace MapsetVerifier.Checks.AllModes.Compose
             var otherType = otherHitObject.GetObjectType();
 
             return type == otherType ? type + "s" : type + " and " + otherType;
+        }
+
+        private static int GetManiaColumn(HitObject hitObject, float keys)
+        {
+            // Mania is rather weird as the X position isn't given in columns but rather pixels
+            // Manual changes or certain editors can cause objects to be slightly off from their intended column
+            return (int)hitObject.Position.X / (512 / (int)keys);
         }
     }
 }
