@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.Parser.Settings;
 using MapsetVerifier.Parser.Statics;
 
 namespace MapsetVerifier.Checks.AllModes.Compose
@@ -48,10 +49,12 @@ namespace MapsetVerifier.Checks.AllModes.Compose
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
         {
-            if (beatmap.GetDrainTime() >= 30 * 1000)
+            var drainTime = beatmap.GetDrainTime(beatmap.GeneralSettings.mode);
+            
+            if (drainTime >= 30 * 1000)
                 yield break;
 
-            yield return new Issue(GetTemplate("Problem"), beatmap, Timestamp.Get(beatmap.GetDrainTime()));
+            yield return new Issue(GetTemplate("Problem"), beatmap, Timestamp.Get(drainTime));
         }
     }
 }

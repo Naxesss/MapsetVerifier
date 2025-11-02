@@ -88,7 +88,7 @@ namespace MapsetVerifier.Checks.AllModes.Spread
 
                 foreach (var beatmap in modeBeatmaps)
                 {
-                    var drainTime = beatmap.GetDrainTime();
+                    var drainTime = beatmap.GetDrainTime(beatmap.GeneralSettings.mode);
                     var playTime = beatmap.GetPlayTime();
                     var breakTime = playTime - drainTime;
 

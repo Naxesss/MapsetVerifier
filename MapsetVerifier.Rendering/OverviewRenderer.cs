@@ -318,7 +318,7 @@ namespace MapsetVerifier.Rendering
                     RenderBeatmapContent(beatmapSet, "Uninherited Lines", beatmap => beatmap.TimingLines.OfType<UninheritedLine>().Count().ToString(CultureInfo.InvariantCulture)),
                     RenderBeatmapContent(beatmapSet, "Inherited Lines", beatmap => beatmap.TimingLines.OfType<InheritedLine>().Count().ToString(CultureInfo.InvariantCulture)),
                     RenderBeatmapContent(beatmapSet, "Kiai Time", beatmap => Timestamp.Get(beatmap.TimingLines.Select(line => line.Kiai ? (beatmap.GetNextTimingLine(line.Offset)?.Offset ?? beatmap.HitObjects.First().time + beatmap.GetPlayTime()) - line.Offset : 0).Sum()).ToString(CultureInfo.InvariantCulture)),
-                    RenderBeatmapContent(beatmapSet, "Drain Time", beatmap => Timestamp.Get(beatmap.GetDrainTime()).ToString(CultureInfo.InvariantCulture)),
+                    RenderBeatmapContent(beatmapSet, "Drain Time", beatmap => Timestamp.Get(beatmap.GetDrainTime(beatmap.GeneralSettings.mode)).ToString(CultureInfo.InvariantCulture)),
                     RenderBeatmapContent(beatmapSet, "Play Time", beatmap => Timestamp.Get(beatmap.GetPlayTime()).ToString(CultureInfo.InvariantCulture)));
         }
 

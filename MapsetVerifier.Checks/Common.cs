@@ -237,7 +237,7 @@ namespace MapsetVerifier.Checks
             if (beatmap.GeneralSettings.mode == Beatmap.Mode.Mania)
                 uses /= 2f;
 
-            var mean = beatmap.GetDrainTime() / uses;
+            var mean = beatmap.GetDrainTime(beatmap.GeneralSettings.mode) / uses;
 
             return mean <= commonUsageThreshold;
         }

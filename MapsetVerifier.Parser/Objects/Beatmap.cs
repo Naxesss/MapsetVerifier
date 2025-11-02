@@ -650,23 +650,37 @@ namespace MapsetVerifier.Parser.Objects
         }
 
         /// <summary> Returns the complete drain time of the beatmap, accounting for breaks. </summary>
-        public double GetDrainTime()
+        public double GetDrainTime(Mode gamemode)
         {
-            if (HitObjects.Count > 0)
+            // No need to do anything if there are no hit objects.
+            if (HitObjects.Count <= 0)
             {
-                var startTime = HitObjects.First().time;
-                var endTime = HitObjects.Last().GetEndTime();
-
-                // remove breaks
-                double breakReduction = 0;
-
-                foreach (var @break in Breaks)
-                    breakReduction += @break.GetDuration(this);
-
-                return endTime - startTime - breakReduction;
+                return 0;
+            }
+            
+            var startTime = HitObjects.First().time;
+            double endTime = 0;
+            if (gamemode == Mode.Mania)
+            {
+                // Mania is special because you can have multiple notes at the same time
+                // If the last note is a normal object, so other notes don't get taken into account
+                // This will be an issue if one of those notes is a long note with a release that goes beyond the last note's time
+                foreach (var hitObject in HitObjects)
+                    endTime = endTime < hitObject.GetEndTime() ? hitObject.GetEndTime() : endTime;
+            }
+            else
+            {
+                endTime = HitObjects.Last().GetEndTime();
             }
 
-            return 0;
+            // remove breaks
+            double breakReduction = 0;
+
+            foreach (var @break in Breaks)
+                breakReduction += @break.GetDuration(this);
+
+            return endTime - startTime - breakReduction;
+
         }
 
         /// <summary>
@@ -846,7 +860,7 @@ namespace MapsetVerifier.Parser.Objects
         }
 
         /// <summary> Returns the hit object count divided by the drain time. </summary>
-        public double GetObjectDensity() => HitObjects.Count / GetDrainTime();
+        public double GetObjectDensity() => HitObjects.Count / GetDrainTime(GeneralSettings.mode);
 
         /// <summary> Returns the full audio file path the beatmap uses if any such file exists, otherwise null. </summary>
         public string GetAudioFilePath()
