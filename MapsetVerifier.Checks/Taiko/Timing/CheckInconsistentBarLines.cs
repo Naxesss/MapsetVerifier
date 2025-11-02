@@ -54,11 +54,15 @@ namespace MapsetVerifier.Checks.Taiko.Timing
             var taikoBeatmaps = beatmapSet.Beatmaps.Where(beatmap => beatmap.GeneralSettings.mode == Beatmap.Mode.Taiko).ToList();
 
             var refBeatmap = taikoBeatmaps.First();
+            // ms tolerance to consider offsets equal
+            const double epsilon = 1.0;
 
             foreach (var beatmap in taikoBeatmaps)
                 foreach (var line in refBeatmap.TimingLines.OfType<UninheritedLine>())
                 {
-                    var respectiveLine = beatmap.TimingLines.OfType<UninheritedLine>().FirstOrDefault(otherLine => Timestamp.Round(otherLine.Offset) == Timestamp.Round(line.Offset));
+                    var respectiveLine = beatmap.TimingLines
+                        .OfType<UninheritedLine>()
+                        .FirstOrDefault(otherLine => Math.Abs(otherLine.Offset - line.Offset) < epsilon);
 
                     if (respectiveLine == null)
                         // Inconsistent lines, which is the responsibility of another check, so we skip this case.
