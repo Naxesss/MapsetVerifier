@@ -1,0 +1,41 @@
+﻿@use "../../styles/variables.scss" as variables;
+
+.navbar {
+  display: flex;
+  flex-direction: column;
+  
+  hr {
+    border-top: 1px solid var(--border);
+    margin: 1rem auto;
+    width: 80%;
+  }
+  
+  .navbar-menu {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    height: 100%;
+    font-size: 18px;
+    background-color: variables.$color-background-panel;
+    
+    a {
+      width: 100%;
+      height: 100%;
+      .nav-item {
+        width: 100%;
+        height: 100%;
+        padding: variables.$padding-smallest variables.$padding;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        background-color: variables.$color-background-panel;
+        
+        .nav-item-label {
+          padding-left: variables.$padding-smallest;
+        }
+      }
+    }
+  }
+}

@@ -1,10 +1,10 @@
-import Home from "./pages/Home";
+import AppRoutes from "./AppRoutes.tsx";
 import "./styles/App.scss";
 
 function App() {
   return (
     <main className="container">
-        <Home />
+        <AppRoutes />
     </main>
   );
 }

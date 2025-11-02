@@ -96,22 +96,18 @@ button {
   display: flex;
   width: 100%;
   
-  .left {
+  .side {
     min-width: calc(252px + #{variables.$padding-smallest});
-    width: 25%;
-    background-color: variables.$color-background-panel;
-  }
-  .middle {
-    width: 60%;
-  }
-  .right {
     width: 15%;
     background-color: variables.$color-background-panel;
+  }
+  .main {
+    width: 85%;
   }
 }
 
 ::-webkit-scrollbar {
-  width: 20px;
+  width: 14px;
   background: variables.$color-background-panel;
 }
 
