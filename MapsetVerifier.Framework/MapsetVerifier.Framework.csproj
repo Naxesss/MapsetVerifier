@@ -11,8 +11,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="ManagedBass" Version="4.0.0" />
-      <PackageReference Include="TagLibSharp" Version="2.3.0" />
+      <PackageReference Include="ManagedBass" Version="2.0.4" />
+      <PackageReference Include="TagLib.Portable" Version="1.0.4" />
     </ItemGroup>
 
 </Project>

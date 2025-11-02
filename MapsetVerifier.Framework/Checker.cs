@@ -15,7 +15,7 @@ namespace MapsetVerifier.Framework
 {
     public static class Checker
     {
-        public const string DefaultRelativeDLLDirectory = "checksV2";
+        public const string DefaultRelativeDLLDirectory = "checks";
         
         public static string? RelativeDLLDirectory { get; set; }
 
