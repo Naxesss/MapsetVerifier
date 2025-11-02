@@ -114,6 +114,7 @@ var apiProcess = null;
 
 function startApi()
 {
+    console.log("Starting API...");
 	var childProcess = require("child_process");
 	
 	// Start the correct backend executable for the current operating system.
@@ -132,7 +133,9 @@ function startApi()
 	
 	try
 	{
+        console.log("Spawning API from: " + apipath);
 		apiProcess = childProcess.spawn(apipath);
+        console.log("Spawned API, PID: " + apiProcess.pid);
 	}
 	catch (e)
 	{

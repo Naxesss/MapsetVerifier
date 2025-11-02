@@ -364,9 +364,9 @@ namespace MapsetVerifier.Parser.Statics
 
         private static readonly List<SkinCondition> skinConditions = [];
 
-        private static void AddElements(string[] elements, Func<BeatmapSet, bool> useCondition = null) => skinConditions.Add(new SkinCondition(elements, useCondition));
+        private static void AddElements(string[] elements, Func<BeatmapSet, bool>? useCondition = null) => skinConditions.Add(new SkinCondition(elements, useCondition));
 
-        private static void AddElement(string element, Func<BeatmapSet, bool> useCondition = null) => skinConditions.Add(new SkinCondition([element], useCondition));
+        private static void AddElement(string element, Func<BeatmapSet, bool>? useCondition = null) => skinConditions.Add(new SkinCondition([element], useCondition));
 
         private static void Initialize()
         {

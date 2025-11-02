@@ -67,14 +67,16 @@ namespace MapsetVerifier.Parser.Settings
             useSkinSprites = GetValue(lines, "UseSkinSprites") == "1";
         }
 
-        private string GetValue(string[] lines, string key)
+        private string? GetValue(string[] lines, string key)
         {
             var line = lines.FirstOrDefault(otherLine => otherLine.StartsWith(key));
-
             if (line == null)
+            {
                 return null;
+            }
 
-            return line.Substring(line.IndexOf(":", StringComparison.Ordinal) + 1).Trim();
+            var valueIndex = line.IndexOf(':') + 1;
+            return line[valueIndex..].Trim();
         }
     }
 }

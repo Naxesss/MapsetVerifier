@@ -67,7 +67,7 @@ namespace MapsetVerifier.Parser.Objects
             Parallel.ForEach(beatmapFiles, beatmapFile =>
             {
                 var beatmapTrack = new Track("Parsing " + beatmapFile.name + "...");
-                concurrentBeatmaps.Add(new Beatmap(beatmapFile.code, null, SongPath, beatmapFile.name));
+                concurrentBeatmaps.Add(new Beatmap(beatmapFile.code, SongPath, beatmapFile.name));
                 beatmapTrack.Complete();
             });
 
