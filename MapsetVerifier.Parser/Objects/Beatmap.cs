@@ -108,7 +108,7 @@ namespace MapsetVerifier.Parser.Objects
 
         // Star Rating
         public double StarRating { get; }
-        public DifficultyAttributes DifficultyAttributes { get; }
+        public DifficultyAttributes? DifficultyAttributes { get; }
 
         // Settings
         public GeneralSettings GeneralSettings { get; }
@@ -128,7 +128,7 @@ namespace MapsetVerifier.Parser.Objects
         public List<HitObject> HitObjects { get; }
         public List<TimingLine> TimingLines { get; }
 
-        public Beatmap(string code, double? starRating = null, string songPath = null, string mapPath = null)
+        public Beatmap(string code, string songPath, string mapPath, double? starRating = null)
         {
             Code = code;
             SongPath = songPath;
@@ -171,11 +171,12 @@ namespace MapsetVerifier.Parser.Objects
                 _ => null
             };
 
-            if (attributes == null)
-                return;
-
             DifficultyAttributes = attributes;
-            StarRating = attributes.StarRating;
+
+            if (attributes != null)
+            {
+                StarRating = attributes.StarRating;
+            }
         }
 
         public static void ClearCache()
@@ -761,7 +762,7 @@ namespace MapsetVerifier.Parser.Objects
         ///     terms of
         ///     how much the object needs to be moved forwards in time to be snapped.
         /// </summary>
-        public double GetTheoreticalUnsnap(double time, int divisor, UninheritedLine line = null)
+        public double GetTheoreticalUnsnap(double time, int divisor, UninheritedLine? line = null)
         {
             line ??= GetTimingLine<UninheritedLine>(time);
 
@@ -807,7 +808,7 @@ namespace MapsetVerifier.Parser.Objects
         ///     Same as <see cref="GetTheoreticalUnsnap(double, int, UninheritedLine)" />, except accounts for the way
         ///     the game rounds ms times.
         /// </summary>
-        public double GetPracticalUnsnap(double time, int divisor, UninheritedLine line = null) => time - Timestamp.Round(time - GetTheoreticalUnsnap(time, divisor, line));
+        public double GetPracticalUnsnap(double time, int divisor, UninheritedLine? line = null) => time - Timestamp.Round(time - GetTheoreticalUnsnap(time, divisor, line));
 
         /// <summary> Returns the combo number (the number you see on the notes), of a given hit object. </summary>
         public int GetCombo(HitObject hitObject)

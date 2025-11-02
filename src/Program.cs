@@ -10,6 +10,8 @@ namespace MapsetVerifier
 {
     internal static class Program
     {
+        private const string ExternalsFolderName = "Mapset Verifier Externals";
+        
         private static void Main()
         {
             // Ensures that numbers are displayed consistently across cultures, for example
@@ -17,13 +19,15 @@ namespace MapsetVerifier
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 
             // Use `AppData/Roaming/` for windows and `~/.local/share` for linux.
-            var appdataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            string appdataPath;
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 appdataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            else
+                appdataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
-            Checker.RelativeDLLDirectory = Path.Combine(appdataPath, "Mapset Verifier Externals", "checks");
-            Snapshotter.RelativeDirectory = Path.Combine(appdataPath, "Mapset Verifier Externals");
+            Checker.RelativeDLLDirectory = Path.Combine(appdataPath, ExternalsFolderName, Checker.DefaultRelativeDLLDirectory);
+            Snapshotter.RelativeDirectory = Path.Combine(appdataPath, ExternalsFolderName);
 
             // Loads both the default auto-updated checks and any checks from plugins.
             Checker.LoadDefaultChecks();

@@ -9,12 +9,15 @@ using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.Parser;
 
 namespace MapsetVerifier.Framework
 {
     public static class Checker
     {
-        public static string RelativeDLLDirectory { get; set; }
+        public const string DefaultRelativeDLLDirectory = "checksV2";
+        
+        public static string? RelativeDLLDirectory { get; set; }
 
         /// <summary> Called whenever the loading of a check is started. </summary>
         public static Func<string, Task> OnLoadStart { get; set; } = message => Task.CompletedTask;
@@ -89,19 +92,29 @@ namespace MapsetVerifier.Framework
             });
 
         /// <summary> Loads the .dll files from the current directory + relative path ("/checks" by default). </summary>
-        public static void LoadCustomChecks() =>
-            Parallel.ForEach(GetCustomCheckDLLPaths(), dllPath =>
+        public static void LoadCustomChecks()
+        {
+            var paths = GetCustomCheckDLLPaths();
+            Parallel.ForEach(paths, dllPath =>
             {
-                var dllTrack = new Track("Loading checks from \"" + dllPath.Split('/', '\\').Last() + "\"...");
+                try
+                {
+                    var dllTrack = new Track("Loading checks from \"" + dllPath.Split('/', '\\').Last() + "\"...");
 
-                LoadCheckDLL(dllPath);
+                    LoadCheckDLL(dllPath);
 
-                dllTrack.Complete();
+                    dllTrack.Complete();
+                }
+                catch (Exception exception)
+                {
+                    Console.WriteLine($"Failed to load checks from \"{dllPath}\": {exception.Message}");
+                }
             });
+        }
 
         private static IEnumerable<string> GetCustomCheckDLLPaths()
         {
-            var directoryPath = RelativeDLLDirectory ?? "checks";
+            var directoryPath = RelativeDLLDirectory ?? DefaultRelativeDLLDirectory;
 
             if (Directory.Exists(directoryPath))
                 return Directory.GetFiles(directoryPath).Where(filePath => filePath.EndsWith(".dll"));
@@ -138,8 +151,36 @@ namespace MapsetVerifier.Framework
         /// </summary>
         public static void LoadDefaultChecks()
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            LoadCheckAssembly(assembly);
+            try
+            {
+                var localChecksDllPath = Path.Combine(Directory.GetCurrentDirectory(), "MapsetVerifier.Checks.dll");
+                if (File.Exists(localChecksDllPath))
+                {
+                    var checksAssembly = Assembly.LoadFrom(localChecksDllPath);
+                    LoadCheckAssembly(checksAssembly);
+                }
+                else
+                {
+                    Console.WriteLine($"Could not find MapsetVerifier.Checks.dll at {localChecksDllPath}");
+                }
+
+                var assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                var checksDllPath = Path.Combine(assemblyDir, "MapsetVerifier.Checks.dll");
+
+                if (File.Exists(checksDllPath))
+                {
+                    var checksAssembly = Assembly.LoadFrom(checksDllPath);
+                    LoadCheckAssembly(checksAssembly);
+                }
+                else
+                {
+                    Console.WriteLine($"Could not find MapsetVerifier.Checks.dll at {checksDllPath}");
+                }
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine($"Failed to load default checks: {exception.Message}");
+            }
         }
 
         /// <summary> Adds checks from the given assembly to the CheckerRegistry. </summary>
@@ -148,12 +189,14 @@ namespace MapsetVerifier.Framework
             foreach (var type in assembly.GetExportedTypes())
             {
                 var attr = type.CustomAttributes.FirstOrDefault(attr => attr.AttributeType.Name == nameof(CheckAttribute));
-
+                Console.WriteLine($"Checking: {type.FullName}");
+                
                 if (attr == null)
                     continue;
 
                 var instance = Activator.CreateInstance(type);
-                CheckerRegistry.RegisterCheck(instance as Check);
+                var check = instance as Check;
+                CheckerRegistry.RegisterCheck(check);
             }
         }
     }

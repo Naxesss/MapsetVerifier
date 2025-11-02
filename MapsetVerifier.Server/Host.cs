@@ -41,7 +41,7 @@ namespace MapsetVerifier.Server
             // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
             public void Configure(IApplicationBuilder app)
             {
-                Console.WriteLine("Confugire.");
+                Console.WriteLine("Configure.");
 
                 app.UseSignalR(routes => { routes.MapHub<SignalHub>(hubUrl); });
                 app.UseMvc();
