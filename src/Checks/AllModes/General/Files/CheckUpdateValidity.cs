@@ -57,11 +57,6 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
             new()
             {
                 {
-                    "File Size",
-                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" will cut any update at the 1 MB mark ({1} MB), causing objects to disappear.", "path", "file size").WithCause("A .osu file exceeds 1 MB in file size.")
-                },
-
-                {
                     "Wrong Format",
                     new IssueTemplate(Issue.Level.Warning, "\"{0}\" should be named \"{1}\" to receive updates.", "file name", "artist - title (creator) [version].osu").WithCause("A .osu file is not named after the mentioned format using its respective properties.")
                 },
@@ -89,13 +84,6 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
 
                 if (beatmap.GetOsuFileName().ToLower() != fileName.ToLower())
                     yield return new Issue(GetTemplate("Wrong Format"), null, fileName, beatmap.GetOsuFileName());
-
-                // Updating .osu files larger than 1 mb will cause the update to stop at the 1 mb mark
-                var fileInfo = new FileInfo(songFilePath);
-                var mb = fileInfo.Length / Math.Pow(1024, 2);
-
-                if (mb > 1)
-                    yield return new Issue(GetTemplate("File Size"), null, filePath, $"{mb:0.##}");
             }
         }
     }
