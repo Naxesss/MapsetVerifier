@@ -89,15 +89,11 @@ namespace MapsetVerifier.Parser.Objects
                 Mode.Mania,
                 new Dictionary<Difficulty, IEnumerable<string>>
                 {
-                    //                                       osu!mania/DJMAX (+EZ2DJ/AC)  Beatmania IIDX    SVDX
-                    { Difficulty.Easy, new List<string> { "EZ", "Beginner", "Basic" } },
-                    { Difficulty.Normal, new List<string> { "NM", "Normal", "Novice" } },
-                    { Difficulty.Hard, new List<string> { "HD", "Hyper", "Advanced" } },
-                    { Difficulty.Insane, new List<string> { "MX", "SHD", "Another", "Exhaust" } },
-                    {
-                        Difficulty.Expert,
-                        new List<string> { "SC", "EX", "Black Another", "Infinite", "Gravity", "Heavenly" }
-                    }
+                    { Difficulty.Easy,   new List<string> { "EZ", "Beginner", "Beginning", "Basic", "Easy"} },
+                    { Difficulty.Normal, new List<string> { "NM", "Normal", "Novice"} },
+                    { Difficulty.Hard,   new List<string> { "HD", "Hard", "Advanced", "Hyper"} },
+                    { Difficulty.Insane, new List<string> { "MX", "SC", "Another", "Exhaust", "Insane", "Lunatic"} },
+                    { Difficulty.Expert, new List<string> { "SHD", "EX", "Black Another",  "Infinite", "Gravity", "Heavenly", "Maximum", "Extra", "White Another", "Vivid", "Exceed" } }
                 }
             }
         };
