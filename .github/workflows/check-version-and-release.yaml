@@ -3,102 +3,109 @@ name: Check Version & Release
 on:
   push:
     branches:
-      - main
-    paths:
-      - app/package.json
+      - '**'
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Create a release (only honored on main)'
+        required: true
+        default: 'false'
 
 jobs:
-  check-version:
-    runs-on: ubuntu-latest
-    outputs:
-        before_version: ${{ steps.check-version.outputs.before_version }}
-        after_version: ${{ steps.check-version.outputs.after_version }}
-        version_changed: ${{ steps.check-version.outputs.version_changed }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install jq
-        run: sudo apt-get install -y jq
-    
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
-
-      - name: Get current and previous versions
-        id: check-version
-        run: |
-          git fetch origin ${{ github.event.before }} ${{ github.event.after }}
-
-          BEFORE_VERSION=$(git show ${{ github.event.before }}:app/package.json | jq -r '.version')
-          AFTER_VERSION=$(git show ${{ github.event.after }}:app/package.json | jq -r '.version')
-
-          echo "Before version: $BEFORE_VERSION"
-          echo "After version: $AFTER_VERSION"
-          echo "before_version=$BEFORE_VERSION" >> $GITHUB_OUTPUT
-          echo "after_version=$AFTER_VERSION" >> $GITHUB_OUTPUT
-
-          RESULT="equal"
-          IFS='.' read -r -a AFTER_NUMBER <<< "$AFTER_VERSION"
-          IFS='.' read -r -a BEFORE_NUMBER <<< "$BEFORE_VERSION"
-
-          for i in 0 1 2; do
-            if [[ ${AFTER_NUMBER[i]:-0} -gt ${BEFORE_NUMBER[i]:-0} ]]; then
-              RESULT="greater"
-              break
-            elif [[ ${AFTER_NUMBER[i]:-0} -lt ${BEFORE_NUMBER[i]:-0} ]]; then
-              RESULT="less"
-              break
-            fi
-          done
-          
-          if [[ $RESULT == "greater" ]]; then
-            echo "$AFTER_VERSION is greater than $BEFORE_VERSION"
-            echo "version_changed=true" >> $GITHUB_OUTPUT
-            {
-              echo "### 🏷️ Version \`$BEFORE_VERSION\` updated to \`$AFTER_VERSION\`!"
-              echo "*A new draft release will be created.*"
-            } >> $GITHUB_STEP_SUMMARY
-          elif [[ $RESULT == "less" ]]; then
-            echo "$AFTER_VERSION is less than $BEFORE_VERSION"
-            echo "version_changed=false" >> $GITHUB_OUTPUT
-            {
-              echo "### 🏷️ Version \`$BEFORE_VERSION\` reverted to \`$AFTER_VERSION\`."
-              echo "*No new draft release will be created.*"
-            } >> $GITHUB_STEP_SUMMARY
-          else
-            echo "$AFTER_VERSION is equal to $BEFORE_VERSION"
-            echo "version_changed=false" >> $GITHUB_OUTPUT
-            {
-              echo "### 🏷️ Version \`$BEFORE_VERSION\` did not change."
-              echo "*No new draft release will be created.*"
-            } >> $GITHUB_STEP_SUMMARY
-          fi
-
-  release:
+  build:
     runs-on: windows-latest
-    needs: check-version
-    if: needs.check-version.outputs.version_changed == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.x'
-
       - name: Build `src` into `app/api/`
         run: |
           dotnet build src -c Release -r win-x86 -o app/api/win-x86 --self-contained
           dotnet build src -c Release -r linux-x64 -o app/api/linux-x64 --self-contained
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
+      - name: Install npm dependencies
+        run: npm install
+      # (Intentionally no release script here; pure build validation.)
 
+  check-version:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      before_version: ${{ steps.check-version.outputs.before_version }}
+      after_version: ${{ steps.check-version.outputs.after_version }}
+      version_changed: ${{ steps.check-version.outputs.version_changed }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install jq
+        run: sudo apt-get install -y jq
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+      - name: Get current and previous versions
+        id: check-version
+        run: |
+          git fetch origin ${{ github.event.before }} ${{ github.event.after }}
+          BEFORE_VERSION=$(git show ${{ github.event.before }}:app/package.json | jq -r '.version' || echo "unknown")
+          AFTER_VERSION=$(git show ${{ github.sha }}:app/package.json | jq -r '.version')
+          echo "before_version=$BEFORE_VERSION" >> $GITHUB_OUTPUT
+          echo "after_version=$AFTER_VERSION" >> $GITHUB_OUTPUT
+          RESULT="equal"
+          if [[ $BEFORE_VERSION != "unknown" ]]; then
+            IFS='.' read -r -a AFTER_NUMBER <<< "$AFTER_VERSION"
+            IFS='.' read -r -a BEFORE_NUMBER <<< "$BEFORE_VERSION"
+            for i in 0 1 2; do
+              if [[ ${AFTER_NUMBER[i]:-0} -gt ${BEFORE_NUMBER[i]:-0} ]]; then RESULT="greater"; break
+              elif [[ ${AFTER_NUMBER[i]:-0} -lt ${BEFORE_NUMBER[i]:-0} ]]; then RESULT="less"; break
+              fi
+            done
+          fi
+          if [[ $RESULT == "greater" ]]; then
+            echo "version_changed=true" >> $GITHUB_OUTPUT
+            {
+              echo "### 🏷️ Version \`$BEFORE_VERSION\` updated to \`$AFTER_VERSION\`."
+              echo "*No release created automatically.*"
+            } >> $GITHUB_STEP_SUMMARY
+          elif [[ $RESULT == "less" ]]; then
+            echo "version_changed=false" >> $GITHUB_OUTPUT
+            {
+              echo "### 🏷️ Version reverted from \`$BEFORE_VERSION\` to \`$AFTER_VERSION\`."
+              echo "*No release created.*"
+            } >> $GITHUB_STEP_SUMMARY
+          else
+            echo "version_changed=false" >> $GITHUB_OUTPUT
+            {
+              echo "### 🏷️ Version unchanged (\`$AFTER_VERSION\`)."
+              echo "*No release created.*"
+            } >> $GITHUB_STEP_SUMMARY
+          fi
+
+  release:
+    # Manual release only: dispatch + main + input flag
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.create_release == 'true'
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+      - name: Build `src` into `app/api/`
+        run: |
+          dotnet build src -c Release -r win-x86 -o app/api/win-x86 --self-contained
+          dotnet build src -c Release -r linux-x64 -o app/api/linux-x64 --self-contained
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
       - name: Install npm dependencies
         run: npm install
 
