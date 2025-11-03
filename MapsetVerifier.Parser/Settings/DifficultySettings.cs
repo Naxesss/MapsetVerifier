@@ -28,7 +28,7 @@ namespace MapsetVerifier.Parser.Settings
         public DifficultySettings(string[] lines)
         {
             hpDrain = GetValue(lines, "HPDrainRate", 0f, 10f);
-            circleSize = GetValue(lines, "CircleSize", 0f, 10f);
+            circleSize = GetValue(lines, "CircleSize", 0f, 18f);
             overallDifficulty = GetValue(lines, "OverallDifficulty", 0f, 10f);
             approachRate = GetValue(lines, "ApproachRate", 0f, 10f);
 
