@@ -1,8 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using MapsetVerifier.Parser.Objects.Events;
 using MapsetVerifier.Parser.Statics;
 
@@ -15,7 +11,7 @@ namespace MapsetVerifier.Parser.Objects
         /// <summary> Used hit sound files' relative path from the song folder. </summary>
         public List<string> HitSoundFiles { get; }
 
-        public Osb Osb { get; private set; }
+        public Osb? Osb { get; private set; }
         public List<string> SongFilePaths  { get; } = new();
 
         public string SongPath { get; }
@@ -90,7 +86,7 @@ namespace MapsetVerifier.Parser.Objects
         }
 
         /// <summary> Returns the expected .osb file name based on the metadata of the first beatmap if any exists, otherwise null. </summary>
-        public string GetOsbFileName()
+        public string? GetOsbFileName()
         {
             var settings = Beatmaps.FirstOrDefault()?.MetadataSettings;
 
@@ -181,7 +177,7 @@ namespace MapsetVerifier.Parser.Objects
             if (SkinStatic.IsUsed(fileName, this))
                 return true;
 
-            if (fileName == GetOsbFileName().ToLower() && Osb.IsUsed())
+            if (Osb != null && fileName == GetOsbFileName()?.ToLower() && Osb.IsUsed())
                 return true;
 
             foreach (var beatmap in Beatmaps)

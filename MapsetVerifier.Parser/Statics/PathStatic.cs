@@ -9,7 +9,7 @@ namespace MapsetVerifier.Parser.Statics
         ///     Returns the file path in its base form as seen by the game, optionally allowing
         ///     extensions to be stripped or maintaining case.
         /// </summary>
-        public static string ParsePath(string filePath, bool withoutExtension = false, bool retainCase = false)
+        public static string? ParsePath(string? filePath, bool withoutExtension = false, bool retainCase = false)
         {
             if (filePath == null)
                 return null;
