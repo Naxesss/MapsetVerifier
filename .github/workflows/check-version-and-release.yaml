@@ -20,7 +20,7 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.x'
+          dotnet-version: '9.x'
       - name: Build `src` into `app/api/`
         run: |
           dotnet build src -c Release -r win-x86 -o app/api/win-x86 --self-contained
@@ -31,7 +31,15 @@ jobs:
           node-version: '20.x'
       - name: Install npm dependencies
         run: npm install
-      # (Intentionally no release script here; pure build validation.)
+      - name: Run .NET solution tests (auto-discovers all test projects)
+        run: dotnet test MapsetVerifier.sln -c Release --logger "trx;LogFileName=test-results.trx" --results-directory TestResults
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/TestResults/*.trx'
+      # (Intentionally no release script here; pure build & test validation.)
 
   check-version:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -97,7 +105,7 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.x'
+          dotnet-version: '9.x'
       - name: Build `src` into `app/api/`
         run: |
           dotnet build src -c Release -r win-x86 -o app/api/win-x86 --self-contained
@@ -108,6 +116,14 @@ jobs:
           node-version: '20.x'
       - name: Install npm dependencies
         run: npm install
+      - name: Run .NET solution tests (auto-discovers all test projects)
+        run: dotnet test MapsetVerifier.sln -c Release --logger "trx;LogFileName=test-results.trx" --results-directory TestResults
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/TestResults/*.trx'
 
       - name: Run npm release script
         env:
