@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
+using MapsetVerifier.Parser.Objects.HitObjects.Mania;
 using MapsetVerifier.Parser.Statics;
 
 namespace MapsetVerifier.Checks.AllModes.Compose
@@ -81,8 +82,8 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                         var keys = (int) beatmap.DifficultySettings.circleSize;
                         
                         // In mania hit objects can be concurrent so we only need to check if they are in the same column
-                        var hitObjectColumn = GetManiaColumn(hitObject, keys);
-                        var otherHitObjectColumn = GetManiaColumn(otherHitObject, keys);
+                        var hitObjectColumn = ManiaExtensions.GetColumn(hitObject, keys);
+                        var otherHitObjectColumn = ManiaExtensions.GetColumn(otherHitObject, keys);
                         
                         if (hitObjectColumn != otherHitObjectColumn)
                         {
@@ -115,13 +116,6 @@ namespace MapsetVerifier.Checks.AllModes.Compose
             var otherType = otherHitObject.GetObjectType();
 
             return type == otherType ? type + "s" : type + " and " + otherType;
-        }
-
-        private static int GetManiaColumn(HitObject hitObject, float keys)
-        {
-            // Mania is rather weird as the X position isn't given in columns but rather pixels
-            // Manual changes or certain editors can cause objects to be slightly off from their intended column
-            return (int)hitObject.Position.X / (512 / (int)keys);
         }
     }
 }
