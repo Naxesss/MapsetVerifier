@@ -21,8 +21,8 @@ namespace MapsetVerifier.Rendering
 
         private static readonly Dictionary<Beatmap.Difficulty, Color> difficultyColor = new()
         {
-            { Beatmap.Difficulty.Easy, Color.FromArgb(125, 180, 0) },
-            { Beatmap.Difficulty.Normal, Color.FromArgb(80, 215, 255) },
+            { Beatmap.Difficulty.Easy, Color.FromArgb(80, 215, 255) },
+            { Beatmap.Difficulty.Normal, Color.FromArgb(125, 180, 0) },
             { Beatmap.Difficulty.Hard, Color.FromArgb(255, 215, 0) },
             { Beatmap.Difficulty.Insane, Color.FromArgb(255, 80, 170) },
             { Beatmap.Difficulty.Expert, Color.FromArgb(125, 80, 255) }
