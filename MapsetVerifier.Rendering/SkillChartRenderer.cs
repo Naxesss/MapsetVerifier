@@ -116,9 +116,7 @@ namespace MapsetVerifier.Rendering
                         accumulatedPeaks[index] = [(float)strainPeaks[index]];
             }
 
-            return GetPeakSeries(beatmap, accumulatedPeaks, peak =>
-                // TODO: Is this the same for t/c/m?
-                peak.Value.Sum() + Math.Abs(peak.Value[0] - peak.Value[1]) * 2, chart);
+            return GetPeakSeries(beatmap, accumulatedPeaks, GetSkillValueToStarRatingFunc(beatmap.GeneralSettings.mode), chart);
         }
 
         private static Series GetPeakSeries<T>(Beatmap beatmap, IEnumerable<T> data, Func<T, float> Value, LineChart chart)
@@ -198,6 +196,16 @@ namespace MapsetVerifier.Rendering
             }
 
             return Color.FromArgb((int)red, (int)green, (int)blue);
+        }
+        
+        private static Func<KeyValuePair<int, List<float>>, float> GetSkillValueToStarRatingFunc(Beatmap.Mode mode)
+        {
+            return mode switch
+            {
+                Beatmap.Mode.Standard => peak => peak.Value.Sum() + Math.Abs(peak.Value[0] - peak.Value[1]) * 2,
+                Beatmap.Mode.Taiko => peak => (float)(10.43 * Math.Log((peak.Value[0] * 1.4) / 8 + 1)),
+                _ => peak => peak.Value.Sum()   // TODO: Implement transformation functions for Mania and Catch
+            };
         }
     }
 }
