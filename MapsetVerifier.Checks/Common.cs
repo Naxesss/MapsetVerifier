@@ -16,6 +16,13 @@ namespace MapsetVerifier.Checks
 
         public const string FILE_EXCEPTION_MESSAGE = "\"{0}\" couldn't be checked, so you'll need to do that manually.{1}";
 
+        public const double MS_EPSILON = 2d;
+        
+        /// <summary>
+        /// Maximum allowed difference between two times in milliseconds.
+        /// </summary>
+        public const double ROUNDING_ERROR_MARGIN = 0.000000001;
+
         public static string ExceptionTag(Exception exception) =>
             $@"
                 <exception>
