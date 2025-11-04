@@ -1,5 +1,6 @@
 ﻿using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
+using MapsetVerifier.Parser.Objects.HitObjects.Taiko;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using System;
 
@@ -10,6 +11,15 @@ namespace MapsetVerifier.Checks.Utils;
 
 public static class TaikoUtils
     {
+        /// <summary>
+        /// Returns the normalized milliseconds per beat for the timing line.
+        /// Normalizes the BPM using the following logic:
+        /// <list type="bullet">
+        /// <item><description>If the BPM is less than 110 BPM, the snap divisor is doubled.</description></item>
+        /// <item><description>If the BPM is greater than 270 BPM, the snap divisor is halved.</description></item>
+        /// <item><description>If the BPM is greater than 130 BPM, the snap divisor is divided by 1.5.</description></item>
+        /// </list>
+        /// </summary>
         public static double GetNormalizedMsPerBeat(this UninheritedLine line)
         {
             double result = line.msPerBeat;
@@ -26,11 +36,14 @@ public static class TaikoUtils
             return result;
         }
         
+        /// <summary>
+        ///     Returns a list of timing lines where kiai toggles occur (kiai state changes).
+        /// </summary>
         public static List<TimingLine> FindKiaiToggles(this List<TimingLine> timingLines)
         {
             List<TimingLine> kiaiToggles = new List<TimingLine>();
 
-            TimingLine previousTimingLine = null;
+            TimingLine? previousTimingLine = null;
 
             foreach (TimingLine line in timingLines)
             {
@@ -43,8 +56,14 @@ public static class TaikoUtils
             return kiaiToggles;
         }
 
+        /// <summary>
+        ///     Returns a list of timing lines where kiai toggles occur (kiai state changes) for the given beatmap.
+        /// </summary>
         public static List<TimingLine> FindKiaiToggles(this Beatmap beatmap) => beatmap.TimingLines.FindKiaiToggles();
         
+        /// <summary>
+        ///     Returns a list of timing lines where SV (slider velocity) changes occur.
+        /// </summary>
         public static List<TimingLine> FindSvChanges(this List<TimingLine> timingLines)
         {
             List<TimingLine> svChanges = new List<TimingLine>();
@@ -63,85 +82,15 @@ public static class TaikoUtils
             return svChanges;
         }
 
+        /// <summary>
+        ///     Returns a list of timing lines where SV (slider velocity) changes occur for the given beatmap.
+        /// </summary>
         public static List<TimingLine> FindSvChanges(this Beatmap beatmap) => beatmap.TimingLines.FindSvChanges();
         
-        public static bool IsDon(this HitObject hitObject)
-        {
-            if (hitObject is not Circle)
-            {
-                return false;
-            }
-            return !hitObject.HasHitSound(HitObject.HitSounds.Whistle) && !hitObject.HasHitSound(HitObject.HitSounds.Clap);
-        }
-        
-        public static bool IsFinisher(this HitObject hitObject)
-        {
-            return hitObject.HasHitSound(HitObject.HitSounds.Finish);
-        }
-
-        public static bool IsMono(this HitObject hitObject)
-        {
-            return (hitObject.Prev()?.IsDon() ?? null) == hitObject.IsDon();
-        }
-
-        public static bool IsAtBeginningOfPattern(this HitObject current)
-        {
-            var previous = current.Prev(true);
-            var next = current.Next(true);
-
-            // if there aren't circles immediately before this object, then this is the start of a pattern
-            if (previous == null || previous is not Circle)
-            {
-                return true;
-            }
-
-            // if there are circles immediately before but not after this object, then this is not the start of a pattern
-            if (next == null || next is not Circle)
-            {
-                return false;
-            }
-
-            var gapBeforeMs = current.time - previous.time;
-            var gapAfterMs = next.time - current.time;
-
-            // if there are circles both immediately before and after this object, then it's the start if the snap divisor after this note is lower than before it
-            return gapAfterMs < gapBeforeMs;
-        }
-
-        public static bool IsAtEndOfPattern(this HitObject current)
-        {
-            var previous = current.Prev(true);
-            var next = current.Next(true);
-
-            // if there aren't circles immediately after this object, then this is the end of a pattern
-            if (next == null || next is not Circle)
-            {
-                return true;
-            }
-
-            // if there are circles immediately after but not before this object, then this is not the end of a pattern
-            if (previous == null || previous is not Circle)
-            {
-                return false;
-            }
-
-            var gapBeforeMs = current.time - previous.time;
-            var gapAfterMs = next.time - current.time;
-
-            // if there are circles both immediately before and after this object, then it's the end if the snap divisor before this note is lower than after it
-            return gapBeforeMs < gapAfterMs;
-        }
-
-        public static bool IsInMiddleOfPattern(this HitObject current)
-        {
-            return !current.IsAtBeginningOfPattern() && !current.IsAtEndOfPattern();
-        }
-
-        public static bool IsNotInPattern(this HitObject current)
-        {
-            return current.IsAtBeginningOfPattern() && current.IsAtEndOfPattern();
-        }
-
+        /// <summary>
+        ///     Returns the pattern spacing in milliseconds for the hit object.
+        ///     Pattern spacing represents the time gap between notes in a pattern.
+        /// </summary>
         public static double GetPatternSpacingMs(this HitObject current)
         {
             var previous = current.Prev(true);
@@ -169,6 +118,9 @@ public static class TaikoUtils
             return Math.Min(gapBeforeMs, gapAfterMs);
         }
 
+        /// <summary>
+        ///     Returns the offset in milliseconds from the previous barline to the given time.
+        /// </summary>
         public static double GetOffsetFromPrevBarlineMs(Beatmap beatmap, double time)
         {
             var timing = beatmap.GetTimingLine<UninheritedLine>(time);
@@ -177,6 +129,9 @@ public static class TaikoUtils
             return (time - timing.Offset) % barlineGap;
         }
 
+        /// <summary>
+        ///     Returns the offset in milliseconds from the next barline to the given time.
+        /// </summary>
         public static double GetOffsetFromNextBarlineMs(Beatmap beatmap, double time)
         {
             var timing = beatmap.GetTimingLine<UninheritedLine>(time);
@@ -189,23 +144,47 @@ public static class TaikoUtils
             return TakeLowerAbsValue(offsetFromNextImplicitBarline, offsetFromNextPotentialRedline);
         }
 
+        /// <summary>
+        ///     Returns the offset in milliseconds from the nearest barline to the given time.
+        /// </summary>
         public static double GetOffsetFromNearestBarlineMs(Beatmap beatmap, double time)
         {
             return TakeLowerAbsValue(GetOffsetFromPrevBarlineMs(beatmap, time), GetOffsetFromNextBarlineMs(beatmap, time));
         }
 
+        /// <summary>
+        ///     Returns the offset in milliseconds from the previous barline to the hit object's head (start time).
+        /// </summary>
         public static double GetHeadOffsetFromPrevBarlineMs(this HitObject current) => GetOffsetFromPrevBarlineMs(current.beatmap, current.time);
 
+        /// <summary>
+        ///     Returns the offset in milliseconds from the next barline to the hit object's head (start time).
+        /// </summary>
         public static double GetHeadOffsetFromNextBarlineMs(this HitObject current) => GetOffsetFromNextBarlineMs(current.beatmap, current.time);
 
+        /// <summary>
+        ///     Returns the offset in milliseconds from the nearest barline to the hit object's head (start time).
+        /// </summary>
         public static double GetHeadOffsetFromNearestBarlineMs(this HitObject current) => GetOffsetFromNearestBarlineMs(current.beatmap, current.time);
 
+        /// <summary>
+        ///     Returns the offset in milliseconds from the previous barline to the hit object's tail (end time).
+        /// </summary>
         public static double GetTailOffsetFromPrevBarlineMs(this HitObject current) => GetOffsetFromPrevBarlineMs(current.beatmap, current.GetEndTime());
 
+        /// <summary>
+        ///     Returns the offset in milliseconds from the next barline to the hit object's tail (end time).
+        /// </summary>
         public static double GetTailOffsetFromNextBarlineMs(this HitObject current) => GetOffsetFromNextBarlineMs(current.beatmap, current.GetEndTime());
 
+        /// <summary>
+        ///     Returns the offset in milliseconds from the nearest barline to the hit object's tail (end time).
+        /// </summary>
         public static double GetTailOffsetFromNearestBarlineMs(this HitObject current) => GetOffsetFromNearestBarlineMs(current.beatmap, current.GetEndTime());
 
+        /// <summary>
+        ///     Returns whether the beatmap set contains a beatmap with Easy difficulty (Kantan).
+        /// </summary>
         public static bool IsBottomDiffKantan(this BeatmapSet beatmapSet)
         {
             foreach (var beatmap in beatmapSet.Beatmaps)
