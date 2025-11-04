@@ -23,7 +23,7 @@ public static class GeneralUtils
     }
 
     // Collections
-    public static T? SafeGetIndex<T>(this List<T?> collection, int index)
+    public static T SafeGetIndex<T>(this List<T> collection, int index)
         => index < collection.Count ? collection[index] : default;
     
     public static double TakeLowerAbsValue(double first, double second)
