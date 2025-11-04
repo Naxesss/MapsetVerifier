@@ -933,7 +933,7 @@ namespace MapsetVerifier.Parser.Objects
 
             if (GeneralSettings.mode == Mode.Catch)
             {
-                var catchHitObjects = CatchHitObjectCreator.CreateCatchHitObjects(this);
+                var catchHitObjects = CatchHitObjectCreator.CreateCatchHitObjects(this, hitObjects);
 
                 hitObjects = catchHitObjects
                     .Cast<HitObject>()

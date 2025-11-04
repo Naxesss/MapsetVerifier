@@ -59,20 +59,19 @@ public static class CatchHitObjectCreator
     /// <summary>
     /// Creates CatchHitObjects from base HitObjects (slider parts, circles, spinners) and enriches them with movement data.
     /// </summary>
-    public static List<CatchHitObject> CreateCatchHitObjects(Beatmap beatmap)
+    public static List<CatchHitObject> CreateCatchHitObjects(Beatmap beatmap, List<HitObject> originalHitObjects)
     {
-        var hitObjects = GenerateCatchHitObjects(beatmap);
+        var hitObjects = GenerateCatchHitObjects(beatmap, originalHitObjects);
         CalculateDistances(hitObjects, beatmap);
         return hitObjects; // Already time-ordered by CalculateDistances.
     }
 
-    private static List<CatchHitObject> GenerateCatchHitObjects(Beatmap beatmap)
+    private static List<CatchHitObject> GenerateCatchHitObjects(Beatmap beatmap, List<HitObject> originalHitObjects)
     {
-        var mapObjects = beatmap.HitObjects;
         var objects = new List<CatchHitObject>();
 
         // Build slider components (head, repeats, tail, droplets)
-        foreach (var slider in mapObjects.OfType<Slider>())
+        foreach (var slider in originalHitObjects.OfType<Slider>())
         {
             var objectCode = slider.code.Split(',');
             var head = new CatchHitObject(objectCode, beatmap, CatchNoteType.Head, slider);
@@ -92,10 +91,10 @@ public static class CatchHitObjectCreator
         }
 
         // Circles
-        objects.AddRange(from mapObject in mapObjects where mapObject is Circle select new CatchHitObject(mapObject.code.Split(','), beatmap, CatchNoteType.Circle, mapObject));
+        objects.AddRange(from mapObject in originalHitObjects where mapObject is Circle select new CatchHitObject(mapObject.code.Split(','), beatmap, CatchNoteType.Circle, mapObject));
 
         // Spinners (needed for movement gap logic)
-        objects.AddRange(from mapObject in mapObjects where mapObject is Spinner select new CatchHitObject(mapObject.code.Split(','), beatmap, CatchNoteType.Spinner, mapObject));
+        objects.AddRange(from mapObject in originalHitObjects where mapObject is Spinner select new CatchHitObject(mapObject.code.Split(','), beatmap, CatchNoteType.Spinner, mapObject));
 
         return objects;
     }
