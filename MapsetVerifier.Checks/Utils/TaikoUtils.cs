@@ -10,6 +10,61 @@ namespace MapsetVerifier.Checks.Utils;
 
 public static class TaikoUtils
     {
+        public static double GetNormalizedMsPerBeat(this UninheritedLine line)
+        {
+            double result = line.msPerBeat;
+
+            while (result <= 60000.0 / 270.0) // 270 BPM
+                result *= 2;
+
+            while (result >= (60000.0 / 110.0)) // 110 BPM
+                result /= 2;
+
+            while (result >= (60000.0 / 130.0)) // 130 BPM
+                result /= 1.5;
+
+            return result;
+        }
+        
+        public static List<TimingLine> FindKiaiToggles(this List<TimingLine> timingLines)
+        {
+            List<TimingLine> kiaiToggles = new List<TimingLine>();
+
+            TimingLine previousTimingLine = null;
+
+            foreach (TimingLine line in timingLines)
+            {
+                if ((previousTimingLine == null && line.Kiai) || (previousTimingLine != null && previousTimingLine.Kiai != line.Kiai))
+                {
+                    kiaiToggles.Add(line);
+                }
+                previousTimingLine = line;
+            }
+            return kiaiToggles;
+        }
+
+        public static List<TimingLine> FindKiaiToggles(this Beatmap beatmap) => beatmap.TimingLines.FindKiaiToggles();
+        
+        public static List<TimingLine> FindSvChanges(this List<TimingLine> timingLines)
+        {
+            List<TimingLine> svChanges = new List<TimingLine>();
+            
+            for (int i=0; i<timingLines.Count-1; i++)
+            {
+                TimingLine firstLine = timingLines[i];
+                TimingLine secondLine = timingLines[i+1];
+
+                if (firstLine.SvMult != secondLine.SvMult && firstLine.Offset != secondLine.Offset)
+                {
+                    svChanges.Add(secondLine);
+                }
+            }
+
+            return svChanges;
+        }
+
+        public static List<TimingLine> FindSvChanges(this Beatmap beatmap) => beatmap.TimingLines.FindSvChanges();
+        
         public static bool IsDon(this HitObject hitObject)
         {
             if (hitObject is not Circle)
