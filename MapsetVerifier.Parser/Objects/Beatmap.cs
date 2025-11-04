@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.Collections.Concurrent;
 using System.Numerics;
 using System.Text.RegularExpressions;
 using MapsetVerifier.Parser.Objects.Events;
 using MapsetVerifier.Parser.Objects.HitObjects;
+using MapsetVerifier.Parser.Objects.HitObjects.Catch;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Settings;
 using MapsetVerifier.Parser.StarRating;
@@ -933,6 +930,15 @@ namespace MapsetVerifier.Parser.Objects
                     HitObject.HasType(args, HitObject.Types.Slider) ? new Slider(args, this) :
                     HitObject.HasType(args, HitObject.Types.ManiaHoldNote) ? new HoldNote(args, this) : (HitObject)new Spinner(args, this);
             }).OrderBy(hitObject => hitObject.time).ToList();
+
+            if (GeneralSettings.mode == Mode.Catch)
+            {
+                var catchHitObjects = CatchHitObjectCreator.CreateCatchHitObjects(this);
+
+                hitObjects = catchHitObjects
+                    .Cast<HitObject>()
+                    .ToList();
+            }
 
             // Initialize internal indicies for O(1) next/prev access.
             for (var i = 0; i < hitObjects.Count; ++i)
