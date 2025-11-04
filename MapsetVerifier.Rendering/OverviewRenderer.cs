@@ -317,9 +317,34 @@ namespace MapsetVerifier.Rendering
                     RenderBeatmapContent(beatmapSet, "Breaks", beatmap => beatmap.Breaks.Count.ToString(CultureInfo.InvariantCulture)),
                     RenderBeatmapContent(beatmapSet, "Uninherited Lines", beatmap => beatmap.TimingLines.OfType<UninheritedLine>().Count().ToString(CultureInfo.InvariantCulture)),
                     RenderBeatmapContent(beatmapSet, "Inherited Lines", beatmap => beatmap.TimingLines.OfType<InheritedLine>().Count().ToString(CultureInfo.InvariantCulture)),
-                    RenderBeatmapContent(beatmapSet, "Kiai Time", beatmap => Timestamp.Get(beatmap.TimingLines.Select(line => line.Kiai ? (beatmap.GetNextTimingLine(line.Offset)?.Offset ?? beatmap.HitObjects.First().time + beatmap.GetPlayTime()) - line.Offset : 0).Sum()).ToString(CultureInfo.InvariantCulture)),
+                    RenderBeatmapContent(beatmapSet, "Kiai Time", GetKiaiTime),
                     RenderBeatmapContent(beatmapSet, "Drain Time", beatmap => Timestamp.Get(beatmap.GetDrainTime(beatmap.GeneralSettings.mode)).ToString(CultureInfo.InvariantCulture)),
                     RenderBeatmapContent(beatmapSet, "Play Time", beatmap => Timestamp.Get(beatmap.GetPlayTime()).ToString(CultureInfo.InvariantCulture)));
+        }
+
+        private static string GetKiaiTime(Beatmap beatmap)
+        {
+            var result = beatmap.TimingLines
+                .GroupBy(l => l.Offset) // collapse identical offsets
+                .Select(g => g.Any(l => l.Kiai)) // whether Kiai is active at this offset
+                .Zip(beatmap.TimingLines
+                        .Select(l => l.Offset)
+                        .Distinct()
+                        .OrderBy(o => o)
+                        .ToList(),
+                    (isKiai, offset) => new { isKiai, offset })
+                .Where(x => x.isKiai)
+                .Sum(x =>
+                {
+                    var next = beatmap.TimingLines
+                        .Where(l => l.Offset > x.offset)
+                        .Select(l => l.Offset)
+                        .DefaultIfEmpty(beatmap.HitObjects.First().time + beatmap.GetPlayTime())
+                        .First();
+                    return next - x.offset;
+                });
+            
+            return result.ToString(CultureInfo.InvariantCulture);
         }
 
         private static string RenderDataSize(long size)
