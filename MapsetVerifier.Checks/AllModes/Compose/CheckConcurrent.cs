@@ -96,14 +96,13 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                     var otherTimestamp = Timestamp.Get(otherHitObject);
 
                     if (msApart <= 0)
-                        yield return new Issue(GetTemplate("Concurrent Objects"), beatmap, timestamp, otherTimestamp, ObjectsAsString(hitObject, otherHitObject));
+                        yield return new Issue(GetTemplate("Concurrent Objects"), beatmap, Timestamp.Get(hitObject, otherHitObject), ObjectsAsString(hitObject, otherHitObject));
                     
                     // Mania has only 1 input per column, so we need a bigger gap.
                     else if ((beatmap.GeneralSettings.mode == Beatmap.Mode.Mania && msApart <= ManiaConcurrentThresholdMs) ||
                              // Spinners can be 1 ms or further apart from the previous end time, but not at the same millisecond.
                              (msApart <= OtherModesConcurrentThresholdMs && otherHitObject is not Spinner))
-                        yield return new Issue(GetTemplate("Almost Concurrent Objects"), beatmap, timestamp,
-                            otherTimestamp, msApart);
+                        yield return new Issue(GetTemplate("Almost Concurrent Objects"), beatmap, Timestamp.Get(hitObject, otherHitObject), msApart);
                     else
                         // Hit objects are sorted by time, meaning if the next one is > 10 ms away, any remaining will be too.
                         break;
