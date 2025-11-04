@@ -10,18 +10,6 @@ namespace MapsetVerifier.Checks.Utils;
 
 public static class TaikoUtils
     {
-        // TODO: move back to check
-        public static double NormalizeHpWithDrain(double hp, double drain)
-        {
-            if (drain <= 60 * 1000) // 1:00 or less gets an HP buff by 1
-                return Math.Ceiling(hp + 1); // rounding up to avoid decimal values
-            if (drain >= (4 * 60 * 1000) + (45 * 1000)) // 4:45 or more gets an HP nerf by 2
-                return Math.Ceiling(hp - 2);
-            if (drain >= (3 * 60 * 1000) + (45 * 1000)) // 3:45 or more gets an HP nerf by 1
-                return Math.Ceiling(hp - 1);
-            return hp;
-        }
-        
         public static bool IsDon(this HitObject hitObject)
         {
             if (hitObject is not Circle)
