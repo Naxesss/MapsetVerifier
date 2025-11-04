@@ -8,7 +8,6 @@ using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
 
 using static MapsetVerifier.Checks.Utils.TaikoUtils;
-using static MapsetVerifier.Checks.Utils.GeneralUtils;
 
 namespace MapsetVerifier.Checks.Taiko.Compose
 {
@@ -185,7 +184,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
             var timing = beatmap.GetTimingLine<UninheritedLine>(current.time);
             var maximalGapMs = maximalGapBeats[diff] * timing.GetNormalizedMsPerBeat();
 
-            if (current.GetPatternSpacingMs() <= maximalGapMs + MS_EPSILON)
+            if (current.GetPatternSpacingMs() <= maximalGapMs + Common.MS_EPSILON)
             {
                 return true;
             }
