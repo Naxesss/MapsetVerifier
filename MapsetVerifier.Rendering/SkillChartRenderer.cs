@@ -7,6 +7,8 @@ using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.StarRating.Skills;
 using MapsetVerifier.Rendering.Objects;
 
+using static MapsetVerifier.Rendering.Utils.DifficultyColorGenerator;
+
 namespace MapsetVerifier.Rendering
 {
     public abstract class SkillChartRenderer : ChartRenderer
@@ -18,15 +20,6 @@ namespace MapsetVerifier.Rendering
         ///     such that the color of all series in a chart are unique.
         /// </summary>
         private static readonly Dictionary<LineChart, List<Beatmap>> mapsUsedInChart = new();
-
-        private static readonly Dictionary<Beatmap.Difficulty, Color> difficultyColor = new()
-        {
-            { Beatmap.Difficulty.Easy, Color.FromArgb(80, 215, 255) },
-            { Beatmap.Difficulty.Normal, Color.FromArgb(125, 180, 0) },
-            { Beatmap.Difficulty.Hard, Color.FromArgb(255, 215, 0) },
-            { Beatmap.Difficulty.Insane, Color.FromArgb(255, 80, 170) },
-            { Beatmap.Difficulty.Expert, Color.FromArgb(125, 80, 255) }
-        };
 
         public new static string Render(BeatmapSet beatmapSet)
         {
@@ -151,7 +144,7 @@ namespace MapsetVerifier.Rendering
         private static Color GetGraphColor(Beatmap beatmap, LineChart chart)
         {
             var diff = DifficultyOf(beatmap);
-            var diffColor = difficultyColor[diff];
+            var diffColor = GetDifficultyColor(beatmap.StarRating);
 
             if (!mapsUsedInChart.ContainsKey(chart))
                 return diffColor;
