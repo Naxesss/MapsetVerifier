@@ -6,7 +6,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 namespace MapsetVerifier.Checks.Taiko.Settings;
 
 [Check]
-public class DiffSettingsCheck : BeatmapCheck
+public class CheckDiffSettings : BeatmapCheck
 {
     // private const bool _DEBUG_SEE_ALL_HP = false;
     // private const bool _DEBUG_SEE_ALL_OD = false;
