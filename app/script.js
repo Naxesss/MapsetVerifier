@@ -1806,7 +1806,7 @@ function renderLineChart(canvasId, data)
 				mode: "index",
 				callbacks: {
 					title: function (item, data) {
-						return Number(item[0].label).toFixed(1).toString() + " s";
+                        return formatToTimestamp(Number(item[0].label));
 					},
 					label: function (item, data) {
 						return Number(item.value).toFixed(2)
@@ -1815,4 +1815,17 @@ function renderLineChart(canvasId, data)
 			}
 		}
 	});
+
+    function formatToTimestamp(inputSeconds) {
+        var totalSeconds = inputSeconds.toFixed(3);
+        var millisNum = (totalSeconds % 1) * 1000;
+        var millisString = ((millisNum < 100) ? "0" : "") + ((millisNum < 10) ? "0" : "") + millisNum.toFixed(0);
+        var secondsNum = totalSeconds % 60;
+        var secondsString = ((secondsNum < 10) ? "0" : "") + secondsNum.toFixed(0) + ":";
+        var minutesNum = (totalSeconds / 60) % 60;
+        var minutesString = ((minutesNum < 10) ? "0" : "") + minutesNum.toFixed(0) + ":";
+        var hoursNum = totalSeconds / 3600;
+        var hoursString = (hoursNum >= 1) ? (hoursNum.toFixed(0) + ":") : "";
+        return hoursString + minutesString + secondsString + millisString;
+    }
 }
