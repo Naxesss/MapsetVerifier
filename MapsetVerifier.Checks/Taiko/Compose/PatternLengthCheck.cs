@@ -44,7 +44,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                     {
                         "Reasoning",
                         @"
-                    On lower difficulties, patterns of smaller snaps can get too straining if they surpass a certain length."
+                    On lower difficulties, patterns that use smaller snaps should be avoided as they can become straining if they exceed an unreasonable length."
                     }
                 }
             };

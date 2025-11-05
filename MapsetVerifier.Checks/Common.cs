@@ -19,7 +19,7 @@ namespace MapsetVerifier.Checks
         public const double MS_EPSILON = 2d;
         
         /// <summary>
-        /// Maximum allowed difference between two times in milliseconds.
+        /// Maximum allowed difference in time between two hit objects in milliseconds.
         /// </summary>
         public const double ROUNDING_ERROR_MARGIN = 0.000000001;
 
