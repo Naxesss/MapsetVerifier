@@ -96,7 +96,7 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                     var otherTimestamp = Timestamp.Get(otherHitObject);
 
                     if (msApart <= 0)
-                        yield return new Issue(GetTemplate("Concurrent Objects"), beatmap, timestamp, otherTimestamp, ObjectsAsString(hitObject, otherHitObject));
+                        yield return new Issue(GetTemplate("Concurrent Objects"), beatmap, timestamp, ObjectsAsString(hitObject, otherHitObject));
                     
                     // Mania has only 1 input per column, so we need a bigger gap.
                     else if ((beatmap.GeneralSettings.mode == Beatmap.Mode.Mania && msApart <= ManiaConcurrentThresholdMs) ||
