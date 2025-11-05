@@ -14,7 +14,7 @@ public static class GeneralUtils
     /// <returns>True if the number is within the range, otherwise false.</returns>
     public static bool IsWithin(this double num, double range, double of)
         => num <= of + range && num >= of - range;
-    
+
     /// <summary>
     ///     Adds a range of keys to the dictionary with the specified value.
     /// </summary>
@@ -52,7 +52,7 @@ public static class GeneralUtils
     /// <returns>The element at the specified index, or the default value if the index is out of range.</returns>
     public static T SafeGetIndex<T>(this List<T> collection, int index)
         => index >= 0 && index < collection.Count ? collection[index] : default!;
-    
+
     /// <summary>
     ///     Returns the value with the lower absolute value between two values.
     /// </summary>
@@ -61,9 +61,9 @@ public static class GeneralUtils
     /// <returns>The value with the lower absolute value.</returns>
     public static double TakeLowerAbsValue(double first, double second)
     {
-        return Math.Abs(first) < Math.Abs(second) ? first : second;
+        return Math.Min(Math.Abs(first), Math.Abs(second));
     }
-    
+
     /// <summary>
     ///     Returns the value with the higher absolute value between two values.
     /// </summary>
@@ -72,6 +72,6 @@ public static class GeneralUtils
     /// <returns>The value with the higher absolute value.</returns>
     public static double TakeHigherAbsValue(double first, double second)
     {
-        return Math.Abs(first) > Math.Abs(second) ? first : second;
+        return Math.Max(Math.Abs(first), Math.Abs(second));
     }
 }

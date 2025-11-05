@@ -16,6 +16,7 @@ namespace MapsetVerifier.Checks.Taiko.Design
             {
                 Author = "Nostril",
                 Category = "Design",
+                Modes = [Beatmap.Mode.Taiko],
                 Message = "Background offset inconsistencies",
                 Documentation = new Dictionary<string, string>()
                 {
