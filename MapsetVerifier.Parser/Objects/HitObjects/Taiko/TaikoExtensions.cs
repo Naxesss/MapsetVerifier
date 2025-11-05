@@ -5,14 +5,7 @@
         /// <summary>
         ///     Returns whether the hit object is a don hit.
         /// </summary>
-        public static bool IsDon(this HitObject hitObject)
-        {
-            if (hitObject is not Circle)
-            {
-                return false;
-            }
-            return !hitObject.HasHitSound(HitObject.HitSounds.Whistle) && !hitObject.HasHitSound(HitObject.HitSounds.Clap);
-        }
+        public static bool IsDon(this HitObject hitObject) => !hitObject.HasHitSound(HitObject.HitSounds.Whistle) && !hitObject.HasHitSound(HitObject.HitSounds.Clap);
 
         /// <summary>
         ///     Returns whether the hit object is a finisher hit.
