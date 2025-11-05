@@ -1,5 +1,7 @@
 ﻿using System.Globalization;
 using System.Numerics;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace MapsetVerifier.Parser.Objects.HitObjects.Catch;
 
@@ -59,42 +61,46 @@ public static class CatchHitObjectCreator
     /// <summary>
     /// Creates CatchHitObjects from base HitObjects (slider parts, circles, spinners) and enriches them with movement data.
     /// </summary>
-    public static List<CatchHitObject> CreateCatchHitObjects(Beatmap beatmap, List<HitObject> originalHitObjects)
+    public static List<ICatchHitObject> CreateCatchHitObjects(Beatmap beatmap, List<HitObject> originalHitObjects)
     {
         var hitObjects = GenerateCatchHitObjects(beatmap, originalHitObjects);
         CalculateDistances(hitObjects, beatmap);
-        return hitObjects; // Already time-ordered by CalculateDistances.
+        return hitObjects.OrderBy(o => o.Time).ToList();
     }
 
-    private static List<CatchHitObject> GenerateCatchHitObjects(Beatmap beatmap, List<HitObject> originalHitObjects)
+    private static List<ICatchHitObject> GenerateCatchHitObjects(Beatmap beatmap, List<HitObject> originalHitObjects)
     {
-        var objects = new List<CatchHitObject>();
+        var objects = new List<ICatchHitObject>();
 
-        // Build slider components (head, repeats, tail, droplets)
+        // Sliders -> JuiceStream + parts
         foreach (var slider in originalHitObjects.OfType<Slider>())
         {
-            var objectCode = slider.code.Split(',');
-            var head = new CatchHitObject(objectCode, beatmap, CatchNoteType.Head, slider);
+            var code = slider.code.Split(',');
+            var juiceStream = new JuiceStream(code, beatmap, slider);
+            objects.Add(juiceStream);
 
+            // Repeats & tail parts
             var edgeTimes = GetEdgeTimes(slider).ToList();
             for (var i = 0; i < edgeTimes.Count; i++)
             {
-                var type = i + 1 == edgeTimes.Count ? CatchNoteType.Tail : CatchNoteType.Repeat;
-                objects.Add(CreateObjectExtra(beatmap, head, slider, edgeTimes[i], objectCode, type));
+                var time = edgeTimes[i];
+                var partKind = i + 1 == edgeTimes.Count ? JuiceStream.JuiceStreamPart.PartKind.Tail : JuiceStream.JuiceStreamPart.PartKind.Repeat;
+                juiceStream.Parts.Add(CreateJuiceStreamPart(beatmap, juiceStream, slider, time, partKind));
             }
-
             // Droplets
             foreach (var tickTime in slider.SliderTickTimes)
-                objects.Add(CreateObjectExtra(beatmap, head, slider, tickTime, objectCode, CatchNoteType.Droplet));
+                juiceStream.Parts.Add(CreateJuiceStreamPart(beatmap, juiceStream, slider, tickTime, JuiceStream.JuiceStreamPart.PartKind.Droplet));
 
-            objects.Add(head); // Add head last so it appears before repeats (will sort later anyway)
+            // We don't add the parts to the result objects as they all get referenced from the juice stream itself
         }
 
-        // Circles
-        objects.AddRange(from mapObject in originalHitObjects where mapObject is Circle select new CatchHitObject(mapObject.code.Split(','), beatmap, CatchNoteType.Circle, mapObject));
+        // Circles -> Fruit
+        foreach (var circle in originalHitObjects.OfType<Circle>())
+            objects.Add(new Fruit(circle.code.Split(','), beatmap, circle));
 
-        // Spinners (needed for movement gap logic)
-        objects.AddRange(from mapObject in originalHitObjects where mapObject is Spinner select new CatchHitObject(mapObject.code.Split(','), beatmap, CatchNoteType.Spinner, mapObject));
+        // Spinners -> Bananas
+        foreach (var spinner in originalHitObjects.OfType<Spinner>())
+            objects.Add(new Bananas(spinner.code.Split(','), beatmap, spinner));
 
         return objects;
     }
@@ -106,24 +112,21 @@ public static class CatchHitObjectCreator
             yield return sObject.time + sObject.GetCurveDuration() * (i + 1);
     }
 
-    private static CatchHitObject CreateObjectExtra(Beatmap beatmap, CatchHitObject sliderHead,
-        Slider slider, double time, string[] objectCode, CatchNoteType type)
+    private static ICatchHitObject CreateJuiceStreamPart(Beatmap beatmap, ICatchHitObject sliderHead, Slider slider, double time, JuiceStream.JuiceStreamPart.PartKind kind)
     {
-        var clone = (string[])objectCode.Clone();
-        clone[0] = slider.GetPathPosition(time).X.ToString(CultureInfo.InvariantCulture);
-        clone[2] = time.ToString(CultureInfo.InvariantCulture);
-        var line = string.Join(",", clone);
-        return new CatchHitObject(line.Split(','), beatmap, type, slider) { SliderHead = sliderHead };
+        var codeClone = slider.code.Split(',');
+        codeClone[0] = slider.GetPathPosition(time).X.ToString(CultureInfo.InvariantCulture);
+        codeClone[2] = time.ToString(CultureInfo.InvariantCulture);
+        return new JuiceStream.JuiceStreamPart(codeClone, beatmap, slider, kind);
     }
 
     /// <summary>
     /// Calculates movement metadata (dash/hyper distances, direction, edge movement) between sequential objects.
     /// </summary>
-    private static void CalculateDistances(List<CatchHitObject> allObjects, Beatmap beatmap)
+    private static void CalculateDistances(List<ICatchHitObject> allObjects, Beatmap beatmap)
     {
         if (allObjects.Count < 2) return;
-
-        allObjects.Sort((h1, h2) => h1.time.CompareTo(h2.time));
+        allObjects.Sort((a, b) => a.Time.CompareTo(b.Time));
 
         var catcherWidth = CalculateCatchWidth(beatmap.DifficultySettings.circleSize);
         var halfCatcherWidth = catcherWidth * 0.5f / AllowedCatchRange;
@@ -131,7 +134,7 @@ public static class CatchHitObjectCreator
 
         var lastDirection = CatchNoteDirection.None;
         double dashRange = halfCatcherWidth;
-        var walkRange = baseWalkRange; // TODO: refine for tap dashes (Cup/Salad rules)
+        var walkRange = baseWalkRange;
         var lastWasHyper = false;
 
         for (var i = 0; i < allObjects.Count - 1; i++)
@@ -140,7 +143,8 @@ public static class CatchHitObjectCreator
             var next = allObjects[i + 1];
             current.Target = next;
 
-            if (current.NoteType == CatchNoteType.Spinner || next.NoteType == CatchNoteType.Spinner)
+            // Spinner gap logic now polymorphic
+            if (current is Bananas || next is Bananas)
             {
                 current.MovementType = CatchMovementType.Walk;
                 dashRange = halfCatcherWidth;
@@ -150,17 +154,17 @@ public static class CatchHitObjectCreator
                 continue;
             }
 
-            var direction = next.X > current.X ? CatchNoteDirection.Left : CatchNoteDirection.Right;
-            var timeToNext = (int)next.time - (int)current.time - QuarterFrameGrace;
-            var distanceInOsuCoords = Math.Abs(next.X - current.X);
+            var direction = next.Position.X > current.Position.X ? CatchNoteDirection.Left : CatchNoteDirection.Right;
+            var timeToNext = next.Time - current.Time - QuarterFrameGrace;
+            var distance = Math.Abs(next.Position.X - current.Position.X);
 
             var actualWalkRange = lastDirection == direction ? walkRange : baseWalkRange;
             if (lastWasHyper) actualWalkRange *= HyperdashLeniency;
 
-            var dashDistanceToNext = distanceInOsuCoords - (lastDirection == direction ? dashRange : halfCatcherWidth);
+            var dashDistanceToNext = distance - (lastDirection == direction ? dashRange : halfCatcherWidth);
             current.DistanceToHyper = (float)(timeToNext * BaseDashSpeed - dashDistanceToNext);
 
-            var walkDistanceToNext = distanceInOsuCoords - actualWalkRange;
+            var walkDistanceToNext = distance - actualWalkRange;
             current.DistanceToDash = (float)(timeToNext * BaseWalkSpeed - walkDistanceToNext);
 
             current.MovementType = current.DistanceToHyper < 0 ? CatchMovementType.Hyperdash : current.DistanceToDash < 0 ? CatchMovementType.Dash : CatchMovementType.Walk;
@@ -169,7 +173,6 @@ public static class CatchHitObjectCreator
             dashRange = current.MovementType == CatchMovementType.Hyperdash ? halfCatcherWidth : Math.Clamp(current.DistanceToHyper, 0, halfCatcherWidth);
             walkRange = current.MovementType == CatchMovementType.Dash ? baseWalkRange : Math.Clamp(current.DistanceToDash, 0, baseWalkRange);
 
-            // Correctly assign computed direction (previously self-referential)
             current.NoteDirection = direction;
             current.IsEdgeMovement = IsEdgeMovement(beatmap, current);
 
@@ -185,25 +188,31 @@ public static class CatchHitObjectCreator
         return 60000 / msPerBeat;
     }
 
-    private static double GetBpm(this Beatmap beatmap, CatchHitObject hitObject)
+    private static double GetBpm(this Beatmap beatmap, ICatchHitObject obj)
     {
-        var timingLine = beatmap.GetTimingLine(hitObject.time);
+        var timingLine = beatmap.GetTimingLine(obj.Time);
         return GetBeatsPerMinute(timingLine);
     }
 
-    private static double GetBpmScale(this Beatmap beatmap, CatchHitObject hitObject) => 180 / beatmap.GetBpm(hitObject);
+    private static double GetBpmScale(this Beatmap beatmap, ICatchHitObject obj) => 180 / beatmap.GetBpm(obj);
 
-    private static bool IsEdgeMovement(Beatmap beatmap, CatchHitObject hitObject)
+    private static bool IsEdgeMovement(Beatmap beatmap, ICatchHitObject obj)
     {
-        switch (hitObject.MovementType)
+        switch (obj.MovementType)
         {
             case CatchMovementType.Walk:
-                var comfyDash = 1.44 * beatmap.GetBpm(hitObject); // 1.44 * bpm
-                var xDistance = Math.Abs(hitObject.Position.X - hitObject.Target.Position.X);
-                return xDistance > comfyDash * beatmap.GetBpmScale(hitObject);
+                // No note after this so we can't determine edge movement.
+                if (obj.Target == null)
+                {
+                    return false;
+                }
+                
+                var comfyDash = 1.44 * beatmap.GetBpm(obj);
+                var xDistance = Math.Abs(obj.Position.X - obj.Target.Position.X);
+                return xDistance > comfyDash * beatmap.GetBpmScale(obj);
             case CatchMovementType.Dash:
-                var pixelScale = 10.0 * beatmap.GetBpmScale(hitObject);
-                return hitObject.DistanceToHyper < pixelScale;
+                var pixelScale = 10.0 * beatmap.GetBpmScale(obj);
+                return obj.DistanceToHyper < pixelScale;
             case CatchMovementType.Hyperdash:
             default:
                 return false;

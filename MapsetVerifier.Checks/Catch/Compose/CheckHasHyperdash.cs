@@ -63,8 +63,9 @@ namespace MapsetVerifier.Checks.Catch.Compose
         {
             var catchObjects = beatmap.GetCatchHitObjects();
 
-            foreach (var catchObject in catchObjects.Where(catchObject =>
-                catchObject.MovementType == CatchMovementType.Hyperdash))
+            foreach (var catchObject in catchObjects.Where(o => 
+                         o is not JuiceStream &&
+                         o.MovementType == CatchMovementType.Hyperdash))
             {
                 yield return new Issue(
                     GetTemplate("Hyperdash"),
@@ -72,19 +73,32 @@ namespace MapsetVerifier.Checks.Catch.Compose
                     CatchExtensions.GetTimestamps(catchObject, catchObject.Target),
                     catchObject.GetNoteTypeName()
                 ).ForDifficulties(Beatmap.Difficulty.Easy, Beatmap.Difficulty.Normal);
+            }
 
-                switch (catchObject.NoteType)
+            foreach (var juiceStream in catchObjects.Where(o => o is JuiceStream).Cast<JuiceStream>())
+            {
+                if (juiceStream.MovementType == CatchMovementType.Hyperdash)
                 {
-                    case CatchNoteType.Head:
-                    case CatchNoteType.Repeat:
-                    case CatchNoteType.Droplet:
-                        yield return new Issue(
-                            GetTemplate("HyperdashSliderPart"),
-                            beatmap,
-                            CatchExtensions.GetTimestamps(catchObject, catchObject.Target),
-                            catchObject.GetNoteTypeName().ToLower()
-                        ).ForDifficulties(Beatmap.Difficulty.Hard);
-                        break;
+                    var firstSliderPart = juiceStream.Parts.First();
+
+                    yield return new Issue(
+                        GetTemplate("HyperdashSliderPart"),
+                        beatmap,
+                        CatchExtensions.GetTimestamps(juiceStream, firstSliderPart),
+                        firstSliderPart.GetNoteTypeName().ToLower()
+                    ).ForDifficulties(Beatmap.Difficulty.Hard);
+                }
+
+                var sliderParts = juiceStream.Parts.Where(part => part.MovementType == CatchMovementType.Hyperdash);
+
+                foreach (var sliderPart in sliderParts)
+                {
+                    yield return new Issue(
+                        GetTemplate("HyperdashSliderPart"),
+                        beatmap,
+                        CatchExtensions.GetTimestamps(sliderPart, sliderPart.Target),
+                        sliderPart.GetNoteTypeName().ToLower()
+                    ).ForDifficulties(Beatmap.Difficulty.Hard);
                 }
             }
         }

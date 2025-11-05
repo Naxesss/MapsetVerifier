@@ -4,37 +4,27 @@ namespace MapsetVerifier.Parser.Objects.HitObjects.Catch;
 
 public static class CatchExtensions
 {
-    public static List<CatchHitObject> GetCatchHitObjects(this Beatmap? beatmap)
+    public static List<ICatchHitObject> GetCatchHitObjects(this Beatmap? beatmap)
     {
         if (beatmap == null) return [];
         return beatmap.HitObjects
-            .Cast<CatchHitObject>()
+            .Cast<ICatchHitObject>()
             .ToList();
     }
     
-    public static string GetTimestamps(params CatchHitObject[] catchHitObject)
+    public static string GetTimestamps(params ICatchHitObject?[] input)
     {
-        var timestampObjects = new List<CatchHitObject>();
-        foreach (var hitObject in catchHitObject)
+        var timestampObjects = new List<ICatchHitObject>();
+        var nonNullHitObjects = input.Where(x => x != null).ToArray();
+        foreach (var hitObject in nonNullHitObjects)
         {
-            switch (hitObject.NoteType)
+            switch (hitObject)
             {
-                case CatchNoteType.Circle:
-                case CatchNoteType.Head:
+                case Fruit:
+                case JuiceStream:
                     timestampObjects.Add(hitObject);
                     break;
-                case CatchNoteType.Droplet:
-                case CatchNoteType.Repeat:
-                case CatchNoteType.Tail:
-                    if (hitObject.SliderHead != null && !timestampObjects.Contains(hitObject.SliderHead))
-                    {
-                        timestampObjects.Add(hitObject.SliderHead);
-                    }
-                    break;
-                // Ignore spinners for timestamp purposes
-                case CatchNoteType.Spinner:
-                default:
-                    break;
+                // Ignore spinners for timestamps
             }
         }
 
