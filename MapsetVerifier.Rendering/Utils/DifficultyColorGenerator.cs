@@ -5,8 +5,10 @@ namespace MapsetVerifier.Rendering.Utils;
 // Ports https://github.com/ppy/osu-web/blob/87212089ea72cae7c6dbcde78450516181ccb96c/resources/js/utils/beatmap-helper.ts
 public static class DifficultyColorGenerator
 {
-    private static readonly double[] Domain = { 0.1, 1.25, 2, 2.5, 3.3, 4.2, 4.9, 5.8, 6.7, 7.7, 9 };
-    private static readonly Color[] Range = {
+    private static readonly double[] Domain = [0.1, 1.25, 2, 2.5, 3.3, 4.2, 4.9, 5.8, 6.7, 7.7, 9];
+
+    private static readonly Color[] Range =
+    {
         ColorTranslator.FromHtml("#4290FB"),
         ColorTranslator.FromHtml("#4FC0FF"),
         ColorTranslator.FromHtml("#4FFFD5"),
@@ -22,10 +24,9 @@ public static class DifficultyColorGenerator
 
     public static Color GetDifficultyColor(double rating)
     {
-        if (rating < 0.1)
-            return ColorTranslator.FromHtml("#AAAAAA");
-        if (rating >= 9)
-            return ColorTranslator.FromHtml("#000000");
+        // When beyond defined domain, use the end-most color
+        if (rating < Domain.First()) return Range.First();
+        if (rating >= Domain.Last()) return Range.Last();
 
         // Find the surrounding domain points
         for (int i = 0; i < Domain.Length - 1; i++)
@@ -44,11 +45,11 @@ public static class DifficultyColorGenerator
     private static Color InterpolateColor(Color a, Color b, double t)
     {
         // Gamma-corrected interpolation (approximation of d3.interpolateRgb.gamma(2.2))
-        double gamma = 2.2;
+        const double gamma = 2.2;
 
-        double red = Math.Pow(Lerp(Math.Pow(a.R / 255.0, gamma), Math.Pow(b.R / 255.0, gamma), t), 1 / gamma);
-        double green = Math.Pow(Lerp(Math.Pow(a.G / 255.0, gamma), Math.Pow(b.G / 255.0, gamma), t), 1 / gamma);
-        double blue = Math.Pow(Lerp(Math.Pow(a.B / 255.0, gamma), Math.Pow(b.B / 255.0, gamma), t), 1 / gamma);
+        double red = Math.Pow(double.Lerp(Math.Pow(a.R / 255.0, gamma), Math.Pow(b.R / 255.0, gamma), t), 1 / gamma);
+        double green = Math.Pow(double.Lerp(Math.Pow(a.G / 255.0, gamma), Math.Pow(b.G / 255.0, gamma), t), 1 / gamma);
+        double blue = Math.Pow(double.Lerp(Math.Pow(a.B / 255.0, gamma), Math.Pow(b.B / 255.0, gamma), t), 1 / gamma);
 
         return Color.FromArgb(
             (int)Math.Round(red * 255),
@@ -56,6 +57,4 @@ public static class DifficultyColorGenerator
             (int)Math.Round(blue * 255)
         );
     }
-
-    private static double Lerp(double a, double b, double t) => a + (b - a) * t;
 }
