@@ -63,7 +63,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
         {
-            foreach (var svChange in beatmap.FindSvChanges())
+            foreach (var svChange in beatmap.GetSvChanges())
             {
                 var unsnapMs = GetOffsetFromNearestBarlineMs(beatmap, svChange.Offset);
                 if (unsnapMs < 0d && unsnapMs > -Common.ROUNDING_ERROR_MARGIN)

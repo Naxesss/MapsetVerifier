@@ -3,8 +3,6 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 
-using static MapsetVerifier.Checks.Utils.TaikoUtils;
-
 namespace MapsetVerifier.Checks.Taiko.Timing
 {
     [Check]
@@ -53,7 +51,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
 
             foreach (var beatmap in beatmapSet.Beatmaps)
             {
-                var beatmapKiais = string.Join(',', beatmap.TimingLines.FindKiaiToggles().Select(x => x.Offset));
+                var beatmapKiais = string.Join(',', beatmap.GetKiaiToggles().Select(x => x.Offset));
                 mapsetKiais.TryAdd(beatmapKiais, new List<string>());
                 mapsetKiais[beatmapKiais].Add(beatmap.MetadataSettings.version);
             }

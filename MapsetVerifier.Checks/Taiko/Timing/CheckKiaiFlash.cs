@@ -57,7 +57,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
         {
-            var kiaiToggles = beatmap.FindKiaiToggles();
+            var kiaiToggles = beatmap.GetKiaiToggles();
 
             foreach (var toggle in kiaiToggles)
             {

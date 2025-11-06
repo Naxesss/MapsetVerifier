@@ -35,58 +35,7 @@ public static class TaikoUtils
 
             return result;
         }
-        
-        /// <summary>
-        ///     Returns a list of timing lines where kiai toggles occur (kiai state changes).
-        /// </summary>
-        public static List<TimingLine> FindKiaiToggles(this List<TimingLine> timingLines)
-        {
-            List<TimingLine> kiaiToggles = new List<TimingLine>();
 
-            TimingLine? previousTimingLine = null;
-
-            foreach (TimingLine line in timingLines)
-            {
-                if ((previousTimingLine == null && line.Kiai) || (previousTimingLine != null && previousTimingLine.Kiai != line.Kiai))
-                {
-                    kiaiToggles.Add(line);
-                }
-                previousTimingLine = line;
-            }
-            return kiaiToggles;
-        }
-
-        /// <summary>
-        ///     Returns a list of timing lines where kiai toggles occur (kiai state changes) for the given beatmap.
-        /// </summary>
-        public static List<TimingLine> FindKiaiToggles(this Beatmap beatmap) => beatmap.TimingLines.FindKiaiToggles();
-        
-        /// <summary>
-        ///     Returns a list of timing lines where SV (slider velocity) changes occur.
-        /// </summary>
-        public static List<TimingLine> FindSvChanges(this List<TimingLine> timingLines)
-        {
-            List<TimingLine> svChanges = new List<TimingLine>();
-            
-            for (int i=0; i<timingLines.Count-1; i++)
-            {
-                TimingLine firstLine = timingLines[i];
-                TimingLine secondLine = timingLines[i+1];
-
-                if (firstLine.SvMult != secondLine.SvMult && firstLine.Offset != secondLine.Offset)
-                {
-                    svChanges.Add(secondLine);
-                }
-            }
-
-            return svChanges;
-        }
-
-        /// <summary>
-        ///     Returns a list of timing lines where SV (slider velocity) changes occur for the given beatmap.
-        /// </summary>
-        public static List<TimingLine> FindSvChanges(this Beatmap beatmap) => beatmap.TimingLines.FindSvChanges();
-        
         /// <summary>
         ///     Returns the pattern spacing in milliseconds for the hit object.
         ///     Pattern spacing represents the time gap between notes in a pattern.
