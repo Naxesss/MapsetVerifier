@@ -130,19 +130,4 @@ public static class TaikoUtils
         ///     Returns the offset in milliseconds from the nearest barline to the hit object's tail (end time).
         /// </summary>
         public static double GetTailOffsetFromNearestBarlineMs(this HitObject current) => GetOffsetFromNearestBarlineMs(current.beatmap, current.GetEndTime());
-
-        /// <summary>
-        ///     Returns whether the beatmap set contains a beatmap with Easy difficulty (Kantan).
-        /// </summary>
-        public static bool IsBottomDiffKantan(this BeatmapSet beatmapSet)
-        {
-            foreach (var beatmap in beatmapSet.Beatmaps)
-            {
-                if (beatmap.GetDifficulty() == Beatmap.Difficulty.Easy)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
     }

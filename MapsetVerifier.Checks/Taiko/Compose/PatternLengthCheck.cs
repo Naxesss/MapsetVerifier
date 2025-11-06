@@ -68,40 +68,56 @@ namespace MapsetVerifier.Checks.Taiko.Compose
             }
         };
 
-        public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
+        private static bool HasKantan(BeatmapSet beatmapSet)
         {
-            // Difficulty, <snap size, snap count>
-            var shortSnapParams = new Dictionary<Beatmap.Difficulty, Dictionary<double, int>>()
+            return beatmapSet.Beatmaps.Any(b => b.GetDifficulty() == Beatmap.Difficulty.Easy);
+        }
+
+        /// <summary>
+        ///     Returns a dictionary of difficulty, [snap size, snap count] pairs.
+        /// </summary>
+        private static Dictionary<Beatmap.Difficulty, Dictionary<double, int>> GetShortSnapParams(BeatmapSet beatmapSet)
+        {
+            var hasKantan = HasKantan(beatmapSet);
+
+            return new Dictionary<Beatmap.Difficulty, Dictionary<double, int>>()
             {
                 { Beatmap.Difficulty.Easy, new Dictionary<double, int>() {
                     { 1.0 / 1, 7 },
                     { 1.0 / 2, 2 }
                 }},
-                { Beatmap.Difficulty.Normal, new Dictionary< double, int>() {
-                    { 1.0 / 2, beatmapSet.IsBottomDiffKantan() ? 7 : 5 }, // If no kantan, then recommended maximum 1/2 length for futsuu is 5 instead of 7
+                { Beatmap.Difficulty.Normal, new Dictionary<double, int>() {
+                    { 1.0 / 2, hasKantan ? 7 : 5 },
                     { 1.0 / 3, 2 }
                 }},
                 { Beatmap.Difficulty.Hard, new Dictionary<double, int>() {
-                    { 1.0 / 4, 5 }, 
-                    { 1.0 / 6, 4 }, 
+                    { 1.0 / 4, 5 },
+                    { 1.0 / 6, 4 },
                 }},
                 { Beatmap.Difficulty.Insane, new Dictionary<double, int>() {
                     { 1.0 / 4, 9 },
                     { 1.0 / 6, 4 },
-                    { 1.0 / 8, 2 }, 
+                    { 1.0 / 8, 2 },
                 }},
             };
+        }
 
-            // Displays the fractions for output string
-            var outputDict = new Dictionary<double, String>()
-            {
-                { 1.0 / 1, "1/1" },
-                { 1.0 / 2, "1/2" },
-                { 1.0 / 3, "1/3" },
-                { 1.0 / 4, "1/4" },
-                { 1.0 / 6, "1/6" },
-                { 1.0 / 8, "1/8" }
-            };
+        /// <summary>
+        ///     Displays the fractions for output string.
+        /// </summary>
+        private static readonly Dictionary<double, string> OutputDict = new()
+        {
+            { 1.0 / 1, "1/1" },
+            { 1.0 / 2, "1/2" },
+            { 1.0 / 3, "1/3" },
+            { 1.0 / 4, "1/4" },
+            { 1.0 / 6, "1/6" },
+            { 1.0 / 8, "1/8" }
+        };
+
+        public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
+        {
+            var shortSnapParams = GetShortSnapParams(beatmapSet);
 
             foreach (var beatmap in beatmapSet.Beatmaps)
             {
@@ -178,7 +194,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                                         beatmap,
                                         Timestamp.Get(currentPatternStartTimeMs).Trim() + ">",
                                         Timestamp.Get(currentPatternEndTimeMs).Trim(),
-                                        outputDict[snapValues.Key] ?? "unknown snap",
+                                        OutputDict[snapValues.Key] ?? "unknown snap",
                                         durationOfPattern
                                     ).ForDifficulties(diff);
                                 } else if (durationOfPattern == snapValues.Value)
@@ -188,7 +204,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                                         beatmap,
                                         Timestamp.Get(currentPatternStartTimeMs).Trim() + ">",
                                         Timestamp.Get(currentPatternEndTimeMs).Trim(),
-                                        outputDict[snapValues.Key] ?? "unknown snap",
+                                        OutputDict[snapValues.Key] ?? "unknown snap",
                                         durationOfPattern
                                     ).ForDifficulties(diff);
                                 }
