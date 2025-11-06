@@ -8,8 +8,6 @@ namespace MapsetVerifier.Checks.Taiko.Settings;
 [Check]
 public class CheckDiffSettings : BeatmapCheck
 {
-    // private const bool _DEBUG_SEE_ALL_HP = false;
-    // private const bool _DEBUG_SEE_ALL_OD = false;
     private readonly Beatmap.Difficulty[] difficulties =
     [
         Beatmap.Difficulty.Easy,
@@ -17,7 +15,7 @@ public class CheckDiffSettings : BeatmapCheck
         Beatmap.Difficulty.Hard,
         Beatmap.Difficulty.Insane,
     ];
-    
+
     private static double NormalizeHpWithDrain(double hp, double drain)
     {
         if (drain <= 60 * 1000) // 1:00 or less gets an HP buff by 1
@@ -174,16 +172,6 @@ public class CheckDiffSettings : BeatmapCheck
                     "Current value is considerably different from the recommended limits."
                 )
             },
-            /*{
-                "debug",
-                new IssueTemplate(
-                    Issue.Level.Warning,
-                    "{0} - limit: {1} - current: {2}",
-                    "setting",
-                    "limit",
-                    "current"
-                ).WithCause("Debug")
-            }*/
         };
 
     public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
@@ -219,17 +207,6 @@ public class CheckDiffSettings : BeatmapCheck
                 drain
             );
 
-            /*if (_DEBUG_SEE_ALL_HP)
-            {
-                yield return new Issue(
-                    GetTemplate("debug"),
-                    beatmap,
-                    "HP",
-                    normalizedRecommendedHp,
-                    HP
-                ).ForDifficulties(diff);
-            };*/
-
             if (Math.Abs(hp - normalizedRecommendedHp) > 1)
             {
                 yield return new Issue(
@@ -241,7 +218,6 @@ public class CheckDiffSettings : BeatmapCheck
             }
             else if (Math.Abs(hp - normalizedRecommendedHp) > 0)
             {
-                Console.WriteLine(hp);
                 yield return new Issue(
                     GetTemplate("hpMinor"),
                     beatmap,
@@ -249,19 +225,6 @@ public class CheckDiffSettings : BeatmapCheck
                     hp
                 ).ForDifficulties(diff);
             }
-
-            ;
-
-            /*if (_DEBUG_SEE_ALL_OD)
-            {
-                yield return new Issue(
-                    GetTemplate("debug"),
-                    beatmap,
-                    "OD",
-                    recommendedOd[diff],
-                    OD
-                ).ForDifficulties(diff);
-            };*/
 
             if (Math.Abs(od - recommendedOd[diff]) > 0.5)
             {
@@ -280,7 +243,7 @@ public class CheckDiffSettings : BeatmapCheck
                     recommendedOd[diff],
                     od
                 ).ForDifficulties(diff);
-            };
+            }
         }
     }
 }

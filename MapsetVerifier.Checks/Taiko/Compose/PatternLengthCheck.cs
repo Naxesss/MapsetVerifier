@@ -16,8 +16,6 @@ namespace MapsetVerifier.Checks.Taiko.Compose
     {
         private const string Minor = nameof(Issue.Level.Minor);
         private const string Warning = nameof(Issue.Level.Warning);
-        private const bool DebugSeeAllPatternLengths = false;
-
         private readonly Beatmap.Difficulty[] difficulties =
         [
             Beatmap.Difficulty.Easy,
@@ -72,7 +70,6 @@ namespace MapsetVerifier.Checks.Taiko.Compose
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
-
             // Difficulty, <snap size, snap count>
             var shortSnapParams = new Dictionary<Beatmap.Difficulty, Dictionary<double, int>>()
             {
@@ -173,21 +170,8 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                                 foundEndOfPattern = false;
                                 foundStartOfPattern = false; // resume checking for start of pattern
                                 var durationOfPattern = i - patternStartIndex + 1;
-
-
-                                if (durationOfPattern > 1 && DebugSeeAllPatternLengths)
-                                {
-                                    yield return new Issue(
-                                        GetTemplate(Warning),
-                                        beatmap,
-                                        Timestamp.Get(currentPatternStartTimeMs).Trim() + ">",
-                                        Timestamp.Get(currentPatternEndTimeMs).Trim(),
-                                        outputDict[snapValues.Key] ?? "unknown snap",
-                                        durationOfPattern
-
-                                    ).ForDifficulties(diff);
-                                }
-                                else if (durationOfPattern > snapValues.Value)
+                                
+                                if (durationOfPattern > snapValues.Value)
                                 {
                                     yield return new Issue(
                                         GetTemplate(Warning),

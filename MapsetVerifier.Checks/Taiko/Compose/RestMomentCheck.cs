@@ -15,7 +15,6 @@ namespace MapsetVerifier.Checks.Taiko.Compose
     {
         private const string Minor = nameof(Issue.Level.Minor);
         private const string Warning = nameof(Issue.Level.Warning);
-        private const bool DebugSeeAllContinuousMapping = false;
 
         private readonly Beatmap.Difficulty[] difficulties =
         [
@@ -203,18 +202,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
 
                         double beatsWithoutBreaks = Math.Floor((continuouslyMappedDurationMs + Common.MS_EPSILON) / timing.msPerBeat);
 
-                        if (beatsWithoutBreaks > 0 && DebugSeeAllContinuousMapping)
-                        {
-                            yield return new Issue(
-                                GetTemplate(Warning),
-                                beatmap,
-                                Timestamp.Get(currentContinuousSectionStartTimeMs).Trim() + ">",
-                                Timestamp.Get(current.GetEndTime()),
-                                breakTypes[diff],
-                                $"{beatsWithoutBreaks}/1"
-                            ).ForDifficulties(diff);
-                        }
-                        else if (beatsWithoutBreaks > continuousMappingWarningLimit[diff])
+                        if (beatsWithoutBreaks > continuousMappingWarningLimit[diff])
                         {
                             yield return new Issue(
                                 GetTemplate(Warning),
