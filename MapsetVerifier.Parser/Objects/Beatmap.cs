@@ -687,12 +687,19 @@ namespace MapsetVerifier.Parser.Objects
         public double GetPlayTime()
         {
             if (HitObjects.Count > 0)
-            {
-                var startTime = HitObjects.First().time;
-                var endTime = HitObjects.Last().GetEndTime();
+                return GetEndTime() - HitObjects.First().time;
 
-                return endTime - startTime;
-            }
+            return 0;
+        }
+        
+        /// <summary>
+        ///     Returns the end time of the beatmap, at the end of the last object, or 0 if there are no objects.
+        ///     object.
+        /// </summary>
+        public double GetEndTime()
+        {
+            if (HitObjects.Count > 0)
+                return HitObjects.Last().GetEndTime();
 
             return 0;
         }
