@@ -6,7 +6,6 @@ using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Objects.HitObjects.Taiko;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
-
 using static MapsetVerifier.Checks.Utils.TaikoUtils;
 
 namespace MapsetVerifier.Checks.Taiko.Compose
@@ -16,7 +15,12 @@ namespace MapsetVerifier.Checks.Taiko.Compose
     {
         private const string Warning = nameof(Issue.Level.Warning);
         private const string Problem = nameof(Issue.Level.Problem);
-        
+
+        private const double HalfBeat = 1.0 / 2;
+        private const double ThirdBeat = 1.0 / 3;
+        private const double QuarterBeat = 1.0 / 4;
+        private const double SixthBeat = 1.0 / 6;
+
         private readonly Beatmap.Difficulty[] difficulties =
         [
             Beatmap.Difficulty.Easy,
@@ -26,6 +30,60 @@ namespace MapsetVerifier.Checks.Taiko.Compose
             Beatmap.Difficulty.Expert,
             Beatmap.Difficulty.Ultra
         ];
+
+        // any finisher pattern spacing equal to or smaller than this gap is a problem
+        private static readonly Dictionary<Beatmap.Difficulty, double> MaximalGapBeats = new()
+        {
+            { Beatmap.Difficulty.Easy, HalfBeat },
+            { Beatmap.Difficulty.Normal, ThirdBeat },
+            { Beatmap.Difficulty.Hard, QuarterBeat },
+            { Beatmap.Difficulty.Insane, SixthBeat }
+        };
+
+        // any finisher pattern spacing equal to or smaller than this gap is a warning
+        private static readonly Dictionary<Beatmap.Difficulty, double> MaximalGapBeatsWarning = new()
+        {
+            { Beatmap.Difficulty.Hard, ThirdBeat }
+        };
+
+        // any finisher pattern spacing equal to or smaller than this gap without a color change before is a problem
+        private static readonly Dictionary<Beatmap.Difficulty, double> MaximalGapBeatsRequiringColorChangeBefore = new()
+        {
+            { Beatmap.Difficulty.Insane, QuarterBeat }
+        };
+
+        // any finisher pattern spacing equal to or smaller than this gap without a color change after is a problem
+        private static readonly Dictionary<Beatmap.Difficulty, double> MaximalGapBeatsRequiringColorChangeAfter =
+            new() { };
+
+        // any finisher pattern spacing equal to or smaller than this gap without a color change before is a warning
+        private static readonly Dictionary<Beatmap.Difficulty, double>
+            MaximalGapBeatsRequiringColorChangeBeforeWarning = new()
+            {
+                { Beatmap.Difficulty.Expert, ThirdBeat },
+                { Beatmap.Difficulty.Ultra, ThirdBeat }
+            };
+
+        // any finisher pattern spacing equal to or smaller than this gap without a color change after is a warning
+        private static readonly Dictionary<Beatmap.Difficulty, double> MaximalGapBeatsRequiringColorChangeAfterWarning =
+            new()
+            {
+                { Beatmap.Difficulty.Expert, ThirdBeat },
+                { Beatmap.Difficulty.Ultra, ThirdBeat }
+            };
+
+        // any finisher pattern spacing equal to or smaller than this gap while not being at the end of the pattern is a problem
+        private static readonly Dictionary<Beatmap.Difficulty, double> MaximalGapBeatsRequiringFinalNote = new()
+        {
+            { Beatmap.Difficulty.Insane, QuarterBeat }
+        };
+
+        // any finisher pattern spacing equal to or smaller than this gap while not being at the end of the pattern is a warning
+        private static readonly Dictionary<Beatmap.Difficulty, double> MaximalGapBeatsRequiringFinalNoteWarning = new()
+        {
+            { Beatmap.Difficulty.Expert, ThirdBeat },
+            { Beatmap.Difficulty.Ultra, ThirdBeat }
+        };
 
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata()
@@ -77,57 +135,6 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                 .Where(x => x is Circle && x.IsFinisher())
                 .ToList();
 
-            // any finisher pattern spacing equal to or smaller than this gap is a problem
-            var maximalGapBeats = new Dictionary<Beatmap.Difficulty, double>()
-            {
-                { Beatmap.Difficulty.Easy,  1.0/2 },
-                { Beatmap.Difficulty.Normal,  1.0/3 },
-                { Beatmap.Difficulty.Hard,    1.0/4 },
-                { Beatmap.Difficulty.Insane,     1.0/6 }
-            };
-
-            // any finisher pattern spacing equal to or smaller than this gap is a problem
-            var maximalGapBeatsWarning = new Dictionary<Beatmap.Difficulty, double>()
-            {
-                { Beatmap.Difficulty.Hard,    1.0/3 }
-            };
-
-            // any finisher pattern spacing equal to or smaller than this gap without a color change before is a problem
-            var maximalGapBeatsRequiringColorChangeBefore = new Dictionary<Beatmap.Difficulty, double>()
-            {
-                { Beatmap.Difficulty.Insane,     1.0/4 }
-            };
-
-            // any finisher pattern spacing equal to or smaller than this gap without a color change after is a problem
-            var maximalGapBeatsRequiringColorChangeAfter = new Dictionary<Beatmap.Difficulty, double>() { };
-
-            // any finisher pattern spacing equal to or smaller than this gap without a color change before is a warning
-            var maximalGapBeatsRequiringColorChangeBeforeWarning = new Dictionary<Beatmap.Difficulty, double>()
-            {
-                { Beatmap.Difficulty.Expert,   1.0/3 },
-                { Beatmap.Difficulty.Ultra,    1.0/3 }
-            };
-
-            // any finisher pattern spacing equal to or smaller than this gap without a color change after is a warning
-            var maximalGapBeatsRequiringColorChangeAfterWarning = new Dictionary<Beatmap.Difficulty, double>()
-            {
-                { Beatmap.Difficulty.Expert,   1.0/3 },
-                { Beatmap.Difficulty.Ultra,    1.0/3 }
-            };
-
-            // any finisher pattern spacing equal to or smaller than this gap while not being at the end of the pattern is a problem
-            var maximalGapBeatsRequiringFinalNote = new Dictionary<Beatmap.Difficulty, double>()
-            {
-                { Beatmap.Difficulty.Insane,     1.0/4 }
-            };
-
-            // any finisher pattern spacing equal to or smaller than this gap while not being at the end of the pattern is a warning
-            var maximalGapBeatsRequiringFinalNoteWarning = new Dictionary<Beatmap.Difficulty, double>()
-            {
-                { Beatmap.Difficulty.Expert,   1.0/3 },
-                { Beatmap.Difficulty.Ultra,    1.0/3 }
-            };
-
             foreach (var diff in difficulties)
             {
                 foreach (var current in finishers)
@@ -139,10 +146,10 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                     var isFinalNote = current.IsAtEndOfPattern();
 
                     // check for unrankable finishers (problem)
-                    if ((CheckGap(diff, maximalGapBeats, beatmap, current) && isInPattern) ||
-                        (CheckGap(diff, maximalGapBeatsRequiringColorChangeBefore, beatmap, current) && sameColorBefore && !isFirstNote) ||
-                        (CheckGap(diff, maximalGapBeatsRequiringColorChangeAfter, beatmap, current) && sameColorAfter && !isFinalNote) ||
-                        (CheckGap(diff, maximalGapBeatsRequiringFinalNote, beatmap, current) && !isFinalNote)) {
+                    if ((CheckGap(diff, MaximalGapBeats, beatmap, current) && isInPattern) ||
+                        (CheckGap(diff, MaximalGapBeatsRequiringColorChangeBefore, beatmap, current) && sameColorBefore && !isFirstNote) ||
+                        (CheckGap(diff, MaximalGapBeatsRequiringColorChangeAfter, beatmap, current) && sameColorAfter && !isFinalNote) ||
+                        (CheckGap(diff, MaximalGapBeatsRequiringFinalNote, beatmap, current) && !isFinalNote)) {
                         yield return new Issue(
                             GetTemplate(Problem),
                             beatmap,
@@ -152,10 +159,10 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                     }
 
                     // check for abnormal finishers (warning)
-                    if ((CheckGap(diff, maximalGapBeatsWarning, beatmap, current) && isInPattern) ||
-                        (CheckGap(diff, maximalGapBeatsRequiringColorChangeBeforeWarning, beatmap, current) && sameColorBefore && !isFirstNote) ||
-                        (CheckGap(diff, maximalGapBeatsRequiringColorChangeAfterWarning, beatmap, current) && sameColorAfter && !isFinalNote) ||
-                        (CheckGap(diff, maximalGapBeatsRequiringFinalNoteWarning, beatmap, current) && !isFinalNote)) {
+                    if ((CheckGap(diff, MaximalGapBeatsWarning, beatmap, current) && isInPattern) ||
+                        (CheckGap(diff, MaximalGapBeatsRequiringColorChangeBeforeWarning, beatmap, current) && sameColorBefore && !isFirstNote) ||
+                        (CheckGap(diff, MaximalGapBeatsRequiringColorChangeAfterWarning, beatmap, current) && sameColorAfter && !isFinalNote) ||
+                        (CheckGap(diff, MaximalGapBeatsRequiringFinalNoteWarning, beatmap, current) && !isFinalNote)) {
                         yield return new Issue(
                             GetTemplate(Warning),
                             beatmap,
@@ -165,6 +172,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                     }
                 }
             }
+
             yield break;
         }
 
