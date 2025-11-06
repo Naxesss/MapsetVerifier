@@ -43,7 +43,7 @@ namespace MapsetVerifier.Parser.Objects.Events
         public double GetDuration(Beatmap beatmap) => GetRealEnd(beatmap) - GetRealStart(beatmap);
 
         /// <summary> Returns the end time of the object before the break. </summary>
-        public double GetRealStart(Beatmap beatmap) => beatmap.GetPrevHitObject(time).GetEndTime();
+        public double GetRealStart(Beatmap beatmap) => beatmap.GetPrevHitObject(time)?.GetEndTime() ?? 0;
 
         /// <summary> Returns the start time of the object after the break, if any, otherwise the end of the map. </summary>
         public double GetRealEnd(Beatmap beatmap) => beatmap.GetNextHitObject(endTime)?.time ?? beatmap.GetPlayTime();
