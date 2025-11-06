@@ -15,9 +15,9 @@ public static class TaikoUtils
         /// Returns the normalized milliseconds per beat for the timing line.
         /// Normalizes the BPM using the following logic:
         /// <list type="bullet">
-        /// <item><description>If the BPM is less than 110 BPM, the snap divisor is doubled.</description></item>
-        /// <item><description>If the BPM is greater than 270 BPM, the snap divisor is halved.</description></item>
-        /// <item><description>If the BPM is greater than 130 BPM, the snap divisor is divided by 1.5.</description></item>
+        /// <item><description>If the BPM is less than 110 BPM, the snap divisor is halved.</description></item>
+        /// <item><description>If the BPM is greater than 270 BPM, the snap divisor is doubled.</description></item>
+        /// <item><description>If the BPM is greater than 130 BPM, the snap divisor is multiplied by 1.5.</description></item>
         /// </list>
         /// </summary>
         public static double GetNormalizedMsPerBeat(this UninheritedLine line)
