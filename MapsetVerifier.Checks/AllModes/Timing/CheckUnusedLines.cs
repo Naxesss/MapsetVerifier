@@ -259,7 +259,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                 return beatmap.GetNextHitObject<T>(line.Offset) != null;
             }
             
-            var nextSectionEnd = nextLine?.Offset ?? beatmap.GetEndTime();
+            var nextSectionEnd = nextLine.Offset;
             var objectTimeBeforeEnd = beatmap.GetPrevHitObject<T>(nextSectionEnd)?.time ?? 0;
 
             return objectTimeBeforeEnd >= line.Offset;
