@@ -32,7 +32,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                     {
                         "Reasoning",
                         @"
-                    Barlines before a timing line (even if just by 1 ms or less), will not be affected by its slider velocity. With 1 ms unsnaps being common for due to rounding errors when copy pasting, this in turn becomes a common issue."
+                    Barlines before a timing line (even if just by 1 ms or less), will not be affected by its slider velocity. With 1 ms unsnaps being common due to rounding errors when copy-pasting, this in turn becomes a common issue."
                     }
                 }
             };

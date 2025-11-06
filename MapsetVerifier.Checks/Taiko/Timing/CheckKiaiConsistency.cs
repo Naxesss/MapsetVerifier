@@ -20,7 +20,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                     {
                         "Purpose",
                         @"
-                    Pointing out kiai inconsistencies between difficulties."
+                    Kiais should be consistent between difficulties."
                     },
                     {
                         "Reasoning",
