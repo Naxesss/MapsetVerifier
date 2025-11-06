@@ -10,7 +10,7 @@ using static MapsetVerifier.Checks.Utils.TaikoUtils;
 namespace MapsetVerifier.Checks.Taiko.Compose
 {
     [Check]
-    public class LastNoteHidingBarlineCheck : BeatmapCheck
+    public class CheckLastNoteHidingBarline : BeatmapCheck
     {
         private const string Minor = nameof(Issue.Level.Minor);
         private const string Problem = nameof(Issue.Level.Problem);

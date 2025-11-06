@@ -11,7 +11,7 @@ using static MapsetVerifier.Checks.Utils.GeneralUtils;
 namespace MapsetVerifier.Checks.Taiko.Compose
 {
     [Check]
-    public class RestMomentCheck : BeatmapCheck
+    public class CheckRestMoments : BeatmapCheck
     {
         private const string Minor = nameof(Issue.Level.Minor);
         private const string Warning = nameof(Issue.Level.Warning);

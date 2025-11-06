@@ -12,7 +12,7 @@ using static MapsetVerifier.Checks.Utils.GeneralUtils;
 namespace MapsetVerifier.Checks.Taiko.Compose
 {
     [Check]
-    public class SpinnerReadabilityCheck : BeatmapCheck
+    public class CheckSpinnerReadability : BeatmapCheck
     {
         private const string Minor = nameof(Issue.Level.Minor);
 

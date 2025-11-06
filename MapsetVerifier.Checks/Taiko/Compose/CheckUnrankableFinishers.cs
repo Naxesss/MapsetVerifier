@@ -11,7 +11,7 @@ using static MapsetVerifier.Checks.Utils.TaikoUtils;
 namespace MapsetVerifier.Checks.Taiko.Compose
 {
     [Check]
-    public class UnrankableFinisherCheck : BeatmapCheck
+    public class CheckUnrankableFinishers : BeatmapCheck
     {
         private const string Warning = nameof(Issue.Level.Warning);
         private const string Problem = nameof(Issue.Level.Problem);

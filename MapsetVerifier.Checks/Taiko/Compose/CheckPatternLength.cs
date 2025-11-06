@@ -12,7 +12,7 @@ using static MapsetVerifier.Checks.Utils.GeneralUtils;
 namespace MapsetVerifier.Checks.Taiko.Compose
 {
     [Check]
-    public class PatternLengthCheck : BeatmapSetCheck
+    public class CheckPatternLength : BeatmapSetCheck
     {
         private const string Minor = nameof(Issue.Level.Minor);
         private const string Warning = nameof(Issue.Level.Warning);

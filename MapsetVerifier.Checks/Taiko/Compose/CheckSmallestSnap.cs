@@ -12,7 +12,7 @@ using static MapsetVerifier.Checks.Utils.GeneralUtils;
 namespace MapsetVerifier.Checks.Taiko.Compose
 {
     [Check]
-    public class SmallestSnapCheck : BeatmapCheck
+    public class CheckSmallestSnap : BeatmapCheck
     {
         private const string Warning = nameof(Issue.Level.Warning);
 
