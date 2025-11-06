@@ -27,7 +27,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                     {
                         "Reasoning",
                         @"
-                    Kiais should generally be consistent across difficulties (except in GDs)."
+                    Kiais in osu!taiko have more impact than in other modes (illuminates entire playfield, slight score boost), so consistency is important unless there's a valid reason to break it (i.e. GDs)."
                     }
                 }
             };
