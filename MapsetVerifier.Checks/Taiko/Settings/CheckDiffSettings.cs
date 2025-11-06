@@ -16,15 +16,40 @@ public class CheckDiffSettings : BeatmapCheck
         Beatmap.Difficulty.Insane,
     ];
 
-    private static double NormalizeHpWithDrain(double hp, double drain)
+    private static readonly Dictionary<Beatmap.Difficulty, double> RecommendedOd = new()
     {
-        if (drain <= 60 * 1000) // 1:00 or less gets an HP buff by 1
-            return Math.Ceiling(hp + 1); // rounding up to avoid decimal values
-        if (drain >= (4 * 60 * 1000) + (45 * 1000)) // 4:45 or more gets an HP nerf by 2
-            return Math.Ceiling(hp - 2);
-        if (drain >= (3 * 60 * 1000) + (45 * 1000)) // 3:45 or more gets an HP nerf by 1
-            return Math.Ceiling(hp - 1);
-        return hp;
+        { Beatmap.Difficulty.Easy, 3 },
+        { Beatmap.Difficulty.Normal, 4 },
+        { Beatmap.Difficulty.Hard, 5 },
+        { Beatmap.Difficulty.Insane, 5.5 }
+    };
+
+    /// <summary>
+    ///     HP values indexed by difficulty and drain time category:
+    ///     <list type="bullet">
+    ///         <item><description>Index 0: drain &lt;= 1:00</description></item>
+    ///         <item><description>Index 1: 1:00 &lt; drain &lt; 3:45</description></item>
+    ///         <item><description>Index 2: 3:45 &lt;= drain &lt; 4:45</description></item>
+    ///         <item><description>Index 3: drain &gt;= 4:45</description></item>
+    ///    </list>
+    /// </summary>
+    private static readonly Dictionary<Beatmap.Difficulty, double[]> RecommendedHp = new()
+    {
+        { Beatmap.Difficulty.Easy, [9, 8, 7, 6] },
+        { Beatmap.Difficulty.Normal, [8, 7, 6, 5] },
+        { Beatmap.Difficulty.Hard, [7, 6, 5, 4] },
+        { Beatmap.Difficulty.Insane, [7, 5.5, 5, 4] }
+    };
+
+    private static int GetDrainIndex(double drain)
+    {
+        if (drain <= 60 * 1000) // <= 1:00
+            return 0;
+        if (drain >= (4 * 60 * 1000) + (45 * 1000)) // >= 4:45
+            return 3;
+        if (drain >= (3 * 60 * 1000) + (45 * 1000)) // >= 3:45
+            return 2;
+        return 1; // 1:00 < drain < 3:45
     }
 
     public override CheckMetadata GetMetadata() =>
@@ -177,70 +202,48 @@ public class CheckDiffSettings : BeatmapCheck
     public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
     {
         double hp = Math.Round(beatmap.DifficultySettings.hpDrain, 2, MidpointRounding.ToEven);
-        double od = Math.Round(
-            beatmap.DifficultySettings.overallDifficulty,
-            2,
-            MidpointRounding.ToEven
-        );
-
-        var recommendedOd = new Dictionary<Beatmap.Difficulty, double>()
-        {
-            { Beatmap.Difficulty.Easy, 3 },
-            { Beatmap.Difficulty.Normal, 4 },
-            { Beatmap.Difficulty.Hard, 5 },
-            { Beatmap.Difficulty.Insane, 5.5 }
-        };
-
-        var recommendedHp = new Dictionary<Beatmap.Difficulty, double>()
-        {
-            { Beatmap.Difficulty.Easy, 8 },
-            { Beatmap.Difficulty.Normal, 7 },
-            { Beatmap.Difficulty.Hard, 6 },
-            { Beatmap.Difficulty.Insane, 5.5 }
-        };
+        double od = Math.Round(beatmap.DifficultySettings.overallDifficulty, 2, MidpointRounding.ToEven);
 
         foreach (var diff in difficulties)
         {
             double drain = beatmap.GetDrainTime(Beatmap.Mode.Taiko);
-            double normalizedRecommendedHp = NormalizeHpWithDrain(
-                recommendedHp[diff],
-                drain
-            );
+            int drainIndex = GetDrainIndex(drain);
+            double recommendedHp = RecommendedHp[diff][drainIndex];
 
-            if (Math.Abs(hp - normalizedRecommendedHp) > 1)
+            if (Math.Abs(hp - recommendedHp) > 1)
             {
                 yield return new Issue(
                     GetTemplate("hpWarning"),
                     beatmap,
-                    normalizedRecommendedHp,
+                    recommendedHp,
                     hp
                 ).ForDifficulties(diff);
             }
-            else if (Math.Abs(hp - normalizedRecommendedHp) > 0)
+            else if (Math.Abs(hp - recommendedHp) > 0)
             {
                 yield return new Issue(
                     GetTemplate("hpMinor"),
                     beatmap,
-                    normalizedRecommendedHp,
+                    recommendedHp,
                     hp
                 ).ForDifficulties(diff);
             }
 
-            if (Math.Abs(od - recommendedOd[diff]) > 0.5)
+            if (Math.Abs(od - RecommendedOd[diff]) > 0.5)
             {
                 yield return new Issue(
                     GetTemplate("odWarning"),
                     beatmap,
-                    recommendedOd[diff],
+                    RecommendedOd[diff],
                     od
                 ).ForDifficulties(diff);
             }
-            else if (Math.Abs(od - recommendedOd[diff]) > 0)
+            else if (Math.Abs(od - RecommendedOd[diff]) > 0)
             {
                 yield return new Issue(
                     GetTemplate("odMinor"),
                     beatmap,
-                    recommendedOd[diff],
+                    RecommendedOd[diff],
                     od
                 ).ForDifficulties(diff);
             }
