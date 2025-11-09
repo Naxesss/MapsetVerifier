@@ -5,15 +5,14 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Text.RegularExpressions;
+using MapsetVerifier.Parser.Difficulty;
 using MapsetVerifier.Parser.Objects.Events;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Settings;
-using MapsetVerifier.Parser.StarRating;
-using MapsetVerifier.Parser.StarRating.Osu;
-using MapsetVerifier.Parser.StarRating.Taiko;
 using MapsetVerifier.Parser.Statics;
 using MathNet.Numerics;
+using osu.Game.Rulesets.Difficulty;
 
 namespace MapsetVerifier.Parser.Objects
 {
@@ -160,12 +159,7 @@ namespace MapsetVerifier.Parser.Objects
                 return;
             }
 
-            var attributes = GeneralSettings.mode switch
-            {
-                Mode.Standard => new OsuDifficultyCalculator(this).Calculate(),
-                Mode.Taiko => new TaikoDifficultyCalculator(this).Calculate(),
-                _ => null
-            };
+            var attributes = new LocalDifficultyCalculator().CalculateAttributes(mapPath, GeneralSettings.mode);
 
             DifficultyAttributes = attributes;
 
