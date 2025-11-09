@@ -4,8 +4,8 @@ using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using MapsetVerifier.Parser.Objects;
-using MapsetVerifier.Parser.StarRating.Skills;
 using MapsetVerifier.Rendering.Objects;
+using osu.Game.Rulesets.Difficulty.Skills;
 
 using static MapsetVerifier.Rendering.Utils.DifficultyColorGenerator;
 
@@ -64,7 +64,7 @@ namespace MapsetVerifier.Rendering
             {
                 if (beatmap.DifficultyAttributes == null)
                     continue;
-
+                
                 foreach (var skill in beatmap.DifficultyAttributes.Skills)
                 {
                     if (skill is not StrainSkill strainSkill)
