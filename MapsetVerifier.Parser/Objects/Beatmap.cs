@@ -922,6 +922,47 @@ namespace MapsetVerifier.Parser.Objects
             return timingLines;
         }
 
+        /// <summary>
+        ///     Returns a list of timing lines where SV (slider velocity) changes occur.
+        /// </summary>
+        public List<TimingLine> GetSvChanges()
+        {
+            var svChanges = new List<TimingLine>();
+            
+            for (var i = 0; i < TimingLines.Count - 1; i++)
+            {
+                var firstLine = TimingLines[i];
+                var secondLine = TimingLines[i+1];
+
+                if (firstLine.SvMult != secondLine.SvMult && firstLine.Offset != secondLine.Offset)
+                {
+                    svChanges.Add(secondLine);
+                }
+            }
+
+            return svChanges;
+        }
+
+        /// <summary>
+        ///     Returns a list of timing lines where kiai state changes occur.
+        /// </summary>
+        public List<TimingLine> GetKiaiToggles()
+        {
+            var kiaiToggles = new List<TimingLine>();
+
+            TimingLine? previousTimingLine = null;
+
+            foreach (var line in TimingLines)
+            {
+                if ((previousTimingLine == null && line.Kiai) || (previousTimingLine != null && previousTimingLine.Kiai != line.Kiai))
+                {
+                    kiaiToggles.Add(line);
+                }
+                previousTimingLine = line;
+            }
+            return kiaiToggles;
+        }
+
         private List<HitObject> GetHitobjects(string[] lines)
         {
             // find the [Hitobjects] section and parse each hitobject until empty line or end of file
