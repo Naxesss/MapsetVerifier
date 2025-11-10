@@ -8,7 +8,7 @@ public class Bananas(string[] args, Beatmap beatmap, Spinner original) : Spinner
     public float DistanceToHyper { get; set; }
     public float DistanceToDash { get; set; }
     public double TimeToTarget { get; set; }
-    public ICatchHitObject? Target { get; set; } = null!;
+    public ICatchHitObject? Target { get; set; } = null;
     public bool IsEdgeMovement { get; set; }
     public CatchMovementType MovementType { get; set; }
     public CatchNoteDirection NoteDirection { get; set; }

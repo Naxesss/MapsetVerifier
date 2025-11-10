@@ -22,12 +22,18 @@ public static class CatchExtensions
             {
                 case Fruit:
                 case JuiceStream:
+                case JuiceStream.JuiceStreamPart:
                     timestampObjects.Add(hitObject);
                     break;
                 // Ignore spinners for timestamps
             }
         }
 
-        return Timestamp.Get(timestampObjects.Select(x => x.Original).ToArray());
+        var uniqueTimestamps = timestampObjects
+            .Select(x => x.Original)
+            .Distinct()
+            .ToArray();
+
+        return Timestamp.Get(uniqueTimestamps);
     }
 }

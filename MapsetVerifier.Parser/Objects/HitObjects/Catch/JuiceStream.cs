@@ -17,31 +17,29 @@ public class JuiceStream(string[] args, Beatmap beatmap, Slider original) : Slid
     public string GetNoteTypeName() => "Slider head";
 
     /// <summary>All parts belonging to this juice stream (head, repeats, tail, droplets).</summary>
-    public List<ICatchHitObject> Parts { get; } = [];
-
-    public ICatchHitObject Tail => Parts.Last();
+    public List<JuiceStreamPart> Parts { get; } = [];
 
     /// <summary>Represents a slider component (repeat, tail, droplet) for catch movement.</summary>
     public class JuiceStreamPart : HitObject, ICatchHitObject
     {
         public enum PartKind { Repeat, Tail, Droplet }
-        private readonly PartKind _kind;
         public JuiceStreamPart(string[] args, Beatmap beatmap, HitObject original, PartKind kind) : base(args, beatmap)
         {
             Original = original;
-            _kind = kind;
+            Kind = kind;
         }
 
         public HitObject Original { get; }
+        public PartKind Kind { get; }
         public double Time => time;
         public float DistanceToHyper { get; set; }
         public float DistanceToDash { get; set; }
         public double TimeToTarget { get; set; }
-        public ICatchHitObject Target { get; set; } = null!;
+        public ICatchHitObject? Target { get; set; } = null;
         public bool IsEdgeMovement { get; set; }
         public CatchMovementType MovementType { get; set; }
         public CatchNoteDirection NoteDirection { get; set; }
-        public string GetNoteTypeName() => _kind switch
+        public string GetNoteTypeName() => Kind switch
         {
             PartKind.Repeat => "Slider repeat",
             PartKind.Tail => "Slider tail",
