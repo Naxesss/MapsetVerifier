@@ -65,7 +65,7 @@ namespace MapsetVerifier.Rendering
                 if (beatmap.DifficultyAttributes == null)
                     continue;
                 
-                foreach (var skill in beatmap.DifficultyAttributes.Skills)
+                foreach (var skill in beatmap.Skills)
                 {
                     if (skill is not StrainSkill strainSkill)
                         continue;
@@ -95,7 +95,7 @@ namespace MapsetVerifier.Rendering
 
             var accumulatedPeaks = new Dictionary<int, List<float>>();
 
-            foreach (var skill in beatmap.DifficultyAttributes.Skills)
+            foreach (var skill in beatmap.Skills)
             {
                 if (skill is not StrainSkill strainSkill)
                     continue;

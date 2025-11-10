@@ -13,6 +13,7 @@ using MapsetVerifier.Parser.Settings;
 using MapsetVerifier.Parser.Statics;
 using MathNet.Numerics;
 using osu.Game.Rulesets.Difficulty;
+using osu.Game.Rulesets.Difficulty.Skills;
 
 namespace MapsetVerifier.Parser.Objects
 {
@@ -104,6 +105,7 @@ namespace MapsetVerifier.Parser.Objects
         // Star Rating
         public double StarRating { get; }
         public DifficultyAttributes? DifficultyAttributes { get; }
+        public Skill[] Skills;
 
         // Settings
         public GeneralSettings GeneralSettings { get; }
@@ -159,7 +161,7 @@ namespace MapsetVerifier.Parser.Objects
                 return;
             }
 
-            var attributes = new LocalDifficultyCalculator().CalculateAttributes(mapPath, GeneralSettings.mode);
+            var attributes = new LocalDifficultyCalculator().CalculateAttributes(this);
 
             DifficultyAttributes = attributes;
 

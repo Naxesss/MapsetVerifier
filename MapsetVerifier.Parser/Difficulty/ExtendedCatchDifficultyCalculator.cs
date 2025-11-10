@@ -5,6 +5,7 @@ using osu.Game.Rulesets.Difficulty.Preprocessing;
 using osu.Game.Rulesets.Difficulty.Skills;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Catch.Difficulty;
+using Beatmap = MapsetVerifier.Parser.Objects.Beatmap;
 
 namespace MapsetVerifier.Parser.Difficulty;
 
@@ -15,19 +16,20 @@ namespace MapsetVerifier.Parser.Difficulty;
 /// </summary>
 public class ExtendedCatchDifficultyCalculator : CatchDifficultyCalculator, IExtendedDifficultyCalculator
 {
-    private Skill[] skills;
+    private Beatmap mvBeatmap;
 
-    public ExtendedCatchDifficultyCalculator(IRulesetInfo ruleset, IWorkingBeatmap beatmap)
+    public ExtendedCatchDifficultyCalculator(IRulesetInfo ruleset, IWorkingBeatmap beatmap, Beatmap mvBeatmap)
         : base(ruleset, beatmap)
     {
+        this.mvBeatmap = mvBeatmap;
     }
 
-    public Skill[] GetSkills() => skills;
+    public Skill[] GetSkills() => mvBeatmap.Skills;
     public DifficultyHitObject[] GetDifficultyHitObjects(IBeatmap beatmap, double clockRate) => CreateDifficultyHitObjects(beatmap, clockRate).ToArray();
 
     protected override DifficultyAttributes CreateDifficultyAttributes(IBeatmap beatmap, Mod[] mods, Skill[] skills, double clockRate)
     {
-        this.skills = skills;
-        return base.CreateDifficultyAttributes(beatmap, mods, skills, clockRate);
+        mvBeatmap.Skills = skills;
+        return base.CreateDifficultyAttributes(beatmap, mods, mvBeatmap.Skills, clockRate);
     }
 }
