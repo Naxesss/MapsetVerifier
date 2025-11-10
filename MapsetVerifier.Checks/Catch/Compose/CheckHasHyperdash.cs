@@ -93,6 +93,12 @@ namespace MapsetVerifier.Checks.Catch.Compose
 
                 foreach (var sliderPart in sliderParts)
                 {
+                    // Hyperdashes are allowed on slider tails
+                    if (sliderPart.Kind is JuiceStream.JuiceStreamPart.PartKind.Tail)
+                    {
+                        continue;
+                    }
+                    
                     yield return new Issue(
                         GetTemplate("HyperdashSliderPart"),
                         beatmap,
