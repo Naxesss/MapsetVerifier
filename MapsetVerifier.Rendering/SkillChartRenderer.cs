@@ -42,9 +42,6 @@ namespace MapsetVerifier.Rendering
 
             foreach (var beatmap in beatmapSet.Beatmaps)
             {
-                if (beatmap.DifficultyAttributes == null)
-                    continue;
-
                 srChart.Data.Add(GetStarRatingSeries(beatmap, srChart));
 
                 if (!mapsUsedInChart.ContainsKey(srChart))
@@ -56,30 +53,30 @@ namespace MapsetVerifier.Rendering
             return srChart;
         }
 
-        private static Dictionary<Skill, LineChart> GetSkillCharts(BeatmapSet beatmapSet)
+        private static Dictionary<string, LineChart> GetSkillCharts(BeatmapSet beatmapSet)
         {
-            var skillCharts = new Dictionary<Skill, LineChart>();
+            var skillCharts = new Dictionary<string, LineChart>();
 
             foreach (var beatmap in beatmapSet.Beatmaps)
             {
-                if (beatmap.DifficultyAttributes == null)
-                    continue;
-                
                 foreach (var skill in beatmap.Skills)
                 {
                     if (skill is not StrainSkill strainSkill)
                         continue;
 
-                    if (!skillCharts.ContainsKey(skill))
-                        skillCharts[skill] = new LineChart($"{skill}", "Time (Seconds)", "");
+                    var skillName = skill.ToString();
+                    var readableSkillName = skillName?.Split('.').Last();
 
-                    var skillSeries = GetSkillSeries(beatmap, strainSkill, skillCharts[skill]);
-                    skillCharts[skill].Data.Add(skillSeries);
+                    if (!skillCharts.ContainsKey(skillName))
+                        skillCharts[skillName] = new LineChart($"{readableSkillName}", "Time (Seconds)", "");
 
-                    if (!mapsUsedInChart.ContainsKey(skillCharts[skill]))
-                        mapsUsedInChart[skillCharts[skill]] = [beatmap];
+                    var skillSeries = GetSkillSeries(beatmap, strainSkill, skillCharts[skillName]);
+                    skillCharts[skillName].Data.Add(skillSeries);
+
+                    if (!mapsUsedInChart.ContainsKey(skillCharts[skillName]))
+                        mapsUsedInChart[skillCharts[skillName]] = [beatmap];
                     else
-                        mapsUsedInChart[skillCharts[skill]].Add(beatmap);
+                        mapsUsedInChart[skillCharts[skillName]].Add(beatmap);
                 }
             }
 
