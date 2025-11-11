@@ -17,11 +17,6 @@ public interface ICatchHitObject
     float DistanceToHyper { get; set; }
     
     /// <summary>
-    /// The target (next) catch object in sequence.
-    /// </summary>
-    ICatchHitObject? Target { get; set; }
-    
-    /// <summary>
     /// Movement classification required to reach the next object (Walk/Dash/Hyperdash).
     /// </summary>
     CatchMovementType MovementType { get; set; }

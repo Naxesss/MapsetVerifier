@@ -48,25 +48,25 @@ namespace MapsetVerifier.Checks.Catch.Compose.Rain
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
         {
-            var catchObjects = beatmap.GetCatchHitObjects();
-            
-            var juiceStreams = catchObjects.Where(o => o is JuiceStream)
-                .Cast<JuiceStream>();
+            var catchObjects = beatmap.GetCatchHitObjects(includeJuiceStreamParts: true);
 
-            foreach (var juiceStream in juiceStreams)
+            for (var i = 0; i < catchObjects.Count; i++)
             {
-                foreach (var part in juiceStream.Parts)
+                var current = catchObjects[i];
+                var next = i < catchObjects.Count - 1 ? catchObjects[i + 1] : null;
+
+                // Only consider JuiceStream parts contain droplet and repeats which can potentially have unrankable hyperdashes.
+                if (current is not JuiceStream.JuiceStreamPart part) continue;
+                
+                if (part.Kind is Droplet or Repeat && part.MovementType == CatchMovementType.Hyperdash)
                 {
-                    if (part.Kind is Droplet or Repeat && part.MovementType == CatchMovementType.Hyperdash)
-                    {
-                        // We don't have to create an issue for a Platter given that is already covered in CheckHasHyperdash.
-                        yield return new Issue(
-                            GetTemplate("SliderHyperRain"),
-                            beatmap,
-                            CatchExtensions.GetTimestamps(part, part.Target),
-                            part.GetNoteTypeName()
-                        ).ForDifficulties(Beatmap.Difficulty.Insane);
-                    }
+                    // We don't have to create an issue for a Platter given that is already covered in CheckHasHyperdash.
+                    yield return new Issue(
+                        GetTemplate("SliderHyperRain"),
+                        beatmap,
+                        CatchExtensions.GetTimestamps(part, next),
+                        part.GetNoteTypeName()
+                    ).ForDifficulties(Beatmap.Difficulty.Insane);
                 }
             }
         }

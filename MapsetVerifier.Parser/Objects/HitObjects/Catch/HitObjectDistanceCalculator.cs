@@ -71,7 +71,6 @@ public static class HitObjectDistanceCalculator
         {
             var current = allObjectsPlusParts[i];
             var next = allObjectsPlusParts[i + 1];
-            current.Target = next;
 
             // Spinner gap logic now polymorphic
             if (current is Bananas || next is Bananas)
@@ -86,7 +85,24 @@ public static class HitObjectDistanceCalculator
                 continue;
             }
 
-            var direction = next.Position.X > current.Position.X ? CatchNoteDirection.Left : CatchNoteDirection.Right;
+            var currentX = (int) current.Position.X;
+            var nextX = (int) next.Position.X;
+            
+            CatchNoteDirection direction;
+            if (currentX == nextX)
+            {
+                // Standstill, no direction
+                direction = CatchNoteDirection.None;
+            }
+            else if (currentX > nextX)
+            {
+                direction = CatchNoteDirection.Left;
+            }
+            else
+            {
+                direction = CatchNoteDirection.Right;
+            }
+
             var timeToNext = next.Time - current.Time - QuarterFrameGrace;
             var distance = Math.Abs(next.Position.X - current.Position.X);
 

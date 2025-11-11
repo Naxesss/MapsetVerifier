@@ -82,83 +82,117 @@ namespace MapsetVerifier.Checks.Catch.Compose
             var catchObjects = beatmap.GetCatchHitObjects(includeJuiceStreamParts: true);
             var trackedHyperdashObjects = new List<ICatchHitObject>();
 
-            foreach (var catchObject in catchObjects)
+            for (var i = 0; i < catchObjects.Count; i++)
             {
-                if (catchObject.MovementType == CatchMovementType.Hyperdash)
+                var current = catchObjects[i];
+                var next = i < catchObjects.Count - 1 ? catchObjects[i + 1] : null;
+                
+                if (current.MovementType == CatchMovementType.Hyperdash)
                 {
-                    trackedHyperdashObjects.Add(catchObject);
+                    trackedHyperdashObjects.Add(current);
                 }
                 else if (trackedHyperdashObjects.Count > 0)
                 {
-                    // We reached the end of a chain of hyperdashes, check how many there were
-                    var count = trackedHyperdashObjects.Count;
-                    var objects = trackedHyperdashObjects.ToArray();
-
-                    // Slider tail hypers are fine in rains
-                    var isInSlider = trackedHyperdashObjects.Any(obj => 
-                        obj is JuiceStream ||
-                        (obj is JuiceStream.JuiceStreamPart juiceStreamPart && juiceStreamPart.Kind != JuiceStream.JuiceStreamPart.PartKind.Tail));
+                    foreach (var issue in CheckTrackedHyperdashes(beatmap, next, trackedHyperdashObjects))
+                        yield return issue;
                     
-                    var isAnyHigherSnappedForPlatter = trackedHyperdashObjects.Any(obj => obj.IsHigherSnapped(Beatmap.Difficulty.Hard));
-                    
-                    if (isAnyHigherSnappedForPlatter && count > ThresholdPlatterHigher)
-                    {
-                        yield return new Issue(
-                            GetTemplate("HigherConsecutive"),
-                            beatmap,
-                            CatchExtensions.GetTimestamps(objects),
-                            ThresholdPlatterHigher,
-                            count
-                        ).ForDifficulties(Beatmap.Difficulty.Hard);
-                    }
-                    else if (count > ThresholdPlatterBasic)
-                    {
-                        yield return new Issue(
-                            GetTemplate("BasicConsecutive"),
-                            beatmap,
-                            CatchExtensions.GetTimestamps(objects),
-                            ThresholdPlatterBasic,
-                            count
-                        ).ForDifficulties(Beatmap.Difficulty.Hard);
-                    }
-                    
-                    var isAnyHigherSnappedForRain = trackedHyperdashObjects.Any(obj => obj.IsHigherSnapped(Beatmap.Difficulty.Insane));
+                    // Reset the tracked hypers after checking
+                    trackedHyperdashObjects = [];
+                }
 
-                    if (isAnyHigherSnappedForRain && count > ThresholdRainHigher)
-                    {
-                        yield return new Issue(
-                            GetTemplate("RainConsecutiveSlider"),
-                            beatmap,
-                            CatchExtensions.GetTimestamps(objects),
-                            ThresholdRainBasicSlider,
-                            count
-                        ).ForDifficulties(Beatmap.Difficulty.Insane);
-                    }
-                    else if (isInSlider && count > ThresholdRainBasicSlider)
-                    {
-                        yield return new Issue(
-                            GetTemplate("RainBasicConsecutiveSlider"),
-                            beatmap,
-                            CatchExtensions.GetTimestamps(objects),
-                            ThresholdRainBasicSlider,
-                            count
-                        ).ForDifficulties(Beatmap.Difficulty.Insane);
-                    }
-                    else if (count > ThresholdRainBasic)
-                    {
-                        yield return new Issue(
-                            GetTemplate("BasicConsecutive"),
-                            beatmap,
-                            CatchExtensions.GetTimestamps(objects),
-                            ThresholdRainBasic,
-                            count
-                        ).ForDifficulties(Beatmap.Difficulty.Insane);
-                    }
+                if (next == null && trackedHyperdashObjects.Count > 0)
+                {
+                    // We reached the end of the map, check the last tracked hypers
+                    foreach (var issue in CheckTrackedHyperdashes(beatmap, next, trackedHyperdashObjects))
+                        yield return issue;
 
-                    // Reset the tracked hypers
                     trackedHyperdashObjects = [];
                 }
             }
+        }
+
+        private IEnumerable<Issue> CheckTrackedHyperdashes(Beatmap beatmap, ICatchHitObject? last, List<ICatchHitObject> trackedHyperdashObjects)
+        {
+            // We reached the end of a chain of hyperdashes, check how many there were
+            var count = trackedHyperdashObjects.Count;
+            var objects = trackedHyperdashObjects.ToArray();
+
+            // Slider tail hypers are fine in rains
+            var isInSlider = trackedHyperdashObjects.Any(obj => 
+                obj is JuiceStream ||
+                (obj is JuiceStream.JuiceStreamPart juiceStreamPart && juiceStreamPart.Kind != JuiceStream.JuiceStreamPart.PartKind.Tail));
+
+            var trackedPlusLast = trackedHyperdashObjects.ToList();
+            if (last != null)
+                trackedPlusLast.Add(last);
+            
+            if (IsAnyHigherSnapped(trackedPlusLast, Beatmap.Difficulty.Hard) && count > ThresholdPlatterHigher)
+            {
+                yield return new Issue(
+                    GetTemplate("HigherConsecutive"),
+                    beatmap,
+                    CatchExtensions.GetTimestamps(objects),
+                    ThresholdPlatterHigher,
+                    count
+                ).ForDifficulties(Beatmap.Difficulty.Hard);
+            }
+            else if (count > ThresholdPlatterBasic)
+            {
+                yield return new Issue(
+                    GetTemplate("BasicConsecutive"),
+                    beatmap,
+                    CatchExtensions.GetTimestamps(objects),
+                    ThresholdPlatterBasic,
+                    count
+                ).ForDifficulties(Beatmap.Difficulty.Hard);
+            }
+
+            if (IsAnyHigherSnapped(trackedPlusLast, Beatmap.Difficulty.Insane) && count > ThresholdRainHigher)
+            {
+                yield return new Issue(
+                    GetTemplate("RainConsecutiveSlider"),
+                    beatmap,
+                    CatchExtensions.GetTimestamps(objects),
+                    ThresholdRainBasicSlider,
+                    count
+                ).ForDifficulties(Beatmap.Difficulty.Insane);
+            }
+            else if (isInSlider && count > ThresholdRainBasicSlider)
+            {
+                yield return new Issue(
+                    GetTemplate("RainBasicConsecutiveSlider"),
+                    beatmap,
+                    CatchExtensions.GetTimestamps(objects),
+                    ThresholdRainBasicSlider,
+                    count
+                ).ForDifficulties(Beatmap.Difficulty.Insane);
+            }
+            else if (count > ThresholdRainBasic)
+            {
+                yield return new Issue(
+                    GetTemplate("BasicConsecutive"),
+                    beatmap,
+                    CatchExtensions.GetTimestamps(objects),
+                    ThresholdRainBasic,
+                    count
+                ).ForDifficulties(Beatmap.Difficulty.Insane);
+            }
+        }
+    
+        private bool IsAnyHigherSnapped(List<ICatchHitObject> trackedPlusLast, Beatmap.Difficulty difficulty)
+        {
+            for (var i = 0; i < trackedPlusLast.Count; i++)
+            {
+                var current = trackedPlusLast[i];
+                var next = i < trackedPlusLast.Count - 1 ? trackedPlusLast[i + 1] : null;
+
+                if (current.IsHigherSnapped(next, difficulty))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

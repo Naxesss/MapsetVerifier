@@ -28,7 +28,6 @@ public class JuiceStream : Slider, ICatchHitObject
     
     public double Time => time;
     public float DistanceToHyper { get; set; } = float.PositiveInfinity;
-    public ICatchHitObject? Target { get; set; } = null;
     public CatchMovementType MovementType { get; set; }
     public CatchNoteDirection NoteDirection { get; set; }
     public string GetNoteTypeName() => "Slider head";
@@ -56,7 +55,6 @@ public class JuiceStream : Slider, ICatchHitObject
         public PartKind Kind { get; } = kind;
         public double Time => time;
         public float DistanceToHyper { get; set; } = float.PositiveInfinity;
-        public ICatchHitObject? Target { get; set; } = null;
         public CatchMovementType MovementType { get; set; }
         public CatchNoteDirection NoteDirection { get; set; }
         public string GetNoteTypeName() => Kind switch

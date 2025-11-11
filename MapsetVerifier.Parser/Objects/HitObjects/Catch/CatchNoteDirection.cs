@@ -5,8 +5,19 @@
 /// </summary>
 public enum CatchNoteDirection
 {
+    /// <summary>
+    /// Representing a standstill.
+    /// </summary>
     None,
+    
+    /// <summary>
+    /// A movement to the left is required to catch the next fruit.
+    /// </summary>
     Left,
+    
+    /// <summary>
+    /// A movement to the right is required to catch the next fruit.
+    /// </summary>
     Right
 }
 

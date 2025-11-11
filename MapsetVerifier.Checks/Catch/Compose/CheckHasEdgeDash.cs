@@ -79,9 +79,9 @@ public class CheckHasEdgeDash : BeatmapCheck
         };
     }
 
-    private static Issue EdgeDashIssue(IssueTemplate template, Beatmap beatmap, ICatchHitObject currentObject, params Beatmap.Difficulty[] difficulties)
+    private static Issue EdgeDashIssue(IssueTemplate template, Beatmap beatmap, ICatchHitObject current, ICatchHitObject next, params Beatmap.Difficulty[] difficulties)
     {
-        var pixelDistance = (int) Math.Ceiling(currentObject.DistanceToHyper);
+        var pixelDistance = (int) Math.Ceiling(current.DistanceToHyper);
         var pixelDistanceMessage = pixelDistance == 1
             ? "1 pixel"
             : $"{pixelDistance} pixels";
@@ -89,8 +89,8 @@ public class CheckHasEdgeDash : BeatmapCheck
         return new Issue(
             template,
             beatmap,
-            CatchExtensions.GetTimestamps(currentObject, currentObject.Target),
-            currentObject.GetNoteTypeName(),
+            CatchExtensions.GetTimestamps(current, next),
+            current.GetNoteTypeName(),
             pixelDistanceMessage
         ).ForDifficulties(difficulties);
     }
@@ -99,31 +99,39 @@ public class CheckHasEdgeDash : BeatmapCheck
     {
         var catchObjects = beatmap.GetCatchHitObjects(includeJuiceStreamParts: true);
 
-        foreach (var nonHyperObject in catchObjects.Where(obj => obj.MovementType != CatchMovementType.Hyperdash))
+        for (var i = 0; i < catchObjects.Count; i++)
         {
-            // Either a spinner or the last object of the map which can never have a hyper or even a dash
-            if (float.IsPositiveInfinity(nonHyperObject.DistanceToHyper))
+            var current = catchObjects[i];
+            var next = i < catchObjects.Count - 1 ? catchObjects[i + 1] : null;
+
+            // We are only interested in dashes
+            if (current.MovementType == CatchMovementType.Hyperdash)
             {
                 continue;
             }
             
-            var bpmScale = beatmap.GetScaledBpm(nonHyperObject);
-            var pixelsUntilHyper = Math.Ceiling(nonHyperObject.DistanceToHyper);
+            // Objects that can't have a hyperdash are ignored
+            if (float.IsPositiveInfinity(current.DistanceToHyper))
+            {
+                continue;
+            }
             
-            // We must have a target because otherwise DistanceToHyper would be infinite
-            var timeToNext = nonHyperObject.Target!.Time - nonHyperObject.Time;
+            var bpmScale = beatmap.GetScaledBpm(current);
+            var pixelsUntilHyper = Math.Ceiling(current.DistanceToHyper);
+            
+            var timeToNext = next.Time - current.Time;
 
             var edgeDashDistance = bpmScale * GetCurvedDistance(ms: timeToNext, maxDistance: 10f);
             
             if (pixelsUntilHyper <= edgeDashDistance)
             {
-                yield return EdgeDashIssue(GetTemplate("EdgeDash"), beatmap, nonHyperObject,
+                yield return EdgeDashIssue(GetTemplate("EdgeDash"), beatmap, current, next,
                     Beatmap.Difficulty.Insane);
 
-                yield return EdgeDashIssue(GetTemplate("EdgeDashMinor"), beatmap, nonHyperObject,
+                yield return EdgeDashIssue(GetTemplate("EdgeDashMinor"), beatmap, current, next,
                     Beatmap.Difficulty.Expert, Beatmap.Difficulty.Ultra);
                 
-                yield return EdgeDashIssue(GetTemplate("EdgeDashProblem"), beatmap, nonHyperObject,
+                yield return EdgeDashIssue(GetTemplate("EdgeDashProblem"), beatmap, current, next,
                     Beatmap.Difficulty.Normal, Beatmap.Difficulty.Hard);
             }
             else
@@ -132,7 +140,7 @@ public class CheckHasEdgeDash : BeatmapCheck
 
                 if (pixelsUntilHyper <= strongDashDistance)
                 {
-                    yield return EdgeDashIssue(GetTemplate("StrongDash"), beatmap, nonHyperObject,
+                    yield return EdgeDashIssue(GetTemplate("StrongDash"), beatmap, current, next,
                         Beatmap.Difficulty.Normal, Beatmap.Difficulty.Hard, Beatmap.Difficulty.Insane,
                         Beatmap.Difficulty.Expert, Beatmap.Difficulty.Ultra);
                 }

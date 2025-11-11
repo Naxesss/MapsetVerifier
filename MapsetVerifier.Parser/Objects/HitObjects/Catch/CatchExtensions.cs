@@ -71,29 +71,27 @@ public static class CatchExtensions
         return timingLine.GetScaledBpm();
     }
 
-    public static float GetCurrentTriggerDistance(this ICatchHitObject currentObject)
+    public static float GetCurrentTriggerDistance(this ICatchHitObject current, ICatchHitObject? next)
     {
-        return GetTriggerDistance(currentObject) / currentObject.DistanceToHyper;
+        return GetTriggerDistance(current, next) / current.DistanceToHyper;
     }
 
-    public static float GetTriggerDistance(this ICatchHitObject currentObject)
+    public static float GetTriggerDistance(this ICatchHitObject current, ICatchHitObject? next)
     {
-        return GetTriggerDistance(currentObject, CatchMovementType.Hyperdash, currentObject.DistanceToHyper);
+        return GetTriggerDistance(current, next, CatchMovementType.Hyperdash, current.DistanceToHyper);
     }
         
-    private static float GetTriggerDistance(ICatchHitObject currentObject, CatchMovementType movementType, float distanceTo)
+    private static float GetTriggerDistance(ICatchHitObject current, ICatchHitObject? next, CatchMovementType movementType, float distanceTo)
     {
-        if (currentObject.MovementType != movementType) return 0f;
-
-        var target = currentObject.Target;
+        if (current.MovementType != movementType) return 0f;
         
         // No target means no distance to calculate.
-        if (target == null) return 0f;
+        if (next == null) return 0f;
 
-        var xDistance = currentObject.NoteDirection switch
+        var xDistance = current.NoteDirection switch
         {
-            CatchNoteDirection.Left => currentObject.Position.X - target.Position.X,
-            CatchNoteDirection.Right => target.Position.X - currentObject.Position.X,
+            CatchNoteDirection.Left => current.Position.X - next.Position.X,
+            CatchNoteDirection.Right => next.Position.X - current.Position.X,
             _ => 0f
         };
 
@@ -101,7 +99,7 @@ public static class CatchExtensions
 
         return 0f;
     }
-    
+
     /// <summary>
     /// Check if the snapping between two objects is higher-snapped or basic-snapped
     /// Cup: No dashes or hyperdashes are allowed
@@ -110,27 +108,28 @@ public static class CatchExtensions
     /// Rain: 62-124 ms dashes/hyperdashes are higher-snapped
     /// Overdose: No allowed distance are specified so no basic-snapped and higher-snapped exist
     /// </summary>
-    /// <param name="currentObject">The current object which is getting checked</param>
+    /// <param name="current">The current object which is getting checked</param>
+    /// <param name="next">The next object that follows</param>
     /// <param name="difficulty">The difficulty we want to check for</param>
     /// <returns>True if the origin object is higher-snapped</returns>
-    public static bool IsHigherSnapped(this ICatchHitObject currentObject, Beatmap.Difficulty difficulty)
+    public static bool IsHigherSnapped(this ICatchHitObject current, ICatchHitObject? next, Beatmap.Difficulty difficulty)
     {
-        var target = currentObject.Target;
-        
         // No need to check higher-snapped because there is nothing to compare to
-        if (target == null) return false;
+        if (next == null) return false;
         
-        var ms = currentObject.Time - target.Time;
+        var ms = current.Time - next.Time;
 
         switch (difficulty)
         {
             case Beatmap.Difficulty.Normal:
                 return ms is < 250 and >= 125;
             case Beatmap.Difficulty.Hard:
-                var upperBound = currentObject.MovementType == CatchMovementType.Hyperdash ? 250 : 125;
-                var lowerBound = currentObject.MovementType == CatchMovementType.Hyperdash ? 125 : 62;
+                if (current.MovementType == CatchMovementType.Hyperdash)
+                {
+                    return ms is < 250 and >= 125;
+                }
 
-                return ms < upperBound && ms >= lowerBound;
+                return ms is < 125 and >= 62;
             case Beatmap.Difficulty.Insane:
                 return ms is < 125 and >= 62;
             default:
