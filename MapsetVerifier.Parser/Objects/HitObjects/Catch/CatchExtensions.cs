@@ -70,4 +70,72 @@ public static class CatchExtensions
         var timingLine = beatmap.GetTimingLine<UninheritedLine>(obj.Time);
         return timingLine.GetScaledBpm();
     }
+
+    public static float GetCurrentTriggerDistance(this ICatchHitObject currentObject)
+    {
+        return GetTriggerDistance(currentObject) / currentObject.DistanceToHyper;
+    }
+
+    public static float GetTriggerDistance(this ICatchHitObject currentObject)
+    {
+        return GetTriggerDistance(currentObject, CatchMovementType.Hyperdash, currentObject.DistanceToHyper);
+    }
+        
+    private static float GetTriggerDistance(ICatchHitObject currentObject, CatchMovementType movementType, float distanceTo)
+    {
+        if (currentObject.MovementType != movementType) return 0f;
+
+        var target = currentObject.Target;
+        
+        // No target means no distance to calculate.
+        if (target == null) return 0f;
+
+        var xDistance = currentObject.NoteDirection switch
+        {
+            CatchNoteDirection.Left => currentObject.Position.X - target.Position.X,
+            CatchNoteDirection.Right => target.Position.X - currentObject.Position.X,
+            _ => 0f
+        };
+
+        if (xDistance > 0f) return xDistance - Math.Abs(distanceTo);
+
+        return 0f;
+    }
+    
+    /// <summary>
+    /// Check if the snapping between two objects is higher-snapped or basic-snapped
+    /// Cup: No dashes or hyperdashes are allowed
+    /// Salad: 125-249 ms dashes are higher-snapped, hyperdashes are not allowed
+    /// Platter: 62-124 ms dashes are higher-snapped, 125-249 ms hyperdashes are higher-snapped
+    /// Rain: 62-124 ms dashes/hyperdashes are higher-snapped
+    /// Overdose: No allowed distance are specified so no basic-snapped and higher-snapped exist
+    /// </summary>
+    /// <param name="currentObject">The current object which is getting checked</param>
+    /// <param name="difficulty">The difficulty we want to check for</param>
+    /// <returns>True if the origin object is higher-snapped</returns>
+    public static bool IsHigherSnapped(this ICatchHitObject currentObject, Beatmap.Difficulty difficulty)
+    {
+        var target = currentObject.Target;
+        
+        // No need to check higher-snapped because there is nothing to compare to
+        if (target == null) return false;
+        
+        var ms = currentObject.Time - target.Time;
+
+        switch (difficulty)
+        {
+            case Beatmap.Difficulty.Normal:
+                return ms is < 250 and >= 125;
+            case Beatmap.Difficulty.Hard:
+                var upperBound = currentObject.MovementType == CatchMovementType.Hyperdash ? 250 : 125;
+                var lowerBound = currentObject.MovementType == CatchMovementType.Hyperdash ? 125 : 62;
+
+                return ms < upperBound && ms >= lowerBound;
+            case Beatmap.Difficulty.Insane:
+                return ms is < 125 and >= 62;
+            default:
+                // Other difficulties the higher-snapped concept does not exist
+                return false;
+        }
+    }
 }
