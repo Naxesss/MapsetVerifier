@@ -4,9 +4,6 @@ namespace MapsetVerifier.Parser.Objects.HitObjects.Catch;
 
 public interface ICatchHitObject
 {
-    // TODO need some better way to reference the original hitobject, this would need a full rework of the class structure
-    HitObject Original { get; }
-    
     /// <summary>
     /// Start time of this catch object (same as underlying hit object's time).
     /// </summary>

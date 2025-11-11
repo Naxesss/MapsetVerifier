@@ -1,8 +1,7 @@
 ﻿namespace MapsetVerifier.Parser.Objects.HitObjects.Catch;
 
-public class Fruit(string[] args, Beatmap beatmap, HitObject original) : Circle(args, beatmap), ICatchHitObject
+public class Fruit(string[] args, Beatmap beatmap) : Circle(args, beatmap), ICatchHitObject
 {
-    public HitObject Original { get; } = original;
     public double Time => time;
     public float DistanceToHyper { get; set; } = float.PositiveInfinity;
     public ICatchHitObject? Target { get; set; } = null;

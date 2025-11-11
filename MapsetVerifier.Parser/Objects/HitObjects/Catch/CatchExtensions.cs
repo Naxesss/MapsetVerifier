@@ -44,15 +44,18 @@ public static class CatchExtensions
             {
                 case Fruit:
                 case JuiceStream:
-                case JuiceStream.JuiceStreamPart:
                     timestampObjects.Add(hitObject);
+                    break;
+                case JuiceStream.JuiceStreamPart juiceStreamPart:
+                    // Add the parent when we have a slider part as otherwise we get a wrong starting timestamp
+                    timestampObjects.Add(juiceStreamPart.Parent);
                     break;
                 // Ignore spinners for timestamps
             }
         }
 
         var uniqueTimestamps = timestampObjects
-            .Select(x => x.Original)
+            .Cast<HitObject>()
             .Distinct()
             .ToArray();
 

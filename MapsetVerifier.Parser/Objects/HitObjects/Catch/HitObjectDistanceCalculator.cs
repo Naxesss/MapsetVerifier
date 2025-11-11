@@ -1,9 +1,11 @@
-﻿using System.Globalization;
-using System.Numerics;
+﻿using System.Numerics;
 
 namespace MapsetVerifier.Parser.Objects.HitObjects.Catch;
 
-public static class CatchHitObjectCreator
+/// <summary>
+/// Class which mimics the behaviour the game has when doing hyperdash calculations to make catch specific checks easier to make.
+/// </summary>
+public static class HitObjectDistanceCalculator
 {
     /// <summary>
     /// The width of the catcher which can receive fruit. Equivalent to "catchMargin" in osu-stable.
@@ -41,77 +43,9 @@ public static class CatchHitObjectCreator
     private static Vector2 CalculateScale(float circleSize) => new(CalculateScaleFromCircleSize(circleSize) * 2);
 
     /// <summary>
-    /// Creates CatchHitObjects from base HitObjects (slider parts, circles, spinners) and enriches them with movement data.
-    /// </summary>
-    public static List<ICatchHitObject> CreateCatchHitObjects(Beatmap beatmap, List<HitObject> originalHitObjects)
-    {
-        var hitObjects = GenerateCatchHitObjects(beatmap, originalHitObjects);
-        CalculateDistances(hitObjects, beatmap);
-        return hitObjects;
-    }
-
-    private static List<ICatchHitObject> GenerateCatchHitObjects(Beatmap beatmap, List<HitObject> originalHitObjects)
-    {
-        var objects = new List<ICatchHitObject>();
-
-        // Sliders -> JuiceStream + parts
-        foreach (var slider in originalHitObjects.OfType<Slider>())
-        {
-            var code = slider.code.Split(',');
-            var juiceStream = new JuiceStream(code, beatmap, slider);
-            objects.Add(juiceStream);
-            
-            var parts = new List<JuiceStream.JuiceStreamPart>();
-
-            // Repeats & tail parts
-            var edgeTimes = GetEdgeTimes(slider).ToList();
-            for (var i = 0; i < edgeTimes.Count; i++)
-            {
-                var time = edgeTimes[i];
-                var partKind = i + 1 == edgeTimes.Count ? JuiceStream.JuiceStreamPart.PartKind.Tail : JuiceStream.JuiceStreamPart.PartKind.Repeat;
-                parts.Add(CreateJuiceStreamPart(beatmap, slider, time, partKind));
-            }
-            // Droplets
-            foreach (var tickTime in slider.SliderTickTimes)
-                parts.Add(CreateJuiceStreamPart(beatmap, slider, tickTime, JuiceStream.JuiceStreamPart.PartKind.Droplet));
-
-            var sortedParts = parts.OrderBy(part => part.Time).ToList();
-            juiceStream.Parts.AddRange(sortedParts);
-            // We don't add the parts to the result objects as they all get referenced from the juice stream itself
-        }
-
-        // Circles -> Fruit
-        foreach (var circle in originalHitObjects.OfType<Circle>())
-            objects.Add(new Fruit(circle.code.Split(','), beatmap, circle));
-
-        // Spinners -> Bananas
-        foreach (var spinner in originalHitObjects.OfType<Spinner>())
-            objects.Add(new Bananas(spinner.code.Split(','), beatmap, spinner));
-
-        return objects.OrderBy(obj => obj.Time).ToList();
-    }
-
-    /// <summary>Get all edge times except the slider head.</summary>
-    private static IEnumerable<double> GetEdgeTimes(Slider sObject)
-    {
-        for (var i = 0; i < sObject.EdgeAmount; ++i)
-            yield return sObject.time + sObject.GetCurveDuration() * (i + 1);
-    }
-
-    private static JuiceStream.JuiceStreamPart CreateJuiceStreamPart(Beatmap beatmap, Slider slider, double time, JuiceStream.JuiceStreamPart.PartKind kind)
-    {
-        // Make sure we make a copy to not modify the original slider code
-        var objectCodeCopy = (string) slider.code.Clone();
-        var codeClone =objectCodeCopy.Split(',');
-        codeClone[0] = slider.GetPathPosition(time).X.ToString(CultureInfo.InvariantCulture);
-        codeClone[2] = time.ToString(CultureInfo.InvariantCulture);
-        return new JuiceStream.JuiceStreamPart(codeClone, beatmap, slider, kind);
-    }
-
-    /// <summary>
     /// Calculates movement metadata (dash/hyper distances, direction, edge movement) between sequential objects.
     /// </summary>
-    private static void CalculateDistances(List<ICatchHitObject> allObjects, Beatmap beatmap)
+    public static void CalculateDistances(List<ICatchHitObject> allObjects, Beatmap beatmap)
     {
         if (allObjects.Count < 2) return;
         allObjects.Sort((h1, h2) => h1.Time.CompareTo(h2.Time));

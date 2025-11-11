@@ -967,18 +967,24 @@ namespace MapsetVerifier.Parser.Objects
             {
                 var args = line.Split(',');
 
-                return HitObject.HasType(args, HitObject.Types.Circle) ? new Circle(args, this) :
-                    HitObject.HasType(args, HitObject.Types.Slider) ? new Slider(args, this) :
-                    HitObject.HasType(args, HitObject.Types.ManiaHoldNote) ? new HoldNote(args, this) : (HitObject)new Spinner(args, this);
+                return GeneralSettings.mode switch
+                {
+                    Mode.Catch => HitObject.HasType(args, HitObject.Types.Circle) ? new Fruit(args, this) :
+                        HitObject.HasType(args, HitObject.Types.Slider) ? new JuiceStream(args, this) :
+                        new Bananas(args, this),
+                    _ => HitObject.HasType(args, HitObject.Types.Circle) ? new Circle(args, this) :
+                        HitObject.HasType(args, HitObject.Types.Slider) ? new Slider(args, this) :
+                        HitObject.HasType(args, HitObject.Types.ManiaHoldNote) ? new HoldNote(args, this) :
+                        (HitObject) new Spinner(args, this)
+                };
             }).OrderBy(hitObject => hitObject.time).ToList();
 
+            // Catch uses specific game mechanics which are based on distance between objects which are not reflected in the osu file itself
             if (GeneralSettings.mode == Mode.Catch)
             {
-                var catchHitObjects = CatchHitObjectCreator.CreateCatchHitObjects(this, hitObjects);
-
-                hitObjects = catchHitObjects
-                    .Cast<HitObject>()
+                var catchHitObjects = hitObjects.Cast<ICatchHitObject>()
                     .ToList();
+                HitObjectDistanceCalculator.CalculateDistances(catchHitObjects, this);
             }
 
             // Initialize internal indicies for O(1) next/prev access.

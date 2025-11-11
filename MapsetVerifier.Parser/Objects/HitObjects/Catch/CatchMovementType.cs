@@ -6,7 +6,8 @@
 public enum CatchMovementType
 {
     Walk,
-    Dash,
+    // TODO add support for dashes, they are hard to detect reliably
+    // Dash,
     Hyperdash
 }
 
