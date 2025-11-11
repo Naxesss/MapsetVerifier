@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -115,7 +113,7 @@ namespace MapsetVerifier.Checks.Standard.Spread
             var recoveryTime = nextObject.time - spinner.endTime;
 
             var line = beatmap.GetTimingLine<UninheritedLine>(nextObject.time);
-            var bpmScaling = GetScaledTiming(line.bpm);
+            var bpmScaling = line.GetScaledBpm();
             var recoveryTimeScaled = recoveryTime / bpmScaling;
 
             double[] recoveryTimeExpected = [1000, 500, 250]; // 4, 2 and 1 beats respectively, 240 bpm
@@ -138,11 +136,5 @@ namespace MapsetVerifier.Checks.Standard.Spread
                     yield return new Issue(GetTemplate("Warning Recovery"), beatmap, Timestamp.Get(spinner, nextObject), recoveryTime, expectedRecovery).ForDifficulties((Beatmap.Difficulty)diffIndex);
             }
         }
-
-        /// <summary>
-        ///     Scales the bpm in accordance to https://osu.ppy.sh/help/wiki/Ranking_Criteria/osu!/Scaling_BPM,
-        ///     where 180 bpm is 1, 120 bpm is 0.5, and 240 bpm is 2.
-        /// </summary>
-        private static double GetScaledTiming(double bpm) => Math.Pow(bpm, 2) / 14400 - bpm / 80 + 1;
     }
 }

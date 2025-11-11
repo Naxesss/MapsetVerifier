@@ -21,19 +21,6 @@ public static class CatchHitObjectCreator
     private const double BaseDashSpeed = 1.0;
 
     /// <summary>
-    /// The speed of the catcher when the catcher is not dashing.
-    /// </summary>
-    private const double BaseWalkSpeed = 0.5;
-
-    /// <summary>
-    /// After a hyperdash we want to be more lenient with what the dash distance as player commonly overshoot.
-    /// </summary>
-    private const double HyperdashLeniency = 0.95;
-
-    /// <summary>Scale applied to convert catcher half width to base walk range.</summary>
-    private const double BaseWalkRangeScale = 0.95;
-
-    /// <summary>
     /// 1/4th of a frame of grace time, taken from osu-stable
     /// </summary>
     private static double QuarterFrameGrace => 1000.0 / 60.0 / 4;
@@ -120,11 +107,6 @@ public static class CatchHitObjectCreator
         codeClone[2] = time.ToString(CultureInfo.InvariantCulture);
         return new JuiceStream.JuiceStreamPart(codeClone, beatmap, slider, kind);
     }
-    
-    private static bool IsSimilarTime(double thisTime, double otherTime)
-    {
-        return thisTime - 4.0 < otherTime || thisTime + 4.0 > otherTime;
-    }
 
     /// <summary>
     /// Calculates movement metadata (dash/hyper distances, direction, edge movement) between sequential objects.
@@ -132,16 +114,14 @@ public static class CatchHitObjectCreator
     private static void CalculateDistances(List<ICatchHitObject> allObjects, Beatmap beatmap)
     {
         if (allObjects.Count < 2) return;
+        allObjects.Sort((h1, h2) => h1.Time.CompareTo(h2.Time));
 
         var catcherWidth = CalculateCatchWidth(beatmap.DifficultySettings.circleSize);
         var halfCatcherWidth = catcherWidth * 0.5f;
         halfCatcherWidth /= AllowedCatchRange;
-        var baseWalkRange = halfCatcherWidth * BaseWalkRangeScale;
 
         var lastDirection = CatchNoteDirection.None;
         double dashRange = halfCatcherWidth;
-        var walkRange = baseWalkRange;
-        var lastWasHyper = false;
         
         // We need to consider slider parts as well for movement calculation
         // Add all to a single array so we can iterate through them in order
@@ -164,12 +144,11 @@ public static class CatchHitObjectCreator
             {
                 // TODO support spinner hyperdashes, although they are very rarely used
                 current.MovementType = CatchMovementType.Walk;
+                current.DistanceToHyper = float.PositiveInfinity;
 
                 // Reset everything when we have a spinner, ignore spinner hyperdashes
                 dashRange = halfCatcherWidth;
-                walkRange = baseWalkRange;
                 lastDirection = CatchNoteDirection.None;
-                lastWasHyper = false;
                 continue;
             }
 
@@ -177,74 +156,20 @@ public static class CatchHitObjectCreator
             var timeToNext = next.Time - current.Time - QuarterFrameGrace;
             var distance = Math.Abs(next.Position.X - current.Position.X);
 
-            var actualWalkRange = lastDirection == direction ? walkRange : baseWalkRange;
-            if (lastWasHyper) actualWalkRange *= HyperdashLeniency;
-
             var dashDistanceToNext = distance - (lastDirection == direction ? dashRange : halfCatcherWidth);
             current.DistanceToHyper = (float)(timeToNext * BaseDashSpeed - dashDistanceToNext);
 
-            var walkDistanceToNext = distance - actualWalkRange;
-            current.DistanceToDash = (float)(timeToNext * BaseWalkSpeed - walkDistanceToNext);
-
             current.MovementType = current.DistanceToHyper < 0
-                ? CatchMovementType.Hyperdash
-                : current.DistanceToDash < 0
-                    ? CatchMovementType.Dash
-                    : CatchMovementType.Walk;
-
-            current.TimeToTarget = timeToNext;
+                ? CatchMovementType.Hyperdash 
+                : CatchMovementType.Walk;
 
             dashRange = current.MovementType == CatchMovementType.Hyperdash
                 ? halfCatcherWidth
                 : Math.Clamp(current.DistanceToHyper, 0, halfCatcherWidth);
 
-            walkRange = current.MovementType == CatchMovementType.Dash
-                ? baseWalkRange
-                : Math.Clamp(current.DistanceToDash, 0, baseWalkRange);
-
             current.NoteDirection = direction;
-            current.IsEdgeMovement = IsEdgeMovement(beatmap, current);
 
             lastDirection = current.NoteDirection;
-            lastWasHyper = current.MovementType == CatchMovementType.Hyperdash;
-        }
-    }
-
-    private static double GetBeatsPerMinute(this TimingLine timingLine)
-    {
-        var msPerBeatString = timingLine.Code.Split(',')[1];
-        var msPerBeat = double.Parse(msPerBeatString, CultureInfo.InvariantCulture);
-        return 60000 / msPerBeat;
-    }
-
-    private static double GetBpm(this Beatmap beatmap, ICatchHitObject obj)
-    {
-        var timingLine = beatmap.GetTimingLine(obj.Time);
-        return GetBeatsPerMinute(timingLine);
-    }
-
-    private static double GetBpmScale(this Beatmap beatmap, ICatchHitObject obj) => 180 / beatmap.GetBpm(obj);
-
-    private static bool IsEdgeMovement(Beatmap beatmap, ICatchHitObject obj)
-    {
-        switch (obj.MovementType)
-        {
-            case CatchMovementType.Walk:
-                // No note after this so we can't determine edge movement.
-                if (obj.Target == null)
-                {
-                    return false;
-                }
-                
-                var comfyDash = 1.44 * beatmap.GetBpm(obj);
-                var xDistance = Math.Abs(obj.Position.X - obj.Target.Position.X);
-                return xDistance > comfyDash * beatmap.GetBpmScale(obj);
-            case CatchMovementType.Dash:
-                var pixelScale = 10.0 * beatmap.GetBpmScale(obj);
-                return obj.DistanceToHyper < pixelScale;
-            case CatchMovementType.Hyperdash:
-            default:
-                return false;
         }
     }
 }
