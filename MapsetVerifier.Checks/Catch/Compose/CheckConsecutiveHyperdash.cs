@@ -179,12 +179,14 @@ namespace MapsetVerifier.Checks.Catch.Compose
             }
         }
     
-        private bool IsAnyHigherSnapped(List<ICatchHitObject> trackedPlusLast, Beatmap.Difficulty difficulty)
+        private static bool IsAnyHigherSnapped(List<ICatchHitObject> trackedPlusLast, Beatmap.Difficulty difficulty)
         {
             for (var i = 0; i < trackedPlusLast.Count; i++)
             {
                 var current = trackedPlusLast[i];
                 var next = i < trackedPlusLast.Count - 1 ? trackedPlusLast[i + 1] : null;
+                
+                if (next == null) continue;
 
                 if (current.IsHigherSnapped(next, difficulty))
                 {

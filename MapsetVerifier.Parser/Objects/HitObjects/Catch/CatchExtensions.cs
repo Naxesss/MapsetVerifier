@@ -112,11 +112,8 @@ public static class CatchExtensions
     /// <param name="next">The next object that follows</param>
     /// <param name="difficulty">The difficulty we want to check for</param>
     /// <returns>True if the origin object is higher-snapped</returns>
-    public static bool IsHigherSnapped(this ICatchHitObject current, ICatchHitObject? next, Beatmap.Difficulty difficulty)
+    public static bool IsHigherSnapped(this ICatchHitObject current, ICatchHitObject next, Beatmap.Difficulty difficulty)
     {
-        // No need to check higher-snapped because there is nothing to compare to
-        if (next == null) return false;
-        
         var ms = current.Time - next.Time;
 
         switch (difficulty)

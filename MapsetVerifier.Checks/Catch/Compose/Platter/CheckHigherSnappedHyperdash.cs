@@ -52,6 +52,8 @@ public class CheckHigherSnappedHyperdash : BeatmapCheck
         {
             var current = catchObjects[i];
             var next = i < catchObjects.Count - 1 ? catchObjects[i + 1] : null;
+            
+            if (next == null) continue;
 
             // Only higher-snapped hyperdashes are relevant for this check.
             if (current.MovementType != CatchMovementType.Hyperdash || !current.IsHigherSnapped(next, Beatmap.Difficulty.Hard)) continue;
