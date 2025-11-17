@@ -11,7 +11,8 @@ public class JuiceStream : Slider, ICatchHitObject
 
         // Repeats & tail
         var edgeTimes = GetEdgeTimes().ToList();
-        for (var i = 0; i < edgeTimes.Count; i++)
+        // Skip the slider head at index 0, the JuiceStream object represents the slider head
+        for (var i = 1; i < edgeTimes.Count; i++)
         {
             var edgeTime = edgeTimes[i];
             var partKind = i + 1 == edgeTimes.Count ? JuiceStreamPart.PartKind.Tail : JuiceStreamPart.PartKind.Repeat;
@@ -42,7 +43,7 @@ public class JuiceStream : Slider, ICatchHitObject
         return new JuiceStreamPart(codeClone, beatmap, juiceStream, kind);
     }
 
-    /// <summary>All parts belonging to this juice stream (head, repeats, tail, droplets).</summary>
+    /// <summary>All parts belonging to this juice stream excluding the head (repeats, tail, droplets).</summary>
     public List<JuiceStreamPart> Parts { get; } = [];
 
     /// <summary>Represents a slider component (repeat, tail, droplet) for catch movement.</summary>

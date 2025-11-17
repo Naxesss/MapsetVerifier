@@ -12,7 +12,7 @@ public static class CatchExtensions
     /// <param name="beatmap">The beatmap we want to get the CatchHitObjects for.</param>
     /// <param name="includeJuiceStreamParts">When true it adds all slider parts as seperate objects to the result list.</param>
     /// <returns>A list containing all catch hit objects.</returns>
-    public static List<ICatchHitObject> GetCatchHitObjects(this Beatmap? beatmap, bool includeJuiceStreamParts = false)
+    public static List<ICatchHitObject> GetCatchHitObjects(this Beatmap? beatmap, bool includeJuiceStreamParts)
     {
         if (beatmap == null) return [];
         

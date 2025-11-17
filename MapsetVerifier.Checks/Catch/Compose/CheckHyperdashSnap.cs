@@ -55,13 +55,7 @@ public class CheckHyperdashSnap : BeatmapCheck
 
     public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
     {
-        var catchObjects = beatmap
-            .GetCatchHitObjects()
-            .SelectMany(o => o is JuiceStream js
-                ? new[] { o }.Concat(js.Parts)
-                : [o])
-            .OrderBy(o => o.Time)
-            .ToList();
+        var catchObjects = beatmap.GetCatchHitObjects(includeJuiceStreamParts: true);
 
         if (catchObjects.Count < 2)
             yield break;
