@@ -5,15 +5,15 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Text.RegularExpressions;
+using MapsetVerifier.Parser.Difficulty;
 using MapsetVerifier.Parser.Objects.Events;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Settings;
-using MapsetVerifier.Parser.StarRating;
-using MapsetVerifier.Parser.StarRating.Osu;
-using MapsetVerifier.Parser.StarRating.Taiko;
 using MapsetVerifier.Parser.Statics;
 using MathNet.Numerics;
+using osu.Game.Rulesets.Difficulty;
+using osu.Game.Rulesets.Difficulty.Skills;
 
 namespace MapsetVerifier.Parser.Objects
 {
@@ -105,6 +105,7 @@ namespace MapsetVerifier.Parser.Objects
         // Star Rating
         public double StarRating { get; }
         public DifficultyAttributes? DifficultyAttributes { get; }
+        public Skill[] Skills;
 
         // Settings
         public GeneralSettings GeneralSettings { get; }
@@ -160,12 +161,7 @@ namespace MapsetVerifier.Parser.Objects
                 return;
             }
 
-            var attributes = GeneralSettings.mode switch
-            {
-                Mode.Standard => new OsuDifficultyCalculator(this).Calculate(),
-                Mode.Taiko => new TaikoDifficultyCalculator(this).Calculate(),
-                _ => null
-            };
+            var attributes = new LocalDifficultyCalculator().CalculateAttributes(this);
 
             DifficultyAttributes = attributes;
 
@@ -921,6 +917,47 @@ namespace MapsetVerifier.Parser.Objects
                 timingLines[i].SetTimingLineIndex(i);
 
             return timingLines;
+        }
+
+        /// <summary>
+        ///     Returns a list of timing lines where SV (slider velocity) changes occur.
+        /// </summary>
+        public List<TimingLine> GetSvChanges()
+        {
+            var svChanges = new List<TimingLine>();
+            
+            for (var i = 0; i < TimingLines.Count - 1; i++)
+            {
+                var firstLine = TimingLines[i];
+                var secondLine = TimingLines[i+1];
+
+                if (firstLine.SvMult != secondLine.SvMult && firstLine.Offset != secondLine.Offset)
+                {
+                    svChanges.Add(secondLine);
+                }
+            }
+
+            return svChanges;
+        }
+
+        /// <summary>
+        ///     Returns a list of timing lines where kiai state changes occur.
+        /// </summary>
+        public List<TimingLine> GetKiaiToggles()
+        {
+            var kiaiToggles = new List<TimingLine>();
+
+            TimingLine? previousTimingLine = null;
+
+            foreach (var line in TimingLines)
+            {
+                if ((previousTimingLine == null && line.Kiai) || (previousTimingLine != null && previousTimingLine.Kiai != line.Kiai))
+                {
+                    kiaiToggles.Add(line);
+                }
+                previousTimingLine = line;
+            }
+            return kiaiToggles;
         }
 
         private List<HitObject> GetHitobjects(string[] lines)
