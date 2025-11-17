@@ -150,7 +150,7 @@ namespace MapsetVerifier.Checks.Catch.Compose
             if (IsAnyHigherSnapped(trackedPlusLast, Beatmap.Difficulty.Insane) && count > ThresholdRainHigher)
             {
                 yield return new Issue(
-                    GetTemplate("RainConsecutiveSlider"),
+                    GetTemplate("HigherConsecutive"),
                     beatmap,
                     CatchExtensions.GetTimestamps(objects),
                     ThresholdRainBasicSlider,
@@ -181,13 +181,11 @@ namespace MapsetVerifier.Checks.Catch.Compose
     
         private static bool IsAnyHigherSnapped(List<ICatchHitObject> trackedPlusLast, Beatmap.Difficulty difficulty)
         {
-            for (var i = 0; i < trackedPlusLast.Count; i++)
+            for (var i = 0; i < trackedPlusLast.Count - 1; i++)
             {
                 var current = trackedPlusLast[i];
-                var next = i < trackedPlusLast.Count - 1 ? trackedPlusLast[i + 1] : null;
+                var next = trackedPlusLast[i + 1];
                 
-                if (next == null) continue;
-
                 if (current.IsHigherSnapped(next, difficulty))
                 {
                     return true;
