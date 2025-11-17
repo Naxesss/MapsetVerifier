@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -414,10 +414,10 @@ namespace MapsetVerifier.Parser.Objects
         }
 
         /// <summary> Returns the next timing line, if any, otherwise null, O(logn). </summary>
-        public TimingLine GetNextTimingLine(double time) => GetNextTimingLine<TimingLine>(time);
+        public TimingLine? GetNextTimingLine(double time) => GetNextTimingLine<TimingLine>(time);
 
         /// <summary> Same as <see cref="GetNextTimingLine" /> except only considers objects of a given type. </summary>
-        public T GetNextTimingLine<T>(double time) where T : TimingLine
+        public T? GetNextTimingLine<T>(double time) where T : TimingLine
         {
             var list = GetOrAdd(typeof(T), () => TimingLines.OfType<T>().ToList());
 
@@ -457,35 +457,36 @@ namespace MapsetVerifier.Parser.Objects
             return list[index];
         }
 
-        /// <summary> Returns the previous hit object if any, otherwise the first, O(logn). </summary>
-        public HitObject GetPrevHitObject(double time) => GetPrevHitObject<HitObject>(time);
+        /// <summary> Returns the previous hit object if any, otherwise null, O(logn). </summary>
+        public HitObject? GetPrevHitObject(double time) => GetPrevHitObject<HitObject>(time);
 
         /// <summary> Same as <see cref="GetPrevHitObject" /> except only considers objects of a given type. </summary>
-        public T GetPrevHitObject<T>(double time) where T : HitObject
+        public T? GetPrevHitObject<T>(double time) where T : HitObject
         {
             var list = GetOrAdd(typeof(T), () => HitObjects.OfType<T>().ToList());
 
             if (list.Count == 0)
                 return null;
 
+            // Get the index of object starting in front of the specified time.
             var index = BinaryTimeSearch(list, obj => obj.time, time);
 
-            if (index - 1 < 0)
-                // Before the first object, so return the first one.
-                return list[0];
-
             if (list[index].GetEndTime() < time)
-                // Directly in front of the previous object.
+                // Object end doesn't overlap specified time, so we can return it.
                 return list[index];
+            
+            if (index - 1 < 0)
+                // Object end is overlapping given time, and there is no object before that. So there is no prev.
+                return null;
 
             return list[index - 1];
         }
 
         /// <summary> Returns the next hit object after the current, if any, otherwise null, O(logn). </summary>
-        public HitObject GetNextHitObject(double time) => GetNextHitObject<HitObject>(time);
+        public HitObject? GetNextHitObject(double time) => GetNextHitObject<HitObject>(time);
 
         /// <summary> Same as <see cref="GetNextHitObject" /> except only considers objects of a given type. </summary>
-        public T GetNextHitObject<T>(double time) where T : HitObject
+        public T? GetNextHitObject<T>(double time) where T : HitObject
         {
             var list = GetOrAdd(typeof(T), () => HitObjects.OfType<T>().ToList());
 
@@ -855,7 +856,7 @@ namespace MapsetVerifier.Parser.Objects
         public double GetObjectDensity() => HitObjects.Count / GetDrainTime(GeneralSettings.mode);
 
         /// <summary> Returns the full audio file path the beatmap uses if any such file exists, otherwise null. </summary>
-        public string GetAudioFilePath()
+        public string? GetAudioFilePath()
         {
             if (SongPath != null)
             {

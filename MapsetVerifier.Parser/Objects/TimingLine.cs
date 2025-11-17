@@ -126,11 +126,11 @@ namespace MapsetVerifier.Parser.Objects
         ///     Returns the next timing line in the timing line list, if any,
         ///     otherwise null, O(1). Optionally skips concurrent lines.
         /// </summary>
-        public TimingLine Next(bool skipConcurrent = false)
+        public TimingLine? Next(bool skipConcurrent = false)
         {
-            TimingLine next = null;
+            TimingLine? next = null;
 
-            for (var i = TimingLineIndex; i < Beatmap.TimingLines.Count; ++i)
+            for (var i = TimingLineIndex + 1; i < Beatmap.TimingLines.Count; ++i)
             {
                 next = Beatmap.TimingLines[i];
 
@@ -145,11 +145,11 @@ namespace MapsetVerifier.Parser.Objects
         ///     Returns the previous timing line in the timing line list, if any,
         ///     otherwise null, O(1). Optionally skips concurrent objects.
         /// </summary>
-        public TimingLine Prev(bool skipConcurrent = false)
+        public TimingLine? Prev(bool skipConcurrent = false)
         {
-            TimingLine prev = null;
+            TimingLine? prev = null;
 
-            for (var i = TimingLineIndex; i >= 0; --i)
+            for (var i = TimingLineIndex - 1; i >= 0; --i)
             {
                 prev = Beatmap.TimingLines[i];
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using MapsetVerifier.Framework.Objects;
@@ -160,10 +160,10 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                 // previous, but just doesn't apply to anything.
                 var changesDesc = "";
 
-                if (!UsesSV(beatmap, currentLine, previousLine) && !currentLine.SvMult.AlmostEqual(previousLine.SvMult))
+                if (!UsesSV(beatmap, currentLine, previousLine))
                     changesDesc += "SV";
 
-                if (!UsesSamples(beatmap, currentLine, previousLine) && SamplesDiffer(currentLine, previousLine))
+                if (!UsesSamples(beatmap, currentLine, previousLine))
                     changesDesc += (changesDesc.Length > 0 ? " and " : "") + "sample settings";
 
                 changesDesc += changesDesc.Length > 0 ? ", but affects nothing" : "nothing";
@@ -252,7 +252,14 @@ namespace MapsetVerifier.Checks.AllModes.Timing
         private static bool SectionContainsObject<T>(Beatmap beatmap, TimingLine line) where T : HitObject
         {
             var nextLine = line.Next(true);
-            var nextSectionEnd = nextLine?.Offset ?? beatmap.GetPlayTime();
+
+            // If this is the final timing section
+            if (nextLine == null)
+            {
+                return beatmap.GetNextHitObject<T>(line.Offset) != null;
+            }
+            
+            var nextSectionEnd = nextLine.Offset;
             var objectTimeBeforeEnd = beatmap.GetPrevHitObject<T>(nextSectionEnd)?.time ?? 0;
 
             return objectTimeBeforeEnd >= line.Offset;
