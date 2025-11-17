@@ -52,8 +52,8 @@ namespace MapsetVerifier.Parser.Tests.Objects.HitObjects.Catch
         [InlineData(200, CatchMovementType.Hyperdash, Beatmap.Difficulty.Expert, false)]
         public void IsHigherSnapped_SnappingReferenceTable(float ms, CatchMovementType movementType, Beatmap.Difficulty difficulty, bool expected)
         {
-            var current = new TestCatchHitObject { Time = ms, MovementType = movementType };
-            var next = new TestCatchHitObject { Time = 0 };
+            var current = new TestCatchHitObject { Time = 0, MovementType = movementType };
+            var next = new TestCatchHitObject { Time = ms };
             var result = current.IsHigherSnapped(next, difficulty);
             Assert.Equal(expected, result);
         }

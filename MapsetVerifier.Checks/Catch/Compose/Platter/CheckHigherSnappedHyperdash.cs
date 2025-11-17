@@ -48,20 +48,16 @@ public class CheckHigherSnappedHyperdash : BeatmapCheck
     {
         var catchObjects = beatmap.GetCatchHitObjects(includeJuiceStreamParts: true);
 
-        for (var i = 0; i < catchObjects.Count; i++)
+        for (int i = 0; i < catchObjects.Count - 1; i++)
         {
             var current = catchObjects[i];
-            var next = i < catchObjects.Count - 1 ? catchObjects[i + 1] : null;
-            
-            if (next == null) continue;
+            var next = catchObjects[i + 1];
 
             // Only higher-snapped hyperdashes are relevant for this check.
-            if (current.MovementType != CatchMovementType.Hyperdash || !current.IsHigherSnapped(next, Beatmap.Difficulty.Hard)) continue;
-            
-            var followedByWalk = next.MovementType == CatchMovementType.Walk;
+            if (current.MovementType != CatchMovementType.Hyperdash)continue;// || !current.IsHigherSnapped(next, Beatmap.Difficulty.Hard)) continue;
 
             // No need to check for dashes or hyperdashes as they are covered in other checks.
-            if (followedByWalk)
+            if (next.MovementType == CatchMovementType.Walk)
             {
                 // Only direction changes are classified as antiflow patterns.
                 if (current.NoteDirection == CatchNoteDirection.None || current.NoteDirection == next.NoteDirection)

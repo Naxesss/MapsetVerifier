@@ -114,7 +114,7 @@ public static class CatchExtensions
     /// <returns>True if the origin object is higher-snapped</returns>
     public static bool IsHigherSnapped(this ICatchHitObject current, ICatchHitObject next, Beatmap.Difficulty difficulty)
     {
-        var ms = current.Time - next.Time;
+        var ms = next.Time - current.Time;
 
         switch (difficulty)
         {

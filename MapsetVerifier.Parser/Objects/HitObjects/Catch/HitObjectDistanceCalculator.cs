@@ -67,16 +67,26 @@ public static class HitObjectDistanceCalculator
                 allObjectsPlusParts.AddRange(js.Parts);
         }
 
-        for (var i = 0; i < allObjectsPlusParts.Count - 1; i++)
+        for (var i = 0; i < allObjectsPlusParts.Count; i++)
         {
             var current = allObjectsPlusParts[i];
-            var next = allObjectsPlusParts[i + 1];
+            var next = i < allObjectsPlusParts.Count - 1 ? allObjectsPlusParts[i + 1] : null;
+
+            if (next == null)
+            {
+                // No next object means this is the last object of the map
+                current.MovementType = CatchMovementType.Walk;
+                current.NoteDirection = CatchNoteDirection.None;
+                current.DistanceToHyper = float.PositiveInfinity;
+                continue;
+            }
 
             // Spinner gap logic now polymorphic
             if (current is Bananas || next is Bananas)
             {
                 // TODO support spinner hyperdashes, although they are very rarely used
                 current.MovementType = CatchMovementType.Walk;
+                current.NoteDirection = CatchNoteDirection.None;
                 current.DistanceToHyper = float.PositiveInfinity;
 
                 // Reset everything when we have a spinner, ignore spinner hyperdashes
