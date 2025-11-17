@@ -105,8 +105,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
                 var hsPath = Path.Combine(beatmapSet.SongPath, hsFile);
 
-                List<float[]> peaks = null;
-                Exception exception = null;
+                List<float[]> peaks = [];
+                Exception? exception = null;
 
                 try
                 {
@@ -119,7 +119,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
                 if (exception == null)
                 {
-                    if (!(peaks?.Count > 0) || !(peaks.Sum(peak => peak.Sum()) > 0))
+                    if (!(peaks.Count > 0) || !(peaks.Sum(peak => peak.Sum()) > 0))
                         // Muted files don't have anything to be delayed, hence ignore.
                         continue;
 
@@ -143,12 +143,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         {
                             strength = 0;
                             ++pureDelay;
-                            ++delay;
                         }
-                        else
-                        {
-                            ++delay;
-                        }
+
+                        ++delay;
                     }
 
                     if (pureDelay >= 5)
@@ -167,7 +164,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             }
         }
 
-        private static HitObject GetHitObjectActiveAt(BeatmapSet beatmapSet, string hitSoundFile)
+        private static HitObject? GetHitObjectActiveAt(BeatmapSet beatmapSet, string hitSoundFile)
         {
             foreach (var beatmap in beatmapSet.Beatmaps)
                 foreach (var hitObject in beatmap.HitObjects)

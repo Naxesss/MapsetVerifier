@@ -42,6 +42,11 @@ namespace MapsetVerifier.Parser.Objects.Events
         /// <summary> Returns all relative file paths for all frames used. </summary>
         public IEnumerable<string> GetFramePaths()
         {
+            if (path == null)
+            {
+                yield break;
+            }
+            
             for (var i = 0; i < frameCount; ++i)
                 yield return path.Insert(path.LastIndexOf(".", StringComparison.Ordinal), i.ToString());
         }

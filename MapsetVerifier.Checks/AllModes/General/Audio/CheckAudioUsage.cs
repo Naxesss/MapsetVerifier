@@ -79,7 +79,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                     continue;
 
                 double duration = 0;
-                Exception exception = null;
+                Exception? exception = null;
 
                 try
                 {

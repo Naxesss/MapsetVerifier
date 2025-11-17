@@ -50,8 +50,8 @@ namespace MapsetVerifier.Rendering
                                     Div("card-detail-icon " + GetIcon(template.Level) + "-icon"),
                                     Div("message",
                                         template.Format(template.GetDefaultArguments().Select(arg => "<span>" + arg + "</span>").ToArray()),
-                                        Div("cause",
-                                            Format(template.Cause))));
+                                        template.Cause != null ? Div("cause", Format(template.Cause)) : ""));
+                                       
                         }))
                 : "No issue templates available.";
 

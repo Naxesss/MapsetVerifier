@@ -58,7 +58,7 @@ namespace MapsetVerifier.Parser.Objects
         public readonly HitSample.SamplesetType sampleset;
         public readonly int? customIndex;
         public readonly int? volume;
-        public readonly string filename;
+        public readonly string? filename;
 
         public List<HitSample> usedHitSamples = new();
 
@@ -117,7 +117,7 @@ namespace MapsetVerifier.Parser.Objects
 
         private HitSounds GetHitSound(string[] args) => (HitSounds)int.Parse(args[4]);
 
-        private Tuple<HitSample.SamplesetType, HitSample.SamplesetType, int?, int?, string> GetExtras(string[] args)
+        private Tuple<HitSample.SamplesetType, HitSample.SamplesetType, int?, int?, string>? GetExtras(string[] args)
         {
             var extras = args.Last();
 
@@ -164,9 +164,9 @@ namespace MapsetVerifier.Parser.Objects
         ///     Returns the next hit object in the hit objects list, if any,
         ///     otherwise null, O(1). Optionally skips concurrent objects.
         /// </summary>
-        public HitObject Next(bool skipConcurrent = false)
+        public HitObject? Next(bool skipConcurrent = false)
         {
-            HitObject next = null;
+            HitObject? next = null;
 
             for (var i = hitObjectIndex + 1; i < beatmap.HitObjects.Count; ++i)
             {
@@ -183,9 +183,9 @@ namespace MapsetVerifier.Parser.Objects
         ///     Returns the previous hit object in the hit objects list, if any,
         ///     otherwise null, O(1). Optionally skips concurrent objects.
         /// </summary>
-        public HitObject Prev(bool skipConcurrent = false)
+        public HitObject? Prev(bool skipConcurrent = false)
         {
-            HitObject prev = null;
+            HitObject? prev = null;
 
             for (var i = hitObjectIndex - 1; i >= 0; --i)
             {
@@ -196,49 +196,6 @@ namespace MapsetVerifier.Parser.Objects
             }
 
             return prev;
-        }
-
-        /// <summary>
-        ///     Returns the previous hit object in the hit objects list, if any,
-        ///     otherwise the first, O(1). Optionally skips concurrent objects.
-        /// </summary>
-        public HitObject PrevOrFirst(bool skipConcurrent = false) => Prev(skipConcurrent) ?? beatmap.HitObjects.FirstOrDefault();
-
-        /*
-         *  Star Rating
-         */
-
-        /// <summary>
-        ///     <para>Returns the difference in time between the start of this object and the start of the previous object.</para>
-        ///     Note: This always returns at least 50 ms, to mimic the star rating algorithm.
-        /// </summary>
-        public double GetPrevDeltaStartTime() =>
-            // Smallest value is 50 ms for pp calc as a safety measure apparently,
-            // it's equivalent to 375 BPM streaming speed.
-            Math.Max(50, time - PrevOrFirst().time);
-
-        /// <summary>
-        ///     <para>
-        ///         Returns the distance between the edges of the hit circles for the start of this object and the start of the
-        ///         previous object.
-        ///     </para>
-        ///     Note: This adds a bonus scaling factor for small circle sizes, to mimic the star rating algorithm.
-        /// </summary>
-        public double GetPrevStartDistance()
-        {
-            double radius = beatmap.DifficultySettings.GetCircleRadius();
-
-            // We will scale distances by this factor, so we can assume a uniform CircleSize among beatmaps.
-            var scalingFactor = 52 / radius;
-
-            // small circle bonus
-            if (radius < 30)
-                scalingFactor *= 1 + Math.Min(30 - radius, 5) / 50;
-
-            var prevPosition = PrevOrFirst().Position;
-            double prevDistance = (Position - prevPosition).Length();
-
-            return prevDistance * scalingFactor;
         }
 
         /*
@@ -253,17 +210,20 @@ namespace MapsetVerifier.Parser.Objects
         /// <summary> Returns whether the hit object has a hit sound, or optionally a certain type of hit sound. </summary>
         public bool HasHitSound(HitSounds? hitSound = null) => hitSound == null ? this.hitSound > 0 : (this.hitSound & hitSound) != 0;
 
-        /// <summary> Returns the difference in time between the start of this object and the end of the previous object. </summary>
-        public double GetPrevDeltaTime() => time - Prev().GetEndTime();
+        /// <summary>
+        /// Returns the difference in time between the end of this object and the start of the next object.
+        /// </summary>
+        public double GetPrevDeltaTime(HitObject previous)
+        {
+            return time - previous.GetEndTime();
+        }
 
         /// <summary> Returns the difference in distance between the start of this object and the end of the previous object. </summary>
-        public double GetPrevDistance()
+        public double GetPrevDistance(HitObject previous)
         {
-            var prevObject = Prev();
+            var prevPosition = previous.Position;
 
-            var prevPosition = prevObject.Position;
-
-            if (prevObject is Slider slider)
+            if (previous is Slider slider)
                 prevPosition = slider.EndPosition;
 
             return (Position - prevPosition).Length();
@@ -305,7 +265,15 @@ namespace MapsetVerifier.Parser.Objects
                 return addition;
 
             // Inherits from timing line if auto.
-            return sampleset == HitSample.SamplesetType.Auto ? beatmap.GetTimingLine(specificTime ?? time, true, isSliderTick).Sampleset : sampleset;
+            if (sampleset == HitSample.SamplesetType.Auto)
+            {
+                var timingLine = beatmap.GetTimingLine(specificTime ?? time, true, isSliderTick);
+                // Timing line should always exist so we should never fall back to Auto here.
+                return timingLine?.Sampleset ?? HitSample.SamplesetType.Auto;
+            }
+                
+            else
+                return sampleset;
         }
 
         /// <summary>
@@ -358,7 +326,7 @@ namespace MapsetVerifier.Parser.Objects
         {
             var line = beatmap.GetTimingLine(time, true);
 
-            return new HitSample(line.CustomIndex, sampleset ?? line.Sampleset, hitSound, HitSample.HitSourceType.Edge, time);
+            return new HitSample(line!.CustomIndex, sampleset ?? line.Sampleset, hitSound, HitSample.HitSourceType.Edge, time);
         }
 
         /// <summary> Returns all used combinations of customs, samplesets and hit sounds for this object. </summary>
@@ -424,7 +392,10 @@ namespace MapsetVerifier.Parser.Objects
 
                 var lines = beatmap.TimingLines.Where(line => line.Offset > slider.time && line.Offset <= slider.EndTime).ToList();
 
-                lines.Add(beatmap.GetTimingLine(slider.time, true));
+                var sliderTimingLine = beatmap.GetTimingLine(slider.time, true);
+                
+                if (sliderTimingLine != null)
+                    lines.Add(sliderTimingLine);
 
                 // Body, only applies to standard. Catch has droplets instead of body. Taiko and mania have a body but play no background sound.
                 if (beatmap.GeneralSettings.mode == Beatmap.Mode.Standard)
@@ -510,7 +481,7 @@ namespace MapsetVerifier.Parser.Objects
         {
             // If you supply a specific hit sound file to the object, this file will replace all
             // other hit sounds, customs, etc, including the hit normal.
-            string specificHsFileName = null;
+            string? specificHsFileName = null;
 
             if (filename != null)
             {
@@ -523,7 +494,9 @@ namespace MapsetVerifier.Parser.Objects
             if (specificHsFileName != null)
                 return new List<string> { specificHsFileName };
 
-            var usedHitSoundFileNames = usedHitSamples.Select(sample => sample.GetFileName()).Where(name => name != null).Distinct();
+            var usedHitSoundFileNames = usedHitSamples.Select(sample => sample.GetFileName())
+                .OfType<string>()
+                .Distinct();
 
             return usedHitSoundFileNames;
         }
@@ -542,16 +515,17 @@ namespace MapsetVerifier.Parser.Objects
         /// </summary>
         public string GetPartName(double time)
         {
-            // Checks within 2 ms leniency in case of decimals or unsnaps.
-            bool isClose(double edgeTime, double otherTime) =>
-                edgeTime <= otherTime + 2 && edgeTime >= otherTime - 2;
-
-            var edgeType = isClose(this.time, time) ? "head" :
-                isClose(GetEndTime(), time) || isClose(GetEdgeTimes().Last(), time) ? "tail" :
-                GetEdgeTimes().Any(edgeTime => isClose(edgeTime, time)) ? "reverse" : "body";
+            var edgeType = IsClose(this.time, time) ? "head" :
+                IsClose(GetEndTime(), time) || IsClose(GetEdgeTimes().Last(), time) ? "tail" :
+                GetEdgeTimes().Any(edgeTime => IsClose(edgeTime, time)) ? "reverse" : "body";
 
             return GetObjectType() + (this is not Circle ? " " + edgeType : "");
         }
+        
+        /// <summary>
+        /// Checks within 2 ms leniency in case of decimals or unsnaps.
+        /// </summary>
+        private static bool IsClose(double edgeTime, double otherTime) => edgeTime <= otherTime + 2 && edgeTime >= otherTime - 2;
 
         /// <summary> Returns the name of the object in general, for example "Slider", "Circle", "Hold note", etc. </summary>
         public string GetObjectType() =>

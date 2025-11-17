@@ -8,10 +8,10 @@ namespace MapsetVerifier.Parser.Objects.Events
         // Video, offset, filename
 
         public readonly int offset;
-        public readonly string path;
+        public readonly string? path;
 
         /// <summary> The path in lowercase without extension or quotationmarks. </summary>
-        public readonly string strippedPath;
+        public readonly string? strippedPath;
 
         public Video(string[] args)
         {
@@ -25,6 +25,6 @@ namespace MapsetVerifier.Parser.Objects.Events
         private int GetOffset(string[] args) => int.Parse(args[1]);
 
         /// <summary> Returns the file path which this video uses. Retains case and extension. </summary>
-        private string GetPath(string[] args) => PathStatic.ParsePath(args[2], retainCase: true);
+        private string? GetPath(string[] args) => PathStatic.ParsePath(args[2], retainCase: true);
     }
 }

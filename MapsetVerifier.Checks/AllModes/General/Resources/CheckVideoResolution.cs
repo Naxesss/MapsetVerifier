@@ -64,13 +64,13 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
-            foreach (var issue in Common.GetTagOsuIssues(beatmapSet, beatmap => beatmap.Videos.Count > 0 ? beatmap.Videos.Select(video => video.path) : null, GetTemplate, tagFile =>
+            foreach (var issue in Common.GetTagOsuIssues(beatmapSet, beatmap => beatmap.Videos.Count > 0 ? beatmap.Videos.Select(video => video.path) : [], GetTemplate, tagFile =>
                      {
                          // Executes for each non-faulty video file used in one of the beatmaps in the set.
                          var issues = new List<Issue>();
 
-                         if (tagFile.file.Properties.VideoWidth > 1280 || tagFile.file.Properties.VideoHeight > 720)
-                             issues.Add(new Issue(GetTemplate("Resolution"), null, tagFile.templateArgs[0], tagFile.file.Properties.VideoWidth, tagFile.file.Properties.VideoHeight));
+                         if (tagFile.File.Properties.VideoWidth > 1280 || tagFile.File.Properties.VideoHeight > 720)
+                             issues.Add(new Issue(GetTemplate("Resolution"), null, tagFile.TemplateArgs[0], tagFile.File.Properties.VideoWidth, tagFile.File.Properties.VideoHeight));
 
                          return issues;
                      }))

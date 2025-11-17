@@ -112,7 +112,7 @@ namespace MapsetVerifier.Checks.Standard.Compose
                     // top, left : stackindex <= 0
                     // right     : stackindex >= 0
 
-                    var stackableObject = hitObject as Stackable;
+                    var stackableObject = (Stackable) hitObject;
 
                     var goesOffscreenTopOrLeft = (stackableObject.Position.Y - circleRadius < UPPER_LIMIT || stackableObject.Position.X - circleRadius < LEFT_LIMIT) && stackableObject.stackIndex > 0;
 

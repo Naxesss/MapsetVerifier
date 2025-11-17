@@ -87,27 +87,27 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             var unsnap = beatmap.GetPracticalUnsnap(time);
 
             var curLine = beatmap.GetTimingLine(time);
-            var nextLine = curLine.Next(true);
+            var nextLine = curLine?.Next(true);
 
-            if (nextLine == null)
+            if (curLine == null || nextLine == null)
                 yield break;
 
-            var curEffectiveBPM = curLine.SvMult * beatmap.GetTimingLine<UninheritedLine>(time).bpm;
-            var nextEffectiveBPM = nextLine.SvMult * beatmap.GetTimingLine<UninheritedLine>(nextLine.Offset).bpm;
+            var curEffectiveBPM = curLine.SvMult * beatmap.GetTimingLine<UninheritedLine>(time)!.bpm;
+            var nextEffectiveBPM = nextLine.SvMult * beatmap.GetTimingLine<UninheritedLine>(nextLine.Offset)!.bpm;
 
             var deltaEffectiveBPM = curEffectiveBPM - nextEffectiveBPM;
 
             var timeDiff = nextLine.Offset - time;
 
-            if (timeDiff > 0 && timeDiff <= 5 && Math.Abs(unsnap) <= 1 && Math.Abs(deltaEffectiveBPM) > 1)
+            if (timeDiff is > 0 and <= 5 && Math.Abs(unsnap) <= 1 && Math.Abs(deltaEffectiveBPM) > 1)
                 yield return new Issue(GetTemplate("Before"), beatmap, Timestamp.Get(time), type, $"{timeDiff:0.##}");
 
             // Modes where SV affects AR would be impacted even if the object was right after the line.
-            if (IsSVAffectingAR(beatmap) && timeDiff < 0 && timeDiff >= -5 && Math.Abs(unsnap) <= 1 && Math.Abs(deltaEffectiveBPM) > 1)
+            if (IsSVAffectingAR(beatmap) && timeDiff is < 0 and >= -5 && Math.Abs(unsnap) <= 1 && Math.Abs(deltaEffectiveBPM) > 1)
                 yield return new Issue(GetTemplate("After"), beatmap, Timestamp.Get(time), type, $"{timeDiff:0.##}");
         }
 
         private static bool IsSVAffectingAR(Beatmap beatmap) =>
-            beatmap.GeneralSettings.mode == Beatmap.Mode.Taiko || beatmap.GeneralSettings.mode == Beatmap.Mode.Mania;
+            beatmap.GeneralSettings.mode is Beatmap.Mode.Taiko or Beatmap.Mode.Mania;
     }
 }

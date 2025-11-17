@@ -88,13 +88,13 @@ namespace MapsetVerifier.Checks.Standard.Spread
                 if (hitObject is Spinner || nextObject is Spinner || nextObject == null)
                     continue;
 
-                deltaTime = nextObject.GetPrevDeltaTime();
+                deltaTime = nextObject.GetPrevDeltaTime(hitObject);
 
                 // Ignore objects 2 beats or more apart (assuming 200 bpm), since they don't really hang together context-wise.
                 if (deltaTime > 600)
                     continue;
 
-                var distance = nextObject.GetPrevDistance();
+                var distance = nextObject.GetPrevDistance(hitObject);
 
                 // Ignore stacks and half-stacks, since these are relatively normal.
                 if (distance < 8)
@@ -130,7 +130,7 @@ namespace MapsetVerifier.Checks.Standard.Spread
                         else
                         {
                             var prevObject = observedDistances[index].hitObject;
-                            var prevNextObject = prevObject.Next();
+                            var prevNextObject = prevObject.Next()!;
 
                             yield return new Issue(GetTemplate("Distance"), beatmap, Timestamp.Get(hitObject, nextObject), (int)Math.Round(distance), (int)Math.Round(distanceExpected), Timestamp.Get(prevObject, prevNextObject));
 

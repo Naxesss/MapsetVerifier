@@ -16,10 +16,10 @@ namespace MapsetVerifier.Parser.Objects.Events
         }
 
         public readonly Layer layer;
-        public readonly string path;
+        public readonly string? path;
 
         /// <summary> The path in lowercase without extension or quotationmarks. </summary>
-        public readonly string strippedPath;
+        public readonly string? strippedPath;
         // Sample,15707,0,"drum-hitnormal.wav",60
         // Sample, time, layer, path, volume
 
@@ -43,7 +43,7 @@ namespace MapsetVerifier.Parser.Objects.Events
         private Layer GetLayer(string[] args) => ParserStatic.GetEnumMatch<Layer>(args[2]) ?? Layer.Unknown;
 
         /// <summary> Returns the file path which this sample uses. Retains case and extension. </summary>
-        private string GetPath(string[] args) => PathStatic.ParsePath(args[3], retainCase: true);
+        private string? GetPath(string[] args) => PathStatic.ParsePath(args[3], retainCase: true);
 
         /// <summary> Returns the volume percentage (0-100) that this sample will play at. </summary>
         private float GetVolume(string[] args)

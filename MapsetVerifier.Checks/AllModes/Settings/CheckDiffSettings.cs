@@ -78,21 +78,21 @@ namespace MapsetVerifier.Checks.AllModes.Settings
             if (issue != null)
                 yield return issue;
 
-            // Circle size does nothing in taiko.
-            if (beatmap.GeneralSettings.mode == Beatmap.Mode.Mania)
+            switch (beatmap.GeneralSettings.mode)
             {
-                issue = GetIssue(beatmap.DifficultySettings.circleSize, "Circle Size", beatmap, 4);
-
-                if (issue != null)
-                    yield return issue;
+                case Beatmap.Mode.Mania:
+                    // Mania can have CS between 4 and 18
+                    issue = GetIssue(beatmap.DifficultySettings.circleSize, "Circle Size", beatmap, 4, 18);
+                    break;
+                default:
+                    // Check for all other modes like normal
+                    // NOTE: Circle size does nothing in taiko, but needs to be regulated anyway
+                    issue = GetIssue(beatmap.DifficultySettings.circleSize, "Circle Size", beatmap);
+                    break;
             }
-            else
-            {
-                issue = GetIssue(beatmap.DifficultySettings.approachRate, "Circle Size", beatmap);
 
-                if (issue != null)
-                    yield return issue;
-            }
+            if (issue != null)
+                yield return issue;
 
             issue = GetIssue(beatmap.DifficultySettings.approachRate, "Approach Rate", beatmap);
 
@@ -109,7 +109,7 @@ namespace MapsetVerifier.Checks.AllModes.Settings
         ///     Returns an issue when a setting is either less than the minimum, more than the maximum or
         ///     contains more than 1 decimal place.
         /// </summary>
-        private Issue GetIssue(float setting, string type, Beatmap beatmap, int minSetting = 0, int maxSetting = 10)
+        private Issue? GetIssue(float setting, string type, Beatmap beatmap, int minSetting = 0, int maxSetting = 10)
         {
             if (setting < minSetting || setting > maxSetting)
             {

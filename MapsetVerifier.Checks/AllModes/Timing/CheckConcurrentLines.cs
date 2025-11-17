@@ -82,14 +82,14 @@ namespace MapsetVerifier.Checks.AllModes.Timing
 
                     if (beatmap.TimingLines[i - 1] is InheritedLine)
                     {
-                        greenLine = beatmap.TimingLines[i - 1] as InheritedLine;
-                        redLine = beatmap.TimingLines[i] as UninheritedLine;
+                        greenLine = (InheritedLine) beatmap.TimingLines[i - 1];
+                        redLine = (UninheritedLine) beatmap.TimingLines[i];
                         precedence = "Red overrides green";
                     }
                     else
                     {
-                        greenLine = beatmap.TimingLines[i] as InheritedLine;
-                        redLine = beatmap.TimingLines[i - 1] as UninheritedLine;
+                        greenLine = (InheritedLine) beatmap.TimingLines[i];
+                        redLine = (UninheritedLine) beatmap.TimingLines[i - 1];
                         precedence = "Green overrides red";
                     }
 

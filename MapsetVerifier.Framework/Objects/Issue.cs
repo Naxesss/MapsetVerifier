@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using MapsetVerifier.Framework.Objects.Metadata;
+﻿using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 
 namespace MapsetVerifier.Framework.Objects
@@ -18,31 +16,30 @@ namespace MapsetVerifier.Framework.Objects
             Problem
         }
 
-        public readonly Beatmap beatmap;
+        public readonly Beatmap? beatmap;
         public readonly Level level;
 
         public readonly string message;
 
-        public Issue(IssueTemplate template, Beatmap beatmap, params object[] templateArguments)
+        public IssueTemplate Template { get; }
+        public List<KeyValuePair<string, int>> InterpretationPairs { get; }
+
+        /// <summary> Populated during the checking process. </summary>
+        public Check? CheckOrigin { get; private set; }
+
+        public Issue(IssueTemplate template, Beatmap? beatmap, params object?[] templateArguments)
         {
             Template = template;
-            InterpretationPairs = new List<KeyValuePair<string, int>>();
-
+            InterpretationPairs = [];
             message = template.Format(templateArguments);
             this.beatmap = beatmap;
             level = template.Level;
         }
 
-        public IssueTemplate Template { get; set; }
-        public List<KeyValuePair<string, int>> InterpretationPairs { get; }
-
-        /// <summary> Populated during the checking process. </summary>
-        public Check CheckOrigin { get; private set; }
-
         /// <summary> Whether this issue applies to the given difficulty level according to the metadata and interpretation. </summary>
         public bool AppliesToDifficulty(Beatmap.Difficulty difficulty)
         {
-            var appliesByMetadata = CheckOrigin.GetMetadata() is not BeatmapCheckMetadata metadata || metadata.Difficulties.Contains(difficulty);
+            var appliesByMetadata = CheckOrigin?.GetMetadata() is not BeatmapCheckMetadata metadata || metadata.Difficulties.Contains(difficulty);
 
             var appliesByInterpretation = !InterpretationPairs.Any() || InterpretationPairs.Any(pair => pair.Key == "difficulty" && (Beatmap.Difficulty)pair.Value == difficulty);
 
@@ -81,14 +78,14 @@ namespace MapsetVerifier.Framework.Objects
             var interpretType = "";
 
             foreach (var interpretParam in interpretParams)
-                if (interpretParam is string)
-                    interpretType = interpretParam as string;
+                if (interpretParam is string param)
+                    interpretType = param;
 
-                else if (interpretParam is int)
-                    InterpretationPairs.Add(new KeyValuePair<string, int>(interpretType, (int)interpretParam));
+                else if (interpretParam is int paramInt)
+                    InterpretationPairs.Add(new KeyValuePair<string, int>(interpretType, paramInt));
 
-                else if (interpretParam is int[])
-                    foreach (var interpretation in (int[])interpretParam)
+                else if (interpretParam is int[] paramInts)
+                    foreach (var interpretation in paramInts)
                         InterpretationPairs.Add(new KeyValuePair<string, int>(interpretType, interpretation));
         }
     }

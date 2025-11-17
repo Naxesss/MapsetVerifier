@@ -9,7 +9,7 @@ namespace MapsetVerifier.Rendering
 {
     public abstract class SnapshotsRenderer : BeatmapInfoRenderer
     {
-        private static List<DateTime> snapshotDates;
+        private static List<DateTime> _snapshotDates = [];
 
         public static string Render(BeatmapSet beatmapSet)
         {
@@ -25,15 +25,15 @@ namespace MapsetVerifier.Rendering
         private static string RenderSnapshotInterpretation() =>
             Div("",
                 DivAttr("interpret-container", DataAttr("interpret", "difficulty"),
-                    snapshotDates.Select((date, index) =>
-                        DivAttr("interpret" + (index == snapshotDates.Count - 2
+                    _snapshotDates.Select((date, index) =>
+                        DivAttr("interpret" + (index == _snapshotDates.Count - 2
                             ? " interpret-selected"
-                            : index == snapshotDates.Count - 1
-                                ? " interpret-default" + (snapshotDates.Count == 1
+                            : index == _snapshotDates.Count - 1
+                                ? " interpret-default" + (_snapshotDates.Count == 1
                                     ? " interpret-selected"
                                     : "")
                                 : ""), DataAttr("interpret-severity", index),
-                            date.ToString("yyyy-MM-dd HH:mm:ss"))).ToArray()));
+                            date.ToString("yyyy-MM-dd HH:mm:ss"))).ToArray<object?>()));
 
         private static string RenderSnapshotDifficulties(BeatmapSet beatmapSet)
         {
@@ -66,7 +66,15 @@ namespace MapsetVerifier.Rendering
                 return Div("paste-separator") + Div("unsubmitted-snapshot-error", "Beatmapset ID is -1. This makes the map ambigious with any other " + "unsubmitted map. Submit the map before using this feature.");
 
             // Just need the beatmapset id to know in which snapshot folder to look for the files.
-            var refSnapshots = Snapshotter.GetSnapshots(refBeatmap.MetadataSettings.beatmapSetId.ToString(), "files").ToArray();
+            var beatmapSetId = refBeatmap.MetadataSettings.beatmapSetId.ToString();
+            
+            // Can't do snapshots without a beatmap set id.
+            if (beatmapSetId == null)
+            {
+                return "";
+            }
+            
+            var refSnapshots = Snapshotter.GetSnapshots(beatmapSetId, "files").ToArray();
 
             var lastSnapshot = refSnapshots.First(snapshot => snapshot.creationTime == refSnapshots.Max(otherSnapshot => otherSnapshot.creationTime));
 
@@ -99,13 +107,13 @@ namespace MapsetVerifier.Rendering
             }))) + Div("paste-separator select-separator") + Div("card-container-selected");
         }
 
-        private static string RenderSnapshotSections(IEnumerable<DiffInstance> beatmapDiffs, IEnumerable<Snapshotter.Snapshot> snapshots, string version, bool files = false) =>
+        private static string RenderSnapshotSections(IEnumerable<DiffInstance> beatmapDiffs, IEnumerable<Snapshotter.Snapshot> snapshots, string? version, bool files = false) =>
             Div("card-difficulty-checks", beatmapDiffs.Where(diff => files ? diff.Section == "Files" : diff.Section != "Files").GroupBy(diff => diff.Section).Select(sectionDiffs => DivAttr("card", DataAttr("difficulty", version), Div("card-box shadow noselect", Div("large-icon " + GetIcon(sectionDiffs) + "-icon"), Div("card-title", Encode(sectionDiffs.Key))), Div("card-details-container", Div("card-details", RenderSnapshotDiffs(sectionDiffs, snapshots))))).ToArray());
 
         private static string RenderSnapshotDiffs(IEnumerable<DiffInstance> sectionDiffs, IEnumerable<Snapshotter.Snapshot> snapshots) =>
             string.Concat(sectionDiffs.Select(diff =>
             {
-                var message = FormatTimestamps(Encode(diff.Diff));
+                var message = FormatTimestamps(Encode(diff.Diff)!);
                 var condition = GetDiffCondition(diff, snapshots);
 
                 return DivAttr("card-detail", DataAttr("condition", "difficulty=" + condition), Div("card-detail-icon " + GetIcon(diff) + "-icon"), diff.Details.Any() ? Div("", Div("card-detail-text", message), Div("vertical-arrow card-detail-toggle")) : Div("card-detail-text", message)) + RenderDiffDetails(diff.Details, condition);
@@ -117,7 +125,7 @@ namespace MapsetVerifier.Rendering
 
             return Div("card-detail-instances", details.Select(detail =>
             {
-                var timestampedMessage = FormatTimestamps(Encode(detail));
+                var timestampedMessage = FormatTimestamps(Encode(detail)!);
 
                 if (timestampedMessage.Length == 0)
                     return "";
@@ -136,8 +144,8 @@ namespace MapsetVerifier.Rendering
 
             var indexes = new List<int>();
 
-            for (var i = 0; i < snapshotDates.Count; ++i)
-                if (snapshotDates.ElementAt(i) < myNextDate && snapshotDates.ElementAt(i) >= diff.SnapshotCreationDate)
+            for (var i = 0; i < _snapshotDates.Count; ++i)
+                if (_snapshotDates.ElementAt(i) < myNextDate && _snapshotDates.ElementAt(i) >= diff.SnapshotCreationDate)
                     indexes.Add(i);
 
             return string.Join(",", indexes);
@@ -145,11 +153,11 @@ namespace MapsetVerifier.Rendering
 
         private static void InitSnapshotDates(BeatmapSet beatmapSet)
         {
-            snapshotDates = beatmapSet.Beatmaps.SelectMany(beatmap => Snapshotter.GetSnapshots(beatmap).Select(snapshot => snapshot.creationTime)).ToList();
+            _snapshotDates = beatmapSet.Beatmaps.SelectMany(beatmap => Snapshotter.GetSnapshots(beatmap).Select(snapshot => snapshot.creationTime)).ToList();
 
-            snapshotDates.AddRange(Snapshotter.GetSnapshots(beatmapSet.Beatmaps.First().MetadataSettings.beatmapSetId.ToString(), "files").Select(snapshot => snapshot.creationTime));
+            _snapshotDates.AddRange(Snapshotter.GetSnapshots(beatmapSet.Beatmaps.First().MetadataSettings.beatmapSetId.ToString(), "files").Select(snapshot => snapshot.creationTime));
 
-            snapshotDates = snapshotDates.Distinct().OrderBy(date => date).ToList();
+            _snapshotDates = _snapshotDates.Distinct().OrderBy(date => date).ToList();
         }
 
         private static string GetIcon(DiffInstance diff) =>

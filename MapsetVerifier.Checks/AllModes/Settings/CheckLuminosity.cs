@@ -120,9 +120,15 @@ namespace MapsetVerifier.Checks.AllModes.Settings
             foreach (var hitObject in beatmap.HitObjects)
             {
                 var combo = beatmap.GetComboColourIndex(hitObject.time);
+                var timingLine = beatmap.GetTimingLine(hitObject.time);
+                if (timingLine == null)
+                {
+                    // No need to check further if there's no timing line in the beatmap
+                    break;
+                }
 
                 // Spinners don't have a colour.
-                if (hitObject is Spinner || !beatmap.GetTimingLine(hitObject.time).Kiai || comboColoursInKiai.Contains(combo))
+                if (hitObject is Spinner || !timingLine.Kiai || comboColoursInKiai.Contains(combo))
                     continue;
 
                 comboColoursInKiai.Add(combo);

@@ -18,7 +18,12 @@ namespace MapsetVerifier.Checks.AllModes.Settings
 
         private static readonly List<InconsistencyTemplate> InconsistencyTemplates =
         [
-            new("Problem", "beatmapset id", beatmap => beatmap.MetadataSettings.beatmapSetId != null ? beatmap.MetadataSettings.beatmapSetId.ToString() : "-1" // Beatmapset IDs are set to -1 for unsubmitted mapsets.
+            new("Problem", "beatmapset id", beatmap =>
+                {
+                    var beatmapSetId = beatmap.MetadataSettings.beatmapSetId;
+                    // Beatmapset IDs are set to -1 for unsubmitted mapsets.
+                    return beatmapSetId == null ? "-1" : ((ulong) beatmapSetId).ToString();
+                }
             ),
 
             new("Warning", "countdown speed", beatmap => beatmap.GeneralSettings.countdown, (beatmap, otherBeatmap, beatmapSet) => CountdownSettingCondition(beatmap, otherBeatmap, beatmapSet) &&
@@ -118,30 +123,26 @@ namespace MapsetVerifier.Checks.AllModes.Settings
 
         private IEnumerable<Issue> GetInconsistency(Beatmap beatmap, Beatmap otherBeatmap, BeatmapSet beatmapSet, InconsistencyTemplate inconsistency)
         {
-            if (inconsistency.condition != null && !inconsistency.condition(beatmap, otherBeatmap, beatmapSet))
+            if (inconsistency.Condition != null && !inconsistency.Condition(beatmap, otherBeatmap, beatmapSet))
                 yield break;
 
-            var value = inconsistency.value(beatmap).ToString();
-            var otherValue = inconsistency.value(otherBeatmap).ToString();
+            var value = inconsistency.Value(beatmap).ToString()!;
+            var otherValue = inconsistency.Value(otherBeatmap).ToString()!;
 
             if (value != otherValue)
-                yield return new Issue(GetTemplate(inconsistency.template), beatmap, inconsistency.name, value, otherBeatmap, otherValue);
+                yield return new Issue(GetTemplate(inconsistency.Template), beatmap, inconsistency.Name, value, otherBeatmap, otherValue);
         }
 
-        private readonly struct InconsistencyTemplate
+        private readonly struct InconsistencyTemplate(
+            string template,
+            string name,
+            Func<Beatmap, object> value,
+            Func<Beatmap, Beatmap, BeatmapSet, bool>? condition = null)
         {
-            public readonly string template;
-            public readonly string name;
-            public readonly Func<Beatmap, object> value;
-            public readonly Func<Beatmap, Beatmap, BeatmapSet, bool> condition;
-
-            public InconsistencyTemplate(string template, string name, Func<Beatmap, object> value, Func<Beatmap, Beatmap, BeatmapSet, bool> condition = null)
-            {
-                this.template = template;
-                this.name = name;
-                this.value = value;
-                this.condition = condition;
-            }
+            public readonly string Template = template;
+            public readonly string Name = name;
+            public readonly Func<Beatmap, object> Value = value;
+            public readonly Func<Beatmap, Beatmap, BeatmapSet, bool>? Condition = condition;
         }
     }
 }

@@ -75,7 +75,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
                 var fileName = filePath.Split(new[] { '/', '\\' }).Last();
 
                 if (fileName.Length > 130)
-                    yield return new Issue(GetTemplate("Too Long Name"), null, filePath, fileName.Length);
+                    yield return new Issue(GetTemplate("Too Long Name"), null!, filePath, fileName.Length);
 
                 if (!fileName.EndsWith(".osu"))
                     continue;
@@ -83,7 +83,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
                 var beatmap = beatmapSet.Beatmaps.First(otherBeatmap => otherBeatmap.MapPath == filePath);
 
                 if (beatmap.GetOsuFileName().ToLower() != fileName.ToLower())
-                    yield return new Issue(GetTemplate("Wrong Format"), null, fileName, beatmap.GetOsuFileName());
+                    yield return new Issue(GetTemplate("Wrong Format"), null!, fileName, beatmap.GetOsuFileName());
             }
         }
     }

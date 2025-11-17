@@ -44,24 +44,21 @@ namespace MapsetVerifier.Parser.Settings
                 sliderBorder = ParseColour(sliderBorderValue);
         }
 
-        private IEnumerable<string> GetCombos(string[] lines)
+        private static IEnumerable<string> GetCombos(string[] lines)
         {
             foreach (var line in lines)
-                if (line != null && line.StartsWith("Combo"))
+                if (line.StartsWith("Combo"))
                     yield return line.Split(':')[1].Trim();
         }
 
-        private string GetValue(string[] lines, string key)
+        private static string? GetValue(string[] lines, string key)
         {
             var line = lines.FirstOrDefault(otherLine => otherLine.StartsWith(key));
 
-            if (line == null)
-                return null;
-
-            return line.Substring(line.IndexOf(":", StringComparison.Ordinal) + 1).Trim();
+            return line?.Substring(line.IndexOf(':') + 1).Trim();
         }
 
-        private Vector3 ParseColour(string colourString)
+        private static Vector3 ParseColour(string colourString)
         {
             var r = float.Parse(colourString.Split(',')[0].Trim(), CultureInfo.InvariantCulture);
             var g = float.Parse(colourString.Split(',')[1].Trim(), CultureInfo.InvariantCulture);
@@ -70,7 +67,7 @@ namespace MapsetVerifier.Parser.Settings
             return new Vector3(r, g, b);
         }
 
-        private IEnumerable<Vector3> ParseColours(IEnumerable<string> colourStrings)
+        private static IEnumerable<Vector3> ParseColours(IEnumerable<string> colourStrings)
         {
             foreach (var colourString in colourStrings)
             {

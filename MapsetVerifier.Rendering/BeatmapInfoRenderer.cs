@@ -13,7 +13,7 @@ namespace MapsetVerifier.Rendering
                     Div("beatmap-title",
                         Encode(refBeatmap.MetadataSettings.artist) + " - " + Encode(refBeatmap.MetadataSettings.title)),
                     Div("beatmap-author-field",
-                        "Beatmapset by " + UserLink(Encode(refBeatmap.MetadataSettings.creator))),
+                        "Beatmapset by " + UserLink(Encode(refBeatmap.MetadataSettings.creator) ?? string.Empty)),
                     Div("beatmap-options",
                         DivAttr("beatmap-options-folder beatmap-option beatmap-option-filter folder-icon", DataAttr("folder", Encode(beatmapSet.SongPath)) + Tooltip("Open song folder")),
                         refBeatmap.MetadataSettings.beatmapSetId != null

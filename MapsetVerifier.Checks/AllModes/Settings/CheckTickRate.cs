@@ -59,7 +59,7 @@ namespace MapsetVerifier.Checks.AllModes.Settings
         ///     Returns an issue when the given tick rate does not align with any integer value, 1/2, 3/2 or 4/3.
         ///     Rounds the value to the closest 1/100th to avoid precision errors.
         /// </summary>
-        private Issue GetTickRateIssue(float tickRate, string type, Beatmap beatmap)
+        private Issue? GetTickRateIssue(float tickRate, string type, Beatmap beatmap)
         {
             var approxTickRate = Math.Round(tickRate * 1000) / 1000;
 

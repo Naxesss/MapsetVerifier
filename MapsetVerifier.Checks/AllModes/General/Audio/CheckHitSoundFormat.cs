@@ -87,7 +87,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                 var fullPath = Path.Combine(beatmapSet.SongPath, hitSoundFile);
 
                 ChannelType actualFormat = 0;
-                Exception exception = null;
+                Exception? exception = null;
 
                 try
                 {
@@ -123,7 +123,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             }
         }
 
-        private static HitObject GetHitObjectActiveAt(BeatmapSet beatmapSet, string hitSoundFile)
+        private static HitObject? GetHitObjectActiveAt(BeatmapSet beatmapSet, string hitSoundFile)
         {
             foreach (var beatmap in beatmapSet.Beatmaps)
                 foreach (var hitObject in beatmap.HitObjects)

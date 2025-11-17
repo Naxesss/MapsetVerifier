@@ -66,48 +66,48 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
             // .osu
-            foreach (var issue in Common.GetTagOsuIssues(beatmapSet, beatmap => beatmap.Sprites.Count > 0 ? beatmap.Sprites.Select(sprite => sprite.path) : null, GetTemplate, tagFile =>
+            foreach (var issue in Common.GetTagOsuIssues(beatmapSet, beatmap => beatmap.Sprites.Count > 0 ? beatmap.Sprites.Select(sprite => sprite.path) : [], GetTemplate, tagFile =>
                      {
                          // Executes for each non-faulty sprite file used in one of the beatmaps in the set.
                          var issues = new List<Issue>();
 
-                         if (tagFile.file.Properties.PhotoWidth * tagFile.file.Properties.PhotoHeight > 17000000)
-                             issues.Add(new Issue(GetTemplate("Resolution"), null, tagFile.templateArgs[0]));
+                         if (tagFile.File.Properties.PhotoWidth * tagFile.File.Properties.PhotoHeight > 17000000)
+                             issues.Add(new Issue(GetTemplate("Resolution"), null, tagFile.TemplateArgs[0]));
 
                          return issues;
                      }))
                 // Returns issues from both non-faulty and faulty files.
                 yield return issue;
 
-            foreach (var issue in Common.GetTagOsuIssues(beatmapSet, beatmap => beatmap.Animations.Count > 0 ? beatmap.Animations.SelectMany(animation => animation.framePaths) : null, GetTemplate, tagFile =>
+            foreach (var issue in Common.GetTagOsuIssues(beatmapSet, beatmap => beatmap.Animations.Count > 0 ? beatmap.Animations.SelectMany(animation => animation.framePaths) : [], GetTemplate, tagFile =>
                      {
                          var issues = new List<Issue>();
 
-                         if (tagFile.file.Properties.PhotoWidth * tagFile.file.Properties.PhotoHeight > 17000000)
-                             issues.Add(new Issue(GetTemplate("Resolution Animation Frame"), null, tagFile.templateArgs[0]));
+                         if (tagFile.File.Properties.PhotoWidth * tagFile.File.Properties.PhotoHeight > 17000000)
+                             issues.Add(new Issue(GetTemplate("Resolution Animation Frame"), null, tagFile.TemplateArgs[0]));
 
                          return issues;
                      }))
                 yield return issue;
 
             // .osb
-            foreach (var issue in Common.GetTagOsbIssues(beatmapSet, osb => osb.sprites.Count > 0 ? osb.sprites.Select(sprite => sprite.path) : null, GetTemplate, tagFile =>
+            foreach (var issue in Common.GetTagOsbIssues(beatmapSet, osb => osb.sprites.Count > 0 ? osb.sprites.Select(sprite => sprite.path) : [], GetTemplate, tagFile =>
                      {
                          var issues = new List<Issue>();
 
-                         if (tagFile.file.Properties.PhotoWidth * tagFile.file.Properties.PhotoHeight > 17000000)
-                             issues.Add(new Issue(GetTemplate("Resolution"), null, tagFile.templateArgs[0]));
+                         if (tagFile.File.Properties.PhotoWidth * tagFile.File.Properties.PhotoHeight > 17000000)
+                             issues.Add(new Issue(GetTemplate("Resolution"), null, tagFile.TemplateArgs[0]));
 
                          return issues;
                      }))
                 yield return issue;
 
-            foreach (var issue in Common.GetTagOsbIssues(beatmapSet, osb => osb.animations.Count > 0 ? osb.animations.SelectMany(animation => animation.framePaths) : null, GetTemplate, tagFile =>
+            foreach (var issue in Common.GetTagOsbIssues(beatmapSet, osb => osb.animations.Count > 0 ? osb.animations.SelectMany(animation => animation.framePaths) : [], GetTemplate, tagFile =>
                      {
                          var issues = new List<Issue>();
 
-                         if (tagFile.file.Properties.PhotoWidth * tagFile.file.Properties.PhotoHeight > 17000000)
-                             issues.Add(new Issue(GetTemplate("Resolution Animation Frame"), null, tagFile.templateArgs[0]));
+                         if (tagFile.File.Properties.PhotoWidth * tagFile.File.Properties.PhotoHeight > 17000000)
+                             issues.Add(new Issue(GetTemplate("Resolution Animation Frame"), null, tagFile.TemplateArgs[0]));
 
                          return issues;
                      }))

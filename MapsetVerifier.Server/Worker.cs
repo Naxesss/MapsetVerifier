@@ -14,11 +14,11 @@ namespace MapsetVerifier.Server
 {
     public class Worker : BackgroundService
     {
-        private static IHubContext<SignalHub> hub;
+        private static IHubContext<SignalHub> _hub = null!;
 
         public Worker(IHubContext<SignalHub> hub)
         {
-            Worker.hub = hub;
+            _hub = hub;
         }
 
         private static async Task LoadStart(string loadMessage)
@@ -39,7 +39,7 @@ namespace MapsetVerifier.Server
         {
             try
             {
-                await hub.Clients.All.SendAsync("ServerMessage", key, value);
+                await _hub.Clients.All.SendAsync("ServerMessage", key, value);
             }
             catch (Exception exception)
             {

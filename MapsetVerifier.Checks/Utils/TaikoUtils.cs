@@ -73,6 +73,11 @@ public static class TaikoUtils
         public static double GetOffsetFromPrevBarlineMs(Beatmap beatmap, double time)
         {
             var timing = beatmap.GetTimingLine<UninheritedLine>(time);
+            if (timing == null)
+            {
+                return 0;
+            }
+            
             var barlineGap = timing.msPerBeat * timing.Meter;
 
             return (time - timing.Offset) % barlineGap;
@@ -84,10 +89,20 @@ public static class TaikoUtils
         public static double GetOffsetFromNextBarlineMs(Beatmap beatmap, double time)
         {
             var timing = beatmap.GetTimingLine<UninheritedLine>(time);
+            if (timing == null)
+            {
+                return 0;
+            }
+            
             var barlineGap = timing.msPerBeat * timing.Meter;
 
             var offsetFromNextImplicitBarline = ((time - timing.Offset) % barlineGap) - barlineGap;
             var nextPotentialRedLine = beatmap.GetTimingLine<UninheritedLine>(time + offsetFromNextImplicitBarline);
+            if (nextPotentialRedLine == null)
+            {
+                return 0;
+            }
+
             var offsetFromNextPotentialRedline = time - nextPotentialRedLine.Offset;
 
             return TakeLowerAbsValue(offsetFromNextImplicitBarline, offsetFromNextPotentialRedline);

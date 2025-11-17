@@ -21,33 +21,33 @@ namespace MapsetVerifier.Snapshots.Translators
             6 : Animation
         */
 
-        private static List<KeyValuePair<int, DiffInstance>> mDictionary;
+        private static List<KeyValuePair<int, DiffInstance>> _mDictionary = null!;
         public override string Section => "Events";
 
         public override IEnumerable<DiffInstance> Translate(IEnumerable<DiffInstance> diffs)
         {
-            mDictionary = new List<KeyValuePair<int, DiffInstance>>();
+            _mDictionary = new List<KeyValuePair<int, DiffInstance>>();
 
             // Assumes all events begin with an id of their type, see block comment above.
             foreach (var diff in diffs)
-                mDictionary.Add(new KeyValuePair<int, DiffInstance>(diff.Diff[0] - 48, diff));
+                _mDictionary.Add(new KeyValuePair<int, DiffInstance>(diff.Diff[0] - 48, diff));
 
             // Handles all events with id 2 (i.e. breaks).
             foreach (var diff in GetBreakTranslation())
                 yield return diff;
 
             // Handles all other events.
-            foreach (var diff in mDictionary.Select(pair => pair.Value))
+            foreach (var diff in _mDictionary.Select(pair => pair.Value))
                 yield return diff;
         }
 
         private IEnumerable<DiffInstance> GetBreakTranslation()
         {
-            var addedBreaks = mDictionary.Where(pair => pair.Key == 2 && pair.Value.DiffType == DiffType.Added).Select(pair => new Tuple<Break, DiffInstance>(new Break(pair.Value.Diff.Split(',')), pair.Value)).ToList();
+            var addedBreaks = _mDictionary.Where(pair => pair.Key == 2 && pair.Value.DiffType == DiffType.Added).Select(pair => new Tuple<Break, DiffInstance>(new Break(pair.Value.Diff.Split(',')), pair.Value)).ToList();
 
-            var removedBreaks = mDictionary.Where(pair => pair.Key == 2 && pair.Value.DiffType == DiffType.Removed).Select(pair => new Tuple<Break, DiffInstance>(new Break(pair.Value.Diff.Split(',')), pair.Value)).ToList();
+            var removedBreaks = _mDictionary.Where(pair => pair.Key == 2 && pair.Value.DiffType == DiffType.Removed).Select(pair => new Tuple<Break, DiffInstance>(new Break(pair.Value.Diff.Split(',')), pair.Value)).ToList();
 
-            mDictionary.RemoveAll(pair => pair.Key == 2);
+            _mDictionary.RemoveAll(pair => pair.Key == 2);
 
             foreach (var (@break, diffInstance) in addedBreaks)
             {

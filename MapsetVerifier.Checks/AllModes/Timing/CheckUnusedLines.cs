@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using MapsetVerifier.Framework.Objects;
@@ -91,8 +91,8 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     continue;
 
                 // Can't do lines[i - 1] since that could give a green line on the same offset, which we don't want.
-                var previousLine = beatmap.GetTimingLine(currentLine.Offset - 1);
-                var previousUninheritedLine = beatmap.GetTimingLine<UninheritedLine>(currentLine.Offset - 1);
+                var previousLine = beatmap.GetTimingLine(currentLine.Offset - 1)!;
+                var previousUninheritedLine = beatmap.GetTimingLine<UninheritedLine>(currentLine.Offset - 1)!;
 
                 if (!DownbeatsAlign(currentLine, previousUninheritedLine))
                     continue;
@@ -112,7 +112,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         continue;
                 }
 
-                var changesNCCymbals = !NightcoreCymbalsAlign(currentLine, previousUninheritedLine);
+                var changesNightCoreCymbals = !NightcoreCymbalsAlign(currentLine, previousUninheritedLine);
 
                 var notImmediatelyObvious = new List<string>();
                 if (omittingBarline) notImmediatelyObvious.Add("omits the first barline");
@@ -120,7 +120,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                 if (correctingBarline)
                     notImmediatelyObvious.Add($"corrects the omitted barline at {Timestamp.Get(previousUninheritedLine.Offset)}");
 
-                if (changesNCCymbals) notImmediatelyObvious.Add("resets nightcore mod cymbals");
+                if (changesNightCoreCymbals) notImmediatelyObvious.Add("resets nightcore mod cymbals");
                 var notImmediatelyObviousStr = string.Join(" and ", notImmediatelyObvious);
 
                 if (!IsLineUsed(beatmap, currentLine, previousLine))
@@ -160,10 +160,10 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                 // previous, but just doesn't apply to anything.
                 var changesDesc = "";
 
-                if (!UsesSV(beatmap, currentLine, previousLine) && !currentLine.SvMult.AlmostEqual(previousLine.SvMult))
+                if (!UsesSV(beatmap, currentLine, previousLine))
                     changesDesc += "SV";
 
-                if (!UsesSamples(beatmap, currentLine, previousLine) && SamplesDiffer(currentLine, previousLine))
+                if (!UsesSamples(beatmap, currentLine, previousLine))
                     changesDesc += (changesDesc.Length > 0 ? " and " : "") + "sample settings";
 
                 changesDesc += changesDesc.Length > 0 ? ", but affects nothing" : "nothing";
@@ -252,7 +252,14 @@ namespace MapsetVerifier.Checks.AllModes.Timing
         private static bool SectionContainsObject<T>(Beatmap beatmap, TimingLine line) where T : HitObject
         {
             var nextLine = line.Next(true);
-            var nextSectionEnd = nextLine?.Offset ?? beatmap.GetPlayTime();
+
+            // If this is the final timing section
+            if (nextLine == null)
+            {
+                return beatmap.GetNextHitObject<T>(line.Offset) != null;
+            }
+            
+            var nextSectionEnd = nextLine.Offset;
             var objectTimeBeforeEnd = beatmap.GetPrevHitObject<T>(nextSectionEnd)?.time ?? 0;
 
             return objectTimeBeforeEnd >= line.Offset;

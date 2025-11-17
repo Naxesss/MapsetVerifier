@@ -190,6 +190,8 @@ namespace MapsetVerifier.Checks.Taiko.Compose
 
             // convert maximal gap from # beats to milliseconds
             var timing = beatmap.GetTimingLine<UninheritedLine>(current.time);
+            if (timing == null) return false;
+            
             var maximalGapMs = maximalGapBeats[diff] * timing.GetNormalizedMsPerBeat();
 
             if (current.GetPatternSpacingMs() <= maximalGapMs + Common.MS_EPSILON)

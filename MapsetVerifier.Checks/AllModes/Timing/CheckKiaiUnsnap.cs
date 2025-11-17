@@ -60,8 +60,14 @@ namespace MapsetVerifier.Checks.AllModes.Timing
         {
             foreach (var line in beatmap.TimingLines.Where(line => line.Kiai))
             {
-                // If we're inside of kiai, a new line with kiai won't cause kiai to start again.
-                if (beatmap.GetTimingLine(line.Offset - 1).Kiai)
+                var previousLine = beatmap.GetTimingLine(line.Offset - 1);
+                if (previousLine == null)
+                {
+                    break;
+                }
+                
+                // If we're inside a kiai, a new line with kiai won't cause kiai to start again.
+                if (previousLine.Kiai)
                     continue;
 
                 var unsnap = beatmap.GetPracticalUnsnap(line.Offset);

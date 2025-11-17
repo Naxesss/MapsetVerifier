@@ -22,11 +22,11 @@ namespace MapsetVerifier.Snapshots.Translators
 
             foreach (var diff in diffs)
             {
-                HitObject hitObject = null;
+                HitObject? hitObject = null;
 
                 try
                 {
-                    hitObject = new HitObject(diff.Diff.Split(','), null);
+                    hitObject = new HitObject(diff.Diff.Split(','), null!);
                 }
                 catch
                 {
@@ -159,8 +159,8 @@ namespace MapsetVerifier.Snapshots.Translators
 
             if (type == "Slider")
             {
-                var addedSlider = new Slider(addedObject.code.Split(','), null);
-                var removedSlider = new Slider(removedObject.code.Split(','), null);
+                var addedSlider = new Slider(addedObject.code.Split(','), null!);
+                var removedSlider = new Slider(removedObject.code.Split(','), null!);
 
                 if (addedSlider.CurveType != removedSlider.CurveType)
                     yield return "Curve type changed from " + removedSlider.CurveType + " to " + addedSlider.CurveType + ".";
@@ -214,10 +214,10 @@ namespace MapsetVerifier.Snapshots.Translators
                             foreach (HitObject.HitSounds hitSound in Enum.GetValues(typeof(HitObject.HitSounds)))
                             {
                                 if (addedSlider.ReverseHitSounds.ElementAtOrDefault(i).HasFlag(hitSound) && !removedSlider.ReverseHitSounds.ElementAtOrDefault(i).HasFlag(hitSound))
-                                    yield return "Added " + Enum.GetName(typeof(HitObject.HitSounds), hitSound).ToLower() + " to reverse #" + (i + 1) + ".";
+                                    yield return "Added " + Enum.GetName(typeof(HitObject.HitSounds), hitSound)?.ToLower() + " to reverse #" + (i + 1) + ".";
 
                                 if (!addedSlider.ReverseHitSounds.ElementAtOrDefault(i).HasFlag(hitSound) && removedSlider.ReverseHitSounds.ElementAtOrDefault(i).HasFlag(hitSound))
-                                    yield return "Removed " + Enum.GetName(typeof(HitObject.HitSounds), hitSound).ToLower() + " from reverse #" + (i + 1) + ".";
+                                    yield return "Removed " + Enum.GetName(typeof(HitObject.HitSounds), hitSound)?.ToLower() + " from reverse #" + (i + 1) + ".";
                             }
                 }
 
@@ -225,10 +225,10 @@ namespace MapsetVerifier.Snapshots.Translators
                     foreach (HitObject.HitSounds hitSound in Enum.GetValues(typeof(HitObject.HitSounds)))
                     {
                         if (addedSlider.StartHitSound.HasFlag(hitSound) && !removedSlider.StartHitSound.HasFlag(hitSound))
-                            yield return "Added " + Enum.GetName(typeof(HitObject.HitSounds), hitSound).ToLower() + " to head.";
+                            yield return "Added " + Enum.GetName(typeof(HitObject.HitSounds), hitSound)?.ToLower() + " to head.";
 
                         if (!addedSlider.StartHitSound.HasFlag(hitSound) && removedSlider.StartHitSound.HasFlag(hitSound))
-                            yield return "Removed " + Enum.GetName(typeof(HitObject.HitSounds), hitSound).ToLower() + " from head.";
+                            yield return "Removed " + Enum.GetName(typeof(HitObject.HitSounds), hitSound)?.ToLower() + " from head.";
                     }
 
                 if (addedSlider.StartSampleset != removedSlider.StartSampleset)
@@ -240,8 +240,8 @@ namespace MapsetVerifier.Snapshots.Translators
 
             if (type == "Spinner")
             {
-                var addedSpinner = new Spinner(addedObject.code.Split(','), null);
-                var removedSpinner = new Spinner(removedObject.code.Split(','), null);
+                var addedSpinner = new Spinner(addedObject.code.Split(','), null!);
+                var removedSpinner = new Spinner(removedObject.code.Split(','), null!);
 
                 if (addedSpinner.endTime.AlmostEqual(removedSpinner.endTime))
                     yield return "End time changed from " + removedSpinner.endTime + " to " + addedSpinner.endTime + ".";
@@ -249,8 +249,8 @@ namespace MapsetVerifier.Snapshots.Translators
 
             if (type == "Hold note")
             {
-                var addedNote = new HoldNote(addedObject.code.Split(','), null);
-                var removedNote = new HoldNote(removedObject.code.Split(','), null);
+                var addedNote = new HoldNote(addedObject.code.Split(','), null!);
+                var removedNote = new HoldNote(removedObject.code.Split(','), null!);
 
                 if (addedNote.endTime.AlmostEqual(removedNote.endTime))
                     yield return "End time changed from " + removedNote.endTime + " to " + addedNote.endTime + ".";

@@ -61,12 +61,18 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
         ///     Returns any text before the last apostrophe with a neighbouring "s".
         ///     E.g. "Naxess' & Greaper" when inputting "Naxess' & Greaper's Nor'mal".
         /// </summary>
-        private string GetPossessor(string text)
+        private string? GetPossessor(string text)
         {
-            var match = possessorRegex.Match(text);
-
-            if (match == null)
+            Match match;
+            
+            try
+            {
+                match = possessorRegex.Match(text);
+            }
+            catch (Exception)
+            {
                 return null;
+            }
 
             // e.g. "Alphabet" in "Alphabet's Normal"
             var possessor = match.Groups[1].Value;
@@ -84,8 +90,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
         /// </summary>
         private IEnumerable<string> GetAllPossessors(string text)
         {
-            foreach (var possessor in text.Split(collabChars))
-                yield return GetPossessor(possessor);
+            return text.Split(collabChars)
+                .Select(GetPossessor)
+                .OfType<string>();
         }
     }
 }

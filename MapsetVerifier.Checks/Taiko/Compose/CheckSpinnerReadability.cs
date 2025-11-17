@@ -70,18 +70,23 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                 var next = hitObjects.SafeGetIndex(i + 1);
 
                 var timing = beatmap.GetTimingLine<UninheritedLine>(current.time);
+                if (timing == null)
+                {
+                    continue;
+                }
+                
                 var normalizedMsPerBeat = timing.GetNormalizedMsPerBeat();
 
                 // for each diff: double minimalGap = ?;
                 var minimalGap = new Dictionary<Beatmap.Difficulty, double>();
                 minimalGap.AddRange(difficulties.Take(3), normalizedMsPerBeat / 2);
                 minimalGap.AddRange(difficulties.Skip(3).Take(3), normalizedMsPerBeat / 4);
-
-                if (!(next is Spinner))
+                
+                // We only have to check the note before a spinner, not after
+                if (next is not Spinner)
                     continue;
 
-                var currentEndTime = current is Slider ? (current as Slider).EndTime : current.time;
-                // null checking is not required, since if (!(next is Spinner)) is gonna filter everything out anyways
+                var currentEndTime = current is Slider slider ? slider.EndTime : current.time;
                 var gap = next.time - currentEndTime;
 
                 foreach (var diff in difficulties)

@@ -28,12 +28,12 @@ namespace MapsetVerifier.Rendering
                 return metadata.Modes.Contains(Beatmap.Mode.Standard) && metadata.Modes.Contains(Beatmap.Mode.Taiko) && metadata.Modes.Contains(Beatmap.Mode.Catch) && metadata.Modes.Contains(Beatmap.Mode.Mania);
             }).ToArray();
 
-            bool hasMode(Check check, Beatmap.Mode mode) => (check.GetMetadata() as BeatmapCheckMetadata)?.Modes.Contains(mode) ?? false;
+            bool HasMode(Check check, Beatmap.Mode mode) => (check.GetMetadata() as BeatmapCheckMetadata)?.Modes.Contains(mode) ?? false;
 
-            var standardChecks = checks.Where(check => hasMode(check, Beatmap.Mode.Standard)).Except(allModeChecks).Except(generalChecks);
-            var catchChecks = checks.Where(check => hasMode(check, Beatmap.Mode.Taiko)).Except(allModeChecks).Except(generalChecks);
-            var taikoChecks = checks.Where(check => hasMode(check, Beatmap.Mode.Catch)).Except(allModeChecks).Except(generalChecks);
-            var maniaChecks = checks.Where(check => hasMode(check, Beatmap.Mode.Mania)).Except(allModeChecks).Except(generalChecks);
+            var standardChecks = checks.Where(check => HasMode(check, Beatmap.Mode.Standard)).Except(allModeChecks).Except(generalChecks);
+            var catchChecks = checks.Where(check => HasMode(check, Beatmap.Mode.Taiko)).Except(allModeChecks).Except(generalChecks);
+            var taikoChecks = checks.Where(check => HasMode(check, Beatmap.Mode.Catch)).Except(allModeChecks).Except(generalChecks);
+            var maniaChecks = checks.Where(check => HasMode(check, Beatmap.Mode.Mania)).Except(allModeChecks).Except(generalChecks);
 
             return
                 RenderModeCategory("General", generalChecks) +
@@ -62,10 +62,10 @@ namespace MapsetVerifier.Rendering
         public static string RenderCheckBox(Check check) =>
             RenderDocBox(
                 icon: "check",
-                title: Encode(check.GetMetadata().Message),
-                subtitle: Encode(check.GetMetadata().GetMode() + " > " + check.GetMetadata().Category),
+                title: Encode(check.GetMetadata().Message)!,
+                subtitle: Encode(check.GetMetadata().GetMode() + " > " + check.GetMetadata().Category)!,
                 issueOverview: string.Concat(check.GetTemplates().Select(pair => pair.Value).Select(template => Div("card-detail-icon " + GetIcon(template.Level) + "-icon"))),
-                author: Encode(check.GetMetadata().Author));
+                author: Encode(check.GetMetadata().Author)!);
 
         private static string RenderIcons() =>
             Div("doc-mode-title",
@@ -81,7 +81,7 @@ namespace MapsetVerifier.Rendering
                 RenderIconsDocBox("plus", "Addition", "Snapshots", "One or more lines were added."),
                 RenderIconsDocBox("gear-blue", "Change", "Snapshots", "One or more lines were changed."));
 
-        private static string RenderDocBox(string icon, string title, string subtitle, string issueOverview = null, string author = null) =>
+        private static string RenderDocBox(string icon, string title, string subtitle, string issueOverview, string author) =>
             Div("doc-box-container",
                 Div("doc-box-left",
                     Div("doc-box-icon-container",

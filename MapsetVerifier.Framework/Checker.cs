@@ -165,6 +165,12 @@ namespace MapsetVerifier.Framework
                 }
 
                 var assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                if (assemblyDir == null)
+                {
+                    Console.WriteLine($"Could not find executing assembly directory {assemblyDir}");
+                    return;
+                }
+                
                 var checksDllPath = Path.Combine(assemblyDir, "MapsetVerifier.Checks.dll");
 
                 if (File.Exists(checksDllPath))

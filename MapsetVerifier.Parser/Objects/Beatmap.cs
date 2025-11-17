@@ -1,16 +1,16 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Numerics;
 using System.Text.RegularExpressions;
+using MapsetVerifier.Parser.Difficulty;
 using MapsetVerifier.Parser.Objects.Events;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Objects.HitObjects.Catch;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Settings;
-using MapsetVerifier.Parser.StarRating;
-using MapsetVerifier.Parser.StarRating.Osu;
-using MapsetVerifier.Parser.StarRating.Taiko;
 using MapsetVerifier.Parser.Statics;
 using MathNet.Numerics;
+using osu.Game.Rulesets.Difficulty;
+using osu.Game.Rulesets.Difficulty.Skills;
 
 namespace MapsetVerifier.Parser.Objects
 {
@@ -102,6 +102,7 @@ namespace MapsetVerifier.Parser.Objects
         // Star Rating
         public double StarRating { get; }
         public DifficultyAttributes? DifficultyAttributes { get; }
+        public Skill[] Skills { get; set; } = null!;
 
         // Settings
         public GeneralSettings GeneralSettings { get; }
@@ -121,7 +122,7 @@ namespace MapsetVerifier.Parser.Objects
         public List<HitObject> HitObjects { get; }
         public List<TimingLine> TimingLines { get; }
 
-        public Beatmap(string code, string songPath, string mapPath, double? starRating = null)
+        public Beatmap(string code, string songPath, string mapPath)
         {
             Code = code;
             SongPath = songPath;
@@ -144,25 +145,13 @@ namespace MapsetVerifier.Parser.Objects
             Animations = GetEvents(lines, ["Animation", "6"], args => new Animation(args));
 
             TimingLines = GetTimingLines(lines);
-            HitObjects = GetHitobjects(lines);
+            HitObjects = GetHitObjects(lines);
 
             if (GeneralSettings.mode == Mode.Standard)
                 // Stacking is standard-only.
                 ApplyStacking();
 
-            if (starRating != null)
-            {
-                StarRating = starRating.Value;
-
-                return;
-            }
-
-            var attributes = GeneralSettings.mode switch
-            {
-                Mode.Standard => new OsuDifficultyCalculator(this).Calculate(),
-                Mode.Taiko => new TaikoDifficultyCalculator(this).Calculate(),
-                _ => null
-            };
+            var attributes = new LocalDifficultyCalculator().CalculateAttributes(this);
 
             DifficultyAttributes = attributes;
 
@@ -392,11 +381,11 @@ namespace MapsetVerifier.Parser.Objects
         ///     Returns the timing line currently in effect at the given time, if any, otherwise the first, O(logn).
         ///     Optionally with a 5 ms backward leniency for hit sounding, or 2 ms for slider ticks.
         /// </summary>
-        public TimingLine GetTimingLine(double time, bool hitSoundLeniency = false, bool isLeniencyForSliderTick = false) =>
+        public TimingLine? GetTimingLine(double time, bool hitSoundLeniency = false, bool isLeniencyForSliderTick = false) =>
             GetTimingLine<TimingLine>(time, hitSoundLeniency, isLeniencyForSliderTick);
 
         /// <summary> Same as <see cref="GetTimingLine" /> except only considers objects of a given type. </summary>
-        public T GetTimingLine<T>(double time, bool hitSoundLeniency = false, bool isLeniencyForSliderTick = false) where T : TimingLine
+        public T? GetTimingLine<T>(double time, bool hitSoundLeniency = false, bool isLeniencyForSliderTick = false) where T : TimingLine
         {
             // Cache the results per generic type; timing line and hit object lists are immutable,
             // meaning we always expect the same result from the same input.
@@ -415,10 +404,10 @@ namespace MapsetVerifier.Parser.Objects
         }
 
         /// <summary> Returns the next timing line, if any, otherwise null, O(logn). </summary>
-        public TimingLine GetNextTimingLine(double time) => GetNextTimingLine<TimingLine>(time);
+        public TimingLine? GetNextTimingLine(double time) => GetNextTimingLine<TimingLine>(time);
 
         /// <summary> Same as <see cref="GetNextTimingLine" /> except only considers objects of a given type. </summary>
-        public T GetNextTimingLine<T>(double time) where T : TimingLine
+        public T? GetNextTimingLine<T>(double time) where T : TimingLine
         {
             var list = GetOrAdd(typeof(T), () => TimingLines.OfType<T>().ToList());
 
@@ -439,10 +428,10 @@ namespace MapsetVerifier.Parser.Objects
         }
 
         /// <summary> Returns the current or previous hit object if any, otherwise the first, O(logn). </summary>
-        public HitObject GetHitObject(double time) => GetHitObject<HitObject>(time);
+        public HitObject? GetHitObject(double time) => GetHitObject<HitObject>(time);
 
         /// <summary> Same as <see cref="GetHitObject" /> except only considers objects of a given type. </summary>
-        public T GetHitObject<T>(double time) where T : HitObject
+        public T? GetHitObject<T>(double time) where T : HitObject
         {
             var list = GetOrAdd(typeof(T), () => HitObjects.OfType<T>().ToList());
 
@@ -458,35 +447,36 @@ namespace MapsetVerifier.Parser.Objects
             return list[index];
         }
 
-        /// <summary> Returns the previous hit object if any, otherwise the first, O(logn). </summary>
-        public HitObject GetPrevHitObject(double time) => GetPrevHitObject<HitObject>(time);
+        /// <summary> Returns the previous hit object if any, otherwise null, O(logn). </summary>
+        public HitObject? GetPrevHitObject(double time) => GetPrevHitObject<HitObject>(time);
 
         /// <summary> Same as <see cref="GetPrevHitObject" /> except only considers objects of a given type. </summary>
-        public T GetPrevHitObject<T>(double time) where T : HitObject
+        public T? GetPrevHitObject<T>(double time) where T : HitObject
         {
             var list = GetOrAdd(typeof(T), () => HitObjects.OfType<T>().ToList());
 
             if (list.Count == 0)
                 return null;
 
+            // Get the index of object starting in front of the specified time.
             var index = BinaryTimeSearch(list, obj => obj.time, time);
 
-            if (index - 1 < 0)
-                // Before the first object, so return the first one.
-                return list[0];
-
             if (list[index].GetEndTime() < time)
-                // Directly in front of the previous object.
+                // Object end doesn't overlap specified time, so we can return it.
                 return list[index];
+            
+            if (index - 1 < 0)
+                // Object end is overlapping given time, and there is no object before that. So there is no prev.
+                return null;
 
             return list[index - 1];
         }
 
         /// <summary> Returns the next hit object after the current, if any, otherwise null, O(logn). </summary>
-        public HitObject GetNextHitObject(double time) => GetNextHitObject<HitObject>(time);
+        public HitObject? GetNextHitObject(double time) => GetNextHitObject<HitObject>(time);
 
         /// <summary> Same as <see cref="GetNextHitObject" /> except only considers objects of a given type. </summary>
-        public T GetNextHitObject<T>(double time) where T : HitObject
+        public T? GetNextHitObject<T>(double time) where T : HitObject
         {
             var list = GetOrAdd(typeof(T), () => HitObjects.OfType<T>().ToList());
 
@@ -699,19 +689,26 @@ namespace MapsetVerifier.Parser.Objects
         /// </summary>
         public double GetCountdownStartBeat()
         {
+            var firstObject = GetHitObject(0);
+            
             // If there are no objects, this does not apply.
-            if (GetHitObject(0) == null)
+            if (firstObject == null)
                 return 0;
 
             // always 6 beats before the first, but the first beat can be cut by having the first beat 5 ms after 0.
             var line = GetTimingLine<UninheritedLine>(0);
+
+            if (line == null)
+            {
+                return 0;
+            }
 
             var firstBeatTime = line.Offset;
 
             while (firstBeatTime - line.msPerBeat > 0)
                 firstBeatTime -= line.msPerBeat;
 
-            var firstObjectTime = GetHitObject(0).time;
+            var firstObjectTime = firstObject.time;
             var firstObjectBeat = Timestamp.Round((firstObjectTime - firstBeatTime) / line.msPerBeat);
 
             // Apparently double does not result in the countdown needing half as much time, but rather closer to 0.45 times as much.
@@ -725,6 +722,10 @@ namespace MapsetVerifier.Parser.Objects
         public double GetOffsetIntoBeat(double time)
         {
             var line = GetTimingLine<UninheritedLine>(time);
+            if (line == null)
+            {
+                throw new Exception($"No uninherited line found at {time}.");
+            }
 
             // gets how many miliseconds into a beat we are
             var msOffset = time - line.Offset;
@@ -782,6 +783,10 @@ namespace MapsetVerifier.Parser.Objects
         public double GetTheoreticalUnsnap(double time, int divisor, UninheritedLine? line = null)
         {
             line ??= GetTimingLine<UninheritedLine>(time);
+            if (line == null)
+            {
+                throw new Exception($"No uninherited line found at {time}.");
+            }
 
             var beatOffset = GetOffsetIntoBeat(time);
             var currentFraction = beatOffset / line.msPerBeat;
@@ -835,9 +840,13 @@ namespace MapsetVerifier.Parser.Objects
             // Adds a combo number for each object before this that isn't a new combo.
             var firstHitObject = HitObjects[0];
 
-            while (hitObject != null)
+            while (true)
             {
                 var prevHitObject = hitObject.Prev();
+                
+                // We reached the start of the beatmap
+                if (prevHitObject == null)
+                    break;
 
                 // The first object in the beatmap is always a new combo.
                 // Spinners and their following objects are also always new comboed.
@@ -856,7 +865,7 @@ namespace MapsetVerifier.Parser.Objects
         public double GetObjectDensity() => HitObjects.Count / GetDrainTime(GeneralSettings.mode);
 
         /// <summary> Returns the full audio file path the beatmap uses if any such file exists, otherwise null. </summary>
-        public string GetAudioFilePath()
+        public string? GetAudioFilePath()
         {
             if (SongPath != null)
             {
@@ -960,9 +969,9 @@ namespace MapsetVerifier.Parser.Objects
             return kiaiToggles;
         }
 
-        private List<HitObject> GetHitobjects(string[] lines)
+        private List<HitObject> GetHitObjects(string[] lines)
         {
-            // find the [Hitobjects] section and parse each hitobject until empty line or end of file
+            // find the [HitObjects] section and parse each hitobject until empty line or end of file
             var hitObjects = ParserStatic.ParseSection(lines, "HitObjects", line =>
             {
                 var args = line.Split(',');

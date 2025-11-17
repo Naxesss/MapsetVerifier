@@ -69,10 +69,10 @@ namespace MapsetVerifier.Checks.AllModes.Events
 
                 // Checking from start of break forwards and end of break backwards ensures nothing is in between.
                 if (@break.time - beatmap.GetHitObject(@break.time)?.time < minStart)
-                    diffStart = minStart - (@break.time - beatmap.GetHitObject(@break.time).time);
+                    diffStart = minStart - (@break.time - beatmap.GetHitObject(@break.time)!.time);
 
                 if (beatmap.GetNextHitObject(@break.time)?.time - @break.endTime < minEnd)
-                    diffEnd = minEnd - (beatmap.GetNextHitObject(@break.time).time - @break.endTime);
+                    diffEnd = minEnd - (beatmap.GetNextHitObject(@break.time)!.time - @break.endTime);
 
                 if (diffStart > leniency || diffEnd > leniency)
                 {

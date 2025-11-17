@@ -42,10 +42,9 @@ namespace MapsetVerifier.Framework.Objects.Metadata
             if (Modes.Length == 0)
                 return "No Modes";
 
-            var modes = new List<string>();
-
-            foreach (var mode in Modes)
-                modes.Add(Enum.GetName(typeof(Beatmap.Mode), mode));
+            var modes = Modes.Select(Enum.GetName)
+                .OfType<string>()
+                .ToList();
 
             return string.Join(" ", modes);
         }

@@ -30,6 +30,10 @@ namespace MapsetVerifier.Snapshots
             {
                 var beatmapSetId = beatmap.MetadataSettings.beatmapSetId.ToString();
                 var beatmapId = beatmap.MetadataSettings.beatmapId.ToString();
+                
+                // If either is null, we can't save snapshots
+                if (beatmapSetId == null || beatmapId == null)
+                    continue;
 
                 foreach (var otherBeatmap in beatmapSet.Beatmaps)
                     if (otherBeatmap.MetadataSettings.beatmapId == beatmap.MetadataSettings.beatmapId && beatmap.MapPath != null && otherBeatmap.MapPath != null)
@@ -120,8 +124,12 @@ namespace MapsetVerifier.Snapshots
         public static IEnumerable<Snapshot> GetSnapshots(Beatmap beatmap) =>
             GetSnapshots(beatmap.MetadataSettings.beatmapSetId.ToString(), beatmap.MetadataSettings.beatmapId.ToString());
 
-        public static IEnumerable<Snapshot> GetSnapshots(string beatmapSetId, string beatmapId)
+        public static IEnumerable<Snapshot> GetSnapshots(string? beatmapSetId, string? beatmapId)
         {
+            // If either is null, we can't get snapshots
+            if (beatmapSetId == null || beatmapId == null)
+                yield break;
+            
             var saveDirectory = Path.Combine(RelativeDirectory, "snapshots", beatmapSetId, beatmapId);
 
             if (!Directory.Exists(saveDirectory)) yield break;
@@ -221,9 +229,9 @@ namespace MapsetVerifier.Snapshots
             }
         }
 
-        private static DiffInstance GetTranslatedSettingDiff(string sectionName, Func<string, string> translateFunc, Setting setting, DiffInstance diff, Setting? otherSetting = null, DiffInstance otherDiff = null)
+        private static DiffInstance GetTranslatedSettingDiff(string sectionName, Func<string, string> translateFunc, Setting setting, DiffInstance diff, Setting? otherSetting = null, DiffInstance? otherDiff = null)
         {
-            var key = translateFunc != null ? translateFunc(setting.key) : setting.key;
+            var key = translateFunc(setting.key);
 
             if (otherSetting != null && otherDiff != null)
                 return new DiffInstance($"{key} was changed from \"{otherSetting.GetValueOrDefault().value}\" to \"{setting.value}\".", sectionName, DiffType.Changed, new List<string>(), diff.SnapshotCreationDate);

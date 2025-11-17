@@ -67,11 +67,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             var audioPath = beatmapSet.GetAudioFilePath();
             var audioName = beatmapSet.GetAudioFileName();
 
-            if (audioPath == null)
+            if (audioPath == null || audioName == null)
                 yield break;
 
             ChannelType actualFormat = 0;
-            Exception exception = null;
+            Exception? exception = null;
 
             try
             {
