@@ -153,7 +153,7 @@ namespace MapsetVerifier.Checks.Catch.Compose
                     GetTemplate("HigherConsecutive"),
                     beatmap,
                     CatchExtensions.GetTimestamps(objects),
-                    ThresholdRainBasicSlider,
+                    ThresholdRainHigher,
                     count
                 ).ForDifficulties(Beatmap.Difficulty.Insane);
             }
