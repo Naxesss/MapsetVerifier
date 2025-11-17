@@ -7,7 +7,7 @@ using MapsetVerifier.Parser.Objects.HitObjects.Catch;
 namespace MapsetVerifier.Checks.Catch.Compose.Platter;
 
 [Check]
-public class CheckHigherSnappedHyperdash : BeatmapCheck
+public class CheckPlatterHigherSnappedHyperdash : BeatmapCheck
 {
     public override CheckMetadata GetMetadata() => new BeatmapCheckMetadata
     {
