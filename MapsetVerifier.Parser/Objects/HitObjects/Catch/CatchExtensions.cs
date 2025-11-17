@@ -134,4 +134,22 @@ public static class CatchExtensions
                 return false;
         }
     }
+    
+    private const double SnapMargin = 4.0;
+    
+    /// <summary>
+    /// Check if the current object is the same snap as the other object.
+    /// There is a snap margin of 4 ms since objects can be at most 2 ms off before they are detected by MV.
+    /// </summary>
+    /// <returns>True if the current object and the other object are the same snap</returns>
+    public static bool IsSameSnap(ICatchHitObject a, ICatchHitObject b, ICatchHitObject c)
+    {
+        var timeToB = b.Time - a.Time;
+        var timeToC = c.Time - b.Time;
+        
+        var snapMin = timeToB - SnapMargin;
+        var snapMax = timeToB + SnapMargin;
+
+        return timeToC >= snapMin && timeToC <= snapMax;
+    }
 }
