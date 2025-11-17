@@ -89,43 +89,43 @@ namespace MapsetVerifier.Rendering
         private static string RenderMetadata(BeatmapSet beatmapSet) =>
             // If the romanised field is always the same as the unicode field, we don't need to display them separately.
             RenderContainer("Metadata",
-                beatmapSet.Beatmaps.Any(beatmap => beatmap.MetadataSettings.artist?.ToString() != beatmap.MetadataSettings.artistUnicode?.ToString())
+                beatmapSet.Beatmaps.Any(beatmap => beatmap.MetadataSettings.artist.ToString() != beatmap.MetadataSettings.artistUnicode.ToString())
                 ? RenderField("Artist",
                     RenderBeatmapContent(beatmapSet,
                         "Romanised", 
-                        beatmap => beatmap.MetadataSettings.artist?.ToString()) +
+                        beatmap => beatmap.MetadataSettings.artist.ToString()) +
                     RenderBeatmapContent(beatmapSet,
                         "Unicode", 
-                        beatmap => beatmap.MetadataSettings.artistUnicode?.ToString()))
+                        beatmap => beatmap.MetadataSettings.artistUnicode.ToString()))
                 : RenderBeatmapContent(beatmapSet, 
                     "Artist", 
-                    beatmap => beatmap.MetadataSettings.artist?.ToString()),
-                beatmapSet.Beatmaps.Any(beatmap => beatmap.MetadataSettings.title?.ToString() != beatmap.MetadataSettings.titleUnicode?.ToString())
+                    beatmap => beatmap.MetadataSettings.artist.ToString()),
+                beatmapSet.Beatmaps.Any(beatmap => beatmap.MetadataSettings.title.ToString() != beatmap.MetadataSettings.titleUnicode.ToString())
                     ? RenderField("Title",
                         RenderBeatmapContent(beatmapSet, 
                             "Romanised", 
-                            beatmap => beatmap.MetadataSettings.title?.ToString()) +
+                            beatmap => beatmap.MetadataSettings.title.ToString()) +
                         RenderBeatmapContent(beatmapSet, 
                             "Unicode", 
-                            beatmap => beatmap.MetadataSettings.titleUnicode?.ToString()))
+                            beatmap => beatmap.MetadataSettings.titleUnicode.ToString()))
                     : RenderBeatmapContent(beatmapSet, 
                         "Title", 
-                        beatmap => beatmap.MetadataSettings.title?.ToString()),
+                        beatmap => beatmap.MetadataSettings.title.ToString()),
                 RenderBeatmapContent(beatmapSet, 
                     "Creator", 
-                    beatmap => beatmap.MetadataSettings.creator?.ToString()),
+                    beatmap => beatmap.MetadataSettings.creator.ToString()),
                 RenderBeatmapContent(beatmapSet, 
                     "Source", 
-                    beatmap => beatmap.MetadataSettings.source?.ToString()),
+                    beatmap => beatmap.MetadataSettings.source.ToString()),
                 RenderBeatmapContent(beatmapSet, 
                     "Tags", 
-                    beatmap => beatmap.MetadataSettings.tags?.ToString()));
+                    beatmap => beatmap.MetadataSettings.tags.ToString()));
 
         private static string RenderGeneralSettings(BeatmapSet beatmapSet) =>
             RenderContainer("General Settings",
                 RenderBeatmapContent(beatmapSet, 
                     "Audio Filename", 
-                    beatmap => beatmap.GeneralSettings.audioFileName?.ToString()),
+                    beatmap => beatmap.GeneralSettings.audioFileName.ToString()),
                 RenderBeatmapContent(beatmapSet, 
                     "Audio Lead-in", 
                     beatmap => beatmap.GeneralSettings.audioLeadIn.ToString(CultureInfo.InvariantCulture)),
@@ -220,7 +220,7 @@ namespace MapsetVerifier.Rendering
                         : ""),
                 RenderBeatmapContent(beatmapSet,
                     "Skin Preference",
-                    beatmap => beatmap.GeneralSettings.skinPreference?.ToString())
+                    beatmap => beatmap.GeneralSettings.skinPreference.ToString())
 
                 // Special N+1 Style is apparently not used by any mode, was meant for mania but was later overriden by user settings.
             );
@@ -397,7 +397,7 @@ namespace MapsetVerifier.Rendering
 
         private static string RenderResources(BeatmapSet beatmapSet)
         {
-            string RenderFloat(List<string> files, Func<string, string> func)
+            string RenderFloat(List<string> files, Func<string, string?> func)
             {
                 var content = string.Join("<br>", files.Select(file =>
                 {
@@ -440,7 +440,7 @@ namespace MapsetVerifier.Rendering
                             {
                                 var fullPath = Path.Combine(beatmapSet.SongPath, pair.Key);
 
-                                return Encode(RenderFileSize(fullPath));
+                                return Encode(RenderFileSize(fullPath))!;
                             }, "Could not get hit sound file size")))) +
                           Div("overview-float", 
                             string.Join("<br>", hsUsedCount.Select(pair => Try(() =>
@@ -455,24 +455,26 @@ namespace MapsetVerifier.Rendering
                             {
                                 var fullPath = Path.Combine(beatmapSet.SongPath, pair.Key);
 
-                                return Encode(AudioBASS.EnumToString(AudioBASS.GetFormat(fullPath)));
+                                return Encode(AudioBASS.EnumToString(AudioBASS.GetFormat(fullPath)))!;
                             }, "Could not get hit sound file path")))) +
                           Div("overview-float",
                             string.Join("<br>", hsUsedCount.Select(pair => "× " + pair.Value)))
                         : ""),
                 RenderBeatmapContent(beatmapSet, "Background File(s)", beatmap =>
                 {
-                    if (!beatmap.Backgrounds.Any())
+                    var firstBackgroundWithPath = beatmap.Backgrounds.Find(background => background.path != null);
+                    if (firstBackgroundWithPath != null)
                         return "";
 
-                    var fullPath = Path.Combine(beatmap.SongPath, beatmap.Backgrounds.First().path);
+                    var backgroundPath = firstBackgroundWithPath?.path!;
+                    var fullPath = Path.Combine(beatmap.SongPath, backgroundPath);
 
                     if (!File.Exists(fullPath))
                         return "";
 
                     return
                         Div("overview-float",
-                            Try(() => Encode(beatmap.Backgrounds.First().path),
+                            Try(() => Encode(backgroundPath),
                                 "Could not get background file path")) +
                         Div("overview-float",
                             Try(() => Encode(RenderFileSize(fullPath)),
@@ -488,10 +490,15 @@ namespace MapsetVerifier.Rendering
                 }, false),
                 RenderBeatmapContent(beatmapSet, "Video File(s)", beatmap =>
                 {
-                    if (!beatmap.Videos.Any() && !(beatmapSet.Osb?.videos.Any() ?? false))
+                    if (beatmap.Videos.Count == 0 && !(beatmapSet.Osb != null && beatmapSet.Osb.videos.Count != 0))
                         return "";
 
-                    var fullPath = Path.Combine(beatmap.SongPath, beatmap.Videos.First().path);
+                    var firstVideoWithPath = beatmap.Videos.Find(background => background.path != null);
+                    if (firstVideoWithPath != null)
+                        return "";
+                    
+                    var videoPath = firstVideoWithPath?.path!;
+                    var fullPath = Path.Combine(beatmap.SongPath, videoPath);
 
                     if (!File.Exists(fullPath))
                         return "";
@@ -508,7 +515,7 @@ namespace MapsetVerifier.Rendering
                                 {
                                     var tagFile = new FileAbstraction(fullPath).GetTagFile();
 
-                                    return FormatTimestamps(Encode(Timestamp.Get(tagFile.Properties.Duration.TotalMilliseconds)));
+                                    return FormatTimestamps(Encode(Timestamp.Get(tagFile.Properties.Duration.TotalMilliseconds))!);
                                 },
                                 "Could not get video duration")) +
                         Div("overview-float",
@@ -536,7 +543,7 @@ namespace MapsetVerifier.Rendering
                             Try(() => Encode(RenderFileSize(path)),
                                 "Could not get audio file size")) +
                         Div("overview-float",
-                            Try(() => FormatTimestamps(Encode(Timestamp.Get(AudioBASS.GetDuration(path)))),
+                            Try(() => FormatTimestamps(Encode(Timestamp.Get(AudioBASS.GetDuration(path)))!),
                                 "Could not get audio duration")) +
                         Div("overview-float",
                             Try(() => Encode(AudioBASS.EnumToString(AudioBASS.GetFormat(path))),
@@ -554,18 +561,18 @@ namespace MapsetVerifier.Rendering
                             $"average {Math.Round(AudioBASS.GetBitrate(path))} kbps");
                 }, false),
                 RenderField("Has .osb",
-                    Encode((beatmapSet.Osb?.IsUsed() ?? false).ToString())),
+                    Encode((beatmapSet.Osb?.IsUsed() ?? false).ToString())!),
                 RenderBeatmapContent(beatmapSet, "Has .osu Specific Storyboard", beatmap =>
                     beatmap.HasDifficultySpecificStoryboard().ToString()),
                 RenderBeatmapContent(beatmapSet, "Song Folder Size", beatmap =>
                     RenderDirectorySize(beatmap.SongPath)));
         }
 
-        private static string Try(Func<string> func, string noteIfError = "")
+        private static string Try(Func<string?> func, string noteIfError = "")
         {
             try
             {
-                return func();
+                return func() ?? "";
             }
             catch (Exception exception)
             {
@@ -655,12 +662,12 @@ namespace MapsetVerifier.Rendering
                         string.Concat(beatmapSet.Beatmaps.Select(beatmap =>
                             RenderField(beatmap.MetadataSettings.version,
                                 encode
-                                    ? FormatTimestamps(Encode(beatmapContent[beatmap]))
+                                    ? FormatTimestamps(Encode(beatmapContent[beatmap])!)
                                     : beatmapContent[beatmap]))));
 
             return RenderField(title,
                 encode
-                    ? FormatTimestamps(Encode(beatmapContent.First().Value))
+                    ? FormatTimestamps(Encode(beatmapContent.First().Value)!)
                     : beatmapContent.First().Value);
         }
 
@@ -683,6 +690,6 @@ namespace MapsetVerifier.Rendering
                 Div("overview-field-title",
                     Encode(title)),
                 DivAttr("overview-field-content", "style=\"display: none;\"",
-                    contents));
+                    contents.ToArray<object>()));
     }
 }

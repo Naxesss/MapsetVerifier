@@ -6,48 +6,48 @@ using System.Numerics;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Rendering.Objects;
 using osu.Game.Rulesets.Difficulty.Skills;
-
+using osu.Game.Rulesets.Osu.Difficulty.Skills;
 using static MapsetVerifier.Rendering.Utils.DifficultyColorGenerator;
 
 namespace MapsetVerifier.Rendering
 {
     public abstract class SkillChartRenderer : ChartRenderer
     {
-        private const int MS_PER_PEAK = 400;
+        private const int MsPerPeak = 400;
 
         /// <summary>
         ///     Used to keep track of the amount of times a specific difficulty is drawn,
         ///     such that the color of all series in a chart are unique.
         /// </summary>
-        private static readonly Dictionary<LineChart, List<Beatmap>> mapsUsedInChart = new();
+        private static readonly Dictionary<LineChart, List<Beatmap>> MapsUsedInChart = new();
 
         public new static string Render(BeatmapSet beatmapSet)
         {
-            var skillCharts = GetSkillCharts(beatmapSet);
             var srChart = GetStarRatingChart(beatmapSet);
 
             if (srChart.Data.Count == 0)
                 return "";
 
-            return
-                RenderContainer("Difficulty",
-                    Div("skill-charts",
-                        Render(srChart),
-                        string.Concat(skillCharts.Select(pair => Render(pair.Value)))));
+            // Only render the SR chart, showing more can be performance heavy quite quickly
+            return RenderContainer("Difficulty", 
+                Div("skill-charts",
+                    Render(srChart)
+                )
+            );
         }
 
         private static LineChart GetStarRatingChart(BeatmapSet beatmapSet)
         {
-            var srChart = new LineChart("Star Rating", "Time (Seconds)", "");
+            var srChart = new LineChart("Star Rating", "Time (Seconds)", "", []);
 
             foreach (var beatmap in beatmapSet.Beatmaps)
             {
                 srChart.Data.Add(GetStarRatingSeries(beatmap, srChart));
 
-                if (!mapsUsedInChart.ContainsKey(srChart))
-                    mapsUsedInChart[srChart] = [beatmap];
+                if (!MapsUsedInChart.ContainsKey(srChart))
+                    MapsUsedInChart[srChart] = [beatmap];
                 else
-                    mapsUsedInChart[srChart].Add(beatmap);
+                    MapsUsedInChart[srChart].Add(beatmap);
             }
 
             return srChart;
@@ -64,23 +64,40 @@ namespace MapsetVerifier.Rendering
                     if (skill is not StrainSkill strainSkill)
                         continue;
 
-                    var skillName = skill.ToString();
-                    var readableSkillName = skillName?.Split('.').Last();
+                    var skillName = GetSkillName(skill, beatmap);
 
                     if (!skillCharts.ContainsKey(skillName))
-                        skillCharts[skillName] = new LineChart($"{readableSkillName}", "Time (Seconds)", "");
+                        skillCharts[skillName] = new LineChart($"{skillName}", "Time (Seconds)", "", []);
 
                     var skillSeries = GetSkillSeries(beatmap, strainSkill, skillCharts[skillName]);
                     skillCharts[skillName].Data.Add(skillSeries);
 
-                    if (!mapsUsedInChart.ContainsKey(skillCharts[skillName]))
-                        mapsUsedInChart[skillCharts[skillName]] = [beatmap];
+                    if (!MapsUsedInChart.ContainsKey(skillCharts[skillName]))
+                        MapsUsedInChart[skillCharts[skillName]] = [beatmap];
                     else
-                        mapsUsedInChart[skillCharts[skillName]].Add(beatmap);
+                        MapsUsedInChart[skillCharts[skillName]].Add(beatmap);
                 }
             }
 
             return skillCharts;
+        }
+        
+        private static string GetSkillName(Skill skill, Beatmap beatmap)
+        {
+            if (beatmap.GeneralSettings.mode == Beatmap.Mode.Standard)
+            {
+                // Standard is special, there are two variants of Aim skill, with and without sliders
+                if (skill is Aim aimSkill)
+                {
+                    return aimSkill.IncludeSliders ? "Aim (with sliders)" : "Aim (no sliders)";
+                }
+            }
+            
+            // Default, use the skill class name instead
+            var skillName = skill.ToString() ?? string.Empty;
+            var readableSkillName = skillName.Split('.').Last();
+
+            return readableSkillName;
         }
 
         private static Series GetSkillSeries(Beatmap beatmap, StrainSkill strainSkill, LineChart chart) => GetPeakSeries(beatmap, strainSkill.GetCurrentStrainPeaks().ToList(), peak => (float)peak, chart);
@@ -109,19 +126,16 @@ namespace MapsetVerifier.Rendering
             return GetPeakSeries(beatmap, accumulatedPeaks, GetSkillValueToStarRatingFunc(beatmap.GeneralSettings.mode), chart);
         }
 
-        private static Series GetPeakSeries<T>(Beatmap beatmap, IEnumerable<T> data, Func<T, float> Value, LineChart chart)
+        private static Series GetPeakSeries<T>(Beatmap beatmap, IEnumerable<T> data, Func<T, float> valueFunc, LineChart chart)
         {
-            if (data == null)
-                return null;
-            
             data = data.ToArray();
 
             var series = new Series(beatmap.MetadataSettings.version, color: GetGraphColor(beatmap, chart));
 
             for (var i = 0; i < data.Count(); ++i)
             {
-                float time = i * MS_PER_PEAK;
-                var value = Value(data.ElementAt(i));
+                float time = i * MsPerPeak;
+                var value = valueFunc(data.ElementAt(i));
 
                 series.Points.Add(new Vector2(time / 1000f, // Show time in seconds, rather than milliseconds.
                     value));
@@ -143,14 +157,14 @@ namespace MapsetVerifier.Rendering
             var diff = DifficultyOf(beatmap);
             var diffColor = GetDifficultyColor(beatmap.StarRating);
 
-            if (!mapsUsedInChart.ContainsKey(chart))
+            if (!MapsUsedInChart.ContainsKey(chart))
                 return diffColor;
 
             float red = diffColor.R;
             float green = diffColor.G;
             float blue = diffColor.B;
 
-            var sameDiffsInChart = mapsUsedInChart.GetValueOrDefault(chart).Count(map => DifficultyOf(map) == DifficultyOf(beatmap));
+            var sameDiffsInChart = MapsUsedInChart.GetValueOrDefault(chart)?.Count(map => DifficultyOf(map) == DifficultyOf(beatmap));
 
             for (var i = 0; i < sameDiffsInChart; ++i)
             {

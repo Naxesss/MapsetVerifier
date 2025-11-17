@@ -60,9 +60,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
         {
             var refBeatmap = beatmapSet.Beatmaps[0];
 
-            var problemTests = new List<Func<string, string>>
+            var problemTests = new List<Func<string, string?>>
             {
-                field => EnsureSpaceBeforeAndAfter(field, @"CV:"),
+                field => EnsureSpaceBeforeAndAfter(field, "CV:"),
                 field => EnsureSpaceBeforeAndAfter(field, @"vs\."),
                 field => EnsureSpaceBeforeAndAfter(field, @"feat\."),
 
@@ -71,7 +71,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                 field => new Regex(@",[a-zA-Z0-9]").IsMatch(field) ? "whitespace after \",\"" : null
             };
 
-            var warningTests = new List<Func<string, string>>
+            var warningTests = new List<Func<string, string?>>
             {
                 // Some artists include ampersand as part of their name.
                 field => EnsureSpaceBeforeAndAfter(field, "&"),
@@ -108,33 +108,29 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
 
             foreach (var field in fields)
             {
-                // Old .osu versions didn't have unicode fields.
-                if (field.content == null)
-                    continue;
-
                 foreach (var problemTest in problemTests)
                 {
-                    var message = problemTest(field.content);
+                    var message = problemTest(field.Content);
 
-                    if (message != null && !fieldIssues.Any(fieldIssue => fieldIssue.message == message && fieldIssue.field == field))
+                    if (message != null && !fieldIssues.Any(fieldIssue => fieldIssue.Message == message && fieldIssue.Field == field))
                         fieldIssues.Add(new FieldIssue(field, message, true));
                 }
 
                 foreach (var warningTest in warningTests)
                 {
-                    var message = warningTest(field.content);
+                    var message = warningTest(field.Content);
 
-                    if (message != null && !fieldIssues.Any(fieldIssue => fieldIssue.message == message && fieldIssue.field == field))
+                    if (message != null && !fieldIssues.Any(fieldIssue => fieldIssue.Message == message && fieldIssue.Field == field))
                         fieldIssues.Add(new FieldIssue(field, message, false));
                 }
             }
 
             foreach (var fieldIssue in fieldIssues)
-                yield return new Issue(GetTemplate(fieldIssue.isProblem ? "Problem" : "Warning"), null, fieldIssue.message, fieldIssue.field.name, fieldIssue.field.content);
+                yield return new Issue(GetTemplate(fieldIssue.IsProblem ? "Problem" : "Warning"), null, fieldIssue.Message, fieldIssue.Field.Name, fieldIssue.Field.Content);
         }
 
         /// <summary> Returns a message describing where a space is missing given a field and what is tested against. </summary>
-        private static string EnsureSpaceBeforeAndAfter(string field, string test)
+        private static string? EnsureSpaceBeforeAndAfter(string field, string test)
         {
             if (new Regex(test + "[a-zA-Z0-9]").IsMatch(field))
                 return "whitespace after \"" + test.Replace("\\", "") + "\"";
@@ -145,30 +141,17 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             return null;
         }
 
-        private class Field
+        private class Field(string name, string content)
         {
-            public readonly string content;
-            public readonly string name;
-
-            public Field(string name, string content)
-            {
-                this.name = name;
-                this.content = content;
-            }
+            public readonly string Content = content;
+            public readonly string Name = name;
         }
 
-        private class FieldIssue
+        private class FieldIssue(Field field, string message, bool isProblem)
         {
-            public readonly Field field;
-            public readonly bool isProblem;
-            public readonly string message;
-
-            public FieldIssue(Field field, string message, bool isProblem)
-            {
-                this.field = field;
-                this.message = message;
-                this.isProblem = isProblem;
-            }
+            public readonly Field Field = field;
+            public readonly bool IsProblem = isProblem;
+            public readonly string Message = message;
         }
     }
 }

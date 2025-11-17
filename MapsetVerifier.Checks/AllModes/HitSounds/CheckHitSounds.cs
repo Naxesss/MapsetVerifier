@@ -130,10 +130,18 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
                     }
 
                     var objectBeforeExcl = beatmap.GetHitObject(excludeStart - 1);
-                    var objectAfterExcl = beatmap.GetNextHitObject(excludeEnd);
 
-                    var endTimeBeforeExcl = objectBeforeExcl is Spinner spinnerObject ? spinnerObject.endTime :
-                        objectBeforeExcl is Slider sliderObject ? sliderObject.EndTime : objectBeforeExcl.time;
+                    if (objectBeforeExcl == null)
+                    {
+                        break;
+                    }
+
+                    var endTimeBeforeExcl = objectBeforeExcl switch
+                    {
+                        Spinner spinnerObject => spinnerObject.endTime,
+                        Slider sliderObject => sliderObject.EndTime,
+                        _ => objectBeforeExcl.time
+                    };
 
                     // Between the previous object's time and the end time before the exclusion,
                     // storyboarded hit sounds should be accounted for in mania, since they need to
@@ -147,6 +155,12 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
                     if (issue != null)
                         issues.Add(issue);
 
+                    var objectAfterExcl = beatmap.GetNextHitObject(excludeEnd);
+                    if (objectAfterExcl == null)
+                    {
+                        break;
+                    }
+                    
                     prevTime = objectAfterExcl.time;
                 }
 
@@ -184,7 +198,7 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
         }
 
         /// <summary> Returns an issue when too much time and/or too many objects were passed before this method was called again. </summary>
-        private Issue GetIssueFromUpdate(double currentTime, ref int objectsPassed, ref double previousTime, Beatmap beatmap)
+        private Issue? GetIssueFromUpdate(double currentTime, ref int objectsPassed, ref double previousTime, Beatmap beatmap)
         {
             var prevTime = previousTime;
 

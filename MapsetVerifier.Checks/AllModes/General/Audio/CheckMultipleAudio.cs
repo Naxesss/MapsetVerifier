@@ -59,7 +59,13 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             }
             else
             {
-                var issues = Common.GetInconsistencies(beatmapSet, beatmap => beatmap.GetAudioFilePath() != null ? PathStatic.RelativePath(beatmap.GetAudioFilePath(), beatmap.SongPath) : "None", GetTemplate("Multiple"));
+                var issues = Common.GetInconsistencies(beatmapSet, beatmap =>
+                {
+                    var audioPath = beatmap.GetAudioFilePath();
+                    return audioPath != null
+                        ? PathStatic.RelativePath(audioPath, beatmap.SongPath)
+                        : "None";
+                }, GetTemplate("Multiple"));
 
                 foreach (var issue in issues)
                     yield return issue;

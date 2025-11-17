@@ -76,8 +76,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                 var hsPath = Path.Combine(beatmapSet.SongPath, hsFile);
 
                 var channels = 0;
-                List<float[]> peaks = null;
-                Exception exception = null;
+                List<float[]> peaks = [];
+                Exception? exception = null;
 
                 try
                 {

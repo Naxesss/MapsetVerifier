@@ -22,11 +22,11 @@ namespace MapsetVerifier.Snapshots.Translators
 
             foreach (var diff in diffs)
             {
-                TimingLine timingLine = null;
+                TimingLine? timingLine = null;
 
                 try
                 {
-                    timingLine = new TimingLine(diff.Diff.Split(','), null);
+                    timingLine = new TimingLine(diff.Diff.Split(','), null!);
                 }
                 catch
                 {
@@ -86,8 +86,8 @@ namespace MapsetVerifier.Snapshots.Translators
 
                     if (type == "Uninherited line")
                     {
-                        var addedUninherited = new UninheritedLine(addedLine.Code.Split(','), null);
-                        var removedUninherited = new UninheritedLine(removedLine.Code.Split(','), null);
+                        var addedUninherited = new UninheritedLine(addedLine.Code.Split(','), null!);
+                        var removedUninherited = new UninheritedLine(removedLine.Code.Split(','), null!);
 
                         if (!addedUninherited.bpm.AlmostEqual(removedUninherited.bpm))
                             changes.Add("BPM changed from " + removedUninherited.bpm + " to " + addedUninherited.bpm + ".");

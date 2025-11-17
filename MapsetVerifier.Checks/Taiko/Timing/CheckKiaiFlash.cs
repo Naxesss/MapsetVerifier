@@ -67,6 +67,11 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                 if (nextIndex < kiaiToggles.Count)
                 {
                     var timing = beatmap.GetTimingLine<UninheritedLine>(toggle.Offset);
+                    if (timing == null)
+                    {
+                        continue;
+                    }
+                    
                     var normalizedMsPerBeat = timing.GetNormalizedMsPerBeat();
                     double gap = kiaiToggles.SafeGetIndex(currentIndex + 1).Offset - toggle.Offset;
 

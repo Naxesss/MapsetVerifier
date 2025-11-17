@@ -30,7 +30,7 @@ namespace MapsetVerifier.Parser.Objects
         // 440,476.190476190476,4,2,1,40,1,0
         // offset, msPerBeat, meter, sampleset, customIndex, volume, inherited, kiai
 
-        public Beatmap Beatmap { get; }
+        private Beatmap Beatmap { get; }
         public string Code { get; }
 
         // might not be explicit (depending on inherited or not)
@@ -39,7 +39,7 @@ namespace MapsetVerifier.Parser.Objects
 
         public TimingLine(string[] args, Beatmap beatmap)
         {
-            this.Beatmap = beatmap;
+            Beatmap = beatmap;
             Code = string.Join(",", args);
 
             Offset = GetOffset(args);
@@ -109,10 +109,6 @@ namespace MapsetVerifier.Parser.Objects
             return 1;
         }
 
-        /*
-         *  Next / Prev
-         */
-
         /// <summary> Returns the index of this timing line in the beatmap's timing line list, O(1). </summary>
         public int GetTimingLineIndex() => TimingLineIndex;
 
@@ -159,11 +155,5 @@ namespace MapsetVerifier.Parser.Objects
 
             return prev;
         }
-
-        /// <summary>
-        ///     Returns the previous timing line in the timing line list, if any,
-        ///     otherwise the first, O(1). Optionally skips concurrent objects.
-        /// </summary>
-        public TimingLine PrevOrFirst(bool skipConcurrent = false) => Prev(skipConcurrent) ?? Beatmap.TimingLines.FirstOrDefault();
     }
 }

@@ -115,6 +115,12 @@ namespace MapsetVerifier.Checks.Standard.Spread
             var recoveryTime = nextObject.time - spinner.endTime;
 
             var line = beatmap.GetTimingLine<UninheritedLine>(nextObject.time);
+            // No timing line in the beatmap, shouldn't really happen but just in case
+            if (line == null)
+            {
+                yield break;
+            }
+            
             var bpmScaling = GetScaledTiming(line.bpm);
             var recoveryTimeScaled = recoveryTime / bpmScaling;
 

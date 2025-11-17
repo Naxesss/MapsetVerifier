@@ -14,7 +14,7 @@ namespace MapsetVerifier.Rendering
             while (printedException.InnerException != null && printedException is AggregateException)
                 printedException = printedException.InnerException;
 
-            var printedCheckBox = printedException.Data["Check"] != null ? DocumentationRenderer.RenderCheckBox(printedException.Data["Check"] as Check) : null;
+            var printedCheckBox = printedException.Data["Check"] != null ? DocumentationRenderer.RenderCheckBox((Check) printedException.Data["Check"]!) : null;
 
             return
                 Div("exception",
@@ -23,7 +23,7 @@ namespace MapsetVerifier.Rendering
                     Div("exception-check",
                         printedCheckBox),
                     Div("exception-trace",
-                        Encode(printedException.StackTrace).Replace("\r\n", "<br>")));
+                        Encode(printedException.StackTrace)?.Replace("\r\n", "<br>")));
         }
     }
 }

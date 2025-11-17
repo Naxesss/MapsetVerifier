@@ -94,7 +94,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                 yield break;
 
             ChannelType audioFormat = 0;
-            Issue errorIssue = null;
+            Issue? errorIssue = null;
 
             try
             {
@@ -131,7 +131,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                 var hitSoundPath = Path.Combine(beatmapSet.SongPath, hitSoundFile);
 
                 ChannelType hitSoundFormat = 0;
-                Issue errorIssue = null;
+                Issue? errorIssue = null;
 
                 try
                 {

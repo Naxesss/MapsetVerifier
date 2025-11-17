@@ -37,10 +37,10 @@ namespace MapsetVerifier.Parser.Objects.Events
         public readonly Layer layer;
         public readonly Vector2 offset;
         public readonly Origin origin;
-        public readonly string path;
+        public readonly string? path;
 
         /// <summary> The path in lowercase without extension or quotationmarks. </summary>
-        public readonly string strippedPath;
+        public readonly string? strippedPath;
 
         public Sprite(string[] args)
         {
@@ -62,7 +62,7 @@ namespace MapsetVerifier.Parser.Objects.Events
         private Origin GetOrigin(string[] args) => ParserStatic.GetEnumMatch<Origin>(args[2]) ?? Origin.Unknown;
 
         /// <summary> Returns the file path which this sprite uses. Retains case sensitivity and extension. </summary>
-        private string GetPath(string[] args) => PathStatic.ParsePath(args[3], retainCase: true);
+        private string? GetPath(string[] args) => PathStatic.ParsePath(args[3], retainCase: true);
 
         /// <summary>
         ///     Returns the positional offset from the top left corner of the screen, if specified,

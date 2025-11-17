@@ -17,18 +17,18 @@ namespace MapsetVerifier.Checks.AllModes.Timing
     public class CheckWrongSnapping : BeatmapSetCheck
     {
         private readonly int[] divisors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 16];
-        private List<int> countMinorDivisors;
-        private List<Tuple<int, string>> countMinorStamps;
+        private List<int> countMinorDivisors = [];
+        private List<Tuple<int, string>> countMinorStamps = [];
 
-        private List<int> countWarningDivisors;
+        private List<int> countWarningDivisors = [];
 
-        private List<Tuple<int, string>> countWarningStamps;
+        private List<Tuple<int, string>> countWarningStamps = [];
 
-        private ConcurrentBag<Inconsistency> inconsistencies;
-        private List<int> percentMinorDivisors;
-        private List<Tuple<int, string>> percentMinorStamps;
-        private List<int> percentWarningDivisors;
-        private List<Tuple<int, string>> percentWarningStamps;
+        private ConcurrentBag<Inconsistency> inconsistencies = [];
+        private List<int> percentMinorDivisors = [];
+        private List<Tuple<int, string>> percentMinorStamps = [];
+        private List<int> percentWarningDivisors = [];
+        private List<Tuple<int, string>> percentWarningStamps = [];
 
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
@@ -268,6 +268,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         continue;
 
                     var line = otherBeatmap.GetTimingLine<UninheritedLine>(missingEdgeTime);
+                    if (line == null)
+                    {
+                        continue;
+                    }
+                    
                     var msPerBeat = line.msPerBeat;
 
                     if (timeDifference >= msPerBeat)

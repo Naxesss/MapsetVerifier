@@ -2,15 +2,9 @@
 
 namespace MapsetVerifier.Rendering.Objects
 {
-    public class Chart<T>
+    public class Chart<T>(string title, List<T> data)
     {
-        public Chart(string title, List<T> data = null)
-        {
-            Title = title;
-            Data = data ?? new List<T>();
-        }
-
-        public string Title { get; }
-        public List<T> Data { get; private set; }
+        public string Title { get; } = title;
+        public List<T> Data { get; private set; } = data;
     }
 }

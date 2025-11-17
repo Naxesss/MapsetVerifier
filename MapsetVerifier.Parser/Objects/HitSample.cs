@@ -117,13 +117,13 @@ namespace MapsetVerifier.Parser.Objects
         }
 
         /// <summary> Returns the file name of this sample without extension, or null if no file is associated. </summary>
-        public string GetFileName()
+        public string? GetFileName()
         {
             var taikoString = Taiko ? "taiko-" : "";
             var samplesetString = Sampleset?.ToString().ToLower();
-            string hitSoundString = null;
+            string? hitSoundString = null;
 
-            if (HitSound is HitSounds hs)
+            if (HitSound is { } hs)
             {
                 hitSoundString = HitSource switch
                 {

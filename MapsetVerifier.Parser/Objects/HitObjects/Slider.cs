@@ -49,7 +49,7 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
         public HitSample.SamplesetType StartSampleset { get; }
 
         // Cached values
-        private List<Vector2> CachedBezierPoints { get; set; }
+        private List<Vector2>? CachedBezierPoints { get; set; }
         private double? CachedCurveDuration { get; set; }
         private double? CachedCurveLength { get; set; }
         private double? CachedSliderSpeed { get; set; }
@@ -90,6 +90,13 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
                 // Difficulty
                 LazyEndPosition = Position;
                 LazyTravelDistance = 0;
+            }
+            else
+            {
+                RedAnchorPositions = [];
+                PathPxPositions = [];
+                EndTime = 0;
+                SliderTickTimes = [];
             }
 
             usedHitSamples = GetUsedHitSamples().ToList();
@@ -322,8 +329,16 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             if (CachedSliderSpeed != null)
                 return CachedSliderSpeed.GetValueOrDefault();
 
-            var msPerBeat = beatmap.GetTimingLine<UninheritedLine>(time).msPerBeat;
-            double effectiveSVMult = beatmap.GetTimingLine(this.time).SvMult;
+            var timingLine = beatmap.GetTimingLine<UninheritedLine>(time);
+            if (timingLine == null)
+            {
+                throw new Exception($"No uninherited timing line found at time {this.time} for slider starting at {this.time}." );
+            }
+
+            var sliderStartTimingLine = beatmap.GetTimingLine(this.time);
+            
+            var msPerBeat = timingLine.msPerBeat;
+            double effectiveSVMult = sliderStartTimingLine?.SvMult ?? 1.0;
 
             CachedSliderSpeed = 100 * effectiveSVMult * beatmap.DifficultySettings.sliderMultiplier / msPerBeat;
 
@@ -348,7 +363,10 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
                 return StartAddition;
 
             // Inherits from timing line if auto.
-            return StartSampleset == HitSample.SamplesetType.Auto ? beatmap.GetTimingLine(time, true).Sampleset : StartSampleset;
+            if (StartSampleset == HitSample.SamplesetType.Auto)
+                return beatmap.GetTimingLine(time, true)?.Sampleset ?? HitSample.SamplesetType.Auto;
+
+            return StartSampleset;
         }
 
         /// <summary> Returns the sampleset at a given reverse (starting from 0), optionally prioritizing the addition. </summary>
@@ -361,7 +379,10 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             if (additionOverrides && ReverseAdditions.ElementAtOrDefault(reverseIndex) != HitSample.SamplesetType.Auto)
                 return ReverseAdditions.ElementAt(reverseIndex);
 
-            return ReverseSamplesets.ElementAtOrDefault(reverseIndex) == HitSample.SamplesetType.Auto ? beatmap.GetTimingLine(time, true).Sampleset : ReverseSamplesets.ElementAt(reverseIndex);
+            if (ReverseSamplesets.ElementAtOrDefault(reverseIndex) == HitSample.SamplesetType.Auto)
+                return beatmap.GetTimingLine(time, true)?.Sampleset ?? HitSample.SamplesetType.Auto;
+
+            return ReverseSamplesets.ElementAt(reverseIndex);
         }
 
         /// <summary> Returns the sampleset on the tail of the slider, optionally prioritizing the addition. </summary>
@@ -370,7 +391,10 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             if (additionOverrides && EndAddition != HitSample.SamplesetType.Auto)
                 return EndAddition;
 
-            return EndSampleset == HitSample.SamplesetType.Auto ? beatmap.GetTimingLine(EndTime, true).Sampleset : EndSampleset;
+            if (EndSampleset == HitSample.SamplesetType.Auto)
+                return beatmap.GetTimingLine(EndTime, true)?.Sampleset ?? HitSample.SamplesetType.Auto;
+
+            return EndSampleset;
         }
 
         /// <summary> Returns how far along the curve a given point of time is (from 0 to 1), accounting for reverses. </summary>
@@ -399,8 +423,14 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
         /// <summary> Returns the points in time for all ticks of the slider, with decimal accuracy. </summary>
         public List<double> GetSliderTickTimes()
         {
+            var timingLine = beatmap.GetTimingLine<UninheritedLine>(time);
+            if (timingLine == null)
+            {
+                throw new Exception($"No uninherited timing line found at time for slider starting at {time}." );
+            }
+            
             var tickRate = beatmap.DifficultySettings.sliderTickRate;
-            var msPerBeat = beatmap.GetTimingLine<UninheritedLine>(time).msPerBeat;
+            var msPerBeat = timingLine.msPerBeat;
 
             // Not entierly sure if it's based on theoretical time and cast to int or something else.
             // It doesn't seem to be practical time and then rounded to closest at least.

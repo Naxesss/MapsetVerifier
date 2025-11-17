@@ -80,15 +80,15 @@ namespace MapsetVerifier.Rendering
                             return
                                 DivAttr("interpret" + (@enum == (int)defaultInterpretation || shouldSubstituteUltra ? " interpret-selected interpret-default" : ""), DataAttr("interpret-severity", @enum),
                                     Enum.GetName(typeof(Beatmap.Difficulty), @enum));
-                        }).ToArray()));
+                        }).ToArray<object?>()));
         }
 
-        private static string RenderBeatmapCategories(IEnumerable<Issue> beatmapIssues, string version, bool general = false) =>
+        private static string RenderBeatmapCategories(IEnumerable<Issue> beatmapIssues, string? version, bool general = false) =>
             Div("card-difficulty-checks",
                 CheckerRegistry.GetChecks().Where(check => general == check is GeneralCheck).GroupBy(check => check.GetMetadata().Category).Select(group =>
                 {
                     var category = group.Key;
-                    var issues = beatmapIssues.Where(issue => issue.CheckOrigin.GetMetadata().Category == category).ToArray();
+                    var issues = beatmapIssues.Where(issue => issue.CheckOrigin?.GetMetadata().Category == category).ToArray();
 
                     return
                         DivAttr("card", DataAttr("difficulty", version),
@@ -135,13 +135,13 @@ namespace MapsetVerifier.Rendering
             return Div("card-detail-instances", checkIssues.Select(issue =>
             {
                 var icon = GetIcon(issue.level);
-                var timestampedMessage = Format(Encode(issue.message));
+                var timestampedMessage = Format(Encode(issue.message)!);
 
                 if (timestampedMessage.Length == 0)
                     return "";
 
                 return
-                    DivAttr("card-detail", (issue.Template != null ? DataAttr("template", issue.Template) : "") + DifficultiesDataAttr(issue),
+                    DivAttr("card-detail", DataAttr("template", issue.Template) + DifficultiesDataAttr(issue),
                         Div("card-detail-icon " + icon + "-icon"),
                         Div("",
                             timestampedMessage));

@@ -59,8 +59,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
         {
             foreach (var filePath in beatmapSet.SongFilePaths)
             {
-                Issue errorIssue = null;
-                FileInfo file = null;
+                Issue? errorIssue = null;
+                FileInfo? file = null;
 
                 try
                 {
@@ -78,7 +78,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
                     continue;
                 }
 
-                if (file.Length == 0)
+                if (file is { Length: 0 })
                     yield return new Issue(GetTemplate("0-byte"), null, PathStatic.RelativePath(filePath, beatmapSet.SongPath));
             }
         }

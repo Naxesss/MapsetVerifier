@@ -10,7 +10,7 @@ namespace MapsetVerifier.Framework.Objects
 
         private readonly string format;
 
-        public string Cause { get; private set; }
+        public string? Cause { get; private set; }
 
         /// <summary>
         ///     Constructs a new issue template with the given issue level, format and default arguments.
@@ -49,14 +49,14 @@ namespace MapsetVerifier.Framework.Objects
         }
 
         /// <summary> Returns the format with {0}, {1}, etc. replaced with the respective given arguments. </summary>
-        public string Format(object[] arguments)
+        public string Format(object?[] arguments)
         {
             if (arguments.Length != defaultArguments.Length)
                 throw new ArgumentException($"The format for a template is \"{format}\", which takes {defaultArguments.Length} arguments (according to the default argument amount), but was given the unexpected argument amount {arguments.Length}. Make sure that, when creating a new issue, you supply it with the correct amount of arguments for its template.");
 
             // Trimming format and args separately allows for "timestamp - " in "{0} /.../" without double spacing.
             // This way we still maintain any double space causing things like incorrect filenames within arguments.
-            return string.Format(format.Trim(), arguments.Select(arg => arg.ToString()?.Trim()).ToArray());
+            return string.Format(format.Trim(), arguments.Select(arg => arg?.ToString()?.Trim()).ToArray<object?>());
         }
 
         /// <summary> Returns the default arguments for this template. </summary>

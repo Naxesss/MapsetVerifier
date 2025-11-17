@@ -3,22 +3,13 @@ using File = TagLib.File;
 
 namespace MapsetVerifier.Framework.Objects.Resources
 {
-    public class FileAbstraction : File.IFileAbstraction
+    public class FileAbstraction(string filePath) : File.IFileAbstraction
     {
-        public string error;
+        public string? Error = null;
 
-        public FileAbstraction(string filePath)
-        {
-            error = null;
+        public string Name { get; } = filePath;
 
-            ReadStream = filePath != null ? new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite) : null;
-
-            Name = filePath;
-        }
-
-        public string Name { get; }
-
-        public Stream ReadStream { get; }
+        public Stream ReadStream { get; } = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
         public Stream WriteStream => ReadStream;
 
@@ -26,20 +17,6 @@ namespace MapsetVerifier.Framework.Objects.Resources
 
         public File GetTagFile()
         {
-            if (Name == null)
-            {
-                error = "Name cannot be null.";
-
-                return null;
-            }
-
-            if (ReadStream == null)
-            {
-                error = "Could not open file for reading.";
-
-                return null;
-            }
-
             return File.Create(this);
         }
     }

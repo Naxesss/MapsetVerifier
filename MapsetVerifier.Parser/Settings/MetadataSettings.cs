@@ -38,30 +38,27 @@ namespace MapsetVerifier.Parser.Settings
         {
             // unlike hitobjects metadata settings gets the whole section and not line by line as code
 
-            title = GetValue(lines, "Title");
+            title = GetValue(lines, "Title") ?? "";
             titleUnicode = GetValue(lines, "TitleUnicode") ?? title;
-            artist = GetValue(lines, "Artist");
+            artist = GetValue(lines, "Artist") ?? "";
             artistUnicode = GetValue(lines, "ArtistUnicode") ?? artist;
 
-            creator = GetValue(lines, "Creator");
-            version = GetValue(lines, "Version");
+            creator = GetValue(lines, "Creator") ?? "";
+            version = GetValue(lines, "Version") ?? "";
             source = GetValue(lines, "Source") ?? "";
             tags = GetValue(lines, "Tags") ?? "";
 
             // check to see if the ids are even there (don't exist in lower osu file versions, and aren't set on non-published maps)
-            beatmapId = (GetValue(lines, "BeatmapID") ?? "0") == "0" ? (ulong?)null : ulong.Parse(GetValue(lines, "BeatmapID"));
-
-            beatmapSetId = (GetValue(lines, "BeatmapSetID") ?? "-1") == "-1" ? (ulong?)null : ulong.Parse(GetValue(lines, "BeatmapSetID"));
+            beatmapId = GetBeatmapId(lines, "BeatmapID", 0);
+            beatmapSetId = GetBeatmapId(lines, "BeatmapSetID", -1);
+            
         }
 
-        private string GetValue(string[] lines, string key)
+        private static string? GetValue(string[] lines, string key)
         {
             var line = lines.FirstOrDefault(otherLine => otherLine.StartsWith(key));
 
-            if (line == null)
-                return null;
-
-            return line.Substring(line.IndexOf(":", StringComparison.Ordinal) + 1).Trim();
+            return line?.Substring(line.IndexOf(':') + 1).Trim();
         }
 
         /// <summary> Returns the same string lowercase and filtered from characters disabled in file names. </summary>
@@ -70,7 +67,7 @@ namespace MapsetVerifier.Parser.Settings
 
         /// <summary> Returns the tag which covers the given word, if any, otherwise null. </summary>
         /// <param name="searchWord"> The search word which we want a tag covering, cannot contain spaces. </param>
-        public string GetCoveringTag(string searchWord)
+        public string? GetCoveringTag(string searchWord)
         {
             if (searchWord.Contains(" "))
                 throw new ArgumentException($"`searchWord` cannot contain whitespace characters, was given \"{searchWord}\".");
@@ -100,5 +97,20 @@ namespace MapsetVerifier.Parser.Settings
         /// </summary>
         /// <param name="searchTerm"> The search term which we want tags covering. </param>
         public bool IsCoveredByTags(string searchTerm) => !GetMissingWordsFromTags(searchTerm).Any();
+
+        /// <summary>
+        /// Returns the beatmap id or null if it doesn't exist.
+        /// Older osu file version don't use beatmap ids.
+        /// Additionally check if a default value is used as those are used as placeholder for non-published maps.
+        /// </summary>
+        public ulong? GetBeatmapId(string[] lines, string key, int defaultValue)
+        {
+            var value = GetValue(lines, key);
+            
+            if (value == null || value == defaultValue.ToString())
+                return null;
+            
+            return ulong.Parse(value);
+        }
     }
 }

@@ -50,19 +50,32 @@ namespace MapsetVerifier.Checks.Taiko.Design
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
             // Record known offsets for each unique BG file
-            var files = new Dictionary<string, Dictionary<Vector2?, HashSet<string>>>();
+            var files = new Dictionary<string, Dictionary<Vector2, HashSet<string>>>();
             
             // Filter to osu!taiko beatmaps only
             var taikoBeatmaps = beatmapSet.Beatmaps.Where(beatmap => beatmap.GeneralSettings.mode == Beatmap.Mode.Taiko).ToList();
             
             foreach (var beatmap in taikoBeatmaps)
             {
-                foreach (var beatmapBg in beatmap.Backgrounds) {
-                    files.TryAdd(beatmapBg.path, new Dictionary<Vector2?, HashSet<string>>());
-                    var file = files[beatmapBg.path];
-                    file.TryAdd(beatmapBg.offset, new HashSet<string>());
-                    var diffNames = file[beatmapBg.offset];
+                foreach (var beatmapBg in beatmap.Backgrounds)
+                {
+                    var path = beatmapBg.path;
+
+                    if (path == null)
+                    {
+                        continue;
+                    }
+                     
+                    files.TryAdd(path, new Dictionary<Vector2, HashSet<string>>());
+                    var file = files[path];
+                    var offset = beatmapBg.offset;
+                    if (offset == null) continue;
+                    var castOffset = (Vector2) offset;
+                    file.TryAdd(castOffset, []);
+                        
+                    var diffNames = file[castOffset];
                     diffNames.Add(beatmap.MetadataSettings.version);
+
                 }
             }
 

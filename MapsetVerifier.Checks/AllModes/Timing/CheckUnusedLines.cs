@@ -91,8 +91,8 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     continue;
 
                 // Can't do lines[i - 1] since that could give a green line on the same offset, which we don't want.
-                var previousLine = beatmap.GetTimingLine(currentLine.Offset - 1);
-                var previousUninheritedLine = beatmap.GetTimingLine<UninheritedLine>(currentLine.Offset - 1);
+                var previousLine = beatmap.GetTimingLine(currentLine.Offset - 1)!;
+                var previousUninheritedLine = beatmap.GetTimingLine<UninheritedLine>(currentLine.Offset - 1)!;
 
                 if (!DownbeatsAlign(currentLine, previousUninheritedLine))
                     continue;
@@ -112,7 +112,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         continue;
                 }
 
-                var changesNCCymbals = !NightcoreCymbalsAlign(currentLine, previousUninheritedLine);
+                var changesNightCoreCymbals = !NightcoreCymbalsAlign(currentLine, previousUninheritedLine);
 
                 var notImmediatelyObvious = new List<string>();
                 if (omittingBarline) notImmediatelyObvious.Add("omits the first barline");
@@ -120,7 +120,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                 if (correctingBarline)
                     notImmediatelyObvious.Add($"corrects the omitted barline at {Timestamp.Get(previousUninheritedLine.Offset)}");
 
-                if (changesNCCymbals) notImmediatelyObvious.Add("resets nightcore mod cymbals");
+                if (changesNightCoreCymbals) notImmediatelyObvious.Add("resets nightcore mod cymbals");
                 var notImmediatelyObviousStr = string.Join(" and ", notImmediatelyObvious);
 
                 if (!IsLineUsed(beatmap, currentLine, previousLine))

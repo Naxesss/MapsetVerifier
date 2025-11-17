@@ -75,6 +75,11 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                 var next = circles.SafeGetIndex(i + 1);
 
                 var timing = beatmap.GetTimingLine<UninheritedLine>(current.time);
+                if (timing == null)
+                {
+                    continue;
+                }
+                
                 var normalizedMsPerBeat = timing.GetNormalizedMsPerBeat();
 
                 // for each diff: double minimalGap = ?;
@@ -86,7 +91,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                     { Beatmap.Difficulty.Insane, normalizedMsPerBeat / 6 }
                 };
 
-                var gap = (next?.time ?? double.MaxValue) - current.time;
+                var gap = next.time - current.time;
 
                 // for each diff: bool violatingGroupEnded = false;
                 var violatingGroupEnded = new Dictionary<Beatmap.Difficulty, bool>();

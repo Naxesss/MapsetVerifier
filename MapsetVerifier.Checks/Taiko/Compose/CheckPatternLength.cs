@@ -138,6 +138,11 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                         {
                             var current = objects.SafeGetIndex(i);
                             var timing = beatmap.GetTimingLine<UninheritedLine>(current.time);
+                            if (timing == null)
+                            {
+                                break;
+                            }
+                            
                             var normalizedMsPerBeat = timing.GetNormalizedMsPerBeat();
 
                             // convert minimal gap beats to milliseconds

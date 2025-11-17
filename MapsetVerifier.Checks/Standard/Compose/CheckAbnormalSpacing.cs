@@ -90,13 +90,13 @@ namespace MapsetVerifier.Checks.Standard.Compose
                 if (hitObject is Spinner || nextObject is Spinner || nextObject == null)
                     continue;
 
-                deltaTime = nextObject.GetPrevDeltaTime();
+                deltaTime = nextObject.GetPrevDeltaTime(hitObject);
 
                 // Ignore objects ~1/2 or more beats apart (assuming 160 bpm), since they're unlikely to be an issue.
                 if (deltaTime > 180)
                     continue;
 
-                var distance = nextObject.GetPrevDistance();
+                var distance = nextObject.GetPrevDistance(hitObject);
 
                 if (distance < 20)
                     distance = 20;
@@ -131,7 +131,7 @@ namespace MapsetVerifier.Checks.Standard.Compose
                 if (actualExpectedRatio <= ratioMinorThreshold)
                     continue;
 
-                var comparisonTimestamps = sameSnappedDistances.Select(obvDist => Timestamp.Get(obvDist.hitObject, obvDist.hitObject.Next())).TakeLast(3);
+                var comparisonTimestamps = sameSnappedDistances.Select(obvDist => Timestamp.Get(obvDist.hitObject, obvDist.hitObject.Next()!)).TakeLast(3);
 
                 var templateName = "Minor";
 

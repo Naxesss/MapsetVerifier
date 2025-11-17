@@ -17,23 +17,23 @@ namespace MapsetVerifier.Rendering
          */
 
         /// <summary> Surrounds the content with a div tag using the given class(es). </summary>
-        protected static string Div(string @class, params string[] contents) => DivAttr(@class, "", contents);
+        protected static string Div(string @class, params string?[] contents) => DivAttr(@class, "", contents);
 
         /// <summary>
         ///     Surrounds the content with a div tag using the given class(es), as well as any other attributes in the tag,
         ///     like id or data.
         /// </summary>
-        protected static string DivAttr(string @class, string attr, params object[] contents) =>
+        protected static string DivAttr(string @class, string attr, params object?[] contents) =>
             string.Concat("<div", @class.Length > 0 ? " class=\"" + @class + "\"" : "", attr, ">", string.Join("", contents), "</div>");
 
         /// <summary>
         ///     Surrounds the content (or reference if none exists) with an a tag using the given reference.
         ///     Does not need to target _blank, as this is done client-side.
         /// </summary>
-        protected static string Link(string @ref, object content = null) => "<a href=\"" + @ref + "\">" + (content ?? @ref) + "</a>";
+        protected static string Link(string @ref, object? content = null) => "<a href=\"" + @ref + "\">" + (content ?? @ref) + "</a>";
 
         /// <summary> Surrounds the content in a data attribute of a given type. </summary>
-        protected static string DataAttr(string type, object content) => " data-" + type + "=\"" + Encode(content.ToString()) + "\"";
+        protected static string DataAttr(string type, object? content) => " data-" + type + "=\"" + Encode(content?.ToString()) + "\"";
 
         /// <summary> Surrounds the content with a script tag. </summary>
         protected static string Script(params object[] contents) => ScriptAttr("", contents);
@@ -64,7 +64,7 @@ namespace MapsetVerifier.Rendering
         /// </summary>
         protected static string DifficultiesDataAttr(Issue issue)
         {
-            var metadata = issue.CheckOrigin.GetMetadata() as BeatmapCheckMetadata;
+            var metadata = issue.CheckOrigin?.GetMetadata() as BeatmapCheckMetadata;
 
             var difficulties = new List<Beatmap.Difficulty>();
 
@@ -93,7 +93,7 @@ namespace MapsetVerifier.Rendering
          */
 
         /// <summary> Returns the same string but HTML encoded, meaning greater and less than signs no longer form actual tags. </summary>
-        public static string Encode(string text) => text == null ? null : WebUtility.HtmlEncode(text);
+        public static string? Encode(string? text) => text == null ? null : WebUtility.HtmlEncode(text);
 
         /// <summary> Returns the icon of the greatest issue level of all issues given. </summary>
         protected static string GetIcon(IEnumerable<Issue> issues)
