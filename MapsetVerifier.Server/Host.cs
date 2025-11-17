@@ -27,13 +27,7 @@ namespace MapsetVerifier.Server
                 Console.WriteLine("Configure Services.");
 
                 // Add framework services.
-                services.AddMvc().AddJsonOptions(options =>
-                {
-                    //return json format with Camel Case
-                    options.SerializerSettings.ContractResolver = new DefaultContractResolver();
-                    Console.WriteLine("Json Options.");
-                });
-
+                services.AddControllers();
                 services.AddHostedService<Worker>();
                 services.AddSignalR();
             }
@@ -43,8 +37,12 @@ namespace MapsetVerifier.Server
             {
                 Console.WriteLine("Configure.");
 
-                app.UseSignalR(routes => { routes.MapHub<SignalHub>(hubUrl); });
-                app.UseMvc();
+                app.UseRouting();
+                app.UseEndpoints(endpoints =>
+                {
+                    endpoints.MapHub<SignalHub>(hubUrl);
+                    endpoints.MapControllers();
+                });
             }
         }
     }
