@@ -2,6 +2,7 @@
 
 .beatmaps-container {
   height: 100vh;
+  width: 100%;
   overflow-y: scroll;
   position: relative;
   direction: rtl; // Move scrollbar to the left
@@ -12,81 +13,73 @@
   }
 
   .beatmaps {
-    padding: variables.$padding-small variables.$padding;
     display: flex;
     flex-direction: column;
     gap: variables.$padding;
   }
 
-  .beatmaps-list {
+  .mapset-container {
+    height: 100px;
     display: flex;
-    flex-direction: column;
-    gap: variables.$padding-small;
+    justify-content: center;
+    align-items: center;
+    border-radius: variables.$border-radius;
+    position: relative;
+    overflow: hidden;
 
-    .mapset-container {
-      height: 100px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+    .mapset-bg-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4); // dark overlay
+      z-index: 1;
+      pointer-events: none;
+      transition: background 0.3s;
+    }
+
+    &:hover .mapset-bg-overlay {
+      background: rgba(0, 0, 0, 0.3); // lighter overlay on hover
+    }
+
+    .mapset-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
       border-radius: variables.$border-radius;
+      z-index: 0;
+    }
+
+    .mapset-text {
+      padding: variables.$padding-small;
       position: relative;
+      z-index: 2;
       overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: variables.$color-text;
+      text-align: center;
 
-      .mapset-bg-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.4); // dark overlay
-        z-index: 1;
-        pointer-events: none;
-        transition: background 0.3s;
-      }
-      
-      &:hover .mapset-bg-overlay {
-        background: rgba(0, 0, 0, 0.3); // lighter overlay on hover
-      }
-
-      .mapset-bg {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        border-radius: variables.$border-radius;
-        z-index: 0;
-      }
-
-      .mapset-text {
-        padding: variables.$padding-small;
-        position: relative;
-        z-index: 2;
-        max-width: 30ch;
+      // Ensure ellipsis is shown for overflowed text
+      .mapset-title, .mapset-mapper, span {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        color: variables.$color-text;
+      }
 
-        // Ensure ellipsis is shown for overflowed text
-        .mapset-title, .mapset-mapper, span {
-          max-width: 30ch;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
+      .mapset-title {
+        font-weight: bold;
+        font-size: variables.$font-size-small;
+      }
 
-        .mapset-title {
-          font-weight: bold;
-          font-size: variables.$font-size-small;
-        }
-        
-        .mapset-mapper {
-          font-size: variables.$font-size-smallest;
-        }
+      .mapset-mapper {
+        font-size: variables.$font-size-smallest;
       }
     }
   }

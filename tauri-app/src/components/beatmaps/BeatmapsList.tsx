@@ -1,10 +1,12 @@
-﻿import { useEffect, useState } from "react";
-import { readDir, readTextFile, stat } from "@tauri-apps/plugin-fs";
-import { join } from "@tauri-apps/api/path";
-import { Beatmap } from "./BeatmapTypes";
-import { scrape } from "./beatmapUtils";
+﻿import {useEffect, useState} from "react";
+import {readDir, readTextFile, stat} from "@tauri-apps/plugin-fs";
+import {join} from "@tauri-apps/api/path";
+import {Beatmap} from "./BeatmapTypes";
+import {scrape} from "./beatmapUtils";
 import BeatmapCard from "./BeatmapCard";
 import "./Beatmaps.scss";
+import {Alert, CloseButton, Container, Flex, Input} from "@mantine/core";
+import PlaceholderBeatmapCards from "./PlaceholderBeatmapCards.tsx";
 
 interface Props {
     songFolder: string;
@@ -124,22 +126,35 @@ export default function BeatmapsList({ songFolder }: Props) {
     }, [songFolder, search]);
 
     return (
-        <div className="beatmaps-container">
-            <div className="beatmaps">
-                <input
-                    type="text"
-                    placeholder="Search beatmaps..."
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                />
-                {loading && <div className="large-search-icon loading-icon" style={{ textAlign: "center" }}></div>}
-                {error && <div id="left-content-mapsets-empty">{error}</div>}
-                <div className="beatmaps-list">
-                    {beatmaps.map(bm => (
-                        <BeatmapCard key={bm.folder} beatmap={bm} />
-                    ))}
-                </div>
-            </div>
-        </div>
+      <Container className="beatmaps-container" p="sm">
+        <Flex direction="column" gap="sm">
+          <Input
+            type="text"
+            placeholder="Search beatmaps..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            rightSectionPointerEvents="all"
+            rightSection={
+              <CloseButton
+                aria-label="Clear input"
+                onClick={() => setSearch('')}
+                style={{ display: search ? undefined : 'none' }}
+              />
+            }
+          />
+          {loading && <PlaceholderBeatmapCards />}
+          {error && (
+            <Alert color="red" title="Error">
+              {error}
+            </Alert>
+          )}
+          <Flex direction="column" gap="sm">
+            {beatmaps.map(bm => (
+              <BeatmapCard key={bm.folder} beatmap={bm} />
+            ))}
+          </Flex>
+        </Flex>
+      </Container>
     );
 }
+

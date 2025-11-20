@@ -2,7 +2,7 @@
     return (
         <div className="page-container">
             <h1>Home page</h1>
-            <p>TODO</p>
+            <p>Some information goes here</p>
         </div>
     )
 }
