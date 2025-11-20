@@ -20,11 +20,14 @@ public static class DocumentationService
                 description: metadata.Message,
                 category: metadata.Category,
                 subCategory: metadata.GetMode(),
-                author: metadata.Author
+                author: metadata.Author,
+                outcomes: check.Value.GetTemplates()
+                    .Select(template => template.Value.Level)
             );
         });
 
-        return result;
+        return result.OrderBy(check => check.Category)
+            .ThenBy(check => check.Description);
     }
     
     public static IEnumerable<ApiDocumentationCheck> GetBeatmapDocumentation(Beatmap.Mode mode)
@@ -42,11 +45,14 @@ public static class DocumentationService
                 description: metadata.Message,
                 category: metadata.Category,
                 subCategory: metadata.GetMode(),
-                author: metadata.Author
+                author: metadata.Author,
+                outcomes: check.Value.GetTemplates()
+                    .Select(template => template.Value.Level)
             );
         });
 
-        return result;
+        return result.OrderBy(check => check.Category)
+            .ThenBy(check => check.Description);
     }
 
     public static ApiDocumentationCheckDetails? GetDocumentationDetails(int checkId)

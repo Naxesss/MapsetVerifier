@@ -39,9 +39,16 @@ namespace MapsetVerifier.Server
                         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
                     });
                 
-                services.AddHostedService<Worker>();
-                services.AddSignalR();
                 services.AddSwaggerGen();
+                services.AddCors(options =>
+                {
+                    options.AddDefaultPolicy(builder =>
+                    {
+                        builder.AllowAnyOrigin()
+                            .AllowAnyHeader()
+                            .AllowAnyMethod();
+                    });
+                });
             }
 
             // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -65,10 +72,10 @@ namespace MapsetVerifier.Server
                     });
                 });
 
+                app.UseCors();
                 app.UseRouting();
                 app.UseEndpoints(endpoints =>
                 {
-                    endpoints.MapHub<SignalHub>(hubUrl);
                     endpoints.MapControllers();
                 });
                 

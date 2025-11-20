@@ -1,16 +1,14 @@
-﻿import {Alert, Flex, Text, SimpleGrid, Space, Tabs, useMantineTheme} from "@mantine/core";
-import {
-  IconCircleCheckFilled, IconCircleXFilled,
-  IconExclamationCircleFilled
-} from "@tabler/icons-react";
+﻿import {Alert, Flex, Text, SimpleGrid, Space, Tabs} from "@mantine/core";
 import React from "react";
 import NoIssueIcon from "../icons/NoIssueIcon.tsx";
 import MinorIcon from "../icons/MinorIcon.tsx";
 import WarningIcon from "../icons/WarningIcon.tsx";
 import ErrorIcon from "../icons/ErrorIcon.tsx";
+import GeneralChecks from "./GeneralChecks";
+import BeatmapChecks from "./BeatmapChecks.tsx";
+import ProblemIcon from "../icons/ProblemIcon.tsx";
 
 function Documentation() {
-  const theme = useMantineTheme();
   return (
     <>
       <Alert variant="light" color="gray" radius="md" title="Icons">
@@ -40,10 +38,16 @@ function Documentation() {
             description="One or more guideline breaking issues were found."
           />
           <DocumentationIconExplanation
-            icon={<ErrorIcon />}
+            icon={<ProblemIcon />}
             title="Problem"
             category="Checks"
             description="One or more rule breaking issues were found."
+          />
+          <DocumentationIconExplanation
+            icon={<ErrorIcon />}
+            title="Error"
+            category="Checks"
+            description="An error occurred preventing a complete check."
           />
         </SimpleGrid>
       </Alert>
@@ -51,37 +55,25 @@ function Documentation() {
       <Tabs defaultValue="general">
         <Tabs.List grow>
           <Tabs.Tab value="general">General</Tabs.Tab>
-          <Tabs.Tab value="osu">Standard</Tabs.Tab>
+          <Tabs.Tab value="standard">Standard</Tabs.Tab>
           <Tabs.Tab value="taiko">Taiko</Tabs.Tab>
           <Tabs.Tab value="catch">Catch</Tabs.Tab>
           <Tabs.Tab value="mania">Mania</Tabs.Tab>
         </Tabs.List>
-        
         <Tabs.Panel value="general" pt="sm">
-          This tab will contain all the general checks
-          <Space h="md" />
-          Check 1
-          <Space h="md" />
-          Check 2
-          <Space h="md" />
-          Check 3
-          <Space h="md" />
-          Check 4
-          <Space h="md" />
-          Check 5
+          <GeneralChecks />
         </Tabs.Panel>
-
-        <Tabs.Panel value="osu" pt="sm">
-          This tab will contain all the osu checks
+        <Tabs.Panel value="standard" pt="sm">
+          <BeatmapChecks mode="Standard" />
         </Tabs.Panel>
         <Tabs.Panel value="taiko" pt="sm">
-          This tab will contain all the taiko checks
+          <BeatmapChecks mode="Taiko" />
         </Tabs.Panel>
         <Tabs.Panel value="catch" pt="sm">
-          This tab will contain all the catch checks
+          <BeatmapChecks mode="Catch" />
         </Tabs.Panel>
         <Tabs.Panel value="mania" pt="sm">
-          This tab will contain all the mania checks
+          <BeatmapChecks mode="Mania" />
         </Tabs.Panel>
       </Tabs>
     </>
