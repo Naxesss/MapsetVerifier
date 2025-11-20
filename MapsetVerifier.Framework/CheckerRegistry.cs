@@ -17,7 +17,16 @@ namespace MapsetVerifier.Framework
             Checks.Add(check);
         }
 
-        /// <summary> Returns all checks which are processed when checking for issues. </summary>
+        /// <summary> 
+        /// Returns all checks as a dictionary where the key is the index and the value is the check itself.
+        /// </summary>
+        public static Dictionary<int, Check> GetChecksWithId() =>
+            Checks.Select((check, index) => new { check, index })
+                  .ToDictionary(x => x.index, x => x.check);
+
+        /// <summary>
+        /// Returns all checks which are processed when checking for issues.
+        /// </summary>
         public static List<Check> GetChecks() => [..Checks];
 
         /// <summary>
