@@ -68,7 +68,11 @@ public static class DocumentationService
         var outcomes = templates.Select(template =>
         {
             var templateValue = template.Value;
-            var templateMessage = templateValue.Format((object?[]) templateValue.GetDefaultArguments());
+            var templateMessage = templateValue.Format(
+                templateValue.GetDefaultArguments()
+                    .Select(arg => "`" + arg + "`")
+                    .ToArray<object>()
+            );
             
             return new ApiDocumentationCheckDetailsOutcome(
                 level: templateValue.Level,
@@ -82,10 +86,13 @@ public static class DocumentationService
             var value = section.Value;
             // Make the key a markdown h1 + some white space after that for the full description
             var formattedDescription = "# " + section.Key + "\n\n" + value;
-
             return formattedDescription;
         });
         var fullDescription = string.Join("\n\n", descriptions);
+        // Remove all leading tabs and spaces from each line
+        fullDescription = string.Join("\n", fullDescription
+            .Split('\n')
+            .Select(line => line.TrimStart()));
 
         return new ApiDocumentationCheckDetails(
             description: fullDescription,

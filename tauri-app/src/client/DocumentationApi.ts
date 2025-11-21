@@ -1,4 +1,4 @@
-﻿import {ApiDocumentationCheck, Mode} from "../Types.ts";
+﻿import {ApiDocumentationCheck, ApiDocumentationCheckDetails, Mode} from "../Types.ts";
 
 const BASE_URL = "http://localhost:5005";
 
@@ -16,6 +16,10 @@ export default function DocumentationApi() {
     getBeatmapDocumentation: async function fetchGeneralDocumentation(mode: Mode) {
       return apiFetch('/documentation/beatmap?mode=' + mode)
         .then(res => res.json() as Promise<ApiDocumentationCheck[]>)
+    },
+    getCheckDetails: async function fetchCheckDescription(checkId: string) {
+      return apiFetch('/documentation/' + checkId + '/details')
+        .then(res => res.json() as Promise<ApiDocumentationCheckDetails>)
     }
   }
 }

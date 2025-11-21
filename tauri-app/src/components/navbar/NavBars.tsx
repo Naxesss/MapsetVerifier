@@ -18,17 +18,20 @@ const navItems = [
   {
     to: '/checks',
     icon: IconCheck,
-    label: 'Checks'
+    label: 'Checks',
+    disabled: true
   },
   {
     to: '/snapshots',
     icon: IconCamera,
-    label: 'Snapshots'
+    label: 'Snapshots',
+    disabled: true
   },
   {
     to: '/overview',
     icon: IconTimeline,
-    label: 'Overview'
+    label: 'Overview',
+    disabled: true
   }
 ];
 
@@ -49,6 +52,7 @@ function NavBars(props: NavBarsProps) {
       active={location.pathname === item.to}
       label={item.label}
       leftSection={<item.icon />}
+      disabled={item.disabled}
       styles={{
         root: {
           borderRadius: 5,
@@ -69,6 +73,7 @@ function NavBars(props: NavBarsProps) {
               w={"unset"}
               href="#required-for-focus"
               label={<IconSettings />}
+              disabled={true}
               styles={{
                 root: {
                   borderRadius: "100%",
