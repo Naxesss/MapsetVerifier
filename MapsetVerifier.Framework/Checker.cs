@@ -158,11 +158,10 @@ namespace MapsetVerifier.Framework
                 {
                     var checksAssembly = Assembly.LoadFrom(localChecksDllPath);
                     LoadCheckAssembly(checksAssembly);
+                    return;
                 }
-                else
-                {
-                    Console.WriteLine($"Could not find MapsetVerifier.Checks.dll at {localChecksDllPath}");
-                }
+
+                Console.WriteLine($"Could not find MapsetVerifier.Checks.dll at {localChecksDllPath}");
 
                 var assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 if (assemblyDir == null)
