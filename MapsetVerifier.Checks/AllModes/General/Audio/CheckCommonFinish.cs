@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -28,14 +27,14 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                     {
                         "Purpose",
                         @"
-                    Discouraging normal/soft finish samples from playing too often to the point where it gets obnoxious 
-                    without custom hit sounds."
+                        Discouraging normal/soft finish samples from playing too often to the point where it gets obnoxious 
+                        without custom hit sounds."
                     },
                     {
                         "Reasoning",
                         @"
-                    Although possibly fine when using custom samples, this will still get very jarring if the player 
-                    turns off custom hit sounds and the finishes are used as frequently as claps/whistles, for example."
+                        Although possibly fine when using custom samples, this will still get very jarring if the player 
+                        turns off custom hit sounds and the finishes are used as frequently as claps/whistles, for example."
                     }
                 }
             };
@@ -45,12 +44,14 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             {
                 {
                     "Warning Common",
-                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" may be obnoxious without custom samples. Used most commonly in {1}.", "path", "[difficulty]").WithCause("The usage of non-drum finish hit sounds to drain time ratio in a map is 2 seconds or more.")
+                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" may be obnoxious without custom samples. Used most commonly in {1}.", "path", "[difficulty]")
+                        .WithCause("The usage of non-drum finish hit sounds to drain time ratio in a map is 2 seconds or more.")
                 },
 
                 {
                     "Warning Timestamp",
-                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" may be obnoxious without custom samples. Used most frequently leading up to {1}.", "path", "timestamp in [difficulty]").WithCause("Non-drum finish hit sounds are used frequently in a short timespan.")
+                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" may be obnoxious without custom samples. Used most frequently leading up to {1}.", "path", "timestamp in [difficulty]")
+                        .WithCause("Non-drum finish hit sounds are used frequently in a short timespan.")
                 }
             };
 

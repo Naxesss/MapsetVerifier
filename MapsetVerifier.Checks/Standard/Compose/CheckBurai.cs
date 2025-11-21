@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
+﻿using System.Numerics;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
@@ -30,33 +27,22 @@ namespace MapsetVerifier.Checks.Standard.Compose
                     {
                         "Purpose",
                         @"
-                    Preventing sliders from being excessively difficult, or even impossible, to read in gameplay.
-                    <image-right>
-                        https://i.imgur.com/fMa1hWR.png
-                        A slider which may be considered readable if it goes right, up, and then down, but would 
-                        mean going through the same slider path twice for the right and top parts.
-                    </image>"
+                        Preventing sliders from being excessively difficult, or even impossible, to read in gameplay.
+
+                        ![](https://i.imgur.com/fMa1hWR.png)
+                        A slider which may be considered readable if it goes right, up, and then down, but would mean going through the same slider path twice for the right and top parts."
                     },
                     {
                         "Reasoning",
                         @"
-                    Largely follows the same reasoning as the overlapping slider tail/head/anchor check; if the player 
-                    needs to rely on guessing, and guessing wrong results in a slider break, then that's an unfair 
-                    gameplay experience.
-                    <br \><br \>
-                    A single path going back on itself far enough for the follow circle to not cover everything, is 
-                    neither lenient nor something players will expect considering that sliders are expected to have 
-                    a clear path. When the follow circle does cover the whole path, however, it's generally acceptable 
-                    since even if the player misreads it, it usually doesn't cause any slider breaks.
-                    <br \><br \>
-                    Should a slider go back on itself and end before it creates its own borders, players without slider 
-                    tails enabled will have a hard time seeing how far back into itself it goes, or even if it goes 
-                    back on itself at all.
-                    <image-right>
-                        https://i.imgur.com/StRTQzZ.png
-                        A slider which goes back on itself multiple times and is impossible to read for players with 
-                        slider tails hidden, which is common in skinning.
-                    </image>"
+                        Largely follows the same reasoning as the overlapping slider tail/head/anchor check; if the player needs to rely on guessing, and guessing wrong results in a slider break, then that's an unfair gameplay experience.
+
+                        A single path going back on itself far enough for the follow circle to not cover everything, is neither lenient nor something players will expect considering that sliders are expected to have a clear path. When the follow circle does cover the whole path, however, it's generally acceptable since even if the player misreads it, it usually doesn't cause any slider breaks.
+
+                        Should a slider go back on itself and end before it creates its own borders, players without slider tails enabled will have a hard time seeing how far back into itself it goes, or even if it goes back on itself at all.
+
+                        ![](https://i.imgur.com/StRTQzZ.png)
+                        A slider which goes back on itself multiple times and is impossible to read for players with slider tails hidden, which is common in skinning."
                     }
                 }
             };
@@ -66,12 +52,14 @@ namespace MapsetVerifier.Checks.Standard.Compose
             {
                 {
                     "Definitely",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Burai.", "timestamp - ").WithCause("The burai score of a slider shape, based on the distance and delta angle between intersecting parts of " + "the curve, is very high.")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Burai.", "timestamp - ")
+                        .WithCause("The burai score of a slider shape, based on the distance and delta angle between intersecting parts of the curve, is very high.")
                 },
 
                 {
                     "Potentially",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Potentially burai.", "timestamp - ").WithCause("Same as the other check, but with a lower score threshold.")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Potentially burai.", "timestamp - ")
+                        .WithCause("Same as the other check, but with a lower score threshold.")
                 }
             };
 

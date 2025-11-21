@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
@@ -31,19 +29,17 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     {
                         "Purpose",
                         @"
-                    Standardizing the way metadata is written for ranked content.
-                    <image>
-                        https://i.imgur.com/e5mHEan.png
-                        An example of ""featured by"", which should be replaced by ""feat."".
-                    </image>"
+                        Standardizing the way metadata is written for ranked content.
+                        ![](https://i.imgur.com/e5mHEan.png)
+                        An example of ""featured by"", which should be replaced by ""feat.""."
                     },
                     {
                         "Reasoning",
                         @"
-                    Small deviations in metadata or obvious mistakes in its formatting or capitalization are for the 
-                    most part eliminated through standardization. Standardization also reduces confusion in case of 
-                    multiple correct ways to write certain fields and contributes to making metadata more consistent 
-                    across official content."
+                        Small deviations in metadata or obvious mistakes in its formatting or capitalization are for the 
+                        most part eliminated through standardization. Standardization also reduces confusion in case of 
+                        multiple correct ways to write certain fields and contributes to making metadata more consistent 
+                        across official content."
                     }
                 }
             };
@@ -53,7 +49,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             {
                 {
                     "Wrong Format",
-                    new IssueTemplate(Issue.Level.Problem, "Incorrect formatting of \"{0}\" marker in {1} {2} field, \"{3}\".", "marker", "Romanized/unicode", "artist/title", "field").WithCause("The artist or title field of a difficulty includes an incorrect format of \"CV:\", \"vs.\" or \"feat.\".")
+                    new IssueTemplate(Issue.Level.Problem, "Incorrect formatting of \"{0}\" marker in {1} {2} field, \"{3}\".", "marker", "Romanized/unicode", "artist/title", "field")
+                        .WithCause("The artist or title field of a difficulty includes an incorrect format of \"CV:\", \"vs.\" or \"feat.\".")
                 }
             };
 

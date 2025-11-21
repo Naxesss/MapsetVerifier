@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -34,19 +31,14 @@ namespace MapsetVerifier.Checks.Standard.Spread
                     {
                         "Purpose",
                         @"
-                    Ensuring spacing between objects with the same snapping is recognizable, and objects with different snappings are 
-                    distinguishable, for easy and normal difficulties."
+                        Ensuring spacing between objects with the same snapping is recognizable, and objects with different snappings are distinguishable, for easy and normal difficulties."
                     },
                     {
                         "Reasoning",
                         @"
-                    Time distance equality is a fundamental concept used in low difficulties to teach newer players how to interpret 
-                    rhythm easier. By trivializing reading, these maps can better teach how base mechanics work, like approach circles, 
-                    slider follow circles, object fading, hit bursts, hit sounds, etc.
-                    <br \><br \>
-                    Once these are learnt, and by the time players move on to hard difficulties, more advanced concepts and elements 
-                    can begin to be introduced, like multiple reverses, spacing as a form of emphasis, complex rhythms, streams, and so 
-                    on."
+                        Time distance equality is a fundamental concept used in low difficulties to teach newer players how to interpret rhythm easier. By trivializing reading, these maps can better teach how base mechanics work, like approach circles, slider follow circles, object fading, hit bursts, hit sounds, etc.
+
+                        Once these are learnt, and by the time players move on to hard difficulties, more advanced concepts and elements can begin to be introduced, like multiple reverses, spacing as a form of emphasis, complex rhythms, streams, and so on."
                     }
                 }
             };
@@ -56,12 +48,14 @@ namespace MapsetVerifier.Checks.Standard.Spread
             {
                 {
                     "Distance",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Distance is {1} px, expected {2}, see {3}.", "timestamp - ", "distance", "distance", "example objects").WithCause("The distance between two hit objects noticeably contradicts a recent use of time distance balance between another " + "two hit objects using a similar time gap.")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Distance is {1} px, expected {2}, see {3}.", "timestamp - ", "distance", "distance", "example objects")
+                        .WithCause("The distance between two hit objects noticeably contradicts a recent use of time distance balance between another two hit objects using a similar time gap.")
                 },
 
                 {
                     "Ratio",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Distance/time ratio is {1}, expected {2}.", "timestamp - ", "ratio", "ratio").WithCause("The distance/time ratio between the previous hit objects greatly contradicts a following use of distance/time ratio.")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Distance/time ratio is {1}, expected {2}.", "timestamp - ", "ratio", "ratio")
+                        .WithCause("The distance/time ratio between the previous hit objects greatly contradicts a following use of distance/time ratio.")
                 }
             };
 

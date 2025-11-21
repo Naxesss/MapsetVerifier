@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
@@ -25,13 +24,13 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     {
                         "Purpose",
                         @"
-                    Ensuring that the set can be found by searching for any of its guest difficulty creators."
+                        Ensuring that the set can be found by searching for any of its guest difficulty creators."
                     },
                     {
                         "Reasoning",
                         @"
-                    If you're looking for beatmaps of a specific user, it'd make sense if sets containing their
-                    guest difficulties would appear, and not only sets they hosted."
+                        If you're looking for beatmaps of a specific user, it'd make sense if sets containing their
+                        guest difficulties would appear, and not only sets they hosted."
                     }
                 }
             };
@@ -41,7 +40,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             {
                 {
                     "Warning",
-                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" is possessive but \"{1}\" isn't in the tags, ignore if not a user.", "guest's diff", "guest").WithCause("A difficulty name is prefixed by text containing an apostrophe (') before or after " + "the character \"s\", which is not in the tags.")
+                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" is possessive but \"{1}\" isn't in the tags, ignore if not a user.", "guest's diff", "guest")
+                        .WithCause("A difficulty name is prefixed by text containing an apostrophe (') before or after the character \"s\", which is not in the tags.")
                 }
             };
 

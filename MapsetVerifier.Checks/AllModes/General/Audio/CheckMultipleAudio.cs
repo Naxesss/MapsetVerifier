@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -23,15 +21,15 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                     {
                         "Purpose",
                         @"
-                    Ensuring that each beatmapset only contains one audio file."
+                        Ensuring that each beatmapset only contains one audio file."
                     },
                     {
                         "Reasoning",
                         @"
-                    Although this works well in-game, the website preview, metadata, tags, etc are all relying on that each 
-                    beatmapset is based around a single song. As such, having multiple songs in a single beatmapset is not 
-                    supported properly. Each song will also need its own spread, so having each set of difficulties in its 
-                    own beatmapset makes things more organized."
+                        While this works well in-game, the website preview, metadata, tags, etc are all relying on that each 
+                        beatmapset is based around a single song. As such, having multiple songs in a single beatmapset is not 
+                        supported properly. Each song will also need its own spread, so having each set of difficulties in its 
+                        own beatmapset makes things more organized."
                     }
                 }
             };
@@ -41,12 +39,14 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             {
                 {
                     "Multiple",
-                    new IssueTemplate(Issue.Level.Problem, "{0}", "audio file : difficulties").WithCause("There is more than one audio file used between all difficulties.")
+                    new IssueTemplate(Issue.Level.Problem, "{0}", "audio file : difficulties")
+                        .WithCause("There is more than one audio file used between all difficulties.")
                 },
 
                 {
                     "Missing",
-                    new IssueTemplate(Issue.Level.Problem, "No audio file could be found.").WithCause("There is no audio file used in any difficulty.")
+                    new IssueTemplate(Issue.Level.Problem, "No audio file could be found.")
+                        .WithCause("There is no audio file used in any difficulty.")
                 }
             };
 

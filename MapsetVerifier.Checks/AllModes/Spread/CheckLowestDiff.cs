@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -23,24 +21,17 @@ namespace MapsetVerifier.Checks.AllModes.Spread
                     {
                         "Purpose",
                         @"
-                    Ensuring that newer players still have new content to play at the same time as encouraging mappers to map longer songs.
-                    <image>
-                        https://i.imgur.com/1PFVl76.png
-                        The drain time thresholds determining the highest difficulty level for the lowest difficulty in the set.
-                    </image>"
+                        Ensuring that newer players still have new content to play at the same time as encouraging mappers to map longer songs.
+
+                        ![](https://i.imgur.com/1PFVl76.png)
+                        The drain time thresholds determining the highest difficulty level for the lowest difficulty in the set."
                     },
                     {
                         "Reasoning",
                         @"
-                    Newer players usually struggle with especially long songs, so encouraging them to try shorter songs first at lower 
-                    difficulty levels allows them to learn the basics before trying to train their stamina or similar. This is done by 
-                    requiring that shorter songs have lower difficulties, while longer songs can have less of them. This also reduces the 
-                    workload on mappers and as such introduces a larger variety of songs into the game that otherwise wouldn't be so common 
-                    due to their length.
-                    <note>
-                        The star rating algorithm is currently only implemented for standard, so the suggested difficulty level of beatmaps 
-                        not from standard is highly inaccurate. Changing the interpretation of difficulty levels manually will fix this.
-                    </note>"
+                        Newer players usually struggle with especially long songs, so encouraging them to try shorter songs first at lower difficulty levels allows them to learn the basics before trying to train their stamina or similar. This is done by requiring that shorter songs have lower difficulties, while longer songs can have less of them. This also reduces the workload on mappers and as such introduces a larger variety of songs into the game that otherwise wouldn't be so common due to their length.
+
+                        > The star rating algorithm is currently only implemented for standard, so the suggested difficulty level of beatmaps not from standard is highly inaccurate. Changing the interpretation of difficulty levels manually will fix this."
                     }
                 }
             };
@@ -50,7 +41,8 @@ namespace MapsetVerifier.Checks.AllModes.Spread
             {
                 {
                     "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "With a lowest difficulty {0}, the {1} time of {2} must be at least {3}, currently {4}.", "lowest diff", "drain/play", "beatmap", "lowest drain", "current drain").WithCause("The lowest difficulty of a beatmapset is too high of a difficulty level considering the drain time " + "of the other difficulties, alternatively play time if their drain is 80% or more of it and it isn't " + "the top difficulty.")
+                    new IssueTemplate(Issue.Level.Problem, "With a lowest difficulty {0}, the {1} time of {2} must be at least {3}, currently {4}.", "lowest diff", "drain/play", "beatmap", "lowest drain", "current drain")
+                        .WithCause("The lowest difficulty of a beatmapset is too high of a difficulty level considering the drain time of the other difficulties, alternatively play time if their drain is 80% or more of it and it isn't the top difficulty.")
                 }
             };
 

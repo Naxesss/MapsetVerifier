@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -29,19 +26,15 @@ namespace MapsetVerifier.Checks.Standard.Compose
                     {
                         "Purpose",
                         @"
-                    Prevent the time/distance ratio of hit objects from being absurdly large, even for higher difficulties.
-                    This is often a cause of an object being snapped a 1/4th tick earlier, and has been a common reason for unranks.
-                    "
+                        Prevent the time/distance ratio of hit objects from being absurdly large, even for higher difficulties.
+                        This is often a cause of an object being snapped a 1/4th tick earlier, and has been a common reason for unranks."
                     },
                     {
                         "Reasoning",
                         @"
-                    With two objects being spaced way further than previous objects of the same snapping, it can be extremely
-                    difficult to expect, much less play.
-                    <br><br>
-                    When combined with incorrect snappings (which abnormal spacing is often a cause of), this can really throw
-                    players off to the point where the map is pretty much considered unplayable.
-                    "
+                        With two objects being spaced way further than previous objects of the same snapping, it can be extremely difficult to expect, much less play.
+
+                        When combined with incorrect snappings (which abnormal spacing is often a cause of), this can really throw players off to the point where the map is pretty much considered unplayable."
                     }
                 }
             };
@@ -51,22 +44,20 @@ namespace MapsetVerifier.Checks.Standard.Compose
             {
                 {
                     "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Space/time ratio is {1} times the expected, see e.g. {2}.", "timestamp - ", "times", "example objects").WithCause(@"
-                        The space/time ratio between two objects is absurdly large in comparison to other objects with the same snapping prior.
-                        <note>
-                            Accounts for slider leniency by assuming that the gap is a circle's diameter smaller.
-                        </note>
-                        ")
+                    new IssueTemplate(Issue.Level.Problem, "{0} Space/time ratio is {1} times the expected, see e.g. {2}.", "timestamp - ", "times", "example objects")
+                        .WithCause(@"The space/time ratio between two objects is absurdly large in comparison to other objects with the same snapping prior.
+                                    > Accounts for slider leniency by assuming that the gap is a circle's diameter smaller.")
                 },
 
                 {
                     "Warning",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Space/time ratio is {1} times the expected, see e.g. {2}.", "timestamp - ", "times", "example objects").WithCause("Same as the first check, but with slightly less absurd, yet often still extreme, differences.")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Space/time ratio is {1} times the expected, see e.g. {2}.", "timestamp - ", "times", "example objects")
+                        .WithCause("Same as the first check, but with slightly less absurd, yet often still extreme, differences.")
                 },
-
                 {
                     "Minor",
-                    new IssueTemplate(Issue.Level.Minor, "{0} Space/time ratio is {1} times the expected, see e.g. {2}.", "timestamp - ", "times", "example objects").WithCause("Same as the first check, but with more common differences.")
+                    new IssueTemplate(Issue.Level.Minor, "{0} Space/time ratio is {1} times the expected, see e.g. {2}.", "timestamp - ", "times", "example objects")
+                        .WithCause("Same as the first check, but with more common differences.")
                 }
             };
 

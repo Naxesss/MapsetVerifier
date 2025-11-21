@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using ManagedBass;
+﻿using ManagedBass;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
@@ -24,21 +22,17 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                     {
                         "Purpose",
                         @"
-                    Ensures that all audio files used for the song itself is in MP3 or OGG format."
+                        Ensures that all audio files used for the song itself is in MP3 or OGG format."
                     },
                     {
                         "Reasoning",
                         @"
-                    Although the Wave format can support compressed audio, it is usually not efficient and takes up 
-                    more space than the MP3 format.
-                    <note>
-                        Note that extension is not the same thing as format. If you take an OGG file and change its 
-                        extension to "".mp3"", for example, it will still be a OGG file. To change the format of a 
-                        file you need to re-encode it.
-                    </note>
-                    <br \>
-                    MP3 often has an inherent delay, which is why it isn't allowed in active hit sounding. In audio 
-                    files, however, this delay can be counteracted with offset."
+                        Although the Wave format can support compressed audio, it is usually not efficient and takes up 
+                        more space than the MP3 format.
+                        > Note that extension is not the same thing as format. If you take an OGG file and change its extension to "".mp3"", for example, it will still be a OGG file. To change the format of a file you need to re-encode it.
+
+                        MP3 often has an inherent delay, which is why it isn't allowed in active hit sounding. In audio 
+                        files, however, this delay can be counteracted with offset."
                     }
                 }
             };
@@ -48,17 +42,20 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             {
                 {
                     "Incorrect Format",
-                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" is using the {1} format. Song audio files must be in either MP3 or OGG format. (Note: extension ≠ format.)", "path", "actual format").WithCause("A song audio file is not using the MP3 format.")
+                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" is using the {1} format. Song audio files must be in either MP3 or OGG format. (Note: extension ≠ format.)", "path", "actual format")
+                        .WithCause("A song audio file is not using the MP3 format.")
                 },
 
                 {
                     "Incorrect Extension",
-                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" is using the {1} format, but doesn't use the {2} extension.", "path", "actual format", "expected extension").WithCause("A song audio file is using an incorrect extension.")
+                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" is using the {1} format, but doesn't use the {2} extension.", "path", "actual format", "expected extension")
+                        .WithCause("A song audio file is using an incorrect extension.")
                 },
 
                 {
                     "Exception",
-                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path", "exception info").WithCause("An error occurred trying to check the format of a song audio file.")
+                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path", "exception info")
+                        .WithCause("An error occurred trying to check the format of a song audio file.")
                 }
             };
 

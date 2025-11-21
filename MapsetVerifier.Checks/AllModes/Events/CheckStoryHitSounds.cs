@@ -30,20 +30,16 @@ namespace MapsetVerifier.Checks.AllModes.Events
                     {
                         "Purpose",
                         @"
-                    Preventing storyboard sounds from replacing or becoming ambigious with any beatmap hit sounds."
+                        Preventing storyboard sounds from replacing or becoming ambigious with any beatmap hit sounds."
                     },
                     {
                         "Reasoning",
                         @"
-                    Storyboarded hit sounds always play at the same time regardless of however late or early the player clicks 
-                    on an object, meaning they do not provide proper active hit object feedback, unlike regular hit sounds. This 
-                    contradicts the purpose of hit sounds and is likely to be confusing for players if similar samples as the 
-                    hit sounds are used.
-                    <note>
-                        Mania is exempt from this due to multiple objects at the same point in time being possible, leading 
-                        to regular hit sounding working poorly, for example amplifying the volume if concurrent objects have 
-                        the same hit sounds.
-                    </note>"
+                        Storyboarded hit sounds always play at the same time regardless of however late or early the player clicks 
+                        on an object, meaning they do not provide proper active hit object feedback, unlike regular hit sounds. This 
+                        contradicts the purpose of hit sounds and is likely to be confusing for players if similar samples as the 
+                        hit sounds are used.
+                        > Mania is exempt from this due to multiple objects at the same point in time being possible, leading to regular hit sounding working poorly, for example amplifying the volume if concurrent objects have the same hit sounds."
                     }
                 }
             };
@@ -53,7 +49,8 @@ namespace MapsetVerifier.Checks.AllModes.Events
             {
                 {
                     "Storyboarded Hit Sound",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Storyboarded hit sound ({1}, {2}%) from {3} file.", "timestamp - ", "path", "volume", ".osu/.osb").WithCause("The .osu file or .osb file contains storyboarded hit sounds.")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Storyboarded hit sound ({1}, {2}%) from {3} file.", "timestamp - ", "path", "volume", ".osu/.osb")
+                        .WithCause("The .osu file or .osb file contains storyboarded hit sounds.")
                 }
             };
 

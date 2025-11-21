@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
@@ -28,31 +27,20 @@ namespace MapsetVerifier.Checks.Standard.Compose
                     {
                         "Purpose",
                         @"
-                    Preventing sliders from being excessively difficult, or even impossible, to read in gameplay.
-                    <image-right>
-                        https://i.imgur.com/Y3TB2m7.png
-                        A slider with a 3-way intersection in the middle. Considered readable if and only if the 
-                        middle section goes up to the left and down on the right.
-                    </image>"
+                        Preventing sliders from being excessively difficult, or even impossible, to read in gameplay.
+
+                        ![](https://i.imgur.com/Y3TB2m7.png)
+                        A slider with a 3-way intersection in the middle. Considered readable if and only if the middle section goes up to the left and down on the right."
                     },
                     {
                         "Reasoning",
                         @"
-                    Giving the player little to no hints as to how to move their cursor through the slider makes for an 
-                    unfair gameplay experience. This means the majority of the difficulty does not stem from how well the 
-                    player can click on and move through the slider, but from how well they can guess how to move through 
-                    it. If implemented well, however, it is possible for the player to learn how to move through the 
-                    sliders before they are able to fail from guessing wrong.
-                    <br \><br \>
-                    Particularly slow sliders, for instance, may move their follow circle slow enough for players to correct 
-                    themselves if they guessed wrong, whereas fast sliders often do not include as many slider ticks and are 
-                    as such more lenient. Sliders that do not require that the player move their cursor are also hard to fail 
-                    from guessing wrong since there it often doesn't matter if they know how to position their cursor.
-                    <image-right>
-                        https://i.imgur.com/LPVmy81.png
-                        Two sliders which are practically the same in gameplay. The left one has a much higher chance of 
-                        players guessing wrong on due to the tail not being visible.
-                    </image>"
+                        Giving the player little to no hints as to how to move their cursor through the slider makes for an unfair gameplay experience. This means the majority of the difficulty does not stem from how well the player can click on and move through the slider, but from how well they can guess how to move through it. If implemented well, however, it is possible for the player to learn how to move through the sliders before they are able to fail from guessing wrong.
+
+                        Particularly slow sliders, for instance, may move their follow circle slow enough for players to correct themselves if they guessed wrong, whereas fast sliders often do not include as many slider ticks and are as such more lenient. Sliders that do not require that the player move their cursor are also hard to fail from guessing wrong since there it often doesn't matter if they know how to position their cursor.
+
+                        ![](https://i.imgur.com/LPVmy81.png)
+                        Two sliders which are practically the same in gameplay. The left one has a much higher chance of players guessing wrong on due to the tail not being visible."
                     }
                 }
             };

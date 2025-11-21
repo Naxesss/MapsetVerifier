@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Framework.Objects.Resources;
@@ -25,21 +22,19 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                     {
                         "Purpose",
                         @"
-                    Preventing audio files from being much longer than the beatmaps they are used for.
-                    <image>
-                        https://i.imgur.com/n8bYgaP.png
-                        A beatmap which has left a large portion of the song unmapped.
-                    </image>"
+                        Preventing audio files from being much longer than the beatmaps they are used for.
+                        ![](https://i.imgur.com/n8bYgaP.png)
+                        A beatmap which has left a large portion of the song unmapped."
                     },
                     {
                         "Reasoning",
                         @"
-                    Audio files tend to be large in file size, so allowing them to be much longer than beatmaps would be a waste of resources, 
-                    since few linger around score screens for that long. Something needs to be happening in the storyboard or video, to keep 
-                    people around from skipping to the score screen, to justify the audio file being longer.
+                        Audio files tend to be large in file size, so allowing them to be much longer than beatmaps would be a waste of resources, 
+                        since few linger around score screens for that long. Something needs to be happening in the storyboard or video, to keep 
+                        people around from skipping to the score screen, to justify the audio file being longer.
 
-                    Note that this applies only to beatmapsets where <b>all</b> beatmaps exclude the last portion of the audio. If <b>any</b> 
-                    uses it, then the audio does not need to be cut."
+                        Note that this applies only to beatmapsets where **all** beatmaps exclude the last portion of the audio. If **any** 
+                        uses it, then the audio does not need to be cut."
                     }
                 }
             };
@@ -49,17 +44,20 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             {
                 {
                     "Without Video/Storyboard",
-                    new IssueTemplate(Issue.Level.Warning, "Currently {0}% unused audio. Ensure the outro significantly contributes to the song, " + "otherwise cut the outro.", "percent").WithCause("The amount of time after the last object exceeds 20% of the length of the audio file. " + "No storyboard or video is present.")
+                    new IssueTemplate(Issue.Level.Warning, "Currently {0}% unused audio. Ensure the outro significantly contributes to the song, otherwise cut the outro.", "percent")
+                        .WithCause("The amount of time after the last object exceeds 20% of the length of the audio file. No storyboard or video is present.")
                 },
 
                 {
                     "With Video/Storyboard",
-                    new IssueTemplate(Issue.Level.Warning, "Currently {0}% unused audio. Ensure the outro either significantly contributes to the " + "song, or is being occupied by the video or storyboard, otherwise cut the outro.", "percent").WithCause("Same as the other check, except with a storyboard or video present.")
+                    new IssueTemplate(Issue.Level.Warning, "Currently {0}% unused audio. Ensure the outro either significantly contributes to the song, or is being occupied by the video or storyboard, otherwise cut the outro.", "percent")
+                        .WithCause("Same as the other check, except with a storyboard or video present.")
                 },
 
                 {
                     "Unable to check",
-                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path", "exception info").WithCause("There was an error parsing the audio file.")
+                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path", "exception info")
+                        .WithCause("There was an error parsing the audio file.")
                 }
             };
 

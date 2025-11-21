@@ -29,23 +29,17 @@ namespace MapsetVerifier.Checks.AllModes.Settings
                     {
                         "Purpose",
                         @"
-                    Preventing the combo colours chosen without additional input from blending into the background.
-                    <image-right>
-                        https://i.imgur.com/G5vTU7f.png
-                        The combo colour section in song setup without custom colours ticked.
-                    </image>"
+                        Preventing the combo colours chosen without additional input from blending into the background.
+
+                        ![](https://i.imgur.com/G5vTU7f.png)
+                        The combo colour section in song setup without custom colours ticked."
                     },
                     {
                         "Reasoning",
                         @"
-                    If you leave the combo colour setting as it is when you create a beatmap, no [Colours] section will 
-                    be created in the .osu, meaning the skins of users will override them. Since we can't control which 
-                    colours they may use or force them to dim the background, the colours may blend into the background 
-                    making for an unfair gameplay experience.
-                    <br \><br \>
-                    If you set a preferred skin in the beatmap however, for example default, that skin will be used over 
-                    any user skin, but many players switch skins to get away from default, so would not recommend this.
-                    If you want the default colours, simply tick the ""Enable Custom Colours"" checkbox instead."
+                        If you leave the combo colour setting as it is when you create a beatmap, no [Colours] section will be created in the .osu, meaning the skins of users will override them. Since we can't control which colours they may use or force them to dim the background, the colours may blend into the background making for an unfair gameplay experience.
+
+                        If you set a preferred skin in the beatmap however, for example default, that skin will be used over any user skin, but many players switch skins to get away from default, so would not recommend this. If you want the default colours, simply tick the ""Enable Custom Colours"" checkbox instead."
                     }
                 }
             };
@@ -55,7 +49,8 @@ namespace MapsetVerifier.Checks.AllModes.Settings
             {
                 {
                     "Default",
-                    new IssueTemplate(Issue.Level.Problem, "Default combo colours without preferred skin.").WithCause("A beatmap has no custom combo colours and does not have any preferred skin.")
+                    new IssueTemplate(Issue.Level.Problem, "Default combo colours without preferred skin.")
+                        .WithCause("A beatmap has no custom combo colours and does not have any preferred skin.")
                 }
             };
 

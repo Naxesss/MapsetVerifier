@@ -24,17 +24,16 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                     {
                         "Purpose",
                         @"
-                    Preventing mappers from writing inappropriate or otherwise harmful messages using slider nodes.
-                    <image-right>
-                        https://i.imgur.com/rlCoEtZ.png
-                        An example of text being written with slider nodes in a way which can easily be hidden offscreen.
-                    </image>"
+                        Preventing mappers from writing inappropriate or otherwise harmful messages using slider nodes.
+
+                        ![](https://i.imgur.com/rlCoEtZ.png)
+                        An example of text being written with slider nodes in a way which can easily be hidden offscreen."
                     },
                     {
                         "Reasoning",
                         @"
-                    The code of conduct applies to all aspects of the ranking process, including the beatmap content itself, 
-                    whether that only be visible through the editor or in gameplay as well."
+                        The code of conduct applies to all aspects of the ranking process, including the beatmap content itself,
+                        whether that only be visible through the editor or in gameplay as well."
                     }
                 }
             };
@@ -44,7 +43,8 @@ namespace MapsetVerifier.Checks.AllModes.Compose
             {
                 {
                     "Abnormal",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Slider contains {1} nodes.", "timestamp - ", "amount").WithCause("A slider contains more nodes than 10 times the square root of its length in pixels.")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Slider contains {1} nodes.", "timestamp - ", "amount")
+                        .WithCause("A slider contains more nodes than 10 times the square root of its length in pixels.")
                 }
             };
 

@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -23,16 +20,15 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                     {
                         "Purpose",
                         @"
-                    Ensuring that each beatmap in a beatmapset has a background image present.
-                    <image-right>
-                        https://i.imgur.com/P9TdA7K.jpg
-                        An example of a default non-seasonal background as shown in the editor.
-                    </image>"
+                        Ensuring that each beatmap in a beatmapset has a background image present.
+
+                        ![](https://i.imgur.com/P9TdA7K.jpg)
+                        An example of a default non-seasonal background as shown in the editor."
                     },
                     {
                         "Reasoning",
                         @"
-                    Backgrounds help players recognize the beatmap, and the absence of one makes it look incomplete."
+                        Backgrounds help players recognize the beatmap, and the absence of one makes it look incomplete."
                     }
                 }
             };
@@ -42,17 +38,20 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
             {
                 {
                     "All",
-                    new IssueTemplate(Issue.Level.Problem, "All difficulties are missing backgrounds.").WithCause("None of the difficulties have a background present.")
+                    new IssueTemplate(Issue.Level.Problem, "All difficulties are missing backgrounds.")
+                        .WithCause("None of the difficulties have a background present.")
                 },
 
                 {
                     "One",
-                    new IssueTemplate(Issue.Level.Problem, "{0} has no background.", "difficulty").WithCause("One or more difficulties are missing backgrounds, but not all.")
+                    new IssueTemplate(Issue.Level.Problem, "{0} has no background.", "difficulty")
+                        .WithCause("One or more difficulties are missing backgrounds, but not all.")
                 },
 
                 {
                     "Missing",
-                    new IssueTemplate(Issue.Level.Problem, "{0} is missing its background file, \"{1}\".", "difficulty", "path").WithCause("A background file path is present, but no file exists where it is pointing.")
+                    new IssueTemplate(Issue.Level.Problem, "{0} is missing its background file, \"{1}\".", "difficulty", "path")
+                        .WithCause("A background file path is present, but no file exists where it is pointing.")
                 }
             };
 

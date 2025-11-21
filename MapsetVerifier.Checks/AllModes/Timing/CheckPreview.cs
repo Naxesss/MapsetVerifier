@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -21,18 +20,18 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     {
                         "Purpose",
                         @"
-                    Ensuring that preview times are set and consistent for all beatmaps in the set."
+                        Ensuring that preview times are set and consistent for all beatmaps in the set."
                     },
                     {
                         "Reasoning",
                         @"
-                    Without a set preview time the game will automatically pick a point to use as preview, but this rarely aligns with 
-                    any beat or start of measure in the song. Additionally, not selecting a preview point will cause the web to use the 
-                    whole song as preview, rather than the usual 10 second limit. Which difficulty is used to take preview time from is 
-                    also not necessarily consistent between the web and the client.
-                    <br \><br \>
-                    Similarly to metadata and timing, preview points should really just be a global setting for the whole beatmapset and 
-                    not difficulty-specific."
+                        Without a set preview time the game will automatically pick a point to use as preview, but this rarely aligns with 
+                        any beat or start of measure in the song. Additionally, not selecting a preview point will cause the web to use the 
+                        whole song as preview, rather than the usual 10 second limit. Which difficulty is used to take preview time from is 
+                        also not necessarily consistent between the web and the client.
+
+                        Similarly to metadata and timing, preview points should really just be a global setting for the whole beatmapset and 
+                        not difficulty-specific."
                     }
                 }
             };
@@ -42,12 +41,14 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             {
                 {
                     "Not Set",
-                    new IssueTemplate(Issue.Level.Problem, "Preview time is not set.").WithCause("The preview time of a beatmap is missing.")
+                    new IssueTemplate(Issue.Level.Problem, "Preview time is not set.")
+                        .WithCause("The preview time of a beatmap is missing.")
                 },
 
                 {
                     "Inconsistent",
-                    new IssueTemplate(Issue.Level.Problem, "Preview time is inconsistent, see {0}.", "difficulty").WithCause("The preview time of a beatmap is different from the reference beatmap.")
+                    new IssueTemplate(Issue.Level.Problem, "Preview time is inconsistent, see {0}.", "difficulty")
+                        .WithCause("The preview time of a beatmap is different from the reference beatmap.")
                 }
             };
 

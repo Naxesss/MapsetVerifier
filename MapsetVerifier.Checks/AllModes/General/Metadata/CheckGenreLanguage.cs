@@ -82,17 +82,16 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     {
                         "Purpose",
                         @"
-                    Consistent searching between web and in-game."
+                        Consistent searching between web and in-game."
                     },
                     {
                         "Reasoning",
                         @"
-                    Web's language/genre fields can be searched for on the web, but not in-game. 
-                    They are therefore added to the tags for consistency.
-                    <image-right>
-                        https://i.imgur.com/g6zlqhy.png
-                        An example of web genre/language also in the tags.
-                    </image>"
+                        Web's language/genre fields can be searched for on the web, but not in-game. 
+                        They are therefore added to the tags for consistency.
+
+                        ![](https://i.imgur.com/g6zlqhy.png)
+                        An example of web genre/language also in the tags."
                     }
                 }
             };
@@ -102,9 +101,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             var liStr = new StringBuilder();
 
             foreach (var tags in tagCombinations)
-                liStr.Append("<li>" + string.Join(" & ", tags.Select(tag => "\"" + tag + "\"")) + "</li>");
+                liStr.Append("- " + string.Join(" & ", tags.Select(tag => "\"" + tag + "\"\n")));
 
-            return $"<ul>{liStr}</ul>";
+            return $"{liStr}";
         }
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -112,12 +111,14 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             {
                 {
                     "Genre",
-                    new IssueTemplate(Issue.Level.Warning, "Missing genre tag (\"rock\", \"pop\", \"electronic\", etc), ignore if none fit.").WithCause("None of the following tags were found (case insensitive):" + ToCause(GenreTagCombinations))
+                    new IssueTemplate(Issue.Level.Warning, "Missing genre tag (\"rock\", \"pop\", \"electronic\", etc), ignore if none fit.")
+                        .WithCause("None of the following tags were found (case insensitive):" + ToCause(GenreTagCombinations))
                 },
 
                 {
                     "Language",
-                    new IssueTemplate(Issue.Level.Warning, "Missing language tag (\"english\", \"japanese\", \"instrumental\", etc), ignore if none fit.").WithCause("None of the following tags were found (case insensitive):" + ToCause(LanguageTagCombinations))
+                    new IssueTemplate(Issue.Level.Warning, "Missing language tag (\"english\", \"japanese\", \"instrumental\", etc), ignore if none fit.")
+                        .WithCause("None of the following tags were found (case insensitive):" + ToCause(LanguageTagCombinations))
                 }
             };
 

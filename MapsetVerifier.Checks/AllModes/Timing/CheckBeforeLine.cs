@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -33,19 +31,17 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     {
                         "Purpose",
                         @"
-                    Preventing unintentional side effects like wrong snappings and slider velocities 
-                    caused by hit objects or timing lines being slightly unsnapped."
+                        Preventing unintentional side effects like wrong snappings and slider velocities 
+                        caused by hit objects or timing lines being slightly unsnapped."
                     },
                     {
                         "Reasoning",
                         @"
-                    Sliders before a timing line (even if just by 1 ms or less), will not be affected by its slider velocity. 
-                    With 1 ms unsnaps being common for objects and lines due to rounding errors when copy pasting, this in turn 
-                    becomes a common issue for all game modes (excluding mania since SV works differently there).
-                    <note>
-                        If bpm changes, this will still keep track of the effective slider velocity, thereby preventing false positives. 
-                        So if it wouldn't make a difference, it's not pointed out.
-                    </note>"
+                        Sliders before a timing line (even if just by 1 ms or less), will not be affected by its slider velocity. 
+                        With 1 ms unsnaps being common for objects and lines due to rounding errors when copy pasting, this in turn 
+                        becomes a common issue for all game modes (excluding mania since SV works differently there).
+
+                        > If bpm changes, this will still keep track of the effective slider velocity, thereby preventing false positives. So if it wouldn't make a difference, it's not pointed out."
                     }
                 }
             };
@@ -55,12 +51,14 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             {
                 {
                     "Before",
-                    new IssueTemplate(Issue.Level.Warning, "{0} {1} is snapped {2} ms before a line which would modify its slider velocity.", "timestamp - ", "object", "unsnap").WithCause("A hit object is snapped 5 ms or less behind a timing line which would otherwise modify its slider velocity. " + "For standard and catch this only looks at slider heads.")
+                    new IssueTemplate(Issue.Level.Warning, "{0} {1} is snapped {2} ms before a line which would modify its slider velocity.", "timestamp - ", "object", "unsnap")
+                        .WithCause("A hit object is snapped 5 ms or less behind a timing line which would otherwise modify its slider velocity. For standard and catch this only looks at slider heads.")
                 },
 
                 {
                     "After",
-                    new IssueTemplate(Issue.Level.Warning, "{0} {1} is snapped {2} ms after a line which would modify its slider velocity.", "timestamp - ", "object", "unsnap").WithCause("Same as the other check, except after instead of before. Only applies to taiko.")
+                    new IssueTemplate(Issue.Level.Warning, "{0} {1} is snapped {2} ms after a line which would modify its slider velocity.", "timestamp - ", "object", "unsnap")
+                        .WithCause("Same as the other check, except after instead of before. Only applies to taiko.")
                 }
             };
 

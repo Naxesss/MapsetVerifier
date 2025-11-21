@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -58,19 +56,19 @@ namespace MapsetVerifier.Checks.AllModes.Settings
                     {
                         "Purpose",
                         @"
-                    Ensuring settings across difficulties in a beatmapset are consistent within game modes and where it makes sense."
+                        Ensuring settings across difficulties in a beatmapset are consistent within game modes and where it makes sense."
                     },
                     {
                         "Reasoning",
                         @"
-                    Difficulties in a beatmapset using a similar video or storyboard, would likely want to have the same 
-                    epilepsy settings since they would share the same reason to have it. Same goes for countdown, letterboxing, 
-                    widescreen support, audio lead-in, etc. Obviously excluding settings that don't apply.
-                    <br \><br \>
-                    Having difficulties all be different in terms of noticeable settings would make the set seem less coherent, 
-                    but it can be acceptable if it differs thematically in a way that makes it seem intentional, without needing to 
-                    specify that it is, for example one beatmap being old-style with a special skin and countdown while others are 
-                    more modern and exclude this."
+                        Difficulties in a beatmapset using a similar video or storyboard, would likely want to have the same 
+                        epilepsy settings since they would share the same reason to have it. Same goes for countdown, letterboxing, 
+                        widescreen support, audio lead-in, etc. Obviously excluding settings that don't apply.
+
+                        Having difficulties all be different in terms of noticeable settings would make the set seem less coherent, 
+                        but it can be acceptable if it differs thematically in a way that makes it seem intentional, without needing to 
+                        specify that it is, for example one beatmap being old-style with a special skin and countdown while others are 
+                        more modern and exclude this."
                     }
                 }
             };
@@ -80,33 +78,34 @@ namespace MapsetVerifier.Checks.AllModes.Settings
             {
                 {
                     "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "Inconsistent {0} \"{1}\", see {2} \"{3}\".", "setting", "value", "difficulty", "value").WithCause("The beatmapset id is inconsistent between any two difficulties in the set, regardless of mode.")
+                    new IssueTemplate(Issue.Level.Problem, "Inconsistent {0} \"{1}\", see {2} \"{3}\".", "setting", "value", "difficulty", "value")
+                        .WithCause("The beatmapset id is inconsistent between any two difficulties in the set, regardless of mode.")
                 },
 
                 {
                     "Warning",
-                    new IssueTemplate(Issue.Level.Warning, "Inconsistent {0} \"{1}\", see {2} \"{3}\".", "setting", "value", "difficulty", "value").WithCause(@"Compares settings and presence of elements within the same mode. Includes the following:
-                        <ul>
-                            <li>countdown speed (if there's enough time to show it, excluded for taiko/mania)</li>
-                            <li>countdown offset (if there's enough time to show it, excluded for taiko/mania)</li>
-                            <li>countdown presence (if there's enough time to show it, excluded for taiko/mania)</li>
-                            <li>letterbox (if there are breaks)</li>
-                            <li>widescreen support (if there's a storyboard)</li>
-                            <li>difficulty-specific storyboard presence</li>
-                            <li>epilepsy warning (if there's a storyboard or video)</li>
-                            <li>audio lead-in</li>
-                            <li>skin preference</li>
-                            <li>storyboard in front of combo fire (if there's a storyboard)</li>
-                            <li>usage of skin sprites in storyboard (if there's a storyboard)</li>
-                        </ul>
-                        <note>
-                            Inconsistent video is already covered by another check.
-                        </note>")
+                    new IssueTemplate(Issue.Level.Warning, "Inconsistent {0} \"{1}\", see {2} \"{3}\".", "setting", "value", "difficulty", "value")
+                        .WithCause(@"Compares settings and presence of elements within the same mode. Includes the following:
+
+                        - countdown speed (if there's enough time to show it, excluded for taiko/mania)</li>
+                        - countdown offset (if there's enough time to show it, excluded for taiko/mania)</li>
+                        - countdown presence (if there's enough time to show it, excluded for taiko/mania)</li>
+                        - letterbox (if there are breaks)</li>
+                        - widescreen support (if there's a storyboard)</li>
+                        - difficulty-specific storyboard presence</li>
+                        - epilepsy warning (if there's a storyboard or video)</li>
+                        - audio lead-in</li>
+                        - skin preference</li>
+                        - storyboard in front of combo fire (if there's a storyboard)</li>
+                        - usage of skin sprites in storyboard (if there's a storyboard)</li>
+
+                        > Inconsistent video is already covered by another check.")
                 },
 
                 {
                     "Minor",
-                    new IssueTemplate(Issue.Level.Minor, "Inconsistent {0} \"{1}\", see {2} \"{3}\".", "setting", "value", "difficulty", "value").WithCause("Same as the warning, but only checks for slider ticks.")
+                    new IssueTemplate(Issue.Level.Minor, "Inconsistent {0} \"{1}\", see {2} \"{3}\".", "setting", "value", "difficulty", "value")
+                        .WithCause("Same as the warning, but only checks for slider ticks.")
                 }
             };
 

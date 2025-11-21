@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -22,25 +21,22 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     {
                         "Purpose",
                         @"
-                    Preventing effects from happening and inherited lines before the first uninherited line."
+                        Preventing effects from happening and inherited lines before the first uninherited line."
                     },
                     {
                         "Reasoning",
                         @"
-                    If you toggle kiai on the first line, then when the player starts the beatmap, kiai will instantly trigger and apply 
-                    from the beginning until the next line. 
-                    <image>
-                        https://i.imgur.com/9F3LoR3.png
+                        If you toggle kiai on the first line, then when the player starts the beatmap, kiai will instantly trigger and apply 
+                        from the beginning until the next line. 
+                        ![](https://i.imgur.com/9F3LoR3.png)
                         The game preventing you from enabling kiai on the first timing line.
-                    </image>
 
-                    If you place an inherited line before the first uninherited line, then the game will 
-                    think the whole section isn't timed, causing the default bpm to be used and the inherited line to malfunction since 
-                    it has nothing to inherit.
-                    <image>
-                        https://i.imgur.com/yqSEObl.png
-                        The first line being inherited, as seen from the timing view.
-                    </image>"
+                        If you place an inherited line before the first uninherited line, then the game will 
+                        think the whole section isn't timed, causing the default bpm to be used and the inherited line to malfunction since 
+                        it has nothing to inherit.
+
+                        ![](https://i.imgur.com/yqSEObl.png)
+                        The first line being inherited, as seen from the timing view."
                     }
                 }
             };
@@ -50,17 +46,20 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             {
                 {
                     "Inherited",
-                    new IssueTemplate(Issue.Level.Problem, "{0} First timing line is inherited.", "timestamp - ").WithCause("The first timing line of a beatmap is inherited.")
+                    new IssueTemplate(Issue.Level.Problem, "{0} First timing line is inherited.", "timestamp - ")
+                        .WithCause("The first timing line of a beatmap is inherited.")
                 },
 
                 {
                     "Toggles Kiai",
-                    new IssueTemplate(Issue.Level.Problem, "{0} First timing line toggles kiai.", "timestamp - ").WithCause("The first timing line of a beatmap has kiai enabled.")
+                    new IssueTemplate(Issue.Level.Problem, "{0} First timing line toggles kiai.", "timestamp - ")
+                        .WithCause("The first timing line of a beatmap has kiai enabled.")
                 },
 
                 {
                     "No Lines",
-                    new IssueTemplate(Issue.Level.Problem, "There are no timing lines.").WithCause("A beatmap has no timing lines.")
+                    new IssueTemplate(Issue.Level.Problem, "There are no timing lines.")
+                        .WithCause("A beatmap has no timing lines.")
                 }
             };
 

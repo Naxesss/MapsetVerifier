@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -25,18 +23,18 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     {
                         "Purpose",
                         @"
-                    Ensuring that the song is timed consistently for all difficulties."
+                        Ensuring that the song is timed consistently for all difficulties."
                     },
                     {
                         "Reasoning",
                         @"
-                    Since all difficulties in a set are based around a single song, they should all use the same base timing, 
-                    which is made from uninherited lines. Even if a line isn't used by some difficulty due to there being a 
-                    break or similar, they still affect things like the main menu flashing and beats/snares/finishes in the 
-                    nightcore mod.
-                    <br \><br \>
-                    Similar to metadata, timing (bpm/meter/offset of uninherited lines) should really just be global for the 
-                    whole beatmapset rather than difficulty-specific."
+                        Since all difficulties in a set are based around a single song, they should all use the same base timing, 
+                        which is made from uninherited lines. Even if a line isn't used by some difficulty due to there being a 
+                        break or similar, they still affect things like the main menu flashing and beats/snares/finishes in the 
+                        nightcore mod.
+
+                        Similar to metadata, timing (bpm/meter/offset of uninherited lines) should really just be global for the 
+                        whole beatmapset rather than difficulty-specific."
                     }
                 }
             };
@@ -46,22 +44,26 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             {
                 {
                     "Missing",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Missing uninherited line, see {1}.", "timestamp - ", "difficulty").WithCause("A beatmap does not have an uninherited line which the reference beatmap does, or visa versa.")
+                    new IssueTemplate(Issue.Level.Problem, "{0} Missing uninherited line, see {1}.", "timestamp - ", "difficulty")
+                        .WithCause("A beatmap does not have an uninherited line which the reference beatmap does, or visa versa.")
                 },
 
                 {
                     "Missing Minor",
-                    new IssueTemplate(Issue.Level.Minor, "{0} Has a decimally different offset to the one in {1}.", "timestamp - ", "difficulty").WithCause("Same as the first check, except includes issues caused by decimal unsnaps of uninherited lines.")
+                    new IssueTemplate(Issue.Level.Minor, "{0} Has a decimally different offset to the one in {1}.", "timestamp - ", "difficulty")
+                        .WithCause("Same as the first check, except includes issues caused by decimal unsnaps of uninherited lines.")
                 },
 
                 {
                     "Inconsistent Meter",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Inconsistent meter signature, see {1}.", "timestamp - ", "difficulty").WithCause("The meter signature of an uninherited timing line is different from the reference beatmap.")
+                    new IssueTemplate(Issue.Level.Problem, "{0} Inconsistent meter signature, see {1}.", "timestamp - ", "difficulty")
+                        .WithCause("The meter signature of an uninherited timing line is different from the reference beatmap.")
                 },
 
                 {
                     "Inconsistent BPM",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Inconsistent BPM, see {1}.", "timestamp - ", "difficulty").WithCause("Same as the meter check, except checks BPM instead.")
+                    new IssueTemplate(Issue.Level.Problem, "{0} Inconsistent BPM, see {1}.", "timestamp - ", "difficulty")
+                        .WithCause("Same as the meter check, except checks BPM instead.")
                 }
             };
 

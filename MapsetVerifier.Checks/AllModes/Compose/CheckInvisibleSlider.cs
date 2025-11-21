@@ -24,18 +24,16 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                     {
                         "Purpose",
                         @"
-                    Preventing objects from being invisible.
-                    <image-right>
-                        https://i.imgur.com/xJIwdbA.png
-                        A slider with no nodes; looks like a circle on the timeline but is invisible on the playfield.
-                    </image>"
+                        Preventing objects from being invisible.
+                        ![](https://i.imgur.com/xJIwdbA.png)
+                        A slider with no nodes; looks like a circle on the timeline but is invisible on the playfield."
                     },
                     {
                         "Reasoning",
                         @"
-                    Although often used in combination with a storyboard to make up for the invisiblity through sprites, there 
-                    is no way to force the storyboard to appear, meaning players may play the map unaware that they should have 
-                    enabled something for a fair gameplay experience."
+                        Although often used in combination with a storyboard to make up for the invisibility through sprites, there 
+                        is no way to force the storyboard to appear, meaning players may play the map unaware that they should have 
+                        enabled something for a fair gameplay experience."
                     }
                 }
             };

@@ -23,17 +23,16 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                     {
                         "Purpose",
                         @"
-                    Prevents beatmaps from being too short, for example 10 seconds long.
-                    <image>
-                        https://i.imgur.com/uNDPeJI.png
-                        A beatmap with a total mp3 length of ~21 seconds.
-                    </image>"
+                        Prevents beatmaps from being too short, for example 10 seconds long.
+                    
+                        ![](https://i.imgur.com/uNDPeJI.png)
+                        A beatmap with a total mp3 length of ~21 seconds."
                     },
                     {
                         "Reasoning",
                         @"
-                    Beatmaps this short do not offer a substantial enough gameplay experience for the standards of 
-                    the ranked section."
+                        Beatmaps this short do not offer a substantial enough gameplay experience for the standards of 
+                        the ranked section."
                     }
                 }
             };
@@ -43,7 +42,8 @@ namespace MapsetVerifier.Checks.AllModes.Compose
             {
                 {
                     "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "Less than 30 seconds of drain time, currently {0}.", "drain time").WithCause("The time from the first object to the end of the last object, subtracting any time between two objects " + "where a break exists, is in total less than 30 seconds.")
+                    new IssueTemplate(Issue.Level.Problem, "Less than 30 seconds of drain time, currently {0}.", "drain time")
+                        .WithCause("The time from the first object to the end of the last object, subtracting any time between two objects where a break exists, is in total less than 30 seconds.")
                 }
             };
 

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -24,22 +20,19 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                     {
                         "Purpose",
                         @"
-                    Preventing background quality from being noticably low or unnoticably high to save on file size.
-                    <image-right>
-                        https://i.imgur.com/VrKRzse.png
+                        Preventing background quality from being noticeably low or unnoticeable high to save on file size.
+
+                        ![](https://i.imgur.com/VrKRzse.png)
                         The left side is ~2.25x the resolution of the right side, which is the equivalent of comparing 
-                        2560 x 1440 to 1024 x 640.
-                    </image>"
+                        2560 x 1440 to 1024 x 640."
                     },
                     {
                         "Reasoning",
                         @"
-                    Anything less than 1024 x 640 is usually quite noticeable, whereas anything higher than 2560 x 1440 
-                    is unlikely to be visible with the setup of the average player.
-                    <note>
-                        This uses 16:10 as base, since anything outside of 16:9 will be cut off on that aspect ratio 
-                        rather than resized to fit the screen, preserving quality.
-                    </note>"
+                        Anything less than 1024 x 640 is usually quite noticeable, whereas anything higher than 2560 x 1440 
+                        is unlikely to be visible with the setup of the average player.
+
+                        > This uses 16:10 as base, since anything outside of 16:9 will be cut off on that aspect ratio rather than resized to fit the screen, preserving quality."
                     }
                 }
             };
@@ -49,33 +42,39 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
             {
                 {
                     "Too high",
-                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" greater than 2560 x 1440 ({1} x {2})", "file name", "width", "height").WithCause("A background file has a width exceeding 2560 pixels or a height exceeding 1440 pixels.")
+                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" greater than 2560 x 1440 ({1} x {2})", "file name", "width", "height")
+                        .WithCause("A background file has a width exceeding 2560 pixels or a height exceeding 1440 pixels.")
                 },
 
                 {
                     "Very low",
-                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" lower than 1024 x 640 ({1} x {2})", "file name", "width", "height").WithCause("A background file has a width lower than 1024 pixels or a height lower than 640 pixels.")
+                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" lower than 1024 x 640 ({1} x {2})", "file name", "width", "height")
+                        .WithCause("A background file has a width lower than 1024 pixels or a height lower than 640 pixels.")
                 },
 
                 {
                     "File size",
-                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" has a file size exceeding 2.5 MB ({1} MB)", "file name", "file size").WithCause("A background file has a file size greater than 2.5 MB.")
+                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" has a file size exceeding 2.5 MB ({1} MB)", "file name", "file size")
+                        .WithCause("A background file has a file size greater than 2.5 MB.")
                 },
 
                 // parsing results
                 {
                     "Leaves Folder",
-                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" leaves the current song folder, which shouldn't ever happen.", "file name").WithCause("The file path of a background file starts with two dots.")
+                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" leaves the current song folder, which shouldn't ever happen.", "file name")
+                        .WithCause("The file path of a background file starts with two dots.")
                 },
 
                 {
                     "Missing",
-                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" is missing" + Common.CHECK_MANUALLY_MESSAGE, "file name").WithCause("A background file referenced is not present.")
+                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" is missing" + Common.CHECK_MANUALLY_MESSAGE, "file name")
+                        .WithCause("A background file referenced is not present.")
                 },
 
                 {
                     "Exception",
-                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "file name", "exception info").WithCause("An exception occurred trying to parse a background file.")
+                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "file name", "exception info")
+                        .WithCause("An exception occurred trying to parse a background file.")
                 }
             };
 

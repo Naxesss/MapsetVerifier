@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -36,21 +33,15 @@ namespace MapsetVerifier.Checks.Standard.Compose
                     {
                         "Purpose",
                         @"
-                    Preventing slider reverses from being covered up by other objects or combo bursts before players 
-                    can react to them.
-                    <image-right>
-                        https://i.imgur.com/BS8BkT7.png
-                        Although many skins remove combo bursts, these can hide reverses under them in the same way 
-                        other objects can in gameplay, so only looking at the editor is a bit misleading.
-                    </image>"
+                        Preventing slider reverses from being covered up by other objects or combo bursts before players can react to them.
+
+                        ![](https://i.imgur.com/BS8BkT7.png)
+                        Although many skins remove combo bursts, these can hide reverses under them in the same way other objects can in gameplay, so only looking at the editor is a bit misleading."
                     },
                     {
                         "Reasoning",
                         @"
-                    Some mappers like to stack objects on upcoming slider ends to make everything seem more 
-                    coherent, but in doing so, reverses can become obscured and impossible to read unless you know 
-                    they're there. For more experienced players, however, this isn't as much of a problem since you 
-                    learn to hold sliders more efficiently and can react faster."
+                        Some mappers like to stack objects on upcoming slider ends to make everything seem more coherent, but in doing so, reverses can become obscured and impossible to read unless you know they're there. For more experienced players, however, this isn't as much of a problem since you learn to hold sliders more efficiently and can react faster."
                     }
                 }
             };
@@ -60,7 +51,8 @@ namespace MapsetVerifier.Checks.Standard.Compose
             {
                 {
                     "Obscured",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Reverse arrow {1} obscured.", "timestamp - ", "(potentially)").WithCause("An object before a reverse arrow ends over where it appears close in time.")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Reverse arrow {1} obscured.", "timestamp - ", "(potentially)")
+                        .WithCause("An object before a reverse arrow ends over where it appears close in time.")
                 }
             };
 

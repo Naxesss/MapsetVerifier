@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -24,17 +23,17 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
                     {
                         "Purpose",
                         @"
-                    Ensuring that active hit object feedback is audible."
+                        Ensuring that active hit object feedback is audible."
                     },
                     {
                         "Reasoning",
                         @"
-                    All active hit objects (i.e. circles, slider heads, and starts of hold notes) should provide some feedback 
-                    so that players can hear if they're clicking too early or late. By reducing the volume to the point where 
-                    it is difficult to hear over the song, hit sounds cease to function as proper feedback.
+                        All active hit objects (i.e. circles, slider heads, and starts of hold notes) should provide some feedback 
+                        so that players can hear if they're clicking too early or late. By reducing the volume to the point where 
+                        it is difficult to hear over the song, hit sounds cease to function as proper feedback.
 
-                    Reverses are generally always done on sound cues, and assuming that's the case, it wouldn't make much sense 
-                    being silent."
+                        Reverses are generally always done on sound cues, and assuming that's the case, it wouldn't make much sense 
+                        being silent."
                     }
                 }
             };
@@ -44,22 +43,26 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
             {
                 {
                     "Warning Volume",
-                    new IssueTemplate(Issue.Level.Warning, "{0} {1}% volume {2}, this may be hard to hear over the song.", "timestamp - ", "percent", "active hit object").WithCause("An active hit object is at 10% or lower volume.")
+                    new IssueTemplate(Issue.Level.Warning, "{0} {1}% volume {2}, this may be hard to hear over the song.", "timestamp - ", "percent", "active hit object")
+                        .WithCause("An active hit object is at 10% or lower volume.")
                 },
 
                 {
                     "Minor Volume",
-                    new IssueTemplate(Issue.Level.Minor, "{0} {1}% volume {2}, this may be hard to hear over the song.", "timestamp - ", "percent", "active hit object").WithCause("An active hit object is at 20% or lower volume.")
+                    new IssueTemplate(Issue.Level.Minor, "{0} {1}% volume {2}, this may be hard to hear over the song.", "timestamp - ", "percent", "active hit object")
+                        .WithCause("An active hit object is at 20% or lower volume.")
                 },
 
                 {
                     "Passive Reverse",
-                    new IssueTemplate(Issue.Level.Warning, "{0} {1}% volume {2}, ensure there is no distinct sound here in the song.", "timestamp - ", "percent", "reverse").WithCause("A slider reverse is at 10% or lower volume.")
+                    new IssueTemplate(Issue.Level.Warning, "{0} {1}% volume {2}, ensure there is no distinct sound here in the song.", "timestamp - ", "percent", "reverse")
+                        .WithCause("A slider reverse is at 10% or lower volume.")
                 },
 
                 {
                     "Passive",
-                    new IssueTemplate(Issue.Level.Minor, "{0} {1}% volume {2}, ensure there is no distinct sound here in the song.", "timestamp - ", "percent", "tick/tail").WithCause("A passive hit object is at 10% or lower volume.")
+                    new IssueTemplate(Issue.Level.Minor, "{0} {1}% volume {2}, ensure there is no distinct sound here in the song.", "timestamp - ", "percent", "tick/tail")
+                        .WithCause("A passive hit object is at 10% or lower volume.")
                 }
             };
 

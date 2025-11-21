@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -22,19 +20,17 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                     {
                         "Purpose",
                         @"
-                    Making sure that any inconsistency in video is intentional and makes sense."
+                        Making sure that any inconsistency in video is intentional and makes sense."
                     },
                     {
                         "Reasoning",
                         @"
-                    When adding a guest difficulty or adding different mode difficulties, the mapset host may forget to ensure 
-                    that the videos across beatmaps in the set are consistent. Using multiple videos can be fine in cases like 
-                    compilations or if one difficulty is thematically different enough to warrant it, but do keep in mind that 
-                    it takes up additional space.
-                    <note>
-                        For taiko, videos usually need to be modified in some way since they're only visible on the bottom half 
-                        of the screen, so this check ignores any inconsistency with that mode from other modes.
-                    </note>"
+                        When adding a guest difficulty or adding different mode difficulties, the mapset host may forget to ensure 
+                        that the videos across beatmaps in the set are consistent. Using multiple videos can be fine in cases like 
+                        compilations or if one difficulty is thematically different enough to warrant it, but do keep in mind that 
+                        it takes up additional space.
+
+                        > For taiko, videos usually need to be modified in some way since they're only visible on the bottom half of the screen, so this check ignores any inconsistency with that mode from other modes."
                     }
                 }
             };
@@ -44,12 +40,14 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
             {
                 {
                     "Same Mode",
-                    new IssueTemplate(Issue.Level.Warning, "{0} : {1}.", "path", "difficulties").WithCause("Difficulties of the same mode do not share the same video.")
+                    new IssueTemplate(Issue.Level.Warning, "{0} : {1}.", "path", "difficulties")
+                        .WithCause("Difficulties of the same mode do not share the same video.")
                 },
 
                 {
                     "Cross Mode",
-                    new IssueTemplate(Issue.Level.Warning, "Inconsistent video between the {0} and {1} beatmaps.", "mode", "mode").WithCause("Difficulties of separate modes (except taiko) do not share the same video.")
+                    new IssueTemplate(Issue.Level.Warning, "Inconsistent video between the {0} and {1} beatmaps.", "mode", "mode")
+                        .WithCause("Difficulties of separate modes (except taiko) do not share the same video.")
                 }
             };
 

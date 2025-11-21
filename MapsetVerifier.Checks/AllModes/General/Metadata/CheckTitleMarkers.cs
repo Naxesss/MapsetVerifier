@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
@@ -42,11 +39,10 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     {
                         "Purpose",
                         @"
-                    Standardizing the way metadata is written for ranked content.
-                    <image>
-                        https://i.imgur.com/1ozV71n.png
-                        A song using ""-TV version-"" as its official metadata, which becomes ""(TV Size)"" when standardized.
-                    </image>"
+                        Standardizing the way metadata is written for ranked content.
+
+                        ![](https://i.imgur.com/1ozV71n.png)
+                        A song using ""-TV version-"" as its official metadata, which becomes ""(TV Size)"" when standardized."
                     },
                     {
                         "Reasoning",
@@ -64,24 +60,23 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             {
                 {
                     "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "{0} title field; \"{1}\" incorrect format of \"{2}\".", "Romanized/unicode", "field", "title marker").WithCause(@"The format of a title marker, in either the romanized or unicode title, is incorrect.
+                    new IssueTemplate(Issue.Level.Problem, "{0} title field; \"{1}\" incorrect format of \"{2}\".", "Romanized/unicode", "field", "title marker")
+                        .WithCause(@"The format of a title marker, in either the romanized or unicode title, is incorrect.
                         The following are detected formats:
-                        <ul>
-                            <li>(TV Size)</li>
-                            <li>(Game Ver.)</li>
-                            <li>(Short Ver.)</li>
-                            <li>(Cut Ver.)</li>
-                            <li>(Sped Up Ver.)</li>
-                            <li>(Nightcore Mix)</li>
-                            <li>(Sped Up & Cut Ver.)</li>
-                            <li>(Nightcore & Cut Ver.)</li>
-                        </ul>
-                        ")
+                        - (TV Size)
+                        - (Game Ver.)
+                        - (Short Ver.)
+                        - (Cut Ver.)
+                        - (Sped Up Ver.)
+                        - (Nightcore Mix)
+                        - (Sped Up & Cut Ver.)
+                        - (Nightcore & Cut Ver.)")
                 },
 
                 {
                     "Warning Nightcore",
-                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" in tags, consider \"{1}\" instead of \"{2}\" in {3} title.", "nightcore", "(Nightcore Mix)", "(Sped Up Ver.)", "romanized/unicode").WithCause("The romanized/unicode title contains \"(Sped Up Ver.)\" or equivalent, " + "when the tags contain \"nightcore\".")
+                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" in tags, consider \"{1}\" instead of \"{2}\" in {3} title.", "nightcore", "(Nightcore Mix)", "(Sped Up Ver.)", "romanized/unicode")
+                        .WithCause("The romanized/unicode title contains \"(Sped Up Ver.)\" or equivalent, when the tags contain \"nightcore\".")
                 }
             };
 

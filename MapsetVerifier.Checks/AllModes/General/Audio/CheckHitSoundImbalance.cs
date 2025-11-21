@@ -25,17 +25,15 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                     {
                         "Purpose",
                         @"
-                    Preventing the audio channels of hit sounds from being noticeably imbalanced, for example the left 
-                    channel being twice as loud as the right.
-                    <image>
-                        https://i.imgur.com/6if5mJO.png
-                        A hit sound which is much louder in the left channel compared to the right, as shown in Audacity.
-                    </image>"
+                        Preventing the audio channels of hit sounds from being noticeably imbalanced, for example the left 
+                        channel being twice as loud as the right.
+                        ![](https://i.imgur.com/6if5mJO.png)
+                        A hit sound which is much louder in the left channel compared to the right, as shown in Audacity."
                     },
                     {
                         "Reasoning",
                         @"
-                    Having noticeably imbalanced hit sounds is often jarring, especially if used frequently or consecutively."
+                        Having noticeably imbalanced hit sounds is often jarring, especially if used frequently or consecutively."
                     }
                 }
             };
@@ -45,27 +43,32 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             {
                 {
                     "Warning Silent",
-                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" is completely silent in the {1} channel.", "path", "left/right").WithCause("One of the channels of a hit sound has no volume, but still 2 channels.")
+                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" is completely silent in the {1} channel.", "path", "left/right")
+                        .WithCause("One of the channels of a hit sound has no volume, but still 2 channels.")
                 },
 
                 {
                     "Warning Common",
-                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" has a notably louder {1} channel. Used most commonly in {2}.", "path", "left/right", "[difficulty]").WithCause("One of the channels of a hit sound has at least half the total volume of the other. " + "The hit sound must also be used on average once every 10 seconds in a map.")
+                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" has a notably louder {1} channel. Used most commonly in {2}.", "path", "left/right", "[difficulty]")
+                        .WithCause("One of the channels of a hit sound has at least half the total volume of the other. The hit sound must also be used on average once every 10 seconds in a map.")
                 },
 
                 {
                     "Warning Timestamp",
-                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" has a notably louder {1} channel. Used most frequently leading up to {2}.", "path", "left/right", "timestamp in [difficulty]").WithCause("Same as the other check, except only happens when the hit sound is used frequently in a short timespan.")
+                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" has a notably louder {1} channel. Used most frequently leading up to {2}.", "path", "left/right", "timestamp in [difficulty]")
+                        .WithCause("Same as the other check, except only happens when the hit sound is used frequently in a short timespan.")
                 },
 
                 {
                     "Minor",
-                    new IssueTemplate(Issue.Level.Minor, "\"{0}\" has a notably louder {1} channel, not a huge deal in this case though.", "path", "left/right").WithCause("One of the channels of a hit sound has half the total volume of the other.")
+                    new IssueTemplate(Issue.Level.Minor, "\"{0}\" has a notably louder {1} channel, not a huge deal in this case though.", "path", "left/right")
+                        .WithCause("One of the channels of a hit sound has half the total volume of the other.")
                 },
 
                 {
                     "Unable to check",
-                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path", "exception info").WithCause("There was an error parsing a hit sound file.")
+                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path", "exception info")
+                        .WithCause("There was an error parsing a hit sound file.")
                 }
             };
 

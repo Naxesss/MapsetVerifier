@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -32,28 +29,27 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
                     {
                         "Purpose",
                         @"
-                    Ensuring varied feedback is used frequently throughout the map. Not too frequently, but mixing things up at least 
-                    once or twice every measure is preferable. This could be with hit sounds, sampleset changes or additions."
+                        Ensuring varied feedback is used frequently throughout the map. Not too frequently, but mixing things up at least 
+                        once or twice every measure is preferable. This could be with hit sounds, sampleset changes or additions."
                     },
                     {
                         "Reasoning",
                         @"
-                    Accenting and complementing the song with hit sounds, either by reflecting it or adding to it, generally yields 
-                    better feedback than if the same sound would be used throughout. However, the option to use the same sounds for all 
-                    hit sounds and samplesets is still possible through skinning on the players' end for those who prefer the monotone 
-                    approach."
+                        Accenting and complementing the song with hit sounds, either by reflecting it or adding to it, generally yields 
+                        better feedback than if the same sound would be used throughout. However, the option to use the same sounds for all 
+                        hit sounds and samplesets is still possible through skinning on the players' end for those who prefer the monotone 
+                        approach."
                     },
                     {
                         "Exceptions",
                         @"
-                    Taiko is an exception due to relying on hit sounds for gameplay mechanics. Circles are by default don, and can be 
-                    turned into kat by using a clap or whistle hit sound, for example. As such applying this check to taiko would
-                    make it take on a different meaning.
-                    <br><br>
-                    Mania sets consisting only of insane and above difficulties can omit hit sounds due to very few in the community at 
-                    that level enjoying them in general. See <a href=""https://osu.ppy.sh/community/forums/topics/996091"">
-                    [Proposal - mania] Guidelines allowing higher difficulties to omit hitsound additions.</a> Since we're missing mania 
-                    SR support we'll simply exclude mania from this check entirely."
+                        Taiko is an exception due to relying on hit sounds for gameplay mechanics. Circles are by default don, and can be 
+                        turned into kat by using a clap or whistle hit sound, for example. As such applying this check to taiko would
+                        make it take on a different meaning.
+
+                        Mania sets consisting only of insane and above difficulties can omit hit sounds due to very few in the community at that level enjoying them in general.
+                        See [[Proposal - mania] Guidelines allowing higher difficulties to omit hitsound additions.](https://osu.ppy.sh/community/forums/topics/996091)
+                        Since we're missing mania SR support we'll simply exclude mania from this check entirely."
                     }
                 }
             };
@@ -63,17 +59,20 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
             {
                 {
                     "No Hit Sounds",
-                    new IssueTemplate(Issue.Level.Problem, "This beatmap contains no hit sounds or sampleset changes.").WithCause("There are no hit sounds or sampleset changes anywhere in a difficulty.")
+                    new IssueTemplate(Issue.Level.Problem, "This beatmap contains no hit sounds or sampleset changes.")
+                        .WithCause("There are no hit sounds or sampleset changes anywhere in a difficulty.")
                 },
 
                 {
                     "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "{0} No hit sounds or sampleset changes from here to {1}, ({2} s).", "timestamp - ", "timestamp - ", "duration").WithCause("The hit sound score value, based on the amount of hit objects and time between two points without hit sounds " + "or sampleset changes, is way too low.")
+                    new IssueTemplate(Issue.Level.Problem, "{0} No hit sounds or sampleset changes from here to {1}, ({2} s).", "timestamp - ", "timestamp - ", "duration")
+                        .WithCause("The hit sound score value, based on the amount of hit objects and time between two points without hit sounds " + "or sampleset changes, is way too low.")
                 },
 
                 {
                     "Warning",
-                    new IssueTemplate(Issue.Level.Warning, "{0} No hit sounds or sampleset changes from here to {1}, ({2} s).", "timestamp - ", "timestamp - ", "duration").WithCause("Same as the other check, but with a threshold which is higher, but still very low.")
+                    new IssueTemplate(Issue.Level.Warning, "{0} No hit sounds or sampleset changes from here to {1}, ({2} s).", "timestamp - ", "timestamp - ", "duration")
+                        .WithCause("Same as the other check, but with a threshold which is higher, but still very low.")
                 }
             };
 

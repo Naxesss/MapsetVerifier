@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
@@ -24,20 +21,19 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     {
                         "Purpose",
                         @"
-                    Standardizing the way metadata is written for ranked content.
-                    <image>
-                        https://i.imgur.com/9w1fzvB.png
+                        Standardizing the way metadata is written for ranked content.
+
+                        ![](https://i.imgur.com/9w1fzvB.png)
                         The romanized artist field is missing a whitespace before and after ""(CV:"". 
-                        The unicode artist field is fine, though, since the characters are full-width.
-                    </image>"
+                        The unicode artist field is fine, though, since the characters are full-width."
                     },
                     {
                         "Reasoning",
                         @"
-                    Small deviations in metadata or obvious mistakes in its formatting or capitalization are for the 
-                    most part eliminated through standardization. Standardization also reduces confusion in case of 
-                    multiple correct ways to write certain fields and contributes to making metadata more consistent 
-                    across official content."
+                        Small deviations in metadata or obvious mistakes in its formatting or capitalization are for the 
+                        most part eliminated through standardization. Standardization also reduces confusion in case of 
+                        multiple correct ways to write certain fields and contributes to making metadata more consistent 
+                        across official content."
                     }
                 }
             };
@@ -47,12 +43,14 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             {
                 {
                     "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "Missing {0} in {1}; \"{2}\".", "something", "field", "field content").WithCause("Some whitespace or parameter is missing from the artist or title fields where only alphabetic " + "and numerical characters are involved.")
+                    new IssueTemplate(Issue.Level.Problem, "Missing {0} in {1}; \"{2}\".", "something", "field", "field content")
+                        .WithCause("Some whitespace or parameter is missing from the artist or title fields where only alphabetic and numerical characters are involved.")
                 },
 
                 {
                     "Warning",
-                    new IssueTemplate(Issue.Level.Warning, "Missing {0} in {1}; \"{2}\".", "something", "field", "field content").WithCause("Same as the other check, but can involve any type of characters.")
+                    new IssueTemplate(Issue.Level.Warning, "Missing {0} in {1}; \"{2}\".", "something", "field", "field content")
+                        .WithCause("Same as the other check, but can involve any type of characters.")
                 }
             };
 

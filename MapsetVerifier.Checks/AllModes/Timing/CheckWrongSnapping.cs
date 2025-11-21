@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Concurrent;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
@@ -42,19 +38,17 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     {
                         "Purpose",
                         @"
-                    Preventing incorrectly snapped hit objects, for example 1/6 being used where the song only supports 
-                    1/4, or a slider tail accidentally being extended 1/16 too far."
+                        Preventing incorrectly snapped hit objects, for example 1/6 being used where the song only supports 
+                        1/4, or a slider tail accidentally being extended 1/16 too far."
                     },
                     {
                         "Reasoning",
                         @"
-                    Should hit objects not align with any audio cue or otherwise recognizable pattern, it would not only 
-                    force the player to guess when objects should be clicked, but also harm the perceived connection between 
-                    the beatmap and the song, neither of which make for good experiences.
-                    <note>
-                        Note that this check is intentionally heavy on false-positives for safety's sake due to this being a 
-                        common disqualification reason.
-                    </note>"
+                        Should hit objects not align with any audio cue or otherwise recognizable pattern, it would not only 
+                        force the player to guess when objects should be clicked, but also harm the perceived connection between 
+                        the beatmap and the song, neither of which make for good experiences.
+                        
+                        > Note that this check is intentionally heavy on false-positives for safety's sake due to this being a common disqualification reason."
                     }
                 }
             };
@@ -65,28 +59,34 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                 // warnings
                 {
                     "Snap Consistency",
-                    new IssueTemplate(Issue.Level.Warning, "{0} (1/{1}) Different snapping, {2} (1/{3}), is used in {4}.", "timestamp - ", "X", "timestamp - ", "X", "difficulty").WithCause("Two hit objects in separate difficulties do not have any object in the other difficulty at the same time, " + "and are close enough in time to be mistaken for one another." + "<note>Ignores cases where the divisor on the lower difficulty is less than on the higher difficulty, since " + "this is usually natural.</note>")
+                    new IssueTemplate(Issue.Level.Warning, "{0} (1/{1}) Different snapping, {2} (1/{3}), is used in {4}.", "timestamp - ", "X", "timestamp - ", "X", "difficulty")
+                        .WithCause(@"Two hit objects in separate difficulties do not have any object in the other difficulty at the same time, and are close enough in time to be mistaken for one another.
+                                    > Ignores cases where the divisor on the lower difficulty is less than on the higher difficulty, since this is usually natural.")
                 },
 
                 {
                     "Snap Count",
-                    new IssueTemplate(Issue.Level.Warning, "{0} 1/{1} is used 3 times or less, ensure this makes sense.", "timestamp(s) -", "X").WithCause("The beat snap divisor a hit object is on is used less than or equal to 3 times in the same difficulty " + "and is 1/6 or lower.")
+                    new IssueTemplate(Issue.Level.Warning, "{0} 1/{1} is used 3 times or less, ensure this makes sense.", "timestamp(s) -", "X")
+                        .WithCause("The beat snap divisor a hit object is on is used less than or equal to 3 times in the same difficulty and is 1/6 or lower.")
                 },
 
                 {
                     "Snap Percent",
-                    new IssueTemplate(Issue.Level.Warning, "{0} 1/{1} makes out 0.5% or less of snappings, ensure this makes sense.", "timestamp(s) -", "X").WithCause("The beat snap divisor a hit object is on is used less than or equal to 0.5% of all snappings in the same " + "difficulty and is 1/6 or lower.")
+                    new IssueTemplate(Issue.Level.Warning, "{0} 1/{1} makes out 0.5% or less of snappings, ensure this makes sense.", "timestamp(s) -", "X")
+                        .WithCause("The beat snap divisor a hit object is on is used less than or equal to 0.5% of all snappings in the same difficulty and is 1/6 or lower.")
                 },
 
                 // minors
                 {
                     "Minor Snap Count",
-                    new IssueTemplate(Issue.Level.Minor, "{0} 1/{1} is used 7 times or less, ensure this makes sense.", "timestamp(s) -", "X").WithCause("Same as the other check, except with 7 as threshold instead.")
+                    new IssueTemplate(Issue.Level.Minor, "{0} 1/{1} is used 7 times or less, ensure this makes sense.", "timestamp(s) -", "X")
+                        .WithCause("Same as the other check, except with 7 as threshold instead.")
                 },
 
                 {
                     "Minor Snap Percent",
-                    new IssueTemplate(Issue.Level.Minor, "{0} 1/{1} makes out 5% or less of snappings, ensure this makes sense.", "timestamp(s) -", "X").WithCause("Same as the other check, except with 5% as threshold instead.")
+                    new IssueTemplate(Issue.Level.Minor, "{0} 1/{1} makes out 5% or less of snappings, ensure this makes sense.", "timestamp(s) -", "X")
+                        .WithCause("Same as the other check, except with 5% as threshold instead.")
                 }
             };
 

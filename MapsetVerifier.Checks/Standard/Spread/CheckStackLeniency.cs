@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -35,14 +33,14 @@ namespace MapsetVerifier.Checks.Standard.Spread
                     {
                         "Purpose",
                         @"
-                    Preventing objects from perfectly, or almost perfectly, overlapping when close in time for easy to insane difficulties."
+                        Preventing objects from perfectly, or almost perfectly, overlapping when close in time for easy to insane difficulties."
                     },
                     {
                         "Reasoning",
                         @"
-                    Objects stacked perfectly on top of each other close in time is read almost ambigiously to a single object, even for moderately 
-                    experienced players. The lower in difficulty you get, the more beneficial it is to simply use a regular stack or overlap instead
-                    as trivializing readability gets more important."
+                        Objects stacked perfectly on top of each other close in time is read almost ambiguously to a single object, even for moderately 
+                        experienced players. The lower in difficulty you get, the more beneficial it is to simply use a regular stack or overlap instead
+                        as trivializing readability gets more important."
                     }
                 }
             };
@@ -52,17 +50,20 @@ namespace MapsetVerifier.Checks.Standard.Spread
             {
                 {
                     "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Stack leniency should be at least {1}.", "timestamp - ", "stack leniency").WithCause("Two objects are overlapping perfectly and are less than 1/1, 1/1, 1/2, or 1/4 apart (assuming 160 BPM), for E/N/H/I respectively.")
+                    new IssueTemplate(Issue.Level.Problem, "{0} Stack leniency should be at least {1}.", "timestamp - ", "stack leniency")
+                        .WithCause("Two objects are overlapping perfectly and are less than 1/1, 1/1, 1/2, or 1/4 apart (assuming 160 BPM), for E/N/H/I respectively.")
                 },
 
                 {
                     "Problem Failed Stack",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Failed stack, objects are {1} px apart, which is basically a perfect stack.", "timestamp - ", "gap").WithCause("Same as the other check, except applies to non-stacked objects within 1/14th of a circle radius of one another.")
+                    new IssueTemplate(Issue.Level.Problem, "{0} Failed stack, objects are {1} px apart, which is basically a perfect stack.", "timestamp - ", "gap")
+                        .WithCause("Same as the other check, except applies to non-stacked objects within 1/14th of a circle radius of one another.")
                 },
 
                 {
                     "Warning",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Stack leniency should be at least {1}.", "timestamp - ", "stack leniency").WithCause("Same as the other check, except only appears for insane difficulties, as this becomes a guideline.")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Stack leniency should be at least {1}.", "timestamp - ", "stack leniency")
+                        .WithCause("Same as the other check, except only appears for insane difficulties, as this becomes a guideline.")
                 }
             };
 

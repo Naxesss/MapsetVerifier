@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -25,14 +22,14 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     {
                         "Purpose",
                         @"
-                    Ensuring kiai starts on a distinct sound."
+                        Ensuring kiai starts on a distinct sound."
                     },
                     {
                         "Reasoning",
                         @"
-                    Since kiai is visual, unlike hit sounds, it doesn't need to be as precise in timing, but kiai being 
-                    notably unsnapped from any distinct sound is still probably something you'd want to fix. Taiko has stronger
-                    kiai screen effects so this matters a bit more for that mode."
+                        Since kiai is visual, unlike hit sounds, it doesn't need to be as precise in timing, but kiai being 
+                        notably unsnapped from any distinct sound is still probably something you'd want to fix. Taiko has stronger
+                        kiai screen effects so this matters a bit more for that mode."
                     }
                 }
             };
@@ -42,17 +39,20 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             {
                 {
                     "Warning",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Kiai is unsnapped by {1} ms.", "timestamp - ", "unsnap").WithCause("An inherited line with kiai enabled is unsnapped by 10 ms or more. For taiko this is 5 ms or more instead.")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Kiai is unsnapped by {1} ms.", "timestamp - ", "unsnap")
+                        .WithCause("An inherited line with kiai enabled is unsnapped by 10 ms or more. For taiko this is 5 ms or more instead.")
                 },
 
                 {
                     "Minor",
-                    new IssueTemplate(Issue.Level.Minor, "{0} Kiai is unsnapped by {1} ms.", "timestamp - ", "unsnap").WithCause("Same as the other check, but by 1 ms or more instead.")
+                    new IssueTemplate(Issue.Level.Minor, "{0} Kiai is unsnapped by {1} ms.", "timestamp - ", "unsnap")
+                        .WithCause("Same as the other check, but by 1 ms or more instead.")
                 },
 
                 {
                     "Minor End",
-                    new IssueTemplate(Issue.Level.Minor, "{0} Kiai end is unsnapped by {1} ms.", "timestamp - ", "unsnap").WithCause("Same as the second check, except looks for where kiai ends.")
+                    new IssueTemplate(Issue.Level.Minor, "{0} Kiai end is unsnapped by {1} ms.", "timestamp - ", "unsnap")
+                        .WithCause("Same as the second check, except looks for where kiai ends.")
                 }
             };
 

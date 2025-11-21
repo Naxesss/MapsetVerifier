@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -23,18 +20,17 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     {
                         "Purpose",
                         @"
-                    Keeping metadata consistent between all difficulties of a beatmapset.
-                    <image>
-                        https://i.imgur.com/ojdxg6z.png
-                        Comparing two difficulties with different titles in a beatmapset.
-                    </image>"
+                        Keeping metadata consistent between all difficulties of a beatmapset.
+
+                        ![](https://i.imgur.com/ojdxg6z.png)
+                        Comparing two difficulties with different titles in a beatmapset."
                     },
                     {
                         "Reasoning",
                         @"
-                    Since all difficulties are of the same song, they should use the same song metadata. The website also assumes it's all the 
-                    same, so it'll only display one of the artists, titles, creators, etc. Multiple metadata simply isn't supported very well, 
-                    and should really just be a global beatmap setting rather than a .osu-specific one."
+                        Since all difficulties are of the same song, they should use the same song metadata. The website also assumes it's all the 
+                        same, so it'll only display one of the artists, titles, creators, etc. Multiple metadata simply isn't supported very well, 
+                        and should really just be a global beatmap setting rather than a .osu-specific one."
                     }
                 }
             };
@@ -44,12 +40,15 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             {
                 {
                     "Tags",
-                    new IssueTemplate(Issue.Level.Problem, "Inconsistent tags between {0} and {1}, difference being \"{2}\".", "difficulty", "difficulty", "difference").WithCause("A tag is present in one difficulty but missing in another." + "<note>Does not care which order the tags are written in or about duplicate tags, " + "simply that the tags themselves are consistent.</note>")
+                    new IssueTemplate(Issue.Level.Problem, "Inconsistent tags between {0} and {1}, difference being \"{2}\".", "difficulty", "difficulty", "difference")
+                        .WithCause("A tag is present in one difficulty but missing in another.\n" +
+                                   "> Does not care which order the tags are written in or about duplicate tags, simply that the tags themselves are consistent.")
                 },
 
                 {
                     "Other Field",
-                    new IssueTemplate(Issue.Level.Problem, "Inconsistent {0} fields between {1} and {2}; \"{3}\" and \"{4}\" respectively.", "field", "difficulty", "difficulty", "field", "field").WithCause("A metadata field is not consistent between all difficulties.")
+                    new IssueTemplate(Issue.Level.Problem, "Inconsistent {0} fields between {1} and {2}; \"{3}\" and \"{4}\" respectively.", "field", "difficulty", "difficulty", "field", "field")
+                        .WithCause("A metadata field is not consistent between all difficulties.")
                 }
             };
 

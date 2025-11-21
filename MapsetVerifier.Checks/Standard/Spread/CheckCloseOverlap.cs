@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -30,19 +29,15 @@ namespace MapsetVerifier.Checks.Standard.Spread
                     {
                         "Purpose",
                         @"
-                    Ensuring that objects close in time are indiciated as such in easy and lowest normal difficulties.
-                    <image>
-                        https://i.imgur.com/rnIi6Pj.png
-                        Right image is harder to distinguish time distance in, despite spacings still clearly being different.
-                    </image>"
+                        Ensuring that objects close in time are indiciated as such in easy and lowest normal difficulties.
+
+                        ![](https://i.imgur.com/rnIi6Pj.png)
+                        Right image is harder to distinguish time distance in, despite spacings still clearly being different."
                     },
                     {
                         "Reasoning",
                         @"
-                    Newer players often have trouble reading how far apart objects are in time, which is why enabling 
-                    distance spacing for lower difficulties is often recommended. However, if two spacings for different 
-                    snappings look similar, it's possible to confuse them. By forcing an overlap between objects close in 
-                    time and discouraging it for objects further apart, the difference in snappings become more apparent."
+                        Newer players often have trouble reading how far apart objects are in time, which is why enabling distance spacing for lower difficulties is often recommended. However, if two spacings for different snappings look similar, it's possible to confuse them. By forcing an overlap between objects close in time and discouraging it for objects further apart, the difference in snappings become more apparent."
                     }
                 }
             };
@@ -52,12 +47,14 @@ namespace MapsetVerifier.Checks.Standard.Spread
             {
                 {
                     "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "{0} {1} ms apart, should either be overlapped or at least {2} ms apart.", "timestamp - ", "gap", "threshold").WithCause("Two objects with a time gap less than 125 ms (240 bpm 1/2) are not overlapping.")
+                    new IssueTemplate(Issue.Level.Problem, "{0} {1} ms apart, should either be overlapped or at least {2} ms apart.", "timestamp - ", "gap", "threshold")
+                        .WithCause("Two objects with a time gap less than 125 ms (240 bpm 1/2) are not overlapping.")
                 },
 
                 {
                     "Warning",
-                    new IssueTemplate(Issue.Level.Warning, "{0} {1} ms apart.", "timestamp - ", "gap").WithCause("Two objects with a time gap less than 167 ms (180 bpm 1/2) are not overlapping.")
+                    new IssueTemplate(Issue.Level.Warning, "{0} {1} ms apart.", "timestamp - ", "gap")
+                        .WithCause("Two objects with a time gap less than 167 ms (180 bpm 1/2) are not overlapping.")
                 }
             };
 

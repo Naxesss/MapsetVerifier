@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Framework.Objects.Resources;
@@ -28,43 +24,31 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                     {
                         "Purpose",
                         @"
-                    Ensuring hit sounds which are used on active hit objects provide proper feedback for how early or late the player clicked.
-                    <image>
-                        https://i.imgur.com/LRpgqcJ.png
+                        Ensuring hit sounds which are used on active hit objects provide proper feedback for how early or late the player clicked.
+                        ![](https://i.imgur.com/LRpgqcJ.png)
                         A hit sound which is delayed by ~10 ms, as shown in Audacity. Note that audacity shows its 
-                        timeline in seconds, so 0.005 means 5 ms.
-                    </image>"
+                        timeline in seconds, so 0.005 means 5 ms."
                     },
                     {
                         "Reasoning",
                         @"
-                    By having delayed hit sounds, the feedback the player receives would be misleading them into 
-                    thinking they clicked later than they actually did, which contradicts the purpose of having hit 
-                    sounds in the first place."
+                        By having delayed hit sounds, the feedback the player receives would be misleading them into 
+                        thinking they clicked later than they actually did, which contradicts the purpose of having hit 
+                        sounds in the first place."
                     },
                     {
                         "Exceptions",
                         @"
-                    <ul>
-                        <li>
-                            Cymbals/bell-like sounds (often finish/whistle respectively) usually have a small wind-up before their peak. 
-                            This is often acceptable to keep, as it would sound wrong without.
-                            <image-right>
-                                https://i.imgur.com/4iggPGV.png
-                                A bell hit sound whose peak is delayed by ~21 ms, which was considered fine 
-                                due to the nature of the sound requiring a wind-up.
-                            </image>
-                        </li>
-                        <li>
-                            The default `normal-hitfinish.wav` has a delay of ~6 ms, but is used by the game itself,
-                            so copying this and using as a custom sample is acceptable.
-                            <image-right>
-                                https://i.imgur.com/W9yJiV6.png
-                                A spectrogram of the default `normal-hitfinish.wav`.
-                            </image>
-                        </li>
-                    </ul>
-                    "
+                        Cymbals/bell-like sounds (often finish/whistle respectively) usually have a small wind-up before their peak. 
+                        This is often acceptable to keep, as it would sound wrong without.
+                        ![](https://i.imgur.com/4iggPGV.png)
+                        A bell hit sound whose peak is delayed by ~21 ms, which was considered fine 
+                        due to the nature of the sound requiring a wind-up.
+
+                        The default `normal-hitfinish.wav` has a delay of ~6 ms, but is used by the game itself,
+                        so copying this and using as a custom sample is acceptable.
+                        ![](https://i.imgur.com/W9yJiV6.png)
+                        A spectrogram of the default `normal-hitfinish.wav`."
                     }
                 }
             };
@@ -74,22 +58,26 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             {
                 {
                     "Pure Delay",
-                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" has a {1} ms period of complete silence at the start.", "path", "pure delay").WithCause("A hit sound file used on an active hit object has a definite delay (complete silence) of at least 5 ms.")
+                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" has a {1} ms period of complete silence at the start.", "path", "pure delay")
+                        .WithCause("A hit sound file used on an active hit object has a definite delay (complete silence) of at least 5 ms.")
                 },
 
                 {
                     "Delay",
-                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" has a delay of ~{2} ms, of which {1} ms is complete silence. (Active at e.g. {3} in {4}.)", "path", "pure delay", "delay", "timestamp", "difficulty").WithCause("A hit sound file used on an active hit object has very low volume for ~5 ms or more.")
+                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" has a delay of ~{2} ms, of which {1} ms is complete silence. (Active at e.g. {3} in {4}.)", "path", "pure delay", "delay", "timestamp", "difficulty")
+                        .WithCause("A hit sound file used on an active hit object has very low volume for ~5 ms or more.")
                 },
 
                 {
                     "Minor Delay",
-                    new IssueTemplate(Issue.Level.Minor, "\"{0}\" has a delay of ~{2} ms, of which {1} ms is complete silence.", "path", "pure delay", "delay").WithCause("Same as the regular delay, except anything between 1 to 5 ms.")
+                    new IssueTemplate(Issue.Level.Minor, "\"{0}\" has a delay of ~{2} ms, of which {1} ms is complete silence.", "path", "pure delay", "delay")
+                        .WithCause("Same as the regular delay, except anything between 1 to 5 ms.")
                 },
 
                 {
                     "Unable to check",
-                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path", "exception info").WithCause("There was an error parsing a hit sound file.")
+                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path", "exception info")
+                        .WithCause("There was an error parsing a hit sound file.")
                 }
             };
 
