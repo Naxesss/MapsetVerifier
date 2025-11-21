@@ -37,10 +37,10 @@ namespace MapsetVerifier.Checks.Catch.Compose
                 {
                     "Purpose",
                     @"
-                    <b>Rain</b> : 
+                    **Rain** : 
                     Hyperdashes that are basic-snapped must not be used more than four times between consecutive fruits.
-                    <br/>
-                    <b>Platter</b> : 
+
+                    **Platter** : 
                     Hyperdashes that are basic-snapped must not be used more than two times between consecutive fruits."
                 },
                 {

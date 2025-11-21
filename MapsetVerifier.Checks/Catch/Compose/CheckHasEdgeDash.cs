@@ -36,9 +36,9 @@ public class CheckHasEdgeDash : BeatmapCheck
                 "Reasoning",
                 @"
                 Edge dashes require precise movement, on lower difficulties we cannot expect such accuracy from players.
-                </br>
+
                 On Rains edge dashes may only be used singularly. 
-                </br>
+
                 On Overdose they may be used with caution for a maximum of three consecutive objects, and should not be used after hyperdashes."
             }
         }

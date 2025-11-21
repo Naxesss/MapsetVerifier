@@ -28,7 +28,7 @@ public class CheckHasSpinner : BeatmapCheck
                 "Reasoning",
                 @"
                     Scoring in catch is based on the amount of fruits, droplets. Because of this getting 100% accuracy is fairly easy to get.
-                    </br>
+
                     Bananas are an exception since they are the bonus fruit in catch, this means that you won't be punished if you miss any of them, although they get only generated with a spinner."
             }
         }

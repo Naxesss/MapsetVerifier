@@ -26,11 +26,9 @@ public class CheckHyperdashSnap : BeatmapCheck
                 "Purpose",
                 @"
                 Hyperdashes may only be used when the snapping is above or equal to the allowed threshold.
-                </br>
-                <ul>
-                <li>For Platters at least <i>125ms or higher</i> must be between the ticks of the desired snapping.</li>
-                <li>For Rains at least <i>62ms or higher</i> must be between the ticks of the desired snapping.</li>
-                </ul>"
+
+                - For Platters at least *125ms or higher* must be between the ticks of the desired snapping.
+                - For Rains at least *62ms or higher* must be between the ticks of the desired snapping."
             },
             {
                 "Reason",

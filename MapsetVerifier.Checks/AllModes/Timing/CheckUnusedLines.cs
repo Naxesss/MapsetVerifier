@@ -192,7 +192,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
         /// <summary>
         ///     Returns whether the offset aligns in such a way that one line is a multiple of 4 measures away
         ///     from the other (1 measure = 4 beats in 4/4 meter). This first checks that the downbeat structure is the same.
-        ///     <br></br><br></br>
+        ///
         ///     In the Nightcore mod, cymbals can be heard every 4 measures.
         /// </summary>
         private static bool NightcoreCymbalsAlign(UninheritedLine line, UninheritedLine otherLine) => DownbeatsAlign(line, otherLine) && GetBeatOffset(otherLine, line, 4 * otherLine.Meter) <= 1;
@@ -218,10 +218,10 @@ namespace MapsetVerifier.Checks.AllModes.Timing
 
         /// <summary>
         ///     Returns whether a line is considered used. Only partially covers uninherited lines.
-        ///     <br></br><br></br>
-        ///     Conditions for an inherited line being used (simplified, only false positives, e.g. hold notes/spinners) <br></br>
-        ///     - Changes sampleset, custom index, or volume and there is an edge/body within the time frame <br></br>
-        ///     - Changes SV and there are sliders starting within the time frame or changes SV and the mode is mania <br></br>
+        /// 
+        ///     Conditions for an inherited line being used (simplified, only false positives, e.g. hold notes/spinners)
+        ///     - Changes sampleset, custom index, or volume and there is an edge/body within the time frame
+        ///     - Changes SV and there are sliders starting within the time frame or changes SV and the mode is mania
         ///     - Changes kiai (causes effects on screen during duration)
         /// </summary>
         private static bool IsLineUsed(Beatmap beatmap, TimingLine currentLine, TimingLine previousLine) =>

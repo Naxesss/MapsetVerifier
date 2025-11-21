@@ -87,17 +87,17 @@ namespace MapsetVerifier.Checks.AllModes.Settings
                     new IssueTemplate(Issue.Level.Warning, "Inconsistent {0} \"{1}\", see {2} \"{3}\".", "setting", "value", "difficulty", "value")
                         .WithCause(@"Compares settings and presence of elements within the same mode. Includes the following:
 
-                        - countdown speed (if there's enough time to show it, excluded for taiko/mania)</li>
-                        - countdown offset (if there's enough time to show it, excluded for taiko/mania)</li>
-                        - countdown presence (if there's enough time to show it, excluded for taiko/mania)</li>
-                        - letterbox (if there are breaks)</li>
-                        - widescreen support (if there's a storyboard)</li>
-                        - difficulty-specific storyboard presence</li>
-                        - epilepsy warning (if there's a storyboard or video)</li>
-                        - audio lead-in</li>
-                        - skin preference</li>
-                        - storyboard in front of combo fire (if there's a storyboard)</li>
-                        - usage of skin sprites in storyboard (if there's a storyboard)</li>
+                        - countdown speed (if there's enough time to show it, excluded for taiko/mania)
+                        - countdown offset (if there's enough time to show it, excluded for taiko/mania)
+                        - countdown presence (if there's enough time to show it, excluded for taiko/mania)
+                        - letterbox (if there are breaks)
+                        - widescreen support (if there's a storyboard)
+                        - difficulty-specific storyboard presence
+                        - epilepsy warning (if there's a storyboard or video)
+                        - audio lead-in
+                        - skin preference
+                        - storyboard in front of combo fire (if there's a storyboard)
+                        - usage of skin sprites in storyboard (if there's a storyboard)
 
                         > Inconsistent video is already covered by another check.")
                 },

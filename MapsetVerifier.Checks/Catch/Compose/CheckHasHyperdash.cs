@@ -23,16 +23,16 @@ namespace MapsetVerifier.Checks.Catch.Compose
                     "Purpose",
                     @"
                     Hyperdashes are not allowed in Cups and Salads.
-                    </br>
+
                     And hyperdashes can't be used on drops and/or slider repetitions in Platters."
                 },
                 {
                     "Reasoning",
                     @"
                     This is to ensure an easy starting experience to beginner players in Cups.
-                    </br>
+
                     This is to ensure a manageable step in difficulty for novice players in Salads.
-                    </br>
+
                     For Platters the accuracy and control required is unreasonable and can create a situation where the player potentially fails to read the slider path."
                 }
             }
