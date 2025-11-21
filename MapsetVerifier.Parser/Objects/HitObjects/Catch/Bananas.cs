@@ -1,0 +1,11 @@
+﻿namespace MapsetVerifier.Parser.Objects.HitObjects.Catch;
+
+/// <summary>Spinner object translated to bananas in osu!catch.</summary>
+public class Bananas(string[] args, Beatmap beatmap) : Spinner(args, beatmap), ICatchHitObject
+{
+    public double Time => time;
+    public float DistanceToHyper { get; set; } = float.PositiveInfinity;
+    public CatchMovementType MovementType { get; set; }
+    public CatchNoteDirection NoteDirection { get; set; }
+    public string GetNoteTypeName() => "Spinner";
+}

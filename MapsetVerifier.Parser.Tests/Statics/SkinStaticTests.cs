@@ -1,8 +1,10 @@
-﻿using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
 using Xunit;
+using System.IO;
+using System;
 
-namespace MapsetVerifier.Parser.Tests
+namespace MapsetVerifier.Parser.Tests.Statics
 {
     public class SkinStaticTests
     {

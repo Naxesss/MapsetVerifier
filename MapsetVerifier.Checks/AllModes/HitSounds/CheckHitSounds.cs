@@ -6,6 +6,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
+using MapsetVerifier.Parser.Objects.HitObjects.Catch;
 using MapsetVerifier.Parser.Statics;
 
 namespace MapsetVerifier.Checks.AllModes.HitSounds
