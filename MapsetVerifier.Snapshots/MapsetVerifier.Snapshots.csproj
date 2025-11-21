@@ -9,6 +9,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\MapsetVerifier.Parser\MapsetVerifier.Parser.csproj" />
+      <ProjectReference Include="..\MapsetVerifier.Logging\MapsetVerifier.Logging.csproj" />
     </ItemGroup>
 
     <ItemGroup>

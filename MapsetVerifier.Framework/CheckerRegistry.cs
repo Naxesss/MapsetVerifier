@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
+using Serilog;
 
 namespace MapsetVerifier.Framework
 {
@@ -13,6 +12,8 @@ namespace MapsetVerifier.Framework
         {
             if (check == null)
                 return;
+
+            Log.Information("Registering check {check}", check.GetType().ToString());
 
             Checks.Add(check);
         }

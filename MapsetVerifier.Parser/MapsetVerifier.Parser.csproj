@@ -15,4 +15,8 @@
       <PackageReference Include="ppy.osu.Game.Rulesets.Taiko" Version="2025.1107.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\MapsetVerifier.Logging\MapsetVerifier.Logging.csproj" />
+    </ItemGroup>
+
 </Project>

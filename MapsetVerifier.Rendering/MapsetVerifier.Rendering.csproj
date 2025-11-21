@@ -10,6 +10,7 @@
       <ProjectReference Include="..\MapsetVerifier.Framework\MapsetVerifier.Framework.csproj" />
       <ProjectReference Include="..\MapsetVerifier.Parser\MapsetVerifier.Parser.csproj" />
       <ProjectReference Include="..\MapsetVerifier.Snapshots\MapsetVerifier.Snapshots.csproj" />
+      <ProjectReference Include="..\MapsetVerifier.Logging\MapsetVerifier.Logging.csproj" />
     </ItemGroup>
 
     <ItemGroup>

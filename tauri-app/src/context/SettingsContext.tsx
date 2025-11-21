@@ -1,12 +1,10 @@
 ﻿import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { readTextFile, writeTextFile, exists, BaseDirectory, mkdir } from '@tauri-apps/plugin-fs';
-import { invoke } from '@tauri-apps/api/core';
 
 // Type-safe Settings type
 export type Settings = {
     songFolder: string;
     showMinor: boolean;
-    showListing: boolean;
 };
 
 // Context type includes settings and setter
@@ -18,7 +16,6 @@ interface SettingsContextType {
 const defaultSettings: Settings = {
     songFolder: '',
     showMinor: false,
-    showListing: true,
 };
 
 const MAIN_SETTINGS_FILE = 'settings.json';
@@ -71,18 +68,22 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     }
 
     async function findOsuLocationAndSet() {
-        try {
-            console.log('[Settings] Invoking find_osu_location command...');
-            const path = await invoke<string | null>('find_osu_location');
-            if (path) {
-                console.log('[Settings] Found osu! location:', path);
-                setSettings(prev => ({ ...prev, songFolder: path }));
-            } else {
-                console.log('[Settings] osu! location not found.');
-            }
-        } catch (e) {
-            console.error('[Settings] Error finding osu! location:', e);
+      try {
+        console.log('[Settings] Invoking find_osu_location command...');
+        const res = await fetch("http://localhost:5005/beatmaps/songsFolder");
+        
+        if (res.ok) {
+            const data = await res.json();
+            let songFolder = data.songsFolder;
+            console.log('[Settings] Found osu! location via API:', songFolder);
+            setSettings(prev => ({ ...prev, songFolder: songFolder }));
+            return;
+        } else {
+          console.log('[Settings] osu! location not found.');
         }
+      } catch (e) {
+        console.error('[Settings] Error finding osu! location:', e);
+      }
     }
 
     useEffect(() => {

@@ -32,19 +32,19 @@ public class BeatmapsController : ControllerBase
         return Ok(pageResult);
     }
 
-    [HttpGet("songs-folder")]
-    public ActionResult<string> GetSongsFolder()
+    [HttpGet("songsFolder")]
+    public ActionResult GetSongsFolder()
     {
         var folder = BeatmapsService.DetectSongsFolder();
         if (string.IsNullOrWhiteSpace(folder))
             return NotFound(new ApiError("Songs folder could not be detected.", null));
-        return Ok(folder);
+        return Ok(new { songsFolder = folder });
     }
 
     [HttpGet("image")]
-    public IActionResult GetBeatmapImage([FromQuery] string folder)
+    public ActionResult<FileStreamResult> GetBeatmapImage([FromQuery] string folder, [FromQuery] bool original = false)
     {
-        var result = BeatmapsService.GetBeatmapImage(folder);
+        var result = BeatmapsService.GetBeatmapImage(folder, original);
         if (!result.Success)
             return NotFound(new ApiError(result.ErrorMessage ?? "Image not found", null));
 
@@ -54,6 +54,12 @@ public class BeatmapsController : ControllerBase
             Response.Headers.ETag = result.ETag;
             if (Request.Headers.TryGetValue("If-None-Match", out var inm) && inm == result.ETag)
                 return StatusCode(304);
+        }
+
+        if (result.DataStream != null)
+        {
+            // Return the in-memory resized image
+            return File(result.DataStream, result.MimeType!);
         }
 
         var stream = System.IO.File.OpenRead(result.ImagePath!);

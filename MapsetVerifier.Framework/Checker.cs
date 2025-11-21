@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.Collections.Concurrent;
 using System.Reflection;
-using System.Threading.Tasks;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser;
+using Serilog;
 
 namespace MapsetVerifier.Framework
 {
@@ -107,7 +103,7 @@ namespace MapsetVerifier.Framework
                 }
                 catch (Exception exception)
                 {
-                    Console.WriteLine($"Failed to load checks from \"{dllPath}\": {exception.Message}");
+                    Log.Error(exception, "Failed to load checks from {DllPath}", dllPath);
                 }
             });
         }
@@ -153,6 +149,7 @@ namespace MapsetVerifier.Framework
         {
             try
             {
+                Log.Information("Loading default checks from MapsetVerifier.Checks.dll");
                 var localChecksDllPath = Path.Combine(Directory.GetCurrentDirectory(), "MapsetVerifier.Checks.dll");
                 if (File.Exists(localChecksDllPath))
                 {
@@ -161,12 +158,12 @@ namespace MapsetVerifier.Framework
                     return;
                 }
 
-                Console.WriteLine($"Could not find MapsetVerifier.Checks.dll at {localChecksDllPath}");
+                Log.Warning("Could not find MapsetVerifier.Checks.dll at {LocalChecksDllPath}", localChecksDllPath);
 
                 var assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 if (assemblyDir == null)
                 {
-                    Console.WriteLine($"Could not find executing assembly directory {assemblyDir}");
+                    Log.Warning("Could not find executing assembly directory {AssemblyDir}", assemblyDir);
                     return;
                 }
                 
@@ -179,12 +176,12 @@ namespace MapsetVerifier.Framework
                 }
                 else
                 {
-                    Console.WriteLine($"Could not find MapsetVerifier.Checks.dll at {checksDllPath}");
+                    Log.Warning("Could not find MapsetVerifier.Checks.dll at {ChecksDllPath}", checksDllPath);
                 }
             }
             catch (Exception exception)
             {
-                Console.WriteLine($"Failed to load default checks: {exception.Message}");
+                Log.Error(exception, "Failed to load default checks");
             }
         }
 
@@ -194,7 +191,7 @@ namespace MapsetVerifier.Framework
             foreach (var type in assembly.GetExportedTypes())
             {
                 var attr = type.CustomAttributes.FirstOrDefault(attr => attr.AttributeType.Name == nameof(CheckAttribute));
-                Console.WriteLine($"Checking: {type.FullName}");
+                Log.Debug("Checking exported type {TypeFullName}", type.FullName);
                 
                 if (attr == null)
                     continue;
@@ -203,6 +200,7 @@ namespace MapsetVerifier.Framework
                 var check = instance as Check;
                 CheckerRegistry.RegisterCheck(check);
             }
+            Log.Information("Loaded checks from assembly {AssemblyName}. Total registered: {Count}", assembly.GetName().Name, CheckerRegistry.GetChecks().Count());
         }
     }
 }

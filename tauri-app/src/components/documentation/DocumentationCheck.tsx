@@ -39,8 +39,8 @@ function DocumentationCheck({ check }: DocumentationCheckProps) {
         </Flex>
         <Flex direction="column">
           <Group gap="xs" style={{ alignSelf: 'end' }}>
-            {check.outcomes.map((level) => {
-              return <LevelIcon level={level} />
+            {check.outcomes.map((level, index) => {
+              return <LevelIcon key={`${check.id}-outcome-${index}`} level={level} />
             })}
           </Group>
           <Text size="sm" c="dimmed" style={{ alignSelf: 'end' }}>{check.author}</Text>

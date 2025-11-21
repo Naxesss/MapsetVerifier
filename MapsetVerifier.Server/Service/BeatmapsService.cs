@@ -1,11 +1,20 @@
 ﻿using System.Text.RegularExpressions;
 using MapsetVerifier.Server.Model;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.Formats.Jpeg;
 
 namespace MapsetVerifier.Server.Service;
 
 public static class BeatmapsService
 {
     private static readonly Regex BackgroundRegex = new Regex("0,0,\"(?<file>[^\"]+)\"", RegexOptions.Compiled);
+
+    /// <summary>
+    /// Desired thumbnail height
+    /// </summary>
+    private const int MaxImageHeight = 126;
 
     public static string? DetectSongsFolder()
     {
@@ -76,9 +85,9 @@ public static class BeatmapsService
                     var meta = ParseBeatmapMetadata(folder.FullName, content);
                     if (MatchesSearch(meta, search)) totalCount++;
                 }
-                catch
+                catch (Exception)
                 {
-                    // ignored
+                    // Swallow per-file parse exceptions to keep listing robust.
                 }
             }
         }
@@ -109,7 +118,10 @@ public static class BeatmapsService
                     ));
                 }
             }
-            catch { }
+            catch (Exception)
+            {
+                // Ignore individual mapset failures to avoid breaking entire page.
+            }
         }
         var hasMore = pageFolders.Count > pageSize;
         return new ApiBeatmapPage(results, page, pageSize, hasMore, totalCount);
@@ -150,8 +162,15 @@ public static class BeatmapsService
         return (title, artist, creator, beatmapId, beatmapSetId, backgroundPath);
     }
 
-    public static BeatmapImageResult GetBeatmapImage(string folder)
+    /// <summary>
+    /// Loads the background image for a beatmap.
+    /// </summary>
+    /// <param name="folder">The folder of the beatmapset where we can find the background</param>
+    /// <param name="original">When set to true, return the full-sized background without thumbnail resize</param>
+    /// <returns>The background of the beatmapset</returns>
+    public static BeatmapImageResult GetBeatmapImage(string folder, bool original = false)
     {
+        const int maxHeight = MaxImageHeight; // use constant
         var songsFolder = DetectSongsFolder();
         if (string.IsNullOrWhiteSpace(songsFolder))
             return BeatmapImageResult.Error("Songs folder could not be detected.");
@@ -162,19 +181,60 @@ public static class BeatmapsService
         var imagePath = Directory.GetFiles(targetFolder)
             .FirstOrDefault(f => {
                 var ext = Path.GetExtension(f).ToLowerInvariant();
-                return ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif";
+                return ext is ".jpg" or ".jpeg" or ".png" or ".gif";
             });
         if (imagePath == null)
             return BeatmapImageResult.Error("No background image found.");
 
-        var etag = '"' + Path.GetFileName(imagePath) + '"';
         var extLower = Path.GetExtension(imagePath).ToLowerInvariant();
-        var mime = extLower switch
+
+        var fi = new FileInfo(imagePath);
+        var baseEtagCore = fi.Exists ? $"{fi.LastWriteTimeUtc.Ticks:x}-{fi.Length:x}" : Path.GetFileName(imagePath);
+
+        var originalHeight = 0;
+        try
         {
-            ".png" => "image/png",
-            ".gif" => "image/gif",
-            _ => "image/jpeg"
-        };
-        return BeatmapImageResult.SuccessResult(imagePath, mime, etag);
+            var info = Image.Identify(imagePath);
+            originalHeight = info.Height;
+        }
+        catch (Exception)
+        {
+            // ignore identify errors
+        }
+
+        var needsResize = !original && originalHeight > maxHeight;
+
+        if (!needsResize)
+        {
+            var mimeOriginal = extLower == ".png" ? "image/png" : "image/jpeg";
+            var etagOriginal = '"' + baseEtagCore + '"';
+            return BeatmapImageResult.SuccessResult(imagePath, mimeOriginal, etagOriginal);
+        }
+
+        // Perform in-memory resize
+        try
+        {
+            using var img = Image.Load(imagePath);
+            var ratio = (double)maxHeight / img.Height;
+            var targetW = Math.Max(1, (int)Math.Round(img.Width * ratio));
+            var targetH = maxHeight;
+            img.Mutate(c => c.Resize(new ResizeOptions
+            {
+                Mode = ResizeMode.Max,
+                Size = new Size(targetW, targetH),
+                Sampler = KnownResamplers.Lanczos3
+            }));
+            var ms = new MemoryStream();
+            if (extLower == ".png") img.Save(ms, new PngEncoder());
+            else img.Save(ms, new JpegEncoder { Quality = 85 });
+            ms.Position = 0; // reset for reading
+            var mime = extLower == ".png" ? "image/png" : "image/jpeg";
+            var etag = '"' + baseEtagCore + $"-h{maxHeight}" + '"';
+            return BeatmapImageResult.SuccessStreamResult(ms, mime, etag);
+        }
+        catch (Exception ex)
+        {
+            return BeatmapImageResult.Error("Failed to resize image: " + ex.Message);
+        }
     }
 }

@@ -11,7 +11,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="MathNet.Numerics" Version="5.0.0"/>
+        <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.3.0" />
         <PackageReference Include="Microsoft.AspNetCore.Routing" Version="2.3.0" />
         <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.3.0" />
@@ -25,6 +25,7 @@
       <ProjectReference Include="..\MapsetVerifier.Framework\MapsetVerifier.Framework.csproj" />
       <ProjectReference Include="..\MapsetVerifier.Server\MapsetVerifier.Server.csproj" />
       <ProjectReference Include="..\MapsetVerifier.Snapshots\MapsetVerifier.Snapshots.csproj" />
+      <ProjectReference Include="..\MapsetVerifier.Logging\MapsetVerifier.Logging.csproj" />
     </ItemGroup>
 
 </Project>
