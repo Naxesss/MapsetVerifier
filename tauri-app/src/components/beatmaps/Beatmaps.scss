@@ -1,29 +1,39 @@
-﻿@use "../../styles/variables.scss" as variables;
-
-.beatmaps-container {
-  height: 100vh;
+﻿.beatmaps-container {
   width: 100%;
-  overflow-y: scroll;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   position: relative;
-  direction: rtl; // Move scrollbar to the left
 
-  /* Flip content back to normal */
-  > * {
-    direction: ltr;
-  }
-
-  .beatmaps {
+  .beatmaps-header {
+    flex: 0 0 auto;
+    position: sticky;
+    top: 0;
+    background: var(--mantine-color-body, #1A1B1E);
+    z-index: 10;
+    padding-bottom: 8px;
     display: flex;
     flex-direction: column;
-    gap: variables.$padding;
+    gap: 8px;
+    border-bottom: 1px solid rgba(128,128,128,0.3);
+  }
+
+  .beatmaps-scroll {
+    flex: 1 1 auto;
+    overflow-y: scroll;
+    padding-top: 8px;
+    direction: rtl;
+
+    /* Flip content back to normal */
+    > * {
+      direction: ltr;
+    }
   }
 
   .mapset-container {
-    height: 100px;
-    display: flex;
     justify-content: center;
     align-items: center;
-    border-radius: variables.$border-radius;
+    border-radius: var(--mantine-radius-md);
     position: relative;
     overflow: hidden;
 
@@ -33,14 +43,15 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.4); // dark overlay
+      background: rgba(0, 0, 0, 0.6); // dark overlay
+      border-radius: var(--mantine-radius-md);
       z-index: 1;
       pointer-events: none;
       transition: background 0.3s;
     }
 
     &:hover .mapset-bg-overlay {
-      background: rgba(0, 0, 0, 0.3); // lighter overlay on hover
+      background: rgba(0, 0, 0, 0.4); // lighter overlay on hover
     }
 
     .mapset-bg {
@@ -52,34 +63,47 @@
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      border-radius: variables.$border-radius;
+      border-radius: var(--mantine-radius-md);
       z-index: 0;
     }
 
     .mapset-text {
-      padding: variables.$padding-small;
+      padding: var(--mantine-spacing-md);
       position: relative;
       z-index: 2;
       overflow: hidden;
       text-overflow: ellipsis;
-      white-space: nowrap;
-      color: variables.$color-text;
+      color: var(--mantine-color-text);
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 100%;
+      max-width: 100%;
 
-      // Ensure ellipsis is shown for overflowed text
-      .mapset-title, .mapset-mapper, span {
+      // Apply ellipsis to all Mantine Text components inside
+      .mantine-Text-root {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        display: block;
+        max-width: 100%;
       }
 
       .mapset-title {
         font-weight: bold;
-        font-size: variables.$font-size-small;
+        font-size: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        overflow: hidden;
+        max-width: 100%;
       }
 
-      .mapset-mapper {
-        font-size: variables.$font-size-smallest;
+      .mapset-creator {
+        font-size: 10px;
+        overflow: hidden;
+        max-width: 100%;
       }
     }
   }

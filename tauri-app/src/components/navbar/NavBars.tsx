@@ -1,5 +1,4 @@
-﻿import {IconBook, IconCamera, IconCheck, IconGauge, IconHome, IconSettings, IconTimeline} from "@tabler/icons-react";
-import {useState} from "react";
+﻿import {IconBook, IconCamera, IconCheck, IconHome, IconSettings, IconTimeline} from "@tabler/icons-react";
 import {AppShell, Burger, Group, NavLink} from "@mantine/core";
 import Beatmaps from "../beatmaps/Beatmaps.tsx";
 import {Link, useLocation} from "react-router-dom";
@@ -45,7 +44,6 @@ function NavBars(props: NavBarsProps) {
   const items = navItems.map((item) => (
     <NavLink
       w={"unset"}
-      href="#required-for-focus"
       to={item.to}
       key={item.label}
       component={Link}
@@ -71,7 +69,6 @@ function NavBars(props: NavBarsProps) {
             <NavLink
               ml={"auto"}
               w={"unset"}
-              href="#required-for-focus"
               label={<IconSettings />}
               disabled={true}
               styles={{

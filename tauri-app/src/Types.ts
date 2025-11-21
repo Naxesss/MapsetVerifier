@@ -18,5 +18,15 @@ export type ApiDocumentationCheckDetailsOutcome = {
   cause?: string
 }
 
+export type Beatmap = {
+  folder: string
+  title: string
+  artist: string
+  creator: string
+  beatmapID: string
+  beatmapSetID: string
+  backgroundPath: string
+}
+
 export type Mode = 'Standard' | 'Taiko' | 'Catch' | 'Mania'
 export type Level = 'Info' | 'Check' | 'Error' | 'Minor' | 'Warning' | 'Problem';

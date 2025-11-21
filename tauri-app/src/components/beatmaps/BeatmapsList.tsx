@@ -1,160 +1,173 @@
-﻿import {useEffect, useState} from "react";
-import {readDir, readTextFile, stat} from "@tauri-apps/plugin-fs";
-import {join} from "@tauri-apps/api/path";
-import {Beatmap} from "./BeatmapTypes";
-import {scrape} from "./beatmapUtils";
+﻿import {useEffect, useState, useRef} from "react";
 import BeatmapCard from "./BeatmapCard";
 import "./Beatmaps.scss";
-import {Alert, CloseButton, Container, Flex, Input} from "@mantine/core";
+import {Alert, CloseButton, Container, Divider, Flex, Group, Input, Loader, Text, Button} from "@mantine/core";
 import PlaceholderBeatmapCards from "./PlaceholderBeatmapCards.tsx";
+import { useDebouncedValue } from "@mantine/hooks";
+import {Beatmap} from "../../Types.ts";
 
 interface Props {
-    songFolder: string;
+    songFolder: string; // Optional: if provided, will be sent to API; if blank API will auto-detect
 }
 
 export default function BeatmapsList({ songFolder }: Props) {
-    const [beatmaps, setBeatmaps] = useState<Beatmap[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [search, setSearch] = useState("");
-    const stepSize = 16;
+  const [beatmaps, setBeatmaps] = useState<Beatmap[]>([]);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebouncedValue(search, 300); // 300ms debounce
+  const [totalCount, setTotalCount] = useState<number | null>(null);
+  const stepSize = 16;
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null); // new ref to scroll container
 
-    function isValidSongFolder(songFolder: string | undefined): boolean {
-        return !!songFolder;
+  async function loadBeatmaps(reset: boolean) {
+    setLoading(true);
+    setError(null);
+    if (reset) {
+      setBeatmaps([]);
+      setPage(0);
     }
-
-    async function getBeatmapFolders(songFolder: string) {
-        const entries = await readDir(songFolder);
-        // Filter for directories and fetch their mtime
-        const foldersWithMtime = await Promise.all(
-            entries
-                .filter(e => e.name && e.isDirectory)
-                .map(async e => {
-                    try {
-                        const statResult = await stat(await join(songFolder, e.name));
-                        return { name: e.name, isDirectory: e.isDirectory, mtime: statResult.mtime?.getTime() };
-                    } catch {
-                        return { name: e.name, isDirectory: e.isDirectory, mtime: 0 };
-                    }
-                })
-        );
-        // Sort by mtime descending (newest first)
-        foldersWithMtime.sort((a, b) =>{
-            return (b.mtime || 0) - (a.mtime || 0)
-        });
-        return foldersWithMtime;
-    }
-
-    async function getOsuFilesInFolder(folderPath: string) {
-        try {
-            const files = await readDir(folderPath);
-            return files.filter(f => f.name && f.name.endsWith(".osu"));
-        } catch {
-            console.error(`[Beatmaps] Folder can't be read: ${folderPath}`);
-            return [];
+    try {
+      const currentPage = reset ? 0 : page;
+      const params = new URLSearchParams();
+      if (songFolder) params.append("songsFolder", songFolder);
+      if (debouncedSearch) params.append("search", debouncedSearch);
+      params.append("page", currentPage.toString());
+      params.append("pageSize", stepSize.toString());
+      const url = `http://localhost:5005/beatmaps?${params.toString()}`;
+      console.log("[Beatmaps] Fetching:", url);
+      const res = await fetch(url);
+      if (!res.ok) {
+        // Handle 404 differently depending on whether it's the first page or a subsequent page
+        if (res.status === 404) {
+          if (currentPage === 0) {
+            const errJson = await res.json().catch(() => ({}));
+            const message = errJson.Message || errJson.message || "No mapsets could be found.";
+            setError(message);
+            setHasMore(false);
+          } else {
+            // Reached end of list: no more pages
+            setHasMore(false);
+          }
+          setLoading(false);
+          return;
         }
-    }
-
-    async function parseBeatmapMetadata(folderPath: string, data: string) {
-        const title = scrape(data, "Title:", "\n");
-        const artist = scrape(data, "Artist:", "\n");
-        const creator = scrape(data, "Creator:", "\n");
-        const beatmapID = scrape(data, "BeatmapID:", "\n");
-        const beatmapSetID = scrape(data, "BeatmapSetID:", "\n");
-        const bgFile = scrape(data, "0,0,\"", "\"");
-        const backgroundPath = bgFile ? await join(folderPath, bgFile) : "";
-        return { title, artist, creator, beatmapID, beatmapSetID, backgroundPath };
-    }
-
-    function matchesSearch(bm: any, search: string) {
-        const searchableString = `${bm.title} - ${bm.artist} | ${bm.creator} (${bm.beatmapID} ${bm.beatmapSetID})`;
-        return !search || searchableString.toLowerCase().includes(search.toLowerCase());
-    }
-
-    async function loadBeatmaps() {
-        setLoading(true);
-        setError(null);
-        setBeatmaps([]);
-        if (!isValidSongFolder(songFolder)) {
-            setError("No song folder selected. Please select your osu! Songs folder.");
-            setLoading(false);
-            return;
-        }
-        try {
-            console.log("[Beatmaps] Reading song folder:", songFolder);
-            const folders = await getBeatmapFolders(songFolder);
-            let found = 0;
-            const results: Beatmap[] = [];
-            for (const folderEntry of folders) {
-                if (found >= stepSize) break;
-                const folderPath = await join(songFolder, folderEntry.name);
-                console.log(`[Beatmaps] Reading beatmap folder: ${folderPath}`);
-                const osuFiles = await getOsuFilesInFolder(folderPath);
-                for (const fileEntry of osuFiles) {
-                    const filePath = await join(folderPath, fileEntry.name);
-                    console.log(`[Beatmaps] Reading .osu file: ${filePath}`);
-                    const data = await readTextFile(filePath);
-                    const meta = await parseBeatmapMetadata(folderPath, data);
-                    console.log(meta);
-                    if (matchesSearch(meta, search)) {
-                        results.push({
-                            folder: folderEntry.name,
-                            ...meta,
-                        });
-                        found++;
-                    }
-                    // Only need one .osu file per folder to get song info
-                    break;
-                }
-            }
-            setBeatmaps(results);
-            if (results.length === 0) {
-                console.log("[Beatmaps] No beatmaps found.");
-                setError(search ? "The search yielded no results." : "No mapsets could be found in this folder. Make sure you've selected /osu!/Songs.");
-            } else {
-                console.log(`[Beatmaps] Loaded ${results.length} beatmaps.`);
-            }
-        } catch (e) {
-            console.error("[Beatmaps] Failed to load beatmaps:", (e as Error).message);
-            setError("Failed to load beatmaps: " + (e as Error).message);
-        }
+        const errJson = await res.json().catch(() => ({}));
+        const message = errJson.Message || errJson.message || `Failed to load beatmaps (HTTP ${res.status})`;
+        setError(message);
         setLoading(false);
+        return;
+      }
+      const data = await res.json();
+      const items: Beatmap[] = data.items || data.Items || [];
+      const pageIndex: number = data.page ?? data.Page ?? currentPage;
+      const hasMoreFlag: boolean = data.hasMore ?? data.HasMore ?? false;
+      const total: number | undefined = data.totalCount ?? data.TotalCount;
+      if (typeof total === 'number') setTotalCount(total);
+      setHasMore(hasMoreFlag);
+      setPage(pageIndex);
+      setBeatmaps(prev => reset ? items : [...prev, ...items]);
+      if (items.length === 0 && pageIndex === 0) {
+        setError(debouncedSearch ? "The search yielded no results." : "No mapsets could be found in this folder.");
+      }
+    } catch (e) {
+      console.error("[Beatmaps] Failed to load beatmaps:", (e as Error).message);
+      setError("Failed to load beatmaps: " + (e as Error).message);
     }
+    setLoading(false);
+  }
 
-    useEffect(() => {
-        loadBeatmaps();
-    }, [songFolder, search]);
+  useEffect(() => {
+    // reset pagination when folder or search changes
+    loadBeatmaps(true);
+  }, [songFolder, debouncedSearch]);
 
-    return (
-      <Container className="beatmaps-container" p="sm">
-        <Flex direction="column" gap="sm">
-          <Input
-            type="text"
-            placeholder="Search beatmaps..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            rightSectionPointerEvents="all"
-            rightSection={
-              <CloseButton
-                aria-label="Clear input"
-                onClick={() => setSearch('')}
-                style={{ display: search ? undefined : 'none' }}
-              />
+  useEffect(() => {
+    if (page !== 0) {
+      loadBeatmaps(false);
+    }
+  }, [page]);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    if (!hasMore) return; // Do not observe when list end reached
+    const observer = new IntersectionObserver(entries => {
+      const entry = entries[0];
+      if (entry.isIntersecting && hasMore && !loading) {
+          setPage(p => p + 1);
+      }
+    }, { root: null, rootMargin: '200px', threshold: 0.1 });
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, loading]);
+
+  return (
+    <Container className="beatmaps-container" p="unset">
+      <Flex direction="column" gap="sm" p="sm">
+        <Input
+          type="text"
+          placeholder="Search beatmaps..."
+          value={search}
+          onChange={e => {
+            const value = e.target.value;
+            // If search is being cleared, scroll to top first
+            if (value === '' && search !== '') {
+              scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
             }
-          />
-          {loading && <PlaceholderBeatmapCards />}
-          {error && (
-            <Alert color="red" title="Error">
-              {error}
+            setSearch(value);
+          }}
+          rightSectionPointerEvents="all"
+          rightSection={
+            <CloseButton
+              aria-label="Clear input"
+              onClick={() => {
+                if (search !== '') {
+                  scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+                }
+                setSearch('');
+              }}
+              style={{ display: search ? undefined : 'none' }}
+            />
+          }
+        />
+        {totalCount !== null && (
+          <Text size="sm" c="dimmed" mt="xs">
+            Loaded {beatmaps.length} of {totalCount}
+          </Text>
+        )}
+        {error && (
+          <Alert color="red" title="Error" mt="xs">
+            {error}
+          </Alert>
+        )}
+      </Flex>
+      <Divider />
+      <Group className="beatmaps-scroll" ref={scrollRef} p="sm">
+        <Flex direction="column" gap="xs" w="100%" style={{ justifyContent: "center" }}>
+          {loading && page === 0 && <PlaceholderBeatmapCards />}
+          {beatmaps.map(bm => (
+            <BeatmapCard key={bm.folder + bm.title} beatmap={bm} />
+          ))}
+          <div ref={sentinelRef} style={{ height: 1 }} />
+          {loading && page > 0 && (
+            <Flex justify="center" my="sm">
+              <Loader size="sm" />
+            </Flex>
+          )}
+          {beatmaps.length > 0 && !hasMore && !loading && !error && (
+            <Alert color="gray" title="No more beatmaps" variant="light">
+              You have reached the last available beatmap.
+              <Button size="xs" mt="xs" variant="default" onClick={() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}>
+                Back to top
+              </Button>
             </Alert>
           )}
-          <Flex direction="column" gap="sm">
-            {beatmaps.map(bm => (
-              <BeatmapCard key={bm.folder} beatmap={bm} />
-            ))}
-          </Flex>
         </Flex>
-      </Container>
-    );
+      </Group>
+    </Container>
+  );
 }
-

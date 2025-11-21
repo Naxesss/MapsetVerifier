@@ -40,7 +40,6 @@ export default function MantineMarkdown({ children }: MantineMarkdownProps) {
           {...props} />,
         hr: () => <Divider my="md" />,
         ul: (props) => <List withPadding {...props} />,
-        ol: (props) => <List type="ordered" withPadding {...props} />,
         li: (props) => <ListItem {...props} />,
         code: ({ node, ...props }) => <Code {...props} />,
         table: ({ node, ...props }) => (
