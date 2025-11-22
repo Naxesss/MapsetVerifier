@@ -1,4 +1,4 @@
-﻿import {Alert, Flex, Text, SimpleGrid, Space, Tabs} from "@mantine/core";
+﻿import {Alert, Flex, Text, SimpleGrid, Space, Tabs, Group} from "@mantine/core";
 import React from "react";
 import NoIssueIcon from "../icons/NoIssueIcon.tsx";
 import MinorIcon from "../icons/MinorIcon.tsx";
@@ -64,16 +64,24 @@ function Documentation() {
           <GeneralChecks />
         </Tabs.Panel>
         <Tabs.Panel value="standard" pt="sm">
-          <BeatmapChecks mode="Standard" />
+          <Group gap="xs">
+            <BeatmapChecks mode="Standard" />
+          </Group>
         </Tabs.Panel>
         <Tabs.Panel value="taiko" pt="sm">
-          <BeatmapChecks mode="Taiko" />
+          <Group gap="xs">
+            <BeatmapChecks mode="Taiko" />
+          </Group>
         </Tabs.Panel>
         <Tabs.Panel value="catch" pt="sm">
-          <BeatmapChecks mode="Catch" />
+          <Group gap="xs">
+            <BeatmapChecks mode="Catch" />
+          </Group>
         </Tabs.Panel>
         <Tabs.Panel value="mania" pt="sm">
-          <BeatmapChecks mode="Mania" />
+          <Group gap="xs">
+            <BeatmapChecks mode="Mania" />
+          </Group>
         </Tabs.Panel>
       </Tabs>
     </>

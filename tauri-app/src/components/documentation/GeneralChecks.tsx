@@ -7,7 +7,7 @@ import {ApiDocumentationCheck} from "../../Types.ts";
 function GeneralChecks() {
   const queryOptions: UseQueryOptions<ApiDocumentationCheck[], Error> = {
     queryKey: ["general-documentation"],
-    queryFn: DocumentationApi().getGeneralDocumentation,
+    queryFn: DocumentationApi.getGeneralDocumentation,
     staleTime: Infinity
   };
   const { data, isLoading, isError } = useQuery<ApiDocumentationCheck[], Error>(queryOptions);

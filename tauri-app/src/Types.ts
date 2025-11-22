@@ -18,6 +18,13 @@ export type ApiDocumentationCheckDetailsOutcome = {
   cause?: string
 }
 
+export type ApiBeatmapPage = {
+  items: Beatmap[]
+  page: number
+  pageSize: number
+  hasMore: boolean
+}
+
 export type Beatmap = {
   folder: string
   title: string

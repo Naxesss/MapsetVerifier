@@ -1,34 +1,32 @@
-﻿import { useEffect, useState } from "react";
+﻿import { useQuery } from "@tanstack/react-query";
 import DocumentationApi from "../../client/DocumentationApi";
 import DocumentationCheck from "./DocumentationCheck";
-import {Group, Text} from "@mantine/core";
-import {ApiDocumentationCheck, Mode} from "../../Types.ts";
+import { Text } from "@mantine/core";
+import { ApiDocumentationCheck, Mode } from "../../Types.ts";
+import { FetchError } from "../../client/ApiHelper.ts";
 
 interface BeatmapChecksProps {
   mode: Mode;
 }
 
 function BeatmapChecks({ mode }: BeatmapChecksProps) {
-  const [checks, setChecks] = useState<ApiDocumentationCheck[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: checks, isLoading, error } = useQuery<ApiDocumentationCheck[], FetchError>({
+    queryKey: ["documentationBeatmapChecks", mode],
+    queryFn: () => DocumentationApi.getBeatmapDocumentation(mode),
+    staleTime: Infinity
+  });
 
-  useEffect(() => {
-    setLoading(true);
-    DocumentationApi().getBeatmapDocumentation(mode)
-      .then(data => setChecks(data))
-      .finally(() => setLoading(false));
-  }, [mode]);
-
-  if (loading) return <div>Loading {mode} checks...</div>;
-  if (!checks.length) return <div>No checks found for {mode}.</div>;
+  if (isLoading) return <Text>Loading...</Text>;
+  if (error) return <Text>Error loading checks.</Text>;
+  if (!checks || checks.length === 0) return <Text>No {mode} checks found.</Text>;
 
   return (
-    <Group gap="xs">
+    <>
       <Text>A total of {checks.length} {mode} checks exist.</Text>
       {checks.map(check => (
         <DocumentationCheck key={check.id} check={check} />
       ))}
-    </Group>
+    </>
   );
 }
 

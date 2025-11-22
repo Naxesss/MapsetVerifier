@@ -1,109 +1,98 @@
-﻿import {useEffect, useState, useRef} from "react";
-import BeatmapCard from "./BeatmapCard";
-import "./Beatmaps.scss";
-import {Alert, CloseButton, Container, Divider, Flex, Group, Input, Loader, Text, Button} from "@mantine/core";
-import PlaceholderBeatmapCards from "./PlaceholderBeatmapCards.tsx";
+﻿import { useRef, useEffect, useState } from "react";
+import { Alert, CloseButton, Container, Divider, Flex, Group, Input, Loader, Button, Text } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
-import {Beatmap} from "../../Types.ts";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import BeatmapCard from "./BeatmapCard";
+import PlaceholderBeatmapCards from "./PlaceholderBeatmapCards.tsx";
+import BeatmapApi from "../../client/BeatmapApi.ts";
+import { ApiBeatmapPage, Beatmap } from "../../Types.ts";
+import { FetchError } from "../../client/ApiHelper.ts";
+import "./Beatmaps.scss";
 
 interface Props {
-    songFolder: string; // Optional: if provided, will be sent to API; if blank API will auto-detect
+  songFolder: string;
 }
 
 export default function BeatmapsList({ songFolder }: Props) {
-  const [beatmaps, setBeatmaps] = useState<Beatmap[]>([]);
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [debouncedSearch] = useDebouncedValue(search, 300); // 300ms debounce
-  const [totalCount, setTotalCount] = useState<number | null>(null);
-  const stepSize = 16;
+  const [debouncedSearch] = useDebouncedValue(search, 300);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const scrollRef = useRef<HTMLDivElement | null>(null); // new ref to scroll container
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const stepSize = 16;
 
-  async function loadBeatmaps(reset: boolean) {
-    setLoading(true);
-    setError(null);
-    if (reset) {
-      setBeatmaps([]);
-      setPage(0);
-    }
-    try {
-      const currentPage = reset ? 0 : page;
+  const {
+    data,
+    error,
+    isLoading,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage
+  } = useInfiniteQuery<ApiBeatmapPage, FetchError>({
+    queryKey: ["beatmaps", songFolder, debouncedSearch, stepSize],
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
       const params = new URLSearchParams();
       if (songFolder) params.append("songsFolder", songFolder);
       if (debouncedSearch) params.append("search", debouncedSearch);
-      params.append("page", currentPage.toString());
+      params.append("page", String(pageParam));
       params.append("pageSize", stepSize.toString());
-      const url = `http://localhost:5005/beatmaps?${params.toString()}`;
-      console.log("[Beatmaps] Fetching:", url);
-      const res = await fetch(url);
-      if (!res.ok) {
-        // Handle 404 differently depending on whether it's the first page or a subsequent page
-        if (res.status === 404) {
-          if (currentPage === 0) {
-            const errJson = await res.json().catch(() => ({}));
-            const message = errJson.Message || errJson.message || "No mapsets could be found.";
-            setError(message);
-            setHasMore(false);
-          } else {
-            // Reached end of list: no more pages
-            setHasMore(false);
-          }
-          setLoading(false);
-          return;
+      try {
+        return await BeatmapApi.get(params);
+      } catch (err) {
+        // Treat 404 as an empty terminal page so we stop requesting more
+        if (err instanceof FetchError && err.res?.status === 404) {
+          return { items: [], page: Number(pageParam), pageSize: stepSize, hasMore: false };
         }
-        const errJson = await res.json().catch(() => ({}));
-        const message = errJson.Message || errJson.message || `Failed to load beatmaps (HTTP ${res.status})`;
-        setError(message);
-        setLoading(false);
-        return;
+        throw err; // Other errors propagate
       }
-      const data = await res.json();
-      const items: Beatmap[] = data.items || data.Items || [];
-      const pageIndex: number = data.page ?? data.Page ?? currentPage;
-      const hasMoreFlag: boolean = data.hasMore ?? data.HasMore ?? false;
-      const total: number | undefined = data.totalCount ?? data.TotalCount;
-      if (typeof total === 'number') setTotalCount(total);
-      setHasMore(hasMoreFlag);
-      setPage(pageIndex);
-      setBeatmaps(prev => reset ? items : [...prev, ...items]);
-      if (items.length === 0 && pageIndex === 0) {
-        setError(debouncedSearch ? "The search yielded no results." : "No mapsets could be found in this folder.");
-      }
-    } catch (e) {
-      console.error("[Beatmaps] Failed to load beatmaps:", (e as Error).message);
-      setError("Failed to load beatmaps: " + (e as Error).message);
+    },
+    getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.page + 1 : undefined),
+    staleTime: Infinity,
+    retry: (failureCount, error) => {
+      // Don't retry 404s; allow one attempt
+      if (error.res?.status === 404) return false;
+      return failureCount < 2; // small retry for transient errors
     }
-    setLoading(false);
-  }
+  });
+
+  const beatmaps: Beatmap[] = data?.pages.flatMap(p => p.items) ?? [];
+  const firstPageLoaded = data?.pages?.[0];
+  const noResults = !isLoading && beatmaps.length === 0 && !error;
 
   useEffect(() => {
-    // reset pagination when folder or search changes
-    loadBeatmaps(true);
-  }, [songFolder, debouncedSearch]);
-
-  useEffect(() => {
-    if (page !== 0) {
-      loadBeatmaps(false);
-    }
-  }, [page]);
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-    if (!hasMore) return; // Do not observe when list end reached
+    const el = sentinelRef.current;
+    if (!el) return;
+    if (!hasNextPage) return;
     const observer = new IntersectionObserver(entries => {
-      const entry = entries[0];
-      if (entry.isIntersecting && hasMore && !loading) {
-          setPage(p => p + 1);
+      if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+        fetchNextPage();
       }
-    }, { root: null, rootMargin: '200px', threshold: 0.1 });
-    observer.observe(sentinel);
+    }, { root: null, rootMargin: "200px", threshold: 0.1 });
+    observer.observe(el);
     return () => observer.disconnect();
-  }, [hasMore, loading]);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+  }, [debouncedSearch, songFolder]);
+
+  const renderTopStatus = () => {
+    if (error) {
+      const status = error.res?.status;
+      const msg = status === 404
+        ? (debouncedSearch ? "The search yielded no results." : "No mapsets could be found in the songs folder.")
+        : (error.message || "Failed to load beatmaps.");
+      return <Alert color="red" title="Error" mt="xs">{msg}</Alert>;
+    }
+    if (noResults) {
+      return (
+        <Alert color="gray" title="No results" mt="xs" variant="light">
+          {debouncedSearch ? "The search yielded no results." : "No mapsets could be found in the songs folder."}
+        </Alert>
+      );
+    }
+    return null;
+  };
 
   return (
     <Container className="beatmaps-container" p="unset">
@@ -114,9 +103,8 @@ export default function BeatmapsList({ songFolder }: Props) {
           value={search}
           onChange={e => {
             const value = e.target.value;
-            // If search is being cleared, scroll to top first
-            if (value === '' && search !== '') {
-              scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+            if (value === "" && search !== "") {
+              scrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
             }
             setSearch(value);
           }}
@@ -125,46 +113,47 @@ export default function BeatmapsList({ songFolder }: Props) {
             <CloseButton
               aria-label="Clear input"
               onClick={() => {
-                if (search !== '') {
-                  scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+                if (search !== "") {
+                  scrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
                 }
-                setSearch('');
+                setSearch("");
               }}
-              style={{ display: search ? undefined : 'none' }}
+              style={{ display: search ? undefined : "none" }}
             />
           }
         />
-        {totalCount !== null && (
-          <Text size="sm" c="dimmed" mt="xs">
-            Loaded {beatmaps.length} of {totalCount}
-          </Text>
-        )}
-        {error && (
-          <Alert color="red" title="Error" mt="xs">
-            {error}
-          </Alert>
-        )}
+        {renderTopStatus()}
       </Flex>
       <Divider />
       <Group className="beatmaps-scroll" ref={scrollRef} p="sm">
         <Flex direction="column" gap="xs" w="100%" style={{ justifyContent: "center" }}>
-          {loading && page === 0 && <PlaceholderBeatmapCards />}
+          {isLoading && !firstPageLoaded && <PlaceholderBeatmapCards />}
           {beatmaps.map(bm => (
             <BeatmapCard key={bm.folder + bm.title} beatmap={bm} />
           ))}
           <div ref={sentinelRef} style={{ height: 1 }} />
-          {loading && page > 0 && (
+          {isFetchingNextPage && (
             <Flex justify="center" my="sm">
               <Loader size="sm" />
             </Flex>
           )}
-          {beatmaps.length > 0 && !hasMore && !loading && !error && (
+          {beatmaps.length > 0 && !hasNextPage && !isFetchingNextPage && !error && (
             <Alert color="gray" title="No more beatmaps" variant="light">
               You have reached the last available beatmap.
-              <Button size="xs" mt="xs" variant="default" onClick={() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}>
+              <Button
+                size="xs"
+                mt="xs"
+                variant="default"
+                onClick={() => scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" })}
+              >
                 Back to top
               </Button>
             </Alert>
+          )}
+          {error && beatmaps.length > 0 && (
+            <Text c="red" size="sm" ta="center" my="xs">
+              {error.message || "An error occurred."}
+            </Text>
           )}
         </Flex>
       </Group>

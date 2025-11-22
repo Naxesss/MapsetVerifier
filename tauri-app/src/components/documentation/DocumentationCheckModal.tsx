@@ -1,9 +1,9 @@
-﻿import { useEffect, useState } from "react";
-import {Modal, Text, Loader, Flex, Alert} from "@mantine/core";
+﻿import { Modal, Text, Loader, Flex, Alert } from "@mantine/core";
 import DocumentationApi from "../../client/DocumentationApi";
 import { ApiDocumentationCheck, ApiDocumentationCheckDetails } from "../../Types";
 import LevelIcon from "../icons/LevelIcon.tsx";
 import MantineMarkdown from "./MantineMarkdown";
+import { useQuery } from "@tanstack/react-query";
 
 interface DocumentationCheckModalProps {
   opened: boolean;
@@ -12,19 +12,13 @@ interface DocumentationCheckModalProps {
 }
 
 export default function DocumentationCheckModal({ opened, onClose, check }: DocumentationCheckModalProps) {
-  const [details, setDetails] = useState<ApiDocumentationCheckDetails | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!opened) return;
-    setLoading(true);
-    setError(null);
-    DocumentationApi().getCheckDetails(check.id.toString())
-      .then(setDetails)
-      .catch(() => setError("Failed to load details."))
-      .finally(() => setLoading(false));
-  }, [opened, check.id]);
+  const { data, isLoading, error } = useQuery<ApiDocumentationCheckDetails, Error>({
+    queryKey: ["documentationCheckDetails", check.id],
+    queryFn: () => DocumentationApi.getCheckDetails(check.id.toString()),
+    enabled: opened,
+    staleTime: Infinity,
+    refetchOnWindowFocus: false
+  });
 
   return (
     <Modal
@@ -39,11 +33,11 @@ export default function DocumentationCheckModal({ opened, onClose, check }: Docu
           <Text size="sm">{`${check.category} > ${check.subCategory}`}</Text>
           <Text size="sm">Created by {check.author}</Text>
         </Flex>
-        {loading && <Loader />}
-        {error && <Text c="red">{error}</Text>}
-        {details && (
+        {isLoading && <Loader />}
+        {error && <Alert color="red">Failed to load details.</Alert>}
+        {data && (
           <>
-            {details.outcomes.map((checkDetails, i) => (
+            {data.outcomes.map((checkDetails, i) => (
               <Alert key={i}>
                 <Flex direction="column" gap="xs">
                   <Flex align="center" gap="xs">
@@ -54,7 +48,7 @@ export default function DocumentationCheckModal({ opened, onClose, check }: Docu
                 </Flex>
               </Alert>
             ))}
-            <MantineMarkdown>{details.description}</MantineMarkdown>
+            <MantineMarkdown>{data.description}</MantineMarkdown>
           </>
         )}
       </Flex>
