@@ -42,7 +42,7 @@ public class BeatmapsController : ControllerBase
     }
 
     [HttpGet("image")]
-    public ActionResult<FileStreamResult> GetBeatmapImage([FromQuery] string folder, [FromQuery] bool original = false)
+    public ActionResult GetBeatmapImage([FromQuery] string folder, [FromQuery] bool original = false)
     {
         var result = BeatmapsService.GetBeatmapImage(folder, original);
         if (!result.Success)

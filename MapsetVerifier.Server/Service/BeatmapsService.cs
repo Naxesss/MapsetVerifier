@@ -59,38 +59,12 @@ public static class BeatmapsService
     public static ApiBeatmapPage GetBeatmaps(string songsFolder, string? search, int page, int pageSize)
     {
         if (!Directory.Exists(songsFolder))
-            return new ApiBeatmapPage(Enumerable.Empty<ApiBeatmap>(), page, pageSize, false, 0);
+            return new ApiBeatmapPage([], page, pageSize, false);
 
         var dirInfo = new DirectoryInfo(songsFolder);
         var folders = dirInfo.GetDirectories()
             .OrderByDescending(d => d.LastWriteTimeUtc)
             .ToList();
-
-        int totalCount;
-        if (string.IsNullOrWhiteSpace(search))
-        {
-            totalCount = folders.Count;
-        }
-        else
-        {
-            // Need to filter by search; approximate by checking metadata of each folder's first osu file.
-            totalCount = 0;
-            foreach (var folder in folders)
-            {
-                try
-                {
-                    var osuFile = Directory.GetFiles(folder.FullName, "*.osu").FirstOrDefault();
-                    if (osuFile == null) continue;
-                    var content = File.ReadLines(osuFile).Take(2000).Aggregate(string.Empty, (acc, line) => acc + line + "\n"); // partial read
-                    var meta = ParseBeatmapMetadata(folder.FullName, content);
-                    if (MatchesSearch(meta, search)) totalCount++;
-                }
-                catch (Exception)
-                {
-                    // Swallow per-file parse exceptions to keep listing robust.
-                }
-            }
-        }
 
         var skipped = page * pageSize;
         var pageFolders = folders.Skip(skipped).Take(pageSize + 1).ToList();
@@ -124,7 +98,7 @@ public static class BeatmapsService
             }
         }
         var hasMore = pageFolders.Count > pageSize;
-        return new ApiBeatmapPage(results, page, pageSize, hasMore, totalCount);
+        return new ApiBeatmapPage(results, page, pageSize, hasMore);
     }
 
     private static bool MatchesSearch((string? title, string? artist, string? creator, string? beatmapId, string? beatmapSetId, string? backgroundPath) meta, string? search)
