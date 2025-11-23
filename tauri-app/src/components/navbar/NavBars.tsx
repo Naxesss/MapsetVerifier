@@ -1,7 +1,9 @@
-﻿import {IconBook, IconCamera, IconCheck, IconHome, IconSettings, IconTimeline} from "@tabler/icons-react";
+﻿import {IconBook, IconCamera, IconCheck, IconHome, IconTimeline} from "@tabler/icons-react";
 import {AppShell, Burger, Group, NavLink} from "@mantine/core";
 import Beatmaps from "../beatmaps/Beatmaps.tsx";
 import {Link, useLocation} from "react-router-dom";
+import SettingsButton from "../settings/SettingsButton";
+import WindowBar from "../window/WindowBar.tsx";
 
 const navItems = [
   {
@@ -61,27 +63,12 @@ function NavBars(props: NavBarsProps) {
   return (
     <>
       <AppShell.Header>
-        <Group h="100%" px="md" wrap="nowrap">
+        <WindowBar />
+        <Group h={60} px="md" wrap="nowrap">
           <Burger opened={props.desktopOpened} onClick={props.toggleDesktop} size="sm" />
           <Group gap="xs" style={{ flex: 1 }} wrap="nowrap">
             {items}
-            <NavLink
-              ml={"auto"}
-              w={"unset"}
-              label={<IconSettings />}
-              disabled={true}
-              styles={{
-                root: {
-                  borderRadius: "100%",
-                  
-                  // To center the icon properly
-                  justifyContent: "center",
-                  paddingLeft: 8,
-                  paddingRight: 8
-                },
-                label: { width: "100%", display: "flex", justifyContent: "center" }
-              }}
-            />
+            <SettingsButton />
           </Group>
         </Group>
       </AppShell.Header>

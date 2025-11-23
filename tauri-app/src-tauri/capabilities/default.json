@@ -8,11 +8,44 @@
   "permissions": [
     "core:default",
     "opener:default",
+    "fs:default",
     {
       "identifier": "opener:allow-open-path",
       "allow": [
         { "path": "*" }
       ]
+    },
+    {
+      "identifier": "fs:scope",
+      "allow": [{ "path": "**/*" }]
+    },
+    {
+      "identifier": "fs:allow-exists",
+      "allow": [{ "path": "$APPDATA/*" }]
+    },
+    {
+      "identifier": "fs:allow-read-file",
+      "allow": [{ "path": "$APPDATA/*" }]
+    },
+    {
+      "identifier": "fs:allow-write-file",
+      "allow": [{ "path": "$APPDATA/*" }]
+    },
+    {
+      "identifier": "fs:allow-appconfig-write",
+      "allow": [{ "path": "$APPCONFIG/*" }]
+    },
+    {
+      "identifier": "fs:allow-appconfig-write-recursive",
+      "allow": [{ "path": "$APPCONFIG/**" }]
+    },
+    {
+      "identifier": "fs:allow-appconfig-read",
+      "allow": [{ "path": "$APPCONFIG/*" }]
+    },
+    {
+      "identifier": "fs:allow-appconfig-read-recursive",
+      "allow": [{ "path": "$APPCONFIG/**" }]
     }
   ]
 }

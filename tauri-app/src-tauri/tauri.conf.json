@@ -12,12 +12,12 @@
   "app": {
     "windows": [
       {
-        "title": "Mapset Verifier",
+        "title": "Mapset Verifier 2.0.0",
         "width": 800,
         "height": 600,
         "minWidth": 800,
         "minHeight":600,
-        "backgroundColor": "#101014"
+        "decorations": false
       }
     ],
     "security": {
@@ -33,6 +33,9 @@
     ]
   },
   "plugins": {
+    "fs": {
+      "requireLiteralLeadingDot": false
+    },
     "opener": {}
   }
 }

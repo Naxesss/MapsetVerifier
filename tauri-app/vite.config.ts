@@ -1,5 +1,15 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { readFileSync } from "fs";
+import { resolve } from "path";
+
+// Read version from tauri.conf.json
+let tauriVersion = "unknown";
+try {
+  const confPath = resolve(__dirname, "src-tauri", "tauri.conf.json");
+  const conf = JSON.parse(readFileSync(confPath, "utf-8"));
+  tauriVersion = conf.version || "unknown";
+} catch {}
 
 // @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
@@ -28,5 +38,8 @@ export default defineConfig(async () => ({
       // 3. tell Vite to ignore watching `src-tauri`
       ignored: ["**/src-tauri/**"],
     },
+  },
+  define: {
+    TAURI_APP_VERSION: JSON.stringify(tauriVersion),
   },
 }));
