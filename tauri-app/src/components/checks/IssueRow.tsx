@@ -14,9 +14,9 @@ const IssueRow: React.FC<IssueRowProps> = ({ item }) => {
       gap="xs"
       ml="xl"
       align="center"
-      style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', alignItems: 'center' }}
+      style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', alignItems: 'start' }}
     >
-      <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+      <div style={{ alignSelf: 'start' }}>
         <LevelIcon level={item.level} size={16} />
       </div>
       <Text

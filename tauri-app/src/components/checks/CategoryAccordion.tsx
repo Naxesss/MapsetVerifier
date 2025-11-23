@@ -25,8 +25,9 @@ const CategoryAccordion: React.FC<CategoryAccordionProps> = ({ data, showMinor }
       for (const lvl of severityOrder) {
         if (normalizedLevels.includes(lvl)) { categoryHighest = lvl; break; }
       }
-      const total = groups.reduce((sum, g) => sum + g.items.length, 0);
-      return { ...cat, groups, categoryHighest, total };
+      const minorCount = allItems.filter(i => i.level === 'Minor').length;
+      const total = groups.reduce((sum, g) => sum + g.items.length, 0) - minorCount;
+      return { ...cat, groups, categoryHighest, total, minorCount };
     });
   }, [data.general.checkResults, data.difficulties, data.general.mode, data.general.difficultyLevel, showMinor, data.checks]);
 
@@ -45,10 +46,13 @@ const CategoryAccordion: React.FC<CategoryAccordionProps> = ({ data, showMinor }
                 <Badge size="xs" color="grape" variant="light">{cat.difficultyLevel}</Badge>
               )}
               <Badge size="xs" color={cat.total ? 'red' : 'green'} variant="light">{cat.total} issue{cat.total !== 1 ? 's' : ''}</Badge>
+              {showMinor && cat.minorCount > 0 && (
+                <Badge size="xs" color="yellow" variant="light">{cat.minorCount} minor</Badge>
+              )}
             </Group>
           </Accordion.Control>
           <Accordion.Panel>
-            {cat.total > 0 ? (
+            {cat.total > 0 || cat.minorCount > 0 ? (
               <Stack gap="xs">
                 {cat.groups.map(g => (
                   <CheckGroup

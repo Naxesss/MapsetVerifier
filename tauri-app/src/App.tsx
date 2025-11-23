@@ -1,6 +1,6 @@
 import {
   AppShell,
-  Container,
+  Container, CSSVariablesResolver,
   MantineProvider,
   Text
 } from '@mantine/core';
@@ -14,13 +14,23 @@ import NavBars from "./components/navbar/NavBars.tsx";
 import {theme} from "./theme/Theme.ts";
 import Checks from "./components/checks/Checks.tsx";
 
+export const cssVarResolver: CSSVariablesResolver = () => ({
+  variables: {},
+  light: {},
+  dark: {
+    // Default dark mode makes the text color use --mantine-color-dark-0 which we don't want
+    '--mantine-color-text': '#fff',
+    '--mantine-color-dimmed': '#9e9e9e'
+  },
+})
+
 function App() {
   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
   
   return (
-    <MantineProvider defaultColorScheme="dark" theme={theme}>
+    <MantineProvider defaultColorScheme="dark" theme={theme} cssVariablesResolver={cssVarResolver}>
       <AppShell
-        header={{ height: 60 }}
+        header={{ height: 92 }} // 60 for NavBars + 32 for WindowBar
         navbar={{
           width: "256",
           breakpoint: 'xs',

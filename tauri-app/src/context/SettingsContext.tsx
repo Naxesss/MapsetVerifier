@@ -3,7 +3,7 @@ import { readTextFile, writeTextFile, exists, BaseDirectory, mkdir } from '@taur
 
 // Type-safe Settings type
 export type Settings = {
-    songFolder: string;
+    songFolder?: string;
     showMinor: boolean;
 };
 
@@ -14,7 +14,7 @@ interface SettingsContextType {
 }
 
 const defaultSettings: Settings = {
-    songFolder: '',
+    songFolder: undefined,
     showMinor: false,
 };
 

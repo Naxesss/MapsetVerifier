@@ -13,15 +13,15 @@ function LevelIcon({ level, size = 32 }: { level: Level; size?: number }) {
     </div>
   );
   if (level === "Info") {
-    return wrap(<NoIssueIcon />);
+    return wrap(<NoIssueIcon size={size} />);
   } else if (level === "Error") {
-    return wrap(<ErrorIcon />);
+    return wrap(<ErrorIcon size={size} />);
   } else if (level === "Problem") {
-    return wrap(<ProblemIcon />);
+    return wrap(<ProblemIcon size={size} />);
   } else if (level === "Warning") {
-    return wrap(<WarningIcon />);
+    return wrap(<WarningIcon size={size} />);
   } else if (level === "Minor") {
-    return wrap(<MinorIcon />);
+    return wrap(<MinorIcon size={size} />);
   } else {
     return wrap(<Text size="xs">Missing</Text>);
   }
