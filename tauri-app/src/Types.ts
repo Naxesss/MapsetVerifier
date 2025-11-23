@@ -32,7 +32,30 @@ export type Beatmap = {
   creator: string
   beatmapID: string
   beatmapSetID: string
-  backgroundPath: string
+}
+
+export type ApiBeatmapSetCheckResult = {
+  general: ApiCategoryCheckResult
+  difficulties: ApiCategoryCheckResult[]
+  beatmapSetId?: number
+  checks: Record<number, { id: number; name: string; difficulties: string[] }>
+  title?: string
+  artist?: string
+  creator?: string
+}
+
+export type ApiCategoryCheckResult = {
+  category: string
+  beatmapId?: number
+  checkResults: ApiCheckResult[]
+  mode?: Mode
+  difficultyLevel?: string | null
+}
+
+export type ApiCheckResult = {
+  id: number
+  level: Level
+  message: string
 }
 
 export type Mode = 'Standard' | 'Taiko' | 'Catch' | 'Mania'

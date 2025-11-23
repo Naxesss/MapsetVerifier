@@ -1,4 +1,7 @@
 ﻿using System.Text.RegularExpressions;
+using MapsetVerifier.Framework;
+using MapsetVerifier.Framework.Objects;
+using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Server.Model;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
@@ -7,7 +10,7 @@ using SixLabors.ImageSharp.Formats.Jpeg;
 
 namespace MapsetVerifier.Server.Service;
 
-public static class BeatmapsService
+public static class BeatmapService
 {
     private static readonly Regex BackgroundRegex = new Regex("0,0,\"(?<file>[^\"]+)\"", RegexOptions.Compiled);
 
@@ -80,7 +83,7 @@ public static class BeatmapsService
                 var meta = ParseBeatmapMetadata(folder.FullName, content);
                 if (MatchesSearch(meta, search))
                 {
-                    var backgroundUrl = string.IsNullOrEmpty(meta.backgroundPath) ? string.Empty : $"/beatmaps/image?folder={Uri.EscapeDataString(folder.Name)}";
+                    var backgroundUrl = string.IsNullOrEmpty(meta.backgroundPath) ? string.Empty : $"/beatmap/image?folder={Uri.EscapeDataString(folder.Name)}";
                     results.Add(new ApiBeatmap(
                         folder: folder.Name,
                         title: meta.title ?? string.Empty,
@@ -210,5 +213,101 @@ public static class BeatmapsService
         {
             return BeatmapImageResult.Error("Failed to resize image: " + ex.Message);
         }
+    }
+
+    public static ApiBeatmapSetCheckResult RunBeatmapSetChecks(string beatmapSetFolder)
+    {
+        var beatmapSet = new BeatmapSet(beatmapSetFolder);
+        var issues = Checker.GetBeatmapSetIssues(beatmapSet);
+        var checksById = CheckerRegistry.GetChecksWithId();
+        
+        var generalIssues = issues.Where(issue => issue.CheckOrigin is GeneralCheck).ToArray();
+
+        var apiBeatmapCheckResults = beatmapSet.Beatmaps.Select(beatmap =>
+        {
+            var interpretedDifficulty = beatmap.GetDifficulty();
+            var beatmapIssues = issues.Where(issue => issue.beatmap == beatmap)
+                .Except(generalIssues)
+                .Where(issue => issue.AppliesToDifficulty(interpretedDifficulty));
+
+            var beatmapCheckResults = beatmapIssues.Select(issue =>
+            {
+                var checkId = checksById
+                    .FirstOrDefault(c => c.Value.GetType() == issue.CheckOrigin?.GetType())
+                    .Key;
+
+                return new ApiCheckResult(
+                    id: checkId,
+                    level: issue.level,
+                    message: issue.message
+                );
+            });
+            
+            return new ApiCategoryCheckResult(
+                checkResults: beatmapCheckResults,
+                category: beatmap.MetadataSettings.version,
+                beatmapId: beatmap.MetadataSettings.beatmapId,
+                mode: beatmap.GeneralSettings.mode,
+                difficultyLevel: interpretedDifficulty
+            );
+        }).ToList();
+        
+        var generalCheckResults = generalIssues.Select(issue =>
+        {
+            var checkId = checksById
+                .FirstOrDefault(c => c.Value.GetType() == issue.CheckOrigin?.GetType())
+                .Key;
+
+            return new ApiCheckResult(
+                id: checkId,
+                level: issue.level,
+                message: issue.message
+            );
+        }).ToList();
+        
+        // Build checks dictionary: include checks present in general or any difficulty
+        var checksPresentIds = new HashSet<int>(generalCheckResults.Select(c => c.Id)
+            .Concat(apiBeatmapCheckResults.SelectMany(cat => cat.CheckResults.Select(cr => cr.Id))));
+        var checksDict = new Dictionary<int, ApiCheckDefinition>();
+        foreach (var id in checksPresentIds)
+        {
+            if (!checksById.TryGetValue(id, out var check))
+                continue;
+            var name = check.GetMetadata().Message;
+            var difficultiesForCheck = apiBeatmapCheckResults
+                .Where(cat => cat.CheckResults.Any(cr => cr.Id == id))
+                .Select(cat => cat.Category)
+                .Distinct()
+                .ToList();
+            // Include "General" if appears in general results
+            if (generalCheckResults.Any(gr => gr.Id == id))
+                difficultiesForCheck.Insert(0, "General");
+            checksDict[id] = new ApiCheckDefinition(
+                id: id,
+                name: name,
+                difficulties: difficultiesForCheck
+            );
+        }
+        
+        var firstMeta = beatmapSet.Beatmaps.FirstOrDefault()?.MetadataSettings;
+        var title = firstMeta?.title;
+        var artist = firstMeta?.artist;
+        var creator = firstMeta?.creator;
+        
+        return new ApiBeatmapSetCheckResult(
+            general: new ApiCategoryCheckResult(
+                checkResults: generalCheckResults,
+                category: "General",
+                beatmapId: null,
+                mode: null,
+                difficultyLevel: null
+            ),
+            difficulties: apiBeatmapCheckResults,
+            beatmapSetId: firstMeta?.beatmapSetId,
+            checks: checksDict,
+            title: title,
+            artist: artist,
+            creator: creator
+        );
     }
 }

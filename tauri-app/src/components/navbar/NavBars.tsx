@@ -17,8 +17,7 @@ const navItems = [
   {
     to: '/checks',
     icon: IconCheck,
-    label: 'Checks',
-    disabled: true
+    label: 'Checks'
   },
   {
     to: '/snapshots',
@@ -47,7 +46,7 @@ function NavBars(props: NavBarsProps) {
       to={item.to}
       key={item.label}
       component={Link}
-      active={location.pathname === item.to}
+      active={(location.pathname.startsWith(item.to) && item.to !== '/') || (location.pathname === item.to && item.to === '/')}
       label={item.label}
       leftSection={<item.icon />}
       disabled={item.disabled}

@@ -33,8 +33,6 @@
     ]
   },
   "plugins": {
-    "fs": {
-      "requireLiteralLeadingDot": false
-    }
+    "opener": {}
   }
 }

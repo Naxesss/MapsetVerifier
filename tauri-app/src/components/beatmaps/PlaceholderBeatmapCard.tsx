@@ -12,8 +12,7 @@ export default function PlaceholderBeatmapCard() {
           artist: "",
           creator: "",
           beatmapID: "",
-          beatmapSetID: "",
-          backgroundPath: ""
+          beatmapSetID: ""
         }}
       />
     </Skeleton>

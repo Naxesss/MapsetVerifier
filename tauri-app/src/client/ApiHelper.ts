@@ -5,7 +5,8 @@ export function apiFetch(path: string, options?: RequestInit) {
 }
 
 export class FetchError extends Error {
-    constructor(public res: Response, message?: string) {
-        super(message)
+    constructor(public res: Response, message?: string, public stackTrace?: string) {
+        super(message);
+        this.name = 'FetchError';
     }
 }

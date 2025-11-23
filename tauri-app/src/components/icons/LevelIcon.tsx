@@ -6,19 +6,24 @@ import MinorIcon from "./MinorIcon.tsx";
 import {Text} from "@mantine/core";
 import {Level} from "../../Types.ts";
 
-function LevelIcon({ level }: { level: Level }) {
+function LevelIcon({ level, size = 32 }: { level: Level; size?: number }) {
+  const wrap = (node: React.ReactNode) => (
+    <div style={{ width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {node}
+    </div>
+  );
   if (level === "Info") {
-    return <NoIssueIcon/>;
+    return wrap(<NoIssueIcon />);
   } else if (level === "Error") {
-    return <ErrorIcon/>;
+    return wrap(<ErrorIcon />);
   } else if (level === "Problem") {
-    return <ProblemIcon/>;
+    return wrap(<ProblemIcon />);
   } else if (level === "Warning") {
-    return <WarningIcon/>;
+    return wrap(<WarningIcon />);
   } else if (level === "Minor") {
-    return <MinorIcon/>;
+    return wrap(<MinorIcon />);
   } else {
-    return <Text>Missing Icon</Text>;
+    return wrap(<Text size="xs">Missing</Text>);
   }
 }
 

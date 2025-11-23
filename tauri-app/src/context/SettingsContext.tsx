@@ -70,7 +70,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     async function findOsuLocationAndSet() {
       try {
         console.log('[Settings] Invoking find_osu_location command...');
-        const res = await fetch("http://localhost:5005/beatmaps/songsFolder");
+        const res = await fetch("http://localhost:5005/beatmap/songsFolder");
         
         if (res.ok) {
             const data = await res.json();

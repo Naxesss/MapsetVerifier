@@ -12,6 +12,7 @@ import './styles/App.scss';
 import {useDisclosure} from "@mantine/hooks";
 import NavBars from "./components/navbar/NavBars.tsx";
 import {theme} from "./theme/Theme.ts";
+import Checks from "./components/checks/Checks.tsx";
 
 function App() {
   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
@@ -36,6 +37,8 @@ function App() {
               <Route>
                 <Route path="/" element={<Home />} />
                 <Route path="/documentation" element={<Documentation />} />
+                <Route path="/checks" element={<Checks />} />
+                <Route path="/checks/:folder" element={<Checks />} />
                 <Route path="*" element={<Text>TODO : NOT FOUND</Text>} />
               </Route>
             </Routes>

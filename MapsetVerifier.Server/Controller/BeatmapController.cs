@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace MapsetVerifier.Server.Controller;
 
 [ApiController]
-[Route("beatmaps")]
-public class BeatmapsController : ControllerBase
+[Route("beatmap")]
+public class BeatmapController : ControllerBase
 {
     [HttpGet]
     public ActionResult<ApiBeatmapPage> GetBeatmaps(
@@ -17,16 +17,16 @@ public class BeatmapsController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(songsFolder))
         {
-            songsFolder = BeatmapsService.DetectSongsFolder();
+            songsFolder = BeatmapService.DetectSongsFolder();
         }
         if (string.IsNullOrWhiteSpace(songsFolder))
-            return NotFound(new ApiError("Songs folder could not be detected.", null));
+            return NotFound(new ApiError("Songs folder could not be detected.", null, null));
 
         if (page < 0) page = 0;
         if (pageSize <= 0) pageSize = 16;
         if (pageSize > 100) pageSize = 100; // safety cap
 
-        var pageResult = BeatmapsService.GetBeatmaps(songsFolder, search, page, pageSize);
+        var pageResult = BeatmapService.GetBeatmaps(songsFolder, search, page, pageSize);
 
         // If we have items, always 200.
         if (pageResult.Items.Any())
@@ -34,7 +34,7 @@ public class BeatmapsController : ControllerBase
 
         // No items: only 404 when first page and no more folders.
         if (page == 0 && !pageResult.HasMore)
-            return NotFound(new ApiError(search != null ? "The search yielded no results." : "No mapsets could be found in the Songs folder.", null));
+            return NotFound(new ApiError(search != null ? "The search yielded no results." : "No mapsets could be found in the Songs folder.", null, null));
 
         // Empty page beyond available results (or intermediate) -> still 200 with empty payload.
         return Ok(pageResult);
@@ -43,18 +43,18 @@ public class BeatmapsController : ControllerBase
     [HttpGet("songsFolder")]
     public ActionResult GetSongsFolder()
     {
-        var folder = BeatmapsService.DetectSongsFolder();
+        var folder = BeatmapService.DetectSongsFolder();
         if (string.IsNullOrWhiteSpace(folder))
-            return NotFound(new ApiError("Songs folder could not be detected.", null));
+            return NotFound(new ApiError("Songs folder could not be detected.", null, null));
         return Ok(new { songsFolder = folder });
     }
 
     [HttpGet("image")]
     public ActionResult GetBeatmapImage([FromQuery] string folder, [FromQuery] bool original = false)
     {
-        var result = BeatmapsService.GetBeatmapImage(folder, original);
+        var result = BeatmapService.GetBeatmapImage(folder, original);
         if (!result.Success)
-            return NotFound(new ApiError(result.ErrorMessage ?? "Image not found", null));
+            return NotFound(new ApiError(result.ErrorMessage ?? "Image not found", null, null));
 
         Response.Headers.CacheControl = "public, max-age=86400";
         if (!string.IsNullOrWhiteSpace(result.ETag))
@@ -72,5 +72,19 @@ public class BeatmapsController : ControllerBase
 
         var stream = System.IO.File.OpenRead(result.ImagePath!);
         return File(stream, result.MimeType!);
+    }
+    
+    [HttpPost("runChecks")]
+    public ActionResult<ApiBeatmapSetCheckResult> RunBeatmapSetChecks([FromBody] RunChecksRequest request)
+    {
+        try
+        {
+            var result = BeatmapService.RunBeatmapSetChecks(request.Folder);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiError("An error occurred while running beatmap checks.", ex.Message, ex.StackTrace));
+        }
     }
 }

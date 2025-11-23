@@ -13,7 +13,8 @@ public static class ExceptionService
 
         var apiError = new ApiError(
             message: printedException.Message,
-            details: printedException.StackTrace
+            details: printedException.InnerException?.Message,
+            stackTrace: printedException.StackTrace
         );
 
         return apiError;
