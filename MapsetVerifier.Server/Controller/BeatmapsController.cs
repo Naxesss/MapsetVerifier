@@ -27,8 +27,16 @@ public class BeatmapsController : ControllerBase
         if (pageSize > 100) pageSize = 100; // safety cap
 
         var pageResult = BeatmapsService.GetBeatmaps(songsFolder, search, page, pageSize);
-        if (!pageResult.Items.Any())
+
+        // If we have items, always 200.
+        if (pageResult.Items.Any())
+            return Ok(pageResult);
+
+        // No items: only 404 when first page and no more folders.
+        if (page == 0 && !pageResult.HasMore)
             return NotFound(new ApiError(search != null ? "The search yielded no results." : "No mapsets could be found in the Songs folder.", null));
+
+        // Empty page beyond available results (or intermediate) -> still 200 with empty payload.
         return Ok(pageResult);
     }
 

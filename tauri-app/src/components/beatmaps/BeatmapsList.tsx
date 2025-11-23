@@ -1,13 +1,13 @@
 ﻿import { useRef, useEffect, useState } from "react";
-import { Alert, CloseButton, Container, Divider, Flex, Group, Input, Loader, Button, Text } from "@mantine/core";
+import { Alert, CloseButton, Container, Divider, Flex, Group, Input, Button, Text } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import BeatmapCard from "./BeatmapCard";
-import PlaceholderBeatmapCards from "./PlaceholderBeatmapCards.tsx";
 import BeatmapApi from "../../client/BeatmapApi.ts";
 import { ApiBeatmapPage, Beatmap } from "../../Types.ts";
 import { FetchError } from "../../client/ApiHelper.ts";
 import "./Beatmaps.scss";
+import PlaceholderBeatmapCard from "./PlaceholderBeatmapCard.tsx";
 
 interface Props {
   songFolder: string;
@@ -23,7 +23,6 @@ export default function BeatmapsList({ songFolder }: Props) {
   const {
     data,
     error,
-    isLoading,
     isFetchingNextPage,
     fetchNextPage,
     hasNextPage
@@ -57,7 +56,16 @@ export default function BeatmapsList({ songFolder }: Props) {
 
   const beatmaps: Beatmap[] = data?.pages.flatMap(p => p.items) ?? [];
   const firstPageLoaded = data?.pages?.[0];
-  const noResults = !isLoading && beatmaps.length === 0 && !error;
+  const noResults = !isFetchingNextPage && beatmaps.length === 0 && !error;
+  const lastPage = data?.pages[data.pages.length - 1];
+
+  // When a fetched page is empty but indicates more pages, immediately fetch the next.
+  useEffect(() => {
+    if (!lastPage) return;
+    if (lastPage.items.length === 0 && lastPage.hasMore && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [lastPage, isFetchingNextPage, fetchNextPage]);
 
   useEffect(() => {
     const el = sentinelRef.current;
@@ -76,7 +84,17 @@ export default function BeatmapsList({ songFolder }: Props) {
     scrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
   }, [debouncedSearch, songFolder]);
 
+  // Show placeholder when:
+  // 1. Initial load (no first page yet)
+  // 2. Fetching a next page
+  // 3. Last page is empty but hasMore (auto-skip empty pages)
+  const showNextPagePlaceholder = isFetchingNextPage || (lastPage && lastPage.items.length === 0 && lastPage.hasMore);
+
   const renderTopStatus = () => {
+    if (showNextPagePlaceholder) {
+      return null;
+    }
+    
     if (error) {
       const status = error.res?.status;
       const msg = status === 404
@@ -127,16 +145,12 @@ export default function BeatmapsList({ songFolder }: Props) {
       <Divider />
       <Group className="beatmaps-scroll" ref={scrollRef} p="sm">
         <Flex direction="column" gap="xs" w="100%" style={{ justifyContent: "center" }}>
-          {isLoading && !firstPageLoaded && <PlaceholderBeatmapCards />}
+          {!firstPageLoaded && <PlaceholderBeatmapCard />}
           {beatmaps.map(bm => (
             <BeatmapCard key={bm.folder + bm.title} beatmap={bm} />
           ))}
           <div ref={sentinelRef} style={{ height: 1 }} />
-          {isFetchingNextPage && (
-            <Flex justify="center" my="sm">
-              <Loader size="sm" />
-            </Flex>
-          )}
+          {showNextPagePlaceholder && <PlaceholderBeatmapCard />}
           {beatmaps.length > 0 && !hasNextPage && !isFetchingNextPage && !error && (
             <Alert color="gray" title="No more beatmaps" variant="light">
               You have reached the last available beatmap.
