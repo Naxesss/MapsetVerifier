@@ -109,7 +109,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
             {
                 { Beatmap.Difficulty.Easy, 36},
                 { Beatmap.Difficulty.Normal, 36},
-                { Beatmap.Difficulty.Hard, 20},
+                { Beatmap.Difficulty.Hard, 36},
                 { Beatmap.Difficulty.Insane, 20}
             };
 
@@ -118,7 +118,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
             {
                 { Beatmap.Difficulty.Easy, 44},
                 { Beatmap.Difficulty.Normal, 44},
-                { Beatmap.Difficulty.Hard, 32},
+                { Beatmap.Difficulty.Hard, 44},
                 { Beatmap.Difficulty.Insane, 32}
             };
 
