@@ -27,7 +27,16 @@ const CategoryAccordion: React.FC<CategoryAccordionProps> = ({ data, showMinor }
       }
       const minorCount = allItems.filter(i => i.level === 'Minor').length;
       const total = groups.reduce((sum, g) => sum + g.items.length, 0) - minorCount;
-      return { ...cat, groups, categoryHighest, total, minorCount };
+      // Sort groups: primary by check name (case-insensitive); categoryHighest is identical per group so doesn't impact ordering.
+      const sortedGroups = [...groups].sort((a, b) => {
+        const nameA = (data.checks[a.id]?.name ?? '').toLowerCase();
+        const nameB = (data.checks[b.id]?.name ?? '').toLowerCase();
+        if (nameA && nameB) return nameA.localeCompare(nameB);
+        if (nameA) return -1; // nameA exists, nameB empty
+        if (nameB) return 1;  // nameB exists, nameA empty
+        return 0;
+      });
+      return { ...cat, groups: sortedGroups, categoryHighest, total, minorCount };
     });
   }, [data.general.checkResults, data.difficulties, data.general.mode, data.general.difficultyLevel, showMinor, data.checks]);
 
@@ -53,7 +62,7 @@ const CategoryAccordion: React.FC<CategoryAccordionProps> = ({ data, showMinor }
           </Accordion.Control>
           <Accordion.Panel>
             {cat.total > 0 || cat.minorCount > 0 ? (
-              <Stack gap="xs">
+              <Stack gap="0">
                 {cat.groups.map(g => (
                   <CheckGroup
                     key={g.id}

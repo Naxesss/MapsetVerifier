@@ -1,5 +1,5 @@
 ﻿import {IconBook, IconCamera, IconCheck, IconHome, IconTimeline} from "@tabler/icons-react";
-import {AppShell, Burger, Group, NavLink} from "@mantine/core";
+import {AppShell, Burger, Group, NavLink, useMantineTheme} from "@mantine/core";
 import Beatmaps from "../beatmaps/Beatmaps.tsx";
 import {Link, useLocation} from "react-router-dom";
 import SettingsButton from "../settings/SettingsButton";
@@ -41,6 +41,7 @@ interface NavBarsProps {
 }
 
 function NavBars(props: NavBarsProps) {
+  const theme = useMantineTheme();
   const location = useLocation();
   const items = navItems.map((item) => (
     <NavLink
@@ -62,7 +63,12 @@ function NavBars(props: NavBarsProps) {
 
   return (
     <>
-      <AppShell.Header>
+      <AppShell.Header
+        style={{
+          fontFamily: theme.headings.fontFamily,
+          background: theme.colors.dark[8]
+        }}
+      >
         <WindowBar />
         <Group h={60} px="md" wrap="nowrap">
           <Burger opened={props.desktopOpened} onClick={props.toggleDesktop} size="sm" />

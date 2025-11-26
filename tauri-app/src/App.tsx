@@ -1,7 +1,7 @@
 import {
   AppShell,
-  Container, CSSVariablesResolver,
-  MantineProvider,
+  Container, CSSVariablesResolver, Group,
+  MantineProvider, ScrollArea,
   Text
 } from '@mantine/core';
 import {Route, Routes} from "react-router-dom";
@@ -30,7 +30,8 @@ function App() {
   return (
     <MantineProvider defaultColorScheme="dark" theme={theme} cssVariablesResolver={cssVarResolver}>
       <AppShell
-        header={{ height: 92 }} // 60 for NavBars + 32 for WindowBar
+        // Restore combined header height (WindowBar 32 + nav 60 = 92)
+        header={{ height: 92 }}
         navbar={{
           width: "256",
           breakpoint: 'xs',
@@ -42,7 +43,7 @@ function App() {
           toggleDesktop={toggleDesktop}
         />
         <AppShell.Main>
-          <Container p="sm">
+          <Container p="sm" fluid>
             <Routes>
               <Route>
                 <Route path="/" element={<Home />} />

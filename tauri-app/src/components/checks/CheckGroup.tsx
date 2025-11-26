@@ -34,7 +34,7 @@ const CheckGroup: React.FC<CheckGroupProps> = ({ id, items, name }) => {
   const extraCount = items.length - VISIBLE_COUNT;
 
   return (
-    <Stack gap="0" p="xs" justify="center" style={{ border: '1px solid var(--mantine-color-dark-5)', borderRadius: 6 }}>
+    <Stack gap="0" p="xs" justify="center">
       <Group justify="space-between" wrap="nowrap">
         <Group
           gap="xs"
@@ -49,7 +49,7 @@ const CheckGroup: React.FC<CheckGroupProps> = ({ id, items, name }) => {
         >
           {open ? <IconChevronDown size={16} /> : <IconChevronRight size={16} />}
           <LevelIcon level={highest} size={16} />
-          <Text size="xs" fw="bold">{name}</Text>
+          <Text size="sm" fw="bold">{name}</Text>
         </Group>
       </Group>
 

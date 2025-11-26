@@ -1,5 +1,29 @@
 ﻿@use "_variables.scss" as variables;
 
+@font-face {
+  font-family: 'Comfortaa';
+  src: url('../assets/fonts/Comfortaa-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Comfortaa';
+  src: url('../assets/fonts/Comfortaa-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Comfortaa';
+  src: url('../assets/fonts/Comfortaa-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 ::-webkit-scrollbar {
   width: 14px;
   background: variables.$color-background-panel;

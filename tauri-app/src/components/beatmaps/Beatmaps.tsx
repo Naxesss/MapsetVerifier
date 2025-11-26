@@ -6,6 +6,7 @@ export default function Beatmaps() {
     const { settings } = useSettings();
 
     return (
-        <BeatmapsList songFolder={settings.songFolder} />
+        // Provide fallback empty string to satisfy required prop
+        <BeatmapsList songFolder={settings.songFolder || ""} />
     );
 }

@@ -7,14 +7,16 @@
   ],
   "permissions": [
     "core:default",
+    "core:window:default",
+    "core:window:allow-start-dragging",
+    "core:window:allow-minimize",
+    "core:window:allow-toggle-maximize",
+    "core:window:allow-unmaximize",
+    "core:window:allow-close",
     "opener:default",
+    "opener:allow-open-path",
     "fs:default",
-    {
-      "identifier": "opener:allow-open-path",
-      "allow": [
-        { "path": "*" }
-      ]
-    },
+    "dialog:default",
     {
       "identifier": "fs:scope",
       "allow": [{ "path": "**/*" }]

@@ -17,35 +17,46 @@ import {
 import {useParams} from "react-router-dom";
 import {useSettings} from "../../context/SettingsContext.tsx";
 import CategoryAccordion from './CategoryAccordion';
-import {openPath} from "@tauri-apps/plugin-opener";
+import { invoke } from "@tauri-apps/api/core";
 import {IconFolder, IconWorld} from "@tabler/icons-react";
 
 function Checks() {
   const theme = useMantineTheme();
   const { folder } = useParams();
   const { settings } = useSettings();
+
+  // Compute folder path safely (could be undefined until both are available)
+  const beatmapFolderPath = folder && settings.songFolder
+    ? `${settings.songFolder}\\${folder}`.replace(/\//g, '\\')
+    : undefined;
+
+  const { data, isLoading, isError, error } = useQuery<ApiBeatmapSetCheckResult, FetchError>({
+    queryKey: ['beatmap-checks', beatmapFolderPath || 'unavailable'],
+    queryFn: () => {
+      if (!beatmapFolderPath) {
+        // Should never run when enabled is false
+        throw new Error('Beatmap folder path unavailable');
+      }
+      return BeatmapApi.runChecks(beatmapFolderPath);
+    },
+    enabled: !!beatmapFolderPath, // Only execute when we have a valid path
+    retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
+  });
+
   if (!folder) {
     return <Text>No BeatmapSet selected.</Text>;
   }
-  
-  if (settings.songFolder === undefined) {
+
+  if (!settings.songFolder) {
     return (
       <Alert color="yellow" title="Song folder not set" withCloseButton>
         <Text size="sm">Please set the song folder in settings to run beatmap checks.</Text>
       </Alert>
     );
   }
-
-  const beatmapFolderPath = `${settings.songFolder}\\${folder}`.replace(/\//g, '\\');
-
-  const { data, isLoading, isError, error } = useQuery<ApiBeatmapSetCheckResult, FetchError>({
-    queryKey: ["beatmap-checks", beatmapFolderPath],
-    queryFn: () => BeatmapApi.runChecks(beatmapFolderPath!),
-    retry: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    refetchOnMount: false
-  });
 
   const beatmapBgUrl = folder ? `http://localhost:5005/beatmap/image?folder=${folder}&original=true` : undefined;
 
@@ -54,6 +65,7 @@ function Checks() {
       <Box
         h="100%"
         style={{
+          fontFamily: theme.headings.fontFamily,
           position: "relative",
           width: "100%",
           borderRadius: theme.radius.lg,
@@ -101,8 +113,9 @@ function Checks() {
                   size="xs"
                   variant="default"
                   onClick={async () => {
+                    if (!beatmapFolderPath) return; // guard for TS
                     try {
-                      await openPath(beatmapFolderPath);
+                      await invoke('open_folder', { path: beatmapFolderPath });
                     } catch (e) {
                       console.error('Failed to open folder:', e);
                       alert('Failed to open folder. See console for details.');
@@ -127,9 +140,9 @@ function Checks() {
             </Stack>
           </Box>
         </Box>
-        <Stack gap="md" p="md" pt="sm">
+        <Stack gap="sm" p="md">
           <Group>
-            <Title order={2}>Checks</Title>
+            <Title order={3}>Checks</Title>
           </Group>
 
           {isLoading && (

@@ -1,5 +1,6 @@
 ﻿import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { readTextFile, writeTextFile, exists, BaseDirectory, mkdir } from '@tauri-apps/plugin-fs';
+import {appConfigDir} from "@tauri-apps/api/path";
 
 // Type-safe Settings type
 export type Settings = {
@@ -28,8 +29,11 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
     async function ensureAppConfigDir() {
         try {
+            console.log('[Settings] Ensuring AppConfig directory exists');
             await mkdir('', { baseDir: BaseDirectory.AppConfig, recursive: true });
-            console.log('[Settings] Ensured AppConfig directory exists');
+            const dir = await appConfigDir();
+            console.log('[Settings] BaseDirectory.AppConfig resolved path:', dir);
+            return dir;
         } catch (e) {
             console.error('[Settings] Error ensuring AppConfig directory:', e);
         }
