@@ -1,12 +1,12 @@
-﻿import {Alert, Flex, Text, SimpleGrid, Space, Tabs, Group} from "@mantine/core";
-import React from "react";
-import NoIssueIcon from "../icons/NoIssueIcon.tsx";
-import MinorIcon from "../icons/MinorIcon.tsx";
-import WarningIcon from "../icons/WarningIcon.tsx";
-import ErrorIcon from "../icons/ErrorIcon.tsx";
-import GeneralChecks from "./GeneralChecks";
-import BeatmapChecks from "./BeatmapChecks.tsx";
-import ProblemIcon from "../icons/ProblemIcon.tsx";
+﻿import { Alert, Flex, Text, SimpleGrid, Space, Tabs, Group } from '@mantine/core';
+import React from 'react';
+import BeatmapChecks from './BeatmapChecks.tsx';
+import GeneralChecks from './GeneralChecks';
+import ErrorIcon from '../icons/ErrorIcon.tsx';
+import MinorIcon from '../icons/MinorIcon.tsx';
+import NoIssueIcon from '../icons/NoIssueIcon.tsx';
+import ProblemIcon from '../icons/ProblemIcon.tsx';
+import WarningIcon from '../icons/WarningIcon.tsx';
 
 function Documentation() {
   return (
@@ -15,8 +15,8 @@ function Documentation() {
         <SimpleGrid
           cols={3}
           style={{
-            gridTemplateColumns: "32px min-content auto",
-            alignItems: "center"
+            gridTemplateColumns: '32px min-content auto',
+            alignItems: 'center',
           }}
         >
           <DocumentationIconExplanation
@@ -89,10 +89,10 @@ function Documentation() {
 }
 
 interface InfoIconExplanationProp {
-  icon: React.ReactNode
-  title: string
-  category: string
-  description: string
+  icon: React.ReactNode;
+  title: string;
+  category: string;
+  description: string;
 }
 
 function DocumentationIconExplanation(props: InfoIconExplanationProp) {
@@ -105,7 +105,7 @@ function DocumentationIconExplanation(props: InfoIconExplanationProp) {
       </Flex>
       <Text>{props.description}</Text>
     </>
-  )
+  );
 }
 
 export default Documentation;

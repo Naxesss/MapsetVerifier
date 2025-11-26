@@ -1,5 +1,5 @@
-﻿import {Skeleton} from "@mantine/core";
-import BeatmapCard from "./BeatmapCard.tsx";
+﻿import { Skeleton } from '@mantine/core';
+import BeatmapCard from './BeatmapCard.tsx';
 
 export default function PlaceholderBeatmapCard() {
   return (
@@ -7,14 +7,14 @@ export default function PlaceholderBeatmapCard() {
       <BeatmapCard
         key="placeholder"
         beatmap={{
-          folder: "placeholder",
-          title: "",
-          artist: "",
-          creator: "",
-          beatmapID: "",
-          beatmapSetID: ""
+          folder: 'placeholder',
+          title: '',
+          artist: '',
+          creator: '',
+          beatmapID: '',
+          beatmapSetID: '',
         }}
       />
     </Skeleton>
-  )
+  );
 }

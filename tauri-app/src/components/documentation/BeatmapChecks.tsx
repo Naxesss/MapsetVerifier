@@ -1,19 +1,23 @@
-﻿import { useQuery } from "@tanstack/react-query";
-import DocumentationApi from "../../client/DocumentationApi";
-import DocumentationCheck from "./DocumentationCheck";
-import { Text } from "@mantine/core";
-import { ApiDocumentationCheck, Mode } from "../../Types.ts";
-import { FetchError } from "../../client/ApiHelper.ts";
+﻿import { Text } from '@mantine/core';
+import { useQuery } from '@tanstack/react-query';
+import DocumentationCheck from './DocumentationCheck';
+import { FetchError } from '../../client/ApiHelper.ts';
+import DocumentationApi from '../../client/DocumentationApi';
+import { ApiDocumentationCheck, Mode } from '../../Types.ts';
 
 interface BeatmapChecksProps {
   mode: Mode;
 }
 
 function BeatmapChecks({ mode }: BeatmapChecksProps) {
-  const { data: checks, isLoading, error } = useQuery<ApiDocumentationCheck[], FetchError>({
-    queryKey: ["documentationBeatmapChecks", mode],
+  const {
+    data: checks,
+    isLoading,
+    error,
+  } = useQuery<ApiDocumentationCheck[], FetchError>({
+    queryKey: ['documentationBeatmapChecks', mode],
     queryFn: () => DocumentationApi.getBeatmapDocumentation(mode),
-    staleTime: Infinity
+    staleTime: Infinity,
   });
 
   if (isLoading) return <Text>Loading...</Text>;
@@ -22,8 +26,10 @@ function BeatmapChecks({ mode }: BeatmapChecksProps) {
 
   return (
     <>
-      <Text>A total of {checks.length} {mode} checks exist.</Text>
-      {checks.map(check => (
+      <Text>
+        A total of {checks.length} {mode} checks exist.
+      </Text>
+      {checks.map((check) => (
         <DocumentationCheck key={check.id} check={check} />
       ))}
     </>

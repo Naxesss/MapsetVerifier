@@ -1,9 +1,9 @@
-﻿import React from 'react';
-import {Stack, Group, Text} from '@mantine/core';
-import { ApiCheckResult, Level } from '../../Types';
-import IssueRow from './IssueRow';
-import LevelIcon from '../icons/LevelIcon.tsx';
+﻿import { Stack, Group, Text } from '@mantine/core';
 import { IconChevronDown, IconChevronRight } from '@tabler/icons-react';
+import React from 'react';
+import IssueRow from './IssueRow';
+import { ApiCheckResult, Level } from '../../Types';
+import LevelIcon from '../icons/LevelIcon.tsx';
 
 interface CheckGroupProps {
   id: number;
@@ -15,19 +15,25 @@ const CheckGroup: React.FC<CheckGroupProps> = ({ id, items, name }) => {
   // Determine the highest severity per requested order: Error > Problem > Warning > Minor > Info
   const severityOrder: Level[] = ['Error', 'Problem', 'Warning', 'Minor', 'Info'];
   // Treat 'Check' as 'Info' (fallback) if present
-  const normalizedLevels = items.map(i => i.level === 'Check' ? 'Info' : i.level) as Level[];
+  const normalizedLevels = items.map((i) => (i.level === 'Check' ? 'Info' : i.level)) as Level[];
   let highest: Level = 'Info';
   for (const level of severityOrder) {
-    if (normalizedLevels.includes(level)) { highest = level; break; }
+    if (normalizedLevels.includes(level)) {
+      highest = level;
+      break;
+    }
   }
 
   const [open, setOpen] = React.useState(true);
   const [showAll, setShowAll] = React.useState(false);
   const VISIBLE_COUNT = 5;
-  const toggle = () => setOpen(o => !o);
-  const toggleShowAll = () => setShowAll(s => !s);
-  const onKeyDown: React.KeyboardEventHandler = e => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+  const toggle = () => setOpen((o) => !o);
+  const toggleShowAll = () => setShowAll((s) => !s);
+  const onKeyDown: React.KeyboardEventHandler = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggle();
+    }
   };
 
   const visibleItems = showAll ? items : items.slice(0, VISIBLE_COUNT);
@@ -49,7 +55,9 @@ const CheckGroup: React.FC<CheckGroupProps> = ({ id, items, name }) => {
         >
           {open ? <IconChevronDown size={16} /> : <IconChevronRight size={16} />}
           <LevelIcon level={highest} size={16} />
-          <Text size="sm" fw="bold">{name}</Text>
+          <Text size="sm" fw="bold">
+            {name}
+          </Text>
         </Group>
       </Group>
 

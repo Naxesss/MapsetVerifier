@@ -1,8 +1,8 @@
-﻿import {Flex, Group, Text, useMantineTheme} from "@mantine/core";
-import {ApiDocumentationCheck} from "../../Types.ts";
-import { useState } from "react";
-import DocumentationCheckModal from "./DocumentationCheckModal";
-import LevelIcon from "../icons/LevelIcon.tsx";
+﻿import { Flex, Group, Text, useMantineTheme } from '@mantine/core';
+import { useState } from 'react';
+import DocumentationCheckModal from './DocumentationCheckModal';
+import { ApiDocumentationCheck } from '../../Types.ts';
+import LevelIcon from '../icons/LevelIcon.tsx';
 
 interface DocumentationCheckProps {
   check: ApiDocumentationCheck;
@@ -13,8 +13,8 @@ function DocumentationCheck({ check }: DocumentationCheckProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
   const background = hovered
-    ? theme.variantColorResolver({variant: "light", theme, color: "blue" }).background
-    : theme.variantColorResolver({variant: "light", theme, color: "gray" }).background;
+    ? theme.variantColorResolver({ variant: 'light', theme, color: 'blue' }).background
+    : theme.variantColorResolver({ variant: 'light', theme, color: 'gray' }).background;
 
   return (
     <>
@@ -40,10 +40,12 @@ function DocumentationCheck({ check }: DocumentationCheckProps) {
         <Flex direction="column">
           <Group gap="xs" style={{ alignSelf: 'end' }}>
             {check.outcomes.map((level, index) => {
-              return <LevelIcon key={`${check.id}-outcome-${index}`} level={level} />
+              return <LevelIcon key={`${check.id}-outcome-${index}`} level={level} />;
             })}
           </Group>
-          <Text size="sm" c="dimmed" style={{ alignSelf: 'end' }}>{check.author}</Text>
+          <Text size="sm" c="dimmed" style={{ alignSelf: 'end' }}>
+            {check.author}
+          </Text>
         </Flex>
       </Group>
       <DocumentationCheckModal

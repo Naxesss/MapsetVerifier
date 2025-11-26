@@ -9,13 +9,13 @@
     flex: 0 0 auto;
     position: sticky;
     top: 0;
-    background: var(--mantine-color-body, #1A1B1E);
+    background: var(--mantine-color-body, #1a1b1e);
     z-index: 10;
     padding-bottom: 8px;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    border-bottom: 1px solid rgba(128,128,128,0.3);
+    border-bottom: 1px solid rgba(128, 128, 128, 0.3);
   }
 
   .beatmaps-scroll {

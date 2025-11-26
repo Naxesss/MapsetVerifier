@@ -1,43 +1,43 @@
-﻿import {IconBook, IconCamera, IconCheck, IconHome, IconTimeline} from "@tabler/icons-react";
-import {AppShell, Burger, Group, NavLink, useMantineTheme} from "@mantine/core";
-import Beatmaps from "../beatmaps/Beatmaps.tsx";
-import {Link, useLocation} from "react-router-dom";
-import SettingsButton from "../settings/SettingsButton";
-import WindowBar from "../window/WindowBar.tsx";
+﻿import { AppShell, Burger, Group, NavLink, useMantineTheme } from '@mantine/core';
+import { IconBook, IconCamera, IconCheck, IconHome, IconTimeline } from '@tabler/icons-react';
+import { Link, useLocation } from 'react-router-dom';
+import Beatmaps from '../beatmaps/Beatmaps.tsx';
+import SettingsButton from '../settings/SettingsButton';
+import WindowBar from '../window/WindowBar.tsx';
 
 const navItems = [
   {
     to: '/',
     icon: IconHome,
-    label: 'Home'
+    label: 'Home',
   },
-  { 
+  {
     to: '/documentation',
     icon: IconBook,
-    label: 'Documentation'
+    label: 'Documentation',
   },
   {
     to: '/checks',
     icon: IconCheck,
-    label: 'Checks'
+    label: 'Checks',
   },
   {
     to: '/snapshots',
     icon: IconCamera,
     label: 'Snapshots',
-    disabled: true
+    disabled: true,
   },
   {
     to: '/overview',
     icon: IconTimeline,
     label: 'Overview',
-    disabled: true
-  }
+    disabled: true,
+  },
 ];
 
 interface NavBarsProps {
-  desktopOpened: boolean
-  toggleDesktop: () => void
+  desktopOpened: boolean;
+  toggleDesktop: () => void;
 }
 
 function NavBars(props: NavBarsProps) {
@@ -45,11 +45,14 @@ function NavBars(props: NavBarsProps) {
   const location = useLocation();
   const items = navItems.map((item) => (
     <NavLink
-      w={"unset"}
+      w={'unset'}
       to={item.to}
       key={item.label}
       component={Link}
-      active={(location.pathname.startsWith(item.to) && item.to !== '/') || (location.pathname === item.to && item.to === '/')}
+      active={
+        (location.pathname.startsWith(item.to) && item.to !== '/') ||
+        (location.pathname === item.to && item.to === '/')
+      }
       label={item.label}
       leftSection={<item.icon />}
       disabled={item.disabled}
@@ -66,7 +69,7 @@ function NavBars(props: NavBarsProps) {
       <AppShell.Header
         style={{
           fontFamily: theme.headings.fontFamily,
-          background: theme.colors.dark[8]
+          background: theme.colors.dark[8],
         }}
       >
         <WindowBar />
@@ -82,7 +85,7 @@ function NavBars(props: NavBarsProps) {
         <Beatmaps />
       </AppShell.Navbar>
     </>
-  )
+  );
 }
 
 export default NavBars;

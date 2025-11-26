@@ -1,14 +1,14 @@
-﻿import {useQuery, UseQueryOptions} from "@tanstack/react-query";
-import DocumentationApi from "../../client/DocumentationApi";
-import {Alert, Group, Loader, Text} from "@mantine/core";
-import DocumentationCheck from "./DocumentationCheck";
-import {ApiDocumentationCheck} from "../../Types.ts";
+﻿import { Alert, Group, Loader, Text } from '@mantine/core';
+import { useQuery, UseQueryOptions } from '@tanstack/react-query';
+import DocumentationCheck from './DocumentationCheck';
+import DocumentationApi from '../../client/DocumentationApi';
+import { ApiDocumentationCheck } from '../../Types.ts';
 
 function GeneralChecks() {
   const queryOptions: UseQueryOptions<ApiDocumentationCheck[], Error> = {
-    queryKey: ["general-documentation"],
+    queryKey: ['general-documentation'],
     queryFn: DocumentationApi.getGeneralDocumentation,
-    staleTime: Infinity
+    staleTime: Infinity,
   };
   const { data, isLoading, isError } = useQuery<ApiDocumentationCheck[], Error>(queryOptions);
 

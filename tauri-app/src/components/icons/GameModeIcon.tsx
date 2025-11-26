@@ -1,11 +1,10 @@
-﻿import React from 'react';
-import { Mode } from '../../Types';
-import { Image } from '@mantine/core';
-import { useMantineTheme } from '@mantine/core';
-import osuSvg from '../../assets/osu.svg';
-import taikoSvg from '../../assets/taiko.svg';
+﻿import { Image, useMantineTheme } from '@mantine/core';
+import React from 'react';
 import catchSvg from '../../assets/catch.svg';
 import maniaSvg from '../../assets/mania.svg';
+import osuSvg from '../../assets/osu.svg';
+import taikoSvg from '../../assets/taiko.svg';
+import { Mode } from '../../Types';
 
 const sources: Record<Mode, string> = {
   Standard: osuSvg,
@@ -21,12 +20,7 @@ export interface GameModeIconProps {
   style?: React.CSSProperties;
 }
 
-export default function GameModeIcon({
-  mode,
-  size = 32,
-  className,
-  style
-}: GameModeIconProps) {
+export default function GameModeIcon({ mode, size = 32, className, style }: GameModeIconProps) {
   const theme = useMantineTheme();
   const src = (sources as Record<string, string>)[mode] || sources.Standard;
   // const background = theme.colors.dark[4];

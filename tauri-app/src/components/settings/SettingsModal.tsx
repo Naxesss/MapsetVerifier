@@ -1,8 +1,8 @@
-﻿import React, { useState } from "react";
-import { Modal, Button, TextInput, Switch, Group, Stack } from "@mantine/core";
-import { useSettings } from "../../context/SettingsContext";
+﻿import { Modal, Button, TextInput, Switch, Group, Stack } from '@mantine/core';
 import { open } from '@tauri-apps/plugin-dialog';
-import MinorIcon from "../icons/MinorIcon";
+import React, { useState } from 'react';
+import { useSettings } from '../../context/SettingsContext';
+import MinorIcon from '../icons/MinorIcon';
 
 interface SettingsModalProps {
   opened: boolean;
@@ -11,19 +11,19 @@ interface SettingsModalProps {
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
   const { settings, setSettings } = useSettings();
-  const [songFolder, setSongFolder] = useState(settings.songFolder ?? "");
+  const [songFolder, setSongFolder] = useState(settings.songFolder ?? '');
   const [showMinor, setShowMinor] = useState(settings.showMinor);
 
   // Keep local state in sync when modal is opened or settings change asynchronously
   React.useEffect(() => {
     if (opened) {
-      setSongFolder(settings.songFolder ?? "");
+      setSongFolder(settings.songFolder ?? '');
       setShowMinor(settings.showMinor);
     }
   }, [opened, settings.songFolder, settings.showMinor]);
 
   const handleSave = () => {
-    setSettings(prev => ({ ...prev, songFolder, showMinor }));
+    setSettings((prev) => ({ ...prev, songFolder, showMinor }));
     onClose();
   };
 
@@ -35,9 +35,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
       }
     } catch (e: any) {
       console.error('[SettingsModal] Folder pick failed:', e);
-      const msg = typeof e === 'string' ? e : (e?.message || 'Unknown error');
+      const msg = typeof e === 'string' ? e : e?.message || 'Unknown error';
       if (msg.includes('Plugin not found')) {
-        alert('Folder dialog plugin not initialized. Please rebuild with tauri-plugin-dialog registered.');
+        alert(
+          'Folder dialog plugin not initialized. Please rebuild with tauri-plugin-dialog registered.'
+        );
       } else {
         alert('Folder picker failed: ' + msg);
       }
@@ -56,21 +58,27 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
             description="Use the Pick button to select a folder."
             onClick={() => songFolder === '' && pickFolder()}
           />
-          <Button variant="light" onClick={pickFolder}>Pick</Button>
+          <Button variant="light" onClick={pickFolder}>
+            Pick
+          </Button>
         </Group>
         <Switch
           label={
-          <Group gap="xs" align="center">
-            <MinorIcon /> 
-            Show minor issues
-          </Group>
-        }
+            <Group gap="xs" align="center">
+              <MinorIcon />
+              Show minor issues
+            </Group>
+          }
           checked={showMinor}
-          onChange={e => setShowMinor(e.currentTarget.checked)}
+          onChange={(e) => setShowMinor(e.currentTarget.checked)}
         />
         <Group justify="flex-end">
-          <Button onClick={handleSave} variant="filled">Save</Button>
-          <Button onClick={onClose} variant="light">Cancel</Button>
+          <Button onClick={handleSave} variant="filled">
+            Save
+          </Button>
+          <Button onClick={onClose} variant="light">
+            Cancel
+          </Button>
         </Group>
       </Stack>
     </Modal>

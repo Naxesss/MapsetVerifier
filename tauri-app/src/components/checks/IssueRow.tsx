@@ -1,8 +1,8 @@
-﻿import React from 'react';
-import {Group, Text} from '@mantine/core';
-import LevelIcon from '../icons/LevelIcon';
-import OsuLink from '../common/OsuLink';
+﻿import { Group, Text } from '@mantine/core';
+import React from 'react';
 import { ApiCheckResult } from '../../Types';
+import OsuLink from '../common/OsuLink';
+import LevelIcon from '../icons/LevelIcon';
 
 interface IssueRowProps {
   item: ApiCheckResult;
@@ -27,7 +27,7 @@ const IssueRow: React.FC<IssueRowProps> = ({ item }) => {
           wordBreak: 'break-word',
           display: 'block',
           minWidth: 0,
-          width: '100%'
+          width: '100%',
         }}
         title={item.message}
       >
