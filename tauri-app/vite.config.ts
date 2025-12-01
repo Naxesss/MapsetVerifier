@@ -35,8 +35,9 @@ export default defineConfig(async () => ({
         }
       : undefined,
     watch: {
-      // 3. tell Vite to ignore watching `src-tauri`
-      ignored: ["**/src-tauri/**"],
+      // 3. tell Vite to ignore watching `src-tauri` and runtime log output
+      // Ignore Logs folder because sidecar writes there and we don't want full app reloads on log churn.
+      ignored: ["**/src-tauri/**", "Logs/**"],
     },
   },
   define: {

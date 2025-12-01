@@ -1,4 +1,4 @@
-﻿import { Modal, Button, TextInput, Switch, Group, Stack } from '@mantine/core';
+﻿import { Modal, Button, TextInput, Switch, Group, Stack, Alert, Divider, Text } from '@mantine/core';
 import { open } from '@tauri-apps/plugin-dialog';
 import React, { useState } from 'react';
 import { useSettings } from '../../context/SettingsContext';
@@ -13,17 +13,19 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
   const { settings, setSettings } = useSettings();
   const [songFolder, setSongFolder] = useState(settings.songFolder ?? '');
   const [showMinor, setShowMinor] = useState(settings.showMinor);
+  const [gateInDev, setGateInDev] = useState(settings.gateInDev);
 
   // Keep local state in sync when modal is opened or settings change asynchronously
   React.useEffect(() => {
     if (opened) {
       setSongFolder(settings.songFolder ?? '');
       setShowMinor(settings.showMinor);
+      setGateInDev(settings.gateInDev);
     }
-  }, [opened, settings.songFolder, settings.showMinor]);
+  }, [opened, settings.songFolder, settings.showMinor, settings.gateInDev]);
 
   const handleSave = () => {
-    setSettings((prev) => ({ ...prev, songFolder, showMinor }));
+    setSettings((prev) => ({ ...prev, songFolder, showMinor, gateInDev }));
     onClose();
   };
 
@@ -46,8 +48,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
     }
   };
 
+  const isDev = import.meta.env.DEV;
+
   return (
-    <Modal opened={opened} onClose={onClose} title="Settings" centered>
+    <Modal opened={opened} onClose={onClose} title="Settings" yOffset="10vh" size="lg">
       <Stack gap="md">
         <Group align="flex-end" gap="sm">
           <TextInput
@@ -65,13 +69,42 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
         <Switch
           label={
             <Group gap="xs" align="center">
-              <MinorIcon />
+              <MinorIcon size={16} />
               Show minor issues
             </Group>
           }
           checked={showMinor}
           onChange={(e) => setShowMinor(e.currentTarget.checked)}
         />
+        {isDev && (
+          <>
+            <Divider my="sm" />
+            <Stack gap="sm">
+              <Text size="sm" c="dimmed">
+                The following options affect development mode only and have no effect in production builds.
+              </Text>
+              <Switch
+                label="Gate backend in DEV (start sidecar port 5005)"
+                checked={gateInDev}
+                onChange={(e) => setGateInDev(e.currentTarget.checked)}
+              />
+              <Alert title="Note" color="yellow" variant="light">
+                <Group gap="sm">
+                  <Text size="sm">Enabling this option will make the app mimic production mode by running the sidecar.</Text>
+                  <Text size="sm">This does need the sidecar to be built beforehand and available in the following folder <code>/src-tauri/bin/server/dist/</code>.</Text>
+                  <Text size="sm">Changing this settings may require restarting the application to take</Text>
+                </Group>
+              </Alert>
+            </Stack>
+          </>
+        )}
+        {!isDev && (
+          <Alert title="Developer settings" color="gray" variant="light">
+            <Text size="sm" c="dimmed">
+              Developer-only options are hidden in production.
+            </Text>
+          </Alert>
+        )}
         <Group justify="flex-end">
           <Button onClick={handleSave} variant="filled">
             Save

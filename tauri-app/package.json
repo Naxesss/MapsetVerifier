@@ -1,7 +1,7 @@
 {
-  "name": "tauri-app",
+  "name": "mapset-verifier",
   "private": true,
-  "version": "0.1.0",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -21,9 +21,10 @@
     "@tauri-apps/plugin-dialog": "^2.4.2",
     "@tauri-apps/plugin-fs": "2.4.2",
     "@tauri-apps/plugin-opener": "2.5.0",
+    "@tauri-apps/plugin-shell": "^2",
     "react": "19.1.1",
     "react-dom": "19.1.1",
-    "react-markdown": "10.1.0",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "7.8.2",
     "remark-gfm": "4.0.1"
   },
@@ -31,21 +32,21 @@
     "@tauri-apps/cli": "^2",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
+    "@typescript-eslint/eslint-plugin": "^8.13.0",
+    "@typescript-eslint/parser": "^8.13.0",
     "@vitejs/plugin-react": "^4.6.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "eslint-plugin-react": "^7.35.0",
+    "eslint-plugin-react-hooks": "^4.6.2",
     "postcss": "^8.5.6",
     "postcss-preset-mantine": "^1.18.0",
     "postcss-simple-vars": "^7.0.1",
+    "prettier": "^3.3.3",
     "sass-embedded": "1.91.0",
     "typescript": "~5.8.3",
-    "vite": "^7.0.4",
-    "eslint": "^8.57.0",
-    "@typescript-eslint/eslint-plugin": "^8.13.0",
-    "@typescript-eslint/parser": "^8.13.0",
-    "eslint-plugin-react": "^7.35.0",
-    "eslint-plugin-react-hooks": "^4.6.2",
-    "eslint-plugin-import": "^2.31.0",
-    "prettier": "^3.3.3",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.2.1"
+    "vite": "^7.0.4"
   }
 }

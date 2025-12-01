@@ -17,6 +17,7 @@
     "opener:allow-open-path",
     "fs:default",
     "dialog:default",
+    "shell:default",
     {
       "identifier": "fs:scope",
       "allow": [{ "path": "**/*" }]
@@ -48,6 +49,20 @@
     {
       "identifier": "fs:allow-appconfig-read-recursive",
       "allow": [{ "path": "$APPCONFIG/**" }]
+    },
+    {
+      "identifier": "shell:allow-spawn",
+      "allow": [
+        {
+          "args": [
+            {
+              "validator": "\\S+"
+            }
+          ],
+          "name": "bin/server/dist/sidecar",
+          "sidecar": true
+        }
+      ]
     }
   ]
 }

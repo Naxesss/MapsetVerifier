@@ -15,7 +15,7 @@ const WindowBar: React.FC = () => {
 
   // Get version from injected global constant
   const version = typeof TAURI_APP_VERSION !== 'undefined' ? TAURI_APP_VERSION : 'unknown';
-  const isDev = process.env.NODE_ENV === 'development';
+  const isDev = import.meta.env.DEV;
 
   return (
     <Group
@@ -23,7 +23,11 @@ const WindowBar: React.FC = () => {
       data-tauri-drag-region
       style={
         {
+          position: 'fixed',
+          top: 0,
+          left: 0,
           width: '100%',
+          zIndex: 2000,
           height: barHeight,
           background: bgColor,
           color: textColor,

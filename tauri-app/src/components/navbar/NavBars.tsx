@@ -3,7 +3,6 @@ import { IconBook, IconCamera, IconCheck, IconHome, IconTimeline } from '@tabler
 import { Link, useLocation } from 'react-router-dom';
 import Beatmaps from '../beatmaps/Beatmaps.tsx';
 import SettingsButton from '../settings/SettingsButton';
-import WindowBar from '../window/WindowBar.tsx';
 
 const navItems = [
   {
@@ -68,11 +67,12 @@ function NavBars(props: NavBarsProps) {
     <>
       <AppShell.Header
         style={{
+          marginTop: 32,
+          height: 60,
           fontFamily: theme.headings.fontFamily,
           background: theme.colors.dark[8],
         }}
       >
-        <WindowBar />
         <Group h={60} px="md" wrap="nowrap">
           <Burger opened={props.desktopOpened} onClick={props.toggleDesktop} size="sm" />
           <Group gap="xs" style={{ flex: 1 }} wrap="nowrap">

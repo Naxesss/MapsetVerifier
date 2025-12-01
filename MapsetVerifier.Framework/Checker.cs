@@ -144,40 +144,72 @@ namespace MapsetVerifier.Framework
 
         /// <summary>
         ///     Adds checks from the current assembly to the CheckerRegistry. These are the default checks.
+        ///     Improved to better support single-file/self-contained deployments by scanning already loaded assemblies.
         /// </summary>
         public static void LoadDefaultChecks()
         {
             try
             {
-                Log.Information("Loading default checks from MapsetVerifier.Checks.dll");
-                var localChecksDllPath = Path.Combine(Directory.GetCurrentDirectory(), "MapsetVerifier.Checks.dll");
-                if (File.Exists(localChecksDllPath))
+                Log.Information("Loading default checks from executing assembly or MapsetVerifier.Checks.dll");
+
+                // Direct marker type load (will force the runtime to load the checks assembly when project referenced).
+                try
                 {
-                    var checksAssembly = Assembly.LoadFrom(localChecksDllPath);
-                    LoadCheckAssembly(checksAssembly);
-                    return;
+                    var markerType = Type.GetType("MapsetVerifier.Checks.Common, MapsetVerifier.Checks");
+                    if (markerType != null)
+                    {
+                        Log.Information("Loaded marker type {MarkerType} from checks assembly", markerType.FullName);
+                        LoadCheckAssembly(markerType.Assembly);
+                        if (CheckerRegistry.GetChecks().Count != 0)
+                            return;
+                    }
+                    else
+                    {
+                        Log.Debug("Marker type lookup returned null (assembly may not be loaded yet)");
+                    }
+                }
+                catch (Exception markerEx)
+                {
+                    Log.Debug(markerEx, "Marker type load failed");
                 }
 
-                Log.Warning("Could not find MapsetVerifier.Checks.dll at {LocalChecksDllPath}", localChecksDllPath);
+                // Single-file / self-contained fallback: scan already loaded assemblies for the checks assembly.
+                var loadedChecksAssembly = AppDomain.CurrentDomain.GetAssemblies()
+                    .FirstOrDefault(a => a.GetName().Name == "MapsetVerifier.Checks");
 
-                var assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                if (assemblyDir == null)
+                // Attempt explicit load by name (will succeed if it's available in deps without a separate file in single-file publish).
+                try
                 {
-                    Log.Warning("Could not find executing assembly directory {AssemblyDir}", assemblyDir);
-                    return;
+                    var nameLoad = Assembly.Load(new AssemblyName("MapsetVerifier.Checks"));
+                    if (nameLoad != loadedChecksAssembly)
+                    {
+                        Log.Information("Loaded checks assembly {AssemblyName} via Assembly.Load(name)", nameLoad.GetName().Name);
+                        LoadCheckAssembly(nameLoad);
+                        if (CheckerRegistry.GetChecks().Count != 0)
+                            return;
+                    }
                 }
-                
-                var checksDllPath = Path.Combine(assemblyDir, "MapsetVerifier.Checks.dll");
+                catch (Exception nameLoadEx)
+                {
+                    Log.Debug(nameLoadEx, "Assembly.Load by name for MapsetVerifier.Checks failed (may be expected in file-based probing phase)");
+                }
 
+                // Next: prefer the application's base directory.
+                var baseDir = AppContext.BaseDirectory;
+                var checksDllPath = Path.Combine(baseDir, "MapsetVerifier.Checks.dll");
                 if (File.Exists(checksDllPath))
                 {
                     var checksAssembly = Assembly.LoadFrom(checksDllPath);
                     LoadCheckAssembly(checksAssembly);
+                    if (CheckerRegistry.GetChecks().Count != 0)
+                        return;
                 }
                 else
                 {
                     Log.Warning("Could not find MapsetVerifier.Checks.dll at {ChecksDllPath}", checksDllPath);
                 }
+
+                Log.Error("No checks could be loaded after all probing strategies. The application will run without validations.");
             }
             catch (Exception exception)
             {
@@ -196,7 +228,24 @@ namespace MapsetVerifier.Framework
                 if (attr == null)
                     continue;
 
-                var instance = Activator.CreateInstance(type);
+                // Avoid duplicate registration of the same check type.
+                if (CheckerRegistry.GetChecks().Any(c => c.GetType() == type))
+                {
+                    Log.Debug("Skipping duplicate check type {TypeFullName}", type.FullName);
+                    continue;
+                }
+
+                object? instance;
+                try
+                {
+                    instance = Activator.CreateInstance(type);
+                }
+                catch (Exception createEx)
+                {
+                    Log.Error(createEx, "Failed to instantiate check type {TypeFullName}", type.FullName);
+                    continue;
+                }
+
                 var check = instance as Check;
                 CheckerRegistry.RegisterCheck(check);
             }

@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "tauri-app",
+  "productName": "Mapset Verifier",
   "version": "2.0.0",
   "identifier": "net.greaper.mapset-verifier",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Mapset Verifier 2.0.0",
+        "title": "Mapset Verifier 2",
         "width": 800,
         "height": 600,
         "minWidth": 800,
@@ -30,12 +30,14 @@
     "icon": [
       "icons/64x64.png",
       "icons/icon.ico"
-    ]
+    ],
+    "externalBin": ["bin/server/dist/sidecar"]
   },
   "plugins": {
     "fs": {
       "requireLiteralLeadingDot": false
     },
-    "opener": {}
+    "opener": {},
+    "shell": {}
   }
 }
