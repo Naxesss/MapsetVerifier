@@ -85,7 +85,6 @@ const BackendGate: React.FC<BackendGateProps> = ({
       // First: if something is already serving and healthy, don't spawn again
       const preHealthy = await isHealthy(baseUrl, 2500);
       if (preHealthy) {
-        console.debug('Backend already healthy on', baseUrl, '- skipping spawn');
         window.__BACKEND_GATE__ = { started: true };
         setStage('ready');
         setProgress(100);
@@ -97,24 +96,12 @@ const BackendGate: React.FC<BackendGateProps> = ({
       const programName = "bin/server/dist/sidecar";
       setStage('spawn');
       setProgress(30);
-      console.debug('Starting MapsetVerifier backend sidecar from', programName);
       const command = Command.sidecar(programName, [`--urls=${baseUrl}`]);
       
       // Listen for child process lifecycle and output if available
       childRef.current = await command.spawn();
-      if (childRef.current?.on) {
-        childRef.current.on('close', (code: number) => console.debug('[child exited]', code));
-        childRef.current.on('error', (err: unknown) => console.error('[child error]', err));
-      }
-      if (childRef.current?.stdout?.on) {
-        childRef.current.stdout.on('data', (line: any) => console.debug('[stdout]', String(line).trim()));
-      }
-      if (childRef.current?.stderr?.on) {
-        childRef.current.stderr.on('data', (line: any) => console.error('[stderr]', String(line).trim()));
-      }
       window.__BACKEND_GATE__ = { started: true, pid: childRef.current?.pid };
       setProgress(50);
-      console.debug('MapsetVerifier is running in the background with PID', childRef.current?.pid);
       
       setStage('health');
       const start = Date.now();
