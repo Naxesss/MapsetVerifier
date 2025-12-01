@@ -58,6 +58,11 @@
         alphabetize: { order: 'asc', caseInsensitive: true },
       },
     ],
+    // Allow unresolved import for markdown raw imports since Vite handles them
+    'import/no-unresolved': [
+      'error',
+      { ignore: ['\\.md\\?raw$'] }
+    ],
 
     // General
     'no-console': ['warn', { allow: ['warn', 'error'] }],

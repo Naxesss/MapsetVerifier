@@ -85,9 +85,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     loadSettings().then(() => {
-      findOsuLocationAndSet().then(_ =>
-        console.debug('[Settings] osu! location fetch attempt finished.'
-      ));
+      findOsuLocationAndSet();
     });
   }, []);
 

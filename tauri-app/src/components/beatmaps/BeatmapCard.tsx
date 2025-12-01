@@ -1,11 +1,37 @@
 ﻿import { Flex, Text } from '@mantine/core';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Beatmap } from '../../Types.ts';
 
 function BeatmapCard({ beatmap }: { beatmap: Beatmap }) {
-  const bgStyle = beatmap.folder
-    ? { backgroundImage: `url('http://localhost:5005/beatmap/image?folder=${beatmap.folder}')` }
-    : {};
+  const [bgUrl, setBgUrl] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (!beatmap.folder) {
+      setBgUrl(undefined);
+      return;
+    }
+
+    const candidate = `http://localhost:5005/beatmap/image?folder=${beatmap.folder}`;
+    let cancelled = false;
+    const img = new Image();
+
+    img.onload = () => {
+      if (!cancelled) setBgUrl(candidate);
+    };
+
+    img.onerror = () => {
+      if (!cancelled) setBgUrl(undefined);
+    };
+
+    img.src = candidate;
+
+    return () => {
+      cancelled = true;
+    };
+  }, [beatmap.folder]);
+
+  const bgStyle = bgUrl ? { backgroundImage: `url('${bgUrl}')` } : { backgroundImage: 'none' };
 
   return (
     <Link
