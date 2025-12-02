@@ -69,7 +69,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
             var violatingGroup = new Dictionary<Beatmap.Difficulty, List<HitObject>>();
             violatingGroup.AddRange(difficulties, () => new List<HitObject>());
 
-            for (int i = 0; i < circles.Count; i++)
+            for (int i = 0; i < circles.Count - 1; i++)
             {
                 var current = circles[i];
                 var next = circles.SafeGetIndex(i + 1);
