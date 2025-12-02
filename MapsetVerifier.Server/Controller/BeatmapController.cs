@@ -87,4 +87,25 @@ public class BeatmapController : ControllerBase
             return StatusCode(500, new ApiError("An error occurred while running beatmap checks.", ex.Message, ex.StackTrace));
         }
     }
+
+    [HttpPost("runCheck/override")]
+    public ActionResult<ApiCategoryCheckResult> RunCheckWithOverride([FromBody] RunCheckOverrideRequest request)
+    {
+        try
+        {
+            var result = BeatmapService.RunDifficultyCheckWithOverride(
+                request.Folder,
+                request.DifficultyName,
+                request.OverrideDifficulty);
+
+            if (result == null)
+                return NotFound(new ApiError($"Difficulty '{request.DifficultyName}' not found in beatmap set.", null, null));
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiError("An error occurred while running beatmap check with override.", ex.Message, ex.StackTrace));
+        }
+    }
 }

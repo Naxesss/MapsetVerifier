@@ -220,7 +220,7 @@ public static class BeatmapService
         var beatmapSet = new BeatmapSet(beatmapSetFolder);
         var issues = Checker.GetBeatmapSetIssues(beatmapSet);
         var checksById = CheckerRegistry.GetChecksWithId();
-        
+
         var generalIssues = issues.Where(issue => issue.CheckOrigin is GeneralCheck).ToArray();
 
         var apiBeatmapCheckResults = beatmapSet.Beatmaps.Select(beatmap =>
@@ -242,7 +242,7 @@ public static class BeatmapService
                     message: issue.message
                 );
             });
-            
+
             return new ApiCategoryCheckResult(
                 checkResults: beatmapCheckResults,
                 category: beatmap.MetadataSettings.version,
@@ -251,7 +251,7 @@ public static class BeatmapService
                 difficultyLevel: interpretedDifficulty
             );
         }).ToList();
-        
+
         var generalCheckResults = generalIssues.Select(issue =>
         {
             var checkId = checksById
@@ -264,7 +264,7 @@ public static class BeatmapService
                 message: issue.message
             );
         }).ToList();
-        
+
         // Build checks dictionary: include checks present in general or any difficulty
         var checksPresentIds = new HashSet<int>(generalCheckResults.Select(c => c.Id)
             .Concat(apiBeatmapCheckResults.SelectMany(cat => cat.CheckResults.Select(cr => cr.Id))));
@@ -288,12 +288,12 @@ public static class BeatmapService
                 difficulties: difficultiesForCheck
             );
         }
-        
+
         var firstMeta = beatmapSet.Beatmaps.FirstOrDefault()?.MetadataSettings;
         var title = firstMeta?.title;
         var artist = firstMeta?.artist;
         var creator = firstMeta?.creator;
-        
+
         return new ApiBeatmapSetCheckResult(
             general: new ApiCategoryCheckResult(
                 checkResults: generalCheckResults,
@@ -308,6 +308,49 @@ public static class BeatmapService
             title: title,
             artist: artist,
             creator: creator
+        );
+    }
+
+    public static ApiCategoryCheckResult? RunDifficultyCheckWithOverride(
+        string beatmapSetFolder,
+        string difficultyName,
+        Beatmap.Difficulty overrideDifficulty)
+    {
+        var beatmapSet = new BeatmapSet(beatmapSetFolder);
+        var beatmap = beatmapSet.Beatmaps.FirstOrDefault(b => b.MetadataSettings.version == difficultyName);
+
+        if (beatmap == null)
+            return null;
+
+        // TODO improve so we run checks only for the overridden difficulty, not the whole set
+        var issues = Checker.GetBeatmapSetIssues(beatmapSet);
+        var checksById = CheckerRegistry.GetChecksWithId();
+
+        var generalIssues = issues.Where(issue => issue.CheckOrigin is GeneralCheck).ToArray();
+
+        var beatmapIssues = issues.Where(issue => issue.beatmap == beatmap)
+            .Except(generalIssues)
+            .Where(issue => issue.AppliesToDifficulty(overrideDifficulty));
+
+        var beatmapCheckResults = beatmapIssues.Select(issue =>
+        {
+            var checkId = checksById
+                .FirstOrDefault(c => c.Value.GetType() == issue.CheckOrigin?.GetType())
+                .Key;
+
+            return new ApiCheckResult(
+                id: checkId,
+                level: issue.level,
+                message: issue.message
+            );
+        });
+
+        return new ApiCategoryCheckResult(
+            checkResults: beatmapCheckResults,
+            category: beatmap.MetadataSettings.version,
+            beatmapId: beatmap.MetadataSettings.beatmapId,
+            mode: beatmap.GeneralSettings.mode,
+            difficultyLevel: overrideDifficulty
         );
     }
 }

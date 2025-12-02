@@ -1,7 +1,7 @@
 ﻿import { Stack, Group, Title, Loader, Text, Alert, Box } from '@mantine/core';
-import CategoryAccordion from './CategoryAccordion';
+import CheckCategory from './CheckCategory.tsx';
 import { FetchError } from '../../client/ApiHelper';
-import { ApiBeatmapSetCheckResult } from '../../Types';
+import { ApiBeatmapSetCheckResult, ApiCategoryCheckResult } from '../../Types';
 
 interface ChecksResultsProps {
   data?: ApiBeatmapSetCheckResult;
@@ -9,15 +9,13 @@ interface ChecksResultsProps {
   isError: boolean;
   error?: FetchError | null;
   showMinor: boolean;
+  selectedCategory?: string;
+  overrideResult?: ApiCategoryCheckResult;
 }
 
-function ChecksResults({ data, isLoading, isError, error, showMinor }: ChecksResultsProps) {
+function ChecksResults({ data, isLoading, isError, error, showMinor, selectedCategory, overrideResult }: ChecksResultsProps) {
   return (
-    <Stack gap="sm" p="md">
-      <Group>
-        <Title order={3}>Checks</Title>
-      </Group>
-
+    <Stack gap="sm">
       {isLoading && (
         <Group gap="sm">
           <Loader size="sm" />
@@ -38,7 +36,7 @@ function ChecksResults({ data, isLoading, isError, error, showMinor }: ChecksRes
         </Alert>
       )}
 
-      {data && <CategoryAccordion data={data} showMinor={showMinor} />}
+      {data && <CheckCategory data={data} showMinor={showMinor} selectedCategory={selectedCategory} overrideResult={overrideResult} />}
 
       {!isLoading && !isError && !data && (
         <Box>

@@ -26,7 +26,6 @@ function App() {
   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
 
   return (
-
     <MantineProvider defaultColorScheme="dark" theme={theme} cssVariablesResolver={cssVarResolver}>
       <WindowBar />
       <SettingsProvider>
