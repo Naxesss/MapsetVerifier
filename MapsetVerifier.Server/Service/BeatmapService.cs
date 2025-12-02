@@ -242,13 +242,16 @@ public static class BeatmapService
                     message: issue.message
                 );
             });
+            
+            var parsedDifficulty = interpretedDifficulty == Beatmap.Difficulty.Ultra ? Beatmap.Difficulty.Expert : interpretedDifficulty;
 
             return new ApiCategoryCheckResult(
                 checkResults: beatmapCheckResults,
                 category: beatmap.MetadataSettings.version,
                 beatmapId: beatmap.MetadataSettings.beatmapId,
                 mode: beatmap.GeneralSettings.mode,
-                difficultyLevel: interpretedDifficulty
+                difficultyLevel: parsedDifficulty,
+                starRating: beatmap.StarRating
             );
         }).ToList();
 
@@ -300,7 +303,8 @@ public static class BeatmapService
                 category: "General",
                 beatmapId: null,
                 mode: null,
-                difficultyLevel: null
+                difficultyLevel: null,
+                starRating: null
             ),
             difficulties: apiBeatmapCheckResults,
             beatmapSetId: firstMeta?.beatmapSetId,
@@ -350,7 +354,8 @@ public static class BeatmapService
             category: beatmap.MetadataSettings.version,
             beatmapId: beatmap.MetadataSettings.beatmapId,
             mode: beatmap.GeneralSettings.mode,
-            difficultyLevel: overrideDifficulty
+            difficultyLevel: overrideDifficulty,
+            starRating: beatmap.StarRating
         );
     }
 }

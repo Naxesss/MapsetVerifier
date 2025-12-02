@@ -50,6 +50,7 @@ export type ApiCategoryCheckResult = {
   checkResults: ApiCheckResult[];
   mode?: Mode;
   difficultyLevel?: string | null;
+  starRating?: number | null;
 };
 
 export type ApiCheckResult = {

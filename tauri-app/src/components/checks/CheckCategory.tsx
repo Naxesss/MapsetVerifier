@@ -1,10 +1,10 @@
 ﻿import { Badge, Group, Stack, Text, Title } from '@mantine/core';
+import { IconStarFilled } from '@tabler/icons-react';
 import React from 'react';
 import CheckGroup from './CheckGroup.tsx';
 import { groupChecks } from './groupChecks';
-import { ApiBeatmapSetCheckResult, ApiCategoryCheckResult, Level } from '../../Types';
+import { ApiBeatmapSetCheckResult, ApiCategoryCheckResult } from '../../Types';
 import GameModeIcon from '../icons/GameModeIcon.tsx';
-import LevelIcon from '../icons/LevelIcon.tsx';
 
 interface CheckCategoryProps {
   data: ApiBeatmapSetCheckResult;
@@ -18,18 +18,7 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({ data, showMinor, selected
     // If we have an override result for the selected category, use it
     if (overrideResult && overrideResult.category === selectedCategory) {
       const groups = groupChecks(overrideResult.checkResults, showMinor);
-      const severityOrder: Level[] = ['Error', 'Problem', 'Warning', 'Minor', 'Info'];
       const allItems = groups.flatMap((g) => g.items);
-      const normalizedLevels = allItems.map((i) =>
-        i.level === 'Check' ? 'Info' : i.level
-      ) as Level[];
-      let categoryHighest: Level = 'Info';
-      for (const lvl of severityOrder) {
-        if (normalizedLevels.includes(lvl)) {
-          categoryHighest = lvl;
-          break;
-        }
-      }
       const minorCount = allItems.filter((i) => i.level === 'Minor').length;
       const total = groups.reduce((sum, g) => sum + g.items.length, 0) - minorCount;
       const sortedGroups = [...groups].sort((a, b) => {
@@ -45,8 +34,8 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({ data, showMinor, selected
         checks: overrideResult.checkResults,
         mode: overrideResult.mode,
         difficultyLevel: overrideResult.difficultyLevel,
+        starRating: overrideResult.starRating,
         groups: sortedGroups,
-        categoryHighest,
         total,
         minorCount,
       };
@@ -57,30 +46,21 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({ data, showMinor, selected
         name: 'General',
         checks: data.general.checkResults,
         mode: data.general.mode,
-        difficultyLevel: data.general.difficultyLevel,
+        difficultyLevel: undefined,
+        starRating: undefined,
       },
       ...data.difficulties.map((d) => ({
         name: d.category,
         checks: d.checkResults,
         mode: d.mode,
         difficultyLevel: d.difficultyLevel,
+        starRating: d.starRating,
       })),
     ];
 
     const cat = allCategories.find((c) => c.name === selectedCategory) ?? allCategories[0];
     const groups = groupChecks(cat.checks, showMinor);
-    const severityOrder: Level[] = ['Error', 'Problem', 'Warning', 'Minor', 'Info'];
     const allItems = groups.flatMap((g) => g.items);
-    const normalizedLevels = allItems.map((i) =>
-      i.level === 'Check' ? 'Info' : i.level
-    ) as Level[];
-    let categoryHighest: Level = 'Info';
-    for (const lvl of severityOrder) {
-      if (normalizedLevels.includes(lvl)) {
-        categoryHighest = lvl;
-        break;
-      }
-    }
     const minorCount = allItems.filter((i) => i.level === 'Minor').length;
     const total = groups.reduce((sum, g) => sum + g.items.length, 0) - minorCount;
     const sortedGroups = [...groups].sort((a, b) => {
@@ -91,12 +71,13 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({ data, showMinor, selected
       if (nameB) return 1;
       return 0;
     });
-    return { ...cat, groups: sortedGroups, categoryHighest, total, minorCount };
+    return { ...cat, groups: sortedGroups, total, minorCount };
   }, [
     data.general.checkResults,
     data.difficulties,
     data.general.mode,
     data.general.difficultyLevel,
+    data.general.starRating,
     showMinor,
     data.checks,
     selectedCategory,
@@ -106,12 +87,16 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({ data, showMinor, selected
   return (
     <Stack gap="md">
       <Group wrap="nowrap" gap="xs" align="center">
-        <LevelIcon level={categoryData.categoryHighest} size={24} />
-        {categoryData.mode && <GameModeIcon mode={categoryData.mode} size={24} />}
+        {categoryData.mode && <GameModeIcon mode={categoryData.mode} size={24} starRating={categoryData.starRating} />}
         <Title order={5}>{categoryData.name}</Title>
         {categoryData.difficultyLevel && categoryData.name !== 'General' && (
           <Badge size="xs" color="grape" variant="light">
             {categoryData.difficultyLevel}
+          </Badge>
+        )}
+        {categoryData.starRating != null && categoryData.starRating > 0 && categoryData.name !== 'General' && (
+          <Badge size="xs" color="blue" variant="light" leftSection={<IconStarFilled size={10} />}>
+            {categoryData.starRating.toFixed(2)}
           </Badge>
         )}
         <Badge size="xs" color={categoryData.total ? 'red' : 'green'} variant="light">

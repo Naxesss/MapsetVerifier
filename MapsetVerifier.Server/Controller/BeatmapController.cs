@@ -1,6 +1,7 @@
 ﻿using MapsetVerifier.Server.Model;
 using MapsetVerifier.Server.Service;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 
 namespace MapsetVerifier.Server.Controller;
 
@@ -84,6 +85,7 @@ public class BeatmapController : ControllerBase
         }
         catch (Exception ex)
         {
+            Log.Error(ex, "Failed to run beatmap checks for {Folder}", request.Folder);
             return StatusCode(500, new ApiError("An error occurred while running beatmap checks.", ex.Message, ex.StackTrace));
         }
     }
