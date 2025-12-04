@@ -1,6 +1,6 @@
 ﻿import {Box, Stack, Flex, Title, Text, Anchor} from '@mantine/core';
-import { ApiBeatmapSetCheckResult } from '../../Types';
 import React from "react";
+import { ApiBeatmapSetCheckResult } from '../../Types';
 
 interface BeatmapHeaderProps {
   data?: ApiBeatmapSetCheckResult;

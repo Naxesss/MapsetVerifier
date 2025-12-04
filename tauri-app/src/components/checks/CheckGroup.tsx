@@ -1,10 +1,14 @@
-﻿import { ActionIcon, Stack, Group, Text, Tooltip } from '@mantine/core';
-import { IconChevronDown, IconChevronRight, IconInfoCircle } from '@tabler/icons-react';
+﻿import {ActionIcon, Stack, Text, Tooltip, Flex} from '@mantine/core';
+import {
+  IconChevronDown,
+  IconChevronRight,
+  IconInfoCircleFilled
+} from '@tabler/icons-react';
 import React, { useState } from 'react';
 import IssueRow from './IssueRow';
+import { ApiCheckResult, Level } from '../../Types';
 import DocumentationCheckModal from '../documentation/DocumentationCheckModal';
 import { useDocumentationChecks } from '../documentation/hooks/useDocumentationChecks';
-import { ApiCheckResult, Level } from '../../Types';
 import LevelIcon from '../icons/LevelIcon.tsx';
 
 interface CheckGroupProps {
@@ -47,11 +51,13 @@ const CheckGroup: React.FC<CheckGroupProps> = ({ id, items, name }) => {
 
   return (
     <Stack gap="0" justify="center">
-      <Group justify="space-between" wrap="nowrap">
-        <Group
+      <Flex
+        justify="space-between"
+        wrap="nowrap"
+        align="center"
+      >
+        <Flex
           gap="xs"
-          wrap="nowrap"
-          align="center"
           onClick={toggle}
           onKeyDown={onKeyDown}
           role="button"
@@ -64,22 +70,21 @@ const CheckGroup: React.FC<CheckGroupProps> = ({ id, items, name }) => {
           <Text size="sm" fw="bold">
             {name}
           </Text>
-        </Group>
+        </Flex>
         {documentationCheck && (
           <Tooltip label="View documentation">
             <ActionIcon
               variant="subtle"
-              size="sm"
               onClick={(e) => {
                 e.stopPropagation();
                 setDocModalOpen(true);
               }}
             >
-              <IconInfoCircle size={16} />
+              <IconInfoCircleFilled size={16} />
             </ActionIcon>
           </Tooltip>
         )}
-      </Group>
+      </Flex>
 
       {open && (
         <Stack ml="xl" gap="0">
