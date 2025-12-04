@@ -1,4 +1,8 @@
-﻿import { ApiBeatmapPage, ApiBeatmapSetCheckResult, ApiCategoryCheckResult } from '../Types.ts';
+﻿import {
+  ApiBeatmapPage,
+  ApiBeatmapSetCheckResult,
+  ApiCategoryOverrideCheckResult
+} from '../Types.ts';
 import { apiFetch, FetchError } from './ApiHelper.ts';
 
 const BeatmapApi = {
@@ -65,7 +69,7 @@ const BeatmapApi = {
       }
 
       if (response.ok) {
-        return data as ApiCategoryCheckResult;
+        return data as ApiCategoryOverrideCheckResult;
       } else {
         const message = data?.message || data?.error || raw || `HTTP ${response.status}`;
         const stackTrace = data?.stackTrace;

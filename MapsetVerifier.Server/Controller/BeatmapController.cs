@@ -91,7 +91,7 @@ public class BeatmapController : ControllerBase
     }
 
     [HttpPost("runCheck/override")]
-    public ActionResult<ApiCategoryCheckResult> RunCheckWithOverride([FromBody] RunCheckOverrideRequest request)
+    public ActionResult<ApiCategoryOverrideCheckResult> RunCheckWithOverride([FromBody] RunCheckOverrideRequest request)
     {
         try
         {

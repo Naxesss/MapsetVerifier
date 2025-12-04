@@ -315,7 +315,7 @@ public static class BeatmapService
         );
     }
 
-    public static ApiCategoryCheckResult? RunDifficultyCheckWithOverride(
+    public static ApiCategoryOverrideCheckResult? RunDifficultyCheckWithOverride(
         string beatmapSetFolder,
         string difficultyName,
         Beatmap.Difficulty overrideDifficulty)
@@ -347,15 +347,33 @@ public static class BeatmapService
                 level: issue.level,
                 message: issue.message
             );
-        });
+        }).ToList();
+        
+        // Build checks dictionary: include checks present in general or any difficulty
+        var checksPresentIds = new HashSet<int>(beatmapCheckResults.Select(c => c.Id));
+        var checksDict = new Dictionary<int, ApiCheckDefinition>();
+        foreach (var id in checksPresentIds)
+        {
+            if (!checksById.TryGetValue(id, out var check))
+                continue;
+            var name = check.GetMetadata().Message;
+            checksDict[id] = new ApiCheckDefinition(
+                id: id,
+                name: name,
+                difficulties: [difficultyName]
+            );
+        }
 
-        return new ApiCategoryCheckResult(
-            checkResults: beatmapCheckResults,
-            category: beatmap.MetadataSettings.version,
-            beatmapId: beatmap.MetadataSettings.beatmapId,
-            mode: beatmap.GeneralSettings.mode,
-            difficultyLevel: overrideDifficulty,
-            starRating: beatmap.StarRating
+        return new ApiCategoryOverrideCheckResult(
+            categoryResult: new ApiCategoryCheckResult(
+                checkResults: beatmapCheckResults,
+                category: beatmap.MetadataSettings.version,
+                beatmapId: beatmap.MetadataSettings.beatmapId,
+                mode: beatmap.GeneralSettings.mode,
+                difficultyLevel: overrideDifficulty,
+                starRating: beatmap.StarRating
+            ),
+            checks: checksDict
         );
     }
 }

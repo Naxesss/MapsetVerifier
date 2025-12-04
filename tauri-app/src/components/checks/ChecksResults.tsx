@@ -1,7 +1,7 @@
-﻿import { Stack, Group, Title, Loader, Text, Alert, Box } from '@mantine/core';
+﻿import { Stack, Group, Loader, Text, Alert, Box } from '@mantine/core';
 import CheckCategory from './CheckCategory.tsx';
 import { FetchError } from '../../client/ApiHelper';
-import { ApiBeatmapSetCheckResult, ApiCategoryCheckResult } from '../../Types';
+import {ApiBeatmapSetCheckResult, ApiCategoryOverrideCheckResult} from '../../Types';
 
 interface ChecksResultsProps {
   data?: ApiBeatmapSetCheckResult;
@@ -10,12 +10,12 @@ interface ChecksResultsProps {
   error?: FetchError | null;
   showMinor: boolean;
   selectedCategory?: string;
-  overrideResult?: ApiCategoryCheckResult;
+  overrideResult?: ApiCategoryOverrideCheckResult;
 }
 
 function ChecksResults({ data, isLoading, isError, error, showMinor, selectedCategory, overrideResult }: ChecksResultsProps) {
   return (
-    <Stack gap="sm">
+    <Box>
       {isLoading && (
         <Group gap="sm">
           <Loader size="sm" />
@@ -45,7 +45,7 @@ function ChecksResults({ data, isLoading, isError, error, showMinor, selectedCat
           </Text>
         </Box>
       )}
-    </Stack>
+    </Box>
   );
 }
 

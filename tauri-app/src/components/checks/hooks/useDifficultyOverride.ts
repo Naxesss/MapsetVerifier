@@ -1,8 +1,8 @@
 ﻿import { useMutation } from '@tanstack/react-query';
 import React from 'react';
-import BeatmapApi from '../../../client/BeatmapApi';
-import { ApiCategoryCheckResult } from '../../../Types';
 import { FetchError } from '../../../client/ApiHelper';
+import BeatmapApi from '../../../client/BeatmapApi';
+import {ApiCategoryOverrideCheckResult} from '../../../Types';
 
 interface UseDifficultyOverrideArgs {
   beatmapFolderPath?: string;
@@ -11,7 +11,7 @@ interface UseDifficultyOverrideArgs {
 interface OverrideState {
   [difficultyName: string]: {
     overrideLevel: string;
-    result: ApiCategoryCheckResult;
+    result: ApiCategoryOverrideCheckResult;
   };
 }
 
@@ -19,7 +19,7 @@ export function useDifficultyOverride({ beatmapFolderPath }: UseDifficultyOverri
   const [overrides, setOverrides] = React.useState<OverrideState>({});
 
   const mutation = useMutation<
-    ApiCategoryCheckResult,
+    ApiCategoryOverrideCheckResult,
     FetchError,
     { difficultyName: string; overrideDifficulty: string }
   >({
@@ -58,7 +58,7 @@ export function useDifficultyOverride({ beatmapFolderPath }: UseDifficultyOverri
   }, []);
 
   const getOverrideResult = React.useCallback(
-    (difficultyName: string): ApiCategoryCheckResult | undefined => {
+    (difficultyName: string): ApiCategoryOverrideCheckResult | undefined => {
       return overrides[difficultyName]?.result;
     },
     [overrides]
@@ -71,6 +71,11 @@ export function useDifficultyOverride({ beatmapFolderPath }: UseDifficultyOverri
     [overrides]
   );
 
+  const reset = React.useCallback(() => {
+    setOverrides({});
+    mutation.reset();
+  }, [mutation]);
+
   return {
     overrides,
     applyOverride,
@@ -80,6 +85,7 @@ export function useDifficultyOverride({ beatmapFolderPath }: UseDifficultyOverri
     getOverrideLevel,
     isLoading: mutation.isPending,
     error: mutation.error,
+    reset,
   };
 }
 

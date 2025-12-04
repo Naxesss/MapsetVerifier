@@ -6,6 +6,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 export type Settings = {
   songFolder?: string;
   showMinor: boolean;
+  showGamemodeDifficultyNames: boolean;
   // DEV-only: whether to gate Backend in development mode
   gateInDev: boolean;
 };
@@ -19,6 +20,7 @@ interface SettingsContextType {
 const defaultSettings: Settings = {
   songFolder: undefined,
   showMinor: false,
+  showGamemodeDifficultyNames: true,
   gateInDev: false,
 };
 

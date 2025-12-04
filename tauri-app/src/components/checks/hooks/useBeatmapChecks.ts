@@ -27,5 +27,5 @@ export function useBeatmapChecks({ folder, songFolder }: UseBeatmapChecksArgs) {
     refetchOnMount: false,
   });
 
-  return { ...query, beatmapFolderPath };
+  return { ...query, beatmapFolderPath, refetch: query.refetch };
 }

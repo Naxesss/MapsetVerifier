@@ -1,15 +1,14 @@
-﻿import { Box, Stack, Flex, Title, Text, Anchor, Group, Button } from '@mantine/core';
-import { IconFolder, IconWorld } from '@tabler/icons-react';
-import { invoke } from '@tauri-apps/api/core';
+﻿import {Box, Stack, Flex, Title, Text, Anchor} from '@mantine/core';
 import { ApiBeatmapSetCheckResult } from '../../Types';
+import React from "react";
 
 interface BeatmapHeaderProps {
   data?: ApiBeatmapSetCheckResult;
-  beatmapFolderPath?: string;
   bgUrl?: string;
+  children?: React.ReactNode;
 }
 
-function BeatmapHeader({ data, beatmapFolderPath, bgUrl }: BeatmapHeaderProps) {
+function BeatmapHeader({ data, bgUrl, children }: BeatmapHeaderProps) {
   return (
     <Box
       style={{
@@ -35,51 +34,27 @@ function BeatmapHeader({ data, beatmapFolderPath, bgUrl }: BeatmapHeaderProps) {
         }}
       />
       <Box p="md" style={{ position: 'relative', zIndex: 2 }}>
-        <Stack gap="md">
+        <Stack gap="sm">
           <Flex gap="xs" direction="column">
-            <Title order={2}>
-              {data?.artist} - {data?.title}
-            </Title>
-            <Text>
-              BeatmapSet by{' '} 
-              <Anchor
-                href={data?.creator ? `https://osu.ppy.sh/users/${data.creator}` : undefined}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {data?.creator}
-              </Anchor>
-            </Text>
+            {data?.title && data?.artist &&
+              <Title order={2}>
+                {data?.artist} - {data?.title}
+              </Title>
+            }
+            {data?.creator &&
+              <Text>
+                BeatmapSet by{' '}
+                <Anchor
+                  href={data?.creator ? `https://osu.ppy.sh/users/${data.creator}` : undefined}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {data?.creator}
+                </Anchor>
+              </Text>
+            }
           </Flex>
-          <Group gap="sm" mb="xs">
-            <Button
-              size="xs"
-              variant="default"
-              onClick={async () => {
-                if (!beatmapFolderPath) return;
-                try {
-                  await invoke('open_folder', { path: beatmapFolderPath });
-                } catch (e) {
-                  console.error('Failed to open folder:', e);
-                  alert('Failed to open folder. See console for details.');
-                }
-              }}
-              disabled={!beatmapFolderPath}
-            >
-              <IconFolder />
-            </Button>
-            <Button
-              size="xs"
-              variant="default"
-              component="a"
-              href={data?.beatmapSetId ? `https://osu.ppy.sh/beatmapsets/${data.beatmapSetId}` : undefined}
-              target="_blank"
-              rel="noopener noreferrer"
-              disabled={!data?.beatmapSetId}
-            >
-              <IconWorld /> Open beatmap page
-            </Button>
-          </Group>
+          {children}
         </Stack>
       </Box>
     </Box>

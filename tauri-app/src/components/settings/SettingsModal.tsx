@@ -13,6 +13,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
   const { settings, setSettings } = useSettings();
   const [songFolder, setSongFolder] = useState(settings.songFolder ?? '');
   const [showMinor, setShowMinor] = useState(settings.showMinor);
+  const [showGamemodeDifficultyNames, setShowGamemodeDifficultyNames] = useState(settings.showGamemodeDifficultyNames);
   const [gateInDev, setGateInDev] = useState(settings.gateInDev);
 
   // Keep local state in sync when modal is opened or settings change asynchronously
@@ -20,12 +21,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
     if (opened) {
       setSongFolder(settings.songFolder ?? '');
       setShowMinor(settings.showMinor);
+      setShowGamemodeDifficultyNames(settings.showGamemodeDifficultyNames);
       setGateInDev(settings.gateInDev);
     }
   }, [opened, settings.songFolder, settings.showMinor, settings.gateInDev]);
 
   const handleSave = () => {
-    setSettings((prev) => ({ ...prev, songFolder, showMinor, gateInDev }));
+    setSettings((prev) => ({ ...prev, songFolder, showMinor, showGamemodeDifficultyNames, gateInDev }));
     onClose();
   };
 
@@ -75,6 +77,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
           }
           checked={showMinor}
           onChange={(e) => setShowMinor(e.currentTarget.checked)}
+        />
+        <Switch
+          label="Show Gamemode difficulty names"
+          checked={showGamemodeDifficultyNames}
+          onChange={(e) => setShowGamemodeDifficultyNames(e.currentTarget.checked)}
         />
         {isDev && (
           <>

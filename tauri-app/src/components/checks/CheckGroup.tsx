@@ -1,4 +1,4 @@
-﻿import { Stack, Group, Text } from '@mantine/core';
+﻿import {Stack, Group, Text, Box} from '@mantine/core';
 import { IconChevronDown, IconChevronRight } from '@tabler/icons-react';
 import React from 'react';
 import IssueRow from './IssueRow';
@@ -40,7 +40,7 @@ const CheckGroup: React.FC<CheckGroupProps> = ({ id, items, name }) => {
   const extraCount = items.length - VISIBLE_COUNT;
 
   return (
-    <Stack gap="0" p="xs" justify="center">
+    <Stack gap="0" justify="center">
       <Group justify="space-between" wrap="nowrap">
         <Group
           gap="xs"
@@ -62,13 +62,12 @@ const CheckGroup: React.FC<CheckGroupProps> = ({ id, items, name }) => {
       </Group>
 
       {open && (
-        <>
+        <Stack ml="xl" gap="0">
           {visibleItems.map((item, idx) => (
             <IssueRow key={`${id}-${idx}`} item={item} />
           ))}
           {extraCount > 0 && (
             <Text
-              ml="xl"
               size="sm"
               role="button"
               tabIndex={0}
@@ -78,7 +77,7 @@ const CheckGroup: React.FC<CheckGroupProps> = ({ id, items, name }) => {
               {showAll ? `Hide extra issues` : `Show ${extraCount} more`}
             </Text>
           )}
-        </>
+        </Stack>
       )}
     </Stack>
   );

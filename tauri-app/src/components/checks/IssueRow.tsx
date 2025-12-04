@@ -12,7 +12,6 @@ const IssueRow: React.FC<IssueRowProps> = ({ item }) => {
   return (
     <Group
       gap="xs"
-      ml="xl"
       align="center"
       style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', alignItems: 'start' }}
     >
