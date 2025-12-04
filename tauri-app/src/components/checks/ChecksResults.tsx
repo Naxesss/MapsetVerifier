@@ -1,4 +1,4 @@
-﻿import { Stack, Group, Loader, Text, Alert, Box } from '@mantine/core';
+﻿import { Group, Loader, Text, Alert, Box } from '@mantine/core';
 import CheckCategory from './CheckCategory.tsx';
 import { FetchError } from '../../client/ApiHelper';
 import {ApiBeatmapSetCheckResult, ApiCategoryOverrideCheckResult} from '../../Types';

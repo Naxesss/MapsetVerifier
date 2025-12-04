@@ -1,7 +1,9 @@
-﻿import {Stack, Group, Text, Box} from '@mantine/core';
-import { IconChevronDown, IconChevronRight } from '@tabler/icons-react';
-import React from 'react';
+﻿import { ActionIcon, Stack, Group, Text, Tooltip } from '@mantine/core';
+import { IconChevronDown, IconChevronRight, IconInfoCircle } from '@tabler/icons-react';
+import React, { useState } from 'react';
 import IssueRow from './IssueRow';
+import DocumentationCheckModal from '../documentation/DocumentationCheckModal';
+import { useDocumentationChecks } from '../documentation/hooks/useDocumentationChecks';
 import { ApiCheckResult, Level } from '../../Types';
 import LevelIcon from '../icons/LevelIcon.tsx';
 
@@ -26,6 +28,10 @@ const CheckGroup: React.FC<CheckGroupProps> = ({ id, items, name }) => {
 
   const [open, setOpen] = React.useState(true);
   const [showAll, setShowAll] = React.useState(false);
+  const [docModalOpen, setDocModalOpen] = useState(false);
+  const { getCheckById } = useDocumentationChecks();
+  const documentationCheck = getCheckById(id);
+
   const VISIBLE_COUNT = 5;
   const toggle = () => setOpen((o) => !o);
   const toggleShowAll = () => setShowAll((s) => !s);
@@ -59,6 +65,20 @@ const CheckGroup: React.FC<CheckGroupProps> = ({ id, items, name }) => {
             {name}
           </Text>
         </Group>
+        {documentationCheck && (
+          <Tooltip label="View documentation">
+            <ActionIcon
+              variant="subtle"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDocModalOpen(true);
+              }}
+            >
+              <IconInfoCircle size={16} />
+            </ActionIcon>
+          </Tooltip>
+        )}
       </Group>
 
       {open && (
@@ -78,6 +98,14 @@ const CheckGroup: React.FC<CheckGroupProps> = ({ id, items, name }) => {
             </Text>
           )}
         </Stack>
+      )}
+
+      {documentationCheck && (
+        <DocumentationCheckModal
+          opened={docModalOpen}
+          onClose={() => setDocModalOpen(false)}
+          check={documentationCheck}
+        />
       )}
     </Stack>
   );
