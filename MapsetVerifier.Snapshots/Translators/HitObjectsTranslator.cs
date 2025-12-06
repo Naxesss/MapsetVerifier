@@ -184,7 +184,7 @@ namespace MapsetVerifier.Snapshots.Translators
                             yield return "Removed " + Enum.GetName(typeof(HitObject.HitSounds), hitSound)?.ToLower() + " from tail.";
                     }
 
-                if (addedSlider.PixelLength.AlmostEqual(removedSlider.PixelLength))
+                if (!addedSlider.PixelLength.AlmostEqual(removedSlider.PixelLength))
                     yield return "Pixel length changed from " + removedSlider.PixelLength + " to " + addedSlider.PixelLength + ".";
 
                 if (addedSlider.NodePositions.Count == removedSlider.NodePositions.Count)
@@ -243,7 +243,7 @@ namespace MapsetVerifier.Snapshots.Translators
                 var addedSpinner = new Spinner(addedObject.code.Split(','), null!);
                 var removedSpinner = new Spinner(removedObject.code.Split(','), null!);
 
-                if (addedSpinner.endTime.AlmostEqual(removedSpinner.endTime))
+                if (!addedSpinner.endTime.AlmostEqual(removedSpinner.endTime))
                     yield return "End time changed from " + removedSpinner.endTime + " to " + addedSpinner.endTime + ".";
             }
 
@@ -252,7 +252,7 @@ namespace MapsetVerifier.Snapshots.Translators
                 var addedNote = new HoldNote(addedObject.code.Split(','), null!);
                 var removedNote = new HoldNote(removedObject.code.Split(','), null!);
 
-                if (addedNote.endTime.AlmostEqual(removedNote.endTime))
+                if (!addedNote.endTime.AlmostEqual(removedNote.endTime))
                     yield return "End time changed from " + removedNote.endTime + " to " + addedNote.endTime + ".";
             }
         }

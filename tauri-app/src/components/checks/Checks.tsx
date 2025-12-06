@@ -1,8 +1,7 @@
 ﻿import { Alert, Text, Box, useMantineTheme, Group, Flex, LoadingOverlay } from '@mantine/core';
 import React, { useEffect, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
 import BeatmapActionButtons from './BeatmapActionButtons';
-import BeatmapHeader from './BeatmapHeader';
+import BeatmapHeader from '../common/BeatmapHeader';
 import ChecksResults from './ChecksResults';
 import DifficultyInfo from './DifficultyInfo';
 import DifficultyLevelOverride from './DifficultyLevelOverride';
@@ -12,12 +11,13 @@ import { useBeatmapBackground } from './hooks/useBeatmapBackground';
 import { useBeatmapChecks } from './hooks/useBeatmapChecks';
 import { useDifficultyOverride } from './hooks/useDifficultyOverride';
 import { getCategoryHighestLevel } from './utils/levelUtils';
+import { useBeatmap } from '../../context/BeatmapContext';
 import { useSettings } from '../../context/SettingsContext';
 import { ApiCategoryCheckResult, Level, Mode } from '../../Types';
 
 function Checks() {
   const theme = useMantineTheme();
-  const { folder } = useParams();
+  const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
   const [selectedCategory, setSelectedCategory] = React.useState<string | undefined>('General');
   const [hoveredDifficulty, setHoveredDifficulty] = React.useState<ApiCategoryCheckResult | undefined>(undefined);
@@ -133,7 +133,7 @@ function Checks() {
       }}
     >
       <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
-      <BeatmapHeader data={data} bgUrl={bgUrl}>
+      <BeatmapHeader title={data?.title} artist={data?.artist} creator={data?.creator} bgUrl={bgUrl}>
         <Group gap="sm" mb="xs">
           <BeatmapActionButtons
             beatmapFolderPath={beatmapFolderPath}

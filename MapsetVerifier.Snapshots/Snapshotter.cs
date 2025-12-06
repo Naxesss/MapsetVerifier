@@ -152,60 +152,160 @@ namespace MapsetVerifier.Snapshots
 
         public static IEnumerable<DiffInstance> Compare(Snapshot snapshot, string currentCode)
         {
-            var snapshotLines = snapshot.code.Replace("\r", "").Split('\n');
-            var currentLines = currentCode.Replace("\r", "").Split('\n');
+            // Helper to get section name, stripping brackets if present
+            string GetSectionName(string section) =>
+                section.StartsWith("[") && section.EndsWith("]")
+                    ? section.Substring(1, section.Length - 2)
+                    : section;
 
-            var maxLength = Math.Max(snapshotLines.Length, currentLines.Length);
-            var minLength = Math.Min(snapshotLines.Length, currentLines.Length);
+            // Parse both snapshots into sections
+            var oldSections = ParseIntoSections(snapshot.code);
+            var newSections = ParseIntoSections(currentCode);
 
-            var prevSection = "No Section";
+            // Create dictionaries for quick lookup by section name
+            var oldSectionDict = oldSections.ToDictionary(s => s.Name, s => s);
+            var newSectionDict = newSections.ToDictionary(s => s.Name, s => s);
 
-            var offset = 0;
+            // Get all unique section names from both snapshots
+            var allSectionNames = oldSectionDict.Keys.Union(newSectionDict.Keys).ToHashSet();
 
-            for (var i = 0; i < maxLength; ++i)
+            foreach (var sectionName in allSectionNames)
             {
-                if (i >= maxLength)
-                    break;
+                var hasOldSection = oldSectionDict.TryGetValue(sectionName, out var oldSection);
+                var hasNewSection = newSectionDict.TryGetValue(sectionName, out var newSection);
 
-                if (i >= minLength || i + offset >= currentLines.Length)
+                if (!hasOldSection && hasNewSection)
                 {
-                    if (currentLines.Length - snapshotLines.Length - offset > 0 && i + offset < currentLines.Length)
-                        // A line was added at the end of the file.
-                        yield return new DiffInstance(currentLines[i + offset], prevSection.Substring(1, prevSection.Length - 2), DiffType.Added, new List<string>(), snapshot.creationTime);
+                    // Section was added - report all lines as added
+                    foreach (var line in newSection!.Lines)
+                    {
+                        if (!string.IsNullOrWhiteSpace(line))
+                            yield return new DiffInstance(line, GetSectionName(sectionName), DiffType.Added, new List<string>(), snapshot.creationTime);
+                    }
+                }
+                else if (hasOldSection && !hasNewSection)
+                {
+                    // Section was removed - report all lines as removed
+                    foreach (var line in oldSection!.Lines)
+                    {
+                        if (!string.IsNullOrWhiteSpace(line))
+                            yield return new DiffInstance(line, GetSectionName(sectionName), DiffType.Removed, new List<string>(), snapshot.creationTime);
+                    }
+                }
+                else if (hasOldSection && hasNewSection)
+                {
+                    // Section exists in both - compare line by line within the section
+                    var oldLines = oldSection!.Lines;
+                    var newLines = newSection!.Lines;
 
-                    if (snapshotLines.Length - currentLines.Length > 0)
-                        // A line was removed from the end of the file.
-                        yield return new DiffInstance(snapshotLines[i], prevSection.Substring(1, prevSection.Length - 2), DiffType.Removed, new List<string>(), snapshot.creationTime);
+                    var maxLength = Math.Max(oldLines.Count, newLines.Count);
+                    var minLength = Math.Min(oldLines.Count, newLines.Count);
+                    var offset = 0;
+
+                    for (var i = 0; i < maxLength; ++i)
+                    {
+                        if (i >= minLength || i + offset >= newLines.Count)
+                        {
+                            if (newLines.Count - oldLines.Count - offset > 0 && i + offset < newLines.Count)
+                            {
+                                // A line was added at the end of the section
+                                var line = newLines[i + offset];
+                                if (!string.IsNullOrWhiteSpace(line))
+                                    yield return new DiffInstance(line, GetSectionName(sectionName), DiffType.Added, new List<string>(), snapshot.creationTime);
+                            }
+
+                            if (oldLines.Count - newLines.Count > 0 && i < oldLines.Count)
+                            {
+                                // A line was removed from the end of the section
+                                var line = oldLines[i];
+                                if (!string.IsNullOrWhiteSpace(line))
+                                    yield return new DiffInstance(line, GetSectionName(sectionName), DiffType.Removed, new List<string>(), snapshot.creationTime);
+                            }
+                        }
+                        else
+                        {
+                            if (oldLines[i] == newLines[i + offset])
+                                continue;
+
+                            var originalOffset = offset;
+
+                            // Try to find the old line in the new lines (looking ahead)
+                            for (; offset < minLength - i; ++offset)
+                                if (oldLines[i] == newLines[i + offset])
+                                    break;
+
+                            if (offset >= minLength - i)
+                            {
+                                // Line was removed
+                                offset = originalOffset;
+                                --offset;
+
+                                var line = oldLines[i];
+                                if (!string.IsNullOrWhiteSpace(line))
+                                    yield return new DiffInstance(line, GetSectionName(sectionName), DiffType.Removed, new List<string>(), snapshot.creationTime);
+                            }
+                            else
+                            {
+                                // Lines were added
+                                for (var j = originalOffset; j < offset; j++)
+                                {
+                                    var line = newLines[i + j];
+                                    if (!string.IsNullOrWhiteSpace(line))
+                                        yield return new DiffInstance(line, GetSectionName(sectionName), DiffType.Added, new List<string>(), snapshot.creationTime);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private static List<Section> ParseIntoSections(string code)
+        {
+            var lines = code.Replace("\r", "").Split('\n');
+            var sections = new List<Section>();
+            var currentSectionName = "No Section";
+            var currentSectionLines = new List<string>();
+
+            foreach (var line in lines)
+            {
+                if (line.StartsWith("[") && line.EndsWith("]"))
+                {
+                    // Save the previous section if it has content
+                    if (currentSectionLines.Count > 0 || currentSectionName != "No Section")
+                    {
+                        sections.Add(new Section(currentSectionName, currentSectionLines));
+                    }
+
+                    // Start a new section
+                    currentSectionName = line;
+                    currentSectionLines = new List<string>();
                 }
                 else
                 {
-                    if (snapshotLines[i].StartsWith("[") && snapshotLines[i].EndsWith("]"))
-                        prevSection = snapshotLines[i];
-
-                    if (snapshotLines[i] == currentLines[i + offset])
-                        continue;
-
-                    var originalOffset = offset;
-
-                    for (; offset < minLength - i; ++offset)
-                        if (snapshotLines[i] == currentLines[i + offset])
-                            break;
-
-                    if (offset >= minLength - i)
-                    {
-                        // A line was removed.
-                        offset = originalOffset;
-                        --offset;
-
-                        yield return new DiffInstance(snapshotLines[i], prevSection.Substring(1, prevSection.Length - 2), DiffType.Removed, new List<string>(), snapshot.creationTime);
-                    }
-                    else
-                    {
-                        // A line was added.
-                        for (var j = originalOffset; j < offset; j++)
-                            yield return new DiffInstance(currentLines[i + j], prevSection.Substring(1, prevSection.Length - 2), DiffType.Added, new List<string>(), snapshot.creationTime);
-                    }
+                    // Add line to current section (including empty lines for proper comparison)
+                    currentSectionLines.Add(line);
                 }
+            }
+
+            // Add the last section
+            if (currentSectionLines.Count > 0 || currentSectionName != "No Section")
+            {
+                sections.Add(new Section(currentSectionName, currentSectionLines));
+            }
+
+            return sections;
+        }
+
+        private class Section
+        {
+            public string Name { get; }
+            public List<string> Lines { get; }
+
+            public Section(string name, List<string> lines)
+            {
+                Name = name;
+                Lines = lines;
             }
         }
 
@@ -259,6 +359,10 @@ namespace MapsetVerifier.Snapshots
                     var removedSetting = new Setting(removal.Diff);
 
                     removed.Remove(removal);
+
+                    // Skip if the values are actually the same (can happen due to whitespace differences in the raw line)
+                    if (setting.value == removedSetting.value)
+                        continue;
 
                     switch (removedSetting.key)
                     {

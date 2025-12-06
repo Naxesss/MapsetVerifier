@@ -1,9 +1,10 @@
 ﻿import { Flex, Text } from '@mantine/core';
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useBeatmap } from '../../context/BeatmapContext';
 import { Beatmap } from '../../Types.ts';
 
 function BeatmapCard({ beatmap }: { beatmap: Beatmap }) {
+  const { selectedFolder, setSelectedFolder } = useBeatmap();
   const [bgUrl, setBgUrl] = useState<string | undefined>(undefined);
 
   useEffect(() => {
@@ -32,26 +33,32 @@ function BeatmapCard({ beatmap }: { beatmap: Beatmap }) {
   }, [beatmap.folder]);
 
   const bgStyle = bgUrl ? { backgroundImage: `url('${bgUrl}')` } : { backgroundImage: 'none' };
+  const isSelected = selectedFolder === beatmap.folder;
 
   return (
-    <Link
-      to={`/checks/${beatmap.folder}`}
-      style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}
+    <Flex
+      className="mapset-container"
+      h={96}
+      key={beatmap.folder}
+      style={{
+        cursor: 'pointer',
+        outline: isSelected ? '2px solid var(--mantine-color-blue-6)' : 'none',
+        outlineOffset: '-2px',
+      }}
+      onClick={() => setSelectedFolder(beatmap.folder)}
     >
-      <Flex className="mapset-container" h={96} key={beatmap.folder} style={{ cursor: 'pointer' }}>
-        <div className="mapset-bg" style={bgStyle} />
-        <div className="mapset-bg-overlay" />
-        <div className="mapset-text">
-          <div className="mapset-title">
-            <Text fw="700">{beatmap.artist}</Text>
-            <Text fw="700">{beatmap.title}</Text>
-          </div>
-          <div className="mapset-creator">
-            <Text fs="italic">Mapped by {beatmap.creator}</Text>
-          </div>
+      <div className="mapset-bg" style={bgStyle} />
+      <div className="mapset-bg-overlay" />
+      <div className="mapset-text">
+        <div className="mapset-title">
+          <Text fw="700">{beatmap.artist}</Text>
+          <Text fw="700">{beatmap.title}</Text>
         </div>
-      </Flex>
-    </Link>
+        <div className="mapset-creator">
+          <Text fs="italic">Mapped by {beatmap.creator}</Text>
+        </div>
+      </div>
+    </Flex>
   );
 }
 

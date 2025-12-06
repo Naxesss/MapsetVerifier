@@ -1,14 +1,15 @@
-﻿import {Box, Stack, Flex, Title, Text, Anchor} from '@mantine/core';
-import React from "react";
-import { ApiBeatmapSetCheckResult } from '../../Types';
+﻿import { Box, Stack, Flex, Title, Text, Anchor } from '@mantine/core';
+import { ReactNode } from 'react';
 
 interface BeatmapHeaderProps {
-  data?: ApiBeatmapSetCheckResult;
+  title?: string | null;
+  artist?: string | null;
+  creator?: string | null;
   bgUrl?: string;
-  children?: React.ReactNode;
+  children?: ReactNode;
 }
 
-function BeatmapHeader({ data, bgUrl, children }: BeatmapHeaderProps) {
+function BeatmapHeader({ title, artist, creator, bgUrl, children }: BeatmapHeaderProps) {
   return (
     <Box
       style={{
@@ -36,23 +37,23 @@ function BeatmapHeader({ data, bgUrl, children }: BeatmapHeaderProps) {
       <Box p="md" style={{ position: 'relative', zIndex: 2 }}>
         <Stack gap="sm">
           <Flex gap="xs" direction="column">
-            {data?.title && data?.artist &&
+            {title && artist && (
               <Title order={2}>
-                {data?.artist} - {data?.title}
+                {artist} - {title}
               </Title>
-            }
-            {data?.creator &&
+            )}
+            {creator && (
               <Text>
                 BeatmapSet by{' '}
                 <Anchor
-                  href={data?.creator ? `https://osu.ppy.sh/users/${data.creator}` : undefined}
+                  href={`https://osu.ppy.sh/users/${creator}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  {data?.creator}
+                  {creator}
                 </Anchor>
               </Text>
-            }
+            )}
           </Flex>
           {children}
         </Stack>
@@ -62,3 +63,4 @@ function BeatmapHeader({ data, bgUrl, children }: BeatmapHeaderProps) {
 }
 
 export default BeatmapHeader;
+

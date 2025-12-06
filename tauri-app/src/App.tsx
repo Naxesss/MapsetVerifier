@@ -6,8 +6,10 @@ import Checks from './components/checks/Checks.tsx';
 import Documentation from './components/documentation/Documentation.tsx';
 import Home from "./components/home/Home.tsx";
 import NavBars from './components/navbar/NavBars.tsx';
+import Snapshots from './components/snapshots/Snapshots.tsx';
 import WindowBar from "./components/window/WindowBar.tsx";
-import {SettingsProvider} from "./context/SettingsContext.tsx";
+import { BeatmapProvider } from "./context/BeatmapContext.tsx";
+import { SettingsProvider } from "./context/SettingsContext.tsx";
 import { theme } from './theme/Theme.ts';
 import '@mantine/core/styles.css';
 import './styles/App.scss';
@@ -29,31 +31,33 @@ function App() {
     <MantineProvider defaultColorScheme="dark" theme={theme} cssVariablesResolver={cssVarResolver}>
       <WindowBar />
       <SettingsProvider>
-        <BackendGate>
-          <AppShell
-            header={{ height: 92 }}
-            navbar={{
-              width: '256',
-              breakpoint: 'xs',
-              collapsed: { desktop: !desktopOpened },
-            }}
-          >
-            <NavBars desktopOpened={desktopOpened} toggleDesktop={toggleDesktop} />
-            <AppShell.Main>
-              <Container p="sm" fluid>
-                <Routes>
-                  <Route>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/documentation" element={<Documentation />} />
-                    <Route path="/checks" element={<Checks />} />
-                    <Route path="/checks/:folder" element={<Checks />} />
-                    <Route path="*" element={<Text>404</Text>} />
-                  </Route>
-                </Routes>
-              </Container>
-            </AppShell.Main>
-          </AppShell>
-        </BackendGate>
+        <BeatmapProvider>
+          <BackendGate>
+            <AppShell
+              header={{ height: 92 }}
+              navbar={{
+                width: '256',
+                breakpoint: 'xs',
+                collapsed: { desktop: !desktopOpened },
+              }}
+            >
+              <NavBars desktopOpened={desktopOpened} toggleDesktop={toggleDesktop} />
+              <AppShell.Main>
+                <Container p="sm" fluid>
+                  <Routes>
+                    <Route>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/documentation" element={<Documentation />} />
+                      <Route path="/checks" element={<Checks />} />
+                      <Route path="/snapshots" element={<Snapshots />} />
+                      <Route path="*" element={<Text>404</Text>} />
+                    </Route>
+                  </Routes>
+                </Container>
+              </AppShell.Main>
+            </AppShell>
+          </BackendGate>
+        </BeatmapProvider>
       </SettingsProvider>
     </MantineProvider>
   );

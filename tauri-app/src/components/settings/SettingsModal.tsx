@@ -14,6 +14,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
   const [songFolder, setSongFolder] = useState(settings.songFolder ?? '');
   const [showMinor, setShowMinor] = useState(settings.showMinor);
   const [showGamemodeDifficultyNames, setShowGamemodeDifficultyNames] = useState(settings.showGamemodeDifficultyNames);
+  const [showSnapshotDiffView, setShowSnapshotDiffView] = useState(settings.showSnapshotAdditionalInfo);
   const [gateInDev, setGateInDev] = useState(settings.gateInDev);
 
   // Keep local state in sync when modal is opened or settings change asynchronously
@@ -22,12 +23,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
       setSongFolder(settings.songFolder ?? '');
       setShowMinor(settings.showMinor);
       setShowGamemodeDifficultyNames(settings.showGamemodeDifficultyNames);
+      setShowSnapshotDiffView(settings.showSnapshotAdditionalInfo);
       setGateInDev(settings.gateInDev);
     }
   }, [opened, settings.songFolder, settings.showMinor, settings.gateInDev]);
 
   const handleSave = () => {
-    setSettings((prev) => ({ ...prev, songFolder, showMinor, showGamemodeDifficultyNames, gateInDev }));
+    setSettings((prev) => ({
+      ...prev,
+      songFolder,
+      showMinor,
+      showGamemodeDifficultyNames,
+      showSnapshotDiffView,
+      gateInDev
+    }));
     onClose();
   };
 
@@ -83,6 +92,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
           checked={showGamemodeDifficultyNames}
           onChange={(e) => setShowGamemodeDifficultyNames(e.currentTarget.checked)}
         />
+        <Switch
+          label="Show additional info in snapshot comparison"
+          checked={showSnapshotDiffView}
+          onChange={(e) => setShowSnapshotDiffView(e.currentTarget.checked)}
+        />
         {isDev && (
           <>
             <Divider my="sm" />
@@ -104,13 +118,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
               </Alert>
             </Stack>
           </>
-        )}
-        {!isDev && (
-          <Alert title="Developer settings" color="gray" variant="light">
-            <Text size="sm" c="dimmed">
-              Developer-only options are hidden in production.
-            </Text>
-          </Alert>
         )}
         <Group justify="flex-end">
           <Button onClick={handleSave} variant="filled">

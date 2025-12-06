@@ -24,7 +24,7 @@ const navItems = [
     to: '/snapshots',
     icon: IconCamera,
     label: 'Snapshots',
-    disabled: true,
+    disabled: false,
   },
   {
     to: '/overview',
