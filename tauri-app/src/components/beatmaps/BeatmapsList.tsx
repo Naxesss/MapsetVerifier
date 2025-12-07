@@ -30,7 +30,7 @@ export default function BeatmapsList({ songFolder }: Props) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const stepSize = 16;
 
-  const { data, error, isFetchingNextPage, fetchNextPage, hasNextPage } = useInfiniteQuery<
+  const { data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } = useInfiniteQuery<
     ApiBeatmapPage,
     FetchError
   >({
@@ -63,7 +63,7 @@ export default function BeatmapsList({ songFolder }: Props) {
 
   const beatmaps: Beatmap[] = data?.pages.flatMap((p) => p.items) ?? [];
   const firstPageLoaded = data?.pages?.[0];
-  const noResults = !isFetchingNextPage && beatmaps.length === 0 && !error;
+  const noResults = !isFetching && !isFetchingNextPage && beatmaps.length === 0 && !error;
   const lastPage = data?.pages[data.pages.length - 1];
 
   // When a fetched page is empty but indicates more pages, immediately fetch the next.
@@ -116,7 +116,10 @@ export default function BeatmapsList({ songFolder }: Props) {
           : error.message || 'Failed to load beatmaps.';
       return (
         <Alert color="red" title="Error" mt="xs">
-          {msg}
+          <Text>{msg}</Text>
+          <Button size="xs" variant="light" color="red" onClick={() => refetch()}>
+            Retry
+          </Button>
         </Alert>
       );
     }
@@ -162,35 +165,34 @@ export default function BeatmapsList({ songFolder }: Props) {
         />
         {renderTopStatus()}
       </Flex>
-      <Divider />
-      <Group className="beatmaps-scroll" ref={scrollRef} p="sm">
-        <Flex direction="column" gap="xs" w="100%" style={{ justifyContent: 'center' }}>
-          {!firstPageLoaded && <PlaceholderBeatmapCard />}
-          {beatmaps.map((bm) => (
-            <BeatmapCard key={bm.folder + bm.title} beatmap={bm} />
-          ))}
-          <div ref={sentinelRef} style={{ height: 1 }} />
-          {showNextPagePlaceholder && <PlaceholderBeatmapCard />}
-          {beatmaps.length > 0 && !hasNextPage && !isFetchingNextPage && !error && (
-            <Alert color="gray" title="No more beatmaps" variant="light">
-              You have reached the last available beatmap.
-              <Button
-                size="xs"
-                mt="xs"
-                variant="default"
-                onClick={() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
-              >
-                Back to top
-              </Button>
-            </Alert>
-          )}
-          {error && beatmaps.length > 0 && (
-            <Text c="red" size="sm" ta="center" my="xs">
-              {error.message || 'An error occurred.'}
-            </Text>
-          )}
-        </Flex>
-      </Group>
+      {!error && (
+        <>
+          <Divider />
+          <Group className="beatmaps-scroll" ref={scrollRef} p="sm">
+            <Flex direction="column" gap="xs" w="100%" style={{ justifyContent: 'center' }}>
+              {!firstPageLoaded && <PlaceholderBeatmapCard />}
+              {beatmaps.map((bm) => (
+                <BeatmapCard key={bm.folder + bm.title} beatmap={bm} />
+              ))}
+              <div ref={sentinelRef} style={{ height: 1 }} />
+              {showNextPagePlaceholder && <PlaceholderBeatmapCard />}
+              {beatmaps.length > 0 && !hasNextPage && !isFetchingNextPage && !error && (
+                <Alert color="gray" title="No more beatmaps" variant="light">
+                  You have reached the last available beatmap.
+                  <Button
+                    size="xs"
+                    mt="xs"
+                    variant="default"
+                    onClick={() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+                  >
+                    Back to top
+                  </Button>
+                </Alert>
+              )}
+            </Flex>
+          </Group>
+        </>
+      )}
     </Container>
   );
 }

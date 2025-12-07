@@ -42,7 +42,7 @@ function DiffLine({ diff }: { diff: ApiSnapshotDiff }) {
           </Text>
         </Group>
         
-        {settings.showSnapshotAdditionalInfo && (
+        {settings.showSnapshotDiffView && (
           <>
             {/* Show unified diff format for changes */}
             {diff.diffType === 'Changed' && (diff.oldValue || diff.newValue) && (

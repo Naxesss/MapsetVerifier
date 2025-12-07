@@ -103,14 +103,21 @@ function Snapshots() {
       <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
       <BeatmapHeader title={data?.title} artist={data?.artist} creator={data?.creator} bgUrl={bgUrl}>
         <Group gap="sm">
-          <Button
-            variant="light"
-            size="xs"
-            leftSection={<IconRefresh size={16} />}
-            onClick={() => refetch()}
+          <Group
+            p="xs"
+            gap="xs"
+            bg={theme.colors.dark[8]}
+            style={{ borderRadius: theme.radius.md }}
           >
-            Refresh
-          </Button>
+            <Button
+              variant="default"
+              size="xs"
+              leftSection={<IconRefresh size={16} />}
+              onClick={() => refetch()}
+            >
+              Refresh
+            </Button>
+          </Group>
           <SnapshotGameModeSelector
             groupedDifficulties={groupedDifficulties}
             selectedMode={selectedMode}

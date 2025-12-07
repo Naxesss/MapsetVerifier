@@ -14,7 +14,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
   const [songFolder, setSongFolder] = useState(settings.songFolder ?? '');
   const [showMinor, setShowMinor] = useState(settings.showMinor);
   const [showGamemodeDifficultyNames, setShowGamemodeDifficultyNames] = useState(settings.showGamemodeDifficultyNames);
-  const [showSnapshotDiffView, setShowSnapshotDiffView] = useState(settings.showSnapshotAdditionalInfo);
+  const [showSnapshotDiffView, setShowSnapshotDiffView] = useState(settings.showSnapshotDiffView);
   const [gateInDev, setGateInDev] = useState(settings.gateInDev);
 
   // Keep local state in sync when modal is opened or settings change asynchronously
@@ -23,7 +23,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
       setSongFolder(settings.songFolder ?? '');
       setShowMinor(settings.showMinor);
       setShowGamemodeDifficultyNames(settings.showGamemodeDifficultyNames);
-      setShowSnapshotDiffView(settings.showSnapshotAdditionalInfo);
+      setShowSnapshotDiffView(settings.showSnapshotDiffView);
       setGateInDev(settings.gateInDev);
     }
   }, [opened, settings.songFolder, settings.showMinor, settings.gateInDev]);

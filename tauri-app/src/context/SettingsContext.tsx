@@ -7,7 +7,7 @@ export type Settings = {
   songFolder?: string;
   showMinor: boolean;
   showGamemodeDifficultyNames: boolean;
-  showSnapshotAdditionalInfo: boolean;
+  showSnapshotDiffView: boolean;
   // DEV-only: whether to gate Backend in development mode
   gateInDev: boolean;
 };
@@ -22,7 +22,7 @@ const defaultSettings: Settings = {
   songFolder: undefined,
   showMinor: false,
   showGamemodeDifficultyNames: true,
-  showSnapshotAdditionalInfo: false,
+  showSnapshotDiffView: false,
   gateInDev: false,
 };
 

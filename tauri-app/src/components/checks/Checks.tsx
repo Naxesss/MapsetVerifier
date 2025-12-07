@@ -134,7 +134,7 @@ function Checks() {
     >
       <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
       <BeatmapHeader title={data?.title} artist={data?.artist} creator={data?.creator} bgUrl={bgUrl}>
-        <Group gap="sm" mb="xs">
+        <Group gap="sm">
           <BeatmapActionButtons
             beatmapFolderPath={beatmapFolderPath}
             beatmapSetId={data?.beatmapSetId}

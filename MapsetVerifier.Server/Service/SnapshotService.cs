@@ -35,7 +35,7 @@ public static class SnapshotService
                 difficulties: difficulties,
                 general: null,
                 beatmapHistories: [],
-                errorMessage: "Beatmapset ID is -1. This makes the map ambiguous with any other unsubmitted map. Submit the map before using this feature.");
+                errorMessage: "The BeatmapSet ID is -1, indicating that the map is not submitted. This makes the snapshotter not work. Either download the submitted version from the osu! website, or submit the map before using this feature.");
         }
 
         var beatmapSetId = refBeatmap.MetadataSettings.beatmapSetId.ToString();

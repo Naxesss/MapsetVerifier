@@ -1,6 +1,4 @@
-﻿@use '_variables.scss' as variables;
-
-@font-face {
+﻿@font-face {
   font-family: 'Comfortaa';
   src: url('../assets/fonts/Comfortaa-Light.ttf') format('truetype');
   font-weight: 300;
@@ -26,21 +24,26 @@
 
 ::-webkit-scrollbar {
   width: 14px;
-  background: variables.$color-background-panel;
+  background: var(--mantine-color-dark-8);
 }
 
 ::-webkit-scrollbar-track {
   -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
-  -webkit-border-radius: variables.$border-radius;
-  border-radius: variables.$border-radius;
+  -webkit-border-radius: var(--mantine-radius-md);
+  border-radius: var(--mantine-radius-md);
   border: 3px solid transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  -webkit-border-radius: variables.$border-radius;
-  border-radius: variables.$border-radius;
-  background: variables.$color-primary;
+  -webkit-border-radius: var(--mantine-radius-md);
+  border-radius: var(--mantine-radius-md);
+  background: var(--mantine-color-primary-2);
   // Simulated padding, allows track shadow to show at corners
   border: 3px solid transparent;
   background-clip: padding-box;
+}
+
+html {
+  // Always show scrollbar to avoid layout shift
+  overflow-y: scroll;
 }
