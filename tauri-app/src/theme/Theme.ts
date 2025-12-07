@@ -114,6 +114,13 @@ const themeOverride = createTheme({
         },
       },
     },
+    ScrollArea: {
+      styles: {
+        thumb: {
+          backgroundColor: 'var(--mantine-color-primary-2)',
+        }
+      },
+    },
   },
 });
 

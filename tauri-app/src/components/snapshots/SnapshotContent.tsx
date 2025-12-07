@@ -59,13 +59,11 @@ function SnapshotContent({ data, selectedDifficulty }: SnapshotContentProps) {
             History ({history.commits.length} snapshot{history.commits.length !== 1 ? 's' : ''})
           </Text>
         </Box>
-        <ScrollArea>
-          <SnapshotCommitList
-            commits={history.commits}
-            selectedCommitId={selectedCommitId}
-            onSelectCommit={setSelectedCommitId}
-          />
-        </ScrollArea>
+        <SnapshotCommitList
+          commits={history.commits}
+          selectedCommitId={selectedCommitId}
+          onSelectCommit={setSelectedCommitId}
+        />
       </Box>
 
       {/* Diff viewer (full width below) */}

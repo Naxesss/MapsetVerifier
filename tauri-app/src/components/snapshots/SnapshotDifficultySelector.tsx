@@ -14,6 +14,7 @@ function SnapshotDifficultySelector({
   onSelectDifficulty,
 }: SnapshotDifficultySelectorProps) {
   const theme = useMantineTheme();
+  let sortedDifficulties = difficulties.sort((a, b) => a.starRating! - b.starRating!);
 
   return (
     <Group gap="xs">
@@ -44,7 +45,7 @@ function SnapshotDifficultySelector({
           </Flex>
         </Button>
         {/* Difficulty buttons */}
-        {difficulties.map((diff) => {
+        {sortedDifficulties.map((diff) => {
           const color = getDifficultyColor(diff.starRating ?? 0);
           return (
             <Button
