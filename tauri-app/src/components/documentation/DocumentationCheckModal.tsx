@@ -1,8 +1,9 @@
-﻿import { Modal, Text, Loader, Flex, Alert } from '@mantine/core';
+﻿import {Modal, Text, Loader, Flex, Alert, Group} from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import MantineMarkdown from './MantineMarkdown';
 import DocumentationApi from '../../client/DocumentationApi';
 import { ApiDocumentationCheck, ApiDocumentationCheckDetails } from '../../Types';
+import GameModeIcon from "../icons/GameModeIcon.tsx";
 import LevelIcon from '../icons/LevelIcon.tsx';
 
 interface DocumentationCheckModalProps {
@@ -33,12 +34,18 @@ export default function DocumentationCheckModal({
           {check.description}
         </Text>
       }
+      yOffset="120px"
       size="80%"
       styles={{ content: { maxWidth: 1000 } }}
     >
       <Flex direction="column" gap="sm">
         <Flex justify="space-between">
-          <Text size="sm">{`${check.category} > ${check.subCategory}`}</Text>
+          <Group gap="0">
+            {check.modes.map((mode) => <GameModeIcon size={16} key={mode} mode={mode} />)}
+            <Text size="sm" pl="xs">
+              {`${check.category}`}
+            </Text>
+          </Group>
           <Text size="sm">Created by {check.author}</Text>
         </Flex>
         {isLoading && <Loader />}

@@ -7,6 +7,7 @@ export interface GameModeIconProps {
   mode: Mode | string;
   size?: number; // square size in px
   className?: string;
+  color?: string;
   style?: React.CSSProperties;
   starRating?: number | null;
 }
@@ -62,10 +63,10 @@ const iconComponents: Record<Mode, React.FC<{ size: number; color: string }>> = 
   Mania: ManiaIcon,
 };
 
-export default function GameModeIcon({ mode, size = 32, className, style, starRating }: GameModeIconProps) {
+export default function GameModeIcon({ mode, size = 32, className, style, starRating, color }: GameModeIconProps) {
   const theme = useMantineTheme();
 
-  let customColor: string = theme.white;
+  let customColor: string = color ?? theme.white;
 
   if (starRating) {
     customColor = getDifficultyColor(starRating);

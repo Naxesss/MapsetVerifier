@@ -19,7 +19,7 @@ public static class DocumentationService
                 id: check.Key,
                 description: metadata.Message,
                 category: metadata.Category,
-                subCategory: metadata.GetMode(),
+                modes: [Beatmap.Mode.Standard, Beatmap.Mode.Taiko, Beatmap.Mode.Catch, Beatmap.Mode.Mania],
                 author: metadata.Author,
                 outcomes: check.Value.GetTemplates()
                     .Select(template => template.Value.Level)
@@ -34,17 +34,22 @@ public static class DocumentationService
     {
         var gamemodeChecks = CheckerRegistry.GetChecksWithId()
             .Where(check =>
-                check.Value is BeatmapCheck &&
+                check.Value is BeatmapCheck or BeatmapSetCheck &&
                 check.Value.GetMetadata() is BeatmapCheckMetadata metadata &&
                 metadata.Modes.Contains(mode));
 
         var result = gamemodeChecks.Select(check => {
             var metadata = check.Value.GetMetadata();
+            var modes = metadata is BeatmapCheckMetadata beatmapCheckMetadata
+                ? beatmapCheckMetadata.Modes
+                // Checks which are not for a beatmap apply to all modes.
+                : [Beatmap.Mode.Standard, Beatmap.Mode.Taiko, Beatmap.Mode.Catch, Beatmap.Mode.Mania];
+
             return new ApiDocumentationCheck(
                 id: check.Key,
                 description: metadata.Message,
                 category: metadata.Category,
-                subCategory: metadata.GetMode(),
+                modes: modes,
                 author: metadata.Author,
                 outcomes: check.Value.GetTemplates()
                     .Select(template => template.Value.Level)

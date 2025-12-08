@@ -2,7 +2,7 @@
   id: number;
   description: string;
   category: string;
-  subCategory: string;
+  modes: Mode[];
   author: string;
   outcomes: Level[];
 };
