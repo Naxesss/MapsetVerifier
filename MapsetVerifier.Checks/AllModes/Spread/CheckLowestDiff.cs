@@ -63,12 +63,6 @@ namespace MapsetVerifier.Checks.AllModes.Spread
 
             switch (mode)
             {
-                case Beatmap.Mode.Osu:
-                    hardThreshold = CreateThreshold(3, 30);
-                    insaneThreshold = CreateThreshold(4, 15);
-                    expertThreshold = CreateThreshold(5, 0);
-                    break;
-
                 case Beatmap.Mode.Taiko:
                 case Beatmap.Mode.Catch:
                     hardThreshold = CreateThreshold(2, 30);
@@ -80,6 +74,12 @@ namespace MapsetVerifier.Checks.AllModes.Spread
                     hardThreshold = CreateThreshold(2, 0);
                     insaneThreshold = CreateThreshold(2, 45);
                     expertThreshold = CreateThreshold(3, 30);
+                    break;
+                case Beatmap.Mode.Standard:
+                default:
+                    hardThreshold = CreateThreshold(3, 30);
+                    insaneThreshold = CreateThreshold(4, 15);
+                    expertThreshold = CreateThreshold(5, 0);
                     break;
             }
                 
