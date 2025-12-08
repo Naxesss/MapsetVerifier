@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
+using MapsetVerifier.Parser.Objects.HitObjects.Catch;
 using MapsetVerifier.Parser.Statics;
 using MapsetVerifier.Snapshots.Objects;
 using MathNet.Numerics;
+using osu.Game.Rulesets.Catch.Objects;
 using static MapsetVerifier.Snapshots.Snapshotter;
 
 namespace MapsetVerifier.Snapshots.Translators
@@ -97,7 +99,7 @@ namespace MapsetVerifier.Snapshots.Translators
         private IEnumerable<string> GetChanges(HitObject addedObject, HitObject removedObject)
         {
             if (addedObject.Position != removedObject.Position)
-                yield return "Moved from " + removedObject.Position.X + "; " + removedObject.Position.Y + " to " + addedObject.Position.X + "; " + addedObject.Position.Y + ".";
+                yield return "Moved from (" + removedObject.Position.X + "; " + removedObject.Position.Y + ") to (" + addedObject.Position.X + "; " + addedObject.Position.Y + ").";
 
             if (addedObject.hitSound != removedObject.hitSound)
                 foreach (HitObject.HitSounds hitSound in Enum.GetValues(typeof(HitObject.HitSounds)))
@@ -192,7 +194,7 @@ namespace MapsetVerifier.Snapshots.Translators
                     // The first node is the start, which we already checked.
                     for (var i = 1; i < addedSlider.NodePositions.Count; ++i)
                         if (addedSlider.NodePositions[i] != removedSlider.NodePositions[i])
-                            yield return "Node " + (i + 1) + " moved from " + removedSlider.NodePositions[i].X + "; " + removedSlider.NodePositions[i].Y + " to " + addedSlider.NodePositions[i].X + "; " + addedSlider.NodePositions[i].Y + ".";
+                            yield return "Node " + (i + 1) + " moved from (" + removedSlider.NodePositions[i].X + "; " + removedSlider.NodePositions[i].Y + ") to (" + addedSlider.NodePositions[i].X + "; " + addedSlider.NodePositions[i].Y + ").";
                 }
                 else
                 {
