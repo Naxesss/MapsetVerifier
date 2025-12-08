@@ -1,15 +1,15 @@
 ﻿import {Alert, Text, Box, useMantineTheme, Flex, LoadingOverlay, Button, Group, Title} from '@mantine/core';
 import { IconRefresh } from '@tabler/icons-react';
 import { useState, useEffect, useMemo } from 'react';
-import { useBeatmapBackground } from '../checks/hooks/useBeatmapBackground';
-import { useBeatmap } from '../../context/BeatmapContext';
-import { useSettings } from '../../context/SettingsContext';
 import { useSnapshots } from './hooks/useSnapshots';
-import BeatmapHeader from '../common/BeatmapHeader';
+import SnapshotContent from './SnapshotContent';
 import SnapshotDifficultySelector from './SnapshotDifficultySelector';
 import SnapshotGameModeSelector from './SnapshotGameModeSelector';
-import SnapshotContent from './SnapshotContent';
+import { useBeatmap } from '../../context/BeatmapContext';
+import { useSettings } from '../../context/SettingsContext';
 import { ApiSnapshotDifficulty, Mode } from '../../Types';
+import { useBeatmapBackground } from '../checks/hooks/useBeatmapBackground';
+import BeatmapHeader from '../common/BeatmapHeader';
 
 interface ModeGroup {
   mode: Mode;

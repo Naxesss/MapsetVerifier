@@ -1,8 +1,8 @@
 ﻿import { Accordion, Badge, Box, Group, Stack, Text, Code, useMantineTheme } from '@mantine/core';
 import { IconPlus, IconMinus, IconArrowsExchange } from '@tabler/icons-react';
+import {useSettings} from "../../context/SettingsContext.tsx";
 import { ApiSnapshotCommit, ApiSnapshotSection, ApiSnapshotDiff, DiffType } from '../../Types';
 import OsuLink from "../common/OsuLink.tsx";
-import {useSettings} from "../../context/SettingsContext.tsx";
 
 interface UnifiedDiffViewerProps {
   commit: ApiSnapshotCommit;

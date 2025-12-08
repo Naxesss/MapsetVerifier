@@ -14,7 +14,7 @@ function SnapshotDifficultySelector({
   onSelectDifficulty,
 }: SnapshotDifficultySelectorProps) {
   const theme = useMantineTheme();
-  let sortedDifficulties = difficulties.sort((a, b) => a.starRating! - b.starRating!);
+  const sortedDifficulties = difficulties.sort((a, b) => a.starRating! - b.starRating!);
 
   return (
     <Group gap="xs">

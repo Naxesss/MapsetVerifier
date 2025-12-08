@@ -1,13 +1,12 @@
 ﻿import {
   Alert,
   CloseButton,
-  Container,
   Divider,
   Flex,
-  Group,
   Input,
   Button,
   Text,
+  ScrollArea,
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import { useInfiniteQuery } from '@tanstack/react-query';
@@ -17,7 +16,6 @@ import PlaceholderBeatmapCard from './PlaceholderBeatmapCard.tsx';
 import { FetchError } from '../../client/ApiHelper.ts';
 import BeatmapApi from '../../client/BeatmapApi.ts';
 import { ApiBeatmapPage, Beatmap } from '../../Types.ts';
-import './Beatmaps.scss';
 
 interface Props {
   songFolder: string;
@@ -136,7 +134,14 @@ export default function BeatmapsList({ songFolder }: Props) {
   };
 
   return (
-    <Container className="beatmaps-container" p="unset">
+    <Flex
+      direction="column"
+      w="100%"
+      style={{
+        overflow: 'hidden',
+        position: 'relative',
+      }}
+    >
       <Flex direction="column" gap="sm" p="sm">
         <Input
           type="text"
@@ -168,7 +173,13 @@ export default function BeatmapsList({ songFolder }: Props) {
       {!error && (
         <>
           <Divider />
-          <Group className="beatmaps-scroll" ref={scrollRef} p="sm">
+          <ScrollArea
+            offsetScrollbars
+            viewportRef={scrollRef}
+            className="flipped-scrollbar"
+            p="sm"
+            style={{ flex: '1 1 auto' }}
+          >
             <Flex direction="column" gap="xs" w="100%" style={{ justifyContent: 'center' }}>
               {!firstPageLoaded && <PlaceholderBeatmapCard />}
               {beatmaps.map((bm) => (
@@ -190,9 +201,9 @@ export default function BeatmapsList({ songFolder }: Props) {
                 </Alert>
               )}
             </Flex>
-          </Group>
+          </ScrollArea>
         </>
       )}
-    </Container>
+    </Flex>
   );
 }

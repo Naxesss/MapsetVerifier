@@ -1,12 +1,12 @@
 ﻿import { Alert, Text, Box, useMantineTheme, Group, Flex, LoadingOverlay } from '@mantine/core';
 import React, { useEffect, useMemo } from 'react';
 import BeatmapActionButtons from './BeatmapActionButtons';
-import BeatmapHeader from '../common/BeatmapHeader';
 import ChecksResults from './ChecksResults';
 import DifficultyInfo from './DifficultyInfo';
 import DifficultyLevelOverride from './DifficultyLevelOverride';
 import DifficultySelector from './DifficultySelector';
 import GameModeSelector from './GameModeSelector';
+import BeatmapHeader from '../common/BeatmapHeader';
 import { useBeatmapBackground } from './hooks/useBeatmapBackground';
 import { useBeatmapChecks } from './hooks/useBeatmapChecks';
 import { useDifficultyOverride } from './hooks/useDifficultyOverride';

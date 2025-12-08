@@ -1,7 +1,6 @@
 ﻿import { Alert } from '@mantine/core';
 import BeatmapsList from './BeatmapsList.tsx';
 import { useSettings } from '../../context/SettingsContext';
-import './Beatmaps.scss';
 
 export default function Beatmaps() {
   const { settings } = useSettings();

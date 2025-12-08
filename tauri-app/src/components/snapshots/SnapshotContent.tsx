@@ -1,8 +1,8 @@
-﻿import { useState, useEffect } from 'react';
-import {Box, Stack, Text, useMantineTheme, ScrollArea} from '@mantine/core';
-import { ApiSnapshotResult, ApiSnapshotHistory, ApiSnapshotCommit } from '../../Types';
+﻿import { Box, Stack, Text, useMantineTheme } from '@mantine/core';
+import { useState, useEffect } from 'react';
 import SnapshotCommitList from './SnapshotCommitList';
 import UnifiedDiffViewer from './UnifiedDiffViewer';
+import { ApiSnapshotResult, ApiSnapshotHistory, ApiSnapshotCommit } from '../../Types';
 
 interface SnapshotContentProps {
   data: ApiSnapshotResult;

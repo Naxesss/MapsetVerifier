@@ -1,4 +1,4 @@
-import { AppShell, Container, CSSVariablesResolver, MantineProvider, Text } from '@mantine/core';
+import {AppShell, Container, CSSVariablesResolver, MantineProvider, ScrollArea, Text} from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { Route, Routes } from 'react-router-dom';
 import BackendGate from './components/backend/BackendGate.tsx';
@@ -43,17 +43,23 @@ function App() {
             >
               <NavBars desktopOpened={desktopOpened} toggleDesktop={toggleDesktop} />
               <AppShell.Main>
-                <Container p="sm" fluid>
-                  <Routes>
-                    <Route>
-                      <Route path="/" element={<Home />} />
-                      <Route path="/documentation" element={<Documentation />} />
-                      <Route path="/checks" element={<Checks />} />
-                      <Route path="/snapshots" element={<Snapshots />} />
-                      <Route path="*" element={<Text>404</Text>} />
-                    </Route>
-                  </Routes>
-                </Container>
+                <ScrollArea
+                  offsetScrollbars
+                  type="always"
+                  h="calc(100vh - var(--app-shell-header-offset, 0rem) + var(--app-shell-padding))"
+                >
+                  <Container p="sm" fluid>
+                    <Routes>
+                      <Route>
+                        <Route path="/" element={<Home />} />
+                        <Route path="/documentation" element={<Documentation />} />
+                        <Route path="/checks" element={<Checks />} />
+                        <Route path="/snapshots" element={<Snapshots />} />
+                        <Route path="*" element={<Text>404</Text>} />
+                      </Route>
+                    </Routes>
+                  </Container>
+                </ScrollArea>
               </AppShell.Main>
             </AppShell>
           </BackendGate>
