@@ -2,8 +2,15 @@
 import { useEffect, useState } from 'react';
 import { useBeatmap } from '../../context/BeatmapContext';
 import { Beatmap } from '../../Types.ts';
+import {useLocation, useNavigate} from "react-router-dom";
 
-function BeatmapCard({ beatmap }: { beatmap: Beatmap }) {
+interface BeatmapCardProps {
+  beatmap: Beatmap;
+}
+
+function BeatmapCard({ beatmap }: BeatmapCardProps) {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { selectedFolder, setSelectedFolder } = useBeatmap();
   const [bgUrl, setBgUrl] = useState<string | undefined>(undefined);
   const [isHovered, setIsHovered] = useState(false);
@@ -53,10 +60,15 @@ function BeatmapCard({ beatmap }: { beatmap: Beatmap }) {
         position: 'relative',
         overflow: 'hidden',
         cursor: 'pointer',
-        outline: isSelected ? '2px solid var(--mantine-color-blue-6)' : 'none',
-        outlineOffset: '-2px',
+        border: isSelected ? '2px solid var(--mantine-color-blue-6)' : '2px solid transparent'
       }}
-      onClick={() => setSelectedFolder(beatmap.folder)}
+      onClick={() => {
+        setSelectedFolder(beatmap.folder)
+        // No page open that uses a beatmap, redirect to checks page as default
+        if (location.pathname !== '/checks' && location.pathname !== '/snapshots') {
+          navigate('/checks');
+        }
+      }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
