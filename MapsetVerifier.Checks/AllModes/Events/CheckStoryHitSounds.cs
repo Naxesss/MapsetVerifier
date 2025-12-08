@@ -49,7 +49,7 @@ namespace MapsetVerifier.Checks.AllModes.Events
             {
                 {
                     "Storyboarded Hit Sound",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Storyboarded hit sound ({1}, {2}%) from {3} file.", "timestamp - ", "path", "volume", ".osu/.osb")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Storyboarded hit sound ({1}, {2}%) from {3} file.", "timestamp -", "path", "volume", ".osu/.osb")
                         .WithCause("The .osu file or .osb file contains storyboarded hit sounds.")
                 }
             };

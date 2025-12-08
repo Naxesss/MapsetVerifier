@@ -51,7 +51,7 @@ namespace MapsetVerifier.Checks.Standard.Compose
             {
                 {
                     "Obscured",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Reverse arrow {1} obscured.", "timestamp - ", "(potentially)")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Reverse arrow {1} obscured.", "timestamp -", "(potentially)")
                         .WithCause("An object before a reverse arrow ends over where it appears close in time.")
                 }
             };

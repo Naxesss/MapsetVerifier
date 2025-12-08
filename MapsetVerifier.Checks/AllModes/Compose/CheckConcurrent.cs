@@ -51,13 +51,13 @@ namespace MapsetVerifier.Checks.AllModes.Compose
             {
                 {
                     "Concurrent Objects",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Concurrent {1}.", "timestamp - ", "hit objects")
+                    new IssueTemplate(Issue.Level.Problem, "{0} Concurrent {1}.", "timestamp -", "hit objects")
                         .WithCause("A hit object starts before another hit object has ended. For mania this also requires that the objects are in the same column.")
                 },
 
                 {
                     "Almost Concurrent Objects",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Within {1} ms of one another.", "timestamp - ", "gap")
+                    new IssueTemplate(Issue.Level.Problem, "{0} Within {1} ms of one another.", "timestamp -", "gap")
                         .WithCause("Two hit objects are less than 10 ms apart from one another. For mania this also requires that the objects are in the same column.")
                 }
             };

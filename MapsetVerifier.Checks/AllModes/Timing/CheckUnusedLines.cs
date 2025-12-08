@@ -45,27 +45,27 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             {
                 {
                     "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Uninherited line changes nothing.", "timestamp - ")
+                    new IssueTemplate(Issue.Level.Problem, "{0} Uninherited line changes nothing.", "timestamp -")
                         .WithCause("An uninherited line is placed on a multiple of 4 downbeats away from the previous uninherited line, and changes no settings.")
                 },
                 {
                     "Problem Can Be Replaced By Inherited",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Uninherited line changes nothing that can't be changed with an inherited line.", "timestamp - ")
+                    new IssueTemplate(Issue.Level.Problem, "{0} Uninherited line changes nothing that can't be changed with an inherited line.", "timestamp -")
                         .WithCause("Same as the first check, but changes volume, sampleset, or another setting that an inherited line could change instead.")
                 },
                 {
                     "Warning",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Uninherited line only {1}, ensure this makes sense, otherwise remove the line.", "timestamp - ", "something not immediately obvious")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Uninherited line only {1}, ensure this makes sense, otherwise remove the line.", "timestamp -", "something not immediately obvious")
                         .WithCause("Same as the first check, but changes something that inherited lines cannot, yet isn't immediately obvious, i.e. omitting barline, correcting an omitted barline, or nightcore cymbals.")
                 },
                 {
                     "Warning Can Be Replaced By Inherited",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Uninherited line only {1}, ensure this makes sense, otherwise replace with an inherited line", "timestamp - ", "something not immediately obvious")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Uninherited line only {1}, ensure this makes sense, otherwise replace with an inherited line", "timestamp -", "something not immediately obvious")
                         .WithCause("Same as the second check, but changes something that inherited lines cannot, yet isn't immediately obvious, i.e. omitting barline, correcting an omitted barline, or nightcore cymbals.")
                 },
                 {
                     "Minor Inherited",
-                    new IssueTemplate(Issue.Level.Minor, "{0} Inherited line changes {1}.", "timestamp - ", "nothing(, other than SV/sample settings, but affects nothing)")
+                    new IssueTemplate(Issue.Level.Minor, "{0} Inherited line changes {1}.", "timestamp -", "nothing(, other than SV/sample settings, but affects nothing)")
                         .WithCause("An inherited line changes no settings.")
                 }
             };

@@ -43,7 +43,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
             {
                 {
                     "Inconsistent",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Inconsistent omitted bar line, see {1}.", "timestamp - ", "difficulty").WithCause("A beatmap does not omit bar line where the reference beatmap does, or visa versa.")
+                    new IssueTemplate(Issue.Level.Problem, "{0} Inconsistent omitted bar line, see {1}.", "timestamp -", "difficulty").WithCause("A beatmap does not omit bar line where the reference beatmap does, or visa versa.")
                 }
             };
 

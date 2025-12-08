@@ -46,13 +46,13 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             {
                 {
                     "Inherited",
-                    new IssueTemplate(Issue.Level.Problem, "{0} First timing line is inherited.", "timestamp - ")
+                    new IssueTemplate(Issue.Level.Problem, "{0} First timing line is inherited.", "timestamp -")
                         .WithCause("The first timing line of a beatmap is inherited.")
                 },
 
                 {
                     "Toggles Kiai",
-                    new IssueTemplate(Issue.Level.Problem, "{0} First timing line toggles kiai.", "timestamp - ")
+                    new IssueTemplate(Issue.Level.Problem, "{0} First timing line toggles kiai.", "timestamp -")
                         .WithCause("The first timing line of a beatmap has kiai enabled.")
                 },
 

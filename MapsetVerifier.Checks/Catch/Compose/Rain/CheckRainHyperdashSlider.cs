@@ -40,7 +40,7 @@ namespace MapsetVerifier.Checks.Catch.Compose.Rain
                 { "SliderHyperRain",
                     new IssueTemplate(Issue.Level.Warning,
                             "{0} {1} hyperdashes should not be used.",
-                            "timestamp - ", "object")
+                            "timestamp -", "object")
                         .WithCause("Hyperdash is put on a droplet or slider repeat.")
                 }
             };

@@ -39,19 +39,19 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             {
                 {
                     "Warning",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Kiai is unsnapped by {1} ms.", "timestamp - ", "unsnap")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Kiai is unsnapped by {1} ms.", "timestamp -", "unsnap")
                         .WithCause("An inherited line with kiai enabled is unsnapped by 10 ms or more. For taiko this is 5 ms or more instead.")
                 },
 
                 {
                     "Minor",
-                    new IssueTemplate(Issue.Level.Minor, "{0} Kiai is unsnapped by {1} ms.", "timestamp - ", "unsnap")
+                    new IssueTemplate(Issue.Level.Minor, "{0} Kiai is unsnapped by {1} ms.", "timestamp -", "unsnap")
                         .WithCause("Same as the other check, but by 1 ms or more instead.")
                 },
 
                 {
                     "Minor End",
-                    new IssueTemplate(Issue.Level.Minor, "{0} Kiai end is unsnapped by {1} ms.", "timestamp - ", "unsnap")
+                    new IssueTemplate(Issue.Level.Minor, "{0} Kiai end is unsnapped by {1} ms.", "timestamp -", "unsnap")
                         .WithCause("Same as the second check, except looks for where kiai ends.")
                 }
             };

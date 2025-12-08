@@ -46,7 +46,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             {
                 {
                     "mp3",
-                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" is using the MP3 format and is used for active hit sounding, see {1} in {2} for example.", "path", "timestamp - ", "beatmap")
+                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" is using the MP3 format and is used for active hit sounding, see {1} in {2} for example.", "path", "timestamp -", "beatmap")
                         .WithCause("A hit sound file is using the MP3 format.")
                 },
 

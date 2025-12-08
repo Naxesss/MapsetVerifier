@@ -48,25 +48,25 @@ namespace MapsetVerifier.Checks.Standard.Spread
             {
                 {
                     "Problem Length",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Spinner length is too short ({1} ms, expected {2}).", "timestamp - ", "duration", "duration")
+                    new IssueTemplate(Issue.Level.Problem, "{0} Spinner length is too short ({1} ms, expected {2}).", "timestamp -", "duration", "duration")
                         .WithCause("A spinner is shorter than 4, 3 or 2 beats for Easy, Normal and Hard respectively, assuming 240 bpm.")
                 },
 
                 {
                     "Warning Length",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Spinner length is probably too short ({1} ms, expected {2}).", "timestamp - ", "duration", "duration")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Spinner length is probably too short ({1} ms, expected {2}).", "timestamp -", "duration", "duration")
                         .WithCause("Same as the first check, except 20% more lenient, implying that 200 bpm is assumed instead.")
                 },
 
                 {
                     "Problem Recovery",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Spinner recovery time is too short ({1} ms, expected {2}).", "timestamp - ", "duration", "duration")
+                    new IssueTemplate(Issue.Level.Problem, "{0} Spinner recovery time is too short ({1} ms, expected {2}).", "timestamp -", "duration", "duration")
                         .WithCause("The time after a spinner ends to the next object is shorter than 4, 3 or 2 beats for Easy, Normal and Hard respectively, assuming 240 bpm, where both the non-scaled and bpm-scaled thresholds must be exceeded.")
                 },
 
                 {
                     "Warning Recovery",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Spinner recovery time is probably too short ({1} ms, expected {2}).", "timestamp - ", "duration", "duration")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Spinner recovery time is probably too short ({1} ms, expected {2}).", "timestamp -", "duration", "duration")
                         .WithCause("Same as the other recovery check, except 20% more lenient, implying that 200 bpm is assumed instead.")
                 }
             };

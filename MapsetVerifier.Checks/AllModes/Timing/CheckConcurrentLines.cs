@@ -45,13 +45,13 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             {
                 {
                     "Concurrent",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Concurrent {1} lines.", "timestamp - ", "inherited/uninherited")
+                    new IssueTemplate(Issue.Level.Problem, "{0} Concurrent {1} lines.", "timestamp -", "inherited/uninherited")
                         .WithCause("Two inherited or uninherited timing lines exist at the same point in time.")
                 },
 
                 {
                     "Conflicting",
-                    new IssueTemplate(Issue.Level.Minor, "{0} Conflicting line settings. Green: {1}. Red: {2}. {3}.", "timestamp - ", "green setting(s)", "red setting(s)", "precedence")
+                    new IssueTemplate(Issue.Level.Minor, "{0} Conflicting line settings. Green: {1}. Red: {2}. {3}.", "timestamp -", "green setting(s)", "red setting(s)", "precedence")
                         .WithCause("An inherited and uninherited timing line exists at the same point in time and have different settings.")
                 }
             };

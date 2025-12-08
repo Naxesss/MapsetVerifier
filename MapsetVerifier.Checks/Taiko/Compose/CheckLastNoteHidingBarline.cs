@@ -47,7 +47,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                     new IssueTemplate(
                         Issue.Level.Minor,
                         "{0} Last spinner/slider end in the map is hiding its barline, due to being unsnapped 1ms early",
-                        "timestamp - "
+                        "timestamp -"
                     ).WithCause("The spinner/slider end is unsnapped 1ms early.")
                 },
                 {
@@ -56,7 +56,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                     new IssueTemplate(
                         Issue.Level.Problem,
                         "{0} Last note in the map is hiding its barline, due to being unsnapped 1ms early",
-                        "timestamp - "
+                        "timestamp -"
                     ).WithCause("The note is unsnapped 1ms early.")
                 },
                 {
@@ -65,7 +65,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                     new IssueTemplate(
                         Issue.Level.Warning,
                         "{0} Last note in the map may have its barline hidden, due to rounding error. Doublecheck manually.",
-                        "timestamp - "
+                        "timestamp -"
                     ).WithCause("Rounding error.")
                 }
             };

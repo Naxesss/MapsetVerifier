@@ -45,14 +45,14 @@ namespace MapsetVerifier.Checks.Catch.Compose
                 { "Hyperdash",
                     new IssueTemplate(Issue.Level.Problem,
                             "{0} {1} is a hyperdash.",
-                            "timestamp - ", "object")
+                            "timestamp -", "object")
                         .WithCause(
                             "Distance between the two objects is too high, triggering a hyperdash distance")
                 },
                 { "HyperdashSliderPart",
                     new IssueTemplate(Issue.Level.Problem,
                             "{0} Slider hyperdash on {1}.",
-                            "timestamp - ", "object")
+                            "timestamp -", "object")
                         .WithCause(
                             "Distance between the two objects is too high, triggering a hyperdash distance")
                 }

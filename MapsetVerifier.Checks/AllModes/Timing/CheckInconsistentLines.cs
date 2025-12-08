@@ -44,25 +44,25 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             {
                 {
                     "Missing",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Missing uninherited line, see {1}.", "timestamp - ", "difficulty")
+                    new IssueTemplate(Issue.Level.Problem, "{0} Missing uninherited line, see {1}.", "timestamp -", "difficulty")
                         .WithCause("A beatmap does not have an uninherited line which the reference beatmap does, or visa versa.")
                 },
 
                 {
                     "Missing Minor",
-                    new IssueTemplate(Issue.Level.Minor, "{0} Has a decimally different offset to the one in {1}.", "timestamp - ", "difficulty")
+                    new IssueTemplate(Issue.Level.Minor, "{0} Has a decimally different offset to the one in {1}.", "timestamp -", "difficulty")
                         .WithCause("Same as the first check, except includes issues caused by decimal unsnaps of uninherited lines.")
                 },
 
                 {
                     "Inconsistent Meter",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Inconsistent meter signature, see {1}.", "timestamp - ", "difficulty")
+                    new IssueTemplate(Issue.Level.Problem, "{0} Inconsistent meter signature, see {1}.", "timestamp -", "difficulty")
                         .WithCause("The meter signature of an uninherited timing line is different from the reference beatmap.")
                 },
 
                 {
                     "Inconsistent BPM",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Inconsistent BPM, see {1}.", "timestamp - ", "difficulty")
+                    new IssueTemplate(Issue.Level.Problem, "{0} Inconsistent BPM, see {1}.", "timestamp -", "difficulty")
                         .WithCause("Same as the meter check, except checks BPM instead.")
                 }
             };

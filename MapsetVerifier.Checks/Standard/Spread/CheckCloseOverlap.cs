@@ -47,13 +47,13 @@ namespace MapsetVerifier.Checks.Standard.Spread
             {
                 {
                     "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "{0} {1} ms apart, should either be overlapped or at least {2} ms apart.", "timestamp - ", "gap", "threshold")
+                    new IssueTemplate(Issue.Level.Problem, "{0} {1} ms apart, should either be overlapped or at least {2} ms apart.", "timestamp -", "gap", "threshold")
                         .WithCause("Two objects with a time gap less than 125 ms (240 bpm 1/2) are not overlapping.")
                 },
 
                 {
                     "Warning",
-                    new IssueTemplate(Issue.Level.Warning, "{0} {1} ms apart.", "timestamp - ", "gap")
+                    new IssueTemplate(Issue.Level.Warning, "{0} {1} ms apart.", "timestamp -", "gap")
                         .WithCause("Two objects with a time gap less than 167 ms (180 bpm 1/2) are not overlapping.")
                 }
             };

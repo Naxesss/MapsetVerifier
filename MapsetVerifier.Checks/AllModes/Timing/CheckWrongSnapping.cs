@@ -59,7 +59,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                 // warnings
                 {
                     "Snap Consistency",
-                    new IssueTemplate(Issue.Level.Warning, "{0} (1/{1}) Different snapping, {2} (1/{3}), is used in {4}.", "timestamp - ", "X", "timestamp - ", "X", "difficulty")
+                    new IssueTemplate(Issue.Level.Warning, "{0} (1/{1}) Different snapping, {2} (1/{3}), is used in {4}.", "timestamp -", "X", "timestamp -", "X", "difficulty")
                         .WithCause(@"Two hit objects in separate difficulties do not have any object in the other difficulty at the same time, and are close enough in time to be mistaken for one another.
                                     > Ignores cases where the divisor on the lower difficulty is less than on the higher difficulty, since this is usually natural.")
                 },

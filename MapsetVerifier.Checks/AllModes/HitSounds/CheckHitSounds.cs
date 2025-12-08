@@ -65,13 +65,13 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
 
                 {
                     "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "{0} No hit sounds or sampleset changes from here to {1}, ({2} s).", "timestamp - ", "timestamp - ", "duration")
+                    new IssueTemplate(Issue.Level.Problem, "{0} No hit sounds or sampleset changes from here to {1}, ({2} s).", "timestamp -", "timestamp -", "duration")
                         .WithCause("The hit sound score value, based on the amount of hit objects and time between two points without hit sounds " + "or sampleset changes, is way too low.")
                 },
 
                 {
                     "Warning",
-                    new IssueTemplate(Issue.Level.Warning, "{0} No hit sounds or sampleset changes from here to {1}, ({2} s).", "timestamp - ", "timestamp - ", "duration")
+                    new IssueTemplate(Issue.Level.Warning, "{0} No hit sounds or sampleset changes from here to {1}, ({2} s).", "timestamp -", "timestamp -", "duration")
                         .WithCause("Same as the other check, but with a threshold which is higher, but still very low.")
                 }
             };

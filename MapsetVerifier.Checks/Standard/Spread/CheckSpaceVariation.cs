@@ -48,13 +48,13 @@ namespace MapsetVerifier.Checks.Standard.Spread
             {
                 {
                     "Distance",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Distance is {1} px, expected {2}, see {3}.", "timestamp - ", "distance", "distance", "example objects")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Distance is {1} px, expected {2}, see {3}.", "timestamp -", "distance", "distance", "example objects")
                         .WithCause("The distance between two hit objects noticeably contradicts a recent use of time distance balance between another two hit objects using a similar time gap.")
                 },
 
                 {
                     "Ratio",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Distance/time ratio is {1}, expected {2}.", "timestamp - ", "ratio", "ratio")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Distance/time ratio is {1}, expected {2}.", "timestamp -", "ratio", "ratio")
                         .WithCause("The distance/time ratio between the previous hit objects greatly contradicts a following use of distance/time ratio.")
                 }
             };

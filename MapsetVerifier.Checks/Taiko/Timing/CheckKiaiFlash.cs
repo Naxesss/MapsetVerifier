@@ -43,13 +43,13 @@ namespace MapsetVerifier.Checks.Taiko.Timing
             {
                 {
                     Minor,
-                    new IssueTemplate(Issue.Level.Minor, "{0} Kiai flash ", "timestamp - ").WithCause(
+                    new IssueTemplate(Issue.Level.Minor, "{0} Kiai flash ", "timestamp -").WithCause(
                         "A kiai flash exists, but is not too drastic"
                     )
                 },
                 {
                     Warning,
-                    new IssueTemplate(Issue.Level.Warning, "{0} Kiai flash", "timestamp - ").WithCause(
+                    new IssueTemplate(Issue.Level.Warning, "{0} Kiai flash", "timestamp -").WithCause(
                         "A kiai flash that's too drastic exists"
                     )
                 }

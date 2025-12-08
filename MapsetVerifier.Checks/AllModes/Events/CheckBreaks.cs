@@ -43,13 +43,13 @@ namespace MapsetVerifier.Checks.AllModes.Events
             {
                 {
                     "Too early or late",
-                    new IssueTemplate(Issue.Level.Problem, "{0} to {1} {2}. Saving the beatmap should fix this.", "timestamp - ", "timestamp - ", "details")
+                    new IssueTemplate(Issue.Level.Problem, "{0} to {1} {2}. Saving the beatmap should fix this.", "timestamp -", "timestamp -", "details")
                         .WithCause("Either the break starts less than 200 ms after the object before the end of the break, or the break ends less than the preemt time before the object after the start of the break.")
                 },
 
                 {
                     "Too short",
-                    new IssueTemplate(Issue.Level.Warning, "{0} to {1} is non-functional due to being less than 650 ms.", "timestamp - ", "timestamp - ")
+                    new IssueTemplate(Issue.Level.Warning, "{0} to {1} is non-functional due to being less than 650 ms.", "timestamp -", "timestamp -")
                         .WithCause("The break is less than 650 ms in length.")
                 }
             };

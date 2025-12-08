@@ -59,19 +59,19 @@ namespace MapsetVerifier.Checks.Catch.Compose
                 { "BasicConsecutive",
                     new IssueTemplate(Issue.Level.Problem,
                             "{0} Too many consecutive basic-snapped hyperdashes were used and should be at most {1}, currently {2}.",
-                            "timestamp - ", "rule amount", "amount")
+                            "timestamp -", "rule amount", "amount")
                         .WithCause("Too many consecutive basic-snapped hyperdash are used.")
                 },
                 { "HigherConsecutive",
                     new IssueTemplate(Issue.Level.Problem,
                             "{0} Too many consecutive higher-snapped hyperdashes were used and should be at most {1}, currently {2}.",
-                            "timestamp - ", "rule amount", "amount")
+                            "timestamp -", "rule amount", "amount")
                         .WithCause("Too many consecutive higher-snapped hyperdash are used.")
                 },
                 { "RainBasicConsecutiveSlider",
                     new IssueTemplate(Issue.Level.Problem,
                             "{0} Too many consecutive basic-snapped hyperdashes were used within a slider and should be at most {1}, currently {2}.",
-                            "timestamp - ", "rule amount", "amount")
+                            "timestamp -", "rule amount", "amount")
                         .WithCause("Too many consecutive hyperdash are used in a Slider body.")
                 }
             };

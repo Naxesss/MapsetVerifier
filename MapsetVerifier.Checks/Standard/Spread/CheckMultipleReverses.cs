@@ -49,13 +49,13 @@ namespace MapsetVerifier.Checks.Standard.Spread
             {
                 {
                     "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "{0} This slider is way too short to have multiple reverses.", "timestamp - ")
+                    new IssueTemplate(Issue.Level.Problem, "{0} This slider is way too short to have multiple reverses.", "timestamp -")
                         .WithCause("A slider has at least 2 reverses and is 250 ms or shorter (240 bpm 1/1) in an Easy, or 125 ms or shorter (240 bpm 1/2) in a Normal.")
                 },
 
                 {
                     "Warning",
-                    new IssueTemplate(Issue.Level.Warning, "{0} This slider is very short to have multiple reverses.", "timestamp - ")
+                    new IssueTemplate(Issue.Level.Warning, "{0} This slider is very short to have multiple reverses.", "timestamp -")
                         .WithCause("A slider has at least 2 reverses and is 333 ms or shorter (180 bpm 1/1) in an Easy, or 167 ms or shorter (180 bpm 1/2) in a Normal.")
                 }
             };

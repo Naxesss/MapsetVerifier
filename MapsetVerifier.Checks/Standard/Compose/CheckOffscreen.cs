@@ -56,19 +56,19 @@ namespace MapsetVerifier.Checks.Standard.Compose
             {
                 {
                     "Offscreen",
-                    new IssueTemplate(Issue.Level.Problem, "{0} {1} is offscreen.", "timestamp - ", "object")
+                    new IssueTemplate(Issue.Level.Problem, "{0} {1} is offscreen.", "timestamp -", "object")
                         .WithCause("The border of a hit object is partially off the screen in 4:3 aspect ratios.")
                 },
 
                 {
                     "Prevented",
-                    new IssueTemplate(Issue.Level.Warning, "{0} {1} would be offscreen, but the game prevents it.", "timestamp - ", "object")
+                    new IssueTemplate(Issue.Level.Warning, "{0} {1} would be offscreen, but the game prevents it.", "timestamp -", "object")
                         .WithCause("The .osu code implies the hit object is in a place where it would be off the 512x512 playfield area, but the game has moved it back inside the screen automatically.")
                 },
 
                 {
                     "Bezier Margin",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Slider body is possibly offscreen, ensure the entire white border is visible on a 4:3 aspect ratio.", "timestamp - ")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Slider body is possibly offscreen, ensure the entire white border is visible on a 4:3 aspect ratio.", "timestamp -")
                         .WithCause("The slider body of a bezier slider is approximated to be 1 osu!pixel away from being offscreen at some point on its curve.")
                 }
             };

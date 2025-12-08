@@ -47,11 +47,11 @@ namespace MapsetVerifier.Checks.Catch.Compose
             {
                 {
                     "SpinnerBefore",
-                    new IssueTemplate(Issue.Level.Problem, "{0} The spinner must be at least {1} ms apart from the previous object, currently {2} ms.", "timestamp - ", "required duration", "current duration").WithCause("The spinner starts too early.")
+                    new IssueTemplate(Issue.Level.Problem, "{0} The spinner must be at least {1} ms apart from the previous object, currently {2} ms.", "timestamp -", "required duration", "current duration").WithCause("The spinner starts too early.")
                 },
                 {
                     "SpinnerAfter",
-                    new IssueTemplate(Issue.Level.Problem, "{0} The spinner must be at least {1} ms apart from the next object, currently {2} ms.", "timestamp - ", "required duration", "current duration").WithCause("The spinner ends too late.")
+                    new IssueTemplate(Issue.Level.Problem, "{0} The spinner must be at least {1} ms apart from the next object, currently {2} ms.", "timestamp -", "required duration", "current duration").WithCause("The spinner ends too late.")
                 }
             };
 

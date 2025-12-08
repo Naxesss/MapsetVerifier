@@ -43,7 +43,7 @@ namespace MapsetVerifier.Checks.AllModes.Compose
             {
                 {
                     "Abnormal",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Slider contains {1} nodes.", "timestamp - ", "amount")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Slider contains {1} nodes.", "timestamp -", "amount")
                         .WithCause("A slider contains more nodes than 10 times the square root of its length in pixels.")
                 }
             };

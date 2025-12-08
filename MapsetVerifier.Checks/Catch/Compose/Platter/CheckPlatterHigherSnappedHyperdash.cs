@@ -39,7 +39,7 @@ public class CheckPlatterHigherSnappedHyperdash : BeatmapCheck
             { "HigherSnapFollowedByAntiFlow",
                 new IssueTemplate(Issue.Level.Warning,
                         "{0} Higher-snapped hyperdashes followed by antiflow.",
-                        "timestamp - ")
+                        "timestamp -")
             }
         };
     }

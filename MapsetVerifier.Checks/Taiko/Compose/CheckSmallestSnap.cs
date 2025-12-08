@@ -55,7 +55,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                     new IssueTemplate(
                         Issue.Level.Warning,
                         "{0} abnormally small gap, ensure it makes sense",
-                        "timestamp - "
+                        "timestamp -"
                     ).WithCause("Gap between notes may be too small")
                 }
             };

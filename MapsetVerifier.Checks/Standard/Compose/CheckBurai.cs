@@ -52,13 +52,13 @@ namespace MapsetVerifier.Checks.Standard.Compose
             {
                 {
                     "Definitely",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Burai.", "timestamp - ")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Burai.", "timestamp -")
                         .WithCause("The burai score of a slider shape, based on the distance and delta angle between intersecting parts of the curve, is very high.")
                 },
 
                 {
                     "Potentially",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Potentially burai.", "timestamp - ")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Potentially burai.", "timestamp -")
                         .WithCause("Same as the other check, but with a lower score threshold.")
                 }
             };

@@ -51,28 +51,28 @@ public class CheckHasEdgeDash : BeatmapCheck
             { "StrongDash",
                 new IssueTemplate(Issue.Level.Minor,
                         "{0} {1} is {2} away from becoming a hyper.",
-                        "timestamp - ", "object", "x")
+                        "timestamp -", "object", "x")
                     .WithCause(
                         "X amount of pixels off to become a hyperdash.")
             },
             { "EdgeDashMinor",
                 new IssueTemplate(Issue.Level.Minor,
                         "{0} {1} is {2} away from becoming a hyper.",
-                        "timestamp - ", "object", "x")
+                        "timestamp -", "object", "x")
                     .WithCause(
                         "X amount of pixels off to become a hyperdash.")
             },
             { "EdgeDash",
                 new IssueTemplate(Issue.Level.Warning,
                         "{0} {1} is {2} away from becoming a hyper.",
-                        "timestamp - ", "object", "x")
+                        "timestamp -", "object", "x")
                     .WithCause(
                         "X amount of pixels off to become a hyperdash.")
             },
             { "EdgeDashProblem",
                 new IssueTemplate(Issue.Level.Problem,
                         "{0} {1} is {2} away from becoming a hyper.",
-                        "timestamp - ", "object", "x")
+                        "timestamp -", "object", "x")
                     .WithCause(
                         "Usage of edge dashes on lower diffs.")
             }

@@ -48,7 +48,7 @@ namespace MapsetVerifier.Checks.Standard.Spread
             {
                 {
                     "Too Short",
-                    new IssueTemplate(Issue.Level.Warning, "{0} {1} ms, expected at least {2}.", "timestamp - ", "duration", "threshold")
+                    new IssueTemplate(Issue.Level.Warning, "{0} {1} ms, expected at least {2}.", "timestamp -", "duration", "threshold")
                         .WithCause("A slider in an Easy difficulty is less than 125 ms (240 bpm 1/2).")
                 }
             };

@@ -55,7 +55,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                     new IssueTemplate(
                         Issue.Level.Minor,
                         "{0} Note is too close to spinner",
-                        "timestamp - "
+                        "timestamp -"
                     ).WithCause("The note is too close to the spinner")
                 }
             };

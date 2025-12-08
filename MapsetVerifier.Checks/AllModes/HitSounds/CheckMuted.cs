@@ -43,25 +43,25 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
             {
                 {
                     "Warning Volume",
-                    new IssueTemplate(Issue.Level.Warning, "{0} {1}% volume {2}, this may be hard to hear over the song.", "timestamp - ", "percent", "active hit object")
+                    new IssueTemplate(Issue.Level.Warning, "{0} {1}% volume {2}, this may be hard to hear over the song.", "timestamp -", "percent", "active hit object")
                         .WithCause("An active hit object is at 10% or lower volume.")
                 },
 
                 {
                     "Minor Volume",
-                    new IssueTemplate(Issue.Level.Minor, "{0} {1}% volume {2}, this may be hard to hear over the song.", "timestamp - ", "percent", "active hit object")
+                    new IssueTemplate(Issue.Level.Minor, "{0} {1}% volume {2}, this may be hard to hear over the song.", "timestamp -", "percent", "active hit object")
                         .WithCause("An active hit object is at 20% or lower volume.")
                 },
 
                 {
                     "Passive Reverse",
-                    new IssueTemplate(Issue.Level.Warning, "{0} {1}% volume {2}, ensure there is no distinct sound here in the song.", "timestamp - ", "percent", "reverse")
+                    new IssueTemplate(Issue.Level.Warning, "{0} {1}% volume {2}, ensure there is no distinct sound here in the song.", "timestamp -", "percent", "reverse")
                         .WithCause("A slider reverse is at 10% or lower volume.")
                 },
 
                 {
                     "Passive",
-                    new IssueTemplate(Issue.Level.Minor, "{0} {1}% volume {2}, ensure there is no distinct sound here in the song.", "timestamp - ", "percent", "tick/tail")
+                    new IssueTemplate(Issue.Level.Minor, "{0} {1}% volume {2}, ensure there is no distinct sound here in the song.", "timestamp -", "percent", "tick/tail")
                         .WithCause("A passive hit object is at 10% or lower volume.")
                 }
             };

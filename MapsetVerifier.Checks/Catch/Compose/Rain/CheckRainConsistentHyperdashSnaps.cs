@@ -39,7 +39,7 @@ public class CheckRainConsistentHyperdashSnaps : BeatmapCheck
             { "DifferentSnap",
                 new IssueTemplate(Issue.Level.Warning,
                         "{0} Basic-snapped hyperdashes of different snap are used.",
-                        "timestamp - ")
+                        "timestamp -")
                     .WithCause("Different snapped basic-snapped hyperdashes.")
             }
         };

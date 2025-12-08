@@ -116,7 +116,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                     new IssueTemplate(
                         Issue.Level.Warning,
                         "{0} Abnormal finisher, ensure this makes sense",
-                        "timestamp - "
+                        "timestamp -"
                     ).WithCause("Finisher is potentially violating the Ranking Criteria")
                 },
                 {
@@ -124,7 +124,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                     new IssueTemplate(
                         Issue.Level.Problem,
                         "{0} Unrankable finisher",
-                        "timestamp - "
+                        "timestamp -"
                     ).WithCause("Finisher is violating the Ranking Criteria")
                 }
             };

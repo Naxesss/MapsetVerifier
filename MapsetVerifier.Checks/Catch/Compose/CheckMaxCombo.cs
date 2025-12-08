@@ -48,13 +48,13 @@ public class CheckMaxCombo : BeatmapCheck
             { "MaxComboSignificantly",
                 new IssueTemplate(Issue.Level.Warning,
                         "{0} The amount of combo exceeds the guideline of {1} significantly, currently it has {2}.",
-                        "timestamp - ", "guideline combo", "combo")
+                        "timestamp -", "guideline combo", "combo")
                     .WithCause("The combo amount exceeds the guideline significantly.")
             },
             { "MaxCombo",
                 new IssueTemplate(Issue.Level.Minor,
                         "{0} The amount of combo exceeds the guideline of {1}, currently it has {2}.",
-                        "timestamp - ", "guideline combo", "combo")
+                        "timestamp -", "guideline combo", "combo")
                     .WithCause("The combo amount exceeds the guideline.")
             }
         };

@@ -50,19 +50,19 @@ namespace MapsetVerifier.Checks.Standard.Spread
             {
                 {
                     "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Stack leniency should be at least {1}.", "timestamp - ", "stack leniency")
+                    new IssueTemplate(Issue.Level.Problem, "{0} Stack leniency should be at least {1}.", "timestamp -", "stack leniency")
                         .WithCause("Two objects are overlapping perfectly and are less than 1/1, 1/1, 1/2, or 1/4 apart (assuming 160 BPM), for E/N/H/I respectively.")
                 },
 
                 {
                     "Problem Failed Stack",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Failed stack, objects are {1} px apart, which is basically a perfect stack.", "timestamp - ", "gap")
+                    new IssueTemplate(Issue.Level.Problem, "{0} Failed stack, objects are {1} px apart, which is basically a perfect stack.", "timestamp -", "gap")
                         .WithCause("Same as the other check, except applies to non-stacked objects within 1/14th of a circle radius of one another.")
                 },
 
                 {
                     "Warning",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Stack leniency should be at least {1}.", "timestamp - ", "stack leniency")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Stack leniency should be at least {1}.", "timestamp -", "stack leniency")
                         .WithCause("Same as the other check, except only appears for insane difficulties, as this becomes a guideline.")
                 }
             };

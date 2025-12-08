@@ -50,12 +50,12 @@ namespace MapsetVerifier.Checks.Standard.Compose
             {
                 {
                     "Warning",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Slider edges are almost perfectly overlapping.", "timestamp - ").WithCause("The edges of a slider curve are 5 px or less apart, and a slider tick is 2 circle radii from the head.")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Slider edges are almost perfectly overlapping.", "timestamp -").WithCause("The edges of a slider curve are 5 px or less apart, and a slider tick is 2 circle radii from the head.")
                 },
 
                 {
                     "Anchor",
-                    new IssueTemplate(Issue.Level.Warning, "{0} {1} and red anchor overlap is possibly ambigious.", "timestamp - ", "Head/tail").WithCause("The head or tail of a slider is a distance of 10 px or less to a red node, having been more than 30 px away " + "at a point in time between the two.")
+                    new IssueTemplate(Issue.Level.Warning, "{0} {1} and red anchor overlap is possibly ambigious.", "timestamp -", "Head/tail").WithCause("The head or tail of a slider is a distance of 10 px or less to a red node, having been more than 30 px away " + "at a point in time between the two.")
                 }
             };
 

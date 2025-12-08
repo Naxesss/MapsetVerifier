@@ -46,7 +46,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                     new IssueTemplate(
                         Issue.Level.Problem,
                         "{0} Double barline",
-                        "timestamp - "
+                        "timestamp -"
                     ).WithCause(
                         "Red line is extremely close to a downbeat from the previous red line"
                     )
@@ -56,7 +56,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                     new IssueTemplate(
                         Issue.Level.Warning,
                         "{0} Potential double barline, doublecheck manually",
-                        "timestamp - "
+                        "timestamp -"
                     ).WithCause(
                         "Red line is extremely close to a downbeat from the previous red line"
                     )
@@ -66,7 +66,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                     new IssueTemplate(
                         Issue.Level.Warning,
                         "{0} Potential double barline due to rounding error, doublecheck manually",
-                        "timestamp - "
+                        "timestamp -"
                     ).WithCause(
                         "Rounding error"
                     )

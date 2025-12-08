@@ -44,19 +44,19 @@ namespace MapsetVerifier.Checks.Standard.Compose
             {
                 {
                     "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Space/time ratio is {1} times the expected, see e.g. {2}.", "timestamp - ", "times", "example objects")
+                    new IssueTemplate(Issue.Level.Problem, "{0} Space/time ratio is {1} times the expected, see e.g. {2}.", "timestamp -", "times", "example objects")
                         .WithCause(@"The space/time ratio between two objects is absurdly large in comparison to other objects with the same snapping prior.
                                     > Accounts for slider leniency by assuming that the gap is a circle's diameter smaller.")
                 },
 
                 {
                     "Warning",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Space/time ratio is {1} times the expected, see e.g. {2}.", "timestamp - ", "times", "example objects")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Space/time ratio is {1} times the expected, see e.g. {2}.", "timestamp -", "times", "example objects")
                         .WithCause("Same as the first check, but with slightly less absurd, yet often still extreme, differences.")
                 },
                 {
                     "Minor",
-                    new IssueTemplate(Issue.Level.Minor, "{0} Space/time ratio is {1} times the expected, see e.g. {2}.", "timestamp - ", "times", "example objects")
+                    new IssueTemplate(Issue.Level.Minor, "{0} Space/time ratio is {1} times the expected, see e.g. {2}.", "timestamp -", "times", "example objects")
                         .WithCause("Same as the first check, but with more common differences.")
                 }
             };
