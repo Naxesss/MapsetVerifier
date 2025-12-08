@@ -1,8 +1,8 @@
 ﻿import { Box, Flex, Text } from '@mantine/core';
 import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from "react-router-dom";
 import { useBeatmap } from '../../context/BeatmapContext';
 import { Beatmap } from '../../Types.ts';
-import {useLocation, useNavigate} from "react-router-dom";
 
 interface BeatmapCardProps {
   beatmap: Beatmap;

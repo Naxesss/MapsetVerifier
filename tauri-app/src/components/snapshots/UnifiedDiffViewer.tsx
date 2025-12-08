@@ -112,8 +112,8 @@ function DiffLine({ diff }: { diff: ApiSnapshotDiff }) {
         {diff.details.length > 0 && (
           <Stack gap={2} pl="md">
             {diff.details.map((detail, index) => (
-              <Text key={index} size="xs" c="dimmed">
-                • <OsuLink text={detail} />
+              <Text key={index} size="xs">
+                <OsuLink text={detail} />
               </Text>
             ))}
           </Stack>

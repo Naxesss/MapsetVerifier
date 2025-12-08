@@ -12,7 +12,7 @@ import { BeatmapProvider } from "./context/BeatmapContext.tsx";
 import { SettingsProvider } from "./context/SettingsContext.tsx";
 import { theme } from './theme/Theme.ts';
 import '@mantine/core/styles.css';
-import './styles/App.scss';
+import './theme/global.scss';
 
 export const cssVarResolver: CSSVariablesResolver = () => ({
   variables: {},

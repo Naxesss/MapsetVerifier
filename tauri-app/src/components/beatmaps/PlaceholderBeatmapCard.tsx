@@ -1,7 +1,7 @@
 ﻿import { Skeleton } from '@mantine/core';
 import BeatmapCard from './BeatmapCard.tsx';
 
-export default function PlaceholderBeatmapCard() {
+function PlaceholderBeatmapCard() {
   return (
     <Skeleton>
       <BeatmapCard
@@ -18,3 +18,5 @@ export default function PlaceholderBeatmapCard() {
     </Skeleton>
   );
 }
+
+export default PlaceholderBeatmapCard;
