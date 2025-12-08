@@ -65,7 +65,7 @@ function BeatmapCard({ beatmap }: BeatmapCardProps) {
       onClick={() => {
         setSelectedFolder(beatmap.folder)
         // No page open that uses a beatmap, redirect to checks page as default
-        if (location.pathname !== '/checks' && location.pathname !== '/snapshots') {
+        if (location.pathname !== '/checks' && location.pathname !== '/snapshots' && location.pathname !== '/overview') {
           navigate('/checks');
         }
       }}

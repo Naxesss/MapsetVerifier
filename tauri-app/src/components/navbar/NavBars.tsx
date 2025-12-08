@@ -30,7 +30,7 @@ const navItems = [
     to: '/overview',
     icon: IconTimeline,
     label: 'Overview',
-    disabled: true,
+    disabled: false,
   },
 ];
 

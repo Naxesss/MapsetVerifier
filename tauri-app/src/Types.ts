@@ -125,3 +125,203 @@ export type ApiSnapshotDiff = {
   newValue: string | null;
   details: string[];
 };
+
+// Audio Analysis Types
+export type AudioAnalysisResult = {
+  success: boolean;
+  errorMessage: string | null;
+  audioFilePath: string;
+  bitrateAnalysis: BitrateAnalysisResult | null;
+  channelAnalysis: ChannelAnalysisResult | null;
+  formatAnalysis: FormatAnalysisResult | null;
+  dynamicRangeAnalysis: DynamicRangeResult | null;
+  isCompliant: boolean;
+  complianceIssues: string[];
+};
+
+export type BitrateAnalysisResult = {
+  averageBitrate: number;
+  isVbr: boolean;
+  minBitrate: number | null;
+  maxBitrate: number | null;
+  bitrateOverTime: BitrateDataPoint[];
+  isCompliant: boolean;
+  complianceMessage: string;
+  maxAllowedBitrate: number;
+  minAllowedBitrate: number;
+};
+
+export type BitrateDataPoint = {
+  timeMs: number;
+  bitrate: number;
+};
+
+export type ChannelAnalysisResult = {
+  channelCount: number;
+  isMono: boolean;
+  isStereo: boolean;
+  leftChannelLevel: number;
+  rightChannelLevel: number;
+  balanceRatio: number;
+  severity: ImbalanceSeverity;
+  louderChannel: string;
+  phaseCorrelation: number;
+  stereoWidth: number;
+  balanceOverTime: ChannelBalanceDataPoint[];
+};
+
+export type ImbalanceSeverity = 'None' | 'Minor' | 'Warning' | 'Severe';
+
+export type ChannelBalanceDataPoint = {
+  timeMs: number;
+  leftLevel: number;
+  rightLevel: number;
+  balance: number;
+};
+
+export type FormatAnalysisResult = {
+  format: string;
+  rawFormat: string;
+  sampleRate: number;
+  isStandardSampleRate: boolean;
+  bitDepth: number;
+  codec: string;
+  durationMs: number;
+  durationFormatted: string;
+  fileSizeBytes: number;
+  fileSizeFormatted: string;
+  channels: number;
+  isCompliant: boolean;
+  complianceIssues: string[];
+  badgeType: string;
+};
+
+export type DynamicRangeResult = {
+  loudnessRange: number;
+  integratedLoudness: number;
+  truePeak: number;
+  peakLevel: number;
+  rmsLevel: number;
+  dynamicRange: number;
+  crestFactor: number;
+  compressionDetected: boolean;
+  compressionSeverity: CompressionSeverity;
+  clippingDetected: boolean;
+  clippingCount: number;
+  clippingMarkers: ClippingMarker[];
+  loudnessOverTime: LoudnessDataPoint[];
+};
+
+export type CompressionSeverity = 'None' | 'Light' | 'Moderate' | 'Heavy';
+
+export type ClippingMarker = {
+  timeMs: number;
+  durationMs: number;
+  peakLevel: number;
+  channel: string;
+};
+
+export type LoudnessDataPoint = {
+  timeMs: number;
+  momentaryLoudness: number;
+  shortTermLoudness: number;
+  peakLevel: number;
+  rmsLevel: number;
+};
+
+export type SpectralAnalysisResult = {
+  spectrogramData: SpectrogramFrame[];
+  frequencyBins: number[];
+  timePositions: number[];
+  minDb: number;
+  maxDb: number;
+  fftSize: number;
+  sampleRate: number;
+  peakFrequencies: PeakFrequency[];
+};
+
+export type SpectrogramFrame = {
+  timeMs: number;
+  magnitudes: number[];
+};
+
+export type PeakFrequency = {
+  frequencyHz: number;
+  magnitudeDb: number;
+  timeMs: number;
+  noteName: string;
+  centsDeviation: number;
+};
+
+export type FrequencyRange = {
+  name: string;
+  minHz: number;
+  maxHz: number;
+  color: string;
+  averageEnergyDb: number;
+};
+
+export type FrequencyAnalysisResult = {
+  fftData: FftDataPoint[];
+  fftWindowSize: number;
+  detectedNotes: DetectedNote[];
+  harmonicAnalysis: HarmonicAnalysis;
+  maskingResults: FrequencyMaskingResult[];
+  dominantFrequency: number;
+  fundamentalFrequency: number;
+};
+
+export type FftDataPoint = {
+  frequencyHz: number;
+  magnitudeDb: number;
+};
+
+export type DetectedNote = {
+  frequencyHz: number;
+  noteName: string;
+  midiNote: number;
+  centsDeviation: number;
+  confidence: number;
+};
+
+export type HarmonicAnalysis = {
+  harmonics: Harmonic[];
+  fundamentalHz: number;
+  harmonicToNoiseRatio: number;
+  bassEnergy: number;
+  midEnergy: number;
+  highEnergy: number;
+};
+
+export type Harmonic = {
+  harmonicNumber: number;
+  frequencyHz: number;
+  magnitudeDb: number;
+};
+
+export type FrequencyMaskingResult = {
+  centerFrequencyHz: number;
+  bandwidthHz: number;
+  severity: number;
+  description: string;
+};
+
+export type HitSoundBatchResult = {
+  totalFiles: number;
+  compliantFiles: number;
+  nonCompliantFiles: number;
+  results: HitSoundAnalysisResult[];
+};
+
+export type HitSoundAnalysisResult = {
+  filePath: string;
+  format: string;
+  bitrate: number;
+  durationMs: number;
+  channels: number;
+  sampleRate: number;
+  isCompliant: boolean;
+  issues: string[];
+  channelBalanceRatio: number;
+  hasImbalance: boolean;
+};

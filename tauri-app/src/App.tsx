@@ -6,12 +6,14 @@ import Checks from './components/checks/Checks.tsx';
 import Documentation from './components/documentation/Documentation.tsx';
 import Home from "./components/home/Home.tsx";
 import NavBars from './components/navbar/NavBars.tsx';
+import Overview from './components/overview/Overview.tsx';
 import Snapshots from './components/snapshots/Snapshots.tsx';
 import WindowBar from "./components/window/WindowBar.tsx";
 import { BeatmapProvider } from "./context/BeatmapContext.tsx";
 import { SettingsProvider } from "./context/SettingsContext.tsx";
 import { theme } from './theme/Theme.ts';
 import '@mantine/core/styles.css';
+import '@mantine/charts/styles.css';
 import './theme/global.scss';
 
 export const cssVarResolver: CSSVariablesResolver = () => ({
@@ -55,6 +57,7 @@ function App() {
                         <Route path="/documentation" element={<Documentation />} />
                         <Route path="/checks" element={<Checks />} />
                         <Route path="/snapshots" element={<Snapshots />} />
+                        <Route path="/overview" element={<Overview />} />
                         <Route path="*" element={<Text>404</Text>} />
                       </Route>
                     </Routes>

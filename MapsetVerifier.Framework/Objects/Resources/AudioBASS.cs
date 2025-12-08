@@ -23,6 +23,11 @@ namespace MapsetVerifier.Framework.Objects.Resources
             }
         }
 
+        /// <summary>
+        /// Ensures BASS is initialized. Can be called from other classes that need to use BASS directly.
+        /// </summary>
+        public static void EnsureInitialized() => Initialize();
+
         private static int CreateStream(string filePath)
         {
             Initialize();
