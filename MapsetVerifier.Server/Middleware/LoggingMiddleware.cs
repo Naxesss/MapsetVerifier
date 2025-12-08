@@ -6,9 +6,9 @@ using Serilog.Context;
 
 namespace MapsetVerifier.Server.Middleware
 {
-    public class RequestResponseLoggingMiddleware(
+    public class LoggingMiddleware(
         RequestDelegate next,
-        ILogger<RequestResponseLoggingMiddleware> logger)
+        ILogger<LoggingMiddleware> logger)
     {
         public async Task Invoke(HttpContext context)
         {
@@ -33,6 +33,6 @@ namespace MapsetVerifier.Server.Middleware
     public static class RequestResponseLoggingMiddlewareExtensions
     {
         public static IApplicationBuilder UseRequestResponseLogging(this IApplicationBuilder app)
-            => app.UseMiddleware<RequestResponseLoggingMiddleware>();
+            => app.UseMiddleware<LoggingMiddleware>();
     }
 }
