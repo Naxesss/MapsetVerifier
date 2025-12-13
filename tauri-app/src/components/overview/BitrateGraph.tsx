@@ -1,4 +1,4 @@
-﻿import { Text, Badge, Group, Paper, useMantineTheme } from '@mantine/core';
+﻿import {Text, Badge, Group, Paper, useMantineTheme, Flex} from '@mantine/core';
 import { LineChart } from '@mantine/charts';
 import { useMemo } from 'react';
 import { BitrateAnalysisResult } from '../../Types';
@@ -31,47 +31,49 @@ function BitrateGraph({ data }: BitrateGraphProps) {
   }, [data.bitrateOverTime, data.maxAllowedBitrate]);
 
   return (
-    <Paper p="md" radius="md" bg={theme.colors.dark[7]}>
-      <Group justify="space-between" mb="sm">
-        <Text fw={600}>Bitrate Analysis</Text>
-        <Group gap="xs">
-          <Badge color={data.isCompliant ? 'green' : 'red'} variant="light">
-            {data.isCompliant ? 'Compliant' : 'Non-Compliant'}
-          </Badge>
-          {data.isVbr && <Badge color="blue" variant="light">VBR</Badge>}
+    <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
+      <Group gap="sm">
+        <Group justify="space-between" mb="sm">
+          <Text fw={600}>Bitrate Analysis</Text>
+          <Group gap="xs">
+            <Badge color={data.isCompliant ? 'green' : 'red'} variant="light">
+              {data.isCompliant ? 'Compliant' : 'Non-Compliant'}
+            </Badge>
+            {data.isVbr && <Badge color="blue" variant="light">VBR</Badge>}
+          </Group>
         </Group>
-      </Group>
-      <Group gap="lg" mb="md">
-        <Text size="sm" c="dimmed">Average: <Text span fw={500} c="white">{data.averageBitrate.toFixed(0)} kbps</Text></Text>
-        {data.isVbr && data.minBitrate && data.maxBitrate && (
-          <>
-            <Text size="sm" c="dimmed">Min: <Text span fw={500} c="white">{data.minBitrate.toFixed(0)} kbps</Text></Text>
-            <Text size="sm" c="dimmed">Max: <Text span fw={500} c="white">{data.maxBitrate.toFixed(0)} kbps</Text></Text>
-          </>
+        <Group gap="lg" mb="md">
+          <Text size="sm" c="dimmed">Average: <Text span fw={500} c="white">{data.averageBitrate.toFixed(0)} kbps</Text></Text>
+          {data.isVbr && data.minBitrate && data.maxBitrate && (
+            <>
+              <Text size="sm" c="dimmed">Min: <Text span fw={500} c="white">{data.minBitrate.toFixed(0)} kbps</Text></Text>
+              <Text size="sm" c="dimmed">Max: <Text span fw={500} c="white">{data.maxBitrate.toFixed(0)} kbps</Text></Text>
+            </>
+          )}
+          <Text size="sm" c="dimmed">Allowed: <Text span fw={500} c="white">{data.minAllowedBitrate}-{data.maxAllowedBitrate} kbps</Text></Text>
+        </Group>
+        {chartData.length > 0 ? (
+          <LineChart
+            h={200}
+            data={chartData}
+            dataKey="time"
+            series={[{ name: 'bitrate', label: 'Bitrate', color: data.isCompliant ? 'green.5' : 'red.5' }]}
+            curveType="monotone"
+            withDots={false}
+            yAxisProps={{ domain: [0, maxBitrate] }}
+            xAxisProps={{ tickMargin: 10 }}
+            valueFormatter={(value) => `${value} kbps`}
+            referenceLines={[
+              { y: data.maxAllowedBitrate, label: 'Max', color: 'red.6' },
+              { y: data.minAllowedBitrate, label: 'Min', color: 'yellow.6' },
+            ]}
+            gridAxis="xy"
+          />
+        ) : (
+          <Text c="dimmed" ta="center" py="xl">No bitrate data available</Text>
         )}
-        <Text size="sm" c="dimmed">Allowed: <Text span fw={500} c="white">{data.minAllowedBitrate}-{data.maxAllowedBitrate} kbps</Text></Text>
+        <Text size="xs" c="dimmed" mt="xs">{data.complianceMessage}</Text>
       </Group>
-      {chartData.length > 0 ? (
-        <LineChart
-          h={200}
-          data={chartData}
-          dataKey="time"
-          series={[{ name: 'bitrate', label: 'Bitrate', color: data.isCompliant ? 'green.5' : 'red.5' }]}
-          curveType="monotone"
-          withDots={false}
-          yAxisProps={{ domain: [0, maxBitrate] }}
-          xAxisProps={{ tickMargin: 10 }}
-          valueFormatter={(value) => `${value} kbps`}
-          referenceLines={[
-            { y: data.maxAllowedBitrate, label: 'Max', color: 'red.6' },
-            { y: data.minAllowedBitrate, label: 'Min', color: 'yellow.6' },
-          ]}
-          gridAxis="xy"
-        />
-      ) : (
-        <Text c="dimmed" ta="center" py="xl">No bitrate data available</Text>
-      )}
-      <Text size="xs" c="dimmed" mt="xs">{data.complianceMessage}</Text>
     </Paper>
   );
 }

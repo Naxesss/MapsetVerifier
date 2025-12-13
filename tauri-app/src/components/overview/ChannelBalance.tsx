@@ -39,7 +39,7 @@ function ChannelBalance({ data }: ChannelBalanceProps) {
   const rightPercent = Math.round(data.rightChannelLevel * 100);
 
   return (
-    <Paper p="md" radius="md" bg={theme.colors.dark[7]}>
+    <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
       <Group justify="space-between" mb="sm">
         <Text fw={600}>Channel Balance</Text>
         <Group gap="xs">

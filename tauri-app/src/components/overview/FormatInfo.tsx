@@ -19,7 +19,7 @@ function FormatInfo({ data }: FormatInfoProps) {
   const theme = useMantineTheme();
 
   return (
-    <Paper p="md" radius="md" bg={theme.colors.dark[7]}>
+    <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
       <Group justify="space-between" mb="md">
         <Text fw={600}>Format Information</Text>
         <Group gap="xs">
