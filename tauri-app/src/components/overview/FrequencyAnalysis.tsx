@@ -55,7 +55,7 @@ function FrequencyAnalysis({ data, isLoading }: FrequencyAnalysisProps) {
 
   if (isLoading) {
     return (
-      <Paper p="md" radius="md" bg={theme.colors.dark[7]}>
+      <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
         <Text fw={600} mb="sm">Frequency Analysis</Text>
         <Center h={200}><Loader size="lg" /></Center>
       </Paper>
@@ -64,7 +64,7 @@ function FrequencyAnalysis({ data, isLoading }: FrequencyAnalysisProps) {
 
   if (!data) {
     return (
-      <Paper p="md" radius="md" bg={theme.colors.dark[7]}>
+      <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
         <Text fw={600} mb="sm">Frequency Analysis</Text>
         <Center h={200}><Text c="dimmed">No frequency data available</Text></Center>
       </Paper>
@@ -72,7 +72,7 @@ function FrequencyAnalysis({ data, isLoading }: FrequencyAnalysisProps) {
   }
 
   return (
-    <Paper p="md" radius="md" bg={theme.colors.dark[7]}>
+    <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
       <Group justify="space-between" mb="sm">
         <Text fw={600}>Frequency Analysis (FFT)</Text>
         <Text size="sm" c="dimmed">Window: {data.fftWindowSize}</Text>

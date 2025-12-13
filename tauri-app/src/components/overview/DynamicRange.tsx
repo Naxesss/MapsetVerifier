@@ -44,7 +44,7 @@ function DynamicRange({ data }: DynamicRangeProps) {
   }, [data.loudnessOverTime]);
 
   return (
-    <Paper p="md" radius="md" bg={theme.colors.dark[7]}>
+    <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
       <Group justify="space-between" mb="sm">
         <Text fw={600}>Dynamic Range Analysis</Text>
         <Group gap="xs">

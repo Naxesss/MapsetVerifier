@@ -98,14 +98,6 @@ function Overview() {
 
       {data && data.success && (
         <Flex gap="md" p="md" direction="column">
-          <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="md">
-            {data.formatAnalysis && <FormatInfo data={data.formatAnalysis} />}
-            {data.bitrateAnalysis && <BitrateGraph data={data.bitrateAnalysis} />}
-            {data.channelAnalysis && <ChannelBalance data={data.channelAnalysis} />}
-            {data.dynamicRangeAnalysis && <DynamicRange data={data.dynamicRangeAnalysis} />}
-            <Spectrogram data={spectrogramData} isLoading={spectrogramLoading} />
-            <FrequencyAnalysis data={frequencyData} isLoading={frequencyLoading} />
-          </SimpleGrid>
           {data.complianceIssues?.length > 0 && (
             <Alert color="yellow" title="Compliance Issues">
               <Stack gap="xs">
@@ -115,6 +107,14 @@ function Overview() {
               </Stack>
             </Alert>
           )}
+          <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="md">
+            {/*{data.formatAnalysis && <FormatInfo data={data.formatAnalysis} audioFilePath={data.audioFilePath} />}*/}
+            {/*{data.bitrateAnalysis && <BitrateGraph data={data.bitrateAnalysis} />}*/}
+            {/*{data.channelAnalysis && <ChannelBalance data={data.channelAnalysis} />}*/}
+            {/*{data.dynamicRangeAnalysis && <DynamicRange data={data.dynamicRangeAnalysis} />}*/}
+            <Spectrogram data={spectrogramData} isLoading={spectrogramLoading} />
+            {/*<FrequencyAnalysis data={frequencyData} isLoading={frequencyLoading} />*/}
+          </SimpleGrid>
         </Flex>
       )}
     </Box>

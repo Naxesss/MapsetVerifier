@@ -17,6 +17,7 @@ public static class AudioAnalysisService
     private const int MaxAllowedBitrateMp3 = 192;
     private const int MaxAllowedBitrateOgg = 208;
     private const int StandardSampleRate = 44100;
+    private const int MaxAllowedSampleRate = 48000;
 
     /// <summary>
     /// Performs complete audio analysis on the main audio file of a beatmap set.
@@ -70,15 +71,29 @@ public static class AudioAnalysisService
         var bitrate = Math.Round(AudioBASS.GetBitrate(audioPath));
         var duration = AudioBASS.GetDuration(audioPath);
 
+        var formatName = GetFormatName(format);
         var maxAllowed = (format & ChannelType.OGG) != 0 ? MaxAllowedBitrateOgg : MaxAllowedBitrateMp3;
         var isCompliant = bitrate >= MinAllowedBitrate && bitrate <= maxAllowed;
 
+        string complianceMessage;
         if (!isCompliant)
         {
-            var issue = bitrate < MinAllowedBitrate
-                ? $"Bitrate {bitrate} kbps is below minimum {MinAllowedBitrate} kbps"
-                : $"Bitrate {bitrate} kbps exceeds maximum {maxAllowed} kbps for {GetFormatName(format)}";
-            complianceIssues.Add(issue);
+            if (bitrate < MinAllowedBitrate)
+            {
+                var issue = $"Bitrate {bitrate} kbps is below minimum {MinAllowedBitrate} kbps (recommended for ranking)";
+                complianceIssues.Add(issue);
+                complianceMessage = $"Bitrate too low: {bitrate} kbps < {MinAllowedBitrate} kbps minimum. Use at least {MinAllowedBitrate} kbps if source quality allows.";
+            }
+            else
+            {
+                var issue = $"Bitrate {bitrate} kbps exceeds maximum {maxAllowed} kbps for {formatName}";
+                complianceIssues.Add(issue);
+                complianceMessage = $"Bitrate too high: {bitrate} kbps > {maxAllowed} kbps maximum for {formatName}. Re-encode to comply with ranking criteria.";
+            }
+        }
+        else
+        {
+            complianceMessage = $"Bitrate is within acceptable range ({MinAllowedBitrate}-{maxAllowed} kbps for {formatName})";
         }
 
         // Generate bitrate over time data (simplified - BASS reports average bitrate)
@@ -92,9 +107,7 @@ public static class AudioAnalysisService
             MaxBitrate = null,
             BitrateOverTime = bitrateOverTime,
             IsCompliant = isCompliant,
-            ComplianceMessage = isCompliant
-                ? "Bitrate is within acceptable range"
-                : $"Bitrate {bitrate} kbps is outside acceptable range ({MinAllowedBitrate}-{maxAllowed} kbps)",
+            ComplianceMessage = complianceMessage,
             MaxAllowedBitrate = maxAllowed,
             MinAllowedBitrate = MinAllowedBitrate
         };
@@ -194,14 +207,24 @@ public static class AudioAnalysisService
         var bitDepth = info.IsFloatingPoint ? 32 : 16; // Simplified detection
 
         var issues = new List<string>();
-        if (!isStandardSampleRate)
+
+        // Check if format is MP3 or Ogg Vorbis (required for ranking)
+        var isValidFormat = (format & ChannelType.MP3) != 0 || (format & ChannelType.OGG) != 0;
+        if (!isValidFormat)
         {
-            issues.Add($"Sample rate {info.SampleRate} Hz differs from standard 44100 Hz");
-            complianceIssues.Add($"Non-standard sample rate: {info.SampleRate} Hz");
+            issues.Add($"Audio format must be MP3 (.mp3) or Ogg Vorbis (.ogg), found: {formatName}");
+            complianceIssues.Add($"Invalid audio format: {formatName}. Must be MP3 or Ogg Vorbis");
+        }
+
+        // Check sample rate compliance (must not exceed 48 kHz)
+        if (info.SampleRate > MaxAllowedSampleRate)
+        {
+            issues.Add($"Sample rate {info.SampleRate} Hz exceeds maximum allowed {MaxAllowedSampleRate} Hz");
+            complianceIssues.Add($"Sample rate {info.SampleRate} Hz exceeds maximum {MaxAllowedSampleRate} Hz");
         }
 
         var badgeType = issues.Count == 0 ? "success" : "warning";
-        if (formatName == "Unknown") badgeType = "error";
+        if (formatName == "Unknown" || !isValidFormat) badgeType = "error";
 
         return new FormatAnalysisResult
         {
@@ -317,10 +340,31 @@ public static class AudioAnalysisService
             var hasImbalance = false;
             double balanceRatio = 1.0;
 
+            // Check format compliance (MP3 or Ogg Vorbis)
+            var isValidFormat = (format & ChannelType.MP3) != 0 || (format & ChannelType.OGG) != 0;
+            if (!isValidFormat)
+            {
+                issues.Add($"Invalid format: {GetFormatName(format)}. Must be MP3 or Ogg Vorbis");
+            }
+
+            // Check sample rate compliance
+            if (info.SampleRate > MaxAllowedSampleRate)
+            {
+                issues.Add($"Sample rate {info.SampleRate} Hz exceeds maximum {MaxAllowedSampleRate} Hz");
+            }
+
             // Check bitrate for compressed formats
-            if (((format & ChannelType.OGG) != 0 || (format & ChannelType.MP3) != 0) && bitrate < MinAllowedBitrate)
+            if (isValidFormat && bitrate < MinAllowedBitrate)
             {
                 issues.Add($"Bitrate {bitrate} kbps is below minimum {MinAllowedBitrate} kbps");
+            }
+            else if (isValidFormat)
+            {
+                var maxAllowed = (format & ChannelType.OGG) != 0 ? MaxAllowedBitrateOgg : MaxAllowedBitrateMp3;
+                if (bitrate > maxAllowed)
+                {
+                    issues.Add($"Bitrate {bitrate} kbps exceeds maximum {maxAllowed} kbps for {GetFormatName(format)}");
+                }
             }
 
             // Check channel imbalance
