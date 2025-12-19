@@ -180,10 +180,7 @@ namespace MapsetVerifier.Parser.Objects
         {
             (string, Type) key = (MapPath, t);
 
-            if (!ThreadSafeCacheHelper<T>.cache.ContainsKey(key))
-                ThreadSafeCacheHelper<T>.cache[key] = func();
-
-            return ThreadSafeCacheHelper<T>.cache[key];
+            return ThreadSafeCacheHelper<T>.cache.GetOrAdd(key, _ => func());
         }
 
         /*
