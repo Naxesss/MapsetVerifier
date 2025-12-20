@@ -5,6 +5,7 @@ import { DynamicRangeResult } from '../../Types';
 
 interface DynamicRangeProps {
   data: DynamicRangeResult;
+  durationMs: number;
 }
 
 function getCompressionColor(severity: string): string {
@@ -17,7 +18,7 @@ function getCompressionColor(severity: string): string {
   }
 }
 
-function DynamicRange({ data }: DynamicRangeProps) {
+function DynamicRange({ data, durationMs }: DynamicRangeProps) {
   const theme = useMantineTheme();
 
   // Transform data for Mantine AreaChart - sample data for performance

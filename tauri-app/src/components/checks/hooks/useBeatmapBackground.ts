@@ -2,7 +2,7 @@
 
 export interface UseBeatmapBackgroundResult {
   bgUrl?: string;
-  isLoaded: boolean;
+  isLoading: boolean;
 }
 
 export function useBeatmapBackground(folder?: string): UseBeatmapBackgroundResult {
@@ -40,5 +40,5 @@ export function useBeatmapBackground(folder?: string): UseBeatmapBackgroundResul
     };
   }, [folder]);
 
-  return { bgUrl, isLoaded: loaded };
+  return { bgUrl, isLoading: !loaded };
 }

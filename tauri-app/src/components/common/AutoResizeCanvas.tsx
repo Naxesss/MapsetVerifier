@@ -7,6 +7,7 @@ interface AutoResizeCanvasProps {
   // Optional: Use fixed resolution and scale with CSS instead of redrawing on resize
   fixedWidth?: number;
   fixedHeight?: number;
+  minHeight?: number | string;
 }
 
 const AutoResizeCanvas: React.FC<AutoResizeCanvasProps> = ({

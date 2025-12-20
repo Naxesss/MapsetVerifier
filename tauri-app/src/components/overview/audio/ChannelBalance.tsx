@@ -5,6 +5,7 @@ import { ChannelAnalysisResult } from '../../Types';
 
 interface ChannelBalanceProps {
   data: ChannelAnalysisResult;
+  durationMs: number;
 }
 
 function getSeverityColor(severity: string): string {
@@ -17,7 +18,7 @@ function getSeverityColor(severity: string): string {
   }
 }
 
-function ChannelBalance({ data }: ChannelBalanceProps) {
+function ChannelBalance({ data, durationMs }: ChannelBalanceProps) {
   const theme = useMantineTheme();
 
   // Transform data for Mantine AreaChart - sample data for performance

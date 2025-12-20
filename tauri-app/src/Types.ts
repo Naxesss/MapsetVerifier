@@ -183,7 +183,6 @@ export type FormatAnalysisResult = {
   format: string;
   rawFormat: string;
   sampleRate: number;
-  isStandardSampleRate: boolean;
   bitDepth: number;
   codec: string;
   durationMs: number;

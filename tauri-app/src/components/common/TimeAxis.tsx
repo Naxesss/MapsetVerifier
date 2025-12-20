@@ -18,7 +18,7 @@ interface TimeAxisProps {
  */
 function TimeAxis({ durationMs, height = 20, showTicks = true, intervalSeconds }: TimeAxisProps) {
   const theme = useMantineTheme();
-  const durationSeconds = durationMs / 1000;
+  const durationSeconds = (durationMs / 1000) - 1;
 
   // Calculate adaptive interval if not provided
   const getAdaptiveInterval = (duration: number): number => {
@@ -56,10 +56,19 @@ function TimeAxis({ durationMs, height = 20, showTicks = true, intervalSeconds }
   };
 
   return (
-    <Box style={{ position: 'relative', width: '100%', height, marginTop: 4 }}>
-      <svg width="100%" height={height} style={{ display: 'block' }}>
+    <Box style={{ position: 'relative', width: '100%', height, overflow: 'visible' }}>
+      <svg width="100%" height={height} style={{ display: 'block', overflow: 'visible' }}>
         {timeLabels.map((timeSec, idx) => {
           const xPercent = (timeSec / durationSeconds) * 100;
+
+          // Adjust textAnchor for edge labels to prevent clipping
+          let anchor: string = "middle";
+          if (xPercent <= 2) {
+            anchor = "start"; // Left edge - align text to the right of the position
+          } else if (xPercent >= 98) {
+            anchor = "end"; // Right edge - align text to the left of the position
+          }
+
           return (
             <g key={idx}>
               {/* Tick mark */}
@@ -77,7 +86,7 @@ function TimeAxis({ durationMs, height = 20, showTicks = true, intervalSeconds }
               <text
                 x={`${xPercent}%`}
                 y={showTicks ? 18 : 14}
-                textAnchor="middle"
+                textAnchor={anchor}
                 fill={theme.colors.dark[2]}
                 fontSize="10"
                 fontFamily={theme.fontFamily}

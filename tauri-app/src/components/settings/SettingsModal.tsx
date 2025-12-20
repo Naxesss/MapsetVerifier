@@ -15,6 +15,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
   const [showMinor, setShowMinor] = useState(settings.showMinor);
   const [showGamemodeDifficultyNames, setShowGamemodeDifficultyNames] = useState(settings.showGamemodeDifficultyNames);
   const [showSnapshotDiffView, setShowSnapshotDiffView] = useState(settings.showSnapshotDiffView);
+  const [showAdvancedAudioAnalysis, setShowAdvancedAudioAnalysis] = useState(settings.showAdvancedAudioAnalysis);
   const [gateInDev, setGateInDev] = useState(settings.gateInDev);
 
   // Keep local state in sync when modal is opened or settings change asynchronously
@@ -24,6 +25,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
       setShowMinor(settings.showMinor);
       setShowGamemodeDifficultyNames(settings.showGamemodeDifficultyNames);
       setShowSnapshotDiffView(settings.showSnapshotDiffView);
+      setShowAdvancedAudioAnalysis(settings.showAdvancedAudioAnalysis);
       setGateInDev(settings.gateInDev);
     }
   }, [opened, settings.songFolder, settings.showMinor, settings.gateInDev]);
@@ -35,6 +37,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
       showMinor,
       showGamemodeDifficultyNames,
       showSnapshotDiffView,
+      showAdvancedAudioAnalysis,
       gateInDev
     }));
     onClose();
@@ -96,6 +99,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
           label="Show additional info in snapshot comparison"
           checked={showSnapshotDiffView}
           onChange={(e) => setShowSnapshotDiffView(e.currentTarget.checked)}
+        />
+        <Switch
+          label="Show advanced audio analysis"
+          checked={showAdvancedAudioAnalysis}
+          onChange={(e) => setShowAdvancedAudioAnalysis(e.currentTarget.checked)}
         />
         {isDev && (
           <>

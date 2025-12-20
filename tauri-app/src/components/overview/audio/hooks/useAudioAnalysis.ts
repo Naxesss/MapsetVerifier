@@ -1,7 +1,7 @@
 ﻿import { useQuery } from '@tanstack/react-query';
-import { FetchError } from '../../../client/ApiHelper';
-import AudioAnalysisApi from '../../../client/AudioAnalysisApi';
-import { AudioAnalysisResult, SpectralAnalysisResult, FrequencyAnalysisResult, HitSoundBatchResult } from '../../../Types';
+import { FetchError } from '../../../../client/ApiHelper';
+import AudioAnalysisApi from '../../../../client/AudioAnalysisApi';
+import { AudioAnalysisResult, SpectralAnalysisResult, FrequencyAnalysisResult, HitSoundBatchResult } from '../../../../Types';
 
 interface UseAudioAnalysisArgs {
   folder?: string;

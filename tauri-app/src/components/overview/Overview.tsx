@@ -1,51 +1,19 @@
-﻿import { Alert, Text, Box, useMantineTheme, Flex, LoadingOverlay, Button, Group, Stack, SimpleGrid } from '@mantine/core';
-import { IconRefresh } from '@tabler/icons-react';
-import { useBeatmap } from '../../context/BeatmapContext';
-import { useSettings } from '../../context/SettingsContext';
-import { useBeatmapBackground } from '../checks/hooks/useBeatmapBackground';
-import BeatmapHeader from '../common/BeatmapHeader';
-import { useAudioAnalysis, useSpectrogram, useFrequencyAnalysis } from './hooks/useAudioAnalysis';
-import BitrateGraph from './BitrateGraph';
-import ChannelBalance from './ChannelBalance';
-import DynamicRange from './DynamicRange';
-import FormatInfo from './FormatInfo';
-import Spectrogram from './Spectrogram';
-import FrequencyAnalysis from './FrequencyAnalysis';
+import {Box, Button, Group, LoadingOverlay, Title, useMantineTheme} from "@mantine/core";
+import BeatmapHeader from "../common/BeatmapHeader.tsx";
+import {IconRefresh} from "@tabler/icons-react";
+import {useBeatmapBackground} from "../checks/hooks/useBeatmapBackground.ts";
+import {useBeatmap} from "../../context/BeatmapContext.tsx";
+import AudioOverview from "./audio/AudioOverview.tsx";
+import {useState} from "react";
+
+type Tab = "Metadata" | "Objects" | "Beatmap" | "Difficulty" | "Audio";
 
 function Overview() {
   const theme = useMantineTheme();
-  const { selectedFolder: folder } = useBeatmap();
-  const { settings } = useSettings();
-
-  const { data, isLoading, isError, error, refetch } = useAudioAnalysis({
-    folder,
-    songFolder: settings.songFolder,
-  });
-
-  const { data: spectrogramData, isLoading: spectrogramLoading } = useSpectrogram({
-    folder,
-    songFolder: settings.songFolder,
-  });
-
-  const { data: frequencyData, isLoading: frequencyLoading } = useFrequencyAnalysis({
-    folder,
-    songFolder: settings.songFolder,
-  });
-
-  const { bgUrl } = useBeatmapBackground(folder);
-
-  if (!folder) {
-    return <Text>No BeatmapSet selected.</Text>;
-  }
-
-  if (!settings.songFolder) {
-    return (
-      <Alert color="yellow" title="Song folder not set" withCloseButton>
-        <Text size="sm">Please set the song folder in settings to analyze audio.</Text>
-      </Alert>
-    );
-  }
-
+  const { selectedFolder } = useBeatmap();
+  const { bgUrl, isLoading } = useBeatmapBackground(selectedFolder);
+  const [activeTab, setActiveTab] = useState<Tab>()
+  
   return (
     <Box
       h="100%"
@@ -69,57 +37,30 @@ function Overview() {
               variant="default"
               size="xs"
               leftSection={<IconRefresh size={16} />}
-              onClick={() => refetch()}
+              onClick={() => window.location.reload()}
             >
-              Refresh Analysis
+              Refresh
             </Button>
           </Group>
+          <Title order={3}>Overview</Title>
+          {activeTab === "Audio" && <Tab tab="Audio" component={AudioOverview} />}
         </Group>
       </BeatmapHeader>
+    </Box>
+  );
+}
 
-      {isError && (
-        <Flex p="md">
-          <Alert color="red" title="Error analyzing audio" withCloseButton>
-            <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>{error?.message}</Text>
-            {error?.stackTrace && (
-              <Text mt="sm" size="xs" c="red.3" style={{ whiteSpace: 'pre-wrap' }}>{error.stackTrace}</Text>
-            )}
-          </Alert>
-        </Flex>
-      )}
+interface TabProps {
+  tab: Tab
+  component: React.FC
+}
 
-      {data && !data.success && (
-        <Flex p="md">
-          <Alert color="yellow" title="Analysis failed">
-            <Text size="sm">{data.errorMessage}</Text>
-          </Alert>
-        </Flex>
-      )}
-
-      {data && data.success && (
-        <Flex gap="md" p="md" direction="column">
-          {data.complianceIssues?.length > 0 && (
-            <Alert color="yellow" title="Compliance Issues">
-              <Stack gap="xs">
-                {data.complianceIssues.map((issue, idx) => (
-                  <Text key={idx} size="sm">• {issue}</Text>
-                ))}
-              </Stack>
-            </Alert>
-          )}
-          <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="md">
-            {/*{data.formatAnalysis && <FormatInfo data={data.formatAnalysis} audioFilePath={data.audioFilePath} />}*/}
-            {/*{data.bitrateAnalysis && <BitrateGraph data={data.bitrateAnalysis} />}*/}
-            {/*{data.channelAnalysis && <ChannelBalance data={data.channelAnalysis} />}*/}
-            {/*{data.dynamicRangeAnalysis && <DynamicRange data={data.dynamicRangeAnalysis} />}*/}
-            <Spectrogram data={spectrogramData} isLoading={spectrogramLoading} />
-            {/*<FrequencyAnalysis data={frequencyData} isLoading={frequencyLoading} />*/}
-          </SimpleGrid>
-        </Flex>
-      )}
+function Tab(props: TabProps) {
+  return (
+    <Box>
+      <props.component />
     </Box>
   );
 }
 
 export default Overview;
-

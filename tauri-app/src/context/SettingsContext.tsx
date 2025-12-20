@@ -8,6 +8,7 @@ export type Settings = {
   showMinor: boolean;
   showGamemodeDifficultyNames: boolean;
   showSnapshotDiffView: boolean;
+  showAdvancedAudioAnalysis: boolean;
   // DEV-only: whether to gate Backend in development mode
   gateInDev: boolean;
 };
@@ -23,6 +24,7 @@ const defaultSettings: Settings = {
   showMinor: false,
   showGamemodeDifficultyNames: true,
   showSnapshotDiffView: false,
+  showAdvancedAudioAnalysis: false,
   gateInDev: false,
 };
 

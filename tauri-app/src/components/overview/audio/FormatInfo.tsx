@@ -21,7 +21,6 @@ function FormatInfo({ data, audioFilePath }: FormatInfoProps) {
 
   // Check if sample rate exceeds 48 kHz
   const sampleRateExceeds48kHz = data.sampleRate > 48000;
-  const sampleRateColor = sampleRateExceeds48kHz ? 'red.4' : data.isStandardSampleRate ? 'green.4' : 'yellow.4';
 
   // Check format compliance (MP3 or Ogg Vorbis)
   const isValidFormat = data.format.toLowerCase() === 'mp3' || data.format.toLowerCase() === 'ogg';
@@ -67,37 +66,11 @@ function FormatInfo({ data, audioFilePath }: FormatInfoProps) {
           <Text fw={500}>{data.channels === 1 ? 'Mono' : data.channels === 2 ? 'Stereo' : `${data.channels}ch`}</Text>
         </Stack>
         <Stack gap={2}>
-          <Group gap={4} align="center">
-            <Text size="xs" c="dimmed">Sample Rate</Text>
-            <Tooltip label="Maximum allowed: 48 kHz">
-              <IconInfoCircle size={12} style={{ color: theme.colors.gray[6], cursor: 'help' }} />
-            </Tooltip>
-          </Group>
-          <Group gap={4}>
-            <Text fw={500} c={sampleRateColor}>
-              {(data.sampleRate / 1000).toFixed(1)} kHz
-            </Text>
-            {sampleRateExceeds48kHz ? (
-              <ThemeIcon size="xs" color="red" variant="light">
-                <IconX size={12} />
-              </ThemeIcon>
-            ) : data.isStandardSampleRate ? (
-              <ThemeIcon size="xs" color="green" variant="light">
-                <IconCheck size={12} />
-              </ThemeIcon>
-            ) : (
-              <ThemeIcon size="xs" color="yellow" variant="light">
-                <IconAlertTriangle size={12} />
-              </ThemeIcon>
-            )}
-          </Group>
+          <Text size="xs" c="dimmed">Sample Rate</Text>
+          <Text fw={500}>{(data.sampleRate / 1000).toFixed(1)} kHz</Text>
           {sampleRateExceeds48kHz && (
             <Text size="xs" c="red.4">Exceeds 48 kHz limit</Text>
           )}
-        </Stack>
-        <Stack gap={2}>
-          <Text size="xs" c="dimmed">Bit Depth</Text>
-          <Text fw={500}>{data.bitDepth}-bit</Text>
         </Stack>
         <Stack gap={2}>
           <Group gap={4} align="center">
@@ -121,7 +94,7 @@ function FormatInfo({ data, audioFilePath }: FormatInfoProps) {
               {isValidFormat ? <IconCheck size={12} /> : <IconX size={12} />}
             </ThemeIcon>
             <Text size="xs" c={isValidFormat ? 'green.4' : 'red.4'}>
-              Format: MP3 or Ogg Vorbis {isValidFormat ? '✓' : '✗'}
+              Format is MP3 or Ogg Vorbis
             </Text>
           </Group>
           <Group gap="xs">
@@ -129,7 +102,7 @@ function FormatInfo({ data, audioFilePath }: FormatInfoProps) {
               {!sampleRateExceeds48kHz ? <IconCheck size={12} /> : <IconX size={12} />}
             </ThemeIcon>
             <Text size="xs" c={!sampleRateExceeds48kHz ? 'green.4' : 'red.4'}>
-              Sample Rate ≤ 48 kHz {!sampleRateExceeds48kHz ? '✓' : '✗'}
+              Sample Rate 48 kHz or below
             </Text>
           </Group>
         </Stack>
@@ -152,15 +125,6 @@ function FormatInfo({ data, audioFilePath }: FormatInfoProps) {
             ))}
           </List>
         </Stack>
-      )}
-
-      {data.isCompliant && data.complianceIssues?.length === 0 && (
-        <Group gap="xs" p="xs" bg={theme.colors.dark[6]} style={{ borderRadius: theme.radius.sm }}>
-          <ThemeIcon color="green" size="sm" variant="light">
-            <IconCheck size={14} />
-          </ThemeIcon>
-          <Text size="sm" c="green.4">All format requirements met for ranking</Text>
-        </Group>
       )}
     </Paper>
   );
