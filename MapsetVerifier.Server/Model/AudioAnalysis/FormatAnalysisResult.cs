@@ -26,11 +26,6 @@ public readonly struct FormatAnalysisResult
     public bool IsStandardSampleRate { get; init; }
     
     /// <summary>
-    /// Bit depth (16-bit, 24-bit, etc.).
-    /// </summary>
-    public int BitDepth { get; init; }
-    
-    /// <summary>
     /// Codec information string.
     /// </summary>
     public string Codec { get; init; }

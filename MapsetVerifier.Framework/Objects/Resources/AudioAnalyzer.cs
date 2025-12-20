@@ -102,7 +102,9 @@ public static class AudioAnalyzer
                 Bass.ChannelGetInfo(stream, out var channelInfo);
                 var length = Bass.ChannelGetLength(stream);
                 var seconds = Bass.ChannelBytes2Seconds(stream, length);
-                var totalSamples = (int)(seconds * 1000 / sampleIntervalMs);
+
+                // Calculate estimated samples (rounded up to ensure we don't miss the end)
+                var estimatedSamples = (int)Math.Ceiling(seconds * 1000 / sampleIntervalMs);
 
                 var peakLeft = 0f;
                 var peakRight = 0f;
@@ -115,11 +117,14 @@ public static class AudioAnalyzer
                 var levels = new float[channelInfo.Channels];
                 var intervalSeconds = sampleIntervalMs / 1000f;
 
-                for (var i = 0; i < totalSamples; i++)
+                // Process samples until the stream ends
+                var sampleIndex = 0;
+                while (true)
                 {
                     if (!Bass.ChannelGetLevel(stream, levels, intervalSeconds, 0))
                     {
                         if (Bass.LastError == Errors.Ended) break;
+                        sampleIndex++;
                         continue;
                     }
 
@@ -137,8 +142,10 @@ public static class AudioAnalyzer
                     if (left >= 0.99f || right >= 0.99f)
                     {
                         clippingCount++;
-                        clippingTimestamps.Add(i * sampleIntervalMs);
+                        clippingTimestamps.Add(sampleIndex * sampleIntervalMs);
                     }
+
+                    sampleIndex++;
                 }
 
                 var rmsLeft = sampleCount > 0 ? Math.Sqrt(sumSquaredLeft / sampleCount) : 0;
@@ -175,26 +182,33 @@ public static class AudioAnalyzer
                 Bass.ChannelGetInfo(stream, out var channelInfo);
                 var length = Bass.ChannelGetLength(stream);
                 var seconds = Bass.ChannelBytes2Seconds(stream, length);
-                var totalSamples = (int)(seconds * 1000 / sampleIntervalMs);
 
-                var samples = new List<ChannelLevelSample>();
+                // Calculate estimated samples (rounded up to ensure we don't miss the end)
+                var estimatedSamples = (int)Math.Ceiling(seconds * 1000 / sampleIntervalMs);
+
+                var samples = new List<ChannelLevelSample>(estimatedSamples);
                 var levels = new float[channelInfo.Channels];
                 var intervalSeconds = sampleIntervalMs / 1000f;
 
-                for (var i = 0; i < totalSamples; i++)
+                // Process samples until the stream ends
+                var sampleIndex = 0;
+                while (true)
                 {
                     if (!Bass.ChannelGetLevel(stream, levels, intervalSeconds, 0))
                     {
                         if (Bass.LastError == Errors.Ended) break;
+                        sampleIndex++;
                         continue;
                     }
 
                     samples.Add(new ChannelLevelSample
                     {
-                        TimeMs = i * sampleIntervalMs,
+                        TimeMs = sampleIndex * sampleIntervalMs,
                         LeftLevel = levels[0],
                         RightLevel = channelInfo.Channels > 1 ? levels[1] : levels[0]
                     });
+
+                    sampleIndex++;
                 }
 
                 return samples;
@@ -219,13 +233,16 @@ public static class AudioAnalyzer
                 Bass.ChannelGetInfo(stream, out var channelInfo);
                 var length = Bass.ChannelGetLength(stream);
                 var seconds = Bass.ChannelBytes2Seconds(stream, length);
-                var totalFrames = (int)(seconds * 1000 / timeResolutionMs);
+
+                // Calculate estimated frames (rounded up to ensure we don't miss the end)
+                var estimatedFrames = (int)Math.Ceiling(seconds * 1000 / timeResolutionMs);
 
                 var fftFlag = GetFftFlag(fftSize);
                 var fftLength = fftSize / 2;
-                var frames = new List<SpectrogramFrame>();
+                var frames = new List<SpectrogramFrame>(estimatedFrames);
                 var fftData = new float[fftLength];
-                var intervalSeconds = timeResolutionMs / 1000f;
+                var intervalSeconds = timeResolutionMs / 1000.0;
+                var intervalBytes = Bass.ChannelSeconds2Bytes(stream, intervalSeconds);
 
                 // Calculate frequency bins
                 var frequencyBins = new double[fftLength];
@@ -235,12 +252,19 @@ public static class AudioAnalyzer
                     frequencyBins[i] = i * binWidth;
                 }
 
-                for (var i = 0; i < totalFrames; i++)
+                // Process frames until the stream ends
+                var currentPosition = 0L;
+                while (currentPosition < length)
                 {
+                    // Get current time from actual stream position
+                    var currentTimeMs = Bass.ChannelBytes2Seconds(stream, currentPosition) * 1000;
+
                     var bytesRead = Bass.ChannelGetData(stream, fftData, (int)fftFlag);
                     if (bytesRead <= 0)
                     {
                         if (Bass.LastError == Errors.Ended) break;
+                        currentPosition += intervalBytes;
+                        Bass.ChannelSetPosition(stream, currentPosition);
                         continue;
                     }
 
@@ -254,9 +278,13 @@ public static class AudioAnalyzer
 
                     frames.Add(new SpectrogramFrame
                     {
-                        TimeMs = i * timeResolutionMs,
+                        TimeMs = currentTimeMs,
                         Magnitudes = magnitudes
                     });
+
+                    // Advance by the time resolution interval
+                    currentPosition += intervalBytes;
+                    Bass.ChannelSetPosition(stream, currentPosition);
                 }
 
                 return new SpectrogramData
@@ -277,7 +305,7 @@ public static class AudioAnalyzer
     private static int CreateStream(string filePath)
     {
         AudioBASS.EnsureInitialized();
-        var stream = Bass.CreateStream(filePath, 0, 0, BassFlags.Decode | BassFlags.Float);
+        var stream = Bass.CreateStream(filePath, 0, 0, BassFlags.Decode);
         if (stream == 0)
             throw new BadImageFormatException($"Could not create stream of \"{Path.GetFileName(filePath)}\", error \"{Bass.LastError}\".");
         return stream;

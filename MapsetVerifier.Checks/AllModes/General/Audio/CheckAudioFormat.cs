@@ -82,13 +82,13 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             if (exception != null)
                 yield return new Issue(GetTemplate("Exception"), null, audioName, Common.ExceptionTag(exception));
 
-            else if ((ChannelType.MP3 & actualFormat) != ChannelType.MP3 && (ChannelType.OGG & actualFormat) != ChannelType.OGG)
+            else if (actualFormat != ChannelType.MP3 && actualFormat != ChannelType.OGG)
                 yield return new Issue(GetTemplate("Incorrect Format"), null, audioName, AudioBASS.EnumToString(actualFormat));
 
-            else if (!audioName.ToLower().EndsWith(".mp3") && (ChannelType.MP3 & actualFormat) == ChannelType.MP3)
+            else if (!audioName.ToLower().EndsWith(".mp3") && actualFormat == ChannelType.MP3)
                 yield return new Issue(GetTemplate("Incorrect Extension"), null, audioName, AudioBASS.EnumToString(actualFormat), ".mp3");
 
-            else if (!audioName.ToLower().EndsWith(".ogg") && (ChannelType.OGG & actualFormat) == ChannelType.OGG)
+            else if (!audioName.ToLower().EndsWith(".ogg") && actualFormat == ChannelType.OGG)
                 yield return new Issue(GetTemplate("Incorrect Extension"), null, audioName, AudioBASS.EnumToString(actualFormat), ".ogg");
         }
     }

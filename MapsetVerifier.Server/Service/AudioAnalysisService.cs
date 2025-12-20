@@ -72,7 +72,7 @@ public static class AudioAnalysisService
         var duration = AudioBASS.GetDuration(audioPath);
 
         var formatName = GetFormatName(format);
-        var maxAllowed = (format & ChannelType.OGG) != 0 ? MaxAllowedBitrateOgg : MaxAllowedBitrateMp3;
+        var maxAllowed = format is ChannelType.MP3 ? MaxAllowedBitrateMp3 : MaxAllowedBitrateOgg;
         var isCompliant = bitrate >= MinAllowedBitrate && bitrate <= maxAllowed;
 
         string complianceMessage;
@@ -204,12 +204,11 @@ public static class AudioAnalysisService
 
         var formatName = GetFormatName(format);
         var isStandardSampleRate = info.SampleRate == StandardSampleRate;
-        var bitDepth = info.IsFloatingPoint ? 32 : 16; // Simplified detection
 
         var issues = new List<string>();
 
         // Check if format is MP3 or Ogg Vorbis (required for ranking)
-        var isValidFormat = (format & ChannelType.MP3) != 0 || (format & ChannelType.OGG) != 0;
+        var isValidFormat = format is ChannelType.MP3 or ChannelType.OGG;
         if (!isValidFormat)
         {
             issues.Add($"Audio format must be MP3 (.mp3) or Ogg Vorbis (.ogg), found: {formatName}");
@@ -232,7 +231,6 @@ public static class AudioAnalysisService
             RawFormat = AudioBASS.EnumToString(format),
             SampleRate = info.SampleRate,
             IsStandardSampleRate = isStandardSampleRate,
-            BitDepth = bitDepth,
             Codec = GetCodecInfo(format),
             DurationMs = info.DurationMs,
             DurationFormatted = FormatDuration(info.DurationMs),
@@ -341,7 +339,7 @@ public static class AudioAnalysisService
             double balanceRatio = 1.0;
 
             // Check format compliance (MP3 or Ogg Vorbis)
-            var isValidFormat = (format & ChannelType.MP3) != 0 || (format & ChannelType.OGG) != 0;
+            var isValidFormat = format is ChannelType.MP3 or ChannelType.OGG;
             if (!isValidFormat)
             {
                 issues.Add($"Invalid format: {GetFormatName(format)}. Must be MP3 or Ogg Vorbis");
@@ -360,7 +358,7 @@ public static class AudioAnalysisService
             }
             else if (isValidFormat)
             {
-                var maxAllowed = (format & ChannelType.OGG) != 0 ? MaxAllowedBitrateOgg : MaxAllowedBitrateMp3;
+                var maxAllowed = format is ChannelType.MP3 ? MaxAllowedBitrateMp3 : MaxAllowedBitrateOgg;
                 if (bitrate > maxAllowed)
                 {
                     issues.Add($"Bitrate {bitrate} kbps exceeds maximum {maxAllowed} kbps for {GetFormatName(format)}");
@@ -554,9 +552,11 @@ public static class AudioAnalysisService
 
     private static IEnumerable<BitrateDataPoint> GenerateBitrateOverTime(double durationMs, double avgBitrate)
     {
+        // Use 1 second intervals to prevent memory issues
+        const int intervalMs = 1000;
+
         var points = new List<BitrateDataPoint>();
-        var interval = Math.Max(1000, durationMs / 100); // Max 100 points
-        for (double t = 0; t < durationMs; t += interval)
+        for (int t = 0; t < durationMs; t += intervalMs)
         {
             points.Add(new BitrateDataPoint { TimeMs = t, Bitrate = avgBitrate });
         }
@@ -610,22 +610,28 @@ public static class AudioAnalysisService
 
     private static string GetFormatName(ChannelType format)
     {
-        if ((format & ChannelType.MP3) != 0) return "MP3";
-        if ((format & ChannelType.OGG) != 0) return "OGG";
-        if ((format & ChannelType.Wave) != 0) return "WAV";
-        if ((format & ChannelType.AIFF) != 0) return "AIFF";
-        if ((format & ChannelType.FLAC) != 0) return "FLAC";
-        return "Unknown";
+        return format switch
+        {
+            ChannelType.MP3 => "MP3",
+            ChannelType.OGG => "OGG",
+            ChannelType.Wave => "WAV",
+            ChannelType.AIFF => "AIFF",
+            ChannelType.FLAC => "FLAC",
+            _ => "Unknown"
+        };
     }
 
     private static string GetCodecInfo(ChannelType format)
     {
-        if ((format & ChannelType.MP3) != 0) return "MPEG Audio Layer III";
-        if ((format & ChannelType.OGG) != 0) return "Ogg Vorbis";
-        if ((format & ChannelType.Wave) != 0) return "PCM Wave";
-        if ((format & ChannelType.AIFF) != 0) return "Audio Interchange File Format";
-        if ((format & ChannelType.FLAC) != 0) return "Free Lossless Audio Codec";
-        return "Unknown Codec";
+        return format switch
+        {
+            ChannelType.MP3 => "MPEG Audio Layer III",
+            ChannelType.OGG => "Ogg Vorbis",
+            ChannelType.Wave => "PCM Wave",
+            ChannelType.AIFF => "Audio Interchange File Format",
+            ChannelType.FLAC => "Free Lossless Audio Codec",
+            _ => "Unknown Codec"
+        };
     }
 
     private static string FormatDuration(double durationMs)
