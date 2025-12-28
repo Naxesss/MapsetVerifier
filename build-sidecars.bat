@@ -70,7 +70,8 @@ if not exist "%OUT_SUB%" (
 echo [INFO][%RID%] Running dotnet publish...
 set "PUBLISH_LOG=%OUT_SUB%\publish.log"
 call dotnet publish "%PROJECT_PATH%" -c %PUBLISH_CONFIGURATION% -r %RID% -o "%OUT_SUB%" --self-contained true ^
- /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true /p:EnableCompressionInSingleFile=true /p:UseAppHost=true %EXTRA_PUBLISH_ARGS% > "%PUBLISH_LOG%" 2>&1
+ /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true /p:EnableCompressionInSingleFile=true /p:UseAppHost=true ^
+ /p:DebugType=none /p:DebugSymbols=false /p:StripSymbols=true /p:PublishReadyToRun=false %EXTRA_PUBLISH_ARGS% > "%PUBLISH_LOG%" 2>&1
 if errorlevel 1 (
   call :logError PUBLISH_FAIL "dotnet publish failed for %RID%. See %PUBLISH_LOG%"
   exit /b 1
@@ -173,8 +174,8 @@ goto :postPublish
 echo [INFO] Dist contents:
 if not exist "%DIST_DIR%" call :logError DIST_MISSING "Dist directory missing: %DIST_DIR%"
 if exist "%DIST_DIR%" (
-  dir /b "%DIST_DIR%"
-  if errorlevel 1 call :logError DIST_LIST "Failed to list dist directory"
+  dir /b "%DIST_DIR%" 2>nul
+  rem Don't check errorlevel from dir as it can be unreliable
 )
 if exist "%DIST_DIR%\*" (
   echo [INFO] Artifacts detected in dist.

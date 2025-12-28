@@ -1,0 +1,43 @@
+﻿<linker>
+  <!-- Keep only difficulty calculation related types from osu.Game -->
+  <assembly fullname="ppy.osu.Game">
+    <!-- Keep difficulty calculation infrastructure -->
+    <type fullname="osu.Game.Rulesets.Difficulty.DifficultyCalculator" preserve="all" />
+    <type fullname="osu.Game.Rulesets.Difficulty.DifficultyAttributes" preserve="all" />
+    <type fullname="osu.Game.Rulesets.Difficulty.Skills.Skill" preserve="all" />
+    <type fullname="osu.Game.Rulesets.Difficulty.Preprocessing.DifficultyHitObject" preserve="all" />
+    <type fullname="osu.Game.Beatmaps.FlatWorkingBeatmap" preserve="all" />
+    <type fullname="osu.Game.Beatmaps.IWorkingBeatmap" preserve="all" />
+    <type fullname="osu.Game.Beatmaps.IBeatmap" preserve="all" />
+    <type fullname="osu.Game.Beatmaps.BeatmapInfo" preserve="all" />
+    <type fullname="osu.Game.Rulesets.IRulesetInfo" preserve="all" />
+    <type fullname="osu.Game.Rulesets.Ruleset" preserve="all" />
+    <type fullname="osu.Game.Rulesets.Mods.Mod" preserve="all" />
+  </assembly>
+
+  <!-- Keep difficulty calculators from each ruleset -->
+  <assembly fullname="osu.Game.Rulesets.Osu">
+    <type fullname="osu.Game.Rulesets.Osu.Difficulty.OsuDifficultyCalculator" preserve="all" />
+    <type fullname="osu.Game.Rulesets.Osu.Difficulty.OsuDifficultyAttributes" preserve="all" />
+    <type fullname="osu.Game.Rulesets.Osu.Difficulty.Skills.*" preserve="all" />
+  </assembly>
+
+  <assembly fullname="osu.Game.Rulesets.Taiko">
+    <type fullname="osu.Game.Rulesets.Taiko.Difficulty.TaikoDifficultyCalculator" preserve="all" />
+    <type fullname="osu.Game.Rulesets.Taiko.Difficulty.TaikoDifficultyAttributes" preserve="all" />
+    <type fullname="osu.Game.Rulesets.Taiko.Difficulty.Skills.*" preserve="all" />
+  </assembly>
+
+  <assembly fullname="osu.Game.Rulesets.Catch">
+    <type fullname="osu.Game.Rulesets.Catch.Difficulty.CatchDifficultyCalculator" preserve="all" />
+    <type fullname="osu.Game.Rulesets.Catch.Difficulty.CatchDifficultyAttributes" preserve="all" />
+    <type fullname="osu.Game.Rulesets.Catch.Difficulty.Skills.*" preserve="all" />
+  </assembly>
+
+  <assembly fullname="osu.Game.Rulesets.Mania">
+    <type fullname="osu.Game.Rulesets.Mania.Difficulty.ManiaDifficultyCalculator" preserve="all" />
+    <type fullname="osu.Game.Rulesets.Mania.Difficulty.ManiaDifficultyAttributes" preserve="all" />
+    <type fullname="osu.Game.Rulesets.Mania.Difficulty.Skills.*" preserve="all" />
+  </assembly>
+</linker>
+
