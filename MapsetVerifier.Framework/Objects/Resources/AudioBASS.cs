@@ -72,16 +72,28 @@ namespace MapsetVerifier.Framework.Objects.Resources
             }
         }
 
-        /// <summary> Returns the audio duration in ms, given the full path. </summary>
+        /// <summary> Returns the audio duration in ms, given the full path. Returns 0 for empty/invalid files. </summary>
         public static double GetDuration(string filePath)
         {
             lock (locks.GetOrAdd(filePath, new object()))
             {
                 var stream = CreateStream(filePath);
                 var length = Bass.ChannelGetLength(stream);
+
+                // ChannelGetLength returns -1 on error (e.g., empty files)
+                if (length < 0)
+                {
+                    FreeStream(stream);
+                    return 0;
+                }
+
                 var seconds = Bass.ChannelBytes2Seconds(stream, length);
 
                 FreeStream(stream);
+
+                // ChannelBytes2Seconds returns -1 on error
+                if (seconds < 0)
+                    return 0;
 
                 return seconds * 1000;
             }
