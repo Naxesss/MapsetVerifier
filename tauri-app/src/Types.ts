@@ -450,3 +450,63 @@ export type ColourInfo = {
   hspLuminosity: number;
   luminosityWarning: string;
 };
+
+// Beatmap Analysis Types
+export type BeatmapAnalysisResult = {
+  success: boolean;
+  errorMessage: string | null;
+  statistics: DifficultyStatistics[];
+  generalSettings: DifficultyGeneralSettings[];
+  difficultySettings: DifficultyDifficultySettings[];
+};
+
+export type DifficultyStatistics = {
+  version: string;
+  mode: string;
+  starRating: number | null;
+  circleCount: number;
+  sliderCount: number | null;
+  spinnerCount: number | null;
+  holdNoteCount: number | null;
+  objectsPerColumn: number[] | null;
+  columnCount: number;
+  newComboCount: number;
+  breakCount: number;
+  uninheritedLineCount: number;
+  inheritedLineCount: number;
+  kiaiTimeMs: number;
+  kiaiTimeFormatted: string;
+  drainTimeMs: number;
+  drainTimeFormatted: string;
+  playTimeMs: number;
+  playTimeFormatted: string;
+};
+
+export type DifficultyGeneralSettings = {
+  version: string;
+  mode: string;
+  audioFileName: string;
+  audioLeadIn: number;
+  stackLeniency: string | null;
+  hasCountdown: boolean;
+  countdownSpeed: string | null;
+  countdownOffset: number | null;
+  letterboxInBreaks: boolean;
+  widescreenStoryboard: boolean;
+  previewTime: number;
+  previewTimeFormatted: string;
+  useSkinSprites: string | null;
+  skinPreference: string;
+  epilepsyWarning: string | null;
+};
+
+export type DifficultyDifficultySettings = {
+  version: string;
+  mode: string;
+  hpDrain: number;
+  circleSize: string | null;
+  overallDifficulty: number;
+  approachRate: string | null;
+  sliderTickRate: string | null;
+  sliderVelocity: string | null;
+};

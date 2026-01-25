@@ -5,11 +5,12 @@ import {useBeatmapBackground} from "../checks/hooks/useBeatmapBackground.ts";
 import {useBeatmap} from "../../context/BeatmapContext.tsx";
 import AudioOverview from "./audio/AudioOverview.tsx";
 import MetadataOverview from "./metadata/MetadataOverview.tsx";
+import BeatmapOverview from "./beatmap/BeatmapOverview.tsx";
 import {useState} from "react";
 
-type Tab = "Metadata" | "Audio";
+type Tab = "Metadata" | "Beatmap" | "Audio";
 
-const TABS: Tab[] = ["Metadata", "Audio"];
+const TABS: Tab[] = ["Metadata", "Beatmap", "Audio"];
 
 function Overview() {
   const theme = useMantineTheme();
@@ -58,6 +59,7 @@ function Overview() {
       </BeatmapHeader>
       <Box style={{ flex: 1, overflow: 'auto' }}>
         {activeTab === "Metadata" && <MetadataOverview />}
+        {activeTab === "Beatmap" && <BeatmapOverview />}
         {activeTab === "Audio" && <AudioOverview />}
       </Box>
     </Box>
