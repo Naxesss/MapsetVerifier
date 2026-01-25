@@ -1,4 +1,4 @@
-﻿import { Alert, Text, Box, useMantineTheme, Group, Flex, LoadingOverlay } from '@mantine/core';
+import { Alert, Text, Box, useMantineTheme, Group, Flex, LoadingOverlay } from '@mantine/core';
 import React, { useEffect, useMemo } from 'react';
 import BeatmapActionButtons from './BeatmapActionButtons';
 import ChecksResults from './ChecksResults';
@@ -163,6 +163,23 @@ function Checks() {
           />
         )}
       </BeatmapHeader>
+      {isError && (
+        <Alert color="red" title="Error loading checks">
+          <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
+            {error?.message}
+          </Text>
+          {error?.details && (
+            <Text mt="sm" size="xs" style={{ whiteSpace: 'pre-wrap' }}>
+              {error.details}
+            </Text>
+          )}
+          {error?.stackTrace && (
+            <Text mt="sm" size="xs" c="red.3" style={{ whiteSpace: 'pre-wrap' }}>
+              {error.stackTrace}
+            </Text>
+          )}
+        </Alert>
+      )}
       {data && (
         <Flex gap="sm" p="md" direction="column">
           <DifficultyInfo

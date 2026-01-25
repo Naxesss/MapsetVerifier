@@ -1,4 +1,4 @@
-﻿import {
+import {
   ApiBeatmapPage,
   ApiBeatmapSetCheckResult,
   ApiCategoryOverrideCheckResult
@@ -38,7 +38,8 @@ const BeatmapApi = {
       } else {
         const message = data?.message || data?.error || raw || `HTTP ${response.status}`;
         const stackTrace = data?.stackTrace;
-        throw new FetchError(response, message, stackTrace);
+        const details = data?.details;
+        throw new FetchError(response, message, stackTrace, details);
       }
     });
   },
@@ -73,7 +74,8 @@ const BeatmapApi = {
       } else {
         const message = data?.message || data?.error || raw || `HTTP ${response.status}`;
         const stackTrace = data?.stackTrace;
-        throw new FetchError(response, message, stackTrace);
+        const details = data?.details;
+        throw new FetchError(response, message, stackTrace, details);
       }
     });
   },

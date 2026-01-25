@@ -64,12 +64,23 @@ namespace MapsetVerifier.Parser.Objects
             Beatmap.ClearCache();
             var concurrentBeatmaps = new ConcurrentBag<Beatmap>();
 
-            Parallel.ForEach(beatmapFiles, beatmapFile =>
+            try
             {
-                var beatmapTrack = new Track("Parsing " + beatmapFile.name + "...");
-                concurrentBeatmaps.Add(new Beatmap(beatmapFile.code, SongPath, beatmapFile.name));
-                beatmapTrack.Complete();
-            });
+                Parallel.ForEach(beatmapFiles, beatmapFile =>
+                {
+                    var beatmapTrack = new Track("Parsing " + beatmapFile.name + "...");
+                    concurrentBeatmaps.Add(new Beatmap(
+                        beatmapFile.code,
+                        SongPath,
+                        beatmapFile.name));
+                    beatmapTrack.Complete();
+                });
+            }
+            catch (AggregateException ex)
+            {
+                // Surface the real exception to the Server
+                throw ex.Flatten().InnerException!;
+            }
 
             foreach (var beatmap in concurrentBeatmaps)
                 Beatmaps.Add(beatmap);

@@ -1,4 +1,4 @@
-﻿import { useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { FetchError } from '../../../client/ApiHelper';
 import BeatmapApi from '../../../client/BeatmapApi';
 import { ApiBeatmapSetCheckResult } from '../../../Types';

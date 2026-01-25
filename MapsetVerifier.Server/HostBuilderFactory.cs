@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using MapsetVerifier.Server.Filter;
 using MapsetVerifier.Server.Service;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
@@ -24,7 +25,10 @@ public static class HostBuilderFactory
                 {
                     webBuilder.ConfigureServices(services =>
                     {
-                        services.AddControllers()
+                        services.AddControllers(options =>
+                            {
+                                options.Filters.Add<ApiExceptionFilter>();
+                            })
                             .AddJsonOptions(options =>
                             {
                                 options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
@@ -43,37 +47,21 @@ public static class HostBuilderFactory
 
                     webBuilder.Configure(app =>
                     {
-                        // Logging middleware should be as early as possible (after exception handling if any)
                         app.UseRequestResponseLogging();
-                
-                        // General exception handler
-                        app.UseExceptionHandler(errorApp =>
-                        {
-                            errorApp.Run(async context =>
-                            {
-                                context.Response.ContentType = "application/json";
-                                var error = context.Features.Get<IExceptionHandlerFeature>()?.Error;
-                                if (error != null)
-                                {
-                                    var apiError = ExceptionService.GetApiError(error);
-                                    var result = JsonSerializer.Serialize(apiError);
-                                    await context.Response.WriteAsync(result);
-                                }
-                            });
-                        });
 
                         app.UseCors();
-                        app.UseRouting();
-                        app.UseEndpoints(endpoints =>
-                        {
-                            endpoints.MapControllers();
-                        });
-                
-                        // Enable middleware to serve generated Swagger as a JSON endpoint and the Swagger UI
+
                         app.UseSwagger();
                         app.UseSwaggerUI(c =>
                         {
                             c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
+                        });
+
+                        app.UseRouting();
+
+                        app.UseEndpoints(endpoints =>
+                        {
+                            endpoints.MapControllers();
                         });
                     });
                 })

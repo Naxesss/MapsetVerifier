@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Numerics;
 using System.Text.RegularExpressions;
 using MapsetVerifier.Parser.Difficulty;
+using MapsetVerifier.Parser.Exceptions;
 using MapsetVerifier.Parser.Objects.Events;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Objects.HitObjects.Catch;
@@ -816,6 +817,14 @@ namespace MapsetVerifier.Parser.Objects
                 GetPracticalUnsnap(time, 7, line),
                 GetPracticalUnsnap(time, 5, line)
             ];
+
+            // Check for NaN values - this indicates invalid beatmap data
+            // This can happen when tools like Sliderator are used
+            if (practicalUnsnaps.Any(double.IsNaN))
+            {
+                throw new InvalidBeatmapDataException(
+                    $"Beatmap contains NaN timing values at time {time}. This indicates corrupted or intentionally invalid timing data.");
+            }
 
             // Assume the closest possible snapping & retain signed values.
             var minUnsnap = practicalUnsnaps.Min(Math.Abs);

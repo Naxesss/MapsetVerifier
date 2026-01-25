@@ -1,4 +1,4 @@
-﻿import { useMutation } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import React from 'react';
 import { FetchError } from '../../../client/ApiHelper';
 import BeatmapApi from '../../../client/BeatmapApi';
