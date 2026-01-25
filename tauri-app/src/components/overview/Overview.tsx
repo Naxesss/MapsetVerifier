@@ -1,19 +1,22 @@
-import {Box, Button, Group, LoadingOverlay, Title, useMantineTheme} from "@mantine/core";
+import {Box, Button, Group, LoadingOverlay, SegmentedControl, Title, useMantineTheme} from "@mantine/core";
 import BeatmapHeader from "../common/BeatmapHeader.tsx";
 import {IconRefresh} from "@tabler/icons-react";
 import {useBeatmapBackground} from "../checks/hooks/useBeatmapBackground.ts";
 import {useBeatmap} from "../../context/BeatmapContext.tsx";
 import AudioOverview from "./audio/AudioOverview.tsx";
+import MetadataOverview from "./metadata/MetadataOverview.tsx";
 import {useState} from "react";
 
-type Tab = "Metadata" | "Objects" | "Beatmap" | "Difficulty" | "Audio";
+type Tab = "Metadata" | "Audio";
+
+const TABS: Tab[] = ["Metadata", "Audio"];
 
 function Overview() {
   const theme = useMantineTheme();
   const { selectedFolder } = useBeatmap();
   const { bgUrl, isLoading } = useBeatmapBackground(selectedFolder);
-  const [activeTab, setActiveTab] = useState<Tab>()
-  
+  const [activeTab, setActiveTab] = useState<Tab>("Metadata");
+
   return (
     <Box
       h="100%"
@@ -31,34 +34,32 @@ function Overview() {
     >
       <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
       <BeatmapHeader bgUrl={bgUrl}>
-        <Group gap="sm">
-          <Group p="xs" gap="xs" bg={theme.colors.dark[8]} style={{ borderRadius: theme.radius.md }}>
-            <Button
-              variant="default"
-              size="xs"
-              leftSection={<IconRefresh size={16} />}
-              onClick={() => window.location.reload()}
-            >
-              Refresh
-            </Button>
+        <Group gap="sm" justify="space-between" style={{ width: '100%' }}>
+          <Group gap="sm">
+            <Group p="xs" gap="xs" bg={theme.colors.dark[8]} style={{ borderRadius: theme.radius.md }}>
+              <Button
+                variant="default"
+                size="xs"
+                leftSection={<IconRefresh size={16} />}
+                onClick={() => window.location.reload()}
+              >
+                Refresh
+              </Button>
+            </Group>
+            <Title order={3}>Overview</Title>
           </Group>
-          <Title order={3}>Overview</Title>
-          {activeTab === "Audio" && <Tab tab="Audio" component={AudioOverview} />}
+          <SegmentedControl
+            value={activeTab}
+            onChange={(value) => setActiveTab(value as Tab)}
+            data={TABS}
+            size="xs"
+          />
         </Group>
       </BeatmapHeader>
-    </Box>
-  );
-}
-
-interface TabProps {
-  tab: Tab
-  component: React.FC
-}
-
-function Tab(props: TabProps) {
-  return (
-    <Box>
-      <props.component />
+      <Box style={{ flex: 1, overflow: 'auto' }}>
+        {activeTab === "Metadata" && <MetadataOverview />}
+        {activeTab === "Audio" && <AudioOverview />}
+      </Box>
     </Box>
   );
 }

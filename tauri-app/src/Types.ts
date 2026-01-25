@@ -324,3 +324,129 @@ export type HitSoundAnalysisResult = {
   channelBalanceRatio: number;
   hasImbalance: boolean;
 };
+
+// Metadata Analysis Types
+export type MetadataAnalysisResult = {
+  success: boolean;
+  errorMessage: string | null;
+  difficulties: DifficultyMetadata[];
+  resources: ResourcesInfo;
+  colourSettings: DifficultyColourSettings[];
+};
+
+export type DifficultyMetadata = {
+  version: string;
+  artist: string;
+  artistUnicode: string;
+  title: string;
+  titleUnicode: string;
+  creator: string;
+  source: string;
+  tags: string;
+  beatmapId: number | null;
+  beatmapSetId: number | null;
+  mode: string;
+  starRating: number | null;
+};
+
+export type ResourcesInfo = {
+  hitSounds: HitSoundUsage[];
+  backgrounds: BackgroundInfo[];
+  videos: VideoInfo[];
+  storyboard: StoryboardInfo;
+  audioFile: AudioFileInfo | null;
+  totalFolderSizeBytes: number;
+  totalFolderSizeFormatted: string;
+};
+
+export type HitSoundUsage = {
+  fileName: string;
+  format: string;
+  fileSizeBytes: number;
+  fileSizeFormatted: string;
+  durationMs: number;
+  totalUsageCount: number;
+  usagePerDifficulty: DifficultyHitSoundUsage[];
+};
+
+export type DifficultyHitSoundUsage = {
+  version: string;
+  usageCount: number;
+  timestamps: string[];
+};
+
+export type BackgroundInfo = {
+  fileName: string;
+  fileSizeBytes: number;
+  fileSizeFormatted: string;
+  width: number;
+  height: number;
+  resolution: string;
+  usedByDifficulties: string[];
+};
+
+export type VideoInfo = {
+  fileName: string;
+  fileSizeBytes: number;
+  fileSizeFormatted: string;
+  width: number;
+  height: number;
+  resolution: string;
+  durationMs: number;
+  durationFormatted: string;
+  offsetMs: number;
+  usedByDifficulties: string[];
+};
+
+export type StoryboardInfo = {
+  hasOsb: boolean;
+  osbFileName: string | null;
+  osbIsUsed: boolean;
+  difficultySpecificStoryboards: DifficultyStoryboardInfo[];
+};
+
+export type DifficultyStoryboardInfo = {
+  version: string;
+  hasStoryboard: boolean;
+  spriteCount: number;
+  animationCount: number;
+  sampleCount: number;
+};
+
+export type AudioFileInfo = {
+  fileName: string;
+  fileSizeBytes: number;
+  fileSizeFormatted: string;
+  durationMs: number;
+  durationFormatted: string;
+  format: string;
+  averageBitrate: number;
+};
+
+export type DifficultyColourSettings = {
+  version: string;
+  mode: string;
+  isApplicable: boolean;
+  comboColours: ComboColourInfo[];
+  sliderBorder: ColourInfo | null;
+  sliderTrack: ColourInfo | null;
+};
+
+export type ComboColourInfo = {
+  index: number;
+  r: number;
+  g: number;
+  b: number;
+  hex: string;
+  hspLuminosity: number;
+  luminosityWarning: string;
+};
+
+export type ColourInfo = {
+  r: number;
+  g: number;
+  b: number;
+  hex: string;
+  hspLuminosity: number;
+  luminosityWarning: string;
+};
