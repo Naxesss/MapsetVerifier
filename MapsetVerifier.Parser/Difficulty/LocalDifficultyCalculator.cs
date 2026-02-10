@@ -8,7 +8,7 @@ public class LocalDifficultyCalculator
 {
     public DifficultyAttributes CalculateAttributes(Beatmap mvBeatmap)
     {
-        var workingBeatmap = new FlatWorkingBeatmap(mvBeatmap.SongPath + "\\" + mvBeatmap.MapPath);
+        var workingBeatmap = new FlatWorkingBeatmap(Path.Combine(mvBeatmap.SongPath, mvBeatmap.MapPath));
         var ruleset = workingBeatmap.BeatmapInfo.Ruleset.CreateInstance();
 
         return mvBeatmap.GeneralSettings.mode switch
