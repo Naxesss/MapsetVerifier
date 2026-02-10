@@ -1,11 +1,11 @@
-﻿import {FunctionComponent, useCallback} from "react";
-import {SpectralAnalysisResult} from "../../../Types.ts";
+﻿import {Box, Flex, Paper, useMantineTheme} from "@mantine/core";
 import * as d3 from 'd3';
-import {Box, Flex, Paper, useMantineTheme} from "@mantine/core";
+import {FunctionComponent, useCallback} from "react";
+import {SpectralAnalysisResult} from "../../../Types.ts";
 import AutoResizeCanvas from "../../common/AutoResizeCanvas.tsx";
-import TimeAxis from "../../common/TimeAxis.tsx";
 import FrequencyAxis from "../../common/FrequencyAxis.tsx";
 import MagnitudeAxis from "../../common/MagnitudeAxis.tsx";
+import TimeAxis from "../../common/TimeAxis.tsx";
 
 export type ColorScheme = 'viridis' | 'plasma' | 'inferno' | 'magma' | 'cividis';
 

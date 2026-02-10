@@ -1,7 +1,7 @@
 ﻿import { Text, Badge, Group, Paper, useMantineTheme, Stack, Box, SimpleGrid } from '@mantine/core';
 import { IconCheck, IconX } from '@tabler/icons-react';
-import { DifficultyGeneralSettings } from '../../../Types';
 import { groupByValue, ValueGroup } from './utils/groupByValue';
+import { DifficultyGeneralSettings } from '../../../Types';
 
 interface GeneralSettingsInfoProps {
   generalSettings: DifficultyGeneralSettings[];

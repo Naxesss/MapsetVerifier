@@ -1,7 +1,7 @@
-﻿import { Text, Badge, Group, Paper, useMantineTheme, Progress, Stack } from '@mantine/core';
-import { AreaChart } from '@mantine/charts';
+﻿import { AreaChart } from '@mantine/charts';
+import { Text, Badge, Group, Paper, useMantineTheme, Progress, Stack } from '@mantine/core';
 import { useMemo } from 'react';
-import { ChannelAnalysisResult } from '../../Types';
+import { ChannelAnalysisResult, ChannelBalanceDataPoint } from '../../../Types';
 
 interface ChannelBalanceProps {
   data: ChannelAnalysisResult;
@@ -18,7 +18,7 @@ function getSeverityColor(severity: string): string {
   }
 }
 
-function ChannelBalance({ data, durationMs }: ChannelBalanceProps) {
+function ChannelBalance({ data }: ChannelBalanceProps) {
   const theme = useMantineTheme();
 
   // Transform data for Mantine AreaChart - sample data for performance
@@ -28,8 +28,8 @@ function ChannelBalance({ data, durationMs }: ChannelBalanceProps) {
     // Sample data if too many points for performance
     const maxPoints = 200;
     const step = Math.max(1, Math.floor(rawData.length / maxPoints));
-    const sampled = rawData.filter((_, i) => i % step === 0);
-    return sampled.map(point => ({
+    const sampled = rawData.filter((_: ChannelBalanceDataPoint, i: number) => i % step === 0);
+    return sampled.map((point: ChannelBalanceDataPoint) => ({
       time: `${(point.timeMs / 1000).toFixed(1)}s`,
       left: Math.round(point.leftLevel * 100),
       right: Math.round(point.rightLevel * 100),

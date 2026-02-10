@@ -1,6 +1,6 @@
 ﻿import { Text, Badge, Group, Paper, useMantineTheme, Stack, Box, Progress } from '@mantine/core';
-import { DifficultyDifficultySettings } from '../../../Types';
 import { groupByValue, ValueGroup } from './utils/groupByValue';
+import { DifficultyDifficultySettings } from '../../../Types';
 
 interface DifficultySettingsInfoProps {
   difficultySettings: DifficultyDifficultySettings[];

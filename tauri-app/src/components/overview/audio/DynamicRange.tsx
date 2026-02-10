@@ -1,7 +1,7 @@
-﻿import { Box, Text, Badge, Group, Paper, useMantineTheme, Stack, SimpleGrid } from '@mantine/core';
-import { AreaChart } from '@mantine/charts';
+﻿import { AreaChart } from '@mantine/charts';
+import { Box, Text, Badge, Group, Paper, useMantineTheme, Stack, SimpleGrid } from '@mantine/core';
 import { useMemo } from 'react';
-import { DynamicRangeResult } from '../../Types';
+import { DynamicRangeResult, LoudnessDataPoint, ClippingMarker } from '../../../Types';
 
 interface DynamicRangeProps {
   data: DynamicRangeResult;
@@ -18,7 +18,7 @@ function getCompressionColor(severity: string): string {
   }
 }
 
-function DynamicRange({ data, durationMs }: DynamicRangeProps) {
+function DynamicRange({ data }: DynamicRangeProps) {
   const theme = useMantineTheme();
 
   // Transform data for Mantine AreaChart - sample data for performance
@@ -28,8 +28,8 @@ function DynamicRange({ data, durationMs }: DynamicRangeProps) {
     // Sample data if too many points for performance
     const maxPoints = 200;
     const step = Math.max(1, Math.floor(rawData.length / maxPoints));
-    const sampled = rawData.filter((_, i) => i % step === 0);
-    return sampled.map(point => ({
+    const sampled = rawData.filter((_: LoudnessDataPoint, i: number) => i % step === 0);
+    return sampled.map((point: LoudnessDataPoint) => ({
       time: `${(point.timeMs / 1000).toFixed(1)}s`,
       rms: Math.round(point.rmsLevel * 10) / 10,
       peak: Math.round(point.peakLevel * 10) / 10,
@@ -39,7 +39,7 @@ function DynamicRange({ data, durationMs }: DynamicRangeProps) {
   const yDomain = useMemo(() => {
     if (!data.loudnessOverTime?.length) return [-60, 0];
     const minVal = Math.min(
-      ...data.loudnessOverTime.map(d => Math.min(d.rmsLevel, d.peakLevel))
+      ...data.loudnessOverTime.map((d: LoudnessDataPoint) => Math.min(d.rmsLevel, d.peakLevel))
     );
     return [Math.floor(minVal / 10) * 10, 0];
   }, [data.loudnessOverTime]);
@@ -100,7 +100,7 @@ function DynamicRange({ data, durationMs }: DynamicRangeProps) {
       )}
       {data.clippingDetected && data.clippingMarkers?.length > 0 && (
         <Group gap="md" mt="xs">
-          <Group gap={4}><Box w={2} h={12} bg="red.5" /><Text size="xs" c="dimmed">Clipping at: {data.clippingMarkers.slice(0, 5).map(m => `${(m.timeMs / 1000).toFixed(1)}s`).join(', ')}{data.clippingMarkers.length > 5 ? '...' : ''}</Text></Group>
+          <Group gap={4}><Box w={2} h={12} bg="red.5" /><Text size="xs" c="dimmed">Clipping at: {data.clippingMarkers.slice(0, 5).map((m: ClippingMarker) => `${(m.timeMs / 1000).toFixed(1)}s`).join(', ')}{data.clippingMarkers.length > 5 ? '...' : ''}</Text></Group>
         </Group>
       )}
     </Paper>

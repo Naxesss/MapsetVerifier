@@ -50,7 +50,7 @@ function MagnitudeAxis({
           const yPos = `${yPercent}%`;
 
           // Adjust dominantBaseline for edge labels to prevent clipping
-          let baseline: string = "middle";
+          let baseline: "auto" | "middle" | "hanging" = "middle";
           if (yPercent <= 2) {
             baseline = "hanging"; // Top edge - align text below the position
           } else if (yPercent >= 98) {

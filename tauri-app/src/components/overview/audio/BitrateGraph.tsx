@@ -1,8 +1,8 @@
-﻿import {Text, Badge, Group, Paper, useMantineTheme, Stack, Box, Tooltip} from '@mantine/core';
-import {LineChart} from '@mantine/charts';
-import { useMemo } from 'react';
-import { BitrateAnalysisResult } from '../../Types';
+﻿import {LineChart} from '@mantine/charts';
+import {Text, Badge, Group, Paper, useMantineTheme, Stack, Box, Tooltip} from '@mantine/core';
 import { IconAlertTriangle, IconInfoCircle } from '@tabler/icons-react';
+import { useMemo } from 'react';
+import { BitrateAnalysisResult, BitrateDataPoint } from '../../../Types';
 
 interface BitrateGraphProps {
   data: BitrateAnalysisResult;
@@ -31,8 +31,8 @@ function BitrateGraph({ data, durationMs }: BitrateGraphProps) {
     // Sample data if too many points for performance
     const maxPoints = 200;
     const step = Math.max(1, Math.floor(rawData.length / maxPoints));
-    const sampled = rawData.filter((_, i) => i % step === 0);
-    return sampled.map(point => ({
+    const sampled = rawData.filter((_: BitrateDataPoint, i: number) => i % step === 0);
+    return sampled.map((point: BitrateDataPoint) => ({
       time: formatTime(point.timeMs / 1000),
       bitrate: Math.round(point.bitrate),
     }));
@@ -40,7 +40,7 @@ function BitrateGraph({ data, durationMs }: BitrateGraphProps) {
 
   const maxBitrate = useMemo(() => {
     if (!data.bitrateOverTime?.length) return Math.max(data.maxAllowedBitrate + 50, 320);
-    const maxFromData = Math.max(...data.bitrateOverTime.map(d => d.bitrate));
+    const maxFromData = Math.max(...data.bitrateOverTime.map((d: BitrateDataPoint) => d.bitrate));
     return Math.max(data.maxAllowedBitrate + 50, maxFromData, 320);
   }, [data.bitrateOverTime, data.maxAllowedBitrate]);
 
@@ -49,7 +49,7 @@ function BitrateGraph({ data, durationMs }: BitrateGraphProps) {
     if (!data.bitrateOverTime?.length) return { hasViolations: false, aboveMax: 0, belowMin: 0 };
     let aboveMax = 0;
     let belowMin = 0;
-    data.bitrateOverTime.forEach(point => {
+    data.bitrateOverTime.forEach((point: BitrateDataPoint) => {
       if (point.bitrate > data.maxAllowedBitrate) aboveMax++;
       if (point.bitrate < data.minAllowedBitrate) belowMin++;
     });

@@ -62,7 +62,7 @@ function TimeAxis({ durationMs, height = 20, showTicks = true, intervalSeconds }
           const xPercent = (timeSec / durationSeconds) * 100;
 
           // Adjust textAnchor for edge labels to prevent clipping
-          let anchor: string = "middle";
+          let anchor: "start" | "middle" | "end" = "middle";
           if (xPercent <= 2) {
             anchor = "start"; // Left edge - align text to the right of the position
           } else if (xPercent >= 98) {

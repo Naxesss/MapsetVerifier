@@ -1,6 +1,6 @@
 ﻿import { Text, Badge, Group, Paper, useMantineTheme, Stack, Box, SimpleGrid } from '@mantine/core';
-import { DifficultyStatistics } from '../../../Types';
 import { groupByValue, ValueGroup } from './utils/groupByValue';
+import { DifficultyStatistics } from '../../../Types';
 
 interface StatisticsInfoProps {
   statistics: DifficultyStatistics[];

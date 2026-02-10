@@ -1,7 +1,7 @@
-﻿import { Text, Group, Paper, useMantineTheme, Stack, SimpleGrid, Loader, Center, Badge } from '@mantine/core';
-import { AreaChart } from '@mantine/charts';
+﻿import { AreaChart } from '@mantine/charts';
+import { Text, Group, Paper, useMantineTheme, Stack, SimpleGrid, Loader, Center, Badge } from '@mantine/core';
 import { useMemo } from 'react';
-import { FrequencyAnalysisResult } from '../../Types';
+import { FrequencyAnalysisResult, FftDataPoint, DetectedNote } from '../../../Types';
 
 interface FrequencyAnalysisProps {
   data: FrequencyAnalysisResult | undefined;
@@ -21,12 +21,12 @@ function FrequencyAnalysis({ data, isLoading }: FrequencyAnalysisProps) {
   // Since Mantine doesn't support log scale, we sample at log-spaced intervals
   const chartData = useMemo(() => {
     if (!data?.fftData?.length) return [];
-    const rawData = data.fftData.filter(d => d.frequencyHz >= 20);
+    const rawData = data.fftData.filter((d: FftDataPoint) => d.frequencyHz >= 20);
     if (!rawData.length) return [];
 
     // Sample at logarithmically spaced points for better visualization
     const logMin = Math.log10(20);
-    const logMax = Math.log10(Math.max(...rawData.map(d => d.frequencyHz)));
+    const logMax = Math.log10(Math.max(...rawData.map((d: FftDataPoint) => d.frequencyHz)));
     const numPoints = 100;
     const result: { freq: string; magnitude: number }[] = [];
 
@@ -34,7 +34,7 @@ function FrequencyAnalysis({ data, isLoading }: FrequencyAnalysisProps) {
       const logFreq = logMin + (logMax - logMin) * (i / (numPoints - 1));
       const targetFreq = Math.pow(10, logFreq);
       // Find closest data point
-      const closest = rawData.reduce((prev, curr) =>
+      const closest = rawData.reduce((prev: FftDataPoint, curr: FftDataPoint) =>
         Math.abs(curr.frequencyHz - targetFreq) < Math.abs(prev.frequencyHz - targetFreq) ? curr : prev
       );
       result.push({
@@ -47,7 +47,7 @@ function FrequencyAnalysis({ data, isLoading }: FrequencyAnalysisProps) {
 
   const yDomain = useMemo(() => {
     if (!data?.fftData?.length) return [-80, 0];
-    const magnitudes = data.fftData.map(d => d.magnitudeDb);
+    const magnitudes = data.fftData.map((d: FftDataPoint) => d.magnitudeDb);
     const minVal = Math.min(...magnitudes);
     const maxVal = Math.max(...magnitudes);
     return [Math.floor(minVal / 10) * 10, Math.ceil(maxVal / 10) * 10];
@@ -113,7 +113,7 @@ function FrequencyAnalysis({ data, isLoading }: FrequencyAnalysisProps) {
       {data.detectedNotes?.length > 0 && (
         <Group gap="xs" mt="md">
           <Text size="xs" c="dimmed">Detected Notes:</Text>
-          {data.detectedNotes.slice(0, 5).map((note, idx) => (
+          {data.detectedNotes.slice(0, 5).map((note: DetectedNote, idx: number) => (
             <Badge key={idx} size="sm" variant="outline">{note.noteName}</Badge>
           ))}
         </Group>

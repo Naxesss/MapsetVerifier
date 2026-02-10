@@ -6,10 +6,10 @@
   LoadingOverlay,
   SimpleGrid
 } from '@mantine/core';
+import DifficultySettingsInfo from './DifficultySettingsInfo';
+import GeneralSettingsInfo from './GeneralSettingsInfo';
 import { useBeatmapAnalysis } from './hooks/useBeatmapAnalysis';
 import StatisticsInfo from './StatisticsInfo';
-import GeneralSettingsInfo from './GeneralSettingsInfo';
-import DifficultySettingsInfo from './DifficultySettingsInfo';
 import { useBeatmap } from '../../../context/BeatmapContext';
 import { useSettings } from '../../../context/SettingsContext';
 

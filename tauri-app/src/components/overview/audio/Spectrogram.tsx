@@ -1,9 +1,8 @@
 ﻿import {Box, Button, Center, Flex, Group, Loader, Modal, Paper, Select, Text, Tooltip, useMantineTheme} from '@mantine/core';
-import {useCallback, useState} from 'react';
-import {SpectralAnalysisResult} from '../../Types';
 import {IconInfoCircle, IconZoomIn} from "@tabler/icons-react";
-import SpectrogramCanvas, {ColorScheme} from "./SpectrogramCanvas.tsx";
+import {useCallback, useState} from 'react';
 import {useSpectrogram} from "./hooks/useAudioAnalysis.ts";
+import SpectrogramCanvas, {ColorScheme} from "./SpectrogramCanvas.tsx";
 
 interface SpectrogramProps {
   folder: string;

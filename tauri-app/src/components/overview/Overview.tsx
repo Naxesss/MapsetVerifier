@@ -1,12 +1,12 @@
 import {Box, Button, Group, LoadingOverlay, SegmentedControl, Title, useMantineTheme} from "@mantine/core";
-import BeatmapHeader from "../common/BeatmapHeader.tsx";
 import {IconRefresh} from "@tabler/icons-react";
-import {useBeatmapBackground} from "../checks/hooks/useBeatmapBackground.ts";
-import {useBeatmap} from "../../context/BeatmapContext.tsx";
-import AudioOverview from "./audio/AudioOverview.tsx";
-import MetadataOverview from "./metadata/MetadataOverview.tsx";
-import BeatmapOverview from "./beatmap/BeatmapOverview.tsx";
 import {useState} from "react";
+import AudioOverview from "./audio/AudioOverview.tsx";
+import BeatmapOverview from "./beatmap/BeatmapOverview.tsx";
+import MetadataOverview from "./metadata/MetadataOverview.tsx";
+import {useBeatmap} from "../../context/BeatmapContext.tsx";
+import {useBeatmapBackground} from "../checks/hooks/useBeatmapBackground.ts";
+import BeatmapHeader from "../common/BeatmapHeader.tsx";
 
 type Tab = "Metadata" | "Beatmap" | "Audio";
 

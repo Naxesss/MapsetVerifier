@@ -6,10 +6,10 @@
   LoadingOverlay,
   SimpleGrid
 } from '@mantine/core';
+import ColourSettings from './ColourSettings';
 import { useMetadataAnalysis } from './hooks/useMetadataAnalysis';
 import MetadataInfo from './MetadataInfo';
 import ResourcesInfo from './ResourcesInfo';
-import ColourSettings from './ColourSettings';
 import { useBeatmap } from '../../../context/BeatmapContext';
 import { useSettings } from '../../../context/SettingsContext';
 

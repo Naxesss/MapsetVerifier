@@ -7,13 +7,13 @@
   Stack,
   SimpleGrid
 } from '@mantine/core';
-import { useAudioAnalysis, useFrequencyAnalysis } from './hooks/useAudioAnalysis';
 import BitrateGraph from './BitrateGraph';
 import ChannelBalance from './ChannelBalance';
 import DynamicRange from './DynamicRange';
 import FormatInfo from './FormatInfo';
-import Spectrogram from './Spectrogram';
 import FrequencyAnalysis from './FrequencyAnalysis';
+import { useAudioAnalysis, useFrequencyAnalysis } from './hooks/useAudioAnalysis';
+import Spectrogram from './Spectrogram';
 import {useBeatmap} from "../../../context/BeatmapContext.tsx";
 import {useSettings} from "../../../context/SettingsContext.tsx";
 

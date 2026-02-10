@@ -1,6 +1,6 @@
 ﻿import { Text, Badge, Group, Paper, useMantineTheme, Stack, SimpleGrid, List, ThemeIcon, Tooltip, Box } from '@mantine/core';
 import { IconCheck, IconX, IconAlertTriangle, IconInfoCircle } from '@tabler/icons-react';
-import { FormatAnalysisResult } from '../../Types';
+import { FormatAnalysisResult } from '../../../Types';
 
 interface FormatInfoProps {
   data: FormatAnalysisResult;
@@ -120,7 +120,7 @@ function FormatInfo({ data, audioFilePath }: FormatInfoProps) {
               </ThemeIcon>
             }
           >
-            {data.complianceIssues.map((issue, idx) => (
+            {data.complianceIssues.map((issue: string, idx: number) => (
               <List.Item key={idx}>{issue}</List.Item>
             ))}
           </List>
