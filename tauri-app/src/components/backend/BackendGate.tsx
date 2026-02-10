@@ -1,6 +1,7 @@
-﻿import {MantineProvider, Alert, Button, Text, Container, Flex, Progress} from '@mantine/core';
+﻿import {MantineProvider, Alert, Button, Text, Container, Flex, Progress, Code, CopyButton, ScrollArea, Tooltip} from '@mantine/core';
 import { Command } from '@tauri-apps/plugin-shell';
-import React, { useEffect, useState, useRef, ReactNode } from 'react';
+import React, { useEffect, useState, useRef, useCallback, ReactNode } from 'react';
+import { IconCopy, IconCheck } from '@tabler/icons-react';
 import { cssVarResolver } from '../../App';
 import { useSettings } from '../../context/SettingsContext';
 import { theme } from '../../theme/Theme';
@@ -31,11 +32,18 @@ const BackendGate: React.FC<BackendGateProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [stage, setStage] = useState<'init'|'spawn'|'health'|'ready'>('init');
   const [progress, setProgress] = useState<number>(0);
+  const [sidecarLogs, setSidecarLogs] = useState<string[]>([]);
   const childRef = useRef<any>(null);
   // Prevent concurrent/duplicate starts across re-renders
   const startingRef = useRef<boolean>(false);
   // Track gating toggle so long-running loops can exit early
   const gateEnabledRef = useRef<boolean>(false);
+  // Track whether the sidecar exited early so health loop can bail out
+  const sidecarExitedRef = useRef<boolean>(false);
+
+  const appendLog = useCallback((line: string) => {
+    setSidecarLogs((prev) => [...prev, line]);
+  }, []);
 
   const isProd = import.meta.env.PROD;
   const effectiveGateInDev = settings?.gateInDev;
@@ -96,17 +104,44 @@ const BackendGate: React.FC<BackendGateProps> = ({
       const programName = "bin/server/dist/sidecar";
       setStage('spawn');
       setProgress(30);
+      setSidecarLogs([]);
+      sidecarExitedRef.current = false;
       const command = Command.sidecar(programName, [`--urls=${baseUrl}`]);
-      
-      // Listen for child process lifecycle and output if available
+
+      // Attach lifecycle & output listeners before spawning
+      command.on('close', (data) => {
+        const msg = `[sidecar] exited with code ${data.code}, signal ${data.signal}`;
+        console.error(msg);
+        appendLog(msg);
+        sidecarExitedRef.current = true;
+      });
+      command.on('error', (error) => {
+        const msg = `[sidecar] error: ${error}`;
+        console.error(msg);
+        appendLog(msg);
+        sidecarExitedRef.current = true;
+      });
+      command.stdout.on('data', (line) => {
+        console.log(`[sidecar stdout] ${line}`);
+        appendLog(`[stdout] ${line}`);
+      });
+      command.stderr.on('data', (line) => {
+        console.error(`[sidecar stderr] ${line}`);
+        appendLog(`[stderr] ${line}`);
+      });
+
       childRef.current = await command.spawn();
       window.__BACKEND_GATE__ = { started: true, pid: childRef.current?.pid };
       setProgress(50);
-      
+
       setStage('health');
       const start = Date.now();
       let healthy = false;
       while (Date.now() - start < healthTimeoutMs) {
+        // Bail out immediately if the sidecar process already exited
+        if (sidecarExitedRef.current) {
+          throw new Error('Backend sidecar exited unexpectedly. Check the log output below for details.');
+        }
         // Exit early if gating was disabled during health loop
         if (!gateEnabledRef.current) {
           setStatus('ready');
@@ -130,7 +165,7 @@ const BackendGate: React.FC<BackendGateProps> = ({
         setProgress(healthProgress);
         await new Promise(r => setTimeout(r, probeIntervalMs));
       }
-      
+
       if (!healthy) {
         throw new Error(`Backend did not respond on ${baseUrl}/health within ${Math.round(healthTimeoutMs / 1000)}s`);
       }
@@ -215,6 +250,32 @@ const BackendGate: React.FC<BackendGateProps> = ({
             <Alert title="Backend failed to start" color="red" variant="filled">
               <Text size="sm" mb="xs" style={{ whiteSpace: 'pre-wrap' }}>{errorMsg}</Text>
             </Alert>
+            {sidecarLogs.length > 0 && (
+              <Alert title="Sidecar output" color="gray" variant="light">
+                <Flex direction="column" gap="xs">
+                  <ScrollArea.Autosize mah={200}>
+                    <Code block style={{ whiteSpace: 'pre-wrap', fontSize: 'var(--mantine-font-size-xs)' }}>
+                      {sidecarLogs.join('\n')}
+                    </Code>
+                  </ScrollArea.Autosize>
+                  <CopyButton value={`Error: ${errorMsg ?? ''}\n\n${sidecarLogs.join('\n')}`}>
+                    {({ copied, copy }) => (
+                      <Tooltip label={copied ? 'Copied' : 'Copy log output'} withArrow>
+                        <Button
+                          size="xs"
+                          variant="light"
+                          color={copied ? 'teal' : 'gray'}
+                          onClick={copy}
+                          leftSection={copied ? <IconCheck size={14} /> : <IconCopy size={14} />}
+                        >
+                          {copied ? 'Copied' : 'Copy to clipboard'}
+                        </Button>
+                      </Tooltip>
+                    )}
+                  </CopyButton>
+                </Flex>
+              </Alert>
+            )}
             <Flex gap="sm">
               <Button size="xs" onClick={() => attemptStart(true)}>Retry</Button>
             </Flex>

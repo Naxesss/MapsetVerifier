@@ -1,12 +1,9 @@
 ﻿<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Build Sidecars" type="BatchConfigurationType" factoryName="Batch">
+  <configuration default="false" name="Build Sidecars on Windows" type="BatchConfigurationType" factoryName="Batch">
     <module name="rider.module" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
     <option name="PARENT_ENVS" value="true" />
-    <envs>
-      <env name="OLD_RUNTIMES_OVERRIDE" value="osx-arm64" />
-    </envs>
     <option name="SCRIPT_NAME" value="./build-sidecars.bat" />
     <option name="PARAMETERS" value="" />
     <method v="2" />
