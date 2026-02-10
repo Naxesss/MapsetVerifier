@@ -47,9 +47,6 @@ jobs:
           - platform: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
             sidecar_runtime: linux-x64
-          - platform: ubuntu-22.04
-            target: aarch64-unknown-linux-gnu
-            sidecar_runtime: linux-arm64
           - platform: macos-latest
             target: x86_64-apple-darwin
             sidecar_runtime: osx-x64
@@ -82,23 +79,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
-      - name: Install cross-compilation tools for Linux ARM64
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
-        run: |
-          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
-          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
-          echo "CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
-          echo "CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++" >> $GITHUB_ENV
-
-      - name: Build sidecar (Windows)
-        if: matrix.platform == 'windows-latest'
-        shell: cmd
-        run: |
-          set RUNTIMES=${{ matrix.sidecar_runtime }}
-          call build-sidecars.bat
-
-      - name: Build sidecar (Unix)
-        if: matrix.platform != 'windows-latest'
+      - name: Build sidecar
+        shell: bash
         run: |
           chmod +x build-sidecars.sh
           RUNTIMES="${{ matrix.sidecar_runtime }}" ./build-sidecars.sh
@@ -189,9 +171,6 @@ jobs:
           - platform: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
             sidecar_runtime: linux-x64
-          - platform: ubuntu-22.04
-            target: aarch64-unknown-linux-gnu
-            sidecar_runtime: linux-arm64
           - platform: macos-latest
             target: x86_64-apple-darwin
             sidecar_runtime: osx-x64
@@ -234,23 +213,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
-      - name: Install cross-compilation tools for Linux ARM64
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
-        run: |
-          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
-          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
-          echo "CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
-          echo "CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++" >> $GITHUB_ENV
-
-      - name: Build sidecar (Windows)
-        if: matrix.platform == 'windows-latest'
-        shell: cmd
-        run: |
-          set RUNTIMES=${{ matrix.sidecar_runtime }}
-          call build-sidecars.bat
-
-      - name: Build sidecar (Unix)
-        if: matrix.platform != 'windows-latest'
+      - name: Build sidecar
+        shell: bash
         run: |
           chmod +x build-sidecars.sh
           RUNTIMES="${{ matrix.sidecar_runtime }}" ./build-sidecars.sh
