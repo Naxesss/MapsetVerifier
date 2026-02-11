@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Reflection;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
@@ -217,14 +217,18 @@ namespace MapsetVerifier.Framework
             }
         }
 
+        /// <summary> When true, LoadCheckAssembly does not write to the console (e.g. when exporting metadata). </summary>
+        public static bool SuppressLoadLogging { get; set; }
+
         /// <summary> Adds checks from the given assembly to the CheckerRegistry. </summary>
         private static void LoadCheckAssembly(Assembly assembly)
         {
             foreach (var type in assembly.GetExportedTypes())
             {
                 var attr = type.CustomAttributes.FirstOrDefault(attr => attr.AttributeType.Name == nameof(CheckAttribute));
-                Log.Debug("Checking exported type {TypeFullName}", type.FullName);
-                
+                if (!SuppressLoadLogging)
+                    Log.Debug("Checking exported type {TypeFullName}", type.FullName);
+
                 if (attr == null)
                     continue;
 

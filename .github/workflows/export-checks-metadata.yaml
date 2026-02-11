@@ -1,0 +1,37 @@
+name: Export Checks Metadata
+
+on:
+#    push:
+#        branches: [main]
+    workflow_dispatch:
+
+jobs:
+    export:
+        runs-on: windows-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup .NET
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: "9.x"
+
+            - name: Build exporter
+              run: dotnet build MapsetVerifier.Exports -c Release --no-incremental
+
+            - name: Export checks metadata to JSON
+              run: |
+                  New-Item -ItemType Directory -Force -Path scripts
+                  dotnet run --project MapsetVerifier.Exports -c Release --no-build -- scripts/checks-metadata.json
+                  if (Test-Path scripts/checks-metadata.json) {
+                    Write-Host "Exported checks metadata successfully."
+                  }
+
+            - name: Upload checks-metadata.json
+              uses: actions/upload-artifact@v4
+              with:
+                  name: checks-metadata
+                  path: scripts/checks-metadata.json
+
+## TODO: make use of the json artifact somewhere for the website, and enable trigger on push to main probably
