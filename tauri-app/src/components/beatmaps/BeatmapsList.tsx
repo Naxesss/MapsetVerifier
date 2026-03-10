@@ -7,15 +7,17 @@
   Button,
   Text,
   ScrollArea,
+  ActionIcon,
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useRef, useEffect, useState } from 'react';
 import BeatmapCard from './BeatmapCard';
 import PlaceholderBeatmapCard from './PlaceholderBeatmapCard.tsx';
 import { FetchError } from '../../client/ApiHelper.ts';
 import BeatmapApi from '../../client/BeatmapApi.ts';
 import { ApiBeatmapPage, Beatmap } from '../../Types.ts';
+import {IconRefresh} from "@tabler/icons-react";
 
 interface Props {
   songFolder: string;
@@ -26,6 +28,7 @@ export default function BeatmapsList({ songFolder }: Props) {
   const [debouncedSearch] = useDebouncedValue(search, 300);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const queryClient = useQueryClient();
   const stepSize = 16;
 
   const { data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } = useInfiniteQuery<
@@ -143,31 +146,44 @@ export default function BeatmapsList({ songFolder }: Props) {
       }}
     >
       <Flex direction="column" gap="sm" p="sm">
-        <Input
-          type="text"
-          placeholder="Search beatmaps..."
-          value={search}
-          onChange={(e) => {
-            const value = e.target.value;
-            if (value === '' && search !== '') {
-              scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+        <Flex gap="sm" direction="row" justify="space-between">
+          <Input
+            type="text"
+            placeholder="Search beatmaps..."
+            value={search}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === '' && search !== '') {
+                scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+              }
+              setSearch(value);
+            }}
+            rightSectionPointerEvents="all"
+            rightSection={
+              <CloseButton
+                aria-label="Clear input"
+                onClick={() => {
+                  if (search !== '') {
+                    scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+                  }
+                  setSearch('');
+                }}
+                style={{ display: search ? undefined : 'none' }}
+              />
             }
-            setSearch(value);
-          }}
-          rightSectionPointerEvents="all"
-          rightSection={
-            <CloseButton
-              aria-label="Clear input"
-              onClick={() => {
-                if (search !== '') {
-                  scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
-                }
-                setSearch('');
-              }}
-              style={{ display: search ? undefined : 'none' }}
-            />
-          }
-        />
+          />
+          <ActionIcon
+            variant="default"
+            onClick={() => {
+              queryClient.resetQueries({
+                queryKey: ['beatmaps'],
+              })
+            }}
+            size="36"
+          >
+            <IconRefresh />
+          </ActionIcon>
+        </Flex>
         {renderTopStatus()}
       </Flex>
       {!error && (
