@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -39,6 +39,9 @@ namespace MapsetVerifier.Framework.Objects
         }
 
         public Issue.Level Level { get; }
+
+        /// <summary> The format string with {0}, {1}, etc. placeholders. </summary>
+        public string FormatString => format;
 
         /// <summary> Returns the template with a given cause, which will be shown below the issue template in the documentation. </summary>
         public IssueTemplate WithCause(string cause)

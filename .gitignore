@@ -26,6 +26,9 @@ dist
 *.userosscache
 *.sln.docstates
 
+# Generated checks metadata (regenerate with scripts/export-checks-metadata.*)
+scripts/checks-metadata.json
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
