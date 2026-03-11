@@ -4,13 +4,14 @@ import {useState} from "react";
 import AudioOverview from "./audio/AudioOverview.tsx";
 import BeatmapOverview from "./beatmap/BeatmapOverview.tsx";
 import MetadataOverview from "./metadata/MetadataOverview.tsx";
+import ObjectsOverview from "./objects/ObjectsOverview.tsx";
 import {useBeatmap} from "../../context/BeatmapContext.tsx";
 import {useBeatmapBackground} from "../checks/hooks/useBeatmapBackground.ts";
 import BeatmapHeader from "../common/BeatmapHeader.tsx";
 
-type Tab = "Metadata" | "Beatmap" | "Audio";
+type Tab = "Metadata" | "Beatmap" | "Audio" | "Objects";
 
-const TABS: Tab[] = ["Metadata", "Beatmap", "Audio"];
+const TABS: Tab[] = ["Metadata", "Beatmap", "Audio", "Objects"];
 
 function Overview() {
   const theme = useMantineTheme();
@@ -61,6 +62,7 @@ function Overview() {
         {activeTab === "Metadata" && <MetadataOverview />}
         {activeTab === "Beatmap" && <BeatmapOverview />}
         {activeTab === "Audio" && <AudioOverview />}
+        {activeTab === "Objects" && <ObjectsOverview />}
       </Box>
     </Box>
   );

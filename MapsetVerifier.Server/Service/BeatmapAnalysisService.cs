@@ -11,6 +11,9 @@ namespace MapsetVerifier.Server.Service;
 
 public static class BeatmapAnalysisService
 {
+    private static readonly int[] SupportedSnapDivisors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 16];
+    private const double TimelineMarginMs = 2000;
+
     public static BeatmapAnalysisResult Analyze(string beatmapSetFolder)
     {
         try
@@ -30,6 +33,28 @@ public static class BeatmapAnalysisService
         {
             Log.Error(ex, "Failed to analyze beatmap for {Folder}", beatmapSetFolder);
             return BeatmapAnalysisResult.CreateError($"Analysis failed: {ex.Message}");
+        }
+    }
+
+    public static ObjectsOverviewResult AnalyzeObjects(string beatmapSetFolder)
+    {
+        try
+        {
+            var beatmapSet = new BeatmapSet(beatmapSetFolder);
+
+            if (beatmapSet.Beatmaps.Count == 0)
+                return ObjectsOverviewResult.CreateError("No beatmaps found in folder.");
+
+            var startTimeMs = GetTimelineStartTime(beatmapSet);
+            var endTimeMs = GetTimelineEndTime(beatmapSet);
+            var difficulties = beatmapSet.Beatmaps.Select(GetObjectsOverviewDifficulty).ToList();
+
+            return ObjectsOverviewResult.CreateSuccess(startTimeMs, endTimeMs, difficulties);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to analyze objects overview for {Folder}", beatmapSetFolder);
+            return ObjectsOverviewResult.CreateError($"Objects overview analysis failed: {ex.Message}");
         }
     }
 
@@ -163,6 +188,97 @@ public static class BeatmapAnalysisService
                 SliderVelocity = isMania ? null : beatmap.DifficultySettings.sliderMultiplier.ToString(CultureInfo.InvariantCulture)
             };
         }).ToList();
+    }
+
+    private static double GetTimelineStartTime(BeatmapSet beatmapSet)
+    {
+        var minTimes = new List<double>();
+
+        foreach (var beatmap in beatmapSet.Beatmaps)
+        {
+            if (beatmap.HitObjects.Count > 0)
+                minTimes.Add(beatmap.HitObjects.Min(hitObject => hitObject.time));
+
+            if (beatmap.TimingLines.Count > 0)
+                minTimes.Add(beatmap.TimingLines.Min(timingLine => timingLine.Offset));
+        }
+
+        return minTimes.Count == 0 ? 0 : minTimes.Min() - TimelineMarginMs;
+    }
+
+    private static double GetTimelineEndTime(BeatmapSet beatmapSet)
+    {
+        var maxTimes = new List<double>();
+
+        foreach (var beatmap in beatmapSet.Beatmaps)
+        {
+            if (beatmap.HitObjects.Count > 0)
+                maxTimes.Add(beatmap.HitObjects.Max(hitObject => hitObject.GetEndTime()));
+
+            if (beatmap.TimingLines.Count > 0)
+                maxTimes.Add(beatmap.TimingLines.Max(timingLine => timingLine.Offset));
+        }
+
+        return maxTimes.Count == 0 ? TimelineMarginMs : maxTimes.Max() + TimelineMarginMs;
+    }
+
+    private static ObjectsOverviewDifficulty GetObjectsOverviewDifficulty(Beatmap beatmap)
+    {
+        var timelineObjects = beatmap.HitObjects.Select(hitObject => new ObjectsTimelineObject
+        {
+            StartTimeMs = hitObject.time,
+            EndTimeMs = hitObject.GetEndTime(),
+            ObjectType = hitObject.GetObjectType(),
+            Edges = hitObject.GetEdgeTimes().Select(edgeTime => new ObjectsTimelineEdge
+            {
+                TimeMs = edgeTime,
+                PartName = hitObject.GetPartName(edgeTime)
+            }).ToList()
+        }).ToList();
+
+        var snappingCounts = SupportedSnapDivisors.ToDictionary(divisor => divisor, _ => 0);
+        var edgeCount = 0;
+        var unsnappedCount = 0;
+
+        foreach (var hitObject in beatmap.HitObjects)
+        {
+            foreach (var edgeTime in hitObject.GetEdgeTimes())
+            {
+                edgeCount++;
+
+                if (beatmap.GetTimingLine<UninheritedLine>(edgeTime) == null)
+                {
+                    unsnappedCount++;
+                    continue;
+                }
+
+                var divisor = beatmap.GetLowestDivisor(edgeTime);
+                if (snappingCounts.ContainsKey(divisor))
+                    snappingCounts[divisor]++;
+                else
+                    unsnappedCount++;
+            }
+        }
+
+        var totalSnapPoints = Math.Max(1, edgeCount);
+
+        return new ObjectsOverviewDifficulty
+        {
+            Version = beatmap.MetadataSettings.version,
+            Mode = beatmap.GeneralSettings.mode.ToString(),
+            ObjectCount = beatmap.HitObjects.Count,
+            EdgeCount = edgeCount,
+            UnsnappedCount = unsnappedCount,
+            UnsnappedPercentage = edgeCount > 0 ? unsnappedCount * 100d / totalSnapPoints : 0,
+            TimelineObjects = timelineObjects,
+            Snappings = SupportedSnapDivisors.Select(divisor => new ObjectsSnappingBucket
+            {
+                Divisor = divisor,
+                Label = $"1/{divisor}",
+                Count = snappingCounts[divisor],
+                Percentage = edgeCount > 0 ? snappingCounts[divisor] * 100d / totalSnapPoints : 0
+            }).ToList()
+        };
     }
 }
 

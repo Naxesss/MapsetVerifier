@@ -37,5 +37,27 @@ public class BeatmapAnalysisController : ControllerBase
             return StatusCode(500, new ApiError("An error occurred during beatmap analysis.", ex.Message, ex.StackTrace));
         }
     }
+
+    [HttpPost("objects")]
+    public ActionResult<ObjectsOverviewResult> AnalyzeObjects([FromBody] BeatmapAnalysisRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.BeatmapSetFolder))
+                return BadRequest(new ApiError("Folder is required.", null, null));
+
+            var result = BeatmapAnalysisService.AnalyzeObjects(request.BeatmapSetFolder);
+
+            if (!result.Success)
+                return NotFound(new ApiError(result.ErrorMessage ?? "Objects overview analysis failed.", null, null));
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to analyze objects overview for {Folder}", request.BeatmapSetFolder);
+            return StatusCode(500, new ApiError("An error occurred during objects overview analysis.", ex.Message, ex.StackTrace));
+        }
+    }
 }
 

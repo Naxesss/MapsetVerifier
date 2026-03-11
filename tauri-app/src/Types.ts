@@ -510,3 +510,41 @@ export type DifficultyDifficultySettings = {
   sliderTickRate: string | null;
   sliderVelocity: string | null;
 };
+
+export type ObjectsOverviewResult = {
+  success: boolean;
+  errorMessage: string | null;
+  startTimeMs: number;
+  endTimeMs: number;
+  difficulties: ObjectsOverviewDifficulty[];
+};
+
+export type ObjectsOverviewDifficulty = {
+  version: string;
+  mode: string;
+  objectCount: number;
+  edgeCount: number;
+  unsnappedCount: number;
+  unsnappedPercentage: number;
+  timelineObjects: ObjectsTimelineObject[];
+  snappings: ObjectsSnappingBucket[];
+};
+
+export type ObjectsTimelineObject = {
+  startTimeMs: number;
+  endTimeMs: number;
+  objectType: string;
+  edges: ObjectsTimelineEdge[];
+};
+
+export type ObjectsTimelineEdge = {
+  timeMs: number;
+  partName: string;
+};
+
+export type ObjectsSnappingBucket = {
+  divisor: number;
+  label: string;
+  count: number;
+  percentage: number;
+};
