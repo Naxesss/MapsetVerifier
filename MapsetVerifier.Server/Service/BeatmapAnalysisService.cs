@@ -47,7 +47,7 @@ public static class BeatmapAnalysisService
 
             var startTimeMs = GetTimelineStartTime(beatmapSet);
             var endTimeMs = GetTimelineEndTime(beatmapSet);
-            var difficulties = beatmapSet.Beatmaps.Select(GetObjectsOverviewDifficulty).ToList();
+            var difficulties = beatmapSet.Beatmaps.Select(beatmap => GetObjectsOverviewDifficulty(beatmap, endTimeMs)).ToList();
 
             return ObjectsOverviewResult.CreateSuccess(startTimeMs, endTimeMs, difficulties);
         }
@@ -222,19 +222,45 @@ public static class BeatmapAnalysisService
         return maxTimes.Count == 0 ? TimelineMarginMs : maxTimes.Max() + TimelineMarginMs;
     }
 
-    private static ObjectsOverviewDifficulty GetObjectsOverviewDifficulty(Beatmap beatmap)
+    private static ObjectsOverviewDifficulty GetObjectsOverviewDifficulty(Beatmap beatmap, double globalEndTimeMs)
     {
         var timelineObjects = beatmap.HitObjects.Select(hitObject => new ObjectsTimelineObject
         {
             StartTimeMs = hitObject.time,
             EndTimeMs = hitObject.GetEndTime(),
             ObjectType = hitObject.GetObjectType(),
+            HasFinishHitSound = hitObject.HasHitSound(HitObject.HitSounds.Finish),
+            ComboColourIndex = GetObjectComboColourIndex(beatmap, hitObject),
+            ComboColourHex = GetObjectComboColourHex(beatmap, hitObject),
             Edges = hitObject.GetEdgeTimes().Select(edgeTime => new ObjectsTimelineEdge
             {
                 TimeMs = edgeTime,
                 PartName = hitObject.GetPartName(edgeTime)
             }).ToList()
         }).ToList();
+
+        var timingSegments = beatmap.TimingLines
+            .OfType<UninheritedLine>()
+            .Select(line => new ObjectsTimingSegment
+            {
+                StartTimeMs = line.Offset,
+                EndTimeMs = Math.Max(line.Offset, beatmap.GetNextTimingLine<UninheritedLine>(line.Offset)?.Offset ?? globalEndTimeMs),
+                OffsetMs = line.Offset,
+                MsPerBeat = line.msPerBeat,
+                Bpm = line.bpm,
+                Meter = line.Meter
+            })
+            .Where(segment => segment.EndTimeMs > segment.StartTimeMs && segment.MsPerBeat > 0)
+            .ToList();
+
+        var breakPeriods = beatmap.Breaks
+            .Select(@break => new ObjectsBreakPeriod
+            {
+                StartTimeMs = @break.GetRealStart(beatmap),
+                EndTimeMs = @break.GetRealEnd(beatmap)
+            })
+            .Where(period => period.EndTimeMs > period.StartTimeMs)
+            .ToList();
 
         var snappingCounts = SupportedSnapDivisors.ToDictionary(divisor => divisor, _ => 0);
         var edgeCount = 0;
@@ -270,7 +296,9 @@ public static class BeatmapAnalysisService
             EdgeCount = edgeCount,
             UnsnappedCount = unsnappedCount,
             UnsnappedPercentage = edgeCount > 0 ? unsnappedCount * 100d / totalSnapPoints : 0,
+            BreakPeriods = breakPeriods,
             TimelineObjects = timelineObjects,
+            TimingSegments = timingSegments,
             Snappings = SupportedSnapDivisors.Select(divisor => new ObjectsSnappingBucket
             {
                 Divisor = divisor,
@@ -280,5 +308,41 @@ public static class BeatmapAnalysisService
             }).ToList()
         };
     }
+
+    private static int? GetObjectComboColourIndex(Beatmap beatmap, HitObject hitObject)
+    {
+        if (hitObject is not Circle && hitObject is not Slider)
+            return null;
+
+        return beatmap.GeneralSettings.mode == Beatmap.Mode.Taiko
+            ? null
+            : beatmap.GetComboColourIndex(hitObject.time);
+    }
+
+    private static string? GetObjectComboColourHex(Beatmap beatmap, HitObject hitObject)
+    {
+        if (hitObject is not Circle && hitObject is not Slider)
+            return null;
+
+        if (beatmap.GeneralSettings.mode == Beatmap.Mode.Taiko)
+        {
+            if (hitObject is Slider)
+                return "#FCBF1F";
+
+            return hitObject.HasHitSound(HitObject.HitSounds.Clap) || hitObject.HasHitSound(HitObject.HitSounds.Whistle)
+                ? "#448DAB"
+                : "#EB452C";
+        }
+
+        var colourIndex = beatmap.GetComboColourIndex(hitObject.time);
+        if (beatmap.ColourSettings.combos.Count > colourIndex)
+        {
+            var colour = beatmap.ColourSettings.combos[colourIndex];
+            return $"#{(int)colour.X:X2}{(int)colour.Y:X2}{(int)colour.Z:X2}";
+        }
+
+        return "#7D7D7D";
+    }
 }
+
 

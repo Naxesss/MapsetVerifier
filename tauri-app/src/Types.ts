@@ -526,20 +526,39 @@ export type ObjectsOverviewDifficulty = {
   edgeCount: number;
   unsnappedCount: number;
   unsnappedPercentage: number;
+  breakPeriods: ObjectsBreakPeriod[];
   timelineObjects: ObjectsTimelineObject[];
+  timingSegments: ObjectsTimingSegment[];
   snappings: ObjectsSnappingBucket[];
+};
+
+export type ObjectsBreakPeriod = {
+  startTimeMs: number;
+  endTimeMs: number;
 };
 
 export type ObjectsTimelineObject = {
   startTimeMs: number;
   endTimeMs: number;
   objectType: string;
+  hasFinishHitSound: boolean;
+  comboColourIndex: number | null;
+  comboColourHex: string | null;
   edges: ObjectsTimelineEdge[];
 };
 
 export type ObjectsTimelineEdge = {
   timeMs: number;
   partName: string;
+};
+
+export type ObjectsTimingSegment = {
+  startTimeMs: number;
+  endTimeMs: number;
+  offsetMs: number;
+  msPerBeat: number;
+  bpm: number;
+  meter: number;
 };
 
 export type ObjectsSnappingBucket = {

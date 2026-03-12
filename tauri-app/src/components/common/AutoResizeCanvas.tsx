@@ -48,7 +48,11 @@ const AutoResizeCanvas: React.FC<AutoResizeCanvasProps> = ({
       ctx.scale(ratio, ratio);
 
       // Draw once at fixed resolution
-      draw(ctx, fixedWidth, fixedHeight);
+      try {
+        draw(ctx, fixedWidth, fixedHeight);
+      } catch (error) {
+        console.error("Error drawing fixed-size canvas:", error);
+      }
 
       // No need for ResizeObserver - canvas scales with CSS
       return;
@@ -77,7 +81,11 @@ const AutoResizeCanvas: React.FC<AutoResizeCanvasProps> = ({
       ctx.scale(ratio, ratio);
 
       // Draw callback
-      draw(ctx, width, height);
+      try {
+        draw(ctx, width, height);
+      } catch (error) {
+        console.error("Error drawing auto-resize canvas:", error);
+      }
     };
 
     // Debounced resize handler to reduce lag during resizing
