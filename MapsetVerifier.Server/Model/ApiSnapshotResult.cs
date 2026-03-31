@@ -8,29 +8,11 @@ namespace MapsetVerifier.Server.Model;
 /// Organized like git commits - each snapshot version shows changes from the previous version.
 /// </summary>
 public readonly struct ApiSnapshotResult(
-    string? title,
-    string? artist,
-    string? creator,
     IEnumerable<ApiSnapshotDifficulty> difficulties,
     ApiSnapshotHistory? general,
     IEnumerable<ApiSnapshotHistory> beatmapHistories,
     string? errorMessage)
 {
-    /// <summary>
-    /// The title of the beatmap set.
-    /// </summary>
-    public string? Title { get; } = title;
-
-    /// <summary>
-    /// The artist of the beatmap set.
-    /// </summary>
-    public string? Artist { get; } = artist;
-
-    /// <summary>
-    /// The creator of the beatmap set.
-    /// </summary>
-    public string? Creator { get; } = creator;
-
     /// <summary>
     /// The difficulties (beatmap versions) in the set.
     /// </summary>

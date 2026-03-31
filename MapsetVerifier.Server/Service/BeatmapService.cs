@@ -104,6 +104,30 @@ public static class BeatmapService
         return new ApiBeatmapPage(results, page, pageSize, hasMore);
     }
 
+    public static ApiBeatmapInfo? GetBeatmapInfo(string beatmapSetFolder)
+    {
+        if (!Directory.Exists(beatmapSetFolder))
+            return null;
+
+        var osuFile = Directory.GetFiles(beatmapSetFolder, "*.osu").FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(osuFile))
+            return null;
+
+        var content = File.ReadAllText(osuFile);
+        var meta = ParseBeatmapMetadata(beatmapSetFolder, content);
+
+        ulong? beatmapSetId = null;
+        if (ulong.TryParse(meta.beatmapSetId, out var parsedBeatmapSetId))
+            beatmapSetId = parsedBeatmapSetId;
+
+        return new ApiBeatmapInfo(
+            title: meta.title,
+            artist: meta.artist,
+            creator: meta.creator,
+            beatmapSetId: beatmapSetId
+        );
+    }
+
     private static bool MatchesSearch((string? title, string? artist, string? creator, string? beatmapId, string? beatmapSetId, string? backgroundPath) meta, string? search)
     {
         if (string.IsNullOrWhiteSpace(search))
@@ -292,11 +316,6 @@ public static class BeatmapService
             );
         }
 
-        var firstMeta = beatmapSet.Beatmaps.FirstOrDefault()?.MetadataSettings;
-        var title = firstMeta?.title;
-        var artist = firstMeta?.artist;
-        var creator = firstMeta?.creator;
-
         return new ApiBeatmapSetCheckResult(
             general: new ApiCategoryCheckResult(
                 checkResults: generalCheckResults,
@@ -307,11 +326,7 @@ public static class BeatmapService
                 starRating: null
             ),
             difficulties: apiBeatmapCheckResults,
-            beatmapSetId: firstMeta?.beatmapSetId,
-            checks: checksDict,
-            title: title,
-            artist: artist,
-            creator: creator
+            checks: checksDict
         );
     }
 

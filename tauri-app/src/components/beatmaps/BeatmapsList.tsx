@@ -10,6 +10,7 @@
   ActionIcon,
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
+import {IconRefresh} from "@tabler/icons-react";
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useRef, useEffect, useState } from 'react';
 import BeatmapCard from './BeatmapCard';
@@ -17,7 +18,6 @@ import PlaceholderBeatmapCard from './PlaceholderBeatmapCard.tsx';
 import { FetchError } from '../../client/ApiHelper.ts';
 import BeatmapApi from '../../client/BeatmapApi.ts';
 import { ApiBeatmapPage, Beatmap } from '../../Types.ts';
-import {IconRefresh} from "@tabler/icons-react";
 
 interface Props {
   songFolder: string;

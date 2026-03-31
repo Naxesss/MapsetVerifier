@@ -19,8 +19,7 @@
 } from '@mantine/core';
 import { IconEye, IconEyeOff, IconGripVertical, IconMinus, IconPlus } from '@tabler/icons-react';
 import { Fragment, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
-import AutoResizeCanvas from '../../common/AutoResizeCanvas.tsx';
-import GameModeIcon from '../../icons/GameModeIcon.tsx';
+import { useObjectsAnalysis } from './hooks/useObjectsAnalysis.ts';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
 import { useSettings } from '../../../context/SettingsContext.tsx';
 import {
@@ -31,7 +30,8 @@ import {
   type ObjectsTimingSegment,
   type ObjectsTimelineObject,
 } from '../../../Types';
-import { useObjectsAnalysis } from './hooks/useObjectsAnalysis.ts';
+import AutoResizeCanvas from '../../common/AutoResizeCanvas.tsx';
+import GameModeIcon from '../../icons/GameModeIcon.tsx';
 
 const LABEL_WIDTH = 208;
 const ROW_HEIGHT = 44;

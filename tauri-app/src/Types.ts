@@ -34,14 +34,17 @@ export type Beatmap = {
   beatmapSetID: string;
 };
 
+export type ApiBeatmapInfo = {
+  title: string | null;
+  artist: string | null;
+  creator: string | null;
+  beatmapSetId: number | null;
+};
+
 export type ApiBeatmapSetCheckResult = {
   general: ApiCategoryCheckResult;
   difficulties: ApiCategoryCheckResult[];
-  beatmapSetId?: number;
   checks: Record<number, ApiCheckDefinition>;
-  title?: string;
-  artist?: string;
-  creator?: string;
 };
 
 export type ApiCategoryOverrideCheckResult = {
@@ -78,9 +81,6 @@ export type Level = 'Info' | 'Check' | 'Error' | 'Minor' | 'Warning' | 'Problem'
 export type DiffType = 'Added' | 'Removed' | 'Changed';
 
 export type ApiSnapshotResult = {
-  title: string | null;
-  artist: string | null;
-  creator: string | null;
   difficulties: ApiSnapshotDifficulty[];
   general: ApiSnapshotHistory | null;
   beatmapHistories: ApiSnapshotHistory[];

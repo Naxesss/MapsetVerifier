@@ -74,6 +74,24 @@ public class BeatmapController : ControllerBase
         var stream = System.IO.File.OpenRead(result.ImagePath!);
         return File(stream, result.MimeType!);
     }
+
+    [HttpPost("info")]
+    public ActionResult<ApiBeatmapInfo> GetBeatmapInfo([FromBody] RunChecksRequest request)
+    {
+        try
+        {
+            var result = BeatmapService.GetBeatmapInfo(request.Folder);
+            if (result == null)
+                return NotFound(new ApiError("Beatmap info could not be found.", null, null));
+
+            return Ok(result.Value);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to get beatmap info for {Folder}", request.Folder);
+            return StatusCode(500, new ApiError("An error occurred while getting beatmap info.", ex.Message, ex.StackTrace));
+        }
+    }
     
     [HttpPost("runChecks")]
     public ActionResult<ApiBeatmapSetCheckResult> RunBeatmapSetChecks([FromBody] RunChecksRequest request)

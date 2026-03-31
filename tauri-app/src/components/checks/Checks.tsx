@@ -17,7 +17,7 @@ import { ApiCategoryCheckResult, Level, Mode } from '../../Types';
 
 function Checks() {
   const theme = useMantineTheme();
-  const { selectedFolder: folder } = useBeatmap();
+  const { selectedFolder: folder, beatmapInfo, refetchBeatmapInfo } = useBeatmap();
   const { settings } = useSettings();
   const [selectedCategory, setSelectedCategory] = React.useState<string | undefined>('General');
   const [hoveredDifficulty, setHoveredDifficulty] = React.useState<ApiCategoryCheckResult | undefined>(undefined);
@@ -129,15 +129,15 @@ function Checks() {
       }}
     >
       <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
-      <BeatmapHeader title={data?.title} artist={data?.artist} creator={data?.creator} bgUrl={bgUrl}>
+      <BeatmapHeader bgUrl={bgUrl}>
         <Group gap="sm">
           <BeatmapActionButtons
             beatmapFolderPath={beatmapFolderPath}
-            beatmapSetId={data?.beatmapSetId}
+            beatmapSetId={beatmapInfo?.beatmapSetId ?? undefined}
             onReparse={async () => {
               if (!beatmapFolderPath) return;
               resetOverrides();
-              await refetch();
+              await Promise.all([refetch(), refetchBeatmapInfo()]);
             }}
           />
           <GameModeSelector

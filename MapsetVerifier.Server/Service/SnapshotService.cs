@@ -20,18 +20,10 @@ public static class SnapshotService
         difficulties.AddRange(beatmapSet.Beatmaps.Select(beatmap =>
             new ApiSnapshotDifficulty(beatmap.MetadataSettings.version, isGeneral: false, starRating: beatmap.StarRating, mode: beatmap.GeneralSettings.mode)));
 
-        // Extract metadata for header
-        var title = refBeatmap.MetadataSettings.title;
-        var artist = refBeatmap.MetadataSettings.artist;
-        var creator = refBeatmap.MetadataSettings.creator;
-
         // Check if beatmapset ID is valid
         if (refBeatmap.MetadataSettings.beatmapSetId == null)
         {
             return new ApiSnapshotResult(
-                title: title,
-                artist: artist,
-                creator: creator,
                 difficulties: difficulties,
                 general: null,
                 beatmapHistories: [],
@@ -42,9 +34,6 @@ public static class SnapshotService
         if (beatmapSetId == null)
         {
             return new ApiSnapshotResult(
-                title: title,
-                artist: artist,
-                creator: creator,
                 difficulties: difficulties,
                 general: null,
                 beatmapHistories: [],
@@ -59,9 +48,6 @@ public static class SnapshotService
         var beatmapHistories = beatmapSet.Beatmaps.Select(GetBeatmapSnapshotHistory).ToList();
 
         return new ApiSnapshotResult(
-            title: title,
-            artist: artist,
-            creator: creator,
             difficulties: difficulties,
             general: generalHistory,
             beatmapHistories: beatmapHistories,

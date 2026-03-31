@@ -18,7 +18,7 @@ interface ModeGroup {
 
 function Snapshots() {
   const theme = useMantineTheme();
-  const { selectedFolder: folder } = useBeatmap();
+  const { selectedFolder: folder, refetchBeatmapInfo } = useBeatmap();
   const { settings } = useSettings();
   const [selectedDifficulty, setSelectedDifficulty] = useState<string | undefined>('General');
   const [selectedMode, setSelectedMode] = useState<Mode | undefined>();
@@ -97,7 +97,7 @@ function Snapshots() {
       }}
     >
       <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
-      <BeatmapHeader title={data?.title} artist={data?.artist} creator={data?.creator} bgUrl={bgUrl}>
+      <BeatmapHeader bgUrl={bgUrl}>
         <Group gap="sm">
           <Group
             p="xs"
@@ -109,7 +109,9 @@ function Snapshots() {
               variant="default"
               size="xs"
               leftSection={<IconRefresh size={16} />}
-              onClick={() => refetch()}
+              onClick={async () => {
+                await Promise.all([refetch(), refetchBeatmapInfo()]);
+              }}
             >
               Refresh
             </Button>

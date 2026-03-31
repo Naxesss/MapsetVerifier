@@ -1,4 +1,4 @@
-import {Box, Button, Group, LoadingOverlay, SegmentedControl, Title, useMantineTheme} from "@mantine/core";
+import {Box, Button, Group, LoadingOverlay, SegmentedControl, useMantineTheme} from "@mantine/core";
 import {IconRefresh} from "@tabler/icons-react";
 import {useState} from "react";
 import AudioOverview from "./audio/AudioOverview.tsx";
@@ -48,7 +48,6 @@ function Overview() {
                 Refresh
               </Button>
             </Group>
-            <Title order={3}>Overview</Title>
           </Group>
           <SegmentedControl
             value={activeTab}

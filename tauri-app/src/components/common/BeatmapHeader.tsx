@@ -1,15 +1,18 @@
 ﻿import { Box, Stack, Flex, Title, Text, Anchor } from '@mantine/core';
 import { ReactNode } from 'react';
+import { useBeatmap } from '../../context/BeatmapContext.tsx';
 
 interface BeatmapHeaderProps {
-  title?: string | null;
-  artist?: string | null;
-  creator?: string | null;
   bgUrl?: string;
   children?: ReactNode;
 }
 
-function BeatmapHeader({ title, artist, creator, bgUrl, children }: BeatmapHeaderProps) {
+function BeatmapHeader({ bgUrl, children }: BeatmapHeaderProps) {
+  const { beatmapInfo } = useBeatmap();
+  const title = beatmapInfo?.title;
+  const artist = beatmapInfo?.artist;
+  const creator = beatmapInfo?.creator;
+
   return (
     <Box
       style={{

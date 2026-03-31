@@ -1,7 +1,7 @@
 ﻿import {MantineProvider, Alert, Button, Text, Container, Flex, Progress, Code, CopyButton, ScrollArea, Tooltip} from '@mantine/core';
+import { IconCopy, IconCheck } from '@tabler/icons-react';
 import { Command } from '@tauri-apps/plugin-shell';
 import React, { useEffect, useState, useRef, useCallback, ReactNode } from 'react';
-import { IconCopy, IconCheck } from '@tabler/icons-react';
 import { cssVarResolver } from '../../App';
 import { useSettings } from '../../context/SettingsContext';
 import { theme } from '../../theme/Theme';
