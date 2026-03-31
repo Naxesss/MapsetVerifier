@@ -3,6 +3,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { Route, Routes } from 'react-router-dom';
 import BackendGate from './components/backend/BackendGate.tsx';
 import Checks from './components/checks/Checks.tsx';
+import RequireBeatmapSelection from './components/common/RequireBeatmapSelection.tsx';
 import Documentation from './components/documentation/Documentation.tsx';
 import Home from "./components/home/Home.tsx";
 import NavBars from './components/navbar/NavBars.tsx';
@@ -55,9 +56,11 @@ function App() {
                       <Route>
                         <Route path="/" element={<Home />} />
                         <Route path="/documentation" element={<Documentation />} />
-                        <Route path="/checks" element={<Checks />} />
-                        <Route path="/snapshots" element={<Snapshots />} />
-                        <Route path="/overview" element={<Overview />} />
+                        <Route element={<RequireBeatmapSelection />}>
+                          <Route path="/checks" element={<Checks />} />
+                          <Route path="/snapshots" element={<Snapshots />} />
+                          <Route path="/overview" element={<Overview />} />
+                        </Route>
                         <Route path="*" element={<Text>404</Text>} />
                       </Route>
                     </Routes>

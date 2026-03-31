@@ -31,10 +31,6 @@ function AudioOverview() {
     songFolder: settings.songFolder,
   });
 
-  if (!folder) {
-    return <Text>No BeatmapSet selected.</Text>;
-  }
-
   if (!settings.songFolder) {
     return (
       <Alert color="yellow" title="Song folder not set" withCloseButton>
@@ -81,7 +77,7 @@ function AudioOverview() {
           <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="md">
             {data.formatAnalysis && <FormatInfo data={data.formatAnalysis} audioFilePath={data.audioFilePath} />}
             {data.bitrateAnalysis && <BitrateGraph data={data.bitrateAnalysis} durationMs={durationMs} />}
-            <Spectrogram folder={folder} songFolder={settings.songFolder} />
+            <Spectrogram folder={folder!} songFolder={settings.songFolder} />
           </SimpleGrid>
 
           {settings.showAdvancedAudioAnalysis &&

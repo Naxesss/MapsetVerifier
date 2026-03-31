@@ -122,10 +122,6 @@ function ObjectsOverview() {
     );
   }, [data]);
 
-  if (!folder) {
-    return <Text>No BeatmapSet selected.</Text>;
-  }
-
   if (!settings.songFolder) {
     return (
       <Alert color="yellow" title="Song folder not set" withCloseButton>
