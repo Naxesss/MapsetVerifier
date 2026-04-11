@@ -58,7 +58,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                 Minor,
 
                 new IssueTemplate(Issue.Level.Minor,
-                    "{0} {1} No {2} rest moments for {3}, ensure this makes sense",
+                    "{0} > {1} No {2} rest moments for {3}, ensure this makes sense",
                     "start", "end", "break", "length")
                 .WithCause("Chain length is surpassing the RC guideline, but not excessively")
             },
@@ -67,7 +67,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                 Warning,
 
                 new IssueTemplate(Issue.Level.Warning,
-                    "{0} {1} No {2} rest moments for {3}, ensure this makes sense",
+                    "{0} > {1} No {2} rest moments for {3}, ensure this makes sense",
                     "start", "end", "break", "length")
                 .WithCause("Chain length is excessively surpassing the RC guideline")
             }
@@ -212,7 +212,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                             yield return new Issue(
                                 GetTemplate(Warning),
                                 beatmap,
-                                Timestamp.Get(currentContinuousSectionStartTimeMs).Trim() + ">",
+                                Timestamp.Get(currentContinuousSectionStartTimeMs).Trim(),
                                 Timestamp.Get(current.GetEndTime()),
                                 breakTypes[diff],
                                 $"{beatsWithoutBreaks}/1"
@@ -223,7 +223,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                             yield return new Issue(
                                 GetTemplate(Minor),
                                 beatmap,
-                                Timestamp.Get(currentContinuousSectionStartTimeMs).Trim() + ">",
+                                Timestamp.Get(currentContinuousSectionStartTimeMs).Trim(),
                                 Timestamp.Get(current.GetEndTime()),
                                 breakTypes[diff],
                                 $"{beatsWithoutBreaks}/1"

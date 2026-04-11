@@ -26,7 +26,7 @@ namespace MapsetVerifier.Checks.Standard.Spread
             public required bool IsPerfect { get; init; }
             public string? DistanceText { get; init; }
             public int? RequiredStackLeniency { get; init; }
-            public string TemplateName => IsPerfect ? DifficultyIndex >= (int)Beatmap.Difficulty.Insane ? "Warning" : "Problem" : "Problem Failed Stack";
+            public string TemplateName => IsPerfect ? "Warning" : "Failed Stack";
         }
 
         public override CheckMetadata GetMetadata() =>
@@ -42,21 +42,15 @@ namespace MapsetVerifier.Checks.Standard.Spread
             new()
             {
                 {
-                    "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Perfect stack with Hard Rock applied, stack leniency should be at least {1}.", "timestamp -", "stack leniency")
-                        .WithCause("Two objects overlap perfectly with Hard Rock-adjusted AR and CS, using the same stack leniency logic as the standard stack leniency check.")
-                },
-
-                {
-                    "Problem Failed Stack",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Failed stack with Hard Rock applied, objects are {1} px apart, which is basically a perfect stack.", "timestamp -", "gap")
+                    "Failed Stack",
+                    new IssueTemplate(Issue.Level.Warning, "{0} Failed stack with Hard Rock applied, objects are {1} px apart, which is basically a perfect stack.", "timestamp -", "gap")
                         .WithCause("Two objects are not perfectly overlapping, but with Hard Rock-adjusted CS they are within 1/14th of a circle radius of one another.")
                 },
 
                 {
                     "Warning",
                     new IssueTemplate(Issue.Level.Warning, "{0} Perfect stack with Hard Rock applied, stack leniency should be at least {1}.", "timestamp -", "stack leniency")
-                        .WithCause("Same as the other Hard Rock stack leniency check, except this uses the tightest timing threshold.")
+                        .WithCause("Two objects overlap perfectly with Hard Rock-adjusted AR and CS.")
                 }
             };
 

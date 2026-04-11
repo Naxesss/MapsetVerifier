@@ -53,7 +53,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                 Minor,
 
                 new IssueTemplate(Issue.Level.Minor,
-                    "{0} {1} {2} pattern is {3} notes long.",
+                    "{0} > {1} {2} pattern is {3} notes long.",
                     "start", "end", "snap", "number")
                 .WithCause("Pattern length is equal to the RC guideline")
             },
@@ -62,7 +62,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
             {
                 Warning,
                 new IssueTemplate(Issue.Level.Warning,
-                    "{0} {1} {2} pattern is {3} notes long, ensure this makes sense.",
+                    "{0} > {1} {2} pattern is {3} notes long, ensure this makes sense.",
                     "start", "end", "snap", "number")
                 .WithCause("Pattern length is surpassing the RC guideline.")
             }
@@ -197,7 +197,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                                     yield return new Issue(
                                         GetTemplate(Warning),
                                         beatmap,
-                                        Timestamp.Get(currentPatternStartTimeMs).Trim() + ">",
+                                        Timestamp.Get(currentPatternStartTimeMs).Trim(),
                                         Timestamp.Get(currentPatternEndTimeMs).Trim(),
                                         OutputDict[snapValues.Key] ?? "unknown snap",
                                         durationOfPattern
@@ -207,7 +207,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                                     yield return new Issue(
                                         GetTemplate(Minor),
                                         beatmap,
-                                        Timestamp.Get(currentPatternStartTimeMs).Trim() + ">",
+                                        Timestamp.Get(currentPatternStartTimeMs).Trim(),
                                         Timestamp.Get(currentPatternEndTimeMs).Trim(),
                                         OutputDict[snapValues.Key] ?? "unknown snap",
                                         durationOfPattern
