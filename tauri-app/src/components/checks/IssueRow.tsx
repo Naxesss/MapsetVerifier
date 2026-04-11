@@ -28,7 +28,6 @@ const IssueRow: React.FC<IssueRowProps> = ({ item }) => {
           minWidth: 0,
           width: '100%',
         }}
-        title={item.message}
       >
         <OsuLink text={item.message} />
       </Text>
