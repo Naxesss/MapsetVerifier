@@ -24,16 +24,14 @@ namespace MapsetVerifier.Checks.Catch.Compose
                     @"
                     Hyperdashes are not allowed in Cups and Salads.
 
-                    And hyperdashes can't be used on drops and/or slider repetitions in Platters."
+                    In Platters they can't be used on drops or slider repetitions."
                 },
                 {
                     "Reasoning",
                     @"
-                    This is to ensure an easy starting experience to beginner players in Cups.
+                    Platter is the first difficulty where a hyperdash is introduced. This is to ensure a manageable step in difficulty for novice players.
 
-                    This is to ensure a manageable step in difficulty for novice players in Salads.
-
-                    For Platters the accuracy and control required is unreasonable and can create a situation where the player potentially fails to read the slider path."
+                    Only simple hyperdashes are allowed in a Platter given more advanced patterning requires accuracy and control."
                 }
             }
         };
@@ -81,17 +79,7 @@ namespace MapsetVerifier.Checks.Catch.Compose
                     current.GetNoteTypeName()
                 ).ForDifficulties(Beatmap.Difficulty.Easy, Beatmap.Difficulty.Normal);
 
-                // Only report sliders in Platters
-                if (current is JuiceStream)
-                {
-                    yield return new Issue(
-                        GetTemplate("HyperdashSliderPart"),
-                        beatmap,
-                        CatchExtensions.GetTimestamps(current, next),
-                        current.GetNoteTypeName().ToLower()
-                    ).ForDifficulties(Beatmap.Difficulty.Hard);
-                }
-                else if (current is JuiceStream.JuiceStreamPart part)
+                if (current is JuiceStream.JuiceStreamPart part)
                 {
                     // Hyperdashes are allowed on slider tails
                     if (part.Kind is JuiceStream.JuiceStreamPart.PartKind.Tail)
