@@ -3,9 +3,9 @@ import { IconCopy, IconCheck } from '@tabler/icons-react';
 import { Command } from '@tauri-apps/plugin-shell';
 import React, { useEffect, useState, useRef, useCallback, ReactNode } from 'react';
 import { cssVarResolver } from '../../App';
+import {BACKEND_BASE_URL} from "../../Constants.ts";
 import { useSettings } from '../../context/SettingsContext';
 import { theme } from '../../theme/Theme';
-import {BACKEND_BASE_URL} from "../../Constants.ts";
 
 interface BackendGateProps {
   children: ReactNode;
