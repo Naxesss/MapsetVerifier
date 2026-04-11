@@ -1,4 +1,4 @@
-import {Box, Button, Group, LoadingOverlay, SegmentedControl, useMantineTheme} from "@mantine/core";
+import {Box, Button, Group, LoadingOverlay, SegmentedControl, Tooltip, useMantineTheme} from "@mantine/core";
 import {IconRefresh} from "@tabler/icons-react";
 import {useState} from "react";
 import AudioOverview from "./audio/AudioOverview.tsx";
@@ -18,6 +18,7 @@ function Overview() {
   const { selectedFolder } = useBeatmap();
   const { bgUrl, isLoading } = useBeatmapBackground(selectedFolder);
   const [activeTab, setActiveTab] = useState<Tab>("Metadata");
+  const [reloadFlag, setReloadFlag] = useState(0);
 
   return (
     <Box
@@ -39,14 +40,15 @@ function Overview() {
         <Group gap="sm" justify="space-between" style={{ width: '100%' }}>
           <Group gap="sm">
             <Group p="xs" gap="xs" bg={theme.colors.dark[8]} style={{ borderRadius: theme.radius.md }}>
-              <Button
-                variant="default"
-                size="xs"
-                leftSection={<IconRefresh size={16} />}
-                onClick={() => window.location.reload()}
-              >
-                Refresh
-              </Button>
+              <Tooltip label="Reparse the beatmap">
+                <Button
+                  size="xs"
+                  variant="default"
+                  onClick={() => setReloadFlag(f => f + 1)}
+                >
+                  <IconRefresh />
+                </Button>
+              </Tooltip>
             </Group>
           </Group>
           <SegmentedControl
@@ -58,10 +60,10 @@ function Overview() {
         </Group>
       </BeatmapHeader>
       <Box style={{ flex: 1, overflow: 'auto' }}>
-        {activeTab === "Metadata" && <MetadataOverview />}
-        {activeTab === "Beatmap" && <BeatmapOverview />}
-        {activeTab === "Audio" && <AudioOverview />}
-        {activeTab === "Objects" && <ObjectsOverview />}
+        {activeTab === "Metadata" && <MetadataOverview reloadFlag={reloadFlag} />}
+        {activeTab === "Beatmap" && <BeatmapOverview reloadFlag={reloadFlag} />}
+        {activeTab === "Audio" && <AudioOverview reloadFlag={reloadFlag} />}
+        {activeTab === "Objects" && <ObjectsOverview reloadFlag={reloadFlag} />}
       </Box>
     </Box>
   );

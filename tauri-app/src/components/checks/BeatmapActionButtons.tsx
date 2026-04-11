@@ -27,35 +27,37 @@ function BeatmapActionButtons({ beatmapFolderPath, beatmapSetId, onReparse }: Be
           <IconRefresh />
         </Button>
       </Tooltip>
-      <Button
-        title="Open beatmap folder"
-        size="xs"
-        variant="default"
-        onClick={async () => {
-          if (!beatmapFolderPath) return;
-          try {
-            await invoke('open_folder', { path: beatmapFolderPath });
-          } catch (e) {
-            console.error('Failed to open folder:', e);
-            alert('Failed to open folder. See console for details.');
-          }
-        }}
-        disabled={!beatmapFolderPath}
-      >
-        <IconFolder />
-      </Button>
-      <Button
-        title="Open beatmap page"
-        size="xs"
-        variant="default"
-        component="a"
-        href={beatmapSetId ? `https://osu.ppy.sh/beatmapsets/${beatmapSetId}` : undefined}
-        target="_blank"
-        rel="noopener noreferrer"
-        disabled={!beatmapSetId}
-      >
-        <IconWorld />
-      </Button>
+      <Tooltip label="Open beatmap folder">
+        <Button
+          size="xs"
+          variant="default"
+          onClick={async () => {
+            if (!beatmapFolderPath) return;
+            try {
+              await invoke('open_folder', { path: beatmapFolderPath });
+            } catch (e) {
+              console.error('Failed to open folder:', e);
+              alert('Failed to open folder. See console for details.');
+            }
+          }}
+          disabled={!beatmapFolderPath}
+        >
+          <IconFolder />
+        </Button>
+      </Tooltip>
+      <Tooltip label="Open beatmap page">
+        <Button
+          size="xs"
+          variant="default"
+          component="a"
+          href={beatmapSetId ? `https://osu.ppy.sh/beatmapsets/${beatmapSetId}` : undefined}
+          target="_blank"
+          rel="noopener noreferrer"
+          disabled={!beatmapSetId}
+        >
+          <IconWorld />
+        </Button>
+      </Tooltip>
     </Group>
   );
 }

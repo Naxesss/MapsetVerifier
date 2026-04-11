@@ -1,4 +1,4 @@
-﻿import {Alert, Text, Box, useMantineTheme, Flex, LoadingOverlay, Button, Group, Title} from '@mantine/core';
+﻿import {Alert, Text, Box, useMantineTheme, Flex, LoadingOverlay, Button, Group, Title, Tooltip} from '@mantine/core';
 import { IconRefresh } from '@tabler/icons-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useSnapshots } from './hooks/useSnapshots';
@@ -105,16 +105,17 @@ function Snapshots() {
             bg={theme.colors.dark[8]}
             style={{ borderRadius: theme.radius.md }}
           >
-            <Button
-              variant="default"
-              size="xs"
-              leftSection={<IconRefresh size={16} />}
-              onClick={async () => {
-                await Promise.all([refetch(), refetchBeatmapInfo()]);
-              }}
-            >
-              Refresh
-            </Button>
+            <Tooltip label="Reparse the beatmap">
+              <Button
+                size="xs"
+                variant="default"
+                onClick={async () => {
+                  await Promise.all([refetch(), refetchBeatmapInfo()]);
+                }}
+              >
+                <IconRefresh />
+              </Button>
+            </Tooltip>
           </Group>
           <SnapshotGameModeSelector
             groupedDifficulties={groupedDifficulties}

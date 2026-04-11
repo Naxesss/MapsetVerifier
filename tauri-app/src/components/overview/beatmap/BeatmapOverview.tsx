@@ -12,15 +12,24 @@ import { useBeatmapAnalysis } from './hooks/useBeatmapAnalysis';
 import StatisticsInfo from './StatisticsInfo';
 import { useBeatmap } from '../../../context/BeatmapContext';
 import { useSettings } from '../../../context/SettingsContext';
+import {JSX, useEffect} from "react";
 
-function BeatmapOverview() {
+interface BeatmapOverviewProps {
+  reloadFlag: number
+}
+
+function BeatmapOverview({ reloadFlag }: BeatmapOverviewProps) {
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
 
-  const { data, isLoading, isError, error } = useBeatmapAnalysis({
+  const { data, isLoading, isError, error, refetch } = useBeatmapAnalysis({
     folder,
     songFolder: settings.songFolder,
   });
+
+  useEffect(() => {
+    refetch();
+  }, [reloadFlag]);
 
   if (!settings.songFolder) {
     return (

@@ -12,15 +12,24 @@ import MetadataInfo from './MetadataInfo';
 import ResourcesInfo from './ResourcesInfo';
 import { useBeatmap } from '../../../context/BeatmapContext';
 import { useSettings } from '../../../context/SettingsContext';
+import {useEffect} from "react";
 
-function MetadataOverview() {
+interface MetadataOverviewProps {
+  reloadFlag: number
+}
+
+function MetadataOverview({ reloadFlag }: MetadataOverviewProps) {
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
 
-  const { data, isLoading, isError, error } = useMetadataAnalysis({
+  const { data, isLoading, isError, error, refetch } = useMetadataAnalysis({
     folder,
     songFolder: settings.songFolder,
   });
+
+  useEffect(() => {
+    refetch();
+  }, [reloadFlag]);
 
   if (!settings.songFolder) {
     return (

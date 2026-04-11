@@ -66,14 +66,22 @@ type DifficultyDropIndicator = {
   position: 'before' | 'after';
 };
 
-function ObjectsOverview() {
+interface ObjectsOverviewProps {
+  reloadFlag: number
+}
+
+function ObjectsOverview({ reloadFlag }: ObjectsOverviewProps) {
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
   const [selectedMode, setSelectedMode] = useState<Mode | undefined>();
-  const { data, isLoading, isError, error } = useObjectsAnalysis({
+  const { data, isLoading, isError, error, refetch } = useObjectsAnalysis({
     folder,
     songFolder: settings.songFolder,
   });
+
+  useEffect(() => {
+    refetch();
+  }, [reloadFlag]);
 
   const groupedDifficulties = useMemo<ObjectsModeGroup[]>(() => {
     if (!data?.success) return [];

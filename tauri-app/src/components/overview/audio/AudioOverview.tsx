@@ -16,20 +16,30 @@ import { useAudioAnalysis, useFrequencyAnalysis } from './hooks/useAudioAnalysis
 import Spectrogram from './Spectrogram';
 import {useBeatmap} from "../../../context/BeatmapContext.tsx";
 import {useSettings} from "../../../context/SettingsContext.tsx";
+import {useEffect} from "react";
 
-function AudioOverview() {
+interface AudioOverviewProps {
+  reloadFlag: number
+}
+
+function AudioOverview({ reloadFlag }: AudioOverviewProps) {
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
 
-  const { data, isLoading, isError, error } = useAudioAnalysis({
+  const { data, isLoading, isError, error, refetch: audioRefetch } = useAudioAnalysis({
     folder,
     songFolder: settings.songFolder,
   });
 
-  const { data: frequencyData, isLoading: frequencyLoading } = useFrequencyAnalysis({
+  const { data: frequencyData, isLoading: frequencyLoading, refetch: frequencyRefetch } = useFrequencyAnalysis({
     folder,
     songFolder: settings.songFolder,
   });
+
+  useEffect(() => {
+    audioRefetch();
+    frequencyRefetch();
+  }, [reloadFlag]);
 
   if (!settings.songFolder) {
     return (
