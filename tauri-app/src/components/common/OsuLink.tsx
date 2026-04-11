@@ -55,7 +55,7 @@ const OsuLink: React.FC<OsuLinkProps> = ({ text }) => {
           e.currentTarget.style.boxShadow = 'none';
         }}
       >
-        {fullMatch}
+        {timestamp}
       </Anchor>
     );
 
