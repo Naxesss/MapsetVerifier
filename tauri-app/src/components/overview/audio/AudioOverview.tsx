@@ -43,7 +43,7 @@ function AudioOverview({ reloadFlag }: AudioOverviewProps) {
 
   if (!settings.songFolder) {
     return (
-      <Alert color="yellow" title="Song folder not set" withCloseButton>
+      <Alert color="yellow" title="Song folder not set">
         <Text size="sm">Please set the song folder in settings to analyze audio.</Text>
       </Alert>
     );
@@ -56,7 +56,7 @@ function AudioOverview({ reloadFlag }: AudioOverviewProps) {
       <LoadingOverlay visible={isLoading || frequencyLoading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
       {isError && (
         <Flex p="md">
-          <Alert color="red" title="Error analyzing audio" withCloseButton>
+          <Alert color="red" title="Error analyzing audio">
             <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>{error?.message}</Text>
             {error?.stackTrace && (
               <Text mt="sm" size="xs" c="red.3" style={{ whiteSpace: 'pre-wrap' }}>{error.stackTrace}</Text>

@@ -145,7 +145,7 @@ function ObjectsOverview({ reloadFlag }: ObjectsOverviewProps) {
 
       {isError && (
         <Flex p="md">
-          <Alert color="red" title="Error analyzing objects" withCloseButton>
+          <Alert color="red" title="Error analyzing objects">
             <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>{error?.message}</Text>
             {error?.stackTrace && (
               <Text mt="sm" size="xs" c="red.3" style={{ whiteSpace: 'pre-wrap' }}>{error.stackTrace}</Text>

@@ -11,6 +11,28 @@ interface TimeAxisProps {
   intervalSeconds?: number;
 }
 
+export function getAdaptiveTimeInterval(durationSeconds: number): number {
+  if (durationSeconds <= 30) return 5;      // 0-30s: every 5s
+  if (durationSeconds <= 60) return 10;     // 30-60s: every 10s
+  if (durationSeconds <= 120) return 15;    // 1-2min: every 15s
+  if (durationSeconds <= 300) return 30;    // 2-5min: every 30s
+  if (durationSeconds <= 600) return 60;    // 5-10min: every 1min
+  if (durationSeconds <= 1800) return 120;  // 10-30min: every 2min
+  return 300;                               // 30min+: every 5min
+}
+
+export function formatChartTime(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+
+  if (hours > 0) {
+    return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
 /**
  * Reusable time axis component for displaying time labels with tick marks.
  * Compatible with Mantine Charts and custom visualizations.
@@ -20,18 +42,7 @@ function TimeAxis({ durationMs, height = 20, showTicks = true, intervalSeconds }
   const theme = useMantineTheme();
   const durationSeconds = (durationMs / 1000) - 1;
 
-  // Calculate adaptive interval if not provided
-  const getAdaptiveInterval = (duration: number): number => {
-    if (duration <= 30) return 5;        // 0-30s: every 5s
-    if (duration <= 60) return 10;       // 30-60s: every 10s
-    if (duration <= 120) return 15;      // 1-2min: every 15s
-    if (duration <= 300) return 30;      // 2-5min: every 30s
-    if (duration <= 600) return 60;      // 5-10min: every 1min
-    if (duration <= 1800) return 120;    // 10-30min: every 2min
-    return 300;                          // 30min+: every 5min
-  };
-
-  const interval = intervalSeconds ?? getAdaptiveInterval(durationSeconds);
+  const interval = intervalSeconds ?? getAdaptiveTimeInterval(durationSeconds);
 
   // Generate time labels at the calculated interval
   const timeLabels: number[] = [];
@@ -42,18 +53,6 @@ function TimeAxis({ durationMs, height = 20, showTicks = true, intervalSeconds }
   if (timeLabels[timeLabels.length - 1] < durationSeconds) {
     timeLabels.push(Math.ceil(durationSeconds));
   }
-
-  // Format time as mm:ss or h:mm:ss for longer durations
-  const formatTime = (seconds: number): string => {
-    const hours = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = Math.floor(seconds % 60);
-    
-    if (hours > 0) {
-      return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
 
   return (
     <Box style={{ position: 'relative', width: '100%', height, overflow: 'visible' }}>
@@ -91,7 +90,7 @@ function TimeAxis({ durationMs, height = 20, showTicks = true, intervalSeconds }
                 fontSize="10"
                 fontFamily={theme.fontFamily}
               >
-                {formatTime(timeSec)}
+                {formatChartTime(timeSec)}
               </text>
             </g>
           );

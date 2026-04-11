@@ -24,7 +24,7 @@ function ChecksResults({ data, isLoading, isError, error, showMinor, selectedCat
       )}
 
       {isError && (
-        <Alert color="red" title="Error loading checks" withCloseButton>
+        <Alert color="red" title="Error loading checks">
           <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
             {error?.message}
           </Text>

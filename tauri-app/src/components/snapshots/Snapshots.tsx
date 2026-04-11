@@ -152,7 +152,7 @@ function Snapshots() {
       )}
       {isError && (
         <Flex p="md">
-          <Alert color="red" title="Error loading snapshots" withCloseButton>
+          <Alert color="red" title="Error loading snapshots">
             <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
               {error?.message}
             </Text>

@@ -2,24 +2,13 @@
 import {Text, Badge, Group, Paper, useMantineTheme, Stack, Box, Tooltip} from '@mantine/core';
 import { IconAlertTriangle, IconInfoCircle } from '@tabler/icons-react';
 import { useMemo } from 'react';
+import { formatChartTime, getAdaptiveTimeInterval } from '../../common/TimeAxis.tsx';
 import { BitrateAnalysisResult, BitrateDataPoint } from '../../../Types';
 
 interface BitrateGraphProps {
   data: BitrateAnalysisResult;
   durationMs: number;
 }
-
-// Format time as mm:ss or h:mm:ss for longer durations
-const formatTime = (seconds: number): string => {
-  const hours = Math.floor(seconds / 3600);
-  const mins = Math.floor((seconds % 3600) / 60);
-  const secs = Math.floor(seconds % 60);
-
-  if (hours > 0) {
-    return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  }
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
-};
 
 function BitrateGraph({ data, durationMs }: BitrateGraphProps) {
   const theme = useMantineTheme();
@@ -33,7 +22,7 @@ function BitrateGraph({ data, durationMs }: BitrateGraphProps) {
     const step = Math.max(1, Math.floor(rawData.length / maxPoints));
     const sampled = rawData.filter((_: BitrateDataPoint, i: number) => i % step === 0);
     return sampled.map((point: BitrateDataPoint) => ({
-      time: formatTime(point.timeMs / 1000),
+      time: formatChartTime(point.timeMs / 1000),
       bitrate: Math.round(point.bitrate),
     }));
   }, [data.bitrateOverTime]);
@@ -70,18 +59,8 @@ function BitrateGraph({ data, durationMs }: BitrateGraphProps) {
     return 'blue.5';
   };
 
-  const getAdaptiveInterval = (duration: number): number => {
-    if (duration <= 30) return 5;        // 0-30s: every 5s
-    if (duration <= 60) return 10;       // 30-60s: every 10s
-    if (duration <= 120) return 15;      // 1-2min: every 15s
-    if (duration <= 300) return 30;      // 2-5min: every 30s
-    if (duration <= 600) return 60;      // 5-10min: every 1min
-    if (duration <= 1800) return 120;    // 10-30min: every 2min
-    return 300;                          // 30min+: every 5min
-  };
-
   const durationSeconds = durationMs / 1000;
-  const timeInterval = getAdaptiveInterval(durationSeconds);
+  const timeInterval = getAdaptiveTimeInterval(durationSeconds);
 
   return (
     <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
@@ -135,7 +114,7 @@ function BitrateGraph({ data, durationMs }: BitrateGraphProps) {
               curveType="linear"
               withDots={false}
               yAxisProps={{ domain: [0, maxBitrate] }}
-              xAxisProps={{ domain: [0, durationMs], interval: timeInterval - 1 }}
+              xAxisProps={{ domain: [0, durationMs], interval: Math.max(0, timeInterval - 1) }}
               valueFormatter={(value) => `${value} kbps`}
               gridAxis="xy"
             />

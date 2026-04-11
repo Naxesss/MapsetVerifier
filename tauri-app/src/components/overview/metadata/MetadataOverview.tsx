@@ -44,7 +44,7 @@ function MetadataOverview({ reloadFlag }: MetadataOverviewProps) {
       <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
       {isError && (
         <Flex p="md">
-          <Alert color="red" title="Error analyzing metadata" withCloseButton>
+          <Alert color="red" title="Error analyzing metadata">
             <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>{error?.message}</Text>
             {error?.stackTrace && (
               <Text mt="sm" size="xs" c="red.3" style={{ whiteSpace: 'pre-wrap' }}>{error.stackTrace}</Text>

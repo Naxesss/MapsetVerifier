@@ -3,15 +3,16 @@ import {IconRefresh} from "@tabler/icons-react";
 import {useState} from "react";
 import AudioOverview from "./audio/AudioOverview.tsx";
 import BeatmapOverview from "./beatmap/BeatmapOverview.tsx";
+import DifficultyOverview from "./difficulty/DifficultyOverview.tsx";
 import MetadataOverview from "./metadata/MetadataOverview.tsx";
 import ObjectsOverview from "./objects/ObjectsOverview.tsx";
 import {useBeatmap} from "../../context/BeatmapContext.tsx";
 import {useBeatmapBackground} from "../checks/hooks/useBeatmapBackground.ts";
 import BeatmapHeader from "../common/BeatmapHeader.tsx";
 
-type Tab = "Metadata" | "Beatmap" | "Audio" | "Objects";
+type Tab = "Metadata" | "Beatmap" | "Difficulty" | "Audio" | "Objects";
 
-const TABS: Tab[] = ["Metadata", "Objects", "Beatmap", "Audio"];
+const TABS: Tab[] = ["Metadata", "Objects", "Beatmap", "Difficulty", "Audio"];
 
 function Overview() {
   const theme = useMantineTheme();
@@ -62,6 +63,7 @@ function Overview() {
       <Box style={{ flex: 1, overflow: 'auto' }}>
         {activeTab === "Metadata" && <MetadataOverview reloadFlag={reloadFlag} />}
         {activeTab === "Beatmap" && <BeatmapOverview reloadFlag={reloadFlag} />}
+        {activeTab === "Difficulty" && <DifficultyOverview reloadFlag={reloadFlag} />}
         {activeTab === "Audio" && <AudioOverview reloadFlag={reloadFlag} />}
         {activeTab === "Objects" && <ObjectsOverview reloadFlag={reloadFlag} />}
       </Box>

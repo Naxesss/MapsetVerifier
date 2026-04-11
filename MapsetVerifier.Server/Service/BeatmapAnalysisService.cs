@@ -5,6 +5,8 @@ using MapsetVerifier.Parser.Objects.HitObjects.Mania;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
 using MapsetVerifier.Server.Model.BeatmapAnalysis;
+using osu.Game.Rulesets.Difficulty.Skills;
+using osu.Game.Rulesets.Osu.Difficulty.Skills;
 using Serilog;
 
 namespace MapsetVerifier.Server.Service;
@@ -13,6 +15,7 @@ public static class BeatmapAnalysisService
 {
     private static readonly int[] SupportedSnapDivisors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 16];
     private const double TimelineMarginMs = 2000;
+    private const int MsPerPeak = 400;
 
     public static BeatmapAnalysisResult Analyze(string beatmapSetFolder)
     {
@@ -55,6 +58,25 @@ public static class BeatmapAnalysisService
         {
             Log.Error(ex, "Failed to analyze objects overview for {Folder}", beatmapSetFolder);
             return ObjectsOverviewResult.CreateError($"Objects overview analysis failed: {ex.Message}");
+        }
+    }
+
+    public static DifficultyOverviewResult AnalyzeDifficulty(string beatmapSetFolder)
+    {
+        try
+        {
+            var beatmapSet = new BeatmapSet(beatmapSetFolder);
+
+            if (beatmapSet.Beatmaps.Count == 0)
+                return DifficultyOverviewResult.CreateError("No beatmaps found in folder.");
+
+            var difficulties = beatmapSet.Beatmaps.Select(GetDifficultyOverviewDifficulty).ToList();
+            return DifficultyOverviewResult.CreateSuccess(MsPerPeak, difficulties);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to analyze difficulty overview for {Folder}", beatmapSetFolder);
+            return DifficultyOverviewResult.CreateError($"Difficulty overview analysis failed: {ex.Message}");
         }
     }
 
@@ -188,6 +210,35 @@ public static class BeatmapAnalysisService
                 SliderVelocity = isMania ? null : beatmap.DifficultySettings.sliderMultiplier.ToString(CultureInfo.InvariantCulture)
             };
         }).ToList();
+    }
+
+    private static DifficultyOverviewDifficulty GetDifficultyOverviewDifficulty(Beatmap beatmap)
+    {
+        return new DifficultyOverviewDifficulty
+        {
+            Label = beatmap.MetadataSettings.version,
+            Version = beatmap.MetadataSettings.version,
+            Mode = beatmap.GeneralSettings.mode.ToString(),
+            DifficultyLevel = beatmap.GetDifficulty().ToString(),
+            StarRating = beatmap.StarRating,
+            Skills = beatmap.Skills
+                .OfType<StrainSkill>()
+                .Select(skill => new DifficultySkillData
+                {
+                    SkillName = GetSkillName(skill, beatmap),
+                    StrainPeaks = skill.GetCurrentStrainPeaks().Select(peak => (double)peak).ToList()
+                })
+                .ToList()
+        };
+    }
+
+    private static string GetSkillName(Skill skill, Beatmap beatmap)
+    {
+        if (beatmap.GeneralSettings.mode == Beatmap.Mode.Standard && skill is Aim aimSkill)
+            return aimSkill.IncludeSliders ? "Aim (with sliders)" : "Aim (no sliders)";
+
+        var skillName = skill.ToString() ?? string.Empty;
+        return skillName.Split('.').Last();
     }
 
     private static double GetTimelineStartTime(BeatmapSet beatmapSet)

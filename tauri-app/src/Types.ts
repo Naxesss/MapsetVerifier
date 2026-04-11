@@ -460,6 +460,41 @@ export type BeatmapAnalysisResult = {
   difficultySettings: DifficultyDifficultySettings[];
 };
 
+export type DifficultyOverviewResult = {
+  success: boolean;
+  errorMessage: string | null;
+  msPerPeak: number;
+  difficulties: DifficultyOverviewDifficulty[];
+};
+
+export type DifficultyOverviewDifficulty = {
+  label: string;
+  version: string;
+  mode: Mode;
+  difficultyLevel: DifficultyLevel;
+  starRating: number;
+  skills: DifficultySkillData[];
+};
+
+export type DifficultySkillData = {
+  skillName: string;
+  strainPeaks: number[];
+};
+
+export type DifficultyChartDataPoint = {
+  timeSeconds: number;
+  value: number;
+};
+
+export type DifficultyChartSeries = {
+  skillName: string;
+  label: string;
+  mode: Mode;
+  difficultyLevel: DifficultyLevel;
+  starRating: number;
+  points: DifficultyChartDataPoint[];
+};
+
 export type DifficultyStatistics = {
   version: string;
   mode: string;

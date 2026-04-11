@@ -1,4 +1,5 @@
 ﻿import * as d3 from "d3";
+import type { DifficultyLevel } from "../../Types.ts";
 
 const difficultyColourSpectrum = d3
   .scaleLinear<string>()
@@ -19,6 +20,15 @@ const difficultyColourSpectrum = d3
   ])
   .interpolate(d3.interpolateRgb.gamma(2.2));
 
+const difficultyLevelColors: Record<DifficultyLevel, string> = {
+  Easy: "#7CFF4F",
+  Normal: "#4FC0FF",
+  Hard: "#F6F05C",
+  Insane: "#FF4E6F",
+  Expert: "#C645B8",
+  Ultra: "#C645B8",
+};
+
 /**
  * Get the difficulty color for a given rating
  * @param rating The rating to get the color for
@@ -28,4 +38,8 @@ export function getDifficultyColor(rating: number) {
   if (rating < 0.1) return "#AAAAAA";
   if (rating >= 9) return "#000000";
   return difficultyColourSpectrum(rating);
+}
+
+export function getDifficultyLevelColor(level: DifficultyLevel) {
+  return difficultyLevelColors[level];
 }
