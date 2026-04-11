@@ -52,7 +52,9 @@ namespace MapsetVerifier.Parser.Settings
         }
 
         /// <summary> Returns the radius of a circle or slider from the circle size. </summary>
-        public float GetCircleRadius() => 32.0f * (1.0f - 0.7f * (circleSize - 5) / 5);
+        public float GetCircleRadius() => GetCircleRadius(circleSize);
+        
+        public static float GetCircleRadius(float circleSize) => 32.0f * (1.0f - 0.7f * (circleSize - 5) / 5);
 
         /// <summary>
         ///     Returns a value between the upper, middle, and lower ranges,
