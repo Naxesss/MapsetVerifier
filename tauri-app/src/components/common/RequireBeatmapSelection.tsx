@@ -1,7 +1,7 @@
 import {Alert} from '@mantine/core';
+import {IconAlertTriangle} from "@tabler/icons-react";
 import { Outlet } from 'react-router-dom';
 import { useBeatmap } from '../../context/BeatmapContext.tsx';
-import {IconAlertTriangle} from "@tabler/icons-react";
 
 function RequireBeatmapSelection() {
   const { selectedFolder } = useBeatmap();

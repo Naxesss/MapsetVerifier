@@ -1,119 +1,138 @@
-﻿import { Text, Badge, Group, Paper, useMantineTheme, Stack, Box, SimpleGrid } from '@mantine/core';
-import { IconCheck, IconX } from '@tabler/icons-react';
-import { groupByValue, ValueGroup } from './utils/groupByValue';
-import { DifficultyGeneralSettings } from '../../../Types';
+﻿import { Badge, Group, Paper, Stack, Table, Text, useMantineTheme } from '@mantine/core';
+import AppTable, { DifficultyTableCell, DifficultyTableHeaderCell } from '../../common/AppTable.tsx';
+import GameModeIcon from '../../icons/GameModeIcon.tsx';
+import type { DifficultyGeneralSettings } from '../../../Types';
 
 interface GeneralSettingsInfoProps {
   generalSettings: DifficultyGeneralSettings[];
 }
 
-function getGeneralSettingsKey(settings: DifficultyGeneralSettings): string {
-  const parts = [
-    settings.audioFileName,
-    settings.audioLeadIn,
-    settings.stackLeniency ?? 'na',
-    settings.hasCountdown,
-    settings.countdownSpeed ?? 'na',
-    settings.countdownOffset ?? 'na',
-    settings.letterboxInBreaks,
-    settings.widescreenStoryboard,
-    settings.previewTime,
-    settings.useSkinSprites ?? 'na',
-    settings.skinPreference,
-    settings.epilepsyWarning ?? 'na',
-  ];
-  return parts.join('|');
+function getModeAccentColor(mode: string, theme: ReturnType<typeof useMantineTheme>) {
+  switch (mode) {
+    case 'Standard':
+      return theme.colors.pink[4];
+    case 'Taiko':
+      return theme.colors.red[4];
+    case 'Catch':
+      return theme.colors.lime[4];
+    case 'Mania':
+      return theme.colors.violet[4];
+    default:
+      return theme.colors.gray[4];
+  }
 }
 
-function SettingRow({ label, value }: { label: string; value: string | number | null | undefined }) {
-  if (value === null || value === undefined) return null;
+function formatNullable(value: string | number | null | undefined, fallback = 'N/A') {
+  if (value === null || value === undefined || value === '') {
+    return fallback;
+  }
+
+  return String(value);
+}
+
+function ModeCell({ mode }: { mode: string }) {
+  const theme = useMantineTheme();
+
   return (
-    <Group justify="space-between" gap="xs">
-      <Text size="xs" c="dimmed">{label}</Text>
-      <Text size="xs" fw={500}>{value}</Text>
+    <Group gap={6} wrap="nowrap">
+      <GameModeIcon mode={mode} size={16} color={getModeAccentColor(mode, theme)} />
+      <Text size="sm">{mode}</Text>
     </Group>
   );
 }
 
-function BooleanRow({ label, value }: { label: string; value: boolean }) {
-  const theme = useMantineTheme();
+function StatusBadge({ value }: { value: boolean }) {
   return (
-    <Group justify="space-between" gap="xs">
-      <Text size="xs" c="dimmed">{label}</Text>
-      {value ? (
-        <IconCheck size={14} color={theme.colors.green[5]} />
-      ) : (
-        <IconX size={14} color={theme.colors.gray[6]} />
-      )}
-    </Group>
+    <Badge color={value ? 'green' : 'gray'} variant={value ? 'light' : 'outline'}>
+      {value ? 'Yes' : 'No'}
+    </Badge>
   );
 }
 
-function GeneralSettingsGroup({ group }: { group: ValueGroup<DifficultyGeneralSettings> }) {
-  const theme = useMantineTheme();
-  const settings = group.value;
+function CountdownCell({ settings }: { settings: DifficultyGeneralSettings }) {
+  if (!settings.hasCountdown) {
+    return <Badge color="gray" variant="outline">None</Badge>;
+  }
 
   return (
-    <Box
-      p="sm"
-      style={{
-        backgroundColor: theme.colors.dark[6],
-        borderRadius: theme.radius.sm,
-      }}
-    >
-      <Group gap="xs" mb="xs" wrap="wrap">
-        {group.difficulties.map((diff, idx) => (
-          <Badge key={idx} size="xs" variant="light">
-            {diff}
-          </Badge>
-        ))}
-        <Badge size="xs" variant="outline" color="gray">
-          {settings.mode}
-        </Badge>
-      </Group>
-
-      <SimpleGrid cols={2} spacing="xs">
-        <Stack gap={4}>
-          <SettingRow label="Audio Filename" value={settings.audioFileName} />
-          <SettingRow label="Audio Lead-in" value={`${settings.audioLeadIn} ms`} />
-          <SettingRow label="Stack Leniency" value={settings.stackLeniency ?? 'N/A'} />
-          <SettingRow label="Preview Time" value={settings.previewTimeFormatted} />
-          <SettingRow label="Skin Preference" value={settings.skinPreference || '(none)'} />
-        </Stack>
-        <Stack gap={4}>
-          <SettingRow 
-            label="Countdown" 
-            value={settings.hasCountdown ? settings.countdownSpeed : 'None'} 
-          />
-          {settings.hasCountdown && settings.countdownOffset !== null && (
-            <SettingRow label="Countdown Offset" value={settings.countdownOffset} />
-          )}
-          <BooleanRow label="Letterbox in Breaks" value={settings.letterboxInBreaks} />
-          <BooleanRow label="Widescreen Storyboard" value={settings.widescreenStoryboard} />
-          <SettingRow label="Use Skin Sprites" value={settings.useSkinSprites ?? 'N/A'} />
-          <SettingRow label="Epilepsy Warning" value={settings.epilepsyWarning ?? 'N/A'} />
-        </Stack>
-      </SimpleGrid>
-    </Box>
+    <Badge color="blue" variant="light">{formatNullable(settings.countdownSpeed, 'Enabled')}</Badge>
   );
 }
 
 function GeneralSettingsInfo({ generalSettings }: GeneralSettingsInfoProps) {
-  const theme = useMantineTheme();
-
   if (generalSettings.length === 0) {
     return null;
   }
 
-  const groups = groupByValue(generalSettings, getGeneralSettingsKey);
-
   return (
-    <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
-      <Text fw={600} mb="md">General Settings</Text>
-      <Stack gap="sm">
-        {groups.map((group) => (
-          <GeneralSettingsGroup key={group.key} group={group} />
-        ))}
+    <Paper p="md" radius="md" withBorder>
+      <Stack gap="md">
+        <Text fw={600}>General Settings</Text>
+
+        <AppTable>
+            <Table.Thead>
+              <Table.Tr>
+                <DifficultyTableHeaderCell>Difficulty</DifficultyTableHeaderCell>
+                <Table.Th>Mode</Table.Th>
+                <Table.Th>Audio File</Table.Th>
+                <Table.Th>Lead-in</Table.Th>
+                <Table.Th>Preview</Table.Th>
+                <Table.Th>Stack Leniency</Table.Th>
+                <Table.Th>Countdown</Table.Th>
+                <Table.Th>Countdown Offset</Table.Th>
+                <Table.Th>Letterbox in Breaks</Table.Th>
+                <Table.Th>Widescreen Storyboard</Table.Th>
+                <Table.Th>Use Skin Sprites</Table.Th>
+                <Table.Th>Skin Preference</Table.Th>
+                <Table.Th>Epilepsy Warning</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {generalSettings.map((settings) => (
+                <Table.Tr key={`${settings.mode}-${settings.version}`}>
+                  <DifficultyTableCell>
+                    <Text size="sm" fw={600}>{settings.version}</Text>
+                  </DifficultyTableCell>
+                  <Table.Td>
+                    <ModeCell mode={settings.mode} />
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{settings.audioFileName}</Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{settings.audioLeadIn.toLocaleString()} ms</Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{settings.previewTimeFormatted}</Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{formatNullable(settings.stackLeniency)}</Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <CountdownCell settings={settings} />
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{settings.hasCountdown && settings.countdownOffset !== null ? settings.countdownOffset.toLocaleString() : 'N/A'}</Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <StatusBadge value={settings.letterboxInBreaks} />
+                  </Table.Td>
+                  <Table.Td>
+                    <StatusBadge value={settings.widescreenStoryboard} />
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{formatNullable(settings.useSkinSprites)}</Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{formatNullable(settings.skinPreference, '(none)')}</Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{formatNullable(settings.epilepsyWarning)}</Text>
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </AppTable>
       </Stack>
     </Paper>
   );

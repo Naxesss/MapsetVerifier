@@ -1,113 +1,155 @@
-﻿import { Text, Badge, Group, Paper, useMantineTheme, Stack, Box, SimpleGrid } from '@mantine/core';
-import { groupByValue, ValueGroup } from './utils/groupByValue';
-import { DifficultyStatistics } from '../../../Types';
+﻿import { Badge, Group, Paper, Stack, Table, Text, Tooltip, useMantineTheme } from '@mantine/core';
+import AppTable, { DifficultyTableCell, DifficultyTableHeaderCell } from '../../common/AppTable.tsx';
+import GameModeIcon from '../../icons/GameModeIcon.tsx';
+import type { DifficultyStatistics } from '../../../Types';
 
 interface StatisticsInfoProps {
   statistics: DifficultyStatistics[];
 }
 
-function getStatisticsKey(stats: DifficultyStatistics): string {
-  const parts = [
-    stats.circleCount,
-    stats.sliderCount ?? 'na',
-    stats.spinnerCount ?? 'na',
-    stats.holdNoteCount ?? 'na',
-    stats.objectsPerColumn?.join(',') ?? 'na',
-    stats.newComboCount,
-    stats.breakCount,
-    stats.uninheritedLineCount,
-    stats.inheritedLineCount,
-  ];
-  return parts.join('|');
+function getModeAccentColor(mode: string, theme: ReturnType<typeof useMantineTheme>) {
+  switch (mode) {
+    case 'Standard':
+      return theme.colors.pink[4];
+    case 'Taiko':
+      return theme.colors.red[4];
+    case 'Catch':
+      return theme.colors.lime[4];
+    case 'Mania':
+      return theme.colors.violet[4];
+    default:
+      return theme.colors.gray[4];
+  }
 }
 
-function StatRow({ label, value }: { label: string; value: string | number | null }) {
-  if (value === null) return null;
+function formatCount(value: number | null) {
+  return value === null ? 'N/A' : value.toLocaleString();
+}
+
+function formatStarRating(starRating: number | null) {
+  return starRating === null ? 'N/A' : `${starRating.toFixed(2)}★`;
+}
+
+function ModeCell({ mode }: { mode: string }) {
+  const theme = useMantineTheme();
+
   return (
-    <Group justify="space-between" gap="xs">
-      <Text size="xs" c="dimmed">{label}</Text>
-      <Text size="xs" fw={500}>{value}</Text>
+    <Group gap={6} wrap="nowrap">
+      <GameModeIcon mode={mode} size={16} color={getModeAccentColor(mode, theme)} />
+      <Text size="sm">{mode}</Text>
     </Group>
   );
 }
 
-function StatisticsGroup({ group }: { group: ValueGroup<DifficultyStatistics> }) {
-  const theme = useMantineTheme();
-  const stats = group.value;
+function SliderCell({ stats }: { stats: DifficultyStatistics }) {
   const isMania = stats.mode === 'Mania';
+  const value = isMania ? stats.holdNoteCount : stats.sliderCount;
 
   return (
-    <Box
-      p="sm"
-      style={{
-        backgroundColor: theme.colors.dark[6],
-        borderRadius: theme.radius.sm,
-      }}
-    >
-      <Group gap="xs" mb="xs" wrap="wrap">
-        {group.difficulties.map((diff, idx) => (
-          <Badge key={idx} size="xs" variant="light">
-            {diff}
-          </Badge>
-        ))}
-        <Badge size="xs" variant="outline" color="gray">
-          {stats.mode}
-        </Badge>
-      </Group>
-
-      <SimpleGrid cols={2} spacing="xs">
-        <Stack gap={4}>
-          <StatRow label="Circles" value={stats.circleCount} />
-          {!isMania && <StatRow label="Sliders" value={stats.sliderCount} />}
-          {!isMania && <StatRow label="Spinners" value={stats.spinnerCount} />}
-          {isMania && <StatRow label="Hold Notes" value={stats.holdNoteCount} />}
-          <StatRow label="New Combos" value={stats.newComboCount} />
-          <StatRow label="Breaks" value={stats.breakCount} />
-        </Stack>
-        <Stack gap={4}>
-          <StatRow label="Uninherited Lines" value={stats.uninheritedLineCount} />
-          <StatRow label="Inherited Lines" value={stats.inheritedLineCount} />
-          <StatRow label="Kiai Time" value={stats.kiaiTimeFormatted} />
-          <StatRow label="Drain Time" value={stats.drainTimeFormatted} />
-          <StatRow label="Play Time" value={stats.playTimeFormatted} />
-          {stats.starRating !== null && (
-            <StatRow label="Star Rating" value={`${stats.starRating.toFixed(2)}★`} />
+    <Stack gap={4}>
+      {!isMania && (<Text size="sm" fw={500}>{formatCount(value)}</Text>)}
+      {isMania && (
+        <Group gap={4} wrap="nowrap" justify="flex-end">
+          {stats.objectsPerColumn && stats.objectsPerColumn.length > 0 && (
+            <Tooltip
+              multiline
+              w={190}
+              label={(
+                <Stack gap={2}>
+                  <Text size="xs" fw={600}>Objects per Column</Text>
+                  {stats.objectsPerColumn.map((count, index) => (
+                    <Text key={`${stats.version}-column-${index}`} size="xs">
+                      Column {index + 1}: {count.toLocaleString()}
+                    </Text>
+                  ))}
+                </Stack>
+              )}
+            >
+              <Badge size="xs" variant="outline" color="gray">Per column</Badge>
+            </Tooltip>
           )}
-        </Stack>
-      </SimpleGrid>
-
-      {isMania && stats.objectsPerColumn && (
-        <Box mt="xs">
-          <Text size="xs" c="dimmed" mb={4}>Objects per Column</Text>
-          <Group gap="xs">
-            {stats.objectsPerColumn.map((count, idx) => (
-              <Badge key={idx} size="xs" variant="light" color="blue">
-                {idx + 1}: {count}
-              </Badge>
-            ))}
-          </Group>
-        </Box>
+        </Group>
       )}
-    </Box>
+    </Stack>
   );
 }
 
 function StatisticsInfo({ statistics }: StatisticsInfoProps) {
-  const theme = useMantineTheme();
-
   if (statistics.length === 0) {
     return null;
   }
 
-  const groups = groupByValue(statistics, getStatisticsKey);
-
   return (
-    <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
-      <Text fw={600} mb="md">Statistics</Text>
-      <Stack gap="sm">
-        {groups.map((group) => (
-          <StatisticsGroup key={group.key} group={group} />
-        ))}
+    <Paper p="md" radius="md" withBorder>
+      <Stack gap="md">
+        <Text fw={600}>Statistics</Text>
+
+        <AppTable>
+            <Table.Thead>
+              <Table.Tr>
+                <DifficultyTableHeaderCell rowSpan={2}>Difficulty</DifficultyTableHeaderCell>
+                <Table.Th rowSpan={2}>Mode</Table.Th>
+                <Table.Th rowSpan={2} >Star Rating</Table.Th>
+                <Table.Th colSpan={3}>Objects</Table.Th>
+                <Table.Th colSpan={2}>Misc</Table.Th>
+                <Table.Th colSpan={2}>Timing</Table.Th>
+                <Table.Th colSpan={2}>Duration</Table.Th>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Th>Circles</Table.Th>
+                <Table.Th>Sliders</Table.Th>
+                <Table.Th>Spinners</Table.Th>
+                <Table.Th>New Combos</Table.Th>
+                <Table.Th>Breaks</Table.Th>
+                <Table.Th>Uninherited</Table.Th>
+                <Table.Th>Inherited</Table.Th>
+                <Table.Th>Drain Time</Table.Th>
+                <Table.Th>Play Time</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {statistics.map((stats) => (
+                <Table.Tr key={`${stats.mode}-${stats.version}`}>
+                  <DifficultyTableCell>
+                    <Text size="sm" fw={600} style={{ whiteSpace: 'nowrap' }}>{stats.version}</Text>
+                  </DifficultyTableCell>
+                  <Table.Td>
+                    <ModeCell mode={stats.mode} />
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{formatStarRating(stats.starRating)}</Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{stats.circleCount.toLocaleString()}</Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <SliderCell stats={stats} />
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{formatCount(stats.spinnerCount)}</Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{stats.newComboCount.toLocaleString()}</Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{stats.breakCount.toLocaleString()}</Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{stats.uninheritedLineCount.toLocaleString()}</Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{stats.inheritedLineCount.toLocaleString()}</Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{stats.drainTimeFormatted}</Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{stats.playTimeFormatted}</Text>
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </AppTable>
       </Stack>
     </Paper>
   );

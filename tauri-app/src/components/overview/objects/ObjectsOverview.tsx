@@ -30,6 +30,7 @@ import {
   type ObjectsTimingSegment,
   type ObjectsTimelineObject,
 } from '../../../Types';
+import AppTable, { DifficultyTableCell, DifficultyTableHeaderCell } from '../../common/AppTable.tsx';
 import AutoResizeCanvas from '../../common/AutoResizeCanvas.tsx';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
 
@@ -913,19 +914,10 @@ function SnappingsOverview({
           </Badge>
         </Group>
 
-        <Box style={{ overflowX: 'auto' }}>
-          <Table
-            striped
-            highlightOnHover
-            withTableBorder
-            withColumnBorders
-            horizontalSpacing="sm"
-            verticalSpacing="xs"
-            miw={Math.max(960, 520 + snappingColumns.length * 88)}
-          >
+        <AppTable miw={Math.max(960, 520 + snappingColumns.length * 88)}>
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Difficulty</Table.Th>
+                <DifficultyTableHeaderCell>Difficulty</DifficultyTableHeaderCell>
                 <Table.Th>Mode</Table.Th>
                 <Table.Th>Objects</Table.Th>
                 <Table.Th>Edges</Table.Th>
@@ -940,7 +932,7 @@ function SnappingsOverview({
                 <Fragment key={group.mode}>
                   {group.difficulties.map((difficulty) => (
                     <Table.Tr key={`${group.mode}-${difficulty.version}`}>
-                      <Table.Td>
+                      <DifficultyTableCell>
                         <Group gap="xs" wrap="nowrap">
                           <GameModeIcon
                             mode={group.mode}
@@ -949,7 +941,7 @@ function SnappingsOverview({
                           />
                           <Text size="sm" fw={600}>{difficulty.version}</Text>
                         </Group>
-                      </Table.Td>
+                      </DifficultyTableCell>
                       <Table.Td>
                         <Group gap={6} wrap="nowrap">
                           <GameModeIcon
@@ -981,8 +973,7 @@ function SnappingsOverview({
                 </Fragment>
               ))}
             </Table.Tbody>
-          </Table>
-        </Box>
+          </AppTable>
       </Stack>
     </Paper>
   );

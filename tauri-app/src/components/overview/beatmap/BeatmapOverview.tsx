@@ -55,10 +55,8 @@ function BeatmapOverview() {
       {data && data.success && (
         <Flex gap="md" p="md" direction="column">
           <StatisticsInfo statistics={data.statistics} />
-          <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="md">
-            <GeneralSettingsInfo generalSettings={data.generalSettings} />
-            <DifficultySettingsInfo difficultySettings={data.difficultySettings} />
-          </SimpleGrid>
+          <GeneralSettingsInfo generalSettings={data.generalSettings} />
+          <DifficultySettingsInfo difficultySettings={data.difficultySettings} />
         </Flex>
       )}
     </Box>

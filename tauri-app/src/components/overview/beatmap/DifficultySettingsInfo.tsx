@@ -1,107 +1,63 @@
-﻿import { Text, Badge, Group, Paper, useMantineTheme, Stack, Box, Progress } from '@mantine/core';
-import { groupByValue, ValueGroup } from './utils/groupByValue';
-import { DifficultyDifficultySettings } from '../../../Types';
+﻿import { Badge, Group, Paper, Stack, Table, Text, useMantineTheme } from '@mantine/core';
+import AppTable, { DifficultyTableCell, DifficultyTableHeaderCell } from '../../common/AppTable.tsx';
+import GameModeIcon from '../../icons/GameModeIcon.tsx';
+import type { DifficultyDifficultySettings } from '../../../Types';
 
 interface DifficultySettingsInfoProps {
   difficultySettings: DifficultyDifficultySettings[];
 }
 
-function getDifficultySettingsKey(settings: DifficultyDifficultySettings): string {
-  const parts = [
-    settings.hpDrain,
-    settings.circleSize ?? 'na',
-    settings.overallDifficulty,
-    settings.approachRate ?? 'na',
-    settings.sliderTickRate ?? 'na',
-    settings.sliderVelocity ?? 'na',
-  ];
-  return parts.join('|');
+function getModeAccentColor(mode: string, theme: ReturnType<typeof useMantineTheme>) {
+  switch (mode) {
+    case 'Standard':
+      return theme.colors.pink[4];
+    case 'Taiko':
+      return theme.colors.red[4];
+    case 'Catch':
+      return theme.colors.lime[4];
+    case 'Mania':
+      return theme.colors.violet[4];
+    default:
+      return theme.colors.gray[4];
+  }
 }
 
-function DifficultyBar({ label, value, max = 10 }: { label: string; value: number | string | null; max?: number }) {
-  const theme = useMantineTheme();
-  
-  if (value === null) {
-    return (
-      <Group justify="space-between" gap="xs">
-        <Text size="xs" c="dimmed">{label}</Text>
-        <Text size="xs" c="dimmed">N/A</Text>
-      </Group>
-    );
+function formatNullable(value: string | number | null, fallback = 'N/A') {
+  if (value === null || value === '') {
+    return fallback;
   }
 
-  const numValue = typeof value === 'string' ? parseFloat(value) : value;
-  const percentage = Math.min((numValue / max) * 100, 100);
-  const displayValue = typeof value === 'string' ? value : value.toFixed(1);
+  return value;
+}
+
+function formatDifficultyValue(value: number) {
+  return value.toFixed(1);
+}
+
+function ModeCell({ mode }: { mode: string }) {
+  const theme = useMantineTheme();
 
   return (
-    <Box>
-      <Group justify="space-between" gap="xs" mb={2}>
-        <Text size="xs" c="dimmed">{label}</Text>
-        <Text size="xs" fw={500}>{displayValue}</Text>
-      </Group>
-      <Progress 
-        value={percentage} 
-        size="xs" 
-        color={percentage > 80 ? 'red' : percentage > 60 ? 'yellow' : 'blue'}
-        bg={theme.colors.dark[4]}
-      />
-    </Box>
+    <Group gap={6} wrap="nowrap">
+      <GameModeIcon mode={mode} size={16} color={getModeAccentColor(mode, theme)} />
+      <Text size="sm">{mode}</Text>
+    </Group>
   );
 }
 
-function DifficultySettingsGroup({ group }: { group: ValueGroup<DifficultyDifficultySettings> }) {
-  const theme = useMantineTheme();
-  const settings = group.value;
+function CircleSizeCell({ settings }: { settings: DifficultyDifficultySettings }) {
   const isMania = settings.mode === 'Mania';
   const isTaiko = settings.mode === 'Taiko';
 
-  return (
-    <Box
-      p="sm"
-      style={{
-        backgroundColor: theme.colors.dark[6],
-        borderRadius: theme.radius.sm,
-      }}
-    >
-      <Group gap="xs" mb="xs" wrap="wrap">
-        {group.difficulties.map((diff, idx) => (
-          <Badge key={idx} size="xs" variant="light">
-            {diff}
-          </Badge>
-        ))}
-        <Badge size="xs" variant="outline" color="gray">
-          {settings.mode}
-        </Badge>
-      </Group>
+  if (isTaiko) {
+    return <Text size="sm">N/A</Text>;
+  }
 
-      <Stack gap="xs">
-        <DifficultyBar label="HP Drain" value={settings.hpDrain} />
-        {!isTaiko && (
-          <DifficultyBar 
-            label={isMania ? 'Key Count' : 'Circle Size'} 
-            value={settings.circleSize} 
-            max={isMania ? 10 : 10}
-          />
-        )}
-        <DifficultyBar label="Overall Difficulty" value={settings.overallDifficulty} />
-        {!isMania && (
-          <DifficultyBar label="Approach Rate" value={settings.approachRate} />
-        )}
-        {!isMania && (
-          <Group justify="space-between" gap="xs">
-            <Text size="xs" c="dimmed">Slider Tick Rate</Text>
-            <Text size="xs" fw={500}>{settings.sliderTickRate ?? 'N/A'}</Text>
-          </Group>
-        )}
-        {!isMania && (
-          <Group justify="space-between" gap="xs">
-            <Text size="xs" c="dimmed">Slider Velocity</Text>
-            <Text size="xs" fw={500}>{settings.sliderVelocity ?? 'N/A'}x</Text>
-          </Group>
-        )}
-      </Stack>
-    </Box>
+  return (
+    <Group gap={6} wrap="nowrap">
+      <Text size="sm">{formatNullable(settings.circleSize)}</Text>
+      {isMania && <Badge size="xs" variant="light" color="violet">Keys</Badge>}
+    </Group>
   );
 }
 
@@ -112,15 +68,59 @@ function DifficultySettingsInfo({ difficultySettings }: DifficultySettingsInfoPr
     return null;
   }
 
-  const groups = groupByValue(difficultySettings, getDifficultySettingsKey);
-
   return (
-    <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
-      <Text fw={600} mb="md">Difficulty Settings</Text>
-      <Stack gap="sm">
-        {groups.map((group) => (
-          <DifficultySettingsGroup key={group.key} group={group} />
-        ))}
+    <Paper p="md" radius="md" withBorder>
+      <Stack gap="md">
+        <Text fw={600}>Difficulty Settings</Text>
+
+        <AppTable>
+            <Table.Thead>
+              <Table.Tr style={{ backgroundColor: theme.colors.dark[5] }}>
+                <DifficultyTableHeaderCell>Difficulty</DifficultyTableHeaderCell>
+                <Table.Th>Mode</Table.Th>
+                <Table.Th>HP Drain</Table.Th>
+                <Table.Th>Circle Size</Table.Th>
+                <Table.Th>Overall Difficulty</Table.Th>
+                <Table.Th>Approach Rate</Table.Th>
+                <Table.Th>Slider Tick Rate</Table.Th>
+                <Table.Th>Slider Velocity</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {difficultySettings.map((settings) => {
+                const isMania = settings.mode === 'Mania';
+
+                return (
+                  <Table.Tr key={`${settings.mode}-${settings.version}`}>
+                    <DifficultyTableCell>
+                      <Text size="sm" fw={600} style={{ whiteSpace: 'nowrap' }}>{settings.version}</Text>
+                    </DifficultyTableCell>
+                    <Table.Td>
+                      <ModeCell mode={settings.mode} />
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm">{formatDifficultyValue(settings.hpDrain)}</Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <CircleSizeCell settings={settings} />
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm">{formatDifficultyValue(settings.overallDifficulty)}</Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm">{isMania ? 'N/A' : formatNullable(settings.approachRate)}</Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm">{isMania ? 'N/A' : formatNullable(settings.sliderTickRate)}</Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm">{isMania ? 'N/A' : settings.sliderVelocity ? `${settings.sliderVelocity}x` : 'N/A'}</Text>
+                    </Table.Td>
+                  </Table.Tr>
+                );
+              })}
+            </Table.Tbody>
+          </AppTable>
       </Stack>
     </Paper>
   );

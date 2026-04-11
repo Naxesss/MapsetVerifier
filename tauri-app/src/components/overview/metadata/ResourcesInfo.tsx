@@ -1,6 +1,7 @@
 ﻿import { Text, Badge, Group, Paper, useMantineTheme, Stack, Tooltip, Accordion, Box, Table, ThemeIcon } from '@mantine/core';
 import { IconInfoCircle, IconPhoto, IconVideo, IconMusic, IconVolume, IconFolder, IconCheck, IconX } from '@tabler/icons-react';
 import { ResourcesInfo as ResourcesInfoType } from '../../../Types';
+import AppTable from '../../common/AppTable.tsx';
 
 interface ResourcesInfoProps {
   resources: ResourcesInfoType;
@@ -129,7 +130,7 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
                   <Text size="sm">View hit sound usage</Text>
                 </Accordion.Control>
                 <Accordion.Panel>
-                  <Table striped highlightOnHover withTableBorder>
+                  <AppTable>
                     <Table.Thead>
                       <Table.Tr>
                         <Table.Th>File</Table.Th>
@@ -142,7 +143,7 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
                     <Table.Tbody>
                       {resources.hitSounds.slice(0, 20).map((hs, idx) => (
                         <Table.Tr key={idx}>
-                          <Table.Td><Text size="xs">{hs.fileName}</Text></Table.Td>
+                          <Table.Td style={{ textAlign: 'left' }}><Text size="xs">{hs.fileName}</Text></Table.Td>
                           <Table.Td><Badge size="xs" variant="light">{hs.format}</Badge></Table.Td>
                           <Table.Td><Text size="xs">{hs.fileSizeFormatted}</Text></Table.Td>
                           <Table.Td><Text size="xs">{hs.durationMs.toFixed(0)} ms</Text></Table.Td>
@@ -150,7 +151,7 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
                         </Table.Tr>
                       ))}
                     </Table.Tbody>
-                  </Table>
+                  </AppTable>
                   {resources.hitSounds.length > 20 && (
                     <Text size="xs" c="dimmed" mt="xs">...and {resources.hitSounds.length - 20} more</Text>
                   )}
