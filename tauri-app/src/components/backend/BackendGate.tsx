@@ -5,6 +5,7 @@ import React, { useEffect, useState, useRef, useCallback, ReactNode } from 'reac
 import { cssVarResolver } from '../../App';
 import { useSettings } from '../../context/SettingsContext';
 import { theme } from '../../theme/Theme';
+import {BACKEND_BASE_URL} from "../../Constants.ts";
 
 interface BackendGateProps {
   children: ReactNode;
@@ -22,8 +23,7 @@ declare global {
 
 /** Handles starting the backend sidecar in production and gates rendering until ready. */
 const BackendGate: React.FC<BackendGateProps> = ({
-  children,
-  port = 5005,
+  children, 
   healthTimeoutMs = 15000,
   probeIntervalMs = 500
 }) => {
@@ -88,10 +88,8 @@ const BackendGate: React.FC<BackendGateProps> = ({
     setStage('init');
     setProgress(10);
     try {
-      const baseUrl = `http://127.0.0.1:${port}`;
-
       // First: if something is already serving and healthy, don't spawn again
-      const preHealthy = await isHealthy(baseUrl, 2500);
+      const preHealthy = await isHealthy(BACKEND_BASE_URL, 2500);
       if (preHealthy) {
         window.__BACKEND_GATE__ = { started: true };
         setStage('ready');
@@ -106,7 +104,7 @@ const BackendGate: React.FC<BackendGateProps> = ({
       setProgress(30);
       setSidecarLogs([]);
       sidecarExitedRef.current = false;
-      const command = Command.sidecar(programName, [`--urls=${baseUrl}`]);
+      const command = Command.sidecar(programName, [`--urls=${BACKEND_BASE_URL}`]);
 
       // Attach lifecycle & output listeners before spawning
       command.on('close', (data) => {
@@ -122,11 +120,9 @@ const BackendGate: React.FC<BackendGateProps> = ({
         sidecarExitedRef.current = true;
       });
       command.stdout.on('data', (line) => {
-        console.log(`[sidecar stdout] ${line}`);
         appendLog(`[stdout] ${line}`);
       });
       command.stderr.on('data', (line) => {
-        console.error(`[sidecar stderr] ${line}`);
         appendLog(`[stderr] ${line}`);
       });
 
@@ -153,7 +149,7 @@ const BackendGate: React.FC<BackendGateProps> = ({
         try {
           const controller = new AbortController();
           const id = setTimeout(() => controller.abort(), 4000);
-          const res = await fetch(baseUrl + "/health", { signal: controller.signal });
+          const res = await fetch(BACKEND_BASE_URL + "/health", { signal: controller.signal });
           clearTimeout(id);
           if (res.ok) { healthy = true; break; }
         } catch (err) {
@@ -167,7 +163,7 @@ const BackendGate: React.FC<BackendGateProps> = ({
       }
 
       if (!healthy) {
-        throw new Error(`Backend did not respond on ${baseUrl}/health within ${Math.round(healthTimeoutMs / 1000)}s`);
+        throw new Error(`Backend did not respond on ${BACKEND_BASE_URL}/health within ${Math.round(healthTimeoutMs / 1000)}s`);
       }
       
       setStage('ready');

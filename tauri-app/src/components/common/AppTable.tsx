@@ -43,7 +43,7 @@ export function DifficultyTableCell({ style, ...props }: ComponentPropsWithoutRe
         left: 0,
         zIndex: 2,
         textAlign: 'left',
-        backgroundColor: theme.colors.dark[7],
+        backgroundColor: theme.colors.dark[5],
         borderRight: `1px solid ${theme.colors.dark[4]}`,
         boxShadow: `8px 0 12px -12px rgba(0, 0, 0, 0.8)`,
         ...style,
@@ -56,6 +56,7 @@ function AppTable({
   children,
   containerStyle,
   style,
+  styles,
   striped = true,
   highlightOnHover = true,
   horizontalSpacing = 'sm',
@@ -70,9 +71,12 @@ function AppTable({
         highlightOnHover={highlightOnHover}
         horizontalSpacing={horizontalSpacing}
         verticalSpacing={verticalSpacing}
+        styles={styles ?? {
+          th: { textAlign: 'center' },
+          td: { textAlign: 'center' },
+        }}
         style={{
           whiteSpace: 'nowrap',
-          textAlign: 'center',
           ...style,
         }}
       >

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from "react-router-dom";
 import { useBeatmap } from '../../context/BeatmapContext';
 import { Beatmap } from '../../Types.ts';
+import {BACKEND_BASE_URL} from "../../Constants.ts";
 
 interface BeatmapCardProps {
   beatmap: Beatmap;
@@ -21,7 +22,7 @@ function BeatmapCard({ beatmap }: BeatmapCardProps) {
       return;
     }
 
-    const candidate = `http://localhost:5005/beatmap/image?folder=${beatmap.folder}`;
+    const candidate = `${BACKEND_BASE_URL}/beatmap/image?folder=${beatmap.folder}`;
     let cancelled = false;
     const img = new Image();
 
@@ -60,7 +61,7 @@ function BeatmapCard({ beatmap }: BeatmapCardProps) {
         position: 'relative',
         overflow: 'hidden',
         cursor: 'pointer',
-        border: isSelected ? '2px solid var(--mantine-color-blue-6)' : '2px solid transparent'
+        border: isSelected || isHovered ? '1px solid var(--mantine-color-blue-6)' : '1px solid var(--mantine-color-dark-4)',
       }}
       onClick={() => {
         setSelectedFolder(beatmap.folder)
@@ -96,51 +97,36 @@ function BeatmapCard({ beatmap }: BeatmapCardProps) {
           left: 0,
           width: '100%',
           height: '100%',
-          background: isHovered ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0.6)',
+          background: isSelected || isHovered ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0.6)',
           borderRadius: 'var(--mantine-radius-md)',
           zIndex: 1,
           pointerEvents: 'none',
-          transition: 'background 0.3s',
         }}
       />
       {/* Text content */}
       <Flex
         direction="column"
-        gap={4}
+        gap={0}
+        p="xs"
         style={{
-          padding: 'var(--mantine-spacing-md)',
           position: 'relative',
           zIndex: 2,
           overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          color: 'var(--mantine-color-text)',
           textAlign: 'center',
-          width: '100%',
-          maxWidth: '100%',
         }}
       >
-        <Flex
-          direction="column"
-          gap={2}
-          style={{
-            fontWeight: 'bold',
-            fontSize: 12,
-            overflow: 'hidden',
-            maxWidth: '100%',
-          }}
-        >
-          <Text fw={700} style={textStyle}>
-            {beatmap.artist}
-          </Text>
-          <Text fw={700} style={textStyle}>
-            {beatmap.title}
-          </Text>
-        </Flex>
-        <Box style={{ fontSize: 10, overflow: 'hidden', maxWidth: '100%' }}>
-          <Text fs="italic" style={textStyle}>
-            Mapped by {beatmap.creator}
-          </Text>
-        </Box>
+        <Text style={textStyle}>
+          {beatmap.artist}
+        </Text>
+        <Text style={textStyle}>
+          {beatmap.title}
+        </Text>
+        <Text
+          fs="italic"
+          size="sm"
+          style={textStyle}>
+          Mapped by {beatmap.creator}
+        </Text>
       </Flex>
     </Flex>
   );

@@ -1,4 +1,4 @@
-﻿import { Badge, Group, Paper, Stack, Table, Text, useMantineTheme } from '@mantine/core';
+﻿import { Group, Paper, Stack, Table, Text, useMantineTheme } from '@mantine/core';
 import AppTable, { DifficultyTableCell, DifficultyTableHeaderCell } from '../../common/AppTable.tsx';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
 import type { DifficultyDifficultySettings } from '../../../Types';
@@ -38,7 +38,7 @@ function ModeCell({ mode }: { mode: string }) {
   const theme = useMantineTheme();
 
   return (
-    <Group gap={6} wrap="nowrap">
+    <Group gap={6} wrap="nowrap" justify="center">
       <GameModeIcon mode={mode} size={16} color={getModeAccentColor(mode, theme)} />
       <Text size="sm">{mode}</Text>
     </Group>
@@ -46,7 +46,6 @@ function ModeCell({ mode }: { mode: string }) {
 }
 
 function CircleSizeCell({ settings }: { settings: DifficultyDifficultySettings }) {
-  const isMania = settings.mode === 'Mania';
   const isTaiko = settings.mode === 'Taiko';
 
   if (isTaiko) {
@@ -54,10 +53,7 @@ function CircleSizeCell({ settings }: { settings: DifficultyDifficultySettings }
   }
 
   return (
-    <Group gap={6} wrap="nowrap">
-      <Text size="sm">{formatNullable(settings.circleSize)}</Text>
-      {isMania && <Badge size="xs" variant="light" color="violet">Keys</Badge>}
-    </Group>
+    <Text size="sm">{formatNullable(settings.circleSize)}</Text>
   );
 }
 
@@ -74,8 +70,8 @@ function DifficultySettingsInfo({ difficultySettings }: DifficultySettingsInfoPr
         <Text fw={600}>Difficulty Settings</Text>
 
         <AppTable>
-            <Table.Thead>
-              <Table.Tr style={{ backgroundColor: theme.colors.dark[5] }}>
+            <Table.Thead style={{ backgroundColor: theme.colors.dark[5] }}>
+              <Table.Tr>
                 <DifficultyTableHeaderCell>Difficulty</DifficultyTableHeaderCell>
                 <Table.Th>Mode</Table.Th>
                 <Table.Th>HP Drain</Table.Th>

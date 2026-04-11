@@ -6,13 +6,13 @@
   LoadingOverlay,
   SimpleGrid
 } from '@mantine/core';
+import {useEffect} from "react";
 import ColourSettings from './ColourSettings';
 import { useMetadataAnalysis } from './hooks/useMetadataAnalysis';
 import MetadataInfo from './MetadataInfo';
 import ResourcesInfo from './ResourcesInfo';
 import { useBeatmap } from '../../../context/BeatmapContext';
 import { useSettings } from '../../../context/SettingsContext';
-import {useEffect} from "react";
 
 interface MetadataOverviewProps {
   reloadFlag: number

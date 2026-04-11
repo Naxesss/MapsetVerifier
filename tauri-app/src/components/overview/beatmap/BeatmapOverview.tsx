@@ -3,16 +3,15 @@
   Text,
   Box,
   Flex,
-  LoadingOverlay,
-  SimpleGrid
+  LoadingOverlay
 } from '@mantine/core';
+import {useEffect} from "react";
 import DifficultySettingsInfo from './DifficultySettingsInfo';
 import GeneralSettingsInfo from './GeneralSettingsInfo';
 import { useBeatmapAnalysis } from './hooks/useBeatmapAnalysis';
 import StatisticsInfo from './StatisticsInfo';
 import { useBeatmap } from '../../../context/BeatmapContext';
 import { useSettings } from '../../../context/SettingsContext';
-import {JSX, useEffect} from "react";
 
 interface BeatmapOverviewProps {
   reloadFlag: number

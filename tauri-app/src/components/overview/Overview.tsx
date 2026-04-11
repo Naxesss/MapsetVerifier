@@ -11,7 +11,7 @@ import BeatmapHeader from "../common/BeatmapHeader.tsx";
 
 type Tab = "Metadata" | "Beatmap" | "Audio" | "Objects";
 
-const TABS: Tab[] = ["Metadata", "Beatmap", "Audio", "Objects"];
+const TABS: Tab[] = ["Metadata", "Objects", "Beatmap", "Audio"];
 
 function Overview() {
   const theme = useMantineTheme();

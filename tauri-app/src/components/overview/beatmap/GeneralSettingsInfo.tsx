@@ -34,7 +34,7 @@ function ModeCell({ mode }: { mode: string }) {
   const theme = useMantineTheme();
 
   return (
-    <Group gap={6} wrap="nowrap">
+    <Group gap={6} wrap="nowrap" justify="center">
       <GameModeIcon mode={mode} size={16} color={getModeAccentColor(mode, theme)} />
       <Text size="sm">{mode}</Text>
     </Group>
@@ -51,7 +51,7 @@ function StatusBadge({ value }: { value: boolean }) {
 
 function CountdownCell({ settings }: { settings: DifficultyGeneralSettings }) {
   if (!settings.hasCountdown) {
-    return <Badge color="gray" variant="outline">None</Badge>;
+    return <Badge color="gray" variant="outline">No</Badge>;
   }
 
   return (
@@ -60,6 +60,8 @@ function CountdownCell({ settings }: { settings: DifficultyGeneralSettings }) {
 }
 
 function GeneralSettingsInfo({ generalSettings }: GeneralSettingsInfoProps) {
+  const theme = useMantineTheme();
+  
   if (generalSettings.length === 0) {
     return null;
   }
@@ -70,7 +72,7 @@ function GeneralSettingsInfo({ generalSettings }: GeneralSettingsInfoProps) {
         <Text fw={600}>General Settings</Text>
 
         <AppTable>
-            <Table.Thead>
+            <Table.Thead style={{ backgroundColor: theme.colors.dark[5] }}>
               <Table.Tr>
                 <DifficultyTableHeaderCell>Difficulty</DifficultyTableHeaderCell>
                 <Table.Th>Mode</Table.Th>

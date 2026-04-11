@@ -1,6 +1,7 @@
 ﻿import { appConfigDir } from '@tauri-apps/api/path';
 import { readTextFile, writeTextFile, exists, BaseDirectory, mkdir } from '@tauri-apps/plugin-fs';
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import {BACKEND_BASE_URL} from "../Constants.ts";
 
 // Type-safe Settings type
 export type Settings = {
@@ -76,7 +77,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
   async function findOsuLocationAndSet() {
     try {
-      const res = await fetch('http://localhost:5005/beatmap/songsFolder');
+      const res = await fetch(`${BACKEND_BASE_URL}/beatmap/songsFolder`);
 
       if (res.ok) {
         const data = await res.json();

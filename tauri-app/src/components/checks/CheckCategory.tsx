@@ -2,7 +2,39 @@
 import React from 'react';
 import CheckGroup from './CheckGroup.tsx';
 import { groupChecks } from './groupChecks';
-import {ApiBeatmapSetCheckResult, ApiCategoryOverrideCheckResult} from '../../Types';
+import { ApiBeatmapSetCheckResult, ApiCategoryOverrideCheckResult, Level } from '../../Types';
+
+type DisplayLevel = Exclude<Level, 'Check'>;
+
+const LEVEL_ORDER: DisplayLevel[] = ['Error', 'Problem', 'Warning', 'Minor', 'Info'];
+
+const LEVEL_BADGE_COLORS: Record<DisplayLevel, string> = {
+  Error: 'gray',
+  Problem: 'red',
+  Warning: 'orange',
+  Minor: 'yellow',
+  Info: 'green',
+};
+
+function normalizeLevel(level: Level): DisplayLevel {
+  return level === 'Check' ? 'Info' : level;
+}
+
+function getLevelCounts(levels: Level[]): Record<DisplayLevel, number> {
+  const counts: Record<DisplayLevel, number> = {
+    Error: 0,
+    Problem: 0,
+    Warning: 0,
+    Minor: 0,
+    Info: 0,
+  };
+
+  for (const level of levels) {
+    counts[normalizeLevel(level)] += 1;
+  }
+
+  return counts;
+}
 
 interface CheckCategoryProps {
   data: ApiBeatmapSetCheckResult;
@@ -17,9 +49,9 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({ data, showMinor, selected
     // If we have an override result for the selected category, use it
     if (overrideCategoryResult && overrideCategoryResult.category === selectedCategory) {
       const groups = groupChecks(overrideCategoryResult.checkResults, showMinor);
-      const allItems = groups.flatMap((g) => g.items);
-      const minorCount = allItems.filter((i) => i.level === 'Minor').length;
-      const total = groups.reduce((sum, g) => sum + g.items.length, 0) - minorCount;
+      const allLevels = groups.flatMap((g) => g.items.map((item) => item.level));
+      const levelCounts = getLevelCounts(allLevels);
+      const totalCount = LEVEL_ORDER.reduce((sum, level) => sum + levelCounts[level], 0);
       const sortedGroups = [...groups].sort((a, b) => {
         const nameA = (data.checks[a.id]?.name ?? '').toLowerCase();
         const nameB = (data.checks[b.id]?.name ?? '').toLowerCase();
@@ -35,8 +67,8 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({ data, showMinor, selected
         difficultyLevel: overrideCategoryResult.difficultyLevel,
         starRating: overrideCategoryResult.starRating,
         groups: sortedGroups,
-        total,
-        minorCount,
+        levelCounts,
+        totalCount,
       };
     }
 
@@ -59,9 +91,9 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({ data, showMinor, selected
 
     const cat = allCategories.find((c) => c.name === selectedCategory) ?? allCategories[0];
     const groups = groupChecks(cat.checks, showMinor);
-    const allItems = groups.flatMap((g) => g.items);
-    const minorCount = allItems.filter((i) => i.level === 'Minor').length;
-    const total = groups.reduce((sum, g) => sum + g.items.length, 0) - minorCount;
+    const allLevels = groups.flatMap((g) => g.items.map((item) => item.level));
+    const levelCounts = getLevelCounts(allLevels);
+    const totalCount = LEVEL_ORDER.reduce((sum, level) => sum + levelCounts[level], 0);
     const sortedGroups = [...groups].sort((a, b) => {
       const nameA = (data.checks[a.id]?.name ?? '').toLowerCase();
       const nameB = (data.checks[b.id]?.name ?? '').toLowerCase();
@@ -70,7 +102,7 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({ data, showMinor, selected
       if (nameB) return 1;
       return 0;
     });
-    return { ...cat, groups: sortedGroups, total, minorCount };
+    return { ...cat, groups: sortedGroups, levelCounts, totalCount };
   }, [
     data.general.checkResults,
     data.difficulties,
@@ -85,17 +117,19 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({ data, showMinor, selected
 
   return (
     <Stack gap="md">
-      <Group wrap="nowrap" gap="xs" align="center">
-        <Badge size="xs" color={categoryData.total ? 'red' : 'green'} variant="light">
-          {categoryData.total} issue{categoryData.total !== 1 ? 's' : ''}
-        </Badge>
-        {showMinor && categoryData.minorCount > 0 && (
-          <Badge size="xs" color="yellow" variant="light">
-            {categoryData.minorCount} minor
-          </Badge>
-        )}
+      <Group wrap="wrap" gap="xs" align="center">
+        {LEVEL_ORDER.map((level) => {
+          const count = categoryData.levelCounts[level];
+          if (count === 0) return null;
+
+          return (
+            <Badge key={level} size="xs" color={LEVEL_BADGE_COLORS[level]} variant="light">
+              {count} {level.toLowerCase()}
+            </Badge>
+          );
+        })}
       </Group>
-      {categoryData.total > 0 || categoryData.minorCount > 0 ? (
+      {categoryData.totalCount > 0 ? (
         <Stack gap="0">
           {categoryData.groups.map((g) => (
             <CheckGroup

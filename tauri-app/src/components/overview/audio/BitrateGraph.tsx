@@ -83,14 +83,6 @@ function BitrateGraph({ data, durationMs }: BitrateGraphProps) {
   const durationSeconds = durationMs / 1000;
   const timeInterval = getAdaptiveInterval(durationSeconds);
 
-  // Generate time labels at the calculated interval
-  const timeLabels: number[] = [];
-  for (let t = 0; t <= durationSeconds; t += timeInterval) {
-    timeLabels.push(t);
-  }
-  
-  console.log({ durationMs, durationSeconds, interval: timeInterval, timeLabels })
-
   return (
     <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
       <Stack gap="sm">

@@ -131,7 +131,7 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
                 </Accordion.Control>
                 <Accordion.Panel>
                   <AppTable>
-                    <Table.Thead>
+                    <Table.Thead style={{ backgroundColor: theme.colors.dark[5] }}>
                       <Table.Tr>
                         <Table.Th>File</Table.Th>
                         <Table.Th>Format</Table.Th>

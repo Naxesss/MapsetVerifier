@@ -7,7 +7,7 @@
   Button,
   Text,
   ScrollArea,
-  ActionIcon,
+  ActionIcon, Tooltip,
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import {IconRefresh} from "@tabler/icons-react";
@@ -145,7 +145,7 @@ export default function BeatmapsList({ songFolder }: Props) {
         position: 'relative',
       }}
     >
-      <Flex direction="column" gap="sm" p="sm">
+      <Flex direction="column" gap="sm" p="xs">
         <Flex gap="sm" direction="row" justify="space-between">
           <Input
             type="text"
@@ -172,17 +172,19 @@ export default function BeatmapsList({ songFolder }: Props) {
               />
             }
           />
-          <ActionIcon
-            variant="default"
-            onClick={() => {
-              queryClient.resetQueries({
-                queryKey: ['beatmaps'],
-              })
-            }}
-            size="36"
-          >
-            <IconRefresh />
-          </ActionIcon>
+          <Tooltip label="Refresh beatmap search">
+            <ActionIcon
+              variant="default"
+              onClick={() => {
+                queryClient.resetQueries({
+                  queryKey: ['beatmaps'],
+                })
+              }}
+              size="36"
+            >
+              <IconRefresh />
+            </ActionIcon>
+          </Tooltip>
         </Flex>
         {renderTopStatus()}
       </Flex>
@@ -190,10 +192,11 @@ export default function BeatmapsList({ songFolder }: Props) {
         <>
           <Divider />
           <ScrollArea
+            type="always"
             offsetScrollbars
             viewportRef={scrollRef}
             className="flipped-scrollbar"
-            p="sm"
+            p="xs"
             style={{ flex: '1 1 auto' }}
           >
             <Flex direction="column" gap="xs" w="100%" style={{ justifyContent: 'center' }}>

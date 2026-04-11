@@ -905,6 +905,7 @@ function SnappingsOverview({
   totalUnsnappedCount: number;
   totalEdgeCount: number;
 }) {
+  const theme = useMantineTheme();
   const totalUnsnappedPercentage = totalEdgeCount > 0 ? (totalUnsnappedCount * 100) / totalEdgeCount : 0;
   const difficulties = groupedDifficulties.flatMap((group) => group.difficulties);
   const snappingColumns = getSnappingColumns(difficulties);
@@ -921,67 +922,66 @@ function SnappingsOverview({
             Unsnapped: {totalUnsnappedCount.toLocaleString()} ({totalUnsnappedPercentage.toFixed(1)}%)
           </Badge>
         </Group>
-
-        <AppTable miw={Math.max(960, 520 + snappingColumns.length * 88)}>
-            <Table.Thead>
-              <Table.Tr>
-                <DifficultyTableHeaderCell>Difficulty</DifficultyTableHeaderCell>
-                <Table.Th>Mode</Table.Th>
-                <Table.Th>Objects</Table.Th>
-                <Table.Th>Edges</Table.Th>
-                {snappingColumns.map((column) => (
-                  <Table.Th key={column.label}>{column.label}</Table.Th>
-                ))}
-                <Table.Th>Unsnapped</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {groupedDifficulties.map((group) => (
-                <Fragment key={group.mode}>
-                  {group.difficulties.map((difficulty) => (
-                    <Table.Tr key={`${group.mode}-${difficulty.version}`}>
-                      <DifficultyTableCell>
-                        <Group gap="xs" wrap="nowrap">
-                          <GameModeIcon
-                            mode={group.mode}
-                            size={16}
-                            color={getModeAccentColor(group.mode)}
-                          />
-                          <Text size="sm" fw={600}>{difficulty.version}</Text>
-                        </Group>
-                      </DifficultyTableCell>
-                      <Table.Td>
-                        <Group gap={6} wrap="nowrap">
-                          <GameModeIcon
-                            mode={group.mode}
-                            size={16}
-                            color={getModeAccentColor(group.mode)}
-                          />
-                          <Text size="sm">{group.mode}</Text>
-                        </Group>
-                      </Table.Td>
-                      <Table.Td><Text size="sm">{difficulty.objectCount.toLocaleString()}</Text></Table.Td>
-                      <Table.Td><Text size="sm">{difficulty.edgeCount.toLocaleString()}</Text></Table.Td>
-                      {snappingColumns.map((column) => {
-                        const bucket = difficulty.snappings.find((candidate) => candidate.label === column.label);
-                        return (
-                          <Table.Td key={`${difficulty.mode}-${difficulty.version}-${column.label}`}>
-                            <SnappingTableValue count={bucket?.count ?? 0} percentage={bucket?.percentage ?? 0} />
-                          </Table.Td>
-                        );
-                      })}
-                      <Table.Td>
-                        <SnappingStatusBadge
-                          count={difficulty.unsnappedCount}
-                          percentage={difficulty.unsnappedPercentage}
-                        />
-                      </Table.Td>
-                    </Table.Tr>
-                  ))}
-                </Fragment>
+        <AppTable>
+          <Table.Thead style={{ backgroundColor: theme.colors.dark[5] }}>
+            <Table.Tr>
+              <DifficultyTableHeaderCell>Difficulty</DifficultyTableHeaderCell>
+              <Table.Th>Mode</Table.Th>
+              <Table.Th style={{ textAlign: 'center' }}>Objects</Table.Th>
+              <Table.Th style={{ textAlign: 'center' }}>Edges</Table.Th>
+              {snappingColumns.map((column) => (
+                <Table.Th key={column.label} style={{ textAlign: 'center' }}>{column.label}</Table.Th>
               ))}
-            </Table.Tbody>
-          </AppTable>
+              <Table.Th>Unsnapped</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {groupedDifficulties.map((group) => (
+              <Fragment key={group.mode}>
+                {group.difficulties.map((difficulty) => (
+                  <Table.Tr key={`${group.mode}-${difficulty.version}`}>
+                    <DifficultyTableCell>
+                      <Group gap="xs" wrap="nowrap">
+                        <GameModeIcon
+                          mode={group.mode}
+                          size={16}
+                          color={getModeAccentColor(group.mode)}
+                        />
+                        <Text size="sm" fw={600}>{difficulty.version}</Text>
+                      </Group>
+                    </DifficultyTableCell>
+                    <Table.Td>
+                      <Group gap={6} wrap="nowrap" justify="center">
+                        <GameModeIcon
+                          mode={group.mode}
+                          size={16}
+                          color={getModeAccentColor(group.mode)}
+                        />
+                        <Text size="sm">{group.mode}</Text>
+                      </Group>
+                    </Table.Td>
+                    <Table.Td><Text size="sm">{difficulty.objectCount.toLocaleString()}</Text></Table.Td>
+                    <Table.Td><Text size="sm">{difficulty.edgeCount.toLocaleString()}</Text></Table.Td>
+                    {snappingColumns.map((column) => {
+                      const bucket = difficulty.snappings.find((candidate) => candidate.label === column.label);
+                      return (
+                        <Table.Td key={`${difficulty.mode}-${difficulty.version}-${column.label}`}>
+                          <SnappingTableValue count={bucket?.count ?? 0} percentage={bucket?.percentage ?? 0} />
+                        </Table.Td>
+                      );
+                    })}
+                    <Table.Td style={{ textAlign: 'left' }}>
+                      <SnappingStatusBadge
+                        count={difficulty.unsnappedCount}
+                        percentage={difficulty.unsnappedPercentage}
+                      />
+                    </Table.Td>
+                  </Table.Tr>
+                ))}
+              </Fragment>
+            ))}
+          </Table.Tbody>
+        </AppTable>
       </Stack>
     </Paper>
   );
@@ -995,7 +995,7 @@ function SnappingTableValue({
   percentage: number;
 }) {
   return (
-    <Stack gap={0} align="flex-end">
+    <Stack gap={0}>
       <Text size="sm" fw={600}>{count.toLocaleString()}</Text>
       <Text size="xs" c="dimmed">{percentage.toFixed(1)}%</Text>
     </Stack>

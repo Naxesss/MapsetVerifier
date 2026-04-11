@@ -39,7 +39,7 @@ function FormatInfo({ data, audioFilePath }: FormatInfoProps) {
           </Tooltip>
         </Group>
         <Group gap="xs">
-          <Badge color={getBadgeColor(data.badgeType)} variant="light" size="lg">
+          <Badge color={getBadgeColor(data.badgeType)} variant="light">
             {data.format}
           </Badge>
           <Badge color={data.isCompliant ? 'green' : 'red'} variant="light">

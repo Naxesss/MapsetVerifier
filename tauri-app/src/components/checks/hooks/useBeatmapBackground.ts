@@ -1,4 +1,5 @@
 ﻿import { useEffect, useState } from 'react';
+import {BACKEND_BASE_URL} from "../../../Constants.ts";
 
 export interface UseBeatmapBackgroundResult {
   bgUrl?: string;
@@ -16,7 +17,7 @@ export function useBeatmapBackground(folder?: string): UseBeatmapBackgroundResul
       return;
     }
 
-    const candidate = `http://localhost:5005/beatmap/image?folder=${folder}&original=true`;
+    const candidate = `${BACKEND_BASE_URL}/beatmap/image?folder=${folder}&original=true`;
     let cancelled = false;
     const img = new Image();
     img.onload = () => {

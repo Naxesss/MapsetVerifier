@@ -7,6 +7,7 @@
   Stack,
   SimpleGrid
 } from '@mantine/core';
+import {useEffect} from "react";
 import BitrateGraph from './BitrateGraph';
 import ChannelBalance from './ChannelBalance';
 import DynamicRange from './DynamicRange';
@@ -16,7 +17,6 @@ import { useAudioAnalysis, useFrequencyAnalysis } from './hooks/useAudioAnalysis
 import Spectrogram from './Spectrogram';
 import {useBeatmap} from "../../../context/BeatmapContext.tsx";
 import {useSettings} from "../../../context/SettingsContext.tsx";
-import {useEffect} from "react";
 
 interface AudioOverviewProps {
   reloadFlag: number
