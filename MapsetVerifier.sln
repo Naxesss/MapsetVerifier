@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapsetVerifier.Server", "Ma
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapsetVerifier.Parser.Tests", "MapsetVerifier.Parser.Tests\MapsetVerifier.Parser.Tests.csproj", "{D9E4F0A3-7C2C-4A8C-9E6A-0F4E6F9D1234}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapsetVerifier.Checks.Tests", "MapsetVerifier.Checks.Tests\MapsetVerifier.Checks.Tests.csproj", "{B4A0B4E6-8F4D-4B8D-A9A3-3B97D2E79F51}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapsetVerifier.Logging", "MapsetVerifier.Logging\MapsetVerifier.Logging.csproj", "{0886BE26-F4C3-4919-968D-7D569DF5B1B7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapsetVerifier.Exports", "MapsetVerifier.Exports\MapsetVerifier.Exports.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
@@ -57,6 +59,10 @@ Global
 		{D9E4F0A3-7C2C-4A8C-9E6A-0F4E6F9D1234}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D9E4F0A3-7C2C-4A8C-9E6A-0F4E6F9D1234}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D9E4F0A3-7C2C-4A8C-9E6A-0F4E6F9D1234}.Release|Any CPU.Build.0 = Release|Any CPU
+			{B4A0B4E6-8F4D-4B8D-A9A3-3B97D2E79F51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+			{B4A0B4E6-8F4D-4B8D-A9A3-3B97D2E79F51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+			{B4A0B4E6-8F4D-4B8D-A9A3-3B97D2E79F51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+			{B4A0B4E6-8F4D-4B8D-A9A3-3B97D2E79F51}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0886BE26-F4C3-4919-968D-7D569DF5B1B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0886BE26-F4C3-4919-968D-7D569DF5B1B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0886BE26-F4C3-4919-968D-7D569DF5B1B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
