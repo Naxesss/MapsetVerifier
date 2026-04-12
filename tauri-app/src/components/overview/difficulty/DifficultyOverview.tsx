@@ -1,7 +1,6 @@
 import { LineChart } from '@mantine/charts';
-import { Alert, Badge, Box, Flex, Group, LoadingOverlay, Paper, SimpleGrid, Stack, Text, useMantineTheme } from '@mantine/core';
-import { useEffect, useMemo } from 'react';
-import { formatChartTime, getAdaptiveTimeInterval } from '../../common/TimeAxis.tsx';
+import { Alert, Badge, Box, Flex, Group, LoadingOverlay, Paper, SegmentedControl, SimpleGrid, Stack, Text, useMantineTheme } from '@mantine/core';
+import { useEffect, useMemo, useState } from 'react';
 import { useDifficultyOverview } from './hooks/useDifficultyOverview.ts';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
 import { useSettings } from '../../../context/SettingsContext.tsx';
@@ -10,15 +9,21 @@ import {
   type DifficultyChartSeries,
   type DifficultyLevel,
   type DifficultyOverviewDifficulty,
-  type DifficultyOverviewResult,
   type Mode,
 } from '../../../Types';
 import { getDifficultyLevelColor } from '../../common/DifficultyColor.ts';
+import { formatChartTime, getAdaptiveTimeInterval } from '../../common/TimeAxis.tsx';
+import GameModeIcon from '../../icons/GameModeIcon.tsx';
 
 const MAX_CHART_POINTS = 300;
+const MODE_ORDER: Mode[] = ['Standard', 'Taiko', 'Catch', 'Mania'];
 
 type ChartRow = { time: string; [seriesKey: string]: number | string | null };
 type ChartDisplaySeries = DifficultyChartSeries & { key: string; color: string };
+type DifficultyModeGroup = {
+  mode: Mode;
+  difficulties: DifficultyOverviewDifficulty[];
+};
 type ChartDefinition = {
   title: string;
   durationMs: number;
@@ -37,6 +42,7 @@ function DifficultyOverview({ reloadFlag }: DifficultyOverviewProps) {
   const theme = useMantineTheme();
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
+  const [selectedMode, setSelectedMode] = useState<Mode | undefined>();
   const { data, isLoading, isError, error, refetch } = useDifficultyOverview({
     folder,
     songFolder: settings.songFolder,
@@ -46,8 +52,48 @@ function DifficultyOverview({ reloadFlag }: DifficultyOverviewProps) {
     refetch();
   }, [reloadFlag]);
 
-  const charts = useMemo(() => buildCharts(data), [data]);
-  const distinctSkillCount = useMemo(() => new Set(data?.difficulties.flatMap((difficulty) => difficulty.skills.map((skill) => skill.skillName)) ?? []).size, [data]);
+  const groupedDifficulties = useMemo<DifficultyModeGroup[]>(() => {
+    if (!data?.success) {
+      return [];
+    }
+
+    const grouped = new Map<Mode, DifficultyOverviewDifficulty[]>();
+
+    for (const difficulty of data.difficulties) {
+      const mode = normalizeMode(difficulty.mode);
+      const modeDifficulties = grouped.get(mode);
+
+      if (modeDifficulties) {
+        modeDifficulties.push(difficulty);
+      } else {
+        grouped.set(mode, [difficulty]);
+      }
+    }
+
+    return MODE_ORDER.filter((mode) => grouped.has(mode)).map((mode) => ({
+      mode,
+      difficulties: grouped.get(mode) ?? [],
+    }));
+  }, [data]);
+
+  useEffect(() => {
+    if (groupedDifficulties.length === 0) {
+      setSelectedMode(undefined);
+      return;
+    }
+
+    if (!selectedMode || !groupedDifficulties.some((group) => group.mode === selectedMode)) {
+      setSelectedMode(groupedDifficulties[0].mode);
+    }
+  }, [groupedDifficulties, selectedMode]);
+
+  const selectedGroup = groupedDifficulties.find((group) => group.mode === selectedMode) ?? groupedDifficulties[0];
+  const selectedDifficulties = selectedGroup?.difficulties ?? [];
+  const charts = useMemo(() => buildCharts(selectedDifficulties, data?.msPerPeak), [data?.msPerPeak, selectedDifficulties]);
+  const distinctSkillCount = useMemo(
+    () => new Set(selectedDifficulties.flatMap((difficulty) => difficulty.skills.map((skill) => skill.skillName))).size,
+    [selectedDifficulties],
+  );
   const [starRatingChart, ...skillCharts] = charts;
 
   if (!settings.songFolder) {
@@ -83,8 +129,14 @@ function DifficultyOverview({ reloadFlag }: DifficultyOverviewProps) {
 
       {data && data.success && (
         <Flex gap="md" p="md" direction="column">
+          <DifficultyGameModeSelector
+            groupedDifficulties={groupedDifficulties}
+            selectedMode={selectedGroup?.mode}
+            onModeChange={setSelectedMode}
+          />
+
           <SimpleGrid cols={{ base: 1, md: 3 }} spacing="md">
-            <SummaryCard label="Difficulties" value={String(data.difficulties.length)} />
+            <SummaryCard label="Difficulties" value={String(selectedDifficulties.length)} />
             <SummaryCard label="Skill charts" value={String(charts.length)} subValue={`${distinctSkillCount} unique skills`} />
             <SummaryCard label="Peak interval" value={`${(data.msPerPeak / 1000).toFixed(1)}s`} subValue="400ms strain windows" />
           </SimpleGrid>
@@ -111,6 +163,41 @@ function DifficultyOverview({ reloadFlag }: DifficultyOverviewProps) {
         </Flex>
       )}
     </Box>
+  );
+}
+
+function DifficultyGameModeSelector({
+  groupedDifficulties,
+  selectedMode,
+  onModeChange,
+}: {
+  groupedDifficulties: DifficultyModeGroup[];
+  selectedMode?: Mode;
+  onModeChange: (mode: Mode) => void;
+}) {
+  if (groupedDifficulties.length <= 1) {
+    return null;
+  }
+
+  return (
+    <Group ml="auto" w="unset" gap="md" align="center">
+      <SegmentedControl
+        radius="md"
+        p="xs"
+        data={groupedDifficulties.map((group) => ({
+          label: (
+            <Flex gap="xs" align="center">
+              <GameModeIcon mode={group.mode} size={22} color="currentColor" />
+              <Text size="xs" fw={600}>{group.difficulties.length}</Text>
+            </Flex>
+          ),
+          value: group.mode,
+        }))}
+        value={selectedMode}
+        onChange={(value) => onModeChange(value as Mode)}
+        fullWidth={false}
+      />
+    </Group>
   );
 }
 
@@ -187,25 +274,25 @@ function SummaryCard({ label, value, subValue }: { label: string; value: string;
   );
 }
 
-function buildCharts(data?: DifficultyOverviewResult): ChartDefinition[] {
-  if (!data?.success || data.difficulties.length === 0) {
+function buildCharts(difficulties: DifficultyOverviewDifficulty[], msPerPeak?: number): ChartDefinition[] {
+  if (!msPerPeak || difficulties.length === 0) {
     return [];
   }
 
   const chartSeries: ChartDefinition[] = [];
-  const starRatingSeries = data.difficulties
-    .map((difficulty) => buildStarRatingSeries(difficulty, data.msPerPeak))
+  const starRatingSeries = difficulties
+    .map((difficulty) => buildStarRatingSeries(difficulty, msPerPeak))
     .filter((series) => series.points.length > 0);
 
   if (starRatingSeries.length > 0) {
-    chartSeries.push(buildChartDefinition('Star Rating', starRatingSeries, data.msPerPeak, '★'));
+    chartSeries.push(buildChartDefinition('Star Rating', starRatingSeries, msPerPeak, '★'));
   }
 
   const skillSeriesMap = new Map<string, DifficultyChartSeries[]>();
 
-  for (const difficulty of data.difficulties) {
+  for (const difficulty of difficulties) {
     for (const skill of difficulty.skills) {
-      const series = buildSkillSeries(difficulty, skill.skillName, skill.strainPeaks, data.msPerPeak);
+      const series = buildSkillSeries(difficulty, skill.skillName, skill.strainPeaks, msPerPeak);
       if (series.points.length === 0) continue;
 
       const existing = skillSeriesMap.get(skill.skillName);
@@ -218,7 +305,7 @@ function buildCharts(data?: DifficultyOverviewResult): ChartDefinition[] {
   }
 
   for (const [skillName, skillSeries] of skillSeriesMap.entries()) {
-    chartSeries.push(buildChartDefinition(skillName, skillSeries, data.msPerPeak));
+    chartSeries.push(buildChartDefinition(skillName, skillSeries, msPerPeak));
   }
 
   return chartSeries;
@@ -346,6 +433,10 @@ function convertPeaksToStarRating(mode: Mode, peaks: number[]): number {
     default:
       return peaks.reduce((sum, peak) => sum + peak, 0);
   }
+}
+
+function normalizeMode(mode: string): Mode {
+  return MODE_ORDER.includes(mode as Mode) ? (mode as Mode) : 'Standard';
 }
 
 function getGraphColor(series: DifficultyChartSeries, previousSeries: DifficultyChartSeries[]): string {
