@@ -2,8 +2,8 @@
 import {Text, Badge, Group, Paper, useMantineTheme, Stack, Box, Tooltip} from '@mantine/core';
 import { IconAlertTriangle, IconInfoCircle } from '@tabler/icons-react';
 import { useMemo } from 'react';
-import { formatChartTime, getAdaptiveTimeInterval } from '../../common/TimeAxis.tsx';
 import { BitrateAnalysisResult, BitrateDataPoint } from '../../../Types';
+import { formatChartTime, getAdaptiveTimeInterval } from '../../common/TimeAxis.tsx';
 
 interface BitrateGraphProps {
   data: BitrateAnalysisResult;

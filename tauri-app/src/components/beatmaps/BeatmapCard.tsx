@@ -31,7 +31,7 @@ function BeatmapCard({ beatmap }: BeatmapCardProps) {
     };
 
     img.onerror = () => {
-      console.log("Could not load image: " + candidate);
+      console.error("Could not load image: " + candidate);
       if (!cancelled) setBgUrl(undefined);
     };
 

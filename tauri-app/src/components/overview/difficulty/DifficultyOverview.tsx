@@ -1,5 +1,5 @@
 import { LineChart } from '@mantine/charts';
-import { Alert, Badge, Box, Flex, Group, LoadingOverlay, Paper, SegmentedControl, SimpleGrid, Stack, Text, useMantineTheme } from '@mantine/core';
+import { Alert, Box, Flex, Group, LoadingOverlay, Paper, SegmentedControl, SimpleGrid, Stack, Text, useMantineTheme } from '@mantine/core';
 import { useEffect, useMemo, useState } from 'react';
 import { useDifficultyOverview } from './hooks/useDifficultyOverview.ts';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
