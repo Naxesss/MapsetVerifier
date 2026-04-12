@@ -17,12 +17,12 @@ function BeatmapCard({ beatmap }: BeatmapCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
-    if (!beatmap.folder) {
+    if (!beatmap.folder || beatmap.folder === "placeholder") {
       setBgUrl(undefined);
       return;
     }
 
-    const candidate = `${BACKEND_BASE_URL}/beatmap/image?folder=${beatmap.folder}`;
+    const candidate = `${BACKEND_BASE_URL}/beatmap/image?folder=${encodeURIComponent(beatmap.folder)}`;
     let cancelled = false;
     const img = new Image();
 
@@ -31,6 +31,7 @@ function BeatmapCard({ beatmap }: BeatmapCardProps) {
     };
 
     img.onerror = () => {
+      console.log("Could not load image: " + candidate);
       if (!cancelled) setBgUrl(undefined);
     };
 

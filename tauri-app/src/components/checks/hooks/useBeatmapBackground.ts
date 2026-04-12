@@ -17,7 +17,7 @@ export function useBeatmapBackground(folder?: string): UseBeatmapBackgroundResul
       return;
     }
 
-    const candidate = `${BACKEND_BASE_URL}/beatmap/image?folder=${folder}&original=true`;
+    const candidate = `${BACKEND_BASE_URL}/beatmap/image?folder=${encodeURIComponent(folder)}&original=true`;
     let cancelled = false;
     const img = new Image();
     img.onload = () => {
