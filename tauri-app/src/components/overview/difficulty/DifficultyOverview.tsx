@@ -312,19 +312,10 @@ function buildCharts(difficulties: DifficultyOverviewDifficulty[], msPerPeak?: n
 }
 
 function buildStarRatingSeries(difficulty: DifficultyOverviewDifficulty, msPerPeak: number): DifficultyChartSeries {
-  const peakCount = difficulty.skills.reduce((max, skill) => Math.max(max, skill.strainPeaks.length), 0);
-  const points: DifficultyChartDataPoint[] = [];
-
-  for (let index = 0; index < peakCount; index += 1) {
-    const peaksAtIndex = difficulty.skills
-      .map((skill) => skill.strainPeaks[index])
-      .filter((peak): peak is number => peak !== undefined);
-
-    points.push({
-      timeSeconds: (index * msPerPeak) / 1000,
-      value: convertPeaksToStarRating(difficulty.mode, peaksAtIndex),
-    });
-  }
+  const points: DifficultyChartDataPoint[] = difficulty.starRatingValues.map((value, index) => ({
+    timeSeconds: (index * msPerPeak) / 1000,
+    value,
+  }));
 
   return {
     skillName: 'Star Rating',
@@ -417,22 +408,6 @@ function sampleChartRows(rows: ChartRow[]): ChartRow[] {
   }
 
   return sampled;
-}
-
-function convertPeaksToStarRating(mode: Mode, peaks: number[]): number {
-  switch (mode) {
-    case 'Standard': {
-      const primary = peaks[0] ?? 0;
-      const secondary = peaks[1] ?? 0;
-      return peaks.reduce((sum, peak) => sum + peak, 0) + Math.abs(primary - secondary) * 2;
-    }
-    case 'Taiko': {
-      const peak = peaks[0] ?? 0;
-      return 10.43 * Math.log((peak * 1.4) / 8 + 1);
-    }
-    default:
-      return peaks.reduce((sum, peak) => sum + peak, 0);
-  }
 }
 
 function normalizeMode(mode: string): Mode {

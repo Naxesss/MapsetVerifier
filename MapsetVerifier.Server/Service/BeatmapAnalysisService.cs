@@ -1,10 +1,12 @@
 ﻿using System.Globalization;
+using MapsetVerifier.Parser.Difficulty;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Objects.HitObjects.Mania;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
 using MapsetVerifier.Server.Model.BeatmapAnalysis;
+using osu.Game.Rulesets.Difficulty;
 using osu.Game.Rulesets.Difficulty.Skills;
 using osu.Game.Rulesets.Osu.Difficulty.Skills;
 using Serilog;
@@ -221,6 +223,7 @@ public static class BeatmapAnalysisService
             Mode = beatmap.GeneralSettings.mode.ToString(),
             DifficultyLevel = beatmap.GetDifficulty().ToString(),
             StarRating = beatmap.StarRating,
+            StarRatingValues = GetStarRatingValues(beatmap),
             Skills = beatmap.Skills
                 .OfType<StrainSkill>()
                 .Select(skill => new DifficultySkillData
@@ -230,6 +233,36 @@ public static class BeatmapAnalysisService
                 })
                 .ToList()
         };
+    }
+
+    private static List<double> GetStarRatingValues(Beatmap beatmap)
+    {
+        var timedAttributes = new LocalDifficultyCalculator().CalculateTimedAttributes(beatmap);
+
+        if (timedAttributes.Count == 0)
+            return [];
+
+        var finalTime = Math.Max(timedAttributes[^1].Time, beatmap.HitObjects.Max(hitObject => hitObject.GetEndTime()));
+        var pointCount = Math.Max(1, (int)Math.Ceiling(finalTime / MsPerPeak) + 1);
+        var values = new List<double>(pointCount);
+
+        var timedIndex = 0;
+        var currentStarRating = 0d;
+
+        for (var index = 0; index < pointCount; index++)
+        {
+            var sampleTime = index * MsPerPeak;
+
+            while (timedIndex < timedAttributes.Count && timedAttributes[timedIndex].Time <= sampleTime)
+            {
+                currentStarRating = timedAttributes[timedIndex].Attributes.StarRating;
+                timedIndex++;
+            }
+
+            values.Add(currentStarRating);
+        }
+
+        return values;
     }
 
     private static string GetSkillName(Skill skill, Beatmap beatmap)

@@ -473,6 +473,7 @@ export type DifficultyOverviewDifficulty = {
   mode: Mode;
   difficultyLevel: DifficultyLevel;
   starRating: number;
+  starRatingValues: number[];
   skills: DifficultySkillData[];
 };
 
