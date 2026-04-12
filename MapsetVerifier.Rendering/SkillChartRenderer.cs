@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
+﻿using System.Drawing;
 using System.Numerics;
+using MapsetVerifier.Parser.Difficulty;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Rendering.Objects;
 using osu.Game.Rulesets.Difficulty.Skills;
-using osu.Game.Rulesets.Osu.Difficulty.Skills;
 using static MapsetVerifier.Rendering.Utils.DifficultyColorGenerator;
 
 namespace MapsetVerifier.Rendering
@@ -82,23 +79,7 @@ namespace MapsetVerifier.Rendering
             return skillCharts;
         }
         
-        private static string GetSkillName(Skill skill, Beatmap beatmap)
-        {
-            if (beatmap.GeneralSettings.mode == Beatmap.Mode.Standard)
-            {
-                // Standard is special, there are two variants of Aim skill, with and without sliders
-                if (skill is Aim aimSkill)
-                {
-                    return aimSkill.IncludeSliders ? "Aim (with sliders)" : "Aim (no sliders)";
-                }
-            }
-            
-            // Default, use the skill class name instead
-            var skillName = skill.ToString() ?? string.Empty;
-            var readableSkillName = skillName.Split('.').Last();
-
-            return readableSkillName;
-        }
+        private static string GetSkillName(Skill skill, Beatmap beatmap) => SkillNameFormatter.GetSkillName(skill, beatmap);
 
         private static Series GetSkillSeries(Beatmap beatmap, StrainSkill strainSkill, LineChart chart) => GetPeakSeries(beatmap, strainSkill.GetCurrentStrainPeaks().ToList(), peak => (float)peak, chart);
 

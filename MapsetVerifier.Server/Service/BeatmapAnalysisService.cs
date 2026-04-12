@@ -8,7 +8,6 @@ using MapsetVerifier.Parser.Statics;
 using MapsetVerifier.Server.Model.BeatmapAnalysis;
 using osu.Game.Rulesets.Difficulty;
 using osu.Game.Rulesets.Difficulty.Skills;
-using osu.Game.Rulesets.Osu.Difficulty.Skills;
 using Serilog;
 
 namespace MapsetVerifier.Server.Service;
@@ -265,14 +264,7 @@ public static class BeatmapAnalysisService
         return values;
     }
 
-    private static string GetSkillName(Skill skill, Beatmap beatmap)
-    {
-        if (beatmap.GeneralSettings.mode == Beatmap.Mode.Standard && skill is Aim aimSkill)
-            return aimSkill.IncludeSliders ? "Aim (with sliders)" : "Aim (no sliders)";
-
-        var skillName = skill.ToString() ?? string.Empty;
-        return skillName.Split('.').Last();
-    }
+    private static string GetSkillName(Skill skill, Beatmap beatmap) => SkillNameFormatter.GetSkillName(skill, beatmap);
 
     private static double GetTimelineStartTime(BeatmapSet beatmapSet)
     {

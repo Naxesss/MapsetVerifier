@@ -148,7 +148,7 @@ function DifficultyOverview({ reloadFlag }: DifficultyOverviewProps) {
                 {skillCharts.length > 0 && (
                   <>
                     <Text fw={600} c={theme.colors.gray[2]}>Skill Strain Analysis</Text>
-                    <SimpleGrid cols={{ base: 1, xl: 2 }} spacing="md">
+                    <SimpleGrid cols={{ base: 1, lg: 2, xl: 3 }} spacing="md">
                       {skillCharts.map((chart) => <DifficultyChartCard key={chart.title} chart={chart} />)}
                     </SimpleGrid>
                   </>
@@ -209,13 +209,7 @@ function DifficultyChartCard({ chart }: { chart: ChartDefinition }) {
   return (
     <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
       <Stack gap="sm">
-        <Group justify="space-between" align="flex-start">
-          <Text fw={600}>{chart.title}</Text>
-          <Group gap="xs">
-            <Badge color={chart.valueSuffix ? 'yellow' : 'blue'} variant="light">{chart.series.length} difficulties</Badge>
-            <Badge color="gray" variant="light">{formatChartDuration(chart.durationMs)}</Badge>
-          </Group>
-        </Group>
+        <Text fw={600}>{chart.title}</Text>
 
         <SimpleGrid cols={4} spacing="md">
           <MetricStat label="Peak" value={`${chart.maxValue.toFixed(2)}${chart.valueSuffix ?? ''}`} />
