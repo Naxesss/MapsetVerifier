@@ -7,21 +7,24 @@ fn open_folder(path: String) -> Result<(), String> {
     tauri_plugin_opener::open_path(Path::new(&path), None::<&str>).map_err(|e| e.to_string())
 }
 
-use std::process::Command as SysCommand;
 #[cfg(target_os = "windows")]
-use std::os::windows::process::CommandExt; // for creation_flags on Windows
+use std::os::windows::process::CommandExt;
+use std::process::Command as SysCommand; // for creation_flags on Windows
 
 fn kill_processes_on_port(port: u16) {
     #[cfg(target_os = "windows")]
     {
         // Use PowerShell to enumerate PIDs bound to the port and stop them forcibly.
         // This avoids the interactive "Terminate batch job (Y/N)?" prompt from cmd.
-        let ps_list = format!(r#"
+        let ps_list = format!(
+            r#"
             $port = {};
             $conns = Get-NetTCPConnection -LocalPort $port -State Listen,Established,TimeWait,CloseWait -ErrorAction SilentlyContinue;
             $pids = $conns | Select-Object -ExpandProperty OwningProcess;
             $pids | Where-Object {{ $_ -ne $PID -and $_ -ne 0 }} | ForEach-Object {{ $_ }}
-        "#, port);
+        "#,
+            port
+        );
         let mut list_cmd = SysCommand::new("powershell");
         list_cmd.args(["-NoProfile", "-NonInteractive", "-Command", &ps_list]);
         // Hide window for PowerShell child
@@ -35,9 +38,19 @@ fn kill_processes_on_port(port: u16) {
             let stdout = String::from_utf8_lossy(&out.stdout);
             for pid in stdout.lines() {
                 let pid = pid.trim();
-                if pid.is_empty() { continue; }
+                if pid.is_empty() {
+                    continue;
+                }
                 let mut stop_cmd = SysCommand::new("powershell");
-                stop_cmd.args(["-NoProfile", "-NonInteractive", "-Command", &format!("Stop-Process -Id {} -Force -ErrorAction SilentlyContinue", pid)]);
+                stop_cmd.args([
+                    "-NoProfile",
+                    "-NonInteractive",
+                    "-Command",
+                    &format!(
+                        "Stop-Process -Id {} -Force -ErrorAction SilentlyContinue",
+                        pid
+                    ),
+                ]);
                 #[cfg(target_os = "windows")]
                 {
                     const CREATE_NO_WINDOW: u32 = 0x08000000;
@@ -106,6 +119,12 @@ fn main() {
     cleanup_sidecar();
 
     tauri::Builder::default()
+        .setup(|app| {
+            #[cfg(desktop)]
+            app.handle()
+                .plugin(tauri_plugin_updater::Builder::new().build())?;
+            Ok(())
+        })
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
@@ -113,15 +132,13 @@ fn main() {
         .invoke_handler(tauri::generate_handler![open_folder])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
-        .run(|_app_handle, event| {
-            match event {
-                tauri::RunEvent::Exit => {
-                    cleanup_sidecar();
-                }
-                tauri::RunEvent::ExitRequested { .. } => {
-                    cleanup_sidecar();
-                }
-                _ => {}
+        .run(|_app_handle, event| match event {
+            tauri::RunEvent::Exit => {
+                cleanup_sidecar();
             }
+            tauri::RunEvent::ExitRequested { .. } => {
+                cleanup_sidecar();
+            }
+            _ => {}
         });
 }

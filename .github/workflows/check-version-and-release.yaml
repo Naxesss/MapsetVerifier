@@ -6,7 +6,6 @@ on:
       - '**'
 
 jobs:
-  # Build and test job - runs on every commit to validate code
   build-and-test:
     runs-on: ubuntu-latest
     steps:
@@ -27,7 +26,6 @@ jobs:
           name: test-results
           path: '**/TestResults/*.trx'
 
-  # Build distributable installers - only on main or develop branches
   build-tauri:
     needs: build-and-test
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
@@ -93,8 +91,11 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           projectPath: tauri-app
+          uploadUpdaterJson: false
           args: --target ${{ matrix.target }}
 
       - name: Package macOS artifact
@@ -124,4 +125,3 @@ jobs:
         with:
           name: mapset-verifier-linux
           path: tauri-app/src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage
-

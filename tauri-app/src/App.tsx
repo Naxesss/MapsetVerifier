@@ -8,10 +8,12 @@ import Documentation from './components/documentation/Documentation.tsx';
 import Home from "./components/home/Home.tsx";
 import NavBars from './components/navbar/NavBars.tsx';
 import Overview from './components/overview/Overview.tsx';
+import UpdaterModal from './components/settings/UpdaterModal';
 import Snapshots from './components/snapshots/Snapshots.tsx';
 import WindowBar from "./components/window/WindowBar.tsx";
 import { BeatmapProvider } from "./context/BeatmapContext.tsx";
 import { SettingsProvider } from "./context/SettingsContext.tsx";
+import { UpdaterProvider } from './context/UpdaterContext';
 import { theme } from './theme/Theme.ts';
 import '@mantine/core/styles.css';
 import '@mantine/charts/styles.css';
@@ -34,42 +36,45 @@ function App() {
     <MantineProvider defaultColorScheme="dark" theme={theme} cssVariablesResolver={cssVarResolver}>
       <WindowBar />
       <SettingsProvider>
-        <BeatmapProvider>
-          <BackendGate>
-            <AppShell
-              header={{ height: 92 }}
-              navbar={{
-                width: '256',
-                breakpoint: 'xs',
-                collapsed: { desktop: !desktopOpened },
-              }}
-            >
-              <NavBars desktopOpened={desktopOpened} toggleDesktop={toggleDesktop} />
-              <AppShell.Main>
-                <ScrollArea
-                  offsetScrollbars
-                  type="always"
-                  h="calc(100vh - var(--app-shell-header-offset, 0rem) + var(--app-shell-padding))"
-                >
-                  <Container p="sm" fluid>
-                    <Routes>
-                      <Route>
-                        <Route path="/" element={<Home />} />
-                        <Route path="/documentation" element={<Documentation />} />
-                        <Route element={<RequireBeatmapSelection />}>
-                          <Route path="/checks" element={<Checks />} />
-                          <Route path="/snapshots" element={<Snapshots />} />
-                          <Route path="/overview" element={<Overview />} />
+        <UpdaterProvider>
+          <BeatmapProvider>
+            <BackendGate>
+              <AppShell
+                header={{ height: 92 }}
+                navbar={{
+                  width: '256',
+                  breakpoint: 'xs',
+                  collapsed: { desktop: !desktopOpened },
+                }}
+              >
+                <NavBars desktopOpened={desktopOpened} toggleDesktop={toggleDesktop} />
+                <AppShell.Main>
+                  <ScrollArea
+                    offsetScrollbars
+                    type="always"
+                    h="calc(100vh - var(--app-shell-header-offset, 0rem) + var(--app-shell-padding))"
+                  >
+                    <Container p="sm" fluid>
+                      <Routes>
+                        <Route>
+                          <Route path="/" element={<Home />} />
+                          <Route path="/documentation" element={<Documentation />} />
+                          <Route element={<RequireBeatmapSelection />}>
+                            <Route path="/checks" element={<Checks />} />
+                            <Route path="/snapshots" element={<Snapshots />} />
+                            <Route path="/overview" element={<Overview />} />
+                          </Route>
+                          <Route path="*" element={<Text>404</Text>} />
                         </Route>
-                        <Route path="*" element={<Text>404</Text>} />
-                      </Route>
-                    </Routes>
-                  </Container>
-                </ScrollArea>
-              </AppShell.Main>
-            </AppShell>
-          </BackendGate>
-        </BeatmapProvider>
+                      </Routes>
+                    </Container>
+                  </ScrollArea>
+                </AppShell.Main>
+              </AppShell>
+            </BackendGate>
+          </BeatmapProvider>
+          <UpdaterModal />
+        </UpdaterProvider>
       </SettingsProvider>
     </MantineProvider>
   );

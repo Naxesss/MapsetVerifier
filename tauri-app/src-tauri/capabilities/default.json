@@ -18,6 +18,7 @@
     "fs:default",
     "dialog:default",
     "shell:default",
+    "updater:default",
     {
       "identifier": "fs:scope",
       "allow": [{ "path": "**/*" }]
