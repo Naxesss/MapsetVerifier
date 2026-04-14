@@ -95,7 +95,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           projectPath: tauri-app
-          uploadUpdaterJson: false
+          includeUpdaterJson: false
           args: --target ${{ matrix.target }}
 
       - name: Package macOS artifact

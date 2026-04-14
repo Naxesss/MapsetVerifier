@@ -160,8 +160,7 @@ jobs:
           releaseName: ${{ needs.resolve-release.outputs.release_name }}
           releaseDraft: true
           prerelease: ${{ needs.resolve-release.outputs.prerelease == 'true' }}
-          uploadUpdaterJson: false
-          uploadUpdaterSignatures: true
+          includeUpdaterJson: false
           retryAttempts: 3
           args: --target ${{ matrix.target }}
 
