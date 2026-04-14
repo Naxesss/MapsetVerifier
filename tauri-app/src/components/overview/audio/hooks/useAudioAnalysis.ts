@@ -2,6 +2,7 @@
 import { FetchError } from '../../../../client/ApiHelper';
 import AudioAnalysisApi from '../../../../client/AudioAnalysisApi';
 import { AudioAnalysisResult, SpectralAnalysisResult, FrequencyAnalysisResult, HitSoundBatchResult } from '../../../../Types';
+import { buildBeatmapFolderPath } from '../../../../utils/buildBeatmapFolderPath';
 
 interface UseAudioAnalysisArgs {
   folder?: string;
@@ -9,9 +10,7 @@ interface UseAudioAnalysisArgs {
 }
 
 export function useAudioAnalysis({ folder, songFolder }: UseAudioAnalysisArgs) {
-  const beatmapFolderPath = folder && songFolder
-    ? `${songFolder}\\${folder}`.replace(/\//g, '\\')
-    : undefined;
+  const beatmapFolderPath = buildBeatmapFolderPath(songFolder, folder);
 
   const query = useQuery<AudioAnalysisResult, FetchError>({
     queryKey: ['audio-analysis', beatmapFolderPath || 'unavailable'],
@@ -30,9 +29,7 @@ export function useAudioAnalysis({ folder, songFolder }: UseAudioAnalysisArgs) {
 }
 
 export function useSpectrogram({ folder, songFolder }: UseAudioAnalysisArgs) {
-  const beatmapFolderPath = folder && songFolder
-    ? `${songFolder}\\${folder}`.replace(/\//g, '\\')
-    : undefined;
+  const beatmapFolderPath = buildBeatmapFolderPath(songFolder, folder);
 
   const query = useQuery<SpectralAnalysisResult, FetchError>({
     queryKey: ['spectrogram', beatmapFolderPath || 'unavailable'],
@@ -55,9 +52,7 @@ export function useSpectrogram({ folder, songFolder }: UseAudioAnalysisArgs) {
 }
 
 export function useFrequencyAnalysis({ folder, songFolder }: UseAudioAnalysisArgs) {
-  const beatmapFolderPath = folder && songFolder
-    ? `${songFolder}\\${folder}`.replace(/\//g, '\\')
-    : undefined;
+  const beatmapFolderPath = buildBeatmapFolderPath(songFolder, folder);
 
   const query = useQuery<FrequencyAnalysisResult, FetchError>({
     queryKey: ['frequency-analysis', beatmapFolderPath || 'unavailable'],
@@ -79,9 +74,7 @@ export function useFrequencyAnalysis({ folder, songFolder }: UseAudioAnalysisArg
 }
 
 export function useHitSoundAnalysis({ folder, songFolder }: UseAudioAnalysisArgs) {
-  const beatmapFolderPath = folder && songFolder
-    ? `${songFolder}\\${folder}`.replace(/\//g, '\\')
-    : undefined;
+  const beatmapFolderPath = buildBeatmapFolderPath(songFolder, folder);
 
   const query = useQuery<HitSoundBatchResult, FetchError>({
     queryKey: ['hitsound-analysis', beatmapFolderPath || 'unavailable'],

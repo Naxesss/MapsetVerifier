@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { FetchError } from '../../../client/ApiHelper';
 import BeatmapApi from '../../../client/BeatmapApi';
 import { ApiBeatmapSetCheckResult } from '../../../Types';
+import { buildBeatmapFolderPath } from '../../../utils/buildBeatmapFolderPath';
 
 interface UseBeatmapChecksArgs {
   folder?: string;
@@ -9,10 +10,7 @@ interface UseBeatmapChecksArgs {
 }
 
 export function useBeatmapChecks({ folder, songFolder }: UseBeatmapChecksArgs) {
-  // Normalize windows path (replace forward slashes) only when both are defined.
-  const beatmapFolderPath = folder && songFolder
-    ? `${songFolder}\\${folder}`.replace(/\//g, '\\')
-    : undefined;
+  const beatmapFolderPath = buildBeatmapFolderPath(songFolder, folder);
 
   const query = useQuery<ApiBeatmapSetCheckResult, FetchError>({
     queryKey: ['beatmap-checks', beatmapFolderPath || 'unavailable'],

@@ -3,6 +3,7 @@ import { createContext, useContext, useMemo, useState, ReactNode } from 'react';
 import { useSettings } from './SettingsContext.tsx';
 import { FetchError } from '../client/ApiHelper.ts';
 import BeatmapApi from '../client/BeatmapApi.ts';
+import { buildBeatmapFolderPath } from '../utils/buildBeatmapFolderPath.ts';
 import type { ApiBeatmapInfo } from '../Types.ts';
 
 interface BeatmapContextType {
@@ -22,9 +23,7 @@ export const BeatmapProvider = ({ children }: { children: ReactNode }) => {
   const [selectedFolder, setSelectedFolder] = useState<string | undefined>(undefined);
 
   const beatmapFolderPath = useMemo(() => {
-    return selectedFolder && settings.songFolder
-      ? [settings.songFolder, selectedFolder].join('\\').replace(/\//g, '\\')
-      : undefined;
+    return buildBeatmapFolderPath(settings.songFolder, selectedFolder);
   }, [selectedFolder, settings.songFolder]);
 
   const beatmapInfoQuery = useQuery<ApiBeatmapInfo, FetchError>({

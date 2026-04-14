@@ -2,6 +2,7 @@
 import { FetchError } from '../../../../client/ApiHelper';
 import ObjectsAnalysisApi from '../../../../client/ObjectsAnalysisApi';
 import { ObjectsOverviewResult } from '../../../../Types';
+import { buildBeatmapFolderPath } from '../../../../utils/buildBeatmapFolderPath';
 
 interface UseObjectsAnalysisArgs {
   folder?: string;
@@ -9,9 +10,7 @@ interface UseObjectsAnalysisArgs {
 }
 
 export function useObjectsAnalysis({ folder, songFolder }: UseObjectsAnalysisArgs) {
-  const beatmapFolderPath = folder && songFolder
-    ? `${songFolder}\\${folder}`.replace(/\//g, '\\')
-    : undefined;
+  const beatmapFolderPath = buildBeatmapFolderPath(songFolder, folder);
 
   const query = useQuery<ObjectsOverviewResult, FetchError>({
     queryKey: ['objects-analysis', beatmapFolderPath || 'unavailable'],

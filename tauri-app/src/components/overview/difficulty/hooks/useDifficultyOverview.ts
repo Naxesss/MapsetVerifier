@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { FetchError } from '../../../../client/ApiHelper';
 import BeatmapAnalysisApi from '../../../../client/BeatmapAnalysisApi';
 import { DifficultyOverviewResult } from '../../../../Types';
+import { buildBeatmapFolderPath } from '../../../../utils/buildBeatmapFolderPath';
 
 interface UseDifficultyOverviewArgs {
   folder?: string;
@@ -9,9 +10,7 @@ interface UseDifficultyOverviewArgs {
 }
 
 export function useDifficultyOverview({ folder, songFolder }: UseDifficultyOverviewArgs) {
-  const beatmapFolderPath = folder && songFolder
-    ? `${songFolder}\\${folder}`.replace(/\//g, '\\')
-    : undefined;
+  const beatmapFolderPath = buildBeatmapFolderPath(songFolder, folder);
 
   const query = useQuery<DifficultyOverviewResult, FetchError>({
     queryKey: ['difficulty-overview', beatmapFolderPath || 'unavailable'],

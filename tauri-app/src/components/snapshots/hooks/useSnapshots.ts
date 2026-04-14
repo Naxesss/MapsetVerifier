@@ -2,6 +2,7 @@
 import { FetchError } from '../../../client/ApiHelper';
 import SnapshotApi from '../../../client/SnapshotApi';
 import { ApiSnapshotResult } from '../../../Types';
+import { buildBeatmapFolderPath } from '../../../utils/buildBeatmapFolderPath';
 
 interface UseSnapshotsArgs {
   folder?: string;
@@ -9,10 +10,7 @@ interface UseSnapshotsArgs {
 }
 
 export function useSnapshots({ folder, songFolder }: UseSnapshotsArgs) {
-  // Normalize windows path (replace forward slashes) only when both are defined.
-  const beatmapFolderPath = folder && songFolder
-    ? `${songFolder}\\${folder}`.replace(/\//g, '\\')
-    : undefined;
+  const beatmapFolderPath = buildBeatmapFolderPath(songFolder, folder);
 
   const query = useQuery<ApiSnapshotResult, FetchError>({
     queryKey: ['snapshots', beatmapFolderPath || 'unavailable'],

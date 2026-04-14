@@ -2,6 +2,7 @@
 import { FetchError } from '../../../../client/ApiHelper';
 import MetadataAnalysisApi from '../../../../client/MetadataAnalysisApi';
 import { MetadataAnalysisResult } from '../../../../Types';
+import { buildBeatmapFolderPath } from '../../../../utils/buildBeatmapFolderPath';
 
 interface UseMetadataAnalysisArgs {
   folder?: string;
@@ -9,9 +10,7 @@ interface UseMetadataAnalysisArgs {
 }
 
 export function useMetadataAnalysis({ folder, songFolder }: UseMetadataAnalysisArgs) {
-  const beatmapFolderPath = folder && songFolder
-    ? `${songFolder}\\${folder}`.replace(/\//g, '\\')
-    : undefined;
+  const beatmapFolderPath = buildBeatmapFolderPath(songFolder, folder);
 
   const query = useQuery<MetadataAnalysisResult, FetchError>({
     queryKey: ['metadata-analysis', beatmapFolderPath || 'unavailable'],
