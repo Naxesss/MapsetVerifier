@@ -68,7 +68,7 @@ public static class CatchExtensions
     public static double GetScaledBpm(this Beatmap beatmap, ICatchHitObject obj)
     {
         var timingLine = beatmap.GetTimingLine<UninheritedLine>(obj.Time);
-        return timingLine.GetScaledBpm();
+        return timingLine?.GetScaledBpm() ?? 0f;
     }
 
     public static float GetCurrentTriggerDistance(this ICatchHitObject current, ICatchHitObject? next)

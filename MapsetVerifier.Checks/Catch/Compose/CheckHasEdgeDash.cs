@@ -104,6 +104,11 @@ public class CheckHasEdgeDash : BeatmapCheck
             var current = catchObjects[i];
             var next = i < catchObjects.Count - 1 ? catchObjects[i + 1] : null;
 
+            if (next == null)
+            {
+                break;
+            }
+
             // We are only interested in dashes
             if (current.MovementType == CatchMovementType.Hyperdash)
             {
