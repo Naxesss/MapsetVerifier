@@ -33,25 +33,39 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: windows-latest
+          - runner: windows-latest
             target: x86_64-pc-windows-msvc
             sidecar_runtime: win-x64
-            artifact_ext: exe
-          - platform: ubuntu-22.04
+            artifact_name: mapset-verifier-windows
+            artifact_files: |
+              tauri-app/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*setup.exe
+              tauri-app/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*setup.exe.sig
+              tauri-app/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi
+              tauri-app/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi.sig
+          - runner: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
             sidecar_runtime: linux-x64
-            artifact_ext: AppImage
-          - platform: macos-latest
+            artifact_name: mapset-verifier-linux
+            artifact_files: |
+              tauri-app/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage
+              tauri-app/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage.sig
+          - runner: macos-13
             target: x86_64-apple-darwin
             sidecar_runtime: osx-x64
-            arch: x64
-            artifact_ext: zip
-          - platform: macos-latest
+            artifact_name: mapset-verifier-macos-x64
+            artifact_files: |
+              tauri-app/src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app.tar.gz
+              tauri-app/src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app.tar.gz.sig
+              tauri-app/src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.dmg
+          - runner: macos-14
             target: aarch64-apple-darwin
             sidecar_runtime: osx-arm64
-            arch: arm64
-            artifact_ext: zip
-    runs-on: ${{ matrix.platform }}
+            artifact_name: mapset-verifier-macos-arm64
+            artifact_files: |
+              tauri-app/src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz
+              tauri-app/src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz.sig
+              tauri-app/src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.dmg
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -72,7 +86,7 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Install Linux dependencies
-        if: matrix.platform == 'ubuntu-22.04'
+        if: matrix.runner == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
@@ -98,30 +112,9 @@ jobs:
           includeUpdaterJson: false
           args: --target ${{ matrix.target }}
 
-      - name: Package macOS artifact
-        if: matrix.platform == 'macos-latest'
-        shell: bash
-        run: |
-          cd tauri-app/src-tauri/target/${{ matrix.target }}/release/bundle/macos
-          zip -r "../../mapset-verifier-macos-${{ matrix.arch }}.zip" "Mapset Verifier.app"
-
-      - name: Upload macOS artifact
-        if: matrix.platform == 'macos-latest'
+      - name: Upload native Tauri artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: mapset-verifier-macos-${{ matrix.arch }}
-          path: tauri-app/src-tauri/target/${{ matrix.target }}/release/bundle/mapset-verifier-macos-${{ matrix.arch }}.zip
-
-      - name: Upload Windows artifact
-        if: matrix.platform == 'windows-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          name: mapset-verifier-windows
-          path: tauri-app/src-tauri/target/${{ matrix.target }}/release/bundle/msi/*.msi
-
-      - name: Upload Linux artifact
-        if: matrix.platform == 'ubuntu-22.04'
-        uses: actions/upload-artifact@v4
-        with:
-          name: mapset-verifier-linux
-          path: tauri-app/src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_files }}
+          if-no-files-found: error
