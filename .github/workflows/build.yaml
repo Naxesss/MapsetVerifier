@@ -1,4 +1,4 @@
-name: Check Version & Release
+name: Build
 
 on:
   push:
@@ -49,7 +49,7 @@ jobs:
             artifact_files: |
               tauri-app/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage
               tauri-app/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage.sig
-          - runner: macos-13
+          - runner: macos-15-intel
             target: x86_64-apple-darwin
             sidecar_runtime: osx-x64
             artifact_name: mapset-verifier-macos-x64
@@ -57,7 +57,7 @@ jobs:
               tauri-app/src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app.tar.gz
               tauri-app/src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app.tar.gz.sig
               tauri-app/src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.dmg
-          - runner: macos-14
+          - runner: macos-15
             target: aarch64-apple-darwin
             sidecar_runtime: osx-arm64
             artifact_name: mapset-verifier-macos-arm64

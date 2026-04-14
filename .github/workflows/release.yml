@@ -93,14 +93,14 @@ jobs:
             updater_files: |
               tauri-app/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage
               tauri-app/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage.sig
-          - runner: macos-13
+          - runner: macos-15-intel
             target: x86_64-apple-darwin
             sidecar_runtime: osx-x64
             platform_key: darwin-x86_64
             updater_files: |
               tauri-app/src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app.tar.gz
               tauri-app/src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app.tar.gz.sig
-          - runner: macos-14
+          - runner: macos-15
             target: aarch64-apple-darwin
             sidecar_runtime: osx-arm64
             platform_key: darwin-aarch64
