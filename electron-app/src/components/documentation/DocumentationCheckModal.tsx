@@ -1,11 +1,11 @@
-﻿import {Modal, Text, Loader, Flex, Alert, Group} from '@mantine/core';
-import { IconAlertCircle, IconClipboardList } from '@tabler/icons-react';
+﻿import { Modal, Text, Loader, Flex, Alert, Group, Stack, Divider, Badge } from '@mantine/core';
+import { IconAlertCircle } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
+import DocumentationOutcomeBlockquote from './DocumentationOutcomeBlockquote';
 import MantineMarkdown from './MantineMarkdown';
 import DocumentationApi from '../../client/DocumentationApi';
 import { ApiDocumentationCheck, ApiDocumentationCheckDetails } from '../../Types';
 import GameModeIcon from "../icons/GameModeIcon.tsx";
-import LevelIcon from '../icons/LevelIcon.tsx';
 
 interface DocumentationCheckModalProps {
   opened: boolean;
@@ -39,15 +39,15 @@ export default function DocumentationCheckModal({
       size="80%"
       styles={{ content: { maxWidth: 1000 } }}
     >
-      <Flex direction="column" gap="sm">
+      <Flex direction="column" gap="lg">
         <Flex justify="space-between">
-          <Group gap="0">
+          <Group gap="1">
             {check.modes.map((mode) => <GameModeIcon size={16} key={mode} mode={mode} />)}
-            <Text size="sm" pl="xs">
+            <Badge size="xs" variant="light">
               {`${check.category}`}
-            </Text>
+            </Badge>
           </Group>
-          <Text size="sm">Created by {check.author}</Text>
+          <Text size="sm" c="dimmed">Created by {check.author}</Text>
         </Flex>
         {isLoading && <Loader />}
         {error && (
@@ -57,18 +57,15 @@ export default function DocumentationCheckModal({
         )}
         {data && (
           <>
-            {data.outcomes.map((checkDetails, i) => (
-              <Alert key={i} icon={<IconClipboardList />}>
-                <Flex direction="column" gap="xs">
-                  <Flex align="center" gap="xs">
-                    <LevelIcon level={checkDetails.level} />
-                    <MantineMarkdown>{checkDetails.description}</MantineMarkdown>
-                  </Flex>
-                  {checkDetails.cause && <MantineMarkdown>{checkDetails.cause}</MantineMarkdown>}
-                </Flex>
-              </Alert>
-            ))}
-            <MantineMarkdown>{data.description}</MantineMarkdown>
+            <Stack gap="md">
+              {data.outcomes.map((checkDetails, i) => (
+                <DocumentationOutcomeBlockquote key={i} outcome={checkDetails} />
+              ))}
+            </Stack>
+            <Divider />
+            <Stack gap="md">
+              <MantineMarkdown>{data.description}</MantineMarkdown>
+            </Stack>
           </>
         )}
       </Flex>

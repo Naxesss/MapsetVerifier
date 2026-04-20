@@ -25,9 +25,9 @@ export default function MantineMarkdown({ children }: MantineMarkdownProps) {
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
       components={{
-        h1: ({ node: _node, ...props }) => <Title order={1} {...props} />,
-        h2: ({ node: _node, ...props }) => <Title order={2} {...props} />,
-        h3: ({ node: _node, ...props }) => <Title order={3} {...props} />,
+        h1: ({ node: _node, ...props }) => <Title order={2} {...props} />,
+        h2: ({ node: _node, ...props }) => <Title order={3} {...props} />,
+        h3: ({ node: _node, ...props }) => <Title order={4} {...props} />,
         p: ({ node: _node, ...props }) => <Text component="p" {...props} />,
         strong: ({ node: _node, ...props }) => <Text component="span" fw={700} {...props} />,
         em: ({ node: _node, ...props }) => <Text component="span" fs="italic" {...props} />,
@@ -44,7 +44,7 @@ export default function MantineMarkdown({ children }: MantineMarkdownProps) {
         hr: () => <Divider my="md" />,
         ul: (props) => <List withPadding {...props} />,
         li: (props) => <ListItem {...props} />,
-        code: ({ node: _node, ...props }) => <Code {...props} />,
+        code: ({ node: _node, ...props }) => <Code c="primary" fz="md" {...props} />,
         table: ({ node: _node, ...props }) => (
           <table
             style={{
