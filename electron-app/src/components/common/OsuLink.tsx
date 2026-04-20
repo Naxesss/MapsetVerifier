@@ -6,9 +6,11 @@ const TIMESTAMP_REGEX = /(\d{2}:\d{2}:\d{3})(?: \([^)]+\))? -/g;
 
 interface OsuLinkProps {
   text: string;
+  /** When true, omit the ` -` printed after each timestamp link (issue copy keeps it; table cells often don’t). */
+  disableSeparators?: boolean;
 }
 
-const OsuLink: React.FC<OsuLinkProps> = ({ text }) => {
+const OsuLink: React.FC<OsuLinkProps> = ({ text, disableSeparators = false }) => {
   const theme = useMantineTheme();
   const baseBg = theme.colors.dark?.[5];
   const hoverBg = theme.colors.dark?.[4];
@@ -26,37 +28,38 @@ const OsuLink: React.FC<OsuLinkProps> = ({ text }) => {
     if (start > lastIndex) nodes.push(text.slice(lastIndex, start));
 
     nodes.push(
-      <Anchor
-        key={`osu-link-${start}`}
-        href={`osu://edit/${timestamp}`}
-        underline="never"
-        aria-label={`Edit at ${timestamp}`}
-        style={{
-          fontFamily: theme.fontFamilyMonospace,
-          padding: `0 ${theme.spacing.xs}`,
-          borderRadius: theme.radius.sm,
-          backgroundColor: baseBg,
-          color: textColor,
-          fontWeight: 600,
-          textDecoration: 'none',
-          cursor: 'pointer',
-          transition: 'background-color 120ms, box-shadow 120ms',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = hoverBg;
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = baseBg;
-        }}
-        onFocus={(e) => {
-          e.currentTarget.style.boxShadow = `0 0 0 2px ${theme.colors.indigo[5]}`;
-        }}
-        onBlur={(e) => {
-          e.currentTarget.style.boxShadow = 'none';
-        }}
-      >
-        {timestamp}
-      </Anchor>
+      <React.Fragment key={`osu-link-${start}`}>
+        <Anchor
+          href={`osu://edit/${timestamp}`}
+          underline="never"
+          aria-label={`Edit at ${timestamp}`}
+          style={{
+            fontFamily: theme.fontFamilyMonospace,
+            padding: `0 ${theme.spacing.xs}`,
+            borderRadius: theme.radius.sm,
+            backgroundColor: baseBg,
+            color: textColor,
+            textDecoration: 'none',
+            cursor: 'pointer',
+            transition: 'background-color 120ms, box-shadow 120ms',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = hoverBg;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = baseBg;
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.boxShadow = `0 0 0 2px ${theme.colors.indigo[5]}`;
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.boxShadow = 'none';
+          }}
+        >
+          {timestamp}
+        </Anchor>
+        {!disableSeparators ? ' -' : null}
+      </React.Fragment>
     );
 
     lastIndex = start + fullMatch.length;
