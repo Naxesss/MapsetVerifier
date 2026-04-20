@@ -124,7 +124,8 @@ function BeatmapCard({ beatmap }: BeatmapCardProps) {
         </Text>
         <Text
           fs="italic"
-          size="sm"
+          size="xs"
+          c="dimmed"
           style={textStyle}>
           Mapped by {beatmap.creator}
         </Text>
