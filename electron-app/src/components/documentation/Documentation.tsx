@@ -3,6 +3,7 @@ import { IconLayoutGrid } from '@tabler/icons-react';
 import React from 'react';
 import BeatmapChecks from './BeatmapChecks.tsx';
 import GeneralChecks from './GeneralChecks';
+import { formatGameModeLabel } from '../../utils/gameMode';
 import ErrorIcon from '../icons/ErrorIcon.tsx';
 import MinorIcon from '../icons/MinorIcon.tsx';
 import NoIssueIcon from '../icons/NoIssueIcon.tsx';
@@ -56,10 +57,10 @@ function Documentation() {
       <Tabs defaultValue="general">
         <Tabs.List grow>
           <Tabs.Tab value="general">General</Tabs.Tab>
-          <Tabs.Tab value="standard">Standard</Tabs.Tab>
-          <Tabs.Tab value="taiko">Taiko</Tabs.Tab>
-          <Tabs.Tab value="catch">Catch</Tabs.Tab>
-          <Tabs.Tab value="mania">Mania</Tabs.Tab>
+          <Tabs.Tab value="standard">{formatGameModeLabel('Standard')}</Tabs.Tab>
+          <Tabs.Tab value="taiko">{formatGameModeLabel('Taiko')}</Tabs.Tab>
+          <Tabs.Tab value="catch">{formatGameModeLabel('Catch')}</Tabs.Tab>
+          <Tabs.Tab value="mania">{formatGameModeLabel('Mania')}</Tabs.Tab>
         </Tabs.List>
         <Tabs.Panel value="general" pt="sm">
           <GeneralChecks />

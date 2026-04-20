@@ -1,6 +1,7 @@
 ﻿import { Text, Badge, Group, Paper, useMantineTheme, Stack, Tooltip, Box } from '@mantine/core';
 import { IconInfoCircle, IconAlertTriangle } from '@tabler/icons-react';
 import { DifficultyColourSettings, ComboColourInfo, ColourInfo } from '../../../Types';
+import { formatGameModeLabel } from '../../../utils/gameMode';
 
 interface ColourSettingsProps {
   colourSettings: DifficultyColourSettings[];
@@ -54,7 +55,7 @@ function ColourSwatch({ colour, label, showWarning = true }: { colour: ComboColo
 function DifficultyColours({ settings }: { settings: DifficultyColourSettings }) {
   if (!settings.isApplicable) {
     return (
-      <Text size="sm" c="dimmed">N/A for {settings.mode}</Text>
+      <Text size="sm" c="dimmed">N/A for {formatGameModeLabel(settings.mode)}</Text>
     );
   }
 

@@ -38,6 +38,7 @@ import {
   type ObjectsTimingSegment,
   type ObjectsTimelineObject,
 } from '../../../Types';
+import { formatGameModeLabel } from '../../../utils/gameMode';
 import AppTable, { DifficultyTableCell, DifficultyTableHeaderCell } from '../../common/AppTable.tsx';
 import AutoResizeCanvas from '../../common/AutoResizeCanvas.tsx';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
@@ -645,7 +646,7 @@ function ObjectsTimelineComparison({
                             truncate
                             style={{ width: '100%', minWidth: 0 }}
                           >
-                            {isVisible ? difficulty.mode : 'Hidden'}
+                            {isVisible ? formatGameModeLabel(difficulty.mode) : 'Hidden'}
                           </Text>
                         </Stack>
                       </Group>
@@ -965,7 +966,7 @@ function SnappingsOverview({
                           size={16}
                           color={getModeAccentColor(group.mode)}
                         />
-                        <Text size="sm">{group.mode}</Text>
+                        <Text size="sm">{formatGameModeLabel(group.mode)}</Text>
                       </Group>
                     </Table.Td>
                     <Table.Td><Text size="sm">{difficulty.objectCount.toLocaleString()}</Text></Table.Td>

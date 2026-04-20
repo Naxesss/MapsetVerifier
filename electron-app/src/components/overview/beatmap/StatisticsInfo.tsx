@@ -1,4 +1,5 @@
 ﻿import { Group, Paper, Stack, Table, Text, useMantineTheme } from '@mantine/core';
+import { formatGameModeLabel } from '../../../utils/gameMode';
 import AppTable, { DifficultyTableCell, DifficultyTableHeaderCell } from '../../common/AppTable.tsx';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
 import type { DifficultyStatistics } from '../../../Types';
@@ -36,7 +37,7 @@ function ModeCell({ mode }: { mode: string }) {
   return (
     <Group gap={6} wrap="nowrap" justify="center">
       <GameModeIcon mode={mode} size={16} color={getModeAccentColor(mode, theme)} />
-      <Text size="sm">{mode}</Text>
+      <Text size="sm">{formatGameModeLabel(mode)}</Text>
     </Group>
   );
 }

@@ -1,6 +1,7 @@
 ﻿import { Text, Badge, Group, Paper, useMantineTheme, Stack, SimpleGrid, Tooltip, Accordion, Box } from '@mantine/core';
 import { IconInfoCircle } from '@tabler/icons-react';
 import { DifficultyMetadata } from '../../../Types';
+import { formatGameModeLabel } from '../../../utils/gameMode';
 
 interface MetadataInfoProps {
   difficulties: DifficultyMetadata[];
@@ -147,7 +148,7 @@ function MetadataInfo({ difficulties }: MetadataInfoProps) {
             <Text size="xs" c="dimmed" mb={4}>Modes</Text>
             <Group gap="xs">
               {[...new Set(difficulties.map(d => d.mode))].map((mode, idx) => (
-                <Badge key={idx} size="sm" variant="light">{mode}</Badge>
+                <Badge key={idx} size="sm" variant="light">{formatGameModeLabel(mode)}</Badge>
               ))}
             </Group>
           </Box>
