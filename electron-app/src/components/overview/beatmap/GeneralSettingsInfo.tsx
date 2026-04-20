@@ -1,6 +1,7 @@
 ﻿import { Badge, Group, Paper, Stack, Table, Text, useMantineTheme } from '@mantine/core';
 import { formatGameModeLabel, getModeAccentColor } from '../../../utils/gameMode';
 import AppTable, { DifficultyTableCell, DifficultyTableHeaderCell } from '../../common/AppTable.tsx';
+import OsuLink from '../../common/OsuLink.tsx';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
 import type { DifficultyGeneralSettings } from '../../../Types';
 
@@ -89,7 +90,9 @@ function GeneralSettingsInfo({ generalSettings }: GeneralSettingsInfoProps) {
                     <Text size="sm">{settings.audioLeadIn.toLocaleString()} ms</Text>
                   </Table.Td>
                   <Table.Td>
-                    <Text size="sm">{settings.previewTimeFormatted}</Text>
+                    <Text size="sm">
+                      <OsuLink text={settings.previewTimeFormatted} disableSeparators />
+                    </Text>
                   </Table.Td>
                   <Table.Td>
                     <Text size="sm">{formatNullable(settings.stackLeniency)}</Text>

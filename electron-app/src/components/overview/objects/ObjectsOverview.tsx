@@ -941,7 +941,7 @@ function SnappingsOverview({
               {snappingColumns.map((column) => (
                 <Table.Th key={column.label} style={{ textAlign: 'center' }}>{column.label}</Table.Th>
               ))}
-              <Table.Th>Unsnapped</Table.Th>
+              <Table.Th style={{ textAlign: 'center' }}>Unsnapped</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -979,11 +979,13 @@ function SnappingsOverview({
                         </Table.Td>
                       );
                     })}
-                    <Table.Td style={{ textAlign: 'left' }}>
-                      <SnappingStatusBadge
-                        count={difficulty.unsnappedCount}
-                        percentage={difficulty.unsnappedPercentage}
-                      />
+                    <Table.Td>
+                      <Group justify="center" wrap="nowrap">
+                        <SnappingStatusBadge
+                          count={difficulty.unsnappedCount}
+                          percentage={difficulty.unsnappedPercentage}
+                        />
+                      </Group>
                     </Table.Td>
                   </Table.Tr>
                 ))}
@@ -1005,7 +1007,9 @@ function SnappingTableValue({
 }) {
   return (
     <Stack gap={0}>
-      <Text size="sm" fw={600}>{count.toLocaleString()}</Text>
+      <Text size="sm" fw={600} c={count === 0 ? 'dimmed' : undefined}>
+        {count.toLocaleString()}
+      </Text>
       <Text size="xs" c="dimmed">{percentage.toFixed(1)}%</Text>
     </Stack>
   );

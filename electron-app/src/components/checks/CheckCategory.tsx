@@ -13,7 +13,7 @@ const LEVEL_BADGE_COLORS: Record<DisplayLevel, string> = {
   Error: 'gray',
   Problem: 'red',
   Warning: 'orange',
-  Minor: 'yellow',
+  Minor: 'lime',
   Info: 'green',
 };
 
