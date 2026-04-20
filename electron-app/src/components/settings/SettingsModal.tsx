@@ -1,6 +1,5 @@
 ﻿import { Modal, Button, TextInput, Switch, Group, Stack, Alert, Divider, Text } from '@mantine/core';
-import { open } from '@tauri-apps/plugin-dialog';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSettings } from '../../context/SettingsContext';
 import { useUpdater } from '../../context/UpdaterContext';
 import MinorIcon from '../icons/MinorIcon';
@@ -47,25 +46,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
 
   const pickFolder = async () => {
     try {
-      const result = await open({ directory: true });
+      const result = await window.electronAPI?.dialog.openFolder();
       if (typeof result === 'string') {
         setSongFolder(result);
       }
     } catch (e: any) {
       console.error('[SettingsModal] Folder pick failed:', e);
       const msg = typeof e === 'string' ? e : e?.message || 'Unknown error';
-      if (msg.includes('Plugin not found')) {
-        alert(
-          'Folder dialog plugin not initialized. Please rebuild with tauri-plugin-dialog registered.'
-        );
-      } else {
-        alert('Folder picker failed: ' + msg);
-      }
+      alert('Folder picker failed: ' + msg);
     }
   };
 
   const isDev = import.meta.env.DEV;
-  const currentVersion = typeof TAURI_APP_VERSION !== 'undefined' ? TAURI_APP_VERSION : 'unknown';
+  const [currentVersion, setCurrentVersion] = useState<string>('unknown');
+  useEffect(() => {
+    window.electronAPI?.getVersion().then(setCurrentVersion).catch(() => setCurrentVersion('unknown'));
+  }, []);
 
   return (
     <>
@@ -136,7 +132,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
                 <Alert title="Note" color="yellow" variant="light">
                   <Group gap="sm">
                     <Text size="sm">Enabling this option will make the app mimic production mode by running the sidecar.</Text>
-                    <Text size="sm">This does need the sidecar to be built beforehand and available in the following folder <code>/src-tauri/bin/server/dist/</code>.</Text>
+                    <Text size="sm">This does need the sidecar to be built beforehand and available in the following folder <code>/bin/server/dist/&lt;rid&gt;/</code>.</Text>
                     <Text size="sm">Changing this settings may require restarting the application to take</Text>
                   </Group>
                 </Alert>

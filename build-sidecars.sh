@@ -1,33 +1,33 @@
 #!/bin/bash
 set -e
 
-# Cross-platform sidecar build script for GitHub Actions
-# Builds .NET sidecars for specified runtime(s)
+# Cross-platform sidecar build script.
+# Builds .NET sidecars for the requested runtime(s) and lays them out under
+# bin/server/dist/<os>-<arch>/ using electron-builder's ${os}/${arch} naming.
 
 echo "[INFO] Starting sidecar build script..."
 
-# Configuration
 APP_NAME="MapsetVerifier"
 PROJECT_PATH="src/MapsetVerifier.csproj"
-BASE_DIR="tauri-app/src-tauri/bin/server"
-DIST_DIR="${BASE_DIR}/dist"
-STAGING_DIR="${BASE_DIR}/staging"
+DIST_DIR="bin/server/dist"
+STAGING_DIR="bin/server/staging"
 PUBLISH_CONFIGURATION="${CONFIGURATION:-Release}"
 ERROR_COUNT=0
 
-# Runtime to Tauri target suffix mapping
-get_target_suffix() {
+# Map dotnet RIDs to electron-builder's ${os}-${arch} directory names.
+get_dir_name() {
     case "$1" in
-        win-x64)    echo "-x86_64-pc-windows-msvc.exe" ;;
-        osx-x64)    echo "-x86_64-apple-darwin" ;;
-        osx-arm64)  echo "-aarch64-apple-darwin" ;;
-        linux-x64)  echo "-x86_64-unknown-linux-gnu" ;;
-        linux-arm64) echo "-aarch64-unknown-linux-gnu" ;;
-        *)          echo "" ;;
+        win-x64)     echo "win-x64" ;;
+        win-arm64)   echo "win-arm64" ;;
+        osx-x64)     echo "mac-x64" ;;
+        osx-arm64)   echo "mac-arm64" ;;
+        linux-x64)   echo "linux-x64" ;;
+        linux-arm64) echo "linux-arm64" ;;
+        *)           echo "" ;;
     esac
 }
 
-# Parse arguments - accept runtimes as space-separated list or use default
+# Accept runtimes via env var, CLI args, or use the default set.
 if [ -n "$RUNTIMES" ]; then
     RUNTIME_LIST="$RUNTIMES"
 elif [ $# -gt 0 ]; then
@@ -39,15 +39,10 @@ fi
 echo "[INFO] Using configuration: ${PUBLISH_CONFIGURATION}"
 echo "[INFO] Building runtimes: ${RUNTIME_LIST}"
 
-# Prepare output directories
 echo "[INFO] Resetting output directories..."
 rm -rf "${DIST_DIR}" "${STAGING_DIR}"
 mkdir -p "${DIST_DIR}" "${STAGING_DIR}"
 
-echo "[INFO] Dist dir: ${DIST_DIR}"
-echo "[INFO] Staging dir: ${STAGING_DIR}"
-
-# Check prerequisites
 if ! command -v dotnet &> /dev/null; then
     echo "[ERROR] dotnet CLI not found in PATH"
     exit 1
@@ -58,26 +53,26 @@ if [ ! -f "${PROJECT_PATH}" ]; then
     exit 1
 fi
 
-# Build each runtime
 for RID in ${RUNTIME_LIST}; do
     echo "[INFO] --- Begin runtime ${RID} ---"
-    
-    TARGET_SUFFIX=$(get_target_suffix "${RID}")
-    if [ -z "${TARGET_SUFFIX}" ]; then
+
+    OUT_DIR_NAME=$(get_dir_name "${RID}")
+    if [ -z "${OUT_DIR_NAME}" ]; then
         echo "[WARN] Skip unknown RID ${RID}"
         continue
     fi
-    
-    OUT_SUB="${STAGING_DIR}/${RID}"
-    mkdir -p "${OUT_SUB}"
-    
+
+    STAGE_SUB="${STAGING_DIR}/${RID}"
+    FINAL_SUB="${DIST_DIR}/${OUT_DIR_NAME}"
+    mkdir -p "${STAGE_SUB}" "${FINAL_SUB}"
+
     echo "[INFO][${RID}] Running dotnet publish..."
-    PUBLISH_LOG="${OUT_SUB}/publish.log"
-    
+    PUBLISH_LOG="${STAGE_SUB}/publish.log"
+
     if ! dotnet publish "${PROJECT_PATH}" \
         -c "${PUBLISH_CONFIGURATION}" \
         -r "${RID}" \
-        -o "${OUT_SUB}" \
+        -o "${STAGE_SUB}" \
         --self-contained true \
         -p:PublishSingleFile=true \
         -p:IncludeNativeLibrariesForSelfExtract=true \
@@ -92,44 +87,40 @@ for RID in ${RUNTIME_LIST}; do
         ERROR_COUNT=$((ERROR_COUNT + 1))
         continue
     fi
-    
+
     echo "[INFO][${RID}] Locate produced executable..."
-    EXEC_FILE=""
-    
-    # Look for .exe on Windows builds, or the app name for Unix builds
     if [[ "${RID}" == win-* ]]; then
-        EXEC_FILE=$(find "${OUT_SUB}" -maxdepth 1 -name "*.exe" -type f | head -1)
+        EXEC_FILE=$(find "${STAGE_SUB}" -maxdepth 1 -name "*.exe" -type f | head -1)
+        TARGET_NAME="${APP_NAME}.exe"
     else
-        EXEC_FILE="${OUT_SUB}/${APP_NAME}"
+        EXEC_FILE="${STAGE_SUB}/${APP_NAME}"
+        TARGET_NAME="${APP_NAME}"
     fi
-    
+
     if [ -z "${EXEC_FILE}" ] || [ ! -f "${EXEC_FILE}" ]; then
         echo "[ERROR] No executable produced for ${RID}. Contents:"
-        ls -la "${OUT_SUB}"
+        ls -la "${STAGE_SUB}"
         ERROR_COUNT=$((ERROR_COUNT + 1))
         continue
     fi
-    
-    echo "[INFO][${RID}] Moving to dist as sidecar${TARGET_SUFFIX}"
-    mv "${EXEC_FILE}" "${DIST_DIR}/sidecar${TARGET_SUFFIX}"
-    
-    if [ ! -f "${DIST_DIR}/sidecar${TARGET_SUFFIX}" ]; then
-        echo "[ERROR] Executable missing after move: ${DIST_DIR}/sidecar${TARGET_SUFFIX}"
+
+    echo "[INFO][${RID}] Moving to ${FINAL_SUB}/${TARGET_NAME}"
+    mv "${EXEC_FILE}" "${FINAL_SUB}/${TARGET_NAME}"
+
+    if [ ! -f "${FINAL_SUB}/${TARGET_NAME}" ]; then
+        echo "[ERROR] Executable missing after move: ${FINAL_SUB}/${TARGET_NAME}"
         ERROR_COUNT=$((ERROR_COUNT + 1))
         continue
     fi
-    
-    echo "[INFO][${RID}] Cleaning staging..."
-    rm -rf "${OUT_SUB}"
-    
+
+    rm -rf "${STAGE_SUB}"
     echo "[INFO] --- End runtime ${RID} (success) ---"
 done
 
-# Cleanup staging directory
 rm -rf "${STAGING_DIR}"
 
 echo "[INFO] Dist contents:"
-ls -la "${DIST_DIR}" 2>/dev/null || echo "[WARN] Dist directory empty or missing"
+find "${DIST_DIR}" -maxdepth 2 -type f 2>/dev/null || echo "[WARN] Dist directory empty or missing"
 
 if [ ${ERROR_COUNT} -gt 0 ]; then
     echo "[SUMMARY] Errors: ${ERROR_COUNT} (script failed)"
@@ -138,4 +129,3 @@ else
     echo "[SUMMARY] Success: all runtimes processed with no errors."
     exit 0
 fi
-

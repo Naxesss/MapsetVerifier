@@ -15,14 +15,15 @@ public static class LoggerConfigurator
         const string template = "[{Timestamp:HH:mm:ss} {Level:u3}] {Application} {ShortSourceContext} {Message:lj}{NewLine}{Exception}";
 
         // Determine log file path based on environment:
-        // - Dev mode (CWD contains src-tauri): use relative paths to avoid triggering cargo rebuilds
+        // - Dev mode (spawned from bin/server/dist/<rid>): write logs next to the repo root
         // - Production: use a user-writable appdata directory (same pattern as Program.cs)
         var cwd = Directory.GetCurrentDirectory();
+        var devMarker = Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar + "server" + Path.DirectorySeparatorChar + "dist" + Path.DirectorySeparatorChar;
         string logPath;
 
-        if (cwd.EndsWith("src-tauri") || cwd.Contains(Path.DirectorySeparatorChar + "src-tauri" + Path.DirectorySeparatorChar))
+        if (cwd.Contains(devMarker))
         {
-            logPath = Path.Combine("..", "Logs", "log-.txt");
+            logPath = Path.Combine("..", "..", "..", "..", "Logs", "log-.txt");
         }
         else
         {

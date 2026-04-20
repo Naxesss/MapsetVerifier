@@ -1,9 +1,9 @@
-﻿import { Group, ActionIcon, useMantineTheme, useMantineColorScheme, Badge } from '@mantine/core';
+import { Group, ActionIcon, useMantineTheme, useMantineColorScheme, Badge } from '@mantine/core';
 import { IconMinus, IconSquare, IconX } from '@tabler/icons-react';
-import { getCurrentWindow } from '@tauri-apps/api/window';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
-const appWindow = getCurrentWindow();
+const dragStyle = { WebkitAppRegion: 'drag' } as React.CSSProperties;
+const noDragStyle = { WebkitAppRegion: 'no-drag' } as React.CSSProperties;
 
 const WindowBar: React.FC = () => {
   const theme = useMantineTheme();
@@ -13,16 +13,23 @@ const WindowBar: React.FC = () => {
   const textColor = theme.colors.primary[2];
   const barHeight = 32;
 
-  // Get version from injected global constant
-  const version = typeof TAURI_APP_VERSION !== 'undefined' ? TAURI_APP_VERSION : 'unknown';
+  const [version, setVersion] = useState<string>('unknown');
   const isDev = import.meta.env.DEV;
+
+  useEffect(() => {
+    window.electronAPI?.getVersion().then(setVersion).catch(() => setVersion('unknown'));
+  }, []);
+
+  const minimize = () => void window.electronAPI?.window.minimize();
+  const toggleMaximize = () => void window.electronAPI?.window.toggleMaximize();
+  const close = () => void window.electronAPI?.window.close();
 
   return (
     <Group
       gap={0}
-      data-tauri-drag-region
       style={
         {
+          ...dragStyle,
           position: 'fixed',
           top: 0,
           left: 0,
@@ -34,15 +41,16 @@ const WindowBar: React.FC = () => {
           alignItems: 'center',
           userSelect: 'none',
           borderBottom: `1px solid ${theme.colors.dark[4]}`,
-        } as any
+        } as React.CSSProperties
       }
       px={theme.spacing.sm}
       justify="flex-end"
     >
-      <Group style={{ flex: 1, alignItems: 'center' }} data-tauri-drag-region>
+      <Group style={{ ...dragStyle, flex: 1, alignItems: 'center' } as React.CSSProperties}>
         <span
           style={
             {
+              ...dragStyle,
               fontFamily: theme.headings.fontFamily,
               fontWeight: 600,
               fontSize: 14,
@@ -51,9 +59,8 @@ const WindowBar: React.FC = () => {
               userSelect: 'none',
               paddingLeft: theme.spacing.xs,
               paddingRight: theme.spacing.xs,
-            } as any
+            } as React.CSSProperties
           }
-          data-tauri-drag-region
         >
           Mapset Verifier
           <span style={{ opacity: 0.7, fontWeight: 400, marginLeft: 4 }}>{version}</span>
@@ -64,25 +71,19 @@ const WindowBar: React.FC = () => {
               radius="sm"
               style={{ marginLeft: 8, verticalAlign: 'middle', opacity: 0.85 }}
               variant="filled"
-              data-tauri-drag-region
             >
               DEV
             </Badge>
           )}
         </span>
       </Group>
-      <div
-        style={{ display: 'flex', gap: theme.spacing.xs } as any}
-        // Explicitly disable drag in the control area
-        data-tauri-drag-region={undefined}
-      >
+      <div style={{ ...noDragStyle, display: 'flex', gap: theme.spacing.xs } as React.CSSProperties}>
         <ActionIcon
           variant="subtle"
           color={isDark ? 'gray' : 'dark'}
           aria-label="Minimize"
-          onClick={() => appWindow.minimize()}
-          // Explicitly disable drag in the control area
-          data-tauri-drag-region={undefined}
+          onClick={minimize}
+          style={noDragStyle}
         >
           <IconMinus size={16} color={textColor} />
         </ActionIcon>
@@ -90,9 +91,8 @@ const WindowBar: React.FC = () => {
           variant="subtle"
           color={isDark ? 'gray' : 'dark'}
           aria-label="Maximize"
-          onClick={() => appWindow.toggleMaximize()}
-          // Explicitly disable drag in the control area
-          data-tauri-drag-region={undefined}
+          onClick={toggleMaximize}
+          style={noDragStyle}
         >
           <IconSquare size={16} color={textColor} />
         </ActionIcon>
@@ -100,9 +100,8 @@ const WindowBar: React.FC = () => {
           variant="subtle"
           color="red"
           aria-label="Close"
-          onClick={() => appWindow.close()}
-          // Explicitly disable drag in the control area
-          data-tauri-drag-region={undefined}
+          onClick={close}
+          style={noDragStyle}
         >
           <IconX size={16} color={theme.colors.red[6]} />
         </ActionIcon>

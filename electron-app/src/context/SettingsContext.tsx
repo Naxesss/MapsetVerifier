@@ -1,5 +1,3 @@
-﻿import { appConfigDir } from '@tauri-apps/api/path';
-import { readTextFile, writeTextFile, exists, BaseDirectory, mkdir } from '@tauri-apps/plugin-fs';
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import {BACKEND_BASE_URL} from "../Constants.ts";
 
@@ -29,32 +27,23 @@ const defaultSettings: Settings = {
   gateInDev: false,
 };
 
-const MAIN_SETTINGS_FILE = 'settings.json';
-
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [settings, setSettings] = useState<Settings>(defaultSettings);
 
-  async function ensureAppConfigDir() {
-    try {
-      await mkdir('', { baseDir: BaseDirectory.AppConfig, recursive: true });
-      const dir = await appConfigDir();
-      return dir;
-    } catch (e) {
-      console.error('[Settings] Error ensuring AppConfig directory:', e);
-    }
-  }
-
   async function loadSettings() {
-    await ensureAppConfigDir();
+    const api = window.electronAPI;
+    if (!api) {
+      setSettings(defaultSettings);
+      return;
+    }
     try {
-      const fileExists = await exists(MAIN_SETTINGS_FILE, { baseDir: BaseDirectory.AppConfig });
-      if (!fileExists) {
+      const text = await api.settings.read();
+      if (!text) {
         setSettings(defaultSettings);
         return;
       }
-      const text = await readTextFile(MAIN_SETTINGS_FILE, { baseDir: BaseDirectory.AppConfig });
       const loaded = JSON.parse(text);
       // Merge loaded settings with defaults to ensure new keys exist
       setSettings({ ...defaultSettings, ...loaded });
@@ -65,11 +54,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   }
 
   async function saveSettings(newSettings: Settings) {
-    await ensureAppConfigDir();
+    const api = window.electronAPI;
+    if (!api) return;
     try {
-      await writeTextFile(MAIN_SETTINGS_FILE, JSON.stringify(newSettings, null, 2), {
-        baseDir: BaseDirectory.AppConfig,
-      });
+      await api.settings.write(JSON.stringify(newSettings, null, 2));
     } catch (e) {
       console.error('[Settings] Error saving settings:', e);
     }

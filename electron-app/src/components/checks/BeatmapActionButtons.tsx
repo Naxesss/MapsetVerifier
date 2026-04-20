@@ -1,6 +1,5 @@
 ﻿import { Button, Group, Tooltip, useMantineTheme } from '@mantine/core';
 import { IconFolder, IconRefresh, IconWorld } from '@tabler/icons-react';
-import { invoke } from '@tauri-apps/api/core';
 
 interface BeatmapActionButtonsProps {
   beatmapFolderPath?: string;
@@ -34,7 +33,8 @@ function BeatmapActionButtons({ beatmapFolderPath, beatmapSetId, onReparse }: Be
           onClick={async () => {
             if (!beatmapFolderPath) return;
             try {
-              await invoke('open_folder', { path: beatmapFolderPath });
+              const err = await window.electronAPI?.shell.openPath(beatmapFolderPath);
+              if (err) throw new Error(err);
             } catch (e) {
               console.error('Failed to open folder:', e);
               alert('Failed to open folder. See console for details.');
