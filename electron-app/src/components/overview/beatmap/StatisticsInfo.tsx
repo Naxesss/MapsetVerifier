@@ -1,6 +1,7 @@
 ﻿import { Group, Paper, Stack, Table, Text, useMantineTheme } from '@mantine/core';
 import { formatGameModeLabel, getModeAccentColor } from '../../../utils/gameMode';
 import AppTable, { DifficultyTableCell, DifficultyTableHeaderCell } from '../../common/AppTable.tsx';
+import StarRatingBadge from '../../common/StarRatingBadge.tsx';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
 import type { DifficultyStatistics } from '../../../Types';
 
@@ -10,10 +11,6 @@ interface StatisticsInfoProps {
 
 function formatCount(value: number | null) {
   return value === null ? 'N/A' : value.toLocaleString();
-}
-
-function formatStarRating(starRating: number | null) {
-  return starRating === null ? 'N/A' : `${starRating.toFixed(2)}★`;
 }
 
 function ModeCell({ mode }: { mode: string }) {
@@ -80,7 +77,7 @@ function StatisticsInfo({ statistics }: StatisticsInfoProps) {
                   <ModeCell mode={stats.mode} />
                 </Table.Td>
                 <Table.Td>
-                  <Text size="sm">{formatStarRating(stats.starRating)}</Text>
+                  <StarRatingBadge rating={stats.starRating ?? 0} />
                 </Table.Td>
                 <Table.Td>
                   <Text size="sm">{stats.circleCount.toLocaleString()}</Text>
