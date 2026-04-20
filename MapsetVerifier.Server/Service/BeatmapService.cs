@@ -13,6 +13,7 @@ namespace MapsetVerifier.Server.Service;
 public static class BeatmapService
 {
     private static readonly Regex BackgroundRegex = new Regex("0,0,\"(?<file>[^\"]+)\"", RegexOptions.Compiled);
+    private static readonly string[] SupportedImageExtensions = [".jpg", ".jpeg", ".png", ".gif"];
 
     /// <summary>
     /// Desired thumbnail height
@@ -179,11 +180,7 @@ public static class BeatmapService
         if (!Directory.Exists(targetFolder))
             return BeatmapImageResult.Error("Beatmap folder not found.");
 
-        var imagePath = Directory.GetFiles(targetFolder)
-            .FirstOrDefault(f => {
-                var ext = Path.GetExtension(f).ToLowerInvariant();
-                return ext is ".jpg" or ".jpeg" or ".png" or ".gif";
-            });
+        var imagePath = GetConfiguredBackgroundImagePath(targetFolder);
         if (imagePath == null)
             return BeatmapImageResult.Error("No background image found.");
 
@@ -238,6 +235,30 @@ public static class BeatmapService
             return BeatmapImageResult.Error("Failed to resize image: " + ex.Message);
         }
     }
+
+    private static string? GetConfiguredBackgroundImagePath(string beatmapSetFolder)
+    {
+        foreach (var osuFile in Directory.GetFiles(beatmapSetFolder, "*.osu").OrderBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase))
+        {
+            try
+            {
+                var code = File.ReadAllText(osuFile);
+                var beatmap = new Beatmap(code, beatmapSetFolder, Path.GetFileName(osuFile));
+                var backgroundPath = beatmap.GetBackgroundFilePath();
+
+                if (backgroundPath != null && IsSupportedImageFile(backgroundPath))
+                    return backgroundPath;
+            }
+            catch (Exception)
+            {
+                // Ignore invalid .osu files and continue looking for a usable background.
+            }
+        }
+
+        return null;
+    }
+
+    private static bool IsSupportedImageFile(string filePath) => SupportedImageExtensions.Contains(Path.GetExtension(filePath).ToLowerInvariant());
 
     public static ApiBeatmapSetCheckResult RunBeatmapSetChecks(string beatmapSetFolder)
     {

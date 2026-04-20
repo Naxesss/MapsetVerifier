@@ -887,6 +887,38 @@ namespace MapsetVerifier.Parser.Objects
             return null;
         }
 
+        /// <summary> Returns the full file path of the first configured background that exists, otherwise null. </summary>
+        public string? GetBackgroundFilePath()
+        {
+            foreach (var background in Backgrounds)
+            {
+                var filePath = ResolveReferencedFilePath(background.path, background.strippedPath);
+                if (filePath != null)
+                    return filePath;
+            }
+
+            return null;
+        }
+
+        private string? ResolveReferencedFilePath(string? parsedPath, string? strippedPath)
+        {
+            if (string.IsNullOrWhiteSpace(SongPath))
+                return null;
+
+            if (!string.IsNullOrWhiteSpace(parsedPath))
+            {
+                var directPath = Path.Combine(SongPath, parsedPath.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar));
+                if (File.Exists(directPath))
+                    return directPath;
+            }
+
+            if (string.IsNullOrWhiteSpace(strippedPath))
+                return null;
+
+            return Directory.EnumerateFiles(SongPath, "*.*", SearchOption.AllDirectories)
+                .LastOrDefault(filePath => PathStatic.ParsePath(PathStatic.RelativePath(filePath, SongPath), true) == strippedPath);
+        }
+
         /// <summary> Returns the expected file name of the .osu based on the beatmap's metadata. </summary>
         public string GetOsuFileName()
         {
