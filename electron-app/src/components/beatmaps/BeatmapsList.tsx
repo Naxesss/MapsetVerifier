@@ -3,7 +3,7 @@
   CloseButton,
   Divider,
   Flex,
-  Input,
+  TextInput,
   Button,
   Text,
   ScrollArea,
@@ -147,8 +147,7 @@ export default function BeatmapsList({ songFolder }: Props) {
     >
       <Flex direction="column" gap="sm" p="xs">
         <Flex gap="sm" direction="row" justify="space-between">
-          <Input
-            type="text"
+          <TextInput
             placeholder="Search beatmaps..."
             value={search}
             onChange={(e) => {
