@@ -191,8 +191,8 @@ export default function BeatmapsList({ songFolder }: Props) {
         <>
           <Divider />
           <ScrollArea
-            type="always"
-            offsetScrollbars
+            type="auto"
+            offsetScrollbars="present"
             viewportRef={scrollRef}
             className="flipped-scrollbar"
             p="xs"
