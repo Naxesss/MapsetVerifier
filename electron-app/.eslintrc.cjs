@@ -1,4 +1,6 @@
-﻿module.exports = {
+﻿const path = require('path');
+
+module.exports = {
   root: true,
   env: {
     browser: true,
@@ -10,7 +12,7 @@
     ecmaVersion: 'latest',
     sourceType: 'module',
     ecmaFeatures: { jsx: true },
-    project: ['./tsconfig.json'],
+    project: [path.join(__dirname, 'tsconfig.json')],
   },
   settings: {
     react: {
@@ -69,6 +71,15 @@
     'prefer-const': 'warn',
   },
   overrides: [
+    {
+      files: ['*.cjs', '**/*.cjs'],
+      parserOptions: {
+        project: null,
+      },
+      rules: {
+        '@typescript-eslint/no-require-imports': 'off',
+      },
+    },
     {
       files: ['*.ts', '*.tsx'],
       rules: {
