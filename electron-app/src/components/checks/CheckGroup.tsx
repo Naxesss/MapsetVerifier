@@ -1,9 +1,5 @@
-﻿import {ActionIcon, Stack, Text, Tooltip, Flex} from '@mantine/core';
-import {
-  IconChevronDown,
-  IconChevronRight,
-  IconInfoCircleFilled
-} from '@tabler/icons-react';
+﻿import { ActionIcon, Collapse, Flex, Stack, Text, Tooltip } from '@mantine/core';
+import { IconChevronRight, IconInfoCircleFilled } from '@tabler/icons-react';
 import React, { useState } from 'react';
 import IssueRow from './IssueRow';
 import { ApiCheckResult, Level } from '../../Types';
@@ -30,8 +26,8 @@ const CheckGroup: React.FC<CheckGroupProps> = ({ id, items, name }) => {
     }
   }
 
-  const [open, setOpen] = React.useState(true);
-  const [showAll, setShowAll] = React.useState(false);
+  const [open, setOpen] = useState(true);
+  const [showAll, setShowAll] = useState(false);
   const [docModalOpen, setDocModalOpen] = useState(false);
   const { getCheckById } = useDocumentationChecks();
   const documentationCheck = getCheckById(id);
@@ -46,8 +42,9 @@ const CheckGroup: React.FC<CheckGroupProps> = ({ id, items, name }) => {
     }
   };
 
-  const visibleItems = showAll ? items : items.slice(0, VISIBLE_COUNT);
-  const extraCount = items.length - VISIBLE_COUNT;
+  const firstItems = items.slice(0, VISIBLE_COUNT);
+  const extraItems = items.slice(VISIBLE_COUNT);
+  const extraCount = extraItems.length;
 
   return (
     <Stack gap="0" justify="center">
@@ -65,7 +62,17 @@ const CheckGroup: React.FC<CheckGroupProps> = ({ id, items, name }) => {
           aria-expanded={open}
           style={{ cursor: 'pointer', userSelect: 'none' }}
         >
-          {open ? <IconChevronDown size={16} /> : <IconChevronRight size={16} />}
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
+              transition: 'transform 200ms ease',
+            }}
+          >
+            <IconChevronRight size={16} />
+          </span>
           <LevelIcon level={highest} size={16} />
           <Text size="sm" fw="bold">
             {name}
@@ -86,11 +93,18 @@ const CheckGroup: React.FC<CheckGroupProps> = ({ id, items, name }) => {
         )}
       </Flex>
 
-      {open && (
+      <Collapse in={open}>
         <Stack ml="xl" gap="0">
-          {visibleItems.map((item, idx) => (
+          {firstItems.map((item, idx) => (
             <IssueRow key={`${id}-${idx}`} item={item} />
           ))}
+          <Collapse in={showAll}>
+            <Stack gap="0">
+              {extraItems.map((item, idx) => (
+                <IssueRow key={`${id}-${VISIBLE_COUNT + idx}`} item={item} />
+              ))}
+            </Stack>
+          </Collapse>
           {extraCount > 0 && (
             <Text
               size="sm"
@@ -103,7 +117,7 @@ const CheckGroup: React.FC<CheckGroupProps> = ({ id, items, name }) => {
             </Text>
           )}
         </Stack>
-      )}
+      </Collapse>
 
       {documentationCheck && (
         <DocumentationCheckModal
