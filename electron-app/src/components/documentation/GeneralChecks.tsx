@@ -18,7 +18,6 @@ function GeneralChecks() {
 
   return (
     <Group gap="xs">
-      <Text>A total of {checks.length} General checks exist.</Text>
       {checks.map((check: ApiDocumentationCheck) => (
         <DocumentationCheck key={check.id} check={check} />
       ))}

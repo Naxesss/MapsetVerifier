@@ -1,4 +1,4 @@
-﻿import { Text } from '@mantine/core';
+﻿import { Group, Text } from '@mantine/core';
 import DocumentationCheck from './DocumentationCheck';
 import { useBeatmapDocumentationChecks } from './hooks/useDocumentationChecks';
 import { Mode } from '../../Types.ts';
@@ -16,14 +16,11 @@ function BeatmapChecks({ mode }: BeatmapChecksProps) {
   if (!checks || checks.length === 0) return <Text>No {formatGameModeLabel(mode)} checks found.</Text>;
 
   return (
-    <>
-      <Text>
-        A total of {checks.length} {formatGameModeLabel(mode)} checks exist.
-      </Text>
+    <Group gap="xs">
       {checks.map((check) => (
         <DocumentationCheck key={check.id} check={check} />
       ))}
-    </>
+    </Group>
   );
 }
 

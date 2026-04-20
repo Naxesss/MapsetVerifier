@@ -1,4 +1,4 @@
-﻿import { Flex, Group, Text, useMantineTheme } from '@mantine/core';
+﻿import { Badge, Flex, Group, Text, useMantineTheme } from '@mantine/core';
 import { useState } from 'react';
 import DocumentationCheckModal from './DocumentationCheckModal';
 import { ApiDocumentationCheck } from '../../Types.ts';
@@ -34,11 +34,13 @@ function DocumentationCheck({ check }: DocumentationCheckProps) {
       >
         <Flex direction="column" style={{ flex: 1 }}>
           <Text fw="bold">{check.description}</Text>
-          <Group gap="0">
-            {check.modes.map((mode) => <GameModeIcon size={16} key={mode} mode={mode} color={theme.colors.gray[5]} />)}
-            <Text size="sm" c="dimmed" pl="xs">
+          <Group gap="xs">
+            <Group gap="1">
+              {check.modes.map((mode) => <GameModeIcon size={16} key={mode} mode={mode} color={theme.colors.gray[5]} />)}
+            </Group>
+            <Badge size="xs" variant="light">
               {`${check.category}`}
-            </Text>
+            </Badge>
           </Group>
         </Flex>
         <Flex direction="column">
