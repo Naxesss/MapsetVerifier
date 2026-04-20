@@ -47,7 +47,7 @@ function BeatmapHeader({ bgUrl, children }: BeatmapHeaderProps) {
             )}
             {creator && (
               <Text>
-                BeatmapSet by{' '}
+                Beatmapset by{' '}
                 <Anchor
                   href={`https://osu.ppy.sh/users/${creator}`}
                   target="_blank"
