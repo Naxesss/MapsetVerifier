@@ -2,6 +2,7 @@
 using MapsetVerifier.Framework.Objects.Resources;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
+using Serilog;
 using File = TagLib.File;
 
 namespace MapsetVerifier.Checks
@@ -10,7 +11,7 @@ namespace MapsetVerifier.Checks
     {
         public const string CHECK_MANUALLY_MESSAGE = ", so you'll need to check that manually.";
 
-        public const string FILE_EXCEPTION_MESSAGE = "\"{0}\" couldn't be checked, so you'll need to do that manually.{1}";
+        public const string FILE_EXCEPTION_MESSAGE = "\"{0}\" couldn't be checked, so you'll need to do that manually.";
 
         public const double MS_EPSILON = 2d;
         
@@ -18,17 +19,6 @@ namespace MapsetVerifier.Checks
         /// Maximum allowed difference in time between two hit objects in milliseconds.
         /// </summary>
         public const double ROUNDING_ERROR_MARGIN = 0.000000001;
-
-        public static string ExceptionTag(Exception exception) =>
-            $@"
-                <exception>
-                    <message>
-                        {exception.Message}
-                    </message>
-                    <stacktrace>
-                        {exception.StackTrace}
-                    </stacktrace>
-                </exception>";
 
         public static IEnumerable<Issue> GetInconsistencies(BeatmapSet beatmapSet, Func<Beatmap, string?> consistencyCheck, IssueTemplate template)
         {
@@ -165,8 +155,8 @@ namespace MapsetVerifier.Checks
                         }
                         catch (Exception exception)
                         {
+                            Log.Error(exception, "Could not find tag file");
                             errorTemplate = "Exception";
-                            arguments.Add(ExceptionTag(exception));
                         }
                     else
                         errorTemplate = "Missing";

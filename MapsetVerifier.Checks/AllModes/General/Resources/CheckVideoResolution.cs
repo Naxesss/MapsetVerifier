@@ -57,7 +57,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
 
                 {
                     "Exception",
-                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "file name", "exception")
+                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "file name")
                         .WithCause("An exception occurred trying to parse a video.")
                 }
             };

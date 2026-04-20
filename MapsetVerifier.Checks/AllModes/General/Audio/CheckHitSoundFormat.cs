@@ -7,6 +7,7 @@ using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
 using MathNet.Numerics;
+using Serilog;
 
 namespace MapsetVerifier.Checks.AllModes.General.Audio
 {
@@ -64,7 +65,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
                 {
                     "Exception",
-                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path", "exception info")
+                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path")
                         .WithCause("An error occurred trying to check the format of a hit sound file.")
                 }
             };
@@ -92,7 +93,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
                 if (exception != null)
                 {
-                    yield return new Issue(GetTemplate("Exception"), null, hitSoundFile, Common.ExceptionTag(exception));
+                    Log.Error(exception, "Couldn't check hitsound file");
+                    yield return new Issue(GetTemplate("Exception"), null, hitSoundFile);
 
                     continue;
                 }

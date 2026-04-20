@@ -56,7 +56,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
                 {
                     "Exception",
-                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path", "exception info")
+                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path")
                         .WithCause("An exception occurred trying to parse a video file.")
                 }
             };

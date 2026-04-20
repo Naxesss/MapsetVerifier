@@ -5,6 +5,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Framework.Objects.Resources;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
+using Serilog;
 
 namespace MapsetVerifier.Checks.AllModes.General.Audio
 {
@@ -64,7 +65,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                 },
                 {
                     "Exception",
-                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path", "exception info")
+                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path")
                         .WithCause("A file which was attempted to be checked could not be opened.")
                 }
             };
@@ -94,7 +95,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             }
             catch (Exception exception)
             {
-                errorIssue = new Issue(GetTemplate("Exception"), null, PathStatic.RelativePath(audioPath, beatmapSet.SongPath), Common.ExceptionTag(exception));
+                Log.Error(exception, "Couldn't check audio file");
+                errorIssue = new Issue(GetTemplate("Exception"), null, PathStatic.RelativePath(audioPath, beatmapSet.SongPath));
             }
 
             if (errorIssue != null)
@@ -131,7 +133,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                 }
                 catch (Exception exception)
                 {
-                    errorIssue = new Issue(GetTemplate("Exception"), null, PathStatic.RelativePath(hitSoundPath, beatmapSet.SongPath), Common.ExceptionTag(exception));
+                    Log.Error(exception, "Couldn't check hitsound file");
+                    errorIssue = new Issue(GetTemplate("Exception"), null, PathStatic.RelativePath(hitSoundPath, beatmapSet.SongPath));
                 }
 
                 if (errorIssue != null)

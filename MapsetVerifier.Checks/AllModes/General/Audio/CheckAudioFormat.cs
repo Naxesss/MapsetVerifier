@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Framework.Objects.Resources;
 using MapsetVerifier.Parser.Objects;
+using Serilog;
 
 namespace MapsetVerifier.Checks.AllModes.General.Audio
 {
@@ -54,7 +55,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
                 {
                     "Exception",
-                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path", "exception info")
+                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path")
                         .WithCause("An error occurred trying to check the format of a song audio file.")
                 }
             };
@@ -80,8 +81,10 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             }
 
             if (exception != null)
-                yield return new Issue(GetTemplate("Exception"), null, audioName, Common.ExceptionTag(exception));
-
+            {
+                Log.Error(exception, "Couldn't check audio file");
+                yield return new Issue(GetTemplate("Exception"), null, audioName);
+            }
             else if (actualFormat != ChannelType.MP3 && actualFormat != ChannelType.OGG)
                 yield return new Issue(GetTemplate("Incorrect Format"), null, audioName, AudioBASS.EnumToString(actualFormat));
 

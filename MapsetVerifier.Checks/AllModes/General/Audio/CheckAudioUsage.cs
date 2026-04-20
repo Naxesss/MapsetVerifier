@@ -56,7 +56,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
                 {
                     "Unable to check",
-                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path", "exception info")
+                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path")
                         .WithCause("There was an error parsing the audio file.")
                 }
             };
@@ -90,7 +90,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
                 if (exception != null)
                 {
-                    yield return new Issue(GetTemplate("Unable to check"), null, PathStatic.RelativePath(audioPath, beatmap.SongPath), Common.ExceptionTag(exception));
+                    yield return new Issue(GetTemplate("Unable to check"), null, PathStatic.RelativePath(audioPath, beatmap.SongPath));
 
                     continue;
                 }

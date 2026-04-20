@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Framework.Objects.Resources;
 using MapsetVerifier.Parser.Objects;
+using Serilog;
 
 namespace MapsetVerifier.Checks.AllModes.General.Audio
 {
@@ -51,7 +52,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
                 {
                     "Unable to check",
-                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path", "exception info")
+                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path")
                         .WithCause("There was an error parsing a hit sound file.")
                 }
             };
@@ -82,7 +83,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                 }
                 else
                 {
-                    yield return new Issue(GetTemplate("Unable to check"), null, hsFile, Common.ExceptionTag(exception));
+                    Log.Error(exception, "Couldn't check hitsound file");
+                    yield return new Issue(GetTemplate("Unable to check"), null, hsFile);
                 }
             }
         }
