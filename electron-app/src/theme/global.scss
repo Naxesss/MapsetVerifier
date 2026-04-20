@@ -48,3 +48,14 @@
 *::-webkit-scrollbar-corner {
   background: transparent;
 }
+
+/* Selection */
+::selection {
+  background-color: var(--mantine-color-primary-2);
+  color: var(--mantine-color-black);
+}
+
+::moz-selection {
+  background-color: var(--mantine-color-primary-2);
+  color: var(--mantine-color-black);
+}
