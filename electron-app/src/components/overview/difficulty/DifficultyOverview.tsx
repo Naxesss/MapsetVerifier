@@ -208,7 +208,7 @@ function DifficultyChartCard({ chart }: { chart: ChartDefinition }) {
   const timeInterval = getAdaptiveTimeInterval(durationSeconds);
 
   return (
-    <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
+    <Paper p="md" radius="md" bg={theme.colors.dark[5]} style={{ overflow: 'visible' }}>
       <Stack gap="sm">
         <Text fw={600}>{chart.title}</Text>
 
@@ -220,7 +220,7 @@ function DifficultyChartCard({ chart }: { chart: ChartDefinition }) {
         </SimpleGrid>
 
         {chart.data.length > 0 ? (
-          <Box pos="relative">
+          <Box pos="relative" style={{ overflow: 'visible' }}>
             <LineChart
               h={200}
               data={chart.data}
@@ -236,7 +236,31 @@ function DifficultyChartCard({ chart }: { chart: ChartDefinition }) {
               gridAxis="xy"
               withLegend
               xAxisProps={{ domain: [0, chart.durationMs], interval: Math.max(0, timeInterval - 1) }}
-              legendProps={{ verticalAlign: 'bottom', height: chart.series.length > 4 ? 44 : 30 }}
+              legendProps={{
+                verticalAlign: 'bottom',
+                wrapperStyle: {
+                  overflow: 'visible',
+                  width: '100%',
+                  maxWidth: '100%',
+                },
+              }}
+              styles={{
+                legend: {
+                  height: 'auto',
+                  minHeight: 'unset',
+                  alignItems: 'flex-start',
+                  justifyContent: 'flex-end',
+                },
+                legendItem: {
+                  alignItems: 'flex-start',
+                  maxWidth: '100%',
+                },
+                legendItemName: {
+                  whiteSpace: 'normal',
+                  wordBreak: 'break-word',
+                  lineHeight: 1.35,
+                },
+              }}
               valueFormatter={(value) => `${Number(value).toFixed(2)}${chart.valueSuffix ?? ''}`}
             />
           </Box>
