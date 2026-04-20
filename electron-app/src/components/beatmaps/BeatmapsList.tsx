@@ -10,7 +10,7 @@
   ActionIcon, Tooltip,
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
-import {IconRefresh} from "@tabler/icons-react";
+import { IconAlertCircle, IconListDetails, IconRefresh, IconSearchOff } from '@tabler/icons-react';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useRef, useEffect, useState } from 'react';
 import BeatmapCard from './BeatmapCard';
@@ -116,7 +116,7 @@ export default function BeatmapsList({ songFolder }: Props) {
             : 'No mapsets could be found in the songs folder.'
           : error.message || 'Failed to load beatmaps.';
       return (
-        <Alert color="red" title="Error" mt="xs">
+        <Alert icon={<IconAlertCircle />} color="red" title="Error" mt="xs">
           <Text>{msg}</Text>
           <Button size="xs" variant="light" color="red" onClick={() => refetch()}>
             Retry
@@ -126,7 +126,7 @@ export default function BeatmapsList({ songFolder }: Props) {
     }
     if (noResults) {
       return (
-        <Alert color="gray" title="No results" mt="xs" variant="light">
+        <Alert icon={<IconSearchOff />} color="gray" title="No results" mt="xs" variant="light">
           {debouncedSearch
             ? 'The search yielded no results.'
             : 'No mapsets could be found in the songs folder.'}
@@ -207,7 +207,7 @@ export default function BeatmapsList({ songFolder }: Props) {
               <div ref={sentinelRef} style={{ height: 1 }} />
               {showNextPagePlaceholder && <PlaceholderBeatmapCard />}
               {beatmaps.length > 0 && !hasNextPage && !isFetchingNextPage && !error && (
-                <Alert color="gray" title="No more beatmaps" variant="light">
+                <Alert icon={<IconListDetails />} color="gray" title="No more beatmaps" variant="light">
                   You have reached the last available beatmap.
                   <Button
                     size="xs"

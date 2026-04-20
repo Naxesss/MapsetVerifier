@@ -1,4 +1,5 @@
 ﻿import { Alert } from '@mantine/core';
+import { IconAlertTriangle } from '@tabler/icons-react';
 import BeatmapsList from './BeatmapsList.tsx';
 import { useSettings } from '../../context/SettingsContext';
 
@@ -9,7 +10,7 @@ export default function Beatmaps() {
 
   if (!songFolder) {
     return (
-      <Alert title="Song Folder Not Set" color="yellow">
+      <Alert icon={<IconAlertTriangle />} title="Song folder not set" color="yellow">
         Please set your song folder in the settings to view your beatmaps.
       </Alert>
     );

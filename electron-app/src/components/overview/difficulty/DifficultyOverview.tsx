@@ -1,5 +1,6 @@
 import { LineChart } from '@mantine/charts';
 import { Alert, Box, Flex, Group, LoadingOverlay, Paper, SegmentedControl, SimpleGrid, Stack, Text, useMantineTheme } from '@mantine/core';
+import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useDifficultyOverview } from './hooks/useDifficultyOverview.ts';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
@@ -98,7 +99,7 @@ function DifficultyOverview({ reloadFlag }: DifficultyOverviewProps) {
 
   if (!settings.songFolder) {
     return (
-      <Alert color="yellow" title="Song folder not set">
+      <Alert icon={<IconAlertTriangle />} color="yellow" title="Song folder not set">
         <Text size="sm">Please set the song folder in settings to analyze difficulty data.</Text>
       </Alert>
     );
@@ -110,7 +111,7 @@ function DifficultyOverview({ reloadFlag }: DifficultyOverviewProps) {
 
       {isError && (
         <Flex p="md">
-          <Alert color="red" title="Error analyzing difficulty overview">
+          <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing difficulty overview">
             <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>{error?.message}</Text>
             {error?.stackTrace && (
               <Text mt="sm" size="xs" c="red.3" style={{ whiteSpace: 'pre-wrap' }}>{error.stackTrace}</Text>
@@ -121,7 +122,7 @@ function DifficultyOverview({ reloadFlag }: DifficultyOverviewProps) {
 
       {data && !data.success && (
         <Flex p="md">
-          <Alert color="yellow" title="Analysis failed">
+          <Alert icon={<IconAlertTriangle />} color="yellow" title="Analysis failed">
             <Text size="sm">{data.errorMessage}</Text>
           </Alert>
         </Flex>

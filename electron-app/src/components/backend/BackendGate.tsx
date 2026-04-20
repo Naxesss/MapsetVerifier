@@ -1,5 +1,5 @@
 ﻿import {MantineProvider, Alert, Button, Text, Container, Flex, Progress, Code, CopyButton, ScrollArea, Tooltip} from '@mantine/core';
-import { IconCopy, IconCheck } from '@tabler/icons-react';
+import { IconAlertCircle, IconCheck, IconCopy, IconServer, IconTerminal2 } from '@tabler/icons-react';
 import React, { useEffect, useState, useRef, useCallback, ReactNode } from 'react';
 import { cssVarResolver } from '../../App';
 import {BACKEND_BASE_URL} from "../../Constants.ts";
@@ -142,7 +142,7 @@ const BackendGate: React.FC<BackendGateProps> = ({
     <MantineProvider defaultColorScheme="dark" theme={theme} cssVariablesResolver={cssVarResolver}>
       <Container size="sm" pt={80}>
         {starting && (
-          <Alert title="Starting backend" color="blue" variant="light">
+          <Alert icon={<IconServer />} title="Starting backend" color="blue" variant="light">
             <Flex direction="column" gap="sm">
               <Text size="sm">{stageText[stage]}</Text>
               <Progress value={progress} size="md" color="blue" radius="md" />
@@ -151,11 +151,11 @@ const BackendGate: React.FC<BackendGateProps> = ({
         )}
         {status === 'error' && (
           <Flex direction="column" gap="md">
-            <Alert title="Backend failed to start" color="red" variant="filled">
+            <Alert icon={<IconAlertCircle />} title="Backend failed to start" color="red" variant="filled">
               <Text size="sm" mb="xs" style={{ whiteSpace: 'pre-wrap' }}>{errorMsg}</Text>
             </Alert>
             {sidecarLogs.length > 0 && (
-              <Alert title="Sidecar output" color="gray" variant="light">
+              <Alert icon={<IconTerminal2 />} title="Sidecar output" color="gray" variant="light">
                 <Flex direction="column" gap="xs">
                   <ScrollArea.Autosize mah={200}>
                     <Code block style={{ whiteSpace: 'pre-wrap', fontSize: 'var(--mantine-font-size-xs)' }}>

@@ -17,7 +17,15 @@
   Title,
   useMantineTheme,
 } from '@mantine/core';
-import { IconEye, IconEyeOff, IconGripVertical, IconMinus, IconPlus } from '@tabler/icons-react';
+import {
+  IconAlertCircle,
+  IconAlertTriangle,
+  IconEye,
+  IconEyeOff,
+  IconGripVertical,
+  IconMinus,
+  IconPlus,
+} from '@tabler/icons-react';
 import { Fragment, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import { useObjectsAnalysis } from './hooks/useObjectsAnalysis.ts';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
@@ -133,7 +141,7 @@ function ObjectsOverview({ reloadFlag }: ObjectsOverviewProps) {
 
   if (!settings.songFolder) {
     return (
-      <Alert color="yellow" title="Song folder not set" withCloseButton>
+      <Alert icon={<IconAlertTriangle />} color="yellow" title="Song folder not set" withCloseButton>
         <Text size="sm">Please set the song folder in settings to analyze objects.</Text>
       </Alert>
     );
@@ -145,7 +153,7 @@ function ObjectsOverview({ reloadFlag }: ObjectsOverviewProps) {
 
       {isError && (
         <Flex p="md">
-          <Alert color="red" title="Error analyzing objects">
+          <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing objects">
             <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>{error?.message}</Text>
             {error?.stackTrace && (
               <Text mt="sm" size="xs" c="red.3" style={{ whiteSpace: 'pre-wrap' }}>{error.stackTrace}</Text>
@@ -156,7 +164,7 @@ function ObjectsOverview({ reloadFlag }: ObjectsOverviewProps) {
 
       {data && !data.success && (
         <Flex p="md">
-          <Alert color="yellow" title="Analysis failed">
+          <Alert icon={<IconAlertTriangle />} color="yellow" title="Analysis failed">
             <Text size="sm">{data.errorMessage}</Text>
           </Alert>
         </Flex>

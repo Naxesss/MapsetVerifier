@@ -7,6 +7,7 @@
   Stack,
   SimpleGrid
 } from '@mantine/core';
+import { IconAlertCircle, IconAlertTriangle, IconRulerMeasure } from '@tabler/icons-react';
 import {useEffect} from "react";
 import BitrateGraph from './BitrateGraph';
 import ChannelBalance from './ChannelBalance';
@@ -43,7 +44,7 @@ function AudioOverview({ reloadFlag }: AudioOverviewProps) {
 
   if (!settings.songFolder) {
     return (
-      <Alert color="yellow" title="Song folder not set">
+      <Alert icon={<IconAlertTriangle />} color="yellow" title="Song folder not set">
         <Text size="sm">Please set the song folder in settings to analyze audio.</Text>
       </Alert>
     );
@@ -56,7 +57,7 @@ function AudioOverview({ reloadFlag }: AudioOverviewProps) {
       <LoadingOverlay visible={isLoading || frequencyLoading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
       {isError && (
         <Flex p="md">
-          <Alert color="red" title="Error analyzing audio">
+          <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing audio">
             <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>{error?.message}</Text>
             {error?.stackTrace && (
               <Text mt="sm" size="xs" c="red.3" style={{ whiteSpace: 'pre-wrap' }}>{error.stackTrace}</Text>
@@ -67,7 +68,7 @@ function AudioOverview({ reloadFlag }: AudioOverviewProps) {
 
       {data && !data.success && (
         <Flex p="md">
-          <Alert color="yellow" title="Analysis failed">
+          <Alert icon={<IconAlertTriangle />} color="yellow" title="Analysis failed">
             <Text size="sm">{data.errorMessage}</Text>
           </Alert>
         </Flex>
@@ -76,7 +77,7 @@ function AudioOverview({ reloadFlag }: AudioOverviewProps) {
       {data && data.success && (
         <Flex gap="md" p="md" direction="column">
           {data.complianceIssues?.length > 0 && (
-            <Alert color="yellow" title="Compliance Issues">
+            <Alert icon={<IconRulerMeasure />} color="yellow" title="Compliance Issues">
               <Stack gap="xs">
                 {data.complianceIssues.map((issue: string, idx: number) => (
                   <Text key={idx} size="sm">• {issue}</Text>

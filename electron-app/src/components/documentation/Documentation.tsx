@@ -1,4 +1,5 @@
 ﻿import { Alert, Flex, Text, SimpleGrid, Space, Tabs, Group } from '@mantine/core';
+import { IconLayoutGrid } from '@tabler/icons-react';
 import React from 'react';
 import BeatmapChecks from './BeatmapChecks.tsx';
 import GeneralChecks from './GeneralChecks';
@@ -11,7 +12,7 @@ import WarningIcon from '../icons/WarningIcon.tsx';
 function Documentation() {
   return (
     <>
-      <Alert variant="light" color="gray" radius="md" title="Icons">
+      <Alert icon={<IconLayoutGrid />} variant="light" color="gray" radius="md" title="Icons">
         <SimpleGrid
           cols={3}
           style={{

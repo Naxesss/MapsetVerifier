@@ -1,4 +1,5 @@
 ﻿import { Modal, Button, TextInput, Switch, Group, Stack, Alert, Divider, Text } from '@mantine/core';
+import { IconNote } from '@tabler/icons-react';
 import React, { useEffect, useState } from 'react';
 import { useSettings } from '../../context/SettingsContext';
 import { useUpdater } from '../../context/UpdaterContext';
@@ -129,7 +130,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
                   checked={gateInDev}
                   onChange={(e) => setGateInDev(e.currentTarget.checked)}
                 />
-                <Alert title="Note" color="yellow" variant="light">
+                <Alert icon={<IconNote />} title="Note" color="yellow" variant="light">
                   <Group gap="sm">
                     <Text size="sm">Enabling this option will make the app mimic production mode by running the sidecar.</Text>
                     <Text size="sm">This does need the sidecar to be built beforehand and available in the following folder <code>/bin/server/dist/&lt;rid&gt;/</code>.</Text>

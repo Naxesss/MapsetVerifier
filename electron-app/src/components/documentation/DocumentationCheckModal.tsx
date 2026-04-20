@@ -1,4 +1,5 @@
 ﻿import {Modal, Text, Loader, Flex, Alert, Group} from '@mantine/core';
+import { IconAlertCircle, IconClipboardList } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import MantineMarkdown from './MantineMarkdown';
 import DocumentationApi from '../../client/DocumentationApi';
@@ -49,11 +50,15 @@ export default function DocumentationCheckModal({
           <Text size="sm">Created by {check.author}</Text>
         </Flex>
         {isLoading && <Loader />}
-        {error && <Alert color="red">Failed to load details.</Alert>}
+        {error && (
+          <Alert icon={<IconAlertCircle />} color="red">
+            Failed to load details.
+          </Alert>
+        )}
         {data && (
           <>
             {data.outcomes.map((checkDetails, i) => (
-              <Alert key={i}>
+              <Alert key={i} icon={<IconClipboardList />}>
                 <Flex direction="column" gap="xs">
                   <Flex align="center" gap="xs">
                     <LevelIcon level={checkDetails.level} />

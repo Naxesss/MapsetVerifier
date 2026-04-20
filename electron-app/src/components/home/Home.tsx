@@ -1,4 +1,5 @@
 ﻿import {Alert, Button, Container, Text} from "@mantine/core";
+import { IconLifebuoy } from "@tabler/icons-react";
 import changelog from "../../content/CHANGELOG.md?raw";
 import MantineMarkdown from "../documentation/MantineMarkdown.tsx";
 
@@ -6,6 +7,7 @@ export default function Home() {
   return (
     <Container size="md">
       <Alert
+        icon={<IconLifebuoy />}
         title="Having an issue while using MV?"
         color="yellow"
         variant="light"
