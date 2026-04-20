@@ -29,6 +29,7 @@ public class DifficultyOverviewDifficulty
     public string DifficultyLevel { get; set; } = string.Empty;
     public double StarRating { get; set; }
     public List<double> StarRatingValues { get; set; } = [];
+    public List<double> SliderVelocityValues { get; set; } = [];
     public List<DifficultySkillData> Skills { get; set; } = [];
 }
 

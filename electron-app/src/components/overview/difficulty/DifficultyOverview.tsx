@@ -91,11 +91,13 @@ function DifficultyOverview({ reloadFlag }: DifficultyOverviewProps) {
   const selectedGroup = groupedDifficulties.find((group) => group.mode === selectedMode) ?? groupedDifficulties[0];
   const selectedDifficulties = selectedGroup?.difficulties ?? [];
   const charts = useMemo(() => buildCharts(selectedDifficulties, data?.msPerPeak), [data?.msPerPeak, selectedDifficulties]);
+  const starRatingChart = charts.find((c) => c.title === 'Star Rating');
+  const sliderVelocityChart = charts.find((c) => c.title === 'Slider velocity');
+  const skillCharts = charts.filter((c) => c.title !== 'Star Rating' && c.title !== 'Slider velocity');
   const distinctSkillCount = useMemo(
     () => new Set(selectedDifficulties.flatMap((difficulty) => difficulty.skills.map((skill) => skill.skillName))).size,
     [selectedDifficulties],
   );
-  const [starRatingChart, ...skillCharts] = charts;
 
   if (!settings.songFolder) {
     return (
@@ -138,7 +140,7 @@ function DifficultyOverview({ reloadFlag }: DifficultyOverviewProps) {
 
           <SimpleGrid cols={{ base: 1, md: 3 }} spacing="md">
             <SummaryCard label="Difficulties" value={String(selectedDifficulties.length)} />
-            <SummaryCard label="Skill charts" value={String(charts.length)} subValue={`${distinctSkillCount} unique skills`} />
+            <SummaryCard label="Skill charts" value={String(skillCharts.length)} subValue={`${distinctSkillCount} unique skills`} />
             <SummaryCard label="Peak interval" value={`${(data.msPerPeak / 1000).toFixed(1)}s`} subValue="400ms strain windows" />
           </SimpleGrid>
 
@@ -146,6 +148,7 @@ function DifficultyOverview({ reloadFlag }: DifficultyOverviewProps) {
             {charts.length > 0 ? (
               <>
                 {starRatingChart && <DifficultyChartCard chart={starRatingChart} />}
+                {sliderVelocityChart && <DifficultyChartCard chart={sliderVelocityChart} />}
                 {skillCharts.length > 0 && (
                   <>
                     <Text fw={600} c={theme.colors.gray[2]}>Skill Strain Analysis</Text>
@@ -307,6 +310,14 @@ function buildCharts(difficulties: DifficultyOverviewDifficulty[], msPerPeak?: n
     chartSeries.push(buildChartDefinition('Star Rating', starRatingSeries, msPerPeak, '★'));
   }
 
+  const sliderVelocitySeries = difficulties
+    .map((difficulty) => buildSliderVelocitySeries(difficulty, msPerPeak))
+    .filter((series) => series.points.length > 0);
+
+  if (sliderVelocitySeries.length > 0) {
+    chartSeries.push(buildChartDefinition('Slider velocity', sliderVelocitySeries, msPerPeak, '×'));
+  }
+
   const skillSeriesMap = new Map<string, DifficultyChartSeries[]>();
 
   for (const difficulty of difficulties) {
@@ -338,6 +349,23 @@ function buildStarRatingSeries(difficulty: DifficultyOverviewDifficulty, msPerPe
 
   return {
     skillName: 'Star Rating',
+    label: difficulty.label,
+    mode: difficulty.mode,
+    difficultyLevel: difficulty.difficultyLevel,
+    starRating: difficulty.starRating,
+    points,
+  };
+}
+
+function buildSliderVelocitySeries(difficulty: DifficultyOverviewDifficulty, msPerPeak: number): DifficultyChartSeries {
+  const values = difficulty.sliderVelocityValues ?? [];
+  const points: DifficultyChartDataPoint[] = values.map((value, index) => ({
+    timeSeconds: (index * msPerPeak) / 1000,
+    value,
+  }));
+
+  return {
+    skillName: 'Slider velocity',
     label: difficulty.label,
     mode: difficulty.mode,
     difficultyLevel: difficulty.difficultyLevel,

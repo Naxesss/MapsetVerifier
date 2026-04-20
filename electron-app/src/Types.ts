@@ -474,6 +474,8 @@ export type DifficultyOverviewDifficulty = {
   difficultyLevel: DifficultyLevel;
   starRating: number;
   starRatingValues: number[];
+  /** Present for non-Mania difficulties from current API; may be missing on older payloads. */
+  sliderVelocityValues?: number[];
   skills: DifficultySkillData[];
 };
 
