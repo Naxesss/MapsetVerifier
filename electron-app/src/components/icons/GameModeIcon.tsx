@@ -1,6 +1,7 @@
-﻿import { useMantineTheme } from '@mantine/core';
+﻿import { Box, Tooltip, useMantineTheme } from '@mantine/core';
 import React from 'react';
 import { Mode } from '../../Types';
+import { formatGameModeLabel } from '../../utils/gameMode';
 import { getDifficultyColor } from '../common/DifficultyColor.ts';
 
 export interface GameModeIconProps {
@@ -75,18 +76,21 @@ export default function GameModeIcon({ mode, size = 32, className, style, starRa
   const IconComponent = (iconComponents as Record<string, React.FC<{ size: number; color: string }>>)[mode] || iconComponents.Standard;
 
   return (
-    <span
-      className={className}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: size,
-        height: size,
-        ...style,
-      }}
-    >
-      <IconComponent size={size} color={customColor} />
-    </span>
+    <Tooltip label={formatGameModeLabel(mode)}>
+      <Box
+        component="span"
+        className={className}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: size,
+          height: size,
+          ...style,
+        }}
+      >
+        <IconComponent size={size} color={customColor} />
+      </Box>
+    </Tooltip>
   );
 }

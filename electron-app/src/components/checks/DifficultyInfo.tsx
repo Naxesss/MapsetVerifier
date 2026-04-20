@@ -47,7 +47,7 @@ function DifficultyInfo({
           </Badge>
         )}
         {hoveredDifficulty.starRating != null && hoveredDifficulty.starRating > 0 && (
-          <Badge size="xs" color="blue" variant="light" leftSection={<IconStarFilled size={10} />}>
+          <Badge size="xs" color="yellow" variant="light" leftSection={<IconStarFilled size={10} />}>
             {hoveredDifficulty.starRating.toFixed(2)}
           </Badge>
         )}

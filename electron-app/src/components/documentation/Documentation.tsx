@@ -7,6 +7,7 @@ import DocumentationCheck from './DocumentationCheck';
 import { dedupeDocumentationChecksById, filterDocumentationChecks } from './filterDocumentationChecks';
 import GeneralChecks from './GeneralChecks';
 import { useDocumentationChecks } from './hooks/useDocumentationChecks';
+import { countWord, pluralize } from '../../utils/countWord';
 import { formatGameModeLabel } from '../../utils/gameMode';
 import ErrorIcon from '../icons/ErrorIcon.tsx';
 import MinorIcon from '../icons/MinorIcon.tsx';
@@ -129,12 +130,12 @@ function DocumentationChecksBrowser() {
     if (allChecksLoading) return 'Loading check counts…';
     if (activeTab === 'general') {
       const n = generalChecks?.length ?? 0;
-      return `Showing ${n} General check${n === 1 ? '' : 's'}.`;
+      return `Showing ${countWord(n, 'check')} (General).`;
     }
     const mode = BEATMAP_TAB_TO_MODE[activeTab];
     if (!mode) return '';
     const n = beatmapChecks[mode]?.length ?? 0;
-    return `Showing ${n} ${formatGameModeLabel(mode)} check${n === 1 ? '' : 's'}.`;
+    return `Showing ${countWord(n, 'check')} (${formatGameModeLabel(mode)}).`;
   }, [activeTab, allChecksLoading, generalChecks, beatmapChecks]);
 
   return (
@@ -151,7 +152,8 @@ function DocumentationChecksBrowser() {
           {!allChecksLoading && !allChecksError && (
             <>
               <Text size="xs" c="dimmed">
-                Showing {filteredAllChecks.length} of {dedupedChecks.length} checks across all categories
+                Showing {filteredAllChecks.length} of {dedupedChecks.length}{' '}
+                {pluralize(dedupedChecks.length, 'check')} across all categories
               </Text>
               {filteredAllChecks.length === 0 ? (
                 <Text size="xs" c="dimmed">

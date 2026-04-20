@@ -1,26 +1,11 @@
 ﻿import { Group, Paper, Stack, Table, Text, useMantineTheme } from '@mantine/core';
-import { formatGameModeLabel } from '../../../utils/gameMode';
+import { formatGameModeLabel, getModeAccentColor } from '../../../utils/gameMode';
 import AppTable, { DifficultyTableCell, DifficultyTableHeaderCell } from '../../common/AppTable.tsx';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
 import type { DifficultyStatistics } from '../../../Types';
 
 interface StatisticsInfoProps {
   statistics: DifficultyStatistics[];
-}
-
-function getModeAccentColor(mode: string, theme: ReturnType<typeof useMantineTheme>) {
-  switch (mode) {
-    case 'Standard':
-      return theme.colors.pink[4];
-    case 'Taiko':
-      return theme.colors.red[4];
-    case 'Catch':
-      return theme.colors.lime[4];
-    case 'Mania':
-      return theme.colors.violet[4];
-    default:
-      return theme.colors.gray[4];
-  }
 }
 
 function formatCount(value: number | null) {
@@ -32,11 +17,9 @@ function formatStarRating(starRating: number | null) {
 }
 
 function ModeCell({ mode }: { mode: string }) {
-  const theme = useMantineTheme();
-
   return (
     <Group gap={6} wrap="nowrap" justify="center">
-      <GameModeIcon mode={mode} size={16} color={getModeAccentColor(mode, theme)} />
+      <GameModeIcon mode={mode} size={16} color={getModeAccentColor(mode)} />
       <Text size="sm">{formatGameModeLabel(mode)}</Text>
     </Group>
   );

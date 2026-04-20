@@ -38,7 +38,7 @@ import {
   type ObjectsTimingSegment,
   type ObjectsTimelineObject,
 } from '../../../Types';
-import { formatGameModeLabel } from '../../../utils/gameMode';
+import { formatGameModeLabel, getModeAccentColor } from '../../../utils/gameMode';
 import AppTable, { DifficultyTableCell, DifficultyTableHeaderCell } from '../../common/AppTable.tsx';
 import AutoResizeCanvas from '../../common/AutoResizeCanvas.tsx';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
@@ -629,7 +629,7 @@ function ObjectsTimelineComparison({
                         <GameModeIcon
                           mode={normalizeMode(difficulty.mode)}
                           size={18}
-                          color={getModeAccentColor(normalizeMode(difficulty.mode), theme)}
+                          color={getModeAccentColor(normalizeMode(difficulty.mode))}
                         />
                         <Stack gap={0} style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
                           <Text
@@ -1750,36 +1750,6 @@ function getSnappingColumns(difficulties: ObjectsOverviewDifficulty[]) {
 
 function normalizeMode(mode: string): Mode {
   return MODE_ORDER.includes(mode as Mode) ? (mode as Mode) : 'Standard';
-}
-
-function getModeAccentColor(mode: Mode, theme?: ReturnType<typeof useMantineTheme>) {
-  if (!theme) {
-    switch (mode) {
-      case 'Standard':
-        return 'var(--mantine-color-pink-4)';
-      case 'Taiko':
-        return 'var(--mantine-color-red-4)';
-      case 'Catch':
-        return 'var(--mantine-color-lime-4)';
-      case 'Mania':
-        return 'var(--mantine-color-violet-4)';
-      default:
-        return 'var(--mantine-color-gray-4)';
-    }
-  }
-
-  switch (mode) {
-    case 'Standard':
-      return theme.colors.pink[4];
-    case 'Taiko':
-      return theme.colors.red[4];
-    case 'Catch':
-      return theme.colors.lime[4];
-    case 'Mania':
-      return theme.colors.violet[4];
-    default:
-      return theme.colors.gray[4];
-  }
 }
 
 function formatDuration(durationMs: number) {

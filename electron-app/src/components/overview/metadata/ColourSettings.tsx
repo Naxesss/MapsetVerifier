@@ -55,7 +55,7 @@ function ColourSwatch({ colour, label, showWarning = true }: { colour: ComboColo
 function DifficultyColours({ settings }: { settings: DifficultyColourSettings }) {
   if (!settings.isApplicable) {
     return (
-      <Text size="sm" c="dimmed">N/A for {formatGameModeLabel(settings.mode)}</Text>
+      <Text size="xs" c="dimmed">N/A for {formatGameModeLabel(settings.mode)}</Text>
     );
   }
 
