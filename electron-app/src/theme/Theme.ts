@@ -100,6 +100,11 @@ const themeOverride = createTheme({
         },
       },
     },
+    Tooltip: {
+      defaultProps: {
+        withArrow: true,
+      }
+    },
     ScrollArea: {
       styles: {
         thumb: {
