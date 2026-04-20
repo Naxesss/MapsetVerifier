@@ -94,7 +94,7 @@ const WindowBar: React.FC = () => {
           onClick={toggleMaximize}
           style={noDragStyle}
         >
-          <IconSquare size={16} color={textColor} />
+          <IconSquare size={13} color={textColor} />
         </ActionIcon>
         <ActionIcon
           variant="subtle"
