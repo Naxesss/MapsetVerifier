@@ -1,4 +1,4 @@
-import { Box, Flex, Text } from '@mantine/core';
+﻿import { Box, Flex, Stack, Text } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from "react-router-dom";
 import { useBeatmap } from '../../context/BeatmapContext';
@@ -45,13 +45,20 @@ function BeatmapCard({ beatmap, songFolder }: BeatmapCardProps) {
 
   const isSelected = selectedFolder === beatmap.folder;
 
+  const transitionMs = '0.22s ease';
+  const active = isSelected || isHovered;
+
   const textStyle = {
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
     display: 'block',
     maxWidth: '100%',
+    textShadow:
+      '0 1px 2px rgba(0, 0, 0, 0.62), 0 0 8px rgba(0, 0, 0, 0.28), 0 0 1px rgba(0, 0, 0, 0.55)',
   } as const;
+
+  const artistTitleStyle = { ...textStyle, lineHeight: 1.15 };
 
   return (
     <Flex
@@ -63,7 +70,11 @@ function BeatmapCard({ beatmap, songFolder }: BeatmapCardProps) {
         position: 'relative',
         overflow: 'hidden',
         cursor: 'pointer',
-        border: isSelected || isHovered ? '1px solid var(--mantine-color-blue-6)' : '1px solid var(--mantine-color-dark-4)',
+        border: active ? '1px solid var(--mantine-color-blue-6)' : '1px solid var(--mantine-color-dark-4)',
+        boxShadow: active
+          ? '0 0 0 1px color-mix(in srgb, var(--mantine-color-blue-6) 35%, transparent), 0 8px 24px rgba(0, 0, 0, 0.35)'
+          : '0 2px 8px rgba(0, 0, 0, 0.2)',
+        transition: `border-color ${transitionMs}, box-shadow ${transitionMs}`,
       }}
       onClick={() => {
         setSelectedFolder(beatmap.folder)
@@ -89,6 +100,9 @@ function BeatmapCard({ beatmap, songFolder }: BeatmapCardProps) {
           borderRadius: 'var(--mantine-radius-md)',
           zIndex: 0,
           backgroundImage: bgUrl ? `url('${bgUrl}')` : 'none',
+          transform: active ? 'scale(1.045)' : 'scale(1)',
+          transformOrigin: 'center center',
+          transition: `transform ${transitionMs}`,
         }}
       />
       {/* Dark overlay */}
@@ -99,10 +113,11 @@ function BeatmapCard({ beatmap, songFolder }: BeatmapCardProps) {
           left: 0,
           width: '100%',
           height: '100%',
-          background: isSelected || isHovered ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0.6)',
+          background: active ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0.6)',
           borderRadius: 'var(--mantine-radius-md)',
           zIndex: 1,
           pointerEvents: 'none',
+          transition: `background ${transitionMs}`,
         }}
       />
       {/* Text content */}
@@ -117,19 +132,23 @@ function BeatmapCard({ beatmap, songFolder }: BeatmapCardProps) {
           textAlign: 'center',
         }}
       >
-        <Text style={textStyle}>
-          {beatmap.artist}
-        </Text>
-        <Text style={textStyle}>
-          {beatmap.title}
-        </Text>
-        <Text
-          fs="italic"
-          size="xs"
-          c="dimmed"
-          style={textStyle}>
-          Mapped by {beatmap.creator}
-        </Text>
+        <Stack gap="sm">
+          <Stack gap={0}>
+          <Text style={artistTitleStyle}>
+            {beatmap.artist}
+          </Text>
+          <Text style={artistTitleStyle}>
+            {beatmap.title}
+          </Text>
+          </Stack>
+        
+          <Text
+            fs="italic"
+            size="xs"
+            style={textStyle}>
+            Mapped by {beatmap.creator}
+          </Text>
+        </Stack>
       </Flex>
     </Flex>
   );
