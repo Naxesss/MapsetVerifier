@@ -9,10 +9,9 @@ import type {
   Mode,
 } from '../../../Types';
 
-export const MAX_CHART_POINTS = 300;
 export const MODE_ORDER: Mode[] = ['Standard', 'Taiko', 'Catch', 'Mania'];
 
-export type ChartRow = { time: string; [seriesKey: string]: number | string | null };
+export type ChartRow = { time: string; timeMs: number; [seriesKey: string]: number | string | null };
 export type ChartDisplaySeries = DifficultyChartSeries & { key: string; color: string };
 
 export type DifficultyModeGroup = {
@@ -23,6 +22,9 @@ export type DifficultyModeGroup = {
 export type ChartDefinition = {
   title: string;
   durationMs: number;
+  /** Time between strain peaks in ms (same as overview `msPerPeak`) */
+  msPerPeak: number;
+  /** Full-resolution rows (400ms peaks); downsampled for display when zoomed out */
   data: ChartRow[];
   series: ChartDisplaySeries[];
   maxValue: number;
@@ -145,8 +147,10 @@ function buildChartDefinition(title: string, series: DifficultyChartSeries[], ms
 
   const maxPointCount = displaySeries.reduce((max, item) => Math.max(max, item.points.length), 0);
   const rawRows: ChartRow[] = Array.from({ length: maxPointCount }, (_, index) => {
+    const timeMs = index * msPerPeak;
     const row: ChartRow = {
-      time: formatChartTime((index * msPerPeak) / 1000),
+      time: formatChartTime(timeMs / 1000),
+      timeMs,
     };
 
     for (const item of displaySeries) {
@@ -159,28 +163,13 @@ function buildChartDefinition(title: string, series: DifficultyChartSeries[], ms
   return {
     title,
     durationMs: Math.max(msPerPeak, maxPointCount * msPerPeak),
-    data: sampleChartRows(rawRows),
+    msPerPeak,
+    data: rawRows,
     series: displaySeries,
     maxValue: peakPoint?.value ?? 0,
     peakTimeSeconds: peakPoint?.timeSeconds ?? 0,
     valueSuffix,
   };
-}
-
-function sampleChartRows(rows: ChartRow[]): ChartRow[] {
-  if (rows.length <= MAX_CHART_POINTS) {
-    return rows;
-  }
-
-  const step = Math.max(1, Math.floor(rows.length / MAX_CHART_POINTS));
-  const sampled = rows.filter((_, index) => index % step === 0);
-  const last = rows[rows.length - 1];
-
-  if (sampled[sampled.length - 1] !== last) {
-    sampled.push(last);
-  }
-
-  return sampled;
 }
 
 export function normalizeMode(mode: string): Mode {
