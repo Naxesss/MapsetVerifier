@@ -1,5 +1,6 @@
 ﻿import { Button, Group, Tooltip, useMantineTheme } from '@mantine/core';
-import { IconFolder, IconRefresh, IconWorld } from '@tabler/icons-react';
+import { IconFolder, IconMessage, IconRefresh, IconWorld } from '@tabler/icons-react';
+import { useOpenExternal } from '../../hooks/useOpenExternal.ts';
 
 interface BeatmapActionButtonsProps {
   beatmapFolderPath?: string;
@@ -9,6 +10,7 @@ interface BeatmapActionButtonsProps {
 
 function BeatmapActionButtons({ beatmapFolderPath, beatmapSetId, onReparse }: BeatmapActionButtonsProps) {
   const theme = useMantineTheme();
+  const openExternal = useOpenExternal();
 
   return (
     <Group
@@ -49,13 +51,38 @@ function BeatmapActionButtons({ beatmapFolderPath, beatmapSetId, onReparse }: Be
         <Button
           size="xs"
           variant="default"
-          component="a"
-          href={beatmapSetId ? `https://osu.ppy.sh/beatmapsets/${beatmapSetId}` : undefined}
-          target="_blank"
-          rel="noopener noreferrer"
+          type="button"
+          onClick={async () => {
+            if (!beatmapSetId) return;
+            try {
+              await openExternal(`https://osu.ppy.sh/beatmapsets/${beatmapSetId}`);
+            } catch (e) {
+              console.error('Failed to open beatmap page:', e);
+              alert('Failed to open beatmap page. See console for details.');
+            }
+          }}
           disabled={!beatmapSetId}
         >
           <IconWorld />
+        </Button>
+      </Tooltip>
+      <Tooltip label="Open modding page">
+        <Button
+          size="xs"
+          variant="default"
+          type="button"
+          onClick={async () => {
+            if (!beatmapSetId) return;
+            try {
+              await openExternal(`https://osu.ppy.sh/beatmapsets/${beatmapSetId}/discussion`);
+            } catch (e) {
+              console.error('Failed to open modding page:', e);
+              alert('Failed to open modding page. See console for details.');
+            }
+          }}
+          disabled={!beatmapSetId}
+        >
+          <IconMessage />
         </Button>
       </Tooltip>
     </Group>

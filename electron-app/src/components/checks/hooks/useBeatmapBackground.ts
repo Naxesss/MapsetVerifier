@@ -1,12 +1,12 @@
-﻿import { useEffect, useState } from 'react';
-import {BACKEND_BASE_URL} from "../../../Constants.ts";
+import { useEffect, useState } from 'react';
+import { buildBeatmapImageUrl } from '../../../utils/buildBeatmapFolderPath.ts';
 
 export interface UseBeatmapBackgroundResult {
   bgUrl?: string;
   isLoading: boolean;
 }
 
-export function useBeatmapBackground(folder?: string): UseBeatmapBackgroundResult {
+export function useBeatmapBackground(folder?: string, songFolder?: string): UseBeatmapBackgroundResult {
   const [bgUrl, setBgUrl] = useState<string | undefined>(undefined);
   const [loaded, setLoaded] = useState(false);
 
@@ -17,7 +17,7 @@ export function useBeatmapBackground(folder?: string): UseBeatmapBackgroundResul
       return;
     }
 
-    const candidate = `${BACKEND_BASE_URL}/beatmap/image?folder=${encodeURIComponent(folder)}&original=true`;
+    const candidate = buildBeatmapImageUrl(folder, { songFolder, original: true });
     let cancelled = false;
     const img = new Image();
     img.onload = () => {
@@ -39,7 +39,7 @@ export function useBeatmapBackground(folder?: string): UseBeatmapBackgroundResul
       setBgUrl(undefined);
       setLoaded(false);
     };
-  }, [folder]);
+  }, [folder, songFolder]);
 
   return { bgUrl, isLoading: !loaded };
 }

@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using MapsetVerifier.Framework;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Parser.Objects;
@@ -58,6 +58,16 @@ public static class BeatmapService
             catch { /* ignore */ }
         }
         return null;
+    }
+
+    /// <summary>
+    /// Uses an explicit Songs directory when it exists; otherwise the same detection as <see cref="DetectSongsFolder"/>.
+    /// </summary>
+    public static string? ResolveSongsFolder(string? songsFolderOverride)
+    {
+        if (!string.IsNullOrWhiteSpace(songsFolderOverride) && Directory.Exists(songsFolderOverride))
+            return songsFolderOverride;
+        return DetectSongsFolder();
     }
 
     public static ApiBeatmapPage GetBeatmaps(string songsFolder, string? search, int page, int pageSize)
@@ -170,10 +180,10 @@ public static class BeatmapService
     /// <param name="folder">The folder of the beatmapset where we can find the background</param>
     /// <param name="original">When set to true, return the full-sized background without thumbnail resize</param>
     /// <returns>The background of the beatmapset</returns>
-    public static BeatmapImageResult GetBeatmapImage(string folder, bool original = false)
+    public static BeatmapImageResult GetBeatmapImage(string folder, bool original = false, string? songsFolderOverride = null)
     {
         const int maxHeight = MaxImageHeight; // use constant
-        var songsFolder = DetectSongsFolder();
+        var songsFolder = ResolveSongsFolder(songsFolderOverride);
         if (string.IsNullOrWhiteSpace(songsFolder))
             return BeatmapImageResult.Error("Songs folder could not be detected.");
         var targetFolder = Path.Combine(songsFolder, folder);

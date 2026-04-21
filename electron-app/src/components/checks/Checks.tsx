@@ -1,4 +1,5 @@
 import { Alert, Text, Box, useMantineTheme, Group, Flex, LoadingOverlay } from '@mantine/core';
+import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
 import React, { useEffect, useMemo } from 'react';
 import BeatmapActionButtons from './BeatmapActionButtons';
 import ChecksResults from './ChecksResults';
@@ -36,7 +37,7 @@ function Checks() {
     songFolder: settings.songFolder,
   });
 
-  const { bgUrl } = useBeatmapBackground(folder);
+  const { bgUrl } = useBeatmapBackground(folder, settings.songFolder);
 
   const {
     overrides,
@@ -107,7 +108,7 @@ function Checks() {
 
   if (!settings.songFolder) {
     return (
-      <Alert color="yellow" title="Song folder not set" withCloseButton>
+      <Alert icon={<IconAlertTriangle />} color="yellow" title="Song folder not set" withCloseButton>
         <Text size="sm">Please set the song folder in settings to run beatmap checks.</Text>
       </Alert>
     );
@@ -160,7 +161,7 @@ function Checks() {
         )}
       </BeatmapHeader>
       {isError && (
-        <Alert color="red" title="Error loading checks">
+        <Alert icon={<IconAlertCircle />} color="red" title="Error loading checks">
           <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
             {error?.message}
           </Text>

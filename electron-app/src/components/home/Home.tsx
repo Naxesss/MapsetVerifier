@@ -1,23 +1,25 @@
-﻿import {Alert, Button, Container, Text} from "@mantine/core";
-import changelog from "../../content/CHANGELOG.md?raw";
-import MantineMarkdown from "../documentation/MantineMarkdown.tsx";
+﻿import { Alert, Button, Container, Text } from "@mantine/core";
+import { IconBug, IconLifebuoy, IconMessage } from "@tabler/icons-react";
+import Changelog from "./Changelog.tsx";
 
 export default function Home() {
   return (
     <Container size="md">
       <Alert
-        title="Having an issue while using MV?"
+        icon={<IconLifebuoy />}
+        title="Having an issue while using Mapset Verifier?"
         color="yellow"
         variant="light"
         mb="md"
       >
         <Text size="sm" mb="sm">
-          With the Mapset Verifier 2 release a lot has changed, and while we&apos;ve worked hard to ensure stability, some issues may still arise.
+          With the Mapset Verifier 2.0 release, a lot has changed, and while we&apos;ve worked hard to ensure stability, some issues may still arise.
           If you encounter any bugs, have suggestions for new features, or need assistance, please don&apos;t hesitate to reach out!
         </Text>
         <Button
           color="green"
           variant="light"
+          leftSection={<IconBug />}
           component="a"
           href="https://github.com/Naxesss/MapsetVerifier/issues"
           target="_blank"
@@ -29,6 +31,7 @@ export default function Home() {
           color="pink"
           variant="light"
           ml="md"
+          leftSection={<IconMessage />}
           component="a"
           href="https://osu.ppy.sh/users/2369776"
           target="_blank"
@@ -37,7 +40,8 @@ export default function Home() {
           Contact Greaper on osu!
         </Button>
       </Alert>
-      <MantineMarkdown>{changelog}</MantineMarkdown>
+
+      <Changelog />
     </Container>
   );
 }

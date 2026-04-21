@@ -2,6 +2,7 @@
 import { IconInfoCircle, IconPhoto, IconVideo, IconMusic, IconVolume, IconFolder, IconCheck, IconX } from '@tabler/icons-react';
 import { ResourcesInfo as ResourcesInfoType } from '../../../Types';
 import AppTable from '../../common/AppTable.tsx';
+import { countWord } from '../../../utils/countWord';
 
 interface ResourcesInfoProps {
   resources: ResourcesInfoType;
@@ -15,7 +16,7 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
       <Group justify="space-between" mb="md">
         <Group gap="xs">
           <Text fw={600}>Resources</Text>
-          <Tooltip label="Files and resources used by the beatmap set" multiline w={250}>
+          <Tooltip label="Files and resources used by the beatmapset" multiline w={250}>
             <IconInfoCircle size={16} style={{ color: theme.colors.gray[6], cursor: 'help' }} />
           </Tooltip>
         </Group>
@@ -122,7 +123,7 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
           <Box>
             <Group gap="xs" mb={4}>
               <IconVolume size={14} style={{ color: theme.colors.orange[4] }} />
-              <Text size="xs" c="dimmed">Hit Sounds ({resources.hitSounds.length} files)</Text>
+              <Text size="xs" c="dimmed">Hit Sounds ({countWord(resources.hitSounds.length, 'file')})</Text>
             </Group>
             <Accordion variant="contained" radius="sm">
               <Accordion.Item value="hitsounds">

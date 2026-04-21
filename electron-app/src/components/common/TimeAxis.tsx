@@ -33,6 +33,15 @@ export function formatChartTime(seconds: number): string {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
+/** Chart tooltips: `m:ss:mmm` (minutes, seconds, milliseconds). */
+export function formatTooltipTimeMs(timeMs: number): string {
+  const rounded = Math.max(0, Math.round(timeMs));
+  const mins = Math.floor(rounded / 60000);
+  const secs = Math.floor((rounded % 60000) / 1000);
+  const ms = rounded % 1000;
+  return `${mins}:${String(secs).padStart(2, '0')}:${String(ms).padStart(3, '0')}`;
+}
+
 /**
  * Reusable time axis component for displaying time labels with tick marks.
  * Compatible with Mantine Charts and custom visualizations.
@@ -63,9 +72,9 @@ function TimeAxis({ durationMs, height = 20, showTicks = true, intervalSeconds }
           // Adjust textAnchor for edge labels to prevent clipping
           let anchor: "start" | "middle" | "end" = "middle";
           if (xPercent <= 2) {
-            anchor = "start"; // Left edge - align text to the right of the position
+            anchor = 'start'; // Left edge - align text to the right of the position
           } else if (xPercent >= 98) {
-            anchor = "end"; // Right edge - align text to the left of the position
+            anchor = 'end'; // Right edge - align text to the left of the position
           }
 
           return (
@@ -101,4 +110,3 @@ function TimeAxis({ durationMs, height = 20, showTicks = true, intervalSeconds }
 }
 
 export default TimeAxis;
-

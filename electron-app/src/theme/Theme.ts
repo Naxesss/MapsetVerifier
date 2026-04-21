@@ -1,18 +1,5 @@
 ﻿import { createTheme, DEFAULT_THEME, MantineColorsTuple, mergeMantineTheme } from '@mantine/core';
 
-const red: MantineColorsTuple = [
-  '#ffe8e9',
-  '#ffd1d1',
-  '#fba0a0',
-  '#f76d6d',
-  '#f44141',
-  '#f22625',
-  '#f21616',
-  '#d8070b',
-  '#c10007',
-  '#a90003',
-];
-
 const blue: MantineColorsTuple = [
   '#e0fbff',
   '#cbf2ff',
@@ -93,7 +80,6 @@ const themeOverride = createTheme({
   },
   colors: {
     blue: blue,
-    red: red,
     green: green,
     orange: orange,
     dark: dark,
@@ -113,6 +99,11 @@ const themeOverride = createTheme({
           fontFamily: 'Comfortaa, Inter, sans-serif',
         },
       },
+    },
+    Tooltip: {
+      defaultProps: {
+        withArrow: true,
+      }
     },
     ScrollArea: {
       styles: {

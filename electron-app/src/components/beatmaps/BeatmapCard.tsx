@@ -1,15 +1,16 @@
-﻿import { Box, Flex, Text } from '@mantine/core';
+﻿import { Box, Flex, Stack, Text } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from "react-router-dom";
-import {BACKEND_BASE_URL} from "../../Constants.ts";
 import { useBeatmap } from '../../context/BeatmapContext';
 import { Beatmap } from '../../Types.ts';
+import { buildBeatmapImageUrl } from '../../utils/buildBeatmapFolderPath.ts';
 
 interface BeatmapCardProps {
   beatmap: Beatmap;
+  songFolder?: string;
 }
 
-function BeatmapCard({ beatmap }: BeatmapCardProps) {
+function BeatmapCard({ beatmap, songFolder }: BeatmapCardProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { selectedFolder, setSelectedFolder } = useBeatmap();
@@ -22,7 +23,7 @@ function BeatmapCard({ beatmap }: BeatmapCardProps) {
       return;
     }
 
-    const candidate = `${BACKEND_BASE_URL}/beatmap/image?folder=${encodeURIComponent(beatmap.folder)}`;
+    const candidate = buildBeatmapImageUrl(beatmap.folder, { songFolder });
     let cancelled = false;
     const img = new Image();
 
@@ -40,9 +41,12 @@ function BeatmapCard({ beatmap }: BeatmapCardProps) {
     return () => {
       cancelled = true;
     };
-  }, [beatmap.folder]);
+  }, [beatmap.folder, songFolder]);
 
   const isSelected = selectedFolder === beatmap.folder;
+
+  const transitionMs = '0.22s ease';
+  const active = isSelected || isHovered;
 
   const textStyle = {
     overflow: 'hidden',
@@ -50,7 +54,11 @@ function BeatmapCard({ beatmap }: BeatmapCardProps) {
     whiteSpace: 'nowrap',
     display: 'block',
     maxWidth: '100%',
+    textShadow:
+      '0 1px 2px rgba(0, 0, 0, 0.62), 0 0 8px rgba(0, 0, 0, 0.28), 0 0 1px rgba(0, 0, 0, 0.55)',
   } as const;
+
+  const artistTitleStyle = { ...textStyle, lineHeight: 1.15 };
 
   return (
     <Flex
@@ -62,13 +70,17 @@ function BeatmapCard({ beatmap }: BeatmapCardProps) {
         position: 'relative',
         overflow: 'hidden',
         cursor: 'pointer',
-        border: isSelected || isHovered ? '1px solid var(--mantine-color-blue-6)' : '1px solid var(--mantine-color-dark-4)',
+        border: active ? '1px solid var(--mantine-color-blue-6)' : '1px solid var(--mantine-color-dark-4)',
+        boxShadow: active
+          ? '0 0 0 1px color-mix(in srgb, var(--mantine-color-blue-6) 35%, transparent), 0 8px 24px rgba(0, 0, 0, 0.35)'
+          : '0 2px 8px rgba(0, 0, 0, 0.2)',
+        transition: `border-color ${transitionMs}, box-shadow ${transitionMs}`,
       }}
       onClick={() => {
         setSelectedFolder(beatmap.folder)
         // No page open that uses a beatmap, redirect to checks page as default
         if (location.pathname !== '/checks' && location.pathname !== '/snapshots' && location.pathname !== '/overview') {
-          navigate('/checks');
+          navigate('/checks', { viewTransition: true });
         }
       }}
       onMouseEnter={() => setIsHovered(true)}
@@ -88,6 +100,9 @@ function BeatmapCard({ beatmap }: BeatmapCardProps) {
           borderRadius: 'var(--mantine-radius-md)',
           zIndex: 0,
           backgroundImage: bgUrl ? `url('${bgUrl}')` : 'none',
+          transform: active ? 'scale(1.045)' : 'scale(1)',
+          transformOrigin: 'center center',
+          transition: `transform ${transitionMs}`,
         }}
       />
       {/* Dark overlay */}
@@ -98,10 +113,11 @@ function BeatmapCard({ beatmap }: BeatmapCardProps) {
           left: 0,
           width: '100%',
           height: '100%',
-          background: isSelected || isHovered ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0.6)',
+          background: active ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0.6)',
           borderRadius: 'var(--mantine-radius-md)',
           zIndex: 1,
           pointerEvents: 'none',
+          transition: `background ${transitionMs}`,
         }}
       />
       {/* Text content */}
@@ -116,18 +132,23 @@ function BeatmapCard({ beatmap }: BeatmapCardProps) {
           textAlign: 'center',
         }}
       >
-        <Text style={textStyle}>
-          {beatmap.artist}
-        </Text>
-        <Text style={textStyle}>
-          {beatmap.title}
-        </Text>
-        <Text
-          fs="italic"
-          size="sm"
-          style={textStyle}>
-          Mapped by {beatmap.creator}
-        </Text>
+        <Stack gap="sm">
+          <Stack gap={0}>
+          <Text style={artistTitleStyle}>
+            {beatmap.artist}
+          </Text>
+          <Text style={artistTitleStyle}>
+            {beatmap.title}
+          </Text>
+          </Stack>
+        
+          <Text
+            fs="italic"
+            size="xs"
+            style={textStyle}>
+            Mapped by {beatmap.creator}
+          </Text>
+        </Stack>
       </Flex>
     </Flex>
   );

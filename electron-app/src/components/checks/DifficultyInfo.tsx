@@ -1,7 +1,7 @@
 ﻿import { Badge, Flex, Text } from '@mantine/core';
-import { IconStarFilled } from '@tabler/icons-react';
 import { ApiCategoryCheckResult, ApiCategoryOverrideCheckResult, Level } from '../../Types';
 import DifficultyName from '../common/DifficultyName';
+import StarRatingBadge from '../common/StarRatingBadge.tsx';
 import GameModeIcon from '../icons/GameModeIcon';
 import LevelIcon from '../icons/LevelIcon';
 
@@ -47,9 +47,7 @@ function DifficultyInfo({
           </Badge>
         )}
         {hoveredDifficulty.starRating != null && hoveredDifficulty.starRating > 0 && (
-          <Badge size="xs" color="blue" variant="light" leftSection={<IconStarFilled size={10} />}>
-            {hoveredDifficulty.starRating.toFixed(2)}
-          </Badge>
+          <StarRatingBadge rating={hoveredDifficulty.starRating} />
         )}
       </Flex>
     );

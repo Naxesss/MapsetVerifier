@@ -1,4 +1,5 @@
 ﻿import { Group, Loader, Text, Alert, Box } from '@mantine/core';
+import { IconAlertCircle } from '@tabler/icons-react';
 import CheckCategory from './CheckCategory.tsx';
 import { FetchError } from '../../client/ApiHelper';
 import {ApiBeatmapSetCheckResult, ApiCategoryOverrideCheckResult} from '../../Types';
@@ -24,7 +25,7 @@ function ChecksResults({ data, isLoading, isError, error, showMinor, selectedCat
       )}
 
       {isError && (
-        <Alert color="red" title="Error loading checks">
+        <Alert icon={<IconAlertCircle />} color="red" title="Error loading checks">
           <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
             {error?.message}
           </Text>

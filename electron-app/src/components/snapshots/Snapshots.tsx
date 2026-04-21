@@ -1,5 +1,5 @@
-﻿import {Alert, Text, Box, useMantineTheme, Flex, LoadingOverlay, Button, Group, Title, Tooltip} from '@mantine/core';
-import { IconRefresh } from '@tabler/icons-react';
+import {Alert, Text, Box, useMantineTheme, Flex, LoadingOverlay, Button, Group, Title, Tooltip} from '@mantine/core';
+import { IconAlertCircle, IconAlertTriangle, IconPhotoOff, IconRefresh } from '@tabler/icons-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useSnapshots } from './hooks/useSnapshots';
 import SnapshotContent from './SnapshotContent';
@@ -35,7 +35,7 @@ function Snapshots() {
     songFolder: settings.songFolder,
   });
 
-  const { bgUrl } = useBeatmapBackground(folder);
+  const { bgUrl } = useBeatmapBackground(folder, settings.songFolder);
 
   // Group difficulties by mode (excluding General which is handled separately)
   const groupedDifficulties = useMemo((): ModeGroup[] => {
@@ -75,7 +75,7 @@ function Snapshots() {
 
   if (!settings.songFolder) {
     return (
-      <Alert color="yellow" title="Song folder not set" withCloseButton>
+      <Alert icon={<IconAlertTriangle />} color="yellow" title="Song folder not set" withCloseButton>
         <Text size="sm">Please set the song folder in settings to view snapshots.</Text>
       </Alert>
     );
@@ -137,7 +137,7 @@ function Snapshots() {
             {selectedDifficulty}
           </Title>
           {data.errorMessage ? (
-            <Alert color="yellow" title="Snapshots unavailable">
+            <Alert icon={<IconPhotoOff />} color="yellow" title="Snapshots unavailable">
               <Text size="sm">{data.errorMessage}</Text>
             </Alert>
           ) : (
@@ -152,7 +152,7 @@ function Snapshots() {
       )}
       {isError && (
         <Flex p="md">
-          <Alert color="red" title="Error loading snapshots">
+          <Alert icon={<IconAlertCircle />} color="red" title="Error loading snapshots">
             <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
               {error?.message}
             </Text>

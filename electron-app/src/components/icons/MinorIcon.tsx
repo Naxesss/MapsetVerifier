@@ -11,8 +11,8 @@ export default function MinorIcon({ size = 32 }: { size?: number }) {
       <span
         style={{
           position: 'absolute',
-          left: '80%',
-          top: '85%',
+          left: '90%',
+          top: '90%',
           transform: 'translate(-50%, -50%)',
           pointerEvents: 'none',
         }}

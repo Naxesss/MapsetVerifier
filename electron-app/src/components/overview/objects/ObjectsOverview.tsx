@@ -17,7 +17,15 @@
   Title,
   useMantineTheme,
 } from '@mantine/core';
-import { IconEye, IconEyeOff, IconGripVertical, IconMinus, IconPlus } from '@tabler/icons-react';
+import {
+  IconAlertCircle,
+  IconAlertTriangle,
+  IconEye,
+  IconEyeOff,
+  IconGripVertical,
+  IconMinus,
+  IconPlus,
+} from '@tabler/icons-react';
 import { Fragment, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import { useObjectsAnalysis } from './hooks/useObjectsAnalysis.ts';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
@@ -30,6 +38,7 @@ import {
   type ObjectsTimingSegment,
   type ObjectsTimelineObject,
 } from '../../../Types';
+import { formatGameModeLabel, getModeAccentColor } from '../../../utils/gameMode';
 import AppTable, { DifficultyTableCell, DifficultyTableHeaderCell } from '../../common/AppTable.tsx';
 import AutoResizeCanvas from '../../common/AutoResizeCanvas.tsx';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
@@ -133,7 +142,7 @@ function ObjectsOverview({ reloadFlag }: ObjectsOverviewProps) {
 
   if (!settings.songFolder) {
     return (
-      <Alert color="yellow" title="Song folder not set" withCloseButton>
+      <Alert icon={<IconAlertTriangle />} color="yellow" title="Song folder not set" withCloseButton>
         <Text size="sm">Please set the song folder in settings to analyze objects.</Text>
       </Alert>
     );
@@ -145,7 +154,7 @@ function ObjectsOverview({ reloadFlag }: ObjectsOverviewProps) {
 
       {isError && (
         <Flex p="md">
-          <Alert color="red" title="Error analyzing objects">
+          <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing objects">
             <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>{error?.message}</Text>
             {error?.stackTrace && (
               <Text mt="sm" size="xs" c="red.3" style={{ whiteSpace: 'pre-wrap' }}>{error.stackTrace}</Text>
@@ -156,7 +165,7 @@ function ObjectsOverview({ reloadFlag }: ObjectsOverviewProps) {
 
       {data && !data.success && (
         <Flex p="md">
-          <Alert color="yellow" title="Analysis failed">
+          <Alert icon={<IconAlertTriangle />} color="yellow" title="Analysis failed">
             <Text size="sm">{data.errorMessage}</Text>
           </Alert>
         </Flex>
@@ -620,7 +629,7 @@ function ObjectsTimelineComparison({
                         <GameModeIcon
                           mode={normalizeMode(difficulty.mode)}
                           size={18}
-                          color={getModeAccentColor(normalizeMode(difficulty.mode), theme)}
+                          color={getModeAccentColor(normalizeMode(difficulty.mode))}
                         />
                         <Stack gap={0} style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
                           <Text
@@ -637,7 +646,7 @@ function ObjectsTimelineComparison({
                             truncate
                             style={{ width: '100%', minWidth: 0 }}
                           >
-                            {isVisible ? difficulty.mode : 'Hidden'}
+                            {isVisible ? formatGameModeLabel(difficulty.mode) : 'Hidden'}
                           </Text>
                         </Stack>
                       </Group>
@@ -932,7 +941,7 @@ function SnappingsOverview({
               {snappingColumns.map((column) => (
                 <Table.Th key={column.label} style={{ textAlign: 'center' }}>{column.label}</Table.Th>
               ))}
-              <Table.Th>Unsnapped</Table.Th>
+              <Table.Th style={{ textAlign: 'center' }}>Unsnapped</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -957,7 +966,7 @@ function SnappingsOverview({
                           size={16}
                           color={getModeAccentColor(group.mode)}
                         />
-                        <Text size="sm">{group.mode}</Text>
+                        <Text size="sm">{formatGameModeLabel(group.mode)}</Text>
                       </Group>
                     </Table.Td>
                     <Table.Td><Text size="sm">{difficulty.objectCount.toLocaleString()}</Text></Table.Td>
@@ -970,11 +979,13 @@ function SnappingsOverview({
                         </Table.Td>
                       );
                     })}
-                    <Table.Td style={{ textAlign: 'left' }}>
-                      <SnappingStatusBadge
-                        count={difficulty.unsnappedCount}
-                        percentage={difficulty.unsnappedPercentage}
-                      />
+                    <Table.Td>
+                      <Group justify="center" wrap="nowrap">
+                        <SnappingStatusBadge
+                          count={difficulty.unsnappedCount}
+                          percentage={difficulty.unsnappedPercentage}
+                        />
+                      </Group>
                     </Table.Td>
                   </Table.Tr>
                 ))}
@@ -996,7 +1007,9 @@ function SnappingTableValue({
 }) {
   return (
     <Stack gap={0}>
-      <Text size="sm" fw={600}>{count.toLocaleString()}</Text>
+      <Text size="sm" fw={600} c={count === 0 ? 'dimmed' : undefined}>
+        {count.toLocaleString()}
+      </Text>
       <Text size="xs" c="dimmed">{percentage.toFixed(1)}%</Text>
     </Stack>
   );
@@ -1741,36 +1754,6 @@ function getSnappingColumns(difficulties: ObjectsOverviewDifficulty[]) {
 
 function normalizeMode(mode: string): Mode {
   return MODE_ORDER.includes(mode as Mode) ? (mode as Mode) : 'Standard';
-}
-
-function getModeAccentColor(mode: Mode, theme?: ReturnType<typeof useMantineTheme>) {
-  if (!theme) {
-    switch (mode) {
-      case 'Standard':
-        return 'var(--mantine-color-pink-4)';
-      case 'Taiko':
-        return 'var(--mantine-color-red-4)';
-      case 'Catch':
-        return 'var(--mantine-color-lime-4)';
-      case 'Mania':
-        return 'var(--mantine-color-violet-4)';
-      default:
-        return 'var(--mantine-color-gray-4)';
-    }
-  }
-
-  switch (mode) {
-    case 'Standard':
-      return theme.colors.pink[4];
-    case 'Taiko':
-      return theme.colors.red[4];
-    case 'Catch':
-      return theme.colors.lime[4];
-    case 'Mania':
-      return theme.colors.violet[4];
-    default:
-      return theme.colors.gray[4];
-  }
 }
 
 function formatDuration(durationMs: number) {

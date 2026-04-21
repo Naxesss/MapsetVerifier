@@ -1,25 +1,12 @@
 ﻿import { Badge, Group, Paper, Stack, Table, Text, useMantineTheme } from '@mantine/core';
+import { formatGameModeLabel, getModeAccentColor } from '../../../utils/gameMode';
 import AppTable, { DifficultyTableCell, DifficultyTableHeaderCell } from '../../common/AppTable.tsx';
+import OsuLink from '../../common/OsuLink.tsx';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
 import type { DifficultyGeneralSettings } from '../../../Types';
 
 interface GeneralSettingsInfoProps {
   generalSettings: DifficultyGeneralSettings[];
-}
-
-function getModeAccentColor(mode: string, theme: ReturnType<typeof useMantineTheme>) {
-  switch (mode) {
-    case 'Standard':
-      return theme.colors.pink[4];
-    case 'Taiko':
-      return theme.colors.red[4];
-    case 'Catch':
-      return theme.colors.lime[4];
-    case 'Mania':
-      return theme.colors.violet[4];
-    default:
-      return theme.colors.gray[4];
-  }
 }
 
 function formatNullable(value: string | number | null | undefined, fallback = 'N/A') {
@@ -31,12 +18,10 @@ function formatNullable(value: string | number | null | undefined, fallback = 'N
 }
 
 function ModeCell({ mode }: { mode: string }) {
-  const theme = useMantineTheme();
-
   return (
     <Group gap={6} wrap="nowrap" justify="center">
-      <GameModeIcon mode={mode} size={16} color={getModeAccentColor(mode, theme)} />
-      <Text size="sm">{mode}</Text>
+      <GameModeIcon mode={mode} size={16} color={getModeAccentColor(mode)} />
+      <Text size="sm">{formatGameModeLabel(mode)}</Text>
     </Group>
   );
 }
@@ -105,7 +90,9 @@ function GeneralSettingsInfo({ generalSettings }: GeneralSettingsInfoProps) {
                     <Text size="sm">{settings.audioLeadIn.toLocaleString()} ms</Text>
                   </Table.Td>
                   <Table.Td>
-                    <Text size="sm">{settings.previewTimeFormatted}</Text>
+                    <Text size="sm">
+                      <OsuLink text={settings.previewTimeFormatted} disableSeparators />
+                    </Text>
                   </Table.Td>
                   <Table.Td>
                     <Text size="sm">{formatNullable(settings.stackLeniency)}</Text>

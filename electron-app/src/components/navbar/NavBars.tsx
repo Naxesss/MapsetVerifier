@@ -44,8 +44,10 @@ function NavBars(props: NavBarsProps) {
   const location = useLocation();
   const items = navItems.map((item) => (
     <NavLink
+      color={theme.colors.primary[2]}
       w={'unset'}
       to={item.to}
+      viewTransition
       key={item.label}
       component={Link}
       active={

@@ -3,6 +3,7 @@ import React from 'react';
 import CheckGroup from './CheckGroup.tsx';
 import { groupChecks } from './groupChecks';
 import { ApiBeatmapSetCheckResult, ApiCategoryOverrideCheckResult, Level } from '../../Types';
+import { countWord } from '../../utils/countWord';
 
 type DisplayLevel = Exclude<Level, 'Check'>;
 
@@ -12,7 +13,7 @@ const LEVEL_BADGE_COLORS: Record<DisplayLevel, string> = {
   Error: 'gray',
   Problem: 'red',
   Warning: 'orange',
-  Minor: 'yellow',
+  Minor: 'lime',
   Info: 'green',
 };
 
@@ -124,13 +125,13 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({ data, showMinor, selected
 
           return (
             <Badge key={level} size="xs" color={LEVEL_BADGE_COLORS[level]} variant="light">
-              {count} {level.toLowerCase()}
+              {countWord(count, level.toLowerCase())}
             </Badge>
           );
         })}
       </Group>
       {categoryData.totalCount > 0 ? (
-        <Stack gap="0">
+        <Stack gap="sm">
           {categoryData.groups.map((g) => (
             <CheckGroup
               key={g.id}

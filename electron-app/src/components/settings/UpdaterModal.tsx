@@ -1,4 +1,5 @@
 import { Alert, Button, Divider, Group, Modal, Progress, ScrollArea, Stack, Text } from '@mantine/core';
+import { IconAlertCircle, IconCircleCheck, IconCloudDownload, IconLoader2 } from '@tabler/icons-react';
 import React from 'react';
 import { useUpdater } from '../../context/UpdaterContext';
 import MantineMarkdown from '../documentation/MantineMarkdown';
@@ -52,16 +53,20 @@ const UpdaterModal: React.FC = () => {
           Installed version: {currentVersion}
         </Text>
 
-        {status === 'checking' && <Alert color="blue">Checking GitHub Releases for a newer version…</Alert>}
+        {status === 'checking' && (
+          <Alert icon={<IconLoader2 />} color="blue">
+            Checking GitHub Releases for a newer version…
+          </Alert>
+        )}
 
         {status === 'up-to-date' && (
-          <Alert color="green" title="You are up to date">
+          <Alert icon={<IconCircleCheck />} color="green" title="You are up to date">
             No newer release was found for this installation.
           </Alert>
         )}
 
         {(status === 'available' || status === 'downloading' || status === 'installing') && availableUpdate && (
-          <Alert color="blue" title={`Update ${availableUpdate.version} is available`}>
+          <Alert icon={<IconCloudDownload />} color="blue" title={`Update ${availableUpdate.version} is available`}>
             {status === 'available'
               ? 'A new version is available. Would you like to update now?'
               : 'The update package is being downloaded and installed.'}
@@ -69,13 +74,13 @@ const UpdaterModal: React.FC = () => {
         )}
 
         {status === 'installed' && (
-          <Alert color="green" title={`Update ${completedVersion ?? 'installed'}`}>
+          <Alert icon={<IconCircleCheck />} color="green" title={`Update ${completedVersion ?? 'installed'}`}>
             The update has been installed. On Windows, the app may close automatically while the installer finishes.
           </Alert>
         )}
 
         {status === 'error' && errorMessage && (
-          <Alert color="red" title="Updater error">
+          <Alert icon={<IconAlertCircle />} color="red" title="Updater error">
             {errorMessage}
           </Alert>
         )}

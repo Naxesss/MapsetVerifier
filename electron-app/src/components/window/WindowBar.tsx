@@ -1,6 +1,7 @@
 import { Group, ActionIcon, useMantineTheme, useMantineColorScheme, Badge } from '@mantine/core';
 import { IconMinus, IconSquare, IconX } from '@tabler/icons-react';
 import React, { useEffect, useState } from 'react';
+import iconUrl from '../../assets/icon.png';
 
 const dragStyle = { WebkitAppRegion: 'drag' } as React.CSSProperties;
 const noDragStyle = { WebkitAppRegion: 'no-drag' } as React.CSSProperties;
@@ -46,7 +47,27 @@ const WindowBar: React.FC = () => {
       px={theme.spacing.sm}
       justify="flex-end"
     >
-      <Group style={{ ...dragStyle, flex: 1, alignItems: 'center' } as React.CSSProperties}>
+      <Group
+        gap={6}
+        align="center"
+        wrap="nowrap"
+        style={{ ...dragStyle, flex: 1 } as React.CSSProperties}
+      >
+        <img
+          src={iconUrl}
+          alt=""
+          width={18}
+          height={18}
+          draggable={false}
+          style={
+            {
+              ...dragStyle,
+              display: 'block',
+              objectFit: 'contain',
+              flexShrink: 0,
+            } as React.CSSProperties
+          }
+        />
         <span
           style={
             {
@@ -85,7 +106,7 @@ const WindowBar: React.FC = () => {
           onClick={minimize}
           style={noDragStyle}
         >
-          <IconMinus size={16} color={textColor} />
+          <IconMinus size={20} color={textColor} />
         </ActionIcon>
         <ActionIcon
           variant="subtle"
@@ -94,7 +115,7 @@ const WindowBar: React.FC = () => {
           onClick={toggleMaximize}
           style={noDragStyle}
         >
-          <IconSquare size={16} color={textColor} />
+          <IconSquare size={14} color={textColor} />
         </ActionIcon>
         <ActionIcon
           variant="subtle"
@@ -103,7 +124,7 @@ const WindowBar: React.FC = () => {
           onClick={close}
           style={noDragStyle}
         >
-          <IconX size={16} color={theme.colors.red[6]} />
+          <IconX size={20} color={theme.colors.red[6]} />
         </ActionIcon>
       </div>
     </Group>

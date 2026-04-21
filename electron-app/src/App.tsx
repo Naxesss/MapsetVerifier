@@ -1,17 +1,12 @@
-import {AppShell, Container, CSSVariablesResolver, MantineProvider, ScrollArea, Text} from '@mantine/core';
+import {AppShell, Container, CSSVariablesResolver, MantineProvider, ScrollArea} from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { Route, Routes } from 'react-router-dom';
+import { useLayoutEffect, useRef } from 'react';
+import { Outlet } from 'react-router-dom';
 import BackendGate from './components/backend/BackendGate.tsx';
-import Checks from './components/checks/Checks.tsx';
-import RequireBeatmapSelection from './components/common/RequireBeatmapSelection.tsx';
-import Documentation from './components/documentation/Documentation.tsx';
-import Home from "./components/home/Home.tsx";
 import NavBars from './components/navbar/NavBars.tsx';
-import Overview from './components/overview/Overview.tsx';
 import UpdaterModal from './components/settings/UpdaterModal';
-import Snapshots from './components/snapshots/Snapshots.tsx';
 import WindowBar from "./components/window/WindowBar.tsx";
-import { BeatmapProvider } from "./context/BeatmapContext.tsx";
+import { BeatmapProvider, useBeatmap } from "./context/BeatmapContext.tsx";
 import { SettingsProvider } from "./context/SettingsContext.tsx";
 import { UpdaterProvider } from './context/UpdaterContext';
 import { theme } from './theme/Theme.ts';
@@ -28,6 +23,30 @@ export const cssVarResolver: CSSVariablesResolver = () => ({
     '--mantine-color-dimmed': '#9e9e9e',
   },
 });
+
+function BeatmapKeyedOutlet() {
+  const { selectedFolder } = useBeatmap();
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const skipBeatmapFadeRef = useRef(true);
+
+  useLayoutEffect(() => {
+    if (skipBeatmapFadeRef.current) {
+      skipBeatmapFadeRef.current = false;
+      return;
+    }
+    const el = wrapRef.current;
+    if (!el) return;
+    el.style.animation = 'none';
+    void el.offsetHeight;
+    el.style.removeProperty('animation');
+  }, [selectedFolder]);
+
+  return (
+    <div ref={wrapRef} className="mv-route-outlet-wrap">
+      <Outlet />
+    </div>
+  );
+}
 
 function App() {
   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
@@ -55,18 +74,7 @@ function App() {
                     h="calc(100vh - var(--app-shell-header-offset, 0rem) + var(--app-shell-padding))"
                   >
                     <Container p="sm" fluid>
-                      <Routes>
-                        <Route>
-                          <Route path="/" element={<Home />} />
-                          <Route path="/documentation" element={<Documentation />} />
-                          <Route element={<RequireBeatmapSelection />}>
-                            <Route path="/checks" element={<Checks />} />
-                            <Route path="/snapshots" element={<Snapshots />} />
-                            <Route path="/overview" element={<Overview />} />
-                          </Route>
-                          <Route path="*" element={<Text>404</Text>} />
-                        </Route>
-                      </Routes>
+                      <BeatmapKeyedOutlet />
                     </Container>
                   </ScrollArea>
                 </AppShell.Main>

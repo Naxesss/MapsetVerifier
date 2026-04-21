@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import SnapshotCommitList from './SnapshotCommitList';
 import UnifiedDiffViewer from './UnifiedDiffViewer';
 import { ApiSnapshotResult, ApiSnapshotHistory, ApiSnapshotCommit } from '../../Types';
+import { countWord } from '../../utils/countWord';
 
 interface SnapshotContentProps {
   data: ApiSnapshotResult;
@@ -56,7 +57,7 @@ function SnapshotContent({ data, selectedDifficulty }: SnapshotContentProps) {
       >
         <Box p="sm">
           <Text fw={600} size="sm">
-            History ({history.commits.length} snapshot{history.commits.length !== 1 ? 's' : ''})
+            History ({countWord(history.commits.length, 'snapshot')})
           </Text>
         </Box>
         <SnapshotCommitList

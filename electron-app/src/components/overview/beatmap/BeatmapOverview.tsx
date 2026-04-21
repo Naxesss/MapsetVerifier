@@ -5,6 +5,7 @@
   Flex,
   LoadingOverlay
 } from '@mantine/core';
+import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
 import {useEffect} from "react";
 import DifficultySettingsInfo from './DifficultySettingsInfo';
 import GeneralSettingsInfo from './GeneralSettingsInfo';
@@ -32,7 +33,7 @@ function BeatmapOverview({ reloadFlag }: BeatmapOverviewProps) {
 
   if (!settings.songFolder) {
     return (
-      <Alert color="yellow" title="Song folder not set">
+      <Alert icon={<IconAlertTriangle />} color="yellow" title="Song folder not set">
         <Text size="sm">Please set the song folder in settings to analyze beatmaps.</Text>
       </Alert>
     );
@@ -43,7 +44,7 @@ function BeatmapOverview({ reloadFlag }: BeatmapOverviewProps) {
       <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
       {isError && (
         <Flex p="md">
-          <Alert color="red" title="Error analyzing beatmap">
+          <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing beatmap">
             <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>{error?.message}</Text>
             {error?.stackTrace && (
               <Text mt="sm" size="xs" c="red.3" style={{ whiteSpace: 'pre-wrap' }}>{error.stackTrace}</Text>
@@ -54,7 +55,7 @@ function BeatmapOverview({ reloadFlag }: BeatmapOverviewProps) {
 
       {data && !data.success && (
         <Flex p="md">
-          <Alert color="yellow" title="Analysis failed">
+          <Alert icon={<IconAlertTriangle />} color="yellow" title="Analysis failed">
             <Text size="sm">{data.errorMessage}</Text>
           </Alert>
         </Flex>

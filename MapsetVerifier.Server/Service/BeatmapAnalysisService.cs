@@ -223,6 +223,7 @@ public static class BeatmapAnalysisService
             DifficultyLevel = beatmap.GetDifficulty().ToString(),
             StarRating = beatmap.StarRating,
             StarRatingValues = GetStarRatingValues(beatmap),
+            SliderVelocityValues = GetSliderVelocityValues(beatmap),
             Skills = beatmap.Skills
                 .OfType<StrainSkill>()
                 .Select(skill => new DifficultySkillData
@@ -259,6 +260,29 @@ public static class BeatmapAnalysisService
             }
 
             values.Add(currentStarRating);
+        }
+
+        return values;
+    }
+
+    private static List<double> GetSliderVelocityValues(Beatmap beatmap)
+    {
+        if (beatmap.GeneralSettings.mode == Beatmap.Mode.Mania)
+            return [];
+
+        var timedAttributes = new LocalDifficultyCalculator().CalculateTimedAttributes(beatmap);
+
+        if (timedAttributes.Count == 0)
+            return [];
+
+        var finalTime = Math.Max(timedAttributes[^1].Time, beatmap.HitObjects.Max(hitObject => hitObject.GetEndTime()));
+        var pointCount = Math.Max(1, (int)Math.Ceiling(finalTime / MsPerPeak) + 1);
+        var values = new List<double>(pointCount);
+
+        for (var index = 0; index < pointCount; index++)
+        {
+            var sampleTime = index * MsPerPeak;
+            values.Add(beatmap.GetTimingLine(sampleTime)?.SvMult ?? 1.0);
         }
 
         return values;
