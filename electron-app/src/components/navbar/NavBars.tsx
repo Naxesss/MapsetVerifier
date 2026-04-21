@@ -47,6 +47,7 @@ function NavBars(props: NavBarsProps) {
       color={theme.colors.primary[2]}
       w={'unset'}
       to={item.to}
+      viewTransition
       key={item.label}
       component={Link}
       active={

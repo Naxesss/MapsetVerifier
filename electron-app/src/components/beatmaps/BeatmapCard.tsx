@@ -80,7 +80,7 @@ function BeatmapCard({ beatmap, songFolder }: BeatmapCardProps) {
         setSelectedFolder(beatmap.folder)
         // No page open that uses a beatmap, redirect to checks page as default
         if (location.pathname !== '/checks' && location.pathname !== '/snapshots' && location.pathname !== '/overview') {
-          navigate('/checks');
+          navigate('/checks', { viewTransition: true });
         }
       }}
       onMouseEnter={() => setIsHovered(true)}
