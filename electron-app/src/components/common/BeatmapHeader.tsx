@@ -1,6 +1,7 @@
 ﻿import { Box, Stack, Flex, Title, Text, Anchor } from '@mantine/core';
 import { ReactNode } from 'react';
 import { useBeatmap } from '../../context/BeatmapContext.tsx';
+import { useOpenExternal } from '../../hooks/useOpenExternal.ts';
 
 interface BeatmapHeaderProps {
   bgUrl?: string;
@@ -9,6 +10,7 @@ interface BeatmapHeaderProps {
 
 function BeatmapHeader({ bgUrl, children }: BeatmapHeaderProps) {
   const { beatmapInfo } = useBeatmap();
+  const openExternal = useOpenExternal();
   const title = beatmapInfo?.title;
   const artist = beatmapInfo?.artist;
   const creator = beatmapInfo?.creator;
@@ -50,8 +52,10 @@ function BeatmapHeader({ bgUrl, children }: BeatmapHeaderProps) {
                 Beatmapset by{' '}
                 <Anchor
                   href={`https://osu.ppy.sh/users/${creator}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    void openExternal(`https://osu.ppy.sh/users/${creator}`);
+                  }}
                 >
                   {creator}
                 </Anchor>
