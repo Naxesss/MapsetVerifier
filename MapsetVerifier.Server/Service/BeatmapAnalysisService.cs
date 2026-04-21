@@ -93,8 +93,7 @@ public static class BeatmapAnalysisService
             {
                 Version = beatmap.MetadataSettings.version,
                 Mode = mode.ToString(),
-                StarRating = mode == Beatmap.Mode.Standard || mode == Beatmap.Mode.Taiko
-                    ? beatmap.StarRating : null,
+                StarRating = beatmap.StarRating,
                 CircleCount = beatmap.HitObjects.OfType<Circle>().Count(),
                 SliderCount = isMania ? null : beatmap.HitObjects.OfType<Slider>().Count(),
                 SpinnerCount = isMania ? null : beatmap.HitObjects.OfType<Spinner>().Count(),
