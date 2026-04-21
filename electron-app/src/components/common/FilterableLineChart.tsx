@@ -7,7 +7,6 @@ import {
     Group,
     Stack,
     Text,
-    UnstyledButton,
     useMantineTheme,
 } from "@mantine/core";
 import { IconZoomReset } from "@tabler/icons-react";
@@ -339,7 +338,7 @@ export function FilterableLineChart({
             onPointerCancel={dragZoomActive ? endDrag : undefined}>
             <LineChart
                 series={displaySeries}
-                withLegend={series.length <= 1}
+                withLegend={false}
                 data={displayData}
                 dataKey={dataKey}
                 {...lineChartRest}
@@ -392,16 +391,12 @@ export function FilterableLineChart({
             </Text>
         ) : null;
 
-    if (series.length <= 1) {
-        return (
-            <Stack gap={4}>
-                {chart}
-                {zoomHint}
-            </Stack>
-        );
-    }
+    const multiSeries = series.length > 1;
 
     const toggle = (name: string) => {
+        if (!multiSeries) {
+            return;
+        }
         setIsolatedName((prev) => (prev === name ? null : name));
     };
 
@@ -411,7 +406,13 @@ export function FilterableLineChart({
                 {chart}
                 {zoomHint}
             </Stack>
-            <Group gap="md" wrap="wrap" justify="flex-end">
+            <Group
+                gap="xs"
+                wrap="wrap"
+                justify="flex-end"
+                align="flex-start"
+                w="100%"
+                style={{ overflow: "visible" }}>
                 {series.map((s) => {
                     const pressed = isolatedName === s.name;
                     const swatchColor =
@@ -420,36 +421,48 @@ export function FilterableLineChart({
                             : getThemeColor(s.color ?? "blue", theme);
 
                     return (
-                        <UnstyledButton
+                        <Button
                             key={s.name}
                             type="button"
+                            variant={multiSeries && pressed ? "light" : "subtle"}
+                            color="gray"
+                            size="compact-sm"
+                            justify="flex-start"
                             onClick={() => toggle(s.name)}
-                            aria-pressed={pressed}
-                            style={{
-                                borderRadius: theme.radius.sm,
-                                padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-                                opacity: isolatedName !== null && !pressed ? 0.55 : 1,
-                                transition: "opacity 120ms ease",
-                            }}>
-                            <Group gap={6} wrap="nowrap" align="flex-start">
+                            aria-pressed={multiSeries ? pressed : undefined}
+                            leftSection={
                                 <ColorSwatch
                                     color={swatchColor}
                                     size={12}
                                     withShadow={false}
                                     style={{ flexShrink: 0, marginTop: 2 }}
                                 />
-                                <Text
-                                    size="sm"
-                                    style={{
-                                        whiteSpace: "normal",
-                                        wordBreak: "break-word",
-                                        lineHeight: 1.35,
-                                        textAlign: "left",
-                                    }}>
-                                    {s.label ?? s.name}
-                                </Text>
-                            </Group>
-                        </UnstyledButton>
+                            }
+                            styles={{
+                                root: {
+                                    opacity: multiSeries && isolatedName !== null && !pressed ? 0.55 : 1,
+                                    transition: "opacity 120ms ease",
+                                    height: "auto",
+                                    minHeight: "unset",
+                                    maxWidth: "100%",
+                                    alignItems: "flex-start",
+                                    paddingTop: theme.spacing.xs,
+                                    paddingBottom: theme.spacing.xs,
+                                },
+                                inner: {
+                                    flexWrap: "wrap",
+                                    alignItems: "flex-start",
+                                    justifyContent: "flex-start",
+                                },
+                                label: {
+                                    whiteSpace: "normal",
+                                    wordBreak: "break-word",
+                                    lineHeight: 1.35,
+                                    textAlign: "left",
+                                },
+                            }}>
+                            {s.label ?? s.name}
+                        </Button>
                     );
                 })}
             </Group>
