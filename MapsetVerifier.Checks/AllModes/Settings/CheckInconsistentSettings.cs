@@ -8,7 +8,7 @@ namespace MapsetVerifier.Checks.AllModes.Settings
     [Check]
     public class CheckInconsistentSettings : BeatmapSetCheck
     {
-        private static readonly Func<Beatmap, Beatmap, BeatmapSet, bool> CountdownSettingCondition = (beatmap, otherBeatmap, beatmapSet) => beatmap.GeneralSettings.mode == otherBeatmap.GeneralSettings.mode &&
+        private static readonly Func<Beatmap, Beatmap, BeatmapSet, bool> CountdownSettingCondition = (beatmap, otherBeatmap, _) => beatmap.GeneralSettings.mode == otherBeatmap.GeneralSettings.mode &&
                                                                                                                                             // Countdown has no effect in taiko or mania.
                                                                                                                                             beatmap.GeneralSettings.mode != Beatmap.Mode.Taiko && beatmap.GeneralSettings.mode != Beatmap.Mode.Mania;
 
@@ -33,7 +33,7 @@ namespace MapsetVerifier.Checks.AllModes.Settings
                                                                                                                              // One map has countdown, the other not.
                                                                                                                              beatmap.GetCountdownStartBeat() >= 0 != otherBeatmap.GetCountdownStartBeat() >= 0),
 
-            new("Warning", "letterbox", beatmap => beatmap.GeneralSettings.letterbox, (beatmap, otherBeatmap, beatmapSet) => beatmap.GeneralSettings.mode == otherBeatmap.GeneralSettings.mode && beatmap.Breaks.Count > 0 && otherBeatmap.Breaks.Count > 0),
+            new("Warning", "letterbox", beatmap => beatmap.GeneralSettings.letterbox, (beatmap, otherBeatmap, _) => beatmap.GeneralSettings.mode == otherBeatmap.GeneralSettings.mode && beatmap.Breaks.Count > 0 && otherBeatmap.Breaks.Count > 0),
             new("Warning", "widescreen support", beatmap => beatmap.GeneralSettings.widescreenSupport, StoryboardCondition),
             new("Warning", "storyboard in front of combo fire", beatmap => beatmap.GeneralSettings.storyInFrontOfFire, StoryboardCondition),
             new("Warning", "usage of skin sprites in storyboard", beatmap => beatmap.GeneralSettings.useSkinSprites, StoryboardCondition),
@@ -41,7 +41,7 @@ namespace MapsetVerifier.Checks.AllModes.Settings
             new("Warning", "epilepsy warning", beatmap => beatmap.GeneralSettings.epilepsyWarning, (beatmap, otherBeatmap, beatmapSet) => StoryboardCondition(beatmap, otherBeatmap, beatmapSet) || (beatmap.Videos.Count > 0 && otherBeatmap.Videos.Count > 0)),
             new("Warning", "audio lead-in", beatmap => beatmap.GeneralSettings.audioLeadIn),
             new("Warning", "skin preference", beatmap => beatmap.GeneralSettings.skinPreference),
-            new("Minor", "slider tick rate", beatmap => beatmap.DifficultySettings.sliderTickRate, (beatmap, otherBeatmap, beatmapSet) => beatmap.GeneralSettings.mode == otherBeatmap.GeneralSettings.mode)
+            new("Minor", "slider tick rate", beatmap => beatmap.DifficultySettings.sliderTickRate, (beatmap, otherBeatmap, _) => beatmap.GeneralSettings.mode == otherBeatmap.GeneralSettings.mode)
         ];
 
         public override CheckMetadata GetMetadata() =>

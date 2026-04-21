@@ -128,7 +128,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                 var isWithinContinuousMapping = false;
                 for (int i = 0; i < objects.Count; i++)
                 {
-                    var current = objects.SafeGetIndex(i);
+                    var current = objects[i];
                     var timing = beatmap.GetTimingLine<UninheritedLine>(current.time);
                     if (timing == null)
                     {
@@ -155,8 +155,8 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                                 continue;
                             }
 
-                            var gapBeginObject = objects.SafeGetIndex(i - j - 1);
-                            var gapEndObject = objects.SafeGetIndex(i - j);
+                            var gapBeginObject = objects[i - j - 1];
+                            var gapEndObject = objects[i - j];
 
                             var gap = gapEndObject.time - gapBeginObject.GetEndTime();
                             smallestConsecutiveGapMs = Math.Min(smallestConsecutiveGapMs, gap);
@@ -178,8 +178,8 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                                 continue;
                             }
 
-                            var gapBeginObject = objects.SafeGetIndex(i + j);
-                            var gapEndObject = objects.SafeGetIndex(i + j + 1);
+                            var gapBeginObject = objects[i + j];
+                            var gapEndObject = objects[i + j + 1];
 
                             var gap = gapEndObject.time - gapBeginObject.GetEndTime();
                             smallestConsecutiveGapMs = Math.Min(smallestConsecutiveGapMs, gap);

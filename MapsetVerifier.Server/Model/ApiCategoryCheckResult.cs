@@ -1,5 +1,4 @@
-﻿using MapsetVerifier.Framework.Objects;
-using MapsetVerifier.Parser.Objects;
+﻿using MapsetVerifier.Parser.Objects;
 
 namespace MapsetVerifier.Server.Model;
 

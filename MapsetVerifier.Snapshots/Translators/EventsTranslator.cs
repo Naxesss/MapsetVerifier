@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using MapsetVerifier.Parser.Objects.Events;
+﻿using MapsetVerifier.Parser.Objects.Events;
 using MapsetVerifier.Parser.Statics;
 using MapsetVerifier.Snapshots.Objects;
 using MathNet.Numerics;

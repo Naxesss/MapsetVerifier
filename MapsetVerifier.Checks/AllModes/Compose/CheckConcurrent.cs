@@ -92,9 +92,6 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                             continue;
                         }
                     }
-                    
-                    var timestamp = Timestamp.Get(hitObject);
-                    var otherTimestamp = Timestamp.Get(otherHitObject);
 
                     if (msApart <= 0)
                         yield return new Issue(GetTemplate("Concurrent Objects"), beatmap, Timestamp.Get(hitObject, otherHitObject), ObjectsAsString(hitObject, otherHitObject));

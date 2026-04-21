@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace MapsetVerifier.Snapshots.Objects
+﻿namespace MapsetVerifier.Snapshots.Objects
 {
     public abstract class DiffTranslator
     {

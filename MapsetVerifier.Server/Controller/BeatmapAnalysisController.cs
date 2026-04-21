@@ -22,12 +22,12 @@ public class BeatmapAnalysisController : ControllerBase
         try
         {
             if (string.IsNullOrWhiteSpace(request.BeatmapSetFolder))
-                return BadRequest(new ApiError("Folder is required.", null, null));
+                return BadRequest(new ApiError("Folder is required.", null));
 
             var result = BeatmapAnalysisService.Analyze(request.BeatmapSetFolder);
 
             if (!result.Success)
-                return NotFound(new ApiError(result.ErrorMessage ?? "Beatmap analysis failed.", null, null));
+                return NotFound(new ApiError(result.ErrorMessage ?? "Beatmap analysis failed.", null));
 
             return Ok(result);
         }
@@ -44,12 +44,12 @@ public class BeatmapAnalysisController : ControllerBase
         try
         {
             if (string.IsNullOrWhiteSpace(request.BeatmapSetFolder))
-                return BadRequest(new ApiError("Folder is required.", null, null));
+                return BadRequest(new ApiError("Folder is required.", null));
 
             var result = BeatmapAnalysisService.AnalyzeObjects(request.BeatmapSetFolder);
 
             if (!result.Success)
-                return NotFound(new ApiError(result.ErrorMessage ?? "Objects overview analysis failed.", null, null));
+                return NotFound(new ApiError(result.ErrorMessage ?? "Objects overview analysis failed.", null));
 
             return Ok(result);
         }
@@ -66,12 +66,12 @@ public class BeatmapAnalysisController : ControllerBase
         try
         {
             if (string.IsNullOrWhiteSpace(request.BeatmapSetFolder))
-                return BadRequest(new ApiError("Folder is required.", null, null));
+                return BadRequest(new ApiError("Folder is required.", null));
 
             var result = BeatmapAnalysisService.AnalyzeDifficulty(request.BeatmapSetFolder);
 
             if (!result.Success)
-                return NotFound(new ApiError(result.ErrorMessage ?? "Difficulty overview analysis failed.", null, null));
+                return NotFound(new ApiError(result.ErrorMessage ?? "Difficulty overview analysis failed.", null));
 
             return Ok(result);
         }

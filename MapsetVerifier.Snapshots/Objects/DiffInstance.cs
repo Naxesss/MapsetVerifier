@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using static MapsetVerifier.Snapshots.Snapshotter;
+﻿using static MapsetVerifier.Snapshots.Snapshotter;
 
 namespace MapsetVerifier.Snapshots.Objects
 {

@@ -54,7 +54,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
 
         // any finisher pattern spacing equal to or smaller than this gap without a color change after is a problem
         private static readonly Dictionary<Beatmap.Difficulty, double> MaximalGapBeatsRequiringColorChangeAfter =
-            new() { };
+            new();
 
         // any finisher pattern spacing equal to or smaller than this gap without a color change before is a warning
         private static readonly Dictionary<Beatmap.Difficulty, double>
@@ -168,12 +168,9 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                             beatmap,
                             Timestamp.Get(current.time)
                         ).ForDifficulties(diff);
-                        continue;
                     }
                 }
             }
-
-            yield break;
         }
 
         private bool CheckGap(

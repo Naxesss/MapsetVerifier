@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using MapsetVerifier.Snapshots.Objects;
+﻿using MapsetVerifier.Snapshots.Objects;
 
 namespace MapsetVerifier.Snapshots.Translators
 {

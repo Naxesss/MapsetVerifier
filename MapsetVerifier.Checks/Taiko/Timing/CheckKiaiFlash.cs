@@ -73,7 +73,8 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                     }
                     
                     var normalizedMsPerBeat = timing.GetNormalizedMsPerBeat();
-                    double gap = kiaiToggles.SafeGetIndex(currentIndex + 1).Offset - toggle.Offset;
+                    var kiaiToggle = kiaiToggles[nextIndex];
+                    double gap = kiaiToggle.Offset - toggle.Offset;
 
                     if (gap <= Math.Ceiling(normalizedMsPerBeat / 2.5))
                     {

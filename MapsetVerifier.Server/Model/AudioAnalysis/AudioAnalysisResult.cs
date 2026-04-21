@@ -61,6 +61,7 @@ public readonly struct AudioAnalysisResult
         DynamicRangeResult dynamicRangeAnalysis,
         IEnumerable<string> complianceIssues)
     {
+        var enumerable = complianceIssues as string[] ?? complianceIssues.ToArray();
         return new AudioAnalysisResult
         {
             Success = true,
@@ -70,8 +71,8 @@ public readonly struct AudioAnalysisResult
             ChannelAnalysis = channelAnalysis,
             FormatAnalysis = formatAnalysis,
             DynamicRangeAnalysis = dynamicRangeAnalysis,
-            IsCompliant = !complianceIssues.Any(),
-            ComplianceIssues = complianceIssues
+            IsCompliant = enumerable.Length == 0,
+            ComplianceIssues = enumerable
         };
     }
     

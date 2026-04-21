@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using MapsetVerifier.Snapshots.Objects;
+﻿using MapsetVerifier.Snapshots.Objects;
 using static MapsetVerifier.Snapshots.Snapshotter;
 
 namespace MapsetVerifier.Snapshots.Translators
@@ -21,7 +19,7 @@ namespace MapsetVerifier.Snapshots.Translators
                 var setting = new Setting(addition.Diff);
                 var removal = removed.FirstOrDefault(diff => new Setting(diff.Diff).key == setting.key);
 
-                if (removal != null && removal.Diff != null)
+                if (removal != null)
                 {
                     removed.Remove(removal);
 

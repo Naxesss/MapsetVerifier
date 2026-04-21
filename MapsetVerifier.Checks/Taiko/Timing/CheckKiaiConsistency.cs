@@ -61,7 +61,6 @@ namespace MapsetVerifier.Checks.Taiko.Timing
             {
                 // At least 2 different 'sets' of kiais
                 // Emit each of them and exit
-                var groupStrings = new List<string>();
                 List<List<string>> diffNameStrings = mapsetKiais.Values.ToList();
                 for (int i = 0; i < mapsetKiaiSetCount; i++)
                 {

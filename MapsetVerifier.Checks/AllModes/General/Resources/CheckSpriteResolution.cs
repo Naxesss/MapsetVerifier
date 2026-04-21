@@ -69,25 +69,25 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
             // .osu
-            foreach (var issue in Common.GetTagOsuIssues(beatmapSet, beatmap => beatmap.Sprites.Count > 0 ? beatmap.Sprites.Select(sprite => sprite.path) : [], GetTemplate, tagFile =>
+            foreach (var issue in Common.GetTagOsuIssues(beatmapSet, beatmap => beatmap.Sprites.Count > 0 ? beatmap.Sprites.Select(sprite => sprite.path) : [], tagFile =>
                      {
                          // Executes for each non-faulty sprite file used in one of the beatmaps in the set.
                          var issues = new List<Issue>();
 
-                         if (tagFile.File.Properties.PhotoWidth * tagFile.File.Properties.PhotoHeight > 17000000)
-                             issues.Add(new Issue(GetTemplate("Resolution"), null, tagFile.TemplateArgs[0]));
+                         if (tagFile.file.Properties.PhotoWidth * tagFile.file.Properties.PhotoHeight > 17000000)
+                             issues.Add(new Issue(GetTemplate("Resolution"), null, tagFile.templateArgs[0]));
 
                          return issues;
                      }))
                 // Returns issues from both non-faulty and faulty files.
                 yield return issue;
 
-            foreach (var issue in Common.GetTagOsuIssues(beatmapSet, beatmap => beatmap.Animations.Count > 0 ? beatmap.Animations.SelectMany(animation => animation.framePaths) : [], GetTemplate, tagFile =>
+            foreach (var issue in Common.GetTagOsuIssues(beatmapSet, beatmap => beatmap.Animations.Count > 0 ? beatmap.Animations.SelectMany(animation => animation.framePaths) : [], tagFile =>
                      {
                          var issues = new List<Issue>();
 
-                         if (tagFile.File.Properties.PhotoWidth * tagFile.File.Properties.PhotoHeight > 17000000)
-                             issues.Add(new Issue(GetTemplate("Resolution Animation Frame"), null, tagFile.TemplateArgs[0]));
+                         if (tagFile.file.Properties.PhotoWidth * tagFile.file.Properties.PhotoHeight > 17000000)
+                             issues.Add(new Issue(GetTemplate("Resolution Animation Frame"), null, tagFile.templateArgs[0]));
 
                          return issues;
                      }))
@@ -98,8 +98,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                      {
                          var issues = new List<Issue>();
 
-                         if (tagFile.File.Properties.PhotoWidth * tagFile.File.Properties.PhotoHeight > 17000000)
-                             issues.Add(new Issue(GetTemplate("Resolution"), null, tagFile.TemplateArgs[0]));
+                         if (tagFile.file.Properties.PhotoWidth * tagFile.file.Properties.PhotoHeight > 17000000)
+                             issues.Add(new Issue(GetTemplate("Resolution"), null, tagFile.templateArgs[0]));
 
                          return issues;
                      }))
@@ -109,8 +109,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                      {
                          var issues = new List<Issue>();
 
-                         if (tagFile.File.Properties.PhotoWidth * tagFile.File.Properties.PhotoHeight > 17000000)
-                             issues.Add(new Issue(GetTemplate("Resolution Animation Frame"), null, tagFile.TemplateArgs[0]));
+                         if (tagFile.file.Properties.PhotoWidth * tagFile.file.Properties.PhotoHeight > 17000000)
+                             issues.Add(new Issue(GetTemplate("Resolution Animation Frame"), null, tagFile.templateArgs[0]));
 
                          return issues;
                      }))

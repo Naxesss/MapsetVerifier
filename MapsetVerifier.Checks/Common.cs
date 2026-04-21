@@ -48,19 +48,14 @@ namespace MapsetVerifier.Checks
             }
         }
 
-        public static IEnumerable<Issue> GetTagOsuIssues(BeatmapSet beatmapSet, Func<Beatmap, IEnumerable<string?>> beatmapFunc, Func<string, IssueTemplate> templateFunc, Func<TagFile, List<Issue>> successFunc)
+        public static IEnumerable<Issue> GetTagOsuIssues(BeatmapSet beatmapSet, Func<Beatmap, IEnumerable<string?>> beatmapFunc, Func<TagFile, List<Issue>> successFunc)
         {
             var tagFiles = GetTagOsuFiles(beatmapSet, beatmapFunc);
 
             foreach (var tagFile in tagFiles)
                 // error
-                if (tagFile.File == null)
-                    yield return new Issue(templateFunc(tagFile.TemplateName), null, tagFile.TemplateArgs.ToArray());
-
-                // success
-                else
-                    foreach (var issue in successFunc(tagFile))
-                        yield return issue;
+                foreach (var issue in successFunc(tagFile))
+                    yield return issue;
         }
 
         public static IEnumerable<Issue> GetTagOsbIssues(BeatmapSet beatmapSet, Func<Osb, IEnumerable<string?>> osbFunc, Func<string, IssueTemplate> templateFunc, Func<TagFile, List<Issue>> successFunc)
@@ -68,14 +63,14 @@ namespace MapsetVerifier.Checks
             var tagFiles = GetTagOsbFiles(beatmapSet, osbFunc);
 
             foreach (var tagFile in tagFiles)
-                if (tagFile.File == null)
+                if (tagFile.file == null)
                 {
-                    var templateArgs = new List<object> { tagFile.TemplateArgs[0] };
+                    var templateArgs = new List<object> { tagFile.templateArgs[0] };
 
-                    if (tagFile.TemplateArgs.Length > 1)
-                        templateArgs.Add(tagFile.TemplateArgs[1]);
+                    if (tagFile.templateArgs.Length > 1)
+                        templateArgs.Add(tagFile.templateArgs[1]);
 
-                    yield return new Issue(templateFunc(tagFile.TemplateName), null, templateArgs.ToArray());
+                    yield return new Issue(templateFunc(tagFile.templateName), null, templateArgs.ToArray());
                 }
 
                 else
@@ -92,9 +87,6 @@ namespace MapsetVerifier.Checks
             foreach (var beatmap in beatmapSet.Beatmaps)
             {
                 var fileNameList = BeatmapFunc(beatmap);
-
-                if (fileNameList == null)
-                    continue;
 
                 foreach (var fileName in fileNameList)
                     if (fileName != null && !fileNames.Contains(fileName))
@@ -122,9 +114,6 @@ namespace MapsetVerifier.Checks
 
         private static IEnumerable<TagFile> GetTagFiles(BeatmapSet beatmapSet, List<string> fileNames)
         {
-            if (beatmapSet.SongPath == null)
-                yield break;
-
             foreach (var fileName in fileNames)
             {
                 File? file = null;
@@ -240,18 +229,11 @@ namespace MapsetVerifier.Checks
             return mean <= commonUsageThreshold;
         }
 
-        public readonly struct TagFile
+        public readonly struct TagFile(File file, string templateName, object[] templateArgs)
         {
-            public readonly File File;
-            public readonly string TemplateName;
-            public readonly object[] TemplateArgs;
-
-            public TagFile(File file, string templateName, object[] templateArgs)
-            {
-                File = file;
-                TemplateName = templateName;
-                TemplateArgs = templateArgs;
-            }
+            public readonly File file = file;
+            public readonly string templateName = templateName;
+            public readonly object[] templateArgs = templateArgs;
         }
     }
 }

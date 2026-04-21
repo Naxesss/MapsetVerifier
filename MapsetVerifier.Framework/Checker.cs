@@ -15,12 +15,6 @@ namespace MapsetVerifier.Framework
         
         public static string? RelativeDLLDirectory { get; set; }
 
-        /// <summary> Called whenever the loading of a check is started. </summary>
-        public static Func<string, Task> OnLoadStart { get; set; } = message => Task.CompletedTask;
-
-        /// <summary> Called whenever the loading of a check is completed. </summary>
-        public static Func<string, Task> OnLoadComplete { get; set; } = message => Task.CompletedTask;
-
         /// <summary> Returns a list of issues sorted by level, in the given beatmap set. </summary>
         public static List<Issue> GetBeatmapSetIssues(BeatmapSet beatmapSet)
         {
@@ -37,8 +31,6 @@ namespace MapsetVerifier.Framework
 
             Parallel.ForEach(beatmapSet.Beatmaps, beatmap =>
             {
-                var beatmapTrack = new Track("Checking for issues in " + beatmap + "...");
-
                 TryGetIssuesParallel(CheckerRegistry.GetBeatmapChecks(), beatmapCheck =>
                 {
                     var modesToCheck = ((BeatmapCheckMetadata)beatmapCheck.GetMetadata()).Modes;
@@ -49,8 +41,6 @@ namespace MapsetVerifier.Framework
                     foreach (var issue in beatmapCheck.GetIssues(beatmap).OrderBy(issue => issue.level).Reverse())
                         issueBag.Add(issue.WithOrigin(beatmapCheck));
                 });
-
-                beatmapTrack.Complete();
             });
 
             TryGetIssuesParallel(CheckerRegistry.GetBeatmapSetChecks(), beatmapSetCheck =>
@@ -70,9 +60,6 @@ namespace MapsetVerifier.Framework
         private static void TryGetIssuesParallel<T>(IEnumerable<T> checks, Action<T> action) where T : Check =>
             Parallel.ForEach(checks, check =>
             {
-                // Will end up "..." due to message always including a period at the end.
-                var checkTrack = new Track($"Checking for {check.GetMetadata().Message}..");
-
                 try
                 {
                     action(check);
@@ -83,8 +70,6 @@ namespace MapsetVerifier.Framework
 
                     throw;
                 }
-
-                checkTrack.Complete();
             });
 
         /// <summary> Loads the .dll files from the current directory + relative path ("/checks" by default). </summary>
@@ -95,11 +80,7 @@ namespace MapsetVerifier.Framework
             {
                 try
                 {
-                    var dllTrack = new Track("Loading checks from \"" + dllPath.Split('/', '\\').Last() + "\"...");
-
                     LoadCheckDLL(dllPath);
-
-                    dllTrack.Complete();
                 }
                 catch (Exception exception)
                 {

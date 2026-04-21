@@ -99,7 +99,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             var field = metadataField(beatmap);
             var otherField = metadataField(otherBeatmap);
 
-            if ((field ?? "") != (otherField ?? ""))
+            if (field != otherField)
                 yield return new Issue(GetTemplate("Other Field"), null, fieldName, beatmap, otherBeatmap, field, otherField);
         }
     }

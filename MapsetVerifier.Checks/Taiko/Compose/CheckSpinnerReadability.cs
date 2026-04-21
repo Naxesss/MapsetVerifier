@@ -69,6 +69,11 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                 var current = hitObjects[i];
                 var next = hitObjects.SafeGetIndex(i + 1);
 
+                if (next == null)
+                {
+                    continue;
+                }
+
                 var timing = beatmap.GetTimingLine<UninheritedLine>(current.time);
                 if (timing == null)
                 {

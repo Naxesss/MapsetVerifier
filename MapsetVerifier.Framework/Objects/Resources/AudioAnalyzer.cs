@@ -104,8 +104,6 @@ public static class AudioAnalyzer
                 var seconds = Bass.ChannelBytes2Seconds(stream, length);
 
                 // Calculate estimated samples (rounded up to ensure we don't miss the end)
-                var estimatedSamples = (int)Math.Ceiling(seconds * 1000 / sampleIntervalMs);
-
                 var peakLeft = 0f;
                 var peakRight = 0f;
                 var sumSquaredLeft = 0.0;

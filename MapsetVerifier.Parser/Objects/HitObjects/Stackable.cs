@@ -14,6 +14,6 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
 
         private Vector2 GetStackedPosition(Vector2 position) => new(position.X + GetStackOffset(), position.Y + GetStackOffset());
 
-        private float GetStackOffset() => stackIndex * (beatmap?.DifficultySettings.GetCircleRadius() ?? 0) * -0.1f;
+        private float GetStackOffset() => stackIndex * (int) beatmap.DifficultySettings.GetCircleRadius() * -0.1f;
     }
 }

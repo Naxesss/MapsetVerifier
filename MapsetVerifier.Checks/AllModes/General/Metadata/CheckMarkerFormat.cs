@@ -72,14 +72,13 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             if (marker.IsSimilarButNotExact(settings.artist))
                 yield return new Issue(GetTemplate("Wrong Format"), null, marker.name, "Romanized", "artist", settings.artist);
 
-            // Unicode fields do not exist in file version 9.
-            if (settings.artistUnicode != null && marker.IsSimilarButNotExact(settings.artistUnicode))
+            if (marker.IsSimilarButNotExact(settings.artistUnicode))
                 yield return new Issue(GetTemplate("Wrong Format"), null, marker.name, "Unicode", "artist", settings.artistUnicode);
 
             if (marker.IsSimilarButNotExact(settings.title))
                 yield return new Issue(GetTemplate("Wrong Format"), null, marker.name, "Romanized", "title", settings.title);
 
-            if (settings.titleUnicode != null && marker.IsSimilarButNotExact(settings.titleUnicode))
+            if (marker.IsSimilarButNotExact(settings.titleUnicode))
                 yield return new Issue(GetTemplate("Wrong Format"), null, marker.name, "Unicode", "title", settings.titleUnicode);
         }
 

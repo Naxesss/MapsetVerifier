@@ -22,12 +22,12 @@ public class MetadataAnalysisController : ControllerBase
         try
         {
             if (string.IsNullOrWhiteSpace(request.BeatmapSetFolder))
-                return BadRequest(new ApiError("Folder is required.", null, null));
+                return BadRequest(new ApiError("Folder is required.", null));
 
             var result = MetadataAnalysisService.Analyze(request.BeatmapSetFolder);
 
             if (!result.Success)
-                return NotFound(new ApiError(result.ErrorMessage ?? "Metadata analysis failed.", null, null));
+                return NotFound(new ApiError(result.ErrorMessage ?? "Metadata analysis failed.", null));
 
             return Ok(result);
         }

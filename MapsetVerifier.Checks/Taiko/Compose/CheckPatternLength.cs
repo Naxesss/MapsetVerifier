@@ -137,6 +137,12 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                         for (int i = 0; i < objects.Count; i++)
                         {
                             var current = objects.SafeGetIndex(i);
+                            if (current == null)
+                            {
+                                // End of beatmap
+                                break;
+                            }
+                            
                             var timing = beatmap.GetTimingLine<UninheritedLine>(current.time);
                             if (timing == null)
                             {
@@ -152,36 +158,43 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                             // check if this is end of pattern
                             if (i + 1 < objects.Count && foundStartOfPattern)
                             {
-                                var gapBeginObject = objects.SafeGetIndex(i);
+                                var gapBeginObject = objects[i];
                                 var gapEndObject = objects.SafeGetIndex(i + 1);
 
-                                // Check if gap is greater than the snap size
-                                var gap = gapEndObject.time - gapBeginObject.GetEndTime();
-                                if (gap - Common.MS_EPSILON > snapMs)
+                                if (gapEndObject != null)
                                 {
-                                    foundEndOfPattern = true;
-                                    currentPatternEndTimeMs = gapBeginObject.time;
+                                    // Check if gap is greater than the snap size
+                                    var gap = gapEndObject.time - gapBeginObject.GetEndTime();
+                                    if (gap - Common.MS_EPSILON > snapMs)
+                                    {
+                                        foundEndOfPattern = true;
+                                        currentPatternEndTimeMs = gapBeginObject.time;
+                                    }
                                 }
+
                             } else if (i == objects.Count - 1 && foundStartOfPattern)
                             {
                                 // last note, so forced end of pattern
                                 foundEndOfPattern = true;
-                                currentPatternEndTimeMs = objects.SafeGetIndex(i).time;
+                                currentPatternEndTimeMs = objects[i].time;
                             }
 
                             // check if this is start of pattern
                             if (i + 1 < objects.Count && !foundStartOfPattern)
                             {
-                                var gapBeginObject = objects.SafeGetIndex(i);
+                                var gapBeginObject = objects[i];
                                 var gapEndObject = objects.SafeGetIndex(i + 1);
 
-                                // Check if gap is smaller than or equal to the snap size
-                                var gap = gapEndObject.time - gapBeginObject.GetEndTime();
-                                if (gap - Common.MS_EPSILON <= snapMs)
+                                if (gapEndObject != null)
                                 {
-                                    foundStartOfPattern = true;
-                                    currentPatternStartTimeMs = gapBeginObject.time;
-                                    patternStartIndex = i;
+                                    // Check if gap is smaller than or equal to the snap size
+                                    var gap = gapEndObject.time - gapBeginObject.GetEndTime();
+                                    if (gap - Common.MS_EPSILON <= snapMs)
+                                    {
+                                        foundStartOfPattern = true;
+                                        currentPatternStartTimeMs = gapBeginObject.time;
+                                        patternStartIndex = i;
+                                    }
                                 }
                             }
 
@@ -199,7 +212,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                                         beatmap,
                                         Timestamp.Get(currentPatternStartTimeMs).Trim(),
                                         Timestamp.Get(currentPatternEndTimeMs).Trim(),
-                                        OutputDict[snapValues.Key] ?? "unknown snap",
+                                        OutputDict[snapValues.Key],
                                         durationOfPattern
                                     ).ForDifficulties(diff);
                                 } else if (durationOfPattern == snapValues.Value)
@@ -209,7 +222,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                                         beatmap,
                                         Timestamp.Get(currentPatternStartTimeMs).Trim(),
                                         Timestamp.Get(currentPatternEndTimeMs).Trim(),
-                                        OutputDict[snapValues.Key] ?? "unknown snap",
+                                        OutputDict[snapValues.Key],
                                         durationOfPattern
                                     ).ForDifficulties(diff);
                                 }

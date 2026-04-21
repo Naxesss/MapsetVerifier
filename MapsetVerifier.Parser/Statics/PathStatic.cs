@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace MapsetVerifier.Parser.Statics
+﻿namespace MapsetVerifier.Parser.Statics
 {
     public static class PathStatic
     {

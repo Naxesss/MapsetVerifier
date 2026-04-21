@@ -1,5 +1,4 @@
-﻿using System.IO;
-using File = TagLib.File;
+﻿using File = TagLib.File;
 
 namespace MapsetVerifier.Framework.Objects.Resources
 {

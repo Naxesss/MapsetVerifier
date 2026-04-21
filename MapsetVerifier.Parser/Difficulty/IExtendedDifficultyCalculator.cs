@@ -1,5 +1,4 @@
 ﻿using osu.Game.Beatmaps;
-using osu.Game.Rulesets.Difficulty;
 using osu.Game.Rulesets.Difficulty.Preprocessing;
 using osu.Game.Rulesets.Difficulty.Skills;
 

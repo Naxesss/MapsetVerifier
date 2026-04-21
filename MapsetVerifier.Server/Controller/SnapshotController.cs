@@ -1,5 +1,4 @@
-﻿using MapsetVerifier.Parser.Objects;
-using MapsetVerifier.Server.Model;
+﻿using MapsetVerifier.Server.Model;
 using MapsetVerifier.Server.Service;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;

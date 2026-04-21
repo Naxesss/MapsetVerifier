@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using MapsetVerifier.Parser.Objects;
+﻿using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
-using MapsetVerifier.Parser.Objects.HitObjects.Catch;
 using MapsetVerifier.Parser.Statics;
 using MapsetVerifier.Snapshots.Objects;
 using MathNet.Numerics;
-using osu.Game.Rulesets.Catch.Objects;
 using static MapsetVerifier.Snapshots.Snapshotter;
 
 namespace MapsetVerifier.Snapshots.Translators

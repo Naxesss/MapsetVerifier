@@ -73,7 +73,7 @@ namespace MapsetVerifier.Parser.Objects
 
             return lowerText == "soft" ? SamplesetType.Soft :
                 lowerText == "normal" ? SamplesetType.Normal :
-                lowerText == "drum" ? SamplesetType.Drum : (SamplesetType?)null;
+                lowerText == "drum" ? SamplesetType.Drum : null;
         }
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace MapsetVerifier.Parser.Objects
             return lowerText == "normal" ? HitSounds.Normal :
                 lowerText == "clap" ? HitSounds.Clap :
                 lowerText == "whistle" ? HitSounds.Whistle :
-                lowerText == "finish" ? HitSounds.Finish : (HitSounds?)null;
+                lowerText == "finish" ? HitSounds.Finish : null;
         }
 
         /// <summary> Returns the given text as an integer if possible, else 1 (i.e. implicit custom index). </summary>

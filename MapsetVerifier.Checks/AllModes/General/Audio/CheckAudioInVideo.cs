@@ -64,15 +64,15 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
             var issues = Common.GetTagOsuIssues(beatmapSet,
-                beatmap => beatmap.Videos.Count > 0 ? beatmap.Videos.Select(video => video.path) : [], GetTemplate,
+                beatmap => beatmap.Videos.Count > 0 ? beatmap.Videos.Select(video => video.path) : [],
                 tagFile =>
                 {
                     // Executes for each non-faulty video file used in one of the beatmaps in the set.
                     var issues = new List<Issue>();
 
-                    if (tagFile.File.Properties.MediaTypes.HasFlag(MediaTypes.Video) &&
-                        tagFile.File.Properties.AudioChannels > 0)
-                        issues.Add(new Issue(GetTemplate("Audio"), null, tagFile.TemplateArgs[0]));
+                    if (tagFile.file.Properties.MediaTypes.HasFlag(MediaTypes.Video) &&
+                        tagFile.file.Properties.AudioChannels > 0)
+                        issues.Add(new Issue(GetTemplate("Audio"), null, tagFile.templateArgs[0]));
 
                     return issues;
                 });

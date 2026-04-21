@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+﻿using System.Globalization;
 using System.Numerics;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
@@ -282,7 +279,7 @@ namespace MapsetVerifier.Parser.Objects
         ///     Spinners have no start sample.
         /// </summary>
         public HitSample.SamplesetType? GetStartSampleset(bool additionOverrides = false) =>
-            (this as Slider)?.GetStartSampleset(additionOverrides) ?? (this is Spinner ? null : (HitSample.SamplesetType?)GetSampleset(additionOverrides));
+            (this as Slider)?.GetStartSampleset(additionOverrides) ?? (this is Spinner ? null : GetSampleset(additionOverrides));
 
         /// <summary>
         ///     Returns the effective sampleset of the tail of the object, if applicable, otherwise null, optionally prioritizing
@@ -290,14 +287,14 @@ namespace MapsetVerifier.Parser.Objects
         ///     Spinners have no start sample.
         /// </summary>
         public virtual HitSample.SamplesetType? GetEndSampleset(bool additionOverrides = false) =>
-            (this as Slider)?.GetEndSampleset(additionOverrides) ?? (this is Spinner ? (HitSample.SamplesetType?)GetSampleset(additionOverrides) : null);
+            (this as Slider)?.GetEndSampleset(additionOverrides) ?? (this is Spinner ? GetSampleset(additionOverrides) : null);
 
         /// <summary>
         ///     Returns the hit sound(s) of the head of the object, if applicable, otherwise null.
         ///     Spinners have no start sample.
         /// </summary>
         public HitSounds? GetStartHitSound() =>
-            (this as Slider)?.StartHitSound ?? (this is Spinner ? null : (HitSounds?)hitSound);
+            (this as Slider)?.StartHitSound ?? (this is Spinner ? null : hitSound);
 
         /// <summary>
         ///     Returns the hit sound(s) of the tail of the object, if it applicable, otherwise null.
@@ -332,14 +329,10 @@ namespace MapsetVerifier.Parser.Objects
         /// <summary> Returns all used combinations of customs, samplesets and hit sounds for this object. </summary>
         protected IEnumerable<HitSample> GetUsedHitSamples()
         {
-            if (beatmap == null)
-                // Without a beatmap, we don't know which samples are going to be used, so leave this empty.
-                yield break;
-
             var mode = beatmap.GeneralSettings.mode;
 
             // Standard can be converted into taiko, so taiko samples could be used there too.
-            if (mode == Beatmap.Mode.Taiko || mode == Beatmap.Mode.Standard)
+            if (mode is Beatmap.Mode.Taiko or Beatmap.Mode.Standard)
                 foreach (var sample in GetUsedHitSamplesTaiko())
                     yield return sample;
 
@@ -426,16 +419,16 @@ namespace MapsetVerifier.Parser.Objects
                         var line = beatmap.GetTimingLine(preciseTickTime, true, true);
 
                         // If no line exists, we use the default settings.
-                        var customIndex = line?.CustomIndex ?? 1;
+                        var resolvedCustomIndex = line?.CustomIndex ?? 1;
 
                         // Unlike the slider body (for sliderwhistles) and edges, slider ticks are unaffected by additions.
-                        var sampleset = GetSampleset(false, preciseTickTime, true);
+                        var resolvedSampleset = GetSampleset(false, preciseTickTime, true);
 
                         // Defaults to normal if none is set (before any timing line).
-                        if (sampleset == HitSample.SamplesetType.Auto)
-                            sampleset = HitSample.SamplesetType.Normal;
+                        if (resolvedSampleset == HitSample.SamplesetType.Auto)
+                            resolvedSampleset = HitSample.SamplesetType.Normal;
 
-                        yield return new HitSample(customIndex, sampleset, null, HitSample.HitSourceType.Tick, tickTime);
+                        yield return new HitSample(resolvedCustomIndex, resolvedSampleset, null, HitSample.HitSourceType.Tick, tickTime);
                     }
             }
         }
@@ -461,16 +454,16 @@ namespace MapsetVerifier.Parser.Objects
             var isKat = HasHitSound(HitSounds.Clap) || HasHitSound(HitSounds.Whistle);
             var isBig = HasHitSound(HitSounds.Finish);
 
-            HitSounds hitSound;
+            HitSounds resolvedHitSound;
 
             if (isBig)
-                if (isKat) hitSound = HitSounds.Whistle;
-                else hitSound = HitSounds.Finish;
-            else if (isKat) hitSound = HitSounds.Clap;
-            else hitSound = HitSounds.Normal;
+                if (isKat) resolvedHitSound = HitSounds.Whistle;
+                else resolvedHitSound = HitSounds.Finish;
+            else if (isKat) resolvedHitSound = HitSounds.Clap;
+            else resolvedHitSound = HitSounds.Normal;
 
             // In case the hit object's custom index/sampleset/additions are different from the timing line's.
-            yield return new HitSample(GetCustomIndex(line), GetSampleset(true), hitSound, HitSample.HitSourceType.Edge, time, true);
+            yield return new HitSample(GetCustomIndex(line), GetSampleset(true), resolvedHitSound, HitSample.HitSourceType.Edge, time, true);
         }
 
         /// <summary>

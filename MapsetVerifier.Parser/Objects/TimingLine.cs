@@ -1,6 +1,4 @@
-﻿using System;
-using System.Globalization;
-using System.Linq;
+﻿using System.Globalization;
 using MathNet.Numerics;
 
 namespace MapsetVerifier.Parser.Objects

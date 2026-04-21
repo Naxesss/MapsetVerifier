@@ -18,25 +18,18 @@ namespace MapsetVerifier.Parser.Objects
 
         public BeatmapSet(string beatmapSetPath)
         {
-            var mapsetTrack = new Track("Parsing mapset \"" + PathStatic.CutPath(beatmapSetPath) + "\"...");
-
             Beatmaps = new List<Beatmap>();
             Osb = null;
             SongPath = beatmapSetPath;
 
             Initalize(beatmapSetPath);
 
-            var hsTrack = new Track("Finding hit sound files...");
             HitSoundFiles = GetUsedHitSoundFiles().ToList();
-            hsTrack.Complete();
-
             Beatmaps = Beatmaps.OrderBy(beatmap => beatmap.GeneralSettings.mode)
                 .ThenBy(beatmap => beatmap.GetDifficulty())
                 .ThenBy(beatmap => beatmap.StarRating)
                 .ThenBy(beatmap => beatmap.GetObjectDensity())
                 .ToList();
-
-            mapsetTrack.Complete();
         }
 
         private void Initalize(string beatmapSetPath)
@@ -68,12 +61,10 @@ namespace MapsetVerifier.Parser.Objects
             {
                 Parallel.ForEach(beatmapFiles, beatmapFile =>
                 {
-                    var beatmapTrack = new Track("Parsing " + beatmapFile.name + "...");
                     concurrentBeatmaps.Add(new Beatmap(
                         beatmapFile.code,
                         SongPath,
                         beatmapFile.name));
-                    beatmapTrack.Complete();
                 });
             }
             catch (AggregateException ex)
@@ -93,9 +84,7 @@ namespace MapsetVerifier.Parser.Objects
 
                 if (filePath.EndsWith(".osb") && currentFileName.ToLower() == expectedOsbFileName)
                 {
-                    var osbTrack = new Track("Parsing " + currentFileName + "...");
                     Osb = new Osb(File.ReadAllText(filePath));
-                    osbTrack.Complete();
                 }
             }
         }
@@ -116,10 +105,10 @@ namespace MapsetVerifier.Parser.Objects
         }
 
         /// <summary> Returns the full audio file path of the first beatmap in the set if one exists, otherwise null. </summary>
-        public string? GetAudioFilePath() => Beatmaps.FirstOrDefault(beatmap => beatmap != null)?.GetAudioFilePath() ?? null;
+        public string? GetAudioFilePath() => Beatmaps.FirstOrDefault()?.GetAudioFilePath() ?? null;
 
         /// <summary> Returns the audio file name of the first beatmap in the set if one exists, otherwise null. </summary>
-        public string? GetAudioFileName() => Beatmaps.FirstOrDefault(beatmap => beatmap != null)?.GeneralSettings.audioFileName ?? null;
+        public string? GetAudioFileName() => Beatmaps.FirstOrDefault()?.GeneralSettings.audioFileName ?? null;
 
         /// <summary>
         ///     Returns the last file path matching the given search pattern, relative to the song folder.

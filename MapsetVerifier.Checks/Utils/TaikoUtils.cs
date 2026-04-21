@@ -1,9 +1,6 @@
 ﻿using MapsetVerifier.Parser.Objects;
-using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Objects.HitObjects.Taiko;
 using MapsetVerifier.Parser.Objects.TimingLines;
-using System;
-
 using static MapsetVerifier.Checks.Utils.GeneralUtils;
 
 

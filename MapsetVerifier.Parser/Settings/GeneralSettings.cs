@@ -1,6 +1,4 @@
-﻿using System;
-using System.Globalization;
-using System.Linq;
+﻿using System.Globalization;
 using MapsetVerifier.Parser.Objects;
 
 namespace MapsetVerifier.Parser.Settings

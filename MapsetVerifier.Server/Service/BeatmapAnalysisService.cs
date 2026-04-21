@@ -6,7 +6,6 @@ using MapsetVerifier.Parser.Objects.HitObjects.Mania;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
 using MapsetVerifier.Server.Model.BeatmapAnalysis;
-using osu.Game.Rulesets.Difficulty;
 using osu.Game.Rulesets.Difficulty.Skills;
 using Serilog;
 
@@ -228,7 +227,7 @@ public static class BeatmapAnalysisService
                 .Select(skill => new DifficultySkillData
                 {
                     SkillName = GetSkillName(skill, beatmap),
-                    StrainPeaks = skill.GetCurrentStrainPeaks().Select(peak => (double)peak).ToList()
+                    StrainPeaks = skill.GetCurrentStrainPeaks().Select(peak => peak).ToList()
                 })
                 .ToList()
         };

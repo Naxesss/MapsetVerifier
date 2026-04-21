@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using MapsetVerifier.Parser.Objects;
+﻿using MapsetVerifier.Parser.Objects;
 
 namespace MapsetVerifier.Framework.Objects.Metadata
 {

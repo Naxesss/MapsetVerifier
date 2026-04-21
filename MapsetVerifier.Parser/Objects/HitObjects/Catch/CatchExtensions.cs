@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using MapsetVerifier.Parser.Objects.TimingLines;
+﻿using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
 
 namespace MapsetVerifier.Parser.Objects.HitObjects.Catch;

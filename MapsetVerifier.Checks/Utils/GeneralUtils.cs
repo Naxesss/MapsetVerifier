@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace MapsetVerifier.Checks.Utils;
+﻿namespace MapsetVerifier.Checks.Utils;
 
 public static class GeneralUtils
 {
@@ -50,8 +47,8 @@ public static class GeneralUtils
     /// <param name="collection">The collection to get the element from.</param>
     /// <param name="index">The zero-based index of the element to get.</param>
     /// <returns>The element at the specified index, or the default value if the index is out of range.</returns>
-    public static T SafeGetIndex<T>(this List<T> collection, int index)
-        => index >= 0 && index < collection.Count ? collection[index] : default!;
+    public static T? SafeGetIndex<T>(this List<T> collection, int index)
+        => index >= 0 && index < collection.Count ? collection[index] : default;
 
     /// <summary>
     ///     Returns the value with the lower absolute value between two values.

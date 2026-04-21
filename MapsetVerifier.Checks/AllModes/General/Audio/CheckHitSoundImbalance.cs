@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Framework.Objects.Resources;
@@ -110,7 +106,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                 if (peaks.Count == 0)
                     continue;
 
-                var leftSum = peaks.Sum(peak => peak?[0] ?? 0);
+                var leftSum = peaks.Sum(peak => (int) peak[0]);
                 var rightSum = peaks.Sum(peak => peak.Length > 1 ? peak[1] : 0);
 
                 if (leftSum == 0 || rightSum == 0)

@@ -86,17 +86,18 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                 var current = redLines[i];
                 var next = redLines.SafeGetIndex(i + 1);
 
+                if (next == null)
+                {
+                    continue;
+                }
+
                 var barlineGap = current.msPerBeat * current.Meter;
-                var distance = (next?.Offset ?? double.MaxValue) - current.Offset;
+                var distance = next.Offset - current.Offset;
 
                 // if the next line has an omit, double barlines can't happen
                 // if the current line has an omit and lasts only 1 measure, double barlines can't happen either
                 // true for not insanely high bpms, but who cares ^
-                if (
-                    next == null
-                    || next.OmitsBarLine
-                    || (current.OmitsBarLine && distance <= barlineGap)
-                )
+                if (next.OmitsBarLine || (current.OmitsBarLine && distance <= barlineGap))
                     continue;
 
                 var rest = distance % barlineGap;

@@ -21,7 +21,7 @@ public class BeatmapController : ControllerBase
             songsFolder = BeatmapService.DetectSongsFolder();
         }
         if (string.IsNullOrWhiteSpace(songsFolder))
-            return NotFound(new ApiError("Songs folder could not be detected.", null, null));
+            return NotFound(new ApiError("Songs folder could not be detected.", null));
 
         if (page < 0) page = 0;
         if (pageSize <= 0) pageSize = 16;
@@ -35,7 +35,7 @@ public class BeatmapController : ControllerBase
 
         // No items: only 404 when first page and no more folders.
         if (page == 0 && !pageResult.HasMore)
-            return NotFound(new ApiError(search != null ? "The search yielded no results." : "No mapsets could be found in the Songs folder.", null, null));
+            return NotFound(new ApiError(search != null ? "The search yielded no results." : "No mapsets could be found in the Songs folder.", null));
 
         // Empty page beyond available results (or intermediate) -> still 200 with empty payload.
         return Ok(pageResult);
@@ -46,7 +46,7 @@ public class BeatmapController : ControllerBase
     {
         var folder = BeatmapService.DetectSongsFolder();
         if (string.IsNullOrWhiteSpace(folder))
-            return NotFound(new ApiError("Songs folder could not be detected.", null, null));
+            return NotFound(new ApiError("Songs folder could not be detected.", null));
         return Ok(new { songsFolder = folder });
     }
 
@@ -58,7 +58,7 @@ public class BeatmapController : ControllerBase
     {
         var result = BeatmapService.GetBeatmapImage(folder, original, songsFolder);
         if (!result.Success)
-            return NotFound(new ApiError(result.ErrorMessage ?? "Image not found", null, null));
+            return NotFound(new ApiError(result.ErrorMessage ?? "Image not found", null));
 
         Response.Headers.CacheControl = "public, max-age=86400";
         if (!string.IsNullOrWhiteSpace(result.ETag))
@@ -85,7 +85,7 @@ public class BeatmapController : ControllerBase
         {
             var result = BeatmapService.GetBeatmapInfo(request.Folder);
             if (result == null)
-                return NotFound(new ApiError("Beatmap info could not be found.", null, null));
+                return NotFound(new ApiError("Beatmap info could not be found.", null));
 
             return Ok(result.Value);
         }
@@ -122,7 +122,7 @@ public class BeatmapController : ControllerBase
                 request.OverrideDifficulty);
 
             if (result == null)
-                return NotFound(new ApiError($"Difficulty '{request.DifficultyName}' not found in beatmap set.", null, null));
+                return NotFound(new ApiError($"Difficulty '{request.DifficultyName}' not found in beatmap set.", null));
 
             return Ok(result);
         }

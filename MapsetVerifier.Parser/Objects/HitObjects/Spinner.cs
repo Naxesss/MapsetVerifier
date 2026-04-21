@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using System.Linq;
 
 namespace MapsetVerifier.Parser.Objects.HitObjects
 {

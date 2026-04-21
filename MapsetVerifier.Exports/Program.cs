@@ -5,7 +5,6 @@ using System.Text.Json.Serialization;
 using MapsetVerifier.Framework;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Metadata;
-using MapsetVerifier.Parser.Objects;
 
 namespace MapsetVerifier.Exports;
 
@@ -121,7 +120,7 @@ internal static class Program
                         formatString = kv.Value.FormatString,
                         defaultArguments = kv
                             .Value.GetDefaultArguments()
-                            .Select(a => a?.ToString())
+                            .Select(a => a.ToString())
                             .ToArray(),
                         cause = kv.Value.Cause,
                     }

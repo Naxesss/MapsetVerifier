@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+﻿using System.Globalization;
 using System.Numerics;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
@@ -78,26 +75,16 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             ReverseAdditions = edgeAdditions.Item6.ToList();
 
             // Non-explicit
-            if (beatmap != null)
-            {
-                RedAnchorPositions = GetRedAnchors().ToList();
-                PathPxPositions = GetPathPxPositions();
-                EndTime = GetEndTime();
-                SliderTickTimes = GetSliderTickTimes();
+            RedAnchorPositions = GetRedAnchors().ToList();
+            PathPxPositions = GetPathPxPositions();
+            EndTime = GetEndTime();
+            SliderTickTimes = GetSliderTickTimes();
 
-                UnstackedEndPosition = EdgeAmount % 2 == 1 ? PathPxPositions.Last() : UnstackedPosition;
+            UnstackedEndPosition = EdgeAmount % 2 == 1 ? PathPxPositions.Last() : UnstackedPosition;
 
-                // Difficulty
-                LazyEndPosition = Position;
-                LazyTravelDistance = 0;
-            }
-            else
-            {
-                RedAnchorPositions = [];
-                PathPxPositions = [];
-                EndTime = 0;
-                SliderTickTimes = [];
-            }
+            // Difficulty
+            LazyEndPosition = Position;
+            LazyTravelDistance = 0;
 
             usedHitSamples = GetUsedHitSamples().ToList();
         }
@@ -372,15 +359,15 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
         /// <summary> Returns the sampleset at a given reverse (starting from 0), optionally prioritizing the addition. </summary>
         public HitSample.SamplesetType GetReverseSampleset(int reverseIndex, bool additionOverrides = false)
         {
-            var theoreticalStart = this.time - beatmap.GetTheoreticalUnsnap(this.time);
-            double time = Timestamp.Round(theoreticalStart + GetCurveDuration() * (reverseIndex + 1));
+            var theoreticalStart = time - beatmap.GetTheoreticalUnsnap(time);
+            double actualTime = Timestamp.Round(theoreticalStart + GetCurveDuration() * (reverseIndex + 1));
 
             // Reverse additions and samplesets do not exist in file version 7 and below, hence ElementAtOrDefault.
             if (additionOverrides && ReverseAdditions.ElementAtOrDefault(reverseIndex) != HitSample.SamplesetType.Auto)
                 return ReverseAdditions.ElementAt(reverseIndex);
 
             if (ReverseSamplesets.ElementAtOrDefault(reverseIndex) == HitSample.SamplesetType.Auto)
-                return beatmap.GetTimingLine(time, true)?.Sampleset ?? HitSample.SamplesetType.Auto;
+                return beatmap.GetTimingLine(actualTime, true)?.Sampleset ?? HitSample.SamplesetType.Auto;
 
             return ReverseSamplesets.ElementAt(reverseIndex);
         }

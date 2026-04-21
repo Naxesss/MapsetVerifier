@@ -22,12 +22,12 @@ public class AudioAnalysisController : ControllerBase
         try
         {
             if (string.IsNullOrWhiteSpace(request.BeatmapSetFolder))
-                return BadRequest(new ApiError("Folder is required.", null, null));
+                return BadRequest(new ApiError("Folder is required.", null));
 
             var result = AudioAnalysisService.AnalyzeAudio(request.BeatmapSetFolder, request.AudioFile);
 
             if (!result.Success)
-                return NotFound(new ApiError(result.ErrorMessage ?? "Audio analysis failed.", null, null));
+                return NotFound(new ApiError(result.ErrorMessage ?? "Audio analysis failed.", null));
 
             return Ok(result);
         }
@@ -47,7 +47,7 @@ public class AudioAnalysisController : ControllerBase
         try
         {
             if (string.IsNullOrWhiteSpace(request.BeatmapSetFolder))
-                return BadRequest(new ApiError("Folder is required.", null, null));
+                return BadRequest(new ApiError("Folder is required.", null));
 
             var result = AudioAnalysisService.GetSpectralAnalysis(
                 request.BeatmapSetFolder,
@@ -73,7 +73,7 @@ public class AudioAnalysisController : ControllerBase
         try
         {
             if (string.IsNullOrWhiteSpace(request.BeatmapSetFolder))
-                return BadRequest(new ApiError("Folder is required.", null, null));
+                return BadRequest(new ApiError("Folder is required.", null));
 
             var result = AudioAnalysisService.GetFrequencyAnalysis(
                 request.BeatmapSetFolder,
@@ -98,7 +98,7 @@ public class AudioAnalysisController : ControllerBase
         try
         {
             if (string.IsNullOrWhiteSpace(request.BeatmapSetFolder))
-                return BadRequest(new ApiError("Folder is required.", null, null));
+                return BadRequest(new ApiError("Folder is required.", null));
 
             var result = AudioAnalysisService.AnalyzeHitSounds(request.BeatmapSetFolder);
             return Ok(result);

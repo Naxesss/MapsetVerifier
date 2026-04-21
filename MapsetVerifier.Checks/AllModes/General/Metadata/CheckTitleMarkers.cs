@@ -112,7 +112,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                 var exactRegex = new Regex(Regex.Escape(correctFormat));
 
                 // Unicode fields do not exist in file version 9, hence null check.
-                if (title != null && approxRegex.IsMatch(title) && !exactRegex.IsMatch(title))
+                if (approxRegex.IsMatch(title) && !exactRegex.IsMatch(title))
                     yield return new Issue(GetTemplate("Problem"), null, Capitalize(titleType.type), title, correctFormat);
             }
         }

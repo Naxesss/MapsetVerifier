@@ -156,10 +156,7 @@ namespace MapsetVerifier.Parser.Objects
 
             DifficultyAttributes = attributes;
 
-            if (attributes != null)
-            {
-                StarRating = attributes.StarRating;
-            }
+            StarRating = attributes.StarRating;
         }
 
         public static void ClearCache()
@@ -873,15 +870,12 @@ namespace MapsetVerifier.Parser.Objects
         /// <summary> Returns the full audio file path the beatmap uses if any such file exists, otherwise null. </summary>
         public string? GetAudioFilePath()
         {
-            if (SongPath != null)
-            {
-                // read the mp3 file tags, if an audio file is specified
-                var audioFileName = GeneralSettings.audioFileName;
-                var mp3Path = SongPath + Path.DirectorySeparatorChar + audioFileName;
+            // read the mp3 file tags, if an audio file is specified
+            var audioFileName = GeneralSettings.audioFileName;
+            var mp3Path = SongPath + Path.DirectorySeparatorChar + audioFileName;
 
-                if (audioFileName.Length > 0 && File.Exists(mp3Path))
-                    return mp3Path;
-            }
+            if (audioFileName.Length > 0 && File.Exists(mp3Path))
+                return mp3Path;
 
             // no audio file
             return null;

@@ -179,6 +179,7 @@ public static class BeatmapService
     /// </summary>
     /// <param name="folder">The folder of the beatmapset where we can find the background</param>
     /// <param name="original">When set to true, return the full-sized background without thumbnail resize</param>
+    /// <param name="songsFolderOverride">Song folder used to when finding the background of a song. When not provided it will try to detect it.</param>
     /// <returns>The background of the beatmapset</returns>
     public static BeatmapImageResult GetBeatmapImage(string folder, bool original = false, string? songsFolderOverride = null)
     {

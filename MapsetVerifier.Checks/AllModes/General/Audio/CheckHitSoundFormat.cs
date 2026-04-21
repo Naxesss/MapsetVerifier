@@ -72,9 +72,6 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
-            if (beatmapSet.HitSoundFiles == null)
-                yield break;
-
             foreach (var hitSoundFile in beatmapSet.HitSoundFiles)
             {
                 var fullPath = Path.Combine(beatmapSet.SongPath, hitSoundFile);
