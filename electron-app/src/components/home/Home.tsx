@@ -1,7 +1,6 @@
-﻿import {Alert, Button, Container, Text} from "@mantine/core";
+﻿import { Alert, Button, Container, Text } from "@mantine/core";
 import { IconLifebuoy } from "@tabler/icons-react";
-import changelog from "../../content/CHANGELOG.md?raw";
-import MantineMarkdown from "../documentation/MantineMarkdown.tsx";
+import Changelog from "./Changelog.tsx";
 
 export default function Home() {
   return (
@@ -39,7 +38,8 @@ export default function Home() {
           Contact Greaper on osu!
         </Button>
       </Alert>
-      <MantineMarkdown>{changelog}</MantineMarkdown>
+
+      <Changelog />
     </Container>
   );
 }
