@@ -1,4 +1,4 @@
-﻿import {Alert, Text, Box, useMantineTheme, Flex, LoadingOverlay, Button, Group, Title, Tooltip} from '@mantine/core';
+import {Alert, Text, Box, useMantineTheme, Flex, LoadingOverlay, Button, Group, Title, Tooltip} from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle, IconPhotoOff, IconRefresh } from '@tabler/icons-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useSnapshots } from './hooks/useSnapshots';
@@ -35,7 +35,7 @@ function Snapshots() {
     songFolder: settings.songFolder,
   });
 
-  const { bgUrl } = useBeatmapBackground(folder);
+  const { bgUrl } = useBeatmapBackground(folder, settings.songFolder);
 
   // Group difficulties by mode (excluding General which is handled separately)
   const groupedDifficulties = useMemo((): ModeGroup[] => {

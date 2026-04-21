@@ -37,7 +37,7 @@ function Checks() {
     songFolder: settings.songFolder,
   });
 
-  const { bgUrl } = useBeatmapBackground(folder);
+  const { bgUrl } = useBeatmapBackground(folder, settings.songFolder);
 
   const {
     overrides,

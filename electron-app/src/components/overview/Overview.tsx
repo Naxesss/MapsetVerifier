@@ -7,6 +7,7 @@ import DifficultyOverview from "./difficulty/DifficultyOverview.tsx";
 import MetadataOverview from "./metadata/MetadataOverview.tsx";
 import ObjectsOverview from "./objects/ObjectsOverview.tsx";
 import {useBeatmap} from "../../context/BeatmapContext.tsx";
+import {useSettings} from "../../context/SettingsContext.tsx";
 import {useBeatmapBackground} from "../checks/hooks/useBeatmapBackground.ts";
 import BeatmapHeader from "../common/BeatmapHeader.tsx";
 
@@ -17,7 +18,8 @@ const TABS: Tab[] = ["Metadata", "Objects", "Beatmap", "Difficulty", "Audio"];
 function Overview() {
   const theme = useMantineTheme();
   const { selectedFolder } = useBeatmap();
-  const { bgUrl, isLoading } = useBeatmapBackground(selectedFolder);
+  const { settings } = useSettings();
+  const { bgUrl, isLoading } = useBeatmapBackground(selectedFolder, settings.songFolder);
   const [activeTab, setActiveTab] = useState<Tab>("Metadata");
   const [reloadFlag, setReloadFlag] = useState(0);
 

@@ -1,4 +1,4 @@
-﻿using MapsetVerifier.Server.Model;
+using MapsetVerifier.Server.Model;
 using MapsetVerifier.Server.Service;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
@@ -51,9 +51,12 @@ public class BeatmapController : ControllerBase
     }
 
     [HttpGet("image")]
-    public ActionResult GetBeatmapImage([FromQuery] string folder, [FromQuery] bool original = false)
+    public ActionResult GetBeatmapImage(
+        [FromQuery] string folder,
+        [FromQuery] bool original = false,
+        [FromQuery] string? songsFolder = null)
     {
-        var result = BeatmapService.GetBeatmapImage(folder, original);
+        var result = BeatmapService.GetBeatmapImage(folder, original, songsFolder);
         if (!result.Success)
             return NotFound(new ApiError(result.ErrorMessage ?? "Image not found", null, null));
 

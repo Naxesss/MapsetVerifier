@@ -1,15 +1,16 @@
-﻿import { Box, Flex, Text } from '@mantine/core';
+import { Box, Flex, Text } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from "react-router-dom";
-import {BACKEND_BASE_URL} from "../../Constants.ts";
 import { useBeatmap } from '../../context/BeatmapContext';
 import { Beatmap } from '../../Types.ts';
+import { buildBeatmapImageUrl } from '../../utils/buildBeatmapFolderPath.ts';
 
 interface BeatmapCardProps {
   beatmap: Beatmap;
+  songFolder?: string;
 }
 
-function BeatmapCard({ beatmap }: BeatmapCardProps) {
+function BeatmapCard({ beatmap, songFolder }: BeatmapCardProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { selectedFolder, setSelectedFolder } = useBeatmap();
@@ -22,7 +23,7 @@ function BeatmapCard({ beatmap }: BeatmapCardProps) {
       return;
     }
 
-    const candidate = `${BACKEND_BASE_URL}/beatmap/image?folder=${encodeURIComponent(beatmap.folder)}`;
+    const candidate = buildBeatmapImageUrl(beatmap.folder, { songFolder });
     let cancelled = false;
     const img = new Image();
 
@@ -40,7 +41,7 @@ function BeatmapCard({ beatmap }: BeatmapCardProps) {
     return () => {
       cancelled = true;
     };
-  }, [beatmap.folder]);
+  }, [beatmap.folder, songFolder]);
 
   const isSelected = selectedFolder === beatmap.folder;
 

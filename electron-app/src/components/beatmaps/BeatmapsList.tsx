@@ -1,4 +1,4 @@
-﻿import {
+import {
   Alert,
   CloseButton,
   Divider,
@@ -201,7 +201,7 @@ export default function BeatmapsList({ songFolder }: Props) {
             <Flex direction="column" gap="xs" w="100%" style={{ justifyContent: 'center' }}>
               {!firstPageLoaded && <PlaceholderBeatmapCard />}
               {beatmaps.map((bm) => (
-                <BeatmapCard key={bm.folder + bm.title} beatmap={bm} />
+                <BeatmapCard key={bm.folder + bm.title} beatmap={bm} songFolder={songFolder} />
               ))}
               <div ref={sentinelRef} style={{ height: 1 }} />
               {showNextPagePlaceholder && <PlaceholderBeatmapCard />}
