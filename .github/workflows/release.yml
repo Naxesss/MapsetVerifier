@@ -123,16 +123,35 @@ jobs:
         shell: cmd
         run: build-sidecars.bat ${{ matrix.sidecar_runtime }}
 
+      - name: Install root dependencies
+        run: npm ci
+    
       - name: Install frontend dependencies
         working-directory: electron-app
-        run: npm install
+        run: npm ci
+    
+      - name: Install Rollup native binary (Linux)
+        if: matrix.runner == 'ubuntu-22.04'
+        working-directory: electron-app
+        run: npm install @rollup/rollup-linux-x64-gnu --no-save
+    
+      - name: Install Rollup native binary (macOS Intel)
+        if: matrix.runner == 'macos-15-intel'
+        working-directory: electron-app
+        run: npm install @rollup/rollup-darwin-x64 --no-save
+    
+      - name: Install Rollup native binary (macOS ARM)
+        if: matrix.runner == 'macos-15'
+        working-directory: electron-app
+        run: npm install @rollup/rollup-darwin-arm64 --no-save
 
+      - name: Rebuild Electron native modules
+        working-directory: electron-app
+        run: npx electron-builder install-app-deps
+    
       - name: Build frontend
         working-directory: electron-app
         run: npm run build
-
-      - name: Install root dependencies
-        run: npm install
 
       - name: Run electron-builder
         env:
