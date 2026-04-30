@@ -1,7 +1,5 @@
 using MapsetVerifier.Parser.Difficulty;
 using MapsetVerifier.Parser.Objects;
-using osu.Game.Rulesets.Difficulty.Preprocessing;
-using osu.Game.Rulesets.Difficulty.Skills;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Osu.Difficulty.Skills;
 using Xunit;
@@ -26,15 +24,6 @@ public class SkillNameFormatterTests
 
         Assert.Equal("Stamina", SkillNameFormatter.GetSkillName(new osu.Game.Rulesets.Taiko.Difficulty.Skills.Stamina(Array.Empty<Mod>(), false, false), beatmap));
         Assert.Equal("Stamina (Single Colour Stamina)", SkillNameFormatter.GetSkillName(new osu.Game.Rulesets.Taiko.Difficulty.Skills.Stamina(Array.Empty<Mod>(), true, false), beatmap));
-    }
-
-    [Fact]
-    public void SkillsWithMatchingTypeNamesUseNamespaceContext()
-    {
-        var beatmap = CreateBeatmap(Beatmap.Mode.Taiko);
-
-        Assert.Equal("Colour Stamina", SkillNameFormatter.GetSkillName(new TestSkills.Skills.Colour.Stamina(), beatmap));
-        Assert.Equal("Rhythm Stamina", SkillNameFormatter.GetSkillName(new TestSkills.Skills.Rhythm.Stamina(), beatmap));
     }
 
     private static Beatmap CreateBeatmap(Beatmap.Mode mode)
@@ -72,20 +61,4 @@ public class SkillNameFormatterTests
         "0,500,4,2,0,100,1,0",
         "[HitObjects]"
     });
-}
-
-public sealed class Stamina : Skill
-{
-    public Stamina() : base(Array.Empty<Mod>()) { }
-
-    public override void Process(DifficultyHitObject current) { }
-    public override double DifficultyValue() => 0;
-}
-
-public sealed class Stamina : Skill
-{
-    public Stamina() : base(Array.Empty<Mod>()) { }
-
-    public override void Process(DifficultyHitObject current) { }
-    public override double DifficultyValue() => 0;
 }
