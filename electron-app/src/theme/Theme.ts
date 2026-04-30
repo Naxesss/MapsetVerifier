@@ -66,9 +66,9 @@ const primary: MantineColorsTuple = [
 ] as const;
 
 const themeOverride = createTheme({
-  fontFamily: 'Inter, sans-serif',
+  fontFamily: 'Nunito, sans-serif',
   headings: {
-    fontFamily: 'Comfortaa, Inter, sans-serif',
+    fontFamily: 'Nunito, sans-serif',
   },
   defaultRadius: 5,
   spacing: {
@@ -89,14 +89,14 @@ const themeOverride = createTheme({
     Modal: {
       styles: {
         title: {
-          fontFamily: 'Comfortaa, Inter, sans-serif',
+          fontFamily: 'Nunito, sans-serif',
         },
       },
     },
     Title: {
       styles: {
         root: {
-          fontFamily: 'Comfortaa, Inter, sans-serif',
+          fontFamily: 'Nunito, sans-serif',
         },
       },
     },
