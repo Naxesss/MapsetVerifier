@@ -1,6 +1,7 @@
 import {
   Alert,
   CloseButton,
+  Collapse,
   Divider,
   Flex,
   TextInput,
@@ -11,7 +12,13 @@ import {
   Tooltip,
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
-import { IconAlertCircle, IconListDetails, IconRefresh, IconSearchOff, IconSettings } from '@tabler/icons-react';
+import {
+  IconAlertCircle,
+  IconListDetails,
+  IconRefresh,
+  IconSearchOff,
+  IconSettings,
+} from '@tabler/icons-react';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import BeatmapCard from './BeatmapCard.tsx';
@@ -80,6 +87,14 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
   const lastPage = data?.pages[data.pages.length - 1];
   const showNextPagePlaceholder =
     isFetchingNextPage || (lastPage && lastPage.items.length === 0 && lastPage.hasMore);
+  const stableCurrentResult =
+    stableCurrentQuery.data &&
+    stableCurrentQuery.data.status === 'folder_found' &&
+    stableCurrentQuery.data.beatmap &&
+    stableCurrentQuery.data.folderPath &&
+    stableCurrentQuery.data.lookupRoot
+      ? stableCurrentQuery.data
+      : null;
 
   useEffect(() => {
     if (!lastPage) return;
@@ -154,20 +169,21 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
     if (!songFolder)
       return null;
 
-    const result = stableCurrentQuery.data;
-    if (!result || result.status !== 'folder_found' || !result.beatmap || !result.folderPath || !result.lookupRoot)
-      return null;
-
     return (
-      <>
-        <BeatmapCard
-          beatmap={result.beatmap}
-          songFolder={result.lookupRoot}
-          isSelectedOverride={selectedFolderPath === result.folderPath}
-          onSelect={() => setSelectedFolderPath(result.folderPath ?? undefined)}
-        />
-        <Divider my="sm" />
-        </>
+      <Collapse in={!!stableCurrentResult}>
+        {stableCurrentResult && (
+          <>
+          <Text size="xs" fw={500} my="sm" ml="sm" c="dimmed">Current beatmap</Text>
+          <BeatmapCard
+            beatmap={stableCurrentResult.beatmap!}
+            songFolder={stableCurrentResult.lookupRoot ?? undefined}
+            isSelectedOverride={selectedFolderPath === stableCurrentResult.folderPath}
+            onSelect={() => setSelectedFolderPath(stableCurrentResult.folderPath ?? undefined)}
+          />
+          <Divider my="sm" />
+          </>
+        )}
+        </Collapse>
     );
   };
 
