@@ -569,6 +569,7 @@ namespace MapsetVerifier.Parser.Objects
         /// </summary>
         public Difficulty GetDifficulty()
         {
+            var difficultyFromStarRating = GetDifficultyFromStarRating();
             var difficultyFromName = GetDifficultyFromName();
             if (difficultyFromName == null && GeneralSettings.mode is Mode.Catch or Mode.Mania)
             {
@@ -578,20 +579,30 @@ namespace MapsetVerifier.Parser.Objects
 
             if (difficultyFromName != null)
             {
-                return (Difficulty) difficultyFromName;
+                var interpretedDifficulty = (Difficulty)difficultyFromName;
+                // Keep existing name-first behavior, except for broad osu!taiko "Oni" labels where SR clearly maps to Expert.
+                if (GeneralSettings.mode == Mode.Taiko &&
+                    interpretedDifficulty == Difficulty.Insane &&
+                    difficultyFromStarRating >= Difficulty.Expert)
+                {
+                    return difficultyFromStarRating;
+                }
+
+                return interpretedDifficulty;
             }
             
             // We can't determine the difficulty by name so instead use star rating
-            Difficulty difficulty;
+            return difficultyFromStarRating;
+        }
 
-            if (StarRating < 2.0f) difficulty = Difficulty.Easy;
-            else if (StarRating < 2.7f) difficulty = Difficulty.Normal;
-            else if (StarRating < 4.0f) difficulty = Difficulty.Hard;
-            else if (StarRating < 5.3f) difficulty = Difficulty.Insane;
-            else if (StarRating < 6.5f) difficulty = Difficulty.Expert;
-            else difficulty = Difficulty.Ultra;
-
-            return difficulty;
+        private Difficulty GetDifficultyFromStarRating()
+        {
+            if (StarRating < 2.0f) return Difficulty.Easy;
+            if (StarRating < 2.7f) return Difficulty.Normal;
+            if (StarRating < 4.0f) return Difficulty.Hard;
+            if (StarRating < 5.3f) return Difficulty.Insane;
+            if (StarRating < 6.5f) return Difficulty.Expert;
+            return Difficulty.Ultra;
         }
 
         public Difficulty? GetDifficultyFromName()
