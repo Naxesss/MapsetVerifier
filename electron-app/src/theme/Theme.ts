@@ -1,4 +1,4 @@
-﻿import { createTheme, DEFAULT_THEME, MantineColorsTuple, mergeMantineTheme } from '@mantine/core';
+import { createTheme, DEFAULT_THEME, MantineColorsTuple, mergeMantineTheme } from '@mantine/core';
 
 const blue: MantineColorsTuple = [
   '#e0fbff',
@@ -86,6 +86,36 @@ const themeOverride = createTheme({
     primary: primary,
   },
   components: {
+    NavLink: {
+      styles: {
+        root: {
+          transition: 'all 0.1s ease',
+          '&:hover': {
+            transform: 'translateY(-2px)',
+          },
+        },
+      },
+    },
+    Button: {
+      styles: {
+        root: {
+          transition: 'all 0.1s ease',
+          '&:hover': {
+            transform: 'translateY(-2px)',
+          },
+        },
+      },
+    },
+    ActionIcon: {
+      styles: {
+        root: {
+          transition: 'all 0.1s ease',
+          '&:hover': {
+            transform: 'translateY(-2px)',
+          },
+        },
+      },
+    },
     Modal: {
       styles: {
         title: {
