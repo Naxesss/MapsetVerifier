@@ -115,7 +115,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
             label={
               <Group gap="xs" align="center">
                 <IconAlertTriangle size={16} color="var(--mantine-color-yellow-5)" />
-                Experimental (osu!lazer local lookup)
+                osu!(lazer) support <Text size="xs" c="yellow">(experimental)</Text>
               </Group>
             }
             checked={lazerLookupEnabled}
