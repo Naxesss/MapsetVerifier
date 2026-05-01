@@ -145,8 +145,8 @@ public static class CurrentBeatmapLookupService
         if (resolved == null)
         {
             var message = liveMetadata == null
-                ? "Using the last detected beatmap. In the osu! editor, go to File -> Edit externally to load the beatmap."
-                : "Beatmap detected. In the osu! editor, go to File -> Edit externally to load the beatmap.";
+                ? "Using the last detected beatmap. In the osu! editor, go to File → Edit externally to load the beatmap."
+                : "Beatmap detected. In the osu! editor, go to File → Edit externally to load the beatmap.";
 
             return new ApiLazerLookupResult("metadata_detected", message, metadata, null, null, null);
         }

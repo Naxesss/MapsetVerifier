@@ -50,7 +50,7 @@ export default function LazerBeatmapsPanel() {
     return (
       <Flex direction="column" gap="sm">
         <Alert icon={<IconInfoCircle />} color="blue" title="Instructions" variant="light">
-          In the editor, go to <strong>File -&gt; Edit externally</strong>. This allows MV to detect and parse the current map.
+          In the editor, go to <strong>File → Edit externally</strong>. This allows MV to detect and parse the current map.
         </Alert>
         <Alert icon={<IconListDetails />} color={infoColor} title="Detected beatmap" variant="light">
           <Text size="sm">{metadata}</Text>
