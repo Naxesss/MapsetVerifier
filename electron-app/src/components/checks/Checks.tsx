@@ -1,4 +1,4 @@
-import { Alert, Text, Box, useMantineTheme, Group, Flex, LoadingOverlay } from '@mantine/core';
+import { Alert, Text, Box, useMantineTheme, Group, Flex, LoadingOverlay, Collapse } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
 import React, { useEffect, useMemo } from 'react';
 import BeatmapActionButtons from './BeatmapActionButtons';
@@ -21,13 +21,18 @@ function Checks() {
   const { selectedFolder: folder, beatmapInfo, refetchBeatmapInfo } = useBeatmap();
   const { settings } = useSettings();
   const [selectedCategory, setSelectedCategory] = React.useState<string | undefined>('General');
+  const [displayedCategory, setDisplayedCategory] = React.useState<string | undefined>('General');
+  const [isDifficultyContentVisible, setIsDifficultyContentVisible] = React.useState(true);
   const [hoveredDifficulty, setHoveredDifficulty] = React.useState<ApiCategoryCheckResult | undefined>(undefined);
   const [selectedMode, setSelectedMode] = React.useState<Mode | undefined>();
+  const difficultyTransitionDurationMs = 220;
   
   useEffect(() => {
     // Reset selected category when changing beatmap
     if (folder) {
       setSelectedCategory('General');
+      setDisplayedCategory('General');
+      setIsDifficultyContentVisible(true);
       setHoveredDifficulty(undefined);
     }
   }, [folder])
@@ -50,8 +55,40 @@ function Checks() {
   } = useDifficultyOverride({ beatmapFolderPath });
 
   const selectedDifficulty = data?.difficulties?.find((d) => d.category === selectedCategory);
-  const currentOverrideResult = selectedCategory ? getOverrideResult(selectedCategory) : undefined;
-  const currentOverrideLevel = selectedCategory ? getOverrideLevel(selectedCategory) : undefined;
+  const displayedDifficulty = data?.difficulties?.find((d) => d.category === displayedCategory);
+  const selectedOverrideResult = selectedCategory ? getOverrideResult(selectedCategory) : undefined;
+  const displayedOverrideResult = displayedCategory ? getOverrideResult(displayedCategory) : undefined;
+  const currentOverrideLevel = displayedCategory ? getOverrideLevel(displayedCategory) : undefined;
+
+  useEffect(() => {
+    if (!data) return;
+
+    const nextCategory = selectedCategory ?? 'General';
+    const categoryExists =
+      nextCategory === 'General' || data.difficulties.some((difficulty) => difficulty.category === nextCategory);
+
+    if (!categoryExists) {
+      setSelectedCategory('General');
+      setDisplayedCategory('General');
+      setIsDifficultyContentVisible(true);
+      return;
+    }
+
+    if (displayedCategory === nextCategory) {
+      setIsDifficultyContentVisible(true);
+      return;
+    }
+
+    setIsDifficultyContentVisible(false);
+  }, [data, selectedCategory, displayedCategory]);
+
+  const handleDifficultyContentTransitionEnd = React.useCallback(() => {
+    if (isDifficultyContentVisible) return;
+
+    const nextCategory = selectedCategory ?? 'General';
+    setDisplayedCategory(nextCategory);
+    setIsDifficultyContentVisible(true);
+  }, [isDifficultyContentVisible, selectedCategory]);
 
   const categoryHighestLevels = useMemo(() => {
     if (!data) return {};
@@ -183,31 +220,38 @@ function Checks() {
             hoveredDifficulty={hoveredDifficulty}
             selectedCategory={selectedCategory}
             categoryHighestLevels={categoryHighestLevels}
-            currentOverrideResult={currentOverrideResult}
+            currentOverrideResult={selectedOverrideResult}
           />
-          {selectedDifficulty && (
-            <DifficultyLevelOverride
-              selectedDifficulty={selectedDifficulty}
-              currentOverrideLevel={currentOverrideLevel}
-              isLoading={isOverrideLoading}
-              onOverrideChange={(category, level) => {
-                if (level === null) {
-                  clearOverride(category);
-                } else {
-                  applyOverride(category, level);
-                }
-              }}
+          <Collapse
+            in={isDifficultyContentVisible}
+            transitionDuration={difficultyTransitionDurationMs}
+            animateOpacity={false}
+            onTransitionEnd={handleDifficultyContentTransitionEnd}
+          >
+            {displayedDifficulty && (
+              <DifficultyLevelOverride
+                selectedDifficulty={displayedDifficulty}
+                currentOverrideLevel={currentOverrideLevel}
+                isLoading={isOverrideLoading}
+                onOverrideChange={(category, level) => {
+                  if (level === null) {
+                    clearOverride(category);
+                  } else {
+                    applyOverride(category, level);
+                  }
+                }}
+              />
+            )}
+            <ChecksResults
+              data={data}
+              isLoading={isLoading}
+              isError={isError}
+              error={error}
+              showMinor={settings.showMinor}
+              selectedCategory={displayedCategory}
+              overrideResult={displayedOverrideResult}
             />
-          )}
-          <ChecksResults
-            data={data}
-            isLoading={isLoading}
-            isError={isError}
-            error={error}
-            showMinor={settings.showMinor}
-            selectedCategory={selectedCategory}
-            overrideResult={currentOverrideResult}
-          />
+          </Collapse>
         </Flex>
       )}
     </Box>
