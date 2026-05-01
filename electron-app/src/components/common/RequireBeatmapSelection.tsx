@@ -9,7 +9,7 @@ function RequireBeatmapSelection() {
   if (!selectedFolder) {
     return (
       <Alert title="No beatmapset selected" color="yellow" icon={<IconAlertTriangle />}>
-        To use this page you first need to select a beatmapset on the left side menu.
+        You need to select a beatmapset on the left side menu.
       </Alert>
     )
   }
