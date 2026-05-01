@@ -1,5 +1,5 @@
 ﻿import { Modal, Button, TextInput, Switch, Group, Stack, Alert, Divider, Text } from '@mantine/core';
-import { IconAlertTriangle, IconNote } from '@tabler/icons-react';
+import { IconAlertTriangle, IconNote, IconRefresh } from '@tabler/icons-react';
 import React, { useEffect, useState } from 'react';
 import LazerLookupWarningModal from './LazerLookupWarningModal';
 import { useSettings } from '../../context/SettingsContext';
@@ -24,7 +24,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
   const [lazerWarningOpened, setLazerWarningOpened] = useState(false);
 
   // Keep local state in sync when modal is opened or settings change asynchronously
-  React.useEffect(() => {
+  useEffect(() => {
     if (opened) {
       setSongFolder(settings.songFolder ?? '');
       setShowMinor(settings.showMinor);
@@ -34,27 +34,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
       setLazerLookupEnabled(settings.lazerLookupEnabled);
       setGateInDev(settings.gateInDev);
     }
-  }, [opened, settings.songFolder, settings.showMinor, settings.lazerLookupEnabled, settings.gateInDev]);
-
-  const handleSave = () => {
-    setSettings((prev) => ({
-      ...prev,
-      songFolder,
-      showMinor,
-      showGamemodeDifficultyNames,
-      showSnapshotDiffView,
-      showAdvancedAudioAnalysis,
-      lazerLookupEnabled,
-      gateInDev
-    }));
-    onClose();
-  };
+  }, [
+    opened,
+    settings.songFolder,
+    settings.showMinor,
+    settings.showGamemodeDifficultyNames,
+    settings.showSnapshotDiffView,
+    settings.showAdvancedAudioAnalysis,
+    settings.lazerLookupEnabled,
+    settings.gateInDev,
+  ]);
 
   const pickFolder = async () => {
     try {
       const result = await window.electronAPI?.dialog.openFolder();
       if (typeof result === 'string') {
         setSongFolder(result);
+        setSettings((prev) => ({ ...prev, songFolder: result }));
       }
     } catch (e: any) {
       console.error('[SettingsModal] Folder pick failed:', e);
@@ -94,28 +90,44 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
               </Group>
             }
             checked={showMinor}
-            onChange={(e) => setShowMinor(e.currentTarget.checked)}
+            onChange={(e) => {
+              const checked = e.currentTarget.checked;
+              setShowMinor(checked);
+              setSettings((prev) => ({ ...prev, showMinor: checked }));
+            }}
           />
           <Switch
-            label="Show Gamemode difficulty names"
+            label="Use difficulty names from corresponding game modes"
             checked={showGamemodeDifficultyNames}
-            onChange={(e) => setShowGamemodeDifficultyNames(e.currentTarget.checked)}
+            onChange={(e) => {
+              const checked = e.currentTarget.checked;
+              setShowGamemodeDifficultyNames(checked);
+              setSettings((prev) => ({ ...prev, showGamemodeDifficultyNames: checked }));
+            }}
           />
           <Switch
             label="Show additional info in snapshot comparison"
             checked={showSnapshotDiffView}
-            onChange={(e) => setShowSnapshotDiffView(e.currentTarget.checked)}
+            onChange={(e) => {
+              const checked = e.currentTarget.checked;
+              setShowSnapshotDiffView(checked);
+              setSettings((prev) => ({ ...prev, showSnapshotDiffView: checked }));
+            }}
           />
           <Switch
             label="Show advanced audio analysis"
             checked={showAdvancedAudioAnalysis}
-            onChange={(e) => setShowAdvancedAudioAnalysis(e.currentTarget.checked)}
+            onChange={(e) => {
+              const checked = e.currentTarget.checked;
+              setShowAdvancedAudioAnalysis(checked);
+              setSettings((prev) => ({ ...prev, showAdvancedAudioAnalysis: checked }));
+            }}
           />
           <Switch
             label={
               <Group gap="xs" align="center">
                 <IconAlertTriangle size={16} color="var(--mantine-color-yellow-5)" />
-                osu!(lazer) support <Text size="xs" c="yellow">(experimental)</Text>
+                <Text size="xs" c="yellow">(experimental)</Text> osu!(lazer) support
               </Group>
             }
             checked={lazerLookupEnabled}
@@ -123,6 +135,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
               const checked = e.currentTarget.checked;
               if (!checked) {
                 setLazerLookupEnabled(false);
+                setSettings((prev) => ({ ...prev, lazerLookupEnabled: false }));
                 return;
               }
               if (!lazerLookupEnabled) {
@@ -138,7 +151,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
                 Current version: {currentVersion}
               </Text>
             </div>
-            <Button variant="light" onClick={() => void openUpdater()}>
+            <Button leftSection={<IconRefresh size={18} />} variant="light" onClick={() => void openUpdater()}>
               Check for updates
             </Button>
           </Group>
@@ -152,7 +165,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
                 <Switch
                   label="Gate backend in DEV (start sidecar port 5005)"
                   checked={gateInDev}
-                  onChange={(e) => setGateInDev(e.currentTarget.checked)}
+                  onChange={(e) => {
+                    const checked = e.currentTarget.checked;
+                    setGateInDev(checked);
+                    setSettings((prev) => ({ ...prev, gateInDev: checked }));
+                  }}
                 />
                 <Alert icon={<IconNote />} title="Note" color="yellow" variant="light">
                   <Group gap="sm">
@@ -164,14 +181,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
               </Stack>
             </>
           )}
-          <Group justify="flex-end">
-            <Button onClick={handleSave} variant="filled">
-              Save
-            </Button>
-            <Button onClick={onClose} variant="light">
-              Cancel
-            </Button>
-          </Group>
         </Stack>
       </Modal>
       <LazerLookupWarningModal
@@ -179,6 +188,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
         onCancel={() => setLazerWarningOpened(false)}
         onConfirm={() => {
           setLazerLookupEnabled(true);
+          setSettings((prev) => ({ ...prev, lazerLookupEnabled: true }));
           setLazerWarningOpened(false);
         }}
       />
