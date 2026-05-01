@@ -42,10 +42,10 @@ function AudioOverview({ reloadFlag }: AudioOverviewProps) {
     frequencyRefetch();
   }, [reloadFlag]);
 
-  if (!settings.songFolder) {
+  if (!folder) {
     return (
-      <Alert icon={<IconAlertTriangle />} color="yellow" title="Song folder not set">
-        <Text size="sm">Please set the song folder in settings to analyze audio.</Text>
+      <Alert icon={<IconAlertTriangle />} color="yellow" title="No beatmapset selected">
+        <Text size="sm">Select a beatmapset from the sidebar to analyze audio.</Text>
       </Alert>
     );
   }
@@ -88,7 +88,7 @@ function AudioOverview({ reloadFlag }: AudioOverviewProps) {
           <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="md">
             {data.formatAnalysis && <FormatInfo data={data.formatAnalysis} audioFilePath={data.audioFilePath} />}
             {data.bitrateAnalysis && <BitrateGraph data={data.bitrateAnalysis} durationMs={durationMs} />}
-            <Spectrogram folder={folder!} songFolder={settings.songFolder} />
+            <Spectrogram folder={folder} songFolder={settings.songFolder ?? ''} />
           </SimpleGrid>
 
           {settings.showAdvancedAudioAnalysis &&

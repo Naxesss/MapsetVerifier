@@ -50,6 +50,20 @@ public class BeatmapController : ControllerBase
         return Ok(new { songsFolder = folder });
     }
 
+    [HttpGet("lazer/current")]
+    public ActionResult<ApiLazerLookupResult> GetCurrentLazerBeatmap()
+    {
+        var result = BeatmapService.GetCurrentLazerBeatmap();
+        return Ok(result);
+    }
+
+    [HttpGet("stable/current")]
+    public ActionResult<ApiLazerLookupResult> GetCurrentStableBeatmap([FromQuery] string? songsFolder = null)
+    {
+        var result = BeatmapService.GetCurrentStableBeatmap(songsFolder);
+        return Ok(result);
+    }
+
     [HttpGet("image")]
     public ActionResult GetBeatmapImage(
         [FromQuery] string folder,

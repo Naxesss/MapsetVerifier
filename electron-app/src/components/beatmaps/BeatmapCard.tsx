@@ -8,9 +8,11 @@ import { buildBeatmapImageUrl } from '../../utils/buildBeatmapFolderPath.ts';
 interface BeatmapCardProps {
   beatmap: Beatmap;
   songFolder?: string;
+  onSelect?: () => void;
+  isSelectedOverride?: boolean;
 }
 
-function BeatmapCard({ beatmap, songFolder }: BeatmapCardProps) {
+function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: BeatmapCardProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { selectedFolder, setSelectedFolder } = useBeatmap();
@@ -43,7 +45,7 @@ function BeatmapCard({ beatmap, songFolder }: BeatmapCardProps) {
     };
   }, [beatmap.folder, songFolder]);
 
-  const isSelected = selectedFolder === beatmap.folder;
+  const isSelected = isSelectedOverride ?? (selectedFolder === beatmap.folder);
 
   const transitionMs = '0.22s ease';
   const active = isSelected || isHovered;
@@ -77,7 +79,11 @@ function BeatmapCard({ beatmap, songFolder }: BeatmapCardProps) {
         transition: `border-color ${transitionMs}, box-shadow ${transitionMs}`,
       }}
       onClick={() => {
-        setSelectedFolder(beatmap.folder)
+        if (onSelect) {
+          onSelect();
+        } else {
+          setSelectedFolder(beatmap.folder);
+        }
         // No page open that uses a beatmap, redirect to checks page as default
         if (location.pathname !== '/checks' && location.pathname !== '/snapshots' && location.pathname !== '/overview') {
           navigate('/checks', { viewTransition: true });

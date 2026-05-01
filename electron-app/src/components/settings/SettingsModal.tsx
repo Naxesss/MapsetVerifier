@@ -1,6 +1,7 @@
 ﻿import { Modal, Button, TextInput, Switch, Group, Stack, Alert, Divider, Text } from '@mantine/core';
-import { IconNote } from '@tabler/icons-react';
+import { IconAlertTriangle, IconNote } from '@tabler/icons-react';
 import React, { useEffect, useState } from 'react';
+import LazerLookupWarningModal from './LazerLookupWarningModal';
 import { useSettings } from '../../context/SettingsContext';
 import { useUpdater } from '../../context/UpdaterContext';
 import MinorIcon from '../icons/MinorIcon';
@@ -18,7 +19,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
   const [showGamemodeDifficultyNames, setShowGamemodeDifficultyNames] = useState(settings.showGamemodeDifficultyNames);
   const [showSnapshotDiffView, setShowSnapshotDiffView] = useState(settings.showSnapshotDiffView);
   const [showAdvancedAudioAnalysis, setShowAdvancedAudioAnalysis] = useState(settings.showAdvancedAudioAnalysis);
+  const [lazerLookupEnabled, setLazerLookupEnabled] = useState(settings.lazerLookupEnabled);
   const [gateInDev, setGateInDev] = useState(settings.gateInDev);
+  const [lazerWarningOpened, setLazerWarningOpened] = useState(false);
 
   // Keep local state in sync when modal is opened or settings change asynchronously
   React.useEffect(() => {
@@ -28,9 +31,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
       setShowGamemodeDifficultyNames(settings.showGamemodeDifficultyNames);
       setShowSnapshotDiffView(settings.showSnapshotDiffView);
       setShowAdvancedAudioAnalysis(settings.showAdvancedAudioAnalysis);
+      setLazerLookupEnabled(settings.lazerLookupEnabled);
       setGateInDev(settings.gateInDev);
     }
-  }, [opened, settings.songFolder, settings.showMinor, settings.gateInDev]);
+  }, [opened, settings.songFolder, settings.showMinor, settings.lazerLookupEnabled, settings.gateInDev]);
 
   const handleSave = () => {
     setSettings((prev) => ({
@@ -40,6 +44,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
       showGamemodeDifficultyNames,
       showSnapshotDiffView,
       showAdvancedAudioAnalysis,
+      lazerLookupEnabled,
       gateInDev
     }));
     onClose();
@@ -106,6 +111,25 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
             checked={showAdvancedAudioAnalysis}
             onChange={(e) => setShowAdvancedAudioAnalysis(e.currentTarget.checked)}
           />
+          <Switch
+            label={
+              <Group gap="xs" align="center">
+                <IconAlertTriangle size={16} color="var(--mantine-color-yellow-5)" />
+                Experimental (osu!lazer local lookup)
+              </Group>
+            }
+            checked={lazerLookupEnabled}
+            onChange={(e) => {
+              const checked = e.currentTarget.checked;
+              if (!checked) {
+                setLazerLookupEnabled(false);
+                return;
+              }
+              if (!lazerLookupEnabled) {
+                setLazerWarningOpened(true);
+              }
+            }}
+          />
           <Divider my="xs" />
           <Group justify="space-between" align="end">
             <div>
@@ -150,6 +174,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
           </Group>
         </Stack>
       </Modal>
+      <LazerLookupWarningModal
+        opened={lazerWarningOpened}
+        onCancel={() => setLazerWarningOpened(false)}
+        onConfirm={() => {
+          setLazerLookupEnabled(true);
+          setLazerWarningOpened(false);
+        }}
+      />
     </>
   );
 };

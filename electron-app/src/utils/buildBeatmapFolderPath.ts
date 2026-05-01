@@ -2,7 +2,14 @@ import { BACKEND_BASE_URL } from '../Constants.ts';
 
 export function buildBeatmapFolderPath(songFolder?: string, folder?: string): string | undefined {
   if (!songFolder || !folder) {
+    if (folder && /^(?:[A-Za-z]:[\\/]|\\\\|\/)/.test(folder)) {
+      return folder;
+    }
     return undefined;
+  }
+
+  if (/^(?:[A-Za-z]:[\\/]|\\\\|\/)/.test(folder)) {
+    return folder;
   }
 
   const separator = songFolder.includes('\\') && !songFolder.includes('/') ? '\\' : '/';

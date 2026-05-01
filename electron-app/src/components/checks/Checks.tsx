@@ -106,7 +106,7 @@ function Checks() {
   }, [data?.difficulties]);
   const selectedGroup = groupedDifficulties.find((g) => g.mode === selectedMode) ?? groupedDifficulties[0];
 
-  if (!settings.songFolder) {
+  if (!folder) {
     return (
       <Alert icon={<IconAlertTriangle />} color="yellow" title="Song folder not set" withCloseButton>
         <Text size="sm">Please set the song folder in settings to run beatmap checks.</Text>

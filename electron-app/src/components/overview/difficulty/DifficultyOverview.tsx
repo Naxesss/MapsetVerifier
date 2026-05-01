@@ -74,10 +74,10 @@ function DifficultyOverview({ reloadFlag }: DifficultyOverviewProps) {
     [selectedDifficulties],
   );
 
-  if (!settings.songFolder) {
+  if (!folder) {
     return (
-      <Alert icon={<IconAlertTriangle />} color="yellow" title="Song folder not set">
-        <Text size="sm">Please set the song folder in settings to analyze difficulty data.</Text>
+      <Alert icon={<IconAlertTriangle />} color="yellow" title="No beatmapset selected">
+        <Text size="sm">Select a beatmapset from the sidebar to analyze difficulty data.</Text>
       </Alert>
     );
   }

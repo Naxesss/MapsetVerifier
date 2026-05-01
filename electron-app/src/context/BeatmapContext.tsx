@@ -9,6 +9,9 @@ import type { ApiBeatmapInfo } from '../Types.ts';
 interface BeatmapContextType {
   selectedFolder: string | undefined;
   setSelectedFolder: (folder: string | undefined) => void;
+  selectedFolderPath: string | undefined;
+  setSelectedFolderPath: (folderPath: string | undefined) => void;
+  activeSongFolder: string | undefined;
   beatmapFolderPath: string | undefined;
   beatmapInfo: ApiBeatmapInfo | undefined;
   isBeatmapInfoLoading: boolean;
@@ -21,10 +24,16 @@ const BeatmapContext = createContext<BeatmapContextType | undefined>(undefined);
 export const BeatmapProvider = ({ children }: { children: ReactNode }) => {
   const { settings } = useSettings();
   const [selectedFolder, setSelectedFolder] = useState<string | undefined>(undefined);
+  const [selectedFolderPath, setSelectedFolderPath] = useState<string | undefined>(undefined);
+  const [selectedSongFolder, setSelectedSongFolder] = useState<string | undefined>(undefined);
+
+  const activeSongFolder = selectedSongFolder ?? settings.songFolder;
 
   const beatmapFolderPath = useMemo(() => {
-    return buildBeatmapFolderPath(settings.songFolder, selectedFolder);
-  }, [selectedFolder, settings.songFolder]);
+    if (selectedFolderPath)
+      return selectedFolderPath;
+    return buildBeatmapFolderPath(activeSongFolder, selectedFolder);
+  }, [selectedFolderPath, activeSongFolder, selectedFolder]);
 
   const beatmapInfoQuery = useQuery<ApiBeatmapInfo, FetchError>({
     queryKey: ['beatmap-info', beatmapFolderPath || 'unavailable'],
@@ -43,7 +52,23 @@ export const BeatmapProvider = ({ children }: { children: ReactNode }) => {
     <BeatmapContext.Provider
       value={{
         selectedFolder,
-        setSelectedFolder,
+        setSelectedFolder: (folder) => {
+          setSelectedFolder(folder);
+          setSelectedFolderPath(undefined);
+          setSelectedSongFolder(undefined);
+        },
+        selectedFolderPath,
+        setSelectedFolderPath: (folderPath) => {
+          setSelectedFolderPath(folderPath);
+          if (folderPath)
+          {
+            setSelectedFolder(folderPath);
+            setSelectedSongFolder(undefined);
+            return;
+          }
+          setSelectedSongFolder(undefined);
+        },
+        activeSongFolder,
         beatmapFolderPath,
         beatmapInfo: beatmapFolderPath ? beatmapInfoQuery.data : undefined,
         isBeatmapInfoLoading: !!beatmapFolderPath && beatmapInfoQuery.isLoading,

@@ -3,6 +3,7 @@ using MapsetVerifier.Framework;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Server.Model;
+using MapsetVerifier.Server.Service.OsuRuntime;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Formats.Png;
@@ -69,6 +70,12 @@ public static class BeatmapService
             return songsFolderOverride;
         return DetectSongsFolder();
     }
+
+    public static ApiLazerLookupResult GetCurrentLazerBeatmap()
+        => CurrentBeatmapLookupService.GetCurrentLazerBeatmap();
+
+    public static ApiLazerLookupResult GetCurrentStableBeatmap(string? songsFolderOverride)
+        => CurrentBeatmapLookupService.GetCurrentStableBeatmap(songsFolderOverride);
 
     public static ApiBeatmapPage GetBeatmaps(string songsFolder, string? search, int page, int pageSize)
     {
@@ -270,6 +277,7 @@ public static class BeatmapService
     }
 
     private static bool IsSupportedImageFile(string filePath) => SupportedImageExtensions.Contains(Path.GetExtension(filePath).ToLowerInvariant());
+
 
     public static ApiBeatmapSetCheckResult RunBeatmapSetChecks(string beatmapSetFolder)
     {

@@ -10,8 +10,9 @@ export default function Beatmaps() {
   const [settingsOpened, setSettingsOpened] = useState(false);
 
   const songFolder = settings.songFolder;
+  const lazerLookupEnabled = settings.lazerLookupEnabled;
 
-  if (!songFolder) {
+  if (!songFolder && !lazerLookupEnabled) {
     return (
       <>
         <Alert icon={<IconAlertTriangle />} title="Song folder not set" color="yellow">
@@ -28,7 +29,9 @@ export default function Beatmaps() {
   }
 
   return (
-    // Provide fallback empty string to satisfy required prop
-    <BeatmapsList songFolder={settings.songFolder || ''} />
+    <>
+      <BeatmapsList songFolder={settings.songFolder} lazerLookupEnabled={lazerLookupEnabled} onOpenSettings={() => setSettingsOpened(true)} />
+      <SettingsModal opened={settingsOpened} onClose={() => setSettingsOpened(false)} />
+    </>
   );
 }

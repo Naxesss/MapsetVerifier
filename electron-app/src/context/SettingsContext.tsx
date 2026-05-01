@@ -8,6 +8,7 @@ export type Settings = {
   showGamemodeDifficultyNames: boolean;
   showSnapshotDiffView: boolean;
   showAdvancedAudioAnalysis: boolean;
+  lazerLookupEnabled: boolean;
   // DEV-only: whether to gate Backend in development mode
   gateInDev: boolean;
 };
@@ -24,6 +25,7 @@ const defaultSettings: Settings = {
   showGamemodeDifficultyNames: true,
   showSnapshotDiffView: false,
   showAdvancedAudioAnalysis: false,
+  lazerLookupEnabled: false,
   gateInDev: false,
 };
 
@@ -45,6 +47,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
       const loaded = JSON.parse(text);
+      // Backward compatibility for old key naming.
+      if (loaded?.lazerLookupEnabled === undefined && loaded?.experimentalLazerLookup !== undefined) {
+        loaded.lazerLookupEnabled = loaded.experimentalLazerLookup;
+      }
       // Merge loaded settings with defaults to ensure new keys exist
       setSettings({ ...defaultSettings, ...loaded });
     } catch (e) {

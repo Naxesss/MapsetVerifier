@@ -2,7 +2,8 @@ import {
   ApiBeatmapPage,
   ApiBeatmapInfo,
   ApiBeatmapSetCheckResult,
-  ApiCategoryOverrideCheckResult
+  ApiCategoryOverrideCheckResult,
+  ApiLazerLookupResult
 } from '../Types.ts';
 import { apiFetch, FetchError } from './ApiHelper.ts';
 
@@ -40,6 +41,35 @@ const BeatmapApi = {
         const message = data?.message || data?.error || raw || `HTTP ${response.status}`;
         const stackTrace = data?.stackTrace;
         throw new FetchError(response, message, stackTrace);
+      }
+    });
+  },
+  getLazerCurrent: async function getLazerCurrent() {
+    return apiFetch('/beatmap/lazer/current').then(async (response) => {
+      const data = await response.json();
+
+      if (response.ok) {
+        return data as ApiLazerLookupResult;
+      } else {
+        throw new FetchError(response);
+      }
+    });
+  },
+  getStableCurrent: async function getStableCurrent(songFolder?: string) {
+    const params = new URLSearchParams();
+    if (songFolder) {
+      params.set('songsFolder', songFolder);
+    }
+
+    const query = params.toString();
+    const path = query ? `/beatmap/stable/current?${query}` : '/beatmap/stable/current';
+    return apiFetch(path).then(async (response) => {
+      const data = await response.json();
+
+      if (response.ok) {
+        return data as ApiLazerLookupResult;
+      } else {
+        throw new FetchError(response);
       }
     });
   },
