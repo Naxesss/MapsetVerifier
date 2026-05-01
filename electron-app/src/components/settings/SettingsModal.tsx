@@ -1,5 +1,5 @@
 ﻿import { Modal, Button, TextInput, Switch, Group, Stack, Alert, Divider, Text } from '@mantine/core';
-import { IconAlertTriangle, IconNote, IconRefresh } from '@tabler/icons-react';
+import { IconAlertTriangle, IconFolder, IconNote, IconRefresh } from '@tabler/icons-react';
 import React, { useEffect, useState } from 'react';
 import LazerLookupWarningModal from './LazerLookupWarningModal';
 import { useSettings } from '../../context/SettingsContext';
@@ -75,11 +75,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
               style={{ flexGrow: 1 }}
               value={songFolder}
               readOnly
-              description="Use the Pick button to select a folder."
               onClick={() => songFolder === '' && pickFolder()}
             />
-            <Button variant="light" onClick={pickFolder}>
-              Pick
+            <Button leftSection={<IconFolder size={18} />} variant="light" onClick={pickFolder}>
+              Browse
             </Button>
           </Group>
           <Switch
