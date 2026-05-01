@@ -173,7 +173,7 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
       <Collapse in={!!stableCurrentResult}>
         {stableCurrentResult && (
           <>
-          <Text size="xs" fw={500} my="sm" ml="sm" c="dimmed">Current beatmap</Text>
+          <Text size="xs" fw={500} my="sm" ml="sm" c="dimmed">Current beatmapset</Text>
           <BeatmapCard
             beatmap={stableCurrentResult.beatmap!}
             songFolder={stableCurrentResult.lookupRoot ?? undefined}
