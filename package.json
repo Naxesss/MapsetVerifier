@@ -46,10 +46,6 @@
         "from": "bin/server/dist/${os}-${arch}/",
         "to": "bin/",
         "filter": ["**/*"]
-      },
-      {
-        "from": "bass.dll",
-        "to": "bass.dll"
       }
     ],
     "publish": [
