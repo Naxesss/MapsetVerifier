@@ -6,7 +6,7 @@ using MapsetVerifier.Parser.Objects;
 namespace MapsetVerifier.Checks.Taiko.Timing
 {
     [Check]
-    public class CheckKiaiConsistency : GeneralCheck
+    public class CheckKiaiConsistency : BeatmapSetCheck
     {
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata()

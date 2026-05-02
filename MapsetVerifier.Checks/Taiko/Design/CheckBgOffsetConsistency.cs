@@ -7,7 +7,7 @@ using MapsetVerifier.Parser.Objects;
 namespace MapsetVerifier.Checks.Taiko.Design
 {
     [Check]
-    public class CheckBgOffsetConsistency : GeneralCheck
+    public class CheckBgOffsetConsistency : BeatmapSetCheck
     {
         private const string Minor = nameof(Issue.Level.Minor);
         
