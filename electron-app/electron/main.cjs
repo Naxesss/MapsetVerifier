@@ -18,7 +18,7 @@ function createWindow() {
     frame: false,
     backgroundColor: '#101014',
     show: false,
-    icon: path.join(__dirname, '..', '..', 'icon.ico'),
+    icon: path.join(__dirname, '..', '..', 'assets', 'icons', 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,

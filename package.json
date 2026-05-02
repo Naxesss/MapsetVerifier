@@ -62,16 +62,16 @@
           "arch": ["x64"]
         }
       ],
-      "icon": "icon.ico"
+      "icon": "assets/icons/icon.ico"
     },
     "linux": {
       "target": "AppImage",
       "category": "Utility",
-      "icon": "icon.ico"
+      "icon": "assets/icons"
     },
     "mac": {
       "target": "dmg",
-      "icon": "icon.ico"
+      "icon": "assets/icons/icon.icns"
     },
     "nsis": {
       "oneClick": false,
@@ -81,8 +81,8 @@
       "runAfterFinish": true,
       "uninstallDisplayName": "${productName} Uninstaller.exe",
       "artifactName": "${productName} Installer.exe",
-      "installerIcon": "icon.ico",
-      "installerHeaderIcon": "icon.ico"
+      "installerIcon": "assets/icons/icon.ico",
+      "installerHeaderIcon": "assets/icons/icon.ico"
     }
   }
 }
