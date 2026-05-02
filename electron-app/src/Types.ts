@@ -34,6 +34,26 @@ export type Beatmap = {
   beatmapSetID: string;
 };
 
+export type LazerLookupStatus =
+  | 'unsupported_platform'
+  | 'no_process'
+  | 'ambiguous_client'
+  | 'no_editor_title'
+  | 'songs_folder_not_found'
+  | 'metadata_detected'
+  | 'folder_found';
+
+export type ApiLazerLookupResult = {
+  status: LazerLookupStatus;
+  message: string | null;
+  detectedMetadata: string | null;
+  folderPath: string | null;
+  lookupRoot: string | null;
+  beatmap: Beatmap | null;
+};
+
+export type ApiStableLookupResult = ApiLazerLookupResult;
+
 export type ApiBeatmapInfo = {
   title: string | null;
   artist: string | null;

@@ -73,10 +73,10 @@ function Snapshots() {
 
   const selectedGroup = groupedDifficulties.find((g) => g.mode === selectedMode) ?? groupedDifficulties[0];
 
-  if (!settings.songFolder) {
+  if (!folder) {
     return (
-      <Alert icon={<IconAlertTriangle />} color="yellow" title="Song folder not set" withCloseButton>
-        <Text size="sm">Please set the song folder in settings to view snapshots.</Text>
+      <Alert icon={<IconAlertTriangle />} color="yellow" title="No beatmapset selected" withCloseButton>
+        <Text size="sm">Select a beatmapset from the sidebar to view snapshots.</Text>
       </Alert>
     );
   }

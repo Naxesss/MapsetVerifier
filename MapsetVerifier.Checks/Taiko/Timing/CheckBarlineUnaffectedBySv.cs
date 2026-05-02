@@ -74,13 +74,13 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                        Timestamp.Get(svChange.Offset - unsnapMs)
                    );
                 }
-                else if (unsnapMs <= ThresholdMs && unsnapMs > 0d)
+                else if (unsnapMs < 0d && unsnapMs >= -ThresholdMs)
                 {
                     yield return new Issue(
                        GetTemplate(Warning),
                        beatmap,
                        Timestamp.Get(svChange.Offset - unsnapMs),
-                       $"{unsnapMs:0.##}"
+                       $"{Math.Abs(unsnapMs):0.##}"
                    );
                 }
             }

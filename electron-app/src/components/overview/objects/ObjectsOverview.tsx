@@ -140,10 +140,10 @@ function ObjectsOverview({ reloadFlag }: ObjectsOverviewProps) {
     );
   }, [data]);
 
-  if (!settings.songFolder) {
+  if (!folder) {
     return (
-      <Alert icon={<IconAlertTriangle />} color="yellow" title="Song folder not set" withCloseButton>
-        <Text size="sm">Please set the song folder in settings to analyze objects.</Text>
+      <Alert icon={<IconAlertTriangle />} color="yellow" title="No beatmapset selected" withCloseButton>
+        <Text size="sm">Select a beatmapset from the sidebar to analyze objects.</Text>
       </Alert>
     );
   }

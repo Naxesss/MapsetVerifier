@@ -32,10 +32,10 @@ function MetadataOverview({ reloadFlag }: MetadataOverviewProps) {
     refetch();
   }, [reloadFlag]);
 
-  if (!settings.songFolder) {
+  if (!folder) {
     return (
-      <Alert icon={<IconAlertTriangle />} color="yellow" title="Song folder not set" withCloseButton>
-        <Text size="sm">Please set the song folder in settings to analyze metadata.</Text>
+      <Alert icon={<IconAlertTriangle />} color="yellow" title="No beatmapset selected" withCloseButton>
+        <Text size="sm">Select a beatmapset from the sidebar to analyze metadata.</Text>
       </Alert>
     );
   }

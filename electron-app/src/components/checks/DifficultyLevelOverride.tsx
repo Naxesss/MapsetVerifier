@@ -21,7 +21,7 @@ function DifficultyLevelOverride({
   const selected = currentOverrideLevel || current;
 
   return (
-    <Group gap="sm" justify="flex-start" wrap="wrap">
+    <Group mb="sm" gap="sm" justify="flex-start" wrap="wrap">
       <Group gap="md" align="center">
         <Text size="sm" c="dimmed">
           Interpreted as
