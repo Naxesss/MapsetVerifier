@@ -1,6 +1,7 @@
 const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const { BACKEND_BASE_URL } = require("../src/Constants.ts");
 
 const BACKEND_PORT = 5005;
 const EXE_NAMES_WIN = ['MapsetVerifier', 'MapsetVerifier.Server'];
@@ -67,7 +68,7 @@ function spawnSidecar() {
   }
   emitLog(`[sidecar] spawning ${exePath}`);
   try {
-    sidecarProcess = spawn(exePath, [`--urls=http://localhost:${BACKEND_PORT}`], {
+    sidecarProcess = spawn(exePath, [`--urls=${BACKEND_BASE_URL}`], {
       windowsHide: true,
       stdio: ['ignore', 'pipe', 'pipe'],
       cwd: path.dirname(exePath),

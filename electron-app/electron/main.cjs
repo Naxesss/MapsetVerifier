@@ -62,8 +62,6 @@ if (!gotLock) {
 function getMainWindow() { return mainWindow; }
 
 app.whenReady().then(() => {
-  // Proactively free the backend port before spawning (matches legacy cleanup_sidecar).
-  sidecar.cleanupSidecar();
   sidecar.spawnSidecar();
 
   registerIpc(getMainWindow);

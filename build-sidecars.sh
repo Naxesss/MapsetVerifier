@@ -1,9 +1,5 @@
 #!/bin/bash
-set -e
-
-# Cross-platform sidecar build script.
-# Builds .NET sidecars for the requested runtime(s) and lays them out under
-# bin/server/dist/<os>-<arch>/ using electron-builder's ${os}/${arch} naming.
+set -euo pipefail
 
 echo "[INFO] Starting sidecar build script..."
 
@@ -28,32 +24,31 @@ get_dir_name() {
 }
 
 # Accept runtimes via env var, CLI args, or use the default set.
-if [ -n "$RUNTIMES" ]; then
-    RUNTIME_LIST="$RUNTIMES"
+if [ -n "${RUNTIMES:-}" ]; then
+    read -r -a RUNTIME_LIST <<< "${RUNTIMES}"
 elif [ $# -gt 0 ]; then
-    RUNTIME_LIST="$*"
+    RUNTIME_LIST=("$@")
 else
-    RUNTIME_LIST="win-x64 osx-x64 osx-arm64 linux-x64 linux-arm64"
+    RUNTIME_LIST=(win-x64 osx-x64 osx-arm64 linux-x64 linux-arm64)
 fi
 
 echo "[INFO] Using configuration: ${PUBLISH_CONFIGURATION}"
-echo "[INFO] Building runtimes: ${RUNTIME_LIST}"
+echo "[INFO] Building runtimes: ${RUNTIME_LIST[*]}"
 
-echo "[INFO] Resetting output directories..."
 rm -rf "${DIST_DIR}" "${STAGING_DIR}"
 mkdir -p "${DIST_DIR}" "${STAGING_DIR}"
 
-if ! command -v dotnet &> /dev/null; then
+command -v dotnet >/dev/null 2>&1 || {
     echo "[ERROR] dotnet CLI not found in PATH"
     exit 1
-fi
+}
 
-if [ ! -f "${PROJECT_PATH}" ]; then
+[[ -f "${PROJECT_PATH}" ]] || {
     echo "[ERROR] Project file not found: ${PROJECT_PATH}"
     exit 1
-fi
+}
 
-for RID in ${RUNTIME_LIST}; do
+for RID in "${RUNTIME_LIST[@]}"; do
     echo "[INFO] --- Begin runtime ${RID} ---"
 
     OUT_DIR_NAME=$(get_dir_name "${RID}")
@@ -66,8 +61,9 @@ for RID in ${RUNTIME_LIST}; do
     FINAL_SUB="${DIST_DIR}/${OUT_DIR_NAME}"
     mkdir -p "${STAGE_SUB}" "${FINAL_SUB}"
 
-    echo "[INFO][${RID}] Running dotnet publish..."
     PUBLISH_LOG="${STAGE_SUB}/publish.log"
+
+    echo "[INFO][${RID}] Running dotnet publish..."
 
     if ! dotnet publish "${PROJECT_PATH}" \
         -c "${PUBLISH_CONFIGURATION}" \
@@ -82,33 +78,35 @@ for RID in ${RUNTIME_LIST}; do
         -p:DebugSymbols=false \
         -p:StripSymbols=true \
         -p:PublishReadyToRun=false > "${PUBLISH_LOG}" 2>&1; then
-        echo "[ERROR] dotnet publish failed for ${RID}. See ${PUBLISH_LOG}"
+
+        echo "[ERROR] dotnet publish failed for ${RID}"
         cat "${PUBLISH_LOG}"
         ERROR_COUNT=$((ERROR_COUNT + 1))
         continue
     fi
 
-    echo "[INFO][${RID}] Locate produced executable..."
+    echo "[INFO][${RID}] Locating executable..."
     if [[ "${RID}" == win-* ]]; then
-        EXEC_FILE=$(find "${STAGE_SUB}" -maxdepth 1 -name "*.exe" -type f | head -1)
+        EXEC_FILE="${STAGE_SUB}/${APP_NAME}.exe"
         TARGET_NAME="${APP_NAME}.exe"
     else
         EXEC_FILE="${STAGE_SUB}/${APP_NAME}"
         TARGET_NAME="${APP_NAME}"
     fi
 
-    if [ -z "${EXEC_FILE}" ] || [ ! -f "${EXEC_FILE}" ]; then
-        echo "[ERROR] No executable produced for ${RID}. Contents:"
+    if [[ ! -f "${EXEC_FILE}" ]]; then
+        echo "[ERROR] Expected executable not found: ${EXEC_FILE}"
+        echo "[DEBUG] Directory contents:"
         ls -la "${STAGE_SUB}"
         ERROR_COUNT=$((ERROR_COUNT + 1))
         continue
     fi
 
     echo "[INFO][${RID}] Moving to ${FINAL_SUB}/${TARGET_NAME}"
-    mv "${EXEC_FILE}" "${FINAL_SUB}/${TARGET_NAME}"
+    mv -f "${EXEC_FILE}" "${FINAL_SUB}/${TARGET_NAME}"
 
-    if [ ! -f "${FINAL_SUB}/${TARGET_NAME}" ]; then
-        echo "[ERROR] Executable missing after move: ${FINAL_SUB}/${TARGET_NAME}"
+    if [[ ! -f "${FINAL_SUB}/${TARGET_NAME}" ]]; then
+        echo "[ERROR] Move failed: ${FINAL_SUB}/${TARGET_NAME}"
         ERROR_COUNT=$((ERROR_COUNT + 1))
         continue
     fi
@@ -122,8 +120,8 @@ rm -rf "${STAGING_DIR}"
 echo "[INFO] Dist contents:"
 find "${DIST_DIR}" -maxdepth 2 -type f 2>/dev/null || echo "[WARN] Dist directory empty or missing"
 
-if [ ${ERROR_COUNT} -gt 0 ]; then
-    echo "[SUMMARY] Errors: ${ERROR_COUNT} (script failed)"
+if [ "${ERROR_COUNT}" -gt 0 ]; then
+    echo "[SUMMARY] Errors: ${ERROR_COUNT}"
     exit 1
 else
     echo "[SUMMARY] Success: all runtimes processed with no errors."

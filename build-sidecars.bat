@@ -1,3 +1,4 @@
+```bat
 @echo off
 setlocal enabledelayedexpansion
 
@@ -58,6 +59,7 @@ for %%R in (%RUNTIME_LIST%) do (
     ) else (
         set STAGE_SUB=%STAGING_DIR%\%%R
         set FINAL_SUB=%DIST_DIR%\!OUT_DIR_NAME!
+
         mkdir "!STAGE_SUB!" 2>nul
         mkdir "!FINAL_SUB!" 2>nul
 
@@ -76,18 +78,20 @@ for %%R in (%RUNTIME_LIST%) do (
             echo [ERROR] dotnet publish failed for %%R
             set /a ERROR_COUNT+=1
         ) else (
-            set "FOUND_EXE="
-            for %%F in ("!STAGE_SUB!\*.exe") do if not defined FOUND_EXE set "FOUND_EXE=%%F"
-            if defined FOUND_EXE (
-                move /Y "!FOUND_EXE!" "!FINAL_SUB!\%APP_NAME%.exe" >nul
+            REM Windows executable
+            if exist "!STAGE_SUB!\%APP_NAME%.exe" (
+                move /Y "!STAGE_SUB!\%APP_NAME%.exe" "!FINAL_SUB!\%APP_NAME%.exe" >nul
+            REM Unix executable
+            ) else if exist "!STAGE_SUB!\%APP_NAME%" (
+                move /Y "!STAGE_SUB!\%APP_NAME%" "!FINAL_SUB!\%APP_NAME%" >nul
             ) else (
-                if exist "!STAGE_SUB!\%APP_NAME%" (
-                    move /Y "!STAGE_SUB!\%APP_NAME%" "!FINAL_SUB!\%APP_NAME%" >nul
-                ) else (
-                    echo [ERROR] No executable produced for %%R
-                    set /a ERROR_COUNT+=1
-                )
+                echo [ERROR] Expected executable not found for %%R
+                echo         Looked for:
+                echo         !STAGE_SUB!\%APP_NAME%.exe
+                echo         !STAGE_SUB!\%APP_NAME%
+                set /a ERROR_COUNT+=1
             )
+
             rmdir /s /q "!STAGE_SUB!" 2>nul
         )
     )
@@ -107,3 +111,4 @@ if %ERROR_COUNT% GTR 0 (
 
 echo [SUMMARY] Success: all runtimes processed with no errors.
 exit /b 0
+```
