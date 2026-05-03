@@ -25,7 +25,13 @@ export default function LazerBeatmapsPanel() {
   const renderPanel = () => {
     if (lazerQuery.isLoading) {
       return (
-        <Alert icon={<IconRefresh />} color="blue" title="Detecting current osu! map" mt="xs" variant="light">
+        <Alert
+          icon={<IconRefresh />}
+          color="blue"
+          title="Detecting current osu! map"
+          mt="xs"
+          variant="light"
+        >
           Waiting for osu! editor window metadata...
         </Alert>
       );
@@ -45,14 +51,25 @@ export default function LazerBeatmapsPanel() {
     }
 
     const metadata = result.detectedMetadata ?? 'Not detected yet';
-    const infoColor = result.status === 'folder_found' ? 'green' : result.status === 'unsupported_platform' ? 'yellow' : 'blue';
+    const infoColor =
+      result.status === 'folder_found'
+        ? 'green'
+        : result.status === 'unsupported_platform'
+          ? 'yellow'
+          : 'blue';
 
     return (
       <Flex direction="column" gap="sm">
         <Alert icon={<IconInfoCircle />} color="blue" title="Instructions" variant="light">
-          In the editor, go to <strong>File → Edit externally</strong>. This allows MV to detect and parse the current map.
+          In the editor, go to <strong>File → Edit externally</strong>. This allows MV to detect and
+          parse the current map.
         </Alert>
-        <Alert icon={<IconListDetails />} color={infoColor} title="Detected beatmap" variant="light">
+        <Alert
+          icon={<IconListDetails />}
+          color={infoColor}
+          title="Detected beatmap"
+          variant="light"
+        >
           <Text size="sm">{metadata}</Text>
           {result.message && (
             <Text size="xs" c="dimmed" mt={4}>
@@ -60,14 +77,17 @@ export default function LazerBeatmapsPanel() {
             </Text>
           )}
         </Alert>
-        {result.status === 'folder_found' && result.beatmap && result.folderPath && result.lookupRoot && (
-          <BeatmapCard
-            beatmap={result.beatmap}
-            songFolder={result.lookupRoot}
-            isSelectedOverride={selectedFolderPath === result.folderPath}
-            onSelect={() => setSelectedFolderPath(result.folderPath ?? undefined)}
-          />
-        )}
+        {result.status === 'folder_found' &&
+          result.beatmap &&
+          result.folderPath &&
+          result.lookupRoot && (
+            <BeatmapCard
+              beatmap={result.beatmap}
+              songFolder={result.lookupRoot}
+              isSelectedOverride={selectedFolderPath === result.folderPath}
+              onSelect={() => setSelectedFolderPath(result.folderPath ?? undefined)}
+            />
+          )}
       </Flex>
     );
   };

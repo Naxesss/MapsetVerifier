@@ -30,8 +30,7 @@ export const BeatmapProvider = ({ children }: { children: ReactNode }) => {
   const activeSongFolder = selectedSongFolder ?? settings.songFolder;
 
   const beatmapFolderPath = useMemo(() => {
-    if (selectedFolderPath)
-      return selectedFolderPath;
+    if (selectedFolderPath) return selectedFolderPath;
     return buildBeatmapFolderPath(activeSongFolder, selectedFolder);
   }, [selectedFolderPath, activeSongFolder, selectedFolder]);
 
@@ -60,8 +59,7 @@ export const BeatmapProvider = ({ children }: { children: ReactNode }) => {
         selectedFolderPath,
         setSelectedFolderPath: (folderPath) => {
           setSelectedFolderPath(folderPath);
-          if (folderPath)
-          {
+          if (folderPath) {
             setSelectedFolder(folderPath);
             setSelectedSongFolder(undefined);
             return;
@@ -86,4 +84,3 @@ export const useBeatmap = () => {
   if (!context) throw new Error('useBeatmap must be used within BeatmapProvider');
   return context;
 };
-

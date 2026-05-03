@@ -1,6 +1,6 @@
-import { Card, Stack, Title } from "@mantine/core";
-import changelog from "../../content/CHANGELOG.md?raw";
-import MantineMarkdown from "../documentation/MantineMarkdown.tsx";
+import { Card, Stack, Title } from '@mantine/core';
+import changelog from '../../content/CHANGELOG.md?raw';
+import MantineMarkdown from '../documentation/MantineMarkdown.tsx';
 
 interface ChangelogRelease {
   title: string;
@@ -13,7 +13,7 @@ function parseChangelog(raw: string): {
   releases: ChangelogRelease[];
 } {
   const parts = raw.trim().split(/\n(?=### )/);
-  const first = parts[0]?.trim() ?? "";
+  const first = parts[0]?.trim() ?? '';
 
   let pageHeading: string | null = null;
   let intro: string | null = null;
@@ -32,10 +32,10 @@ function parseChangelog(raw: string): {
 
   for (const block of releaseParts) {
     const trimmed = block.trim();
-    if (!trimmed.startsWith("###")) continue;
-    const lines = trimmed.split("\n");
-    const title = lines[0].replace(/^###\s+/, "").trim();
-    const body = lines.slice(1).join("\n").trim();
+    if (!trimmed.startsWith('###')) continue;
+    const lines = trimmed.split('\n');
+    const title = lines[0].replace(/^###\s+/, '').trim();
+    const body = lines.slice(1).join('\n').trim();
     releases.push({ title, body });
   }
 

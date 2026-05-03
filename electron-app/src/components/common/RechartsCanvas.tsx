@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef } from "react";
+﻿import React, { useEffect, useRef } from 'react';
 
 interface RechartsCanvasProps {
   draw: (ctx: CanvasRenderingContext2D, width: number, height: number) => void;
@@ -14,11 +14,7 @@ interface RechartsCanvasProps {
  * A canvas component designed to work with Recharts' Customized component.
  * Recharts' Customized component renders SVG foreignObject to embed HTML/Canvas.
  */
-const RechartsCanvas: React.FC<RechartsCanvasProps> = ({
-  draw,
-  width = 0,
-  height = 0,
-}) => {
+const RechartsCanvas: React.FC<RechartsCanvasProps> = ({ draw, width = 0, height = 0 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -26,19 +22,19 @@ const RechartsCanvas: React.FC<RechartsCanvasProps> = ({
 
     // Validate canvas element
     if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
-      console.error("Canvas ref is not an HTMLCanvasElement", canvas);
+      console.error('Canvas ref is not an HTMLCanvasElement', canvas);
       return;
     }
 
     // Validate dimensions
     if (width <= 0 || height <= 0) {
-      console.warn("Invalid canvas dimensions:", width, height);
+      console.warn('Invalid canvas dimensions:', width, height);
       return;
     }
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     if (!ctx) {
-      console.error("Failed to get 2D context");
+      console.error('Failed to get 2D context');
       return;
     }
 
@@ -59,7 +55,7 @@ const RechartsCanvas: React.FC<RechartsCanvasProps> = ({
     try {
       draw(ctx, width, height);
     } catch (error) {
-      console.error("Error drawing canvas:", error);
+      console.error('Error drawing canvas:', error);
     }
   }, [draw, width, height]);
 
@@ -69,8 +65,8 @@ const RechartsCanvas: React.FC<RechartsCanvasProps> = ({
       <canvas
         ref={canvasRef}
         style={{
-          display: "block",
-          pointerEvents: "none",
+          display: 'block',
+          pointerEvents: 'none',
         }}
       />
     </foreignObject>
@@ -78,4 +74,3 @@ const RechartsCanvas: React.FC<RechartsCanvasProps> = ({
 };
 
 export default RechartsCanvas;
-

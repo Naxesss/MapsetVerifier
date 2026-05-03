@@ -12,13 +12,13 @@ interface TimeAxisProps {
 }
 
 export function getAdaptiveTimeInterval(durationSeconds: number): number {
-  if (durationSeconds <= 30) return 5;      // 0-30s: every 5s
-  if (durationSeconds <= 60) return 10;     // 30-60s: every 10s
-  if (durationSeconds <= 120) return 15;    // 1-2min: every 15s
-  if (durationSeconds <= 300) return 30;    // 2-5min: every 30s
-  if (durationSeconds <= 600) return 60;    // 5-10min: every 1min
-  if (durationSeconds <= 1800) return 120;  // 10-30min: every 2min
-  return 300;                               // 30min+: every 5min
+  if (durationSeconds <= 30) return 5; // 0-30s: every 5s
+  if (durationSeconds <= 60) return 10; // 30-60s: every 10s
+  if (durationSeconds <= 120) return 15; // 1-2min: every 15s
+  if (durationSeconds <= 300) return 30; // 2-5min: every 30s
+  if (durationSeconds <= 600) return 60; // 5-10min: every 1min
+  if (durationSeconds <= 1800) return 120; // 10-30min: every 2min
+  return 300; // 30min+: every 5min
 }
 
 export function formatChartTime(seconds: number): string {
@@ -49,7 +49,7 @@ export function formatTooltipTimeMs(timeMs: number): string {
  */
 function TimeAxis({ durationMs, height = 20, showTicks = true, intervalSeconds }: TimeAxisProps) {
   const theme = useMantineTheme();
-  const durationSeconds = (durationMs / 1000) - 1;
+  const durationSeconds = durationMs / 1000 - 1;
 
   const interval = intervalSeconds ?? getAdaptiveTimeInterval(durationSeconds);
 
@@ -70,7 +70,7 @@ function TimeAxis({ durationMs, height = 20, showTicks = true, intervalSeconds }
           const xPercent = (timeSec / durationSeconds) * 100;
 
           // Adjust textAnchor for edge labels to prevent clipping
-          let anchor: "start" | "middle" | "end" = "middle";
+          let anchor: 'start' | 'middle' | 'end' = 'middle';
           if (xPercent <= 2) {
             anchor = 'start'; // Left edge - align text to the right of the position
           } else if (xPercent >= 98) {

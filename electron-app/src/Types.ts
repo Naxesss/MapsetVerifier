@@ -82,10 +82,10 @@ export type ApiCategoryCheckResult = {
 };
 
 export type ApiCheckDefinition = {
-  id: number
-  name: string
-  difficulties: string[]
-}
+  id: number;
+  name: string;
+  difficulties: string[];
+};
 
 export type ApiCheckResult = {
   id: number;

@@ -8,23 +8,18 @@ interface BeatmapActionButtonsProps {
   onReparse: () => Promise<void>;
 }
 
-function BeatmapActionButtons({ beatmapFolderPath, beatmapSetId, onReparse }: BeatmapActionButtonsProps) {
+function BeatmapActionButtons({
+  beatmapFolderPath,
+  beatmapSetId,
+  onReparse,
+}: BeatmapActionButtonsProps) {
   const theme = useMantineTheme();
   const openExternal = useOpenExternal();
 
   return (
-    <Group
-      p="xs"
-      gap="xs"
-      bg={theme.colors.dark[8]}
-      style={{ borderRadius: theme.radius.md }}
-    >
+    <Group p="xs" gap="xs" bg={theme.colors.dark[8]} style={{ borderRadius: theme.radius.md }}>
       <Tooltip label="Reparse the beatmap">
-        <Button
-          size="xs"
-          variant="default"
-          onClick={onReparse}
-        >
+        <Button size="xs" variant="default" onClick={onReparse}>
           <IconRefresh />
         </Button>
       </Tooltip>
@@ -90,4 +85,3 @@ function BeatmapActionButtons({ beatmapFolderPath, beatmapSetId, onReparse }: Be
 }
 
 export default BeatmapActionButtons;
-

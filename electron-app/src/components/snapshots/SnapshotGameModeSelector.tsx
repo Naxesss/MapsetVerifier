@@ -44,4 +44,3 @@ function SnapshotGameModeSelector({
 }
 
 export default SnapshotGameModeSelector;
-

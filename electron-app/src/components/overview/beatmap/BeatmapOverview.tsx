@@ -1,12 +1,6 @@
-﻿import {
-  Alert,
-  Text,
-  Box,
-  Flex,
-  LoadingOverlay
-} from '@mantine/core';
+﻿import { Alert, Text, Box, Flex, LoadingOverlay } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
-import {useEffect} from "react";
+import { useEffect } from 'react';
 import DifficultySettingsInfo from './DifficultySettingsInfo';
 import GeneralSettingsInfo from './GeneralSettingsInfo';
 import { useBeatmapAnalysis } from './hooks/useBeatmapAnalysis';
@@ -15,7 +9,7 @@ import { useBeatmap } from '../../../context/BeatmapContext';
 import { useSettings } from '../../../context/SettingsContext';
 
 interface BeatmapOverviewProps {
-  reloadFlag: number
+  reloadFlag: number;
 }
 
 function BeatmapOverview({ reloadFlag }: BeatmapOverviewProps) {
@@ -41,13 +35,17 @@ function BeatmapOverview({ reloadFlag }: BeatmapOverviewProps) {
 
   return (
     <Box>
-      <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
+      <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
       {isError && (
         <Flex p="md">
           <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing beatmap">
-            <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>{error?.message}</Text>
+            <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
+              {error?.message}
+            </Text>
             {error?.stackTrace && (
-              <Text mt="sm" size="xs" c="red.3" style={{ whiteSpace: 'pre-wrap' }}>{error.stackTrace}</Text>
+              <Text mt="sm" size="xs" c="red.3" style={{ whiteSpace: 'pre-wrap' }}>
+                {error.stackTrace}
+              </Text>
             )}
           </Alert>
         </Flex>
@@ -73,4 +71,3 @@ function BeatmapOverview({ reloadFlag }: BeatmapOverviewProps) {
 }
 
 export default BeatmapOverview;
-

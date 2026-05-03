@@ -20,9 +20,7 @@ function SnapshotContent({ data, selectedDifficulty }: SnapshotContentProps) {
   if (selectedDifficulty === 'General' && data.general) {
     history = data.general;
   } else {
-    history = data.beatmapHistories.find(
-      (h) => h.difficultyName === selectedDifficulty
-    ) ?? null;
+    history = data.beatmapHistories.find((h) => h.difficultyName === selectedDifficulty) ?? null;
   }
 
   // Auto-select first commit when history changes
@@ -98,4 +96,3 @@ function SnapshotContent({ data, selectedDifficulty }: SnapshotContentProps) {
 }
 
 export default SnapshotContent;
-

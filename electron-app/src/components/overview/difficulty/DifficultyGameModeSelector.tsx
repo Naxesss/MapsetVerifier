@@ -25,7 +25,9 @@ export function DifficultyGameModeSelector({
           label: (
             <Flex gap="xs" align="center">
               <GameModeIcon mode={group.mode} size={22} color="currentColor" />
-              <Text size="xs" fw={600}>{group.difficulties.length}</Text>
+              <Text size="xs" fw={600}>
+                {group.difficulties.length}
+              </Text>
             </Flex>
           ),
           value: group.mode,

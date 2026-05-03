@@ -1,13 +1,6 @@
-﻿import {
-  Alert,
-  Text,
-  Box,
-  Flex,
-  LoadingOverlay,
-  SimpleGrid
-} from '@mantine/core';
+﻿import { Alert, Text, Box, Flex, LoadingOverlay, SimpleGrid } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
-import {useEffect} from "react";
+import { useEffect } from 'react';
 import ColourSettings from './ColourSettings';
 import { useMetadataAnalysis } from './hooks/useMetadataAnalysis';
 import MetadataInfo from './MetadataInfo';
@@ -16,7 +9,7 @@ import { useBeatmap } from '../../../context/BeatmapContext';
 import { useSettings } from '../../../context/SettingsContext';
 
 interface MetadataOverviewProps {
-  reloadFlag: number
+  reloadFlag: number;
 }
 
 function MetadataOverview({ reloadFlag }: MetadataOverviewProps) {
@@ -34,7 +27,12 @@ function MetadataOverview({ reloadFlag }: MetadataOverviewProps) {
 
   if (!folder) {
     return (
-      <Alert icon={<IconAlertTriangle />} color="yellow" title="No beatmapset selected" withCloseButton>
+      <Alert
+        icon={<IconAlertTriangle />}
+        color="yellow"
+        title="No beatmapset selected"
+        withCloseButton
+      >
         <Text size="sm">Select a beatmapset from the sidebar to analyze metadata.</Text>
       </Alert>
     );
@@ -42,13 +40,17 @@ function MetadataOverview({ reloadFlag }: MetadataOverviewProps) {
 
   return (
     <Box>
-      <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
+      <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
       {isError && (
         <Flex p="md">
           <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing metadata">
-            <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>{error?.message}</Text>
+            <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
+              {error?.message}
+            </Text>
             {error?.stackTrace && (
-              <Text mt="sm" size="xs" c="red.3" style={{ whiteSpace: 'pre-wrap' }}>{error.stackTrace}</Text>
+              <Text mt="sm" size="xs" c="red.3" style={{ whiteSpace: 'pre-wrap' }}>
+                {error.stackTrace}
+              </Text>
             )}
           </Alert>
         </Flex>
@@ -76,4 +78,3 @@ function MetadataOverview({ reloadFlag }: MetadataOverviewProps) {
 }
 
 export default MetadataOverview;
-

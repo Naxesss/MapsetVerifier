@@ -60,4 +60,3 @@ const BeatmapAnalysisApi = {
 };
 
 export default BeatmapAnalysisApi;
-

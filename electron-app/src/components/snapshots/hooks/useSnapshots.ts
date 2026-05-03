@@ -27,4 +27,3 @@ export function useSnapshots({ folder, songFolder }: UseSnapshotsArgs) {
 
   return { ...query, beatmapFolderPath, refetch: query.refetch };
 }
-

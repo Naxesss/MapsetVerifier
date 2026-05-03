@@ -1,4 +1,3 @@
-
 import { getDifficultyLevelColor } from '../../common/DifficultyColor.ts';
 import { formatChartTime } from '../../common/TimeAxis.tsx';
 import type {
@@ -11,7 +10,11 @@ import type {
 
 export const MODE_ORDER: Mode[] = ['Standard', 'Taiko', 'Catch', 'Mania'];
 
-export type ChartRow = { time: string; timeMs: number; [seriesKey: string]: number | string | null };
+export type ChartRow = {
+  time: string;
+  timeMs: number;
+  [seriesKey: string]: number | string | null;
+};
 export type ChartDisplaySeries = DifficultyChartSeries & { key: string; color: string };
 
 export type DifficultyModeGroup = {
@@ -32,7 +35,10 @@ export type ChartDefinition = {
   valueSuffix?: string;
 };
 
-export function buildCharts(difficulties: DifficultyOverviewDifficulty[], msPerPeak?: number): ChartDefinition[] {
+export function buildCharts(
+  difficulties: DifficultyOverviewDifficulty[],
+  msPerPeak?: number
+): ChartDefinition[] {
   if (!msPerPeak || difficulties.length === 0) {
     return [];
   }
@@ -77,7 +83,10 @@ export function buildCharts(difficulties: DifficultyOverviewDifficulty[], msPerP
   return chartSeries;
 }
 
-function buildStarRatingSeries(difficulty: DifficultyOverviewDifficulty, msPerPeak: number): DifficultyChartSeries {
+function buildStarRatingSeries(
+  difficulty: DifficultyOverviewDifficulty,
+  msPerPeak: number
+): DifficultyChartSeries {
   const points: DifficultyChartDataPoint[] = difficulty.starRatingValues.map((value, index) => ({
     timeSeconds: (index * msPerPeak) / 1000,
     value,
@@ -93,7 +102,10 @@ function buildStarRatingSeries(difficulty: DifficultyOverviewDifficulty, msPerPe
   };
 }
 
-function buildSliderVelocitySeries(difficulty: DifficultyOverviewDifficulty, msPerPeak: number): DifficultyChartSeries {
+function buildSliderVelocitySeries(
+  difficulty: DifficultyOverviewDifficulty,
+  msPerPeak: number
+): DifficultyChartSeries {
   const values = difficulty.sliderVelocityValues ?? [];
   const points: DifficultyChartDataPoint[] = values.map((value, index) => ({
     timeSeconds: (index * msPerPeak) / 1000,
@@ -114,7 +126,7 @@ function buildSkillSeries(
   difficulty: DifficultyOverviewDifficulty,
   skillName: string,
   strainPeaks: number[],
-  msPerPeak: number,
+  msPerPeak: number
 ): DifficultyChartSeries {
   return {
     skillName,
@@ -129,7 +141,12 @@ function buildSkillSeries(
   };
 }
 
-function buildChartDefinition(title: string, series: DifficultyChartSeries[], msPerPeak: number, valueSuffix?: string): ChartDefinition {
+function buildChartDefinition(
+  title: string,
+  series: DifficultyChartSeries[],
+  msPerPeak: number,
+  valueSuffix?: string
+): ChartDefinition {
   const displaySeries = series.map((item, index) => ({
     ...item,
     key: `series-${index}`,
@@ -176,11 +193,14 @@ export function normalizeMode(mode: string): Mode {
   return MODE_ORDER.includes(mode as Mode) ? (mode as Mode) : 'Standard';
 }
 
-function getGraphColor(series: DifficultyChartSeries, previousSeries: DifficultyChartSeries[]): string {
+function getGraphColor(
+  series: DifficultyChartSeries,
+  previousSeries: DifficultyChartSeries[]
+): string {
   const baseColor = hexToRgb(getDifficultyLevelColor(series.difficultyLevel));
   const difficultyLevel = normalizeDifficultyLevel(series.difficultyLevel);
   const sameDifficultyCount = previousSeries.filter(
-    (item) => normalizeDifficultyLevel(item.difficultyLevel) === difficultyLevel,
+    (item) => normalizeDifficultyLevel(item.difficultyLevel) === difficultyLevel
   ).length;
 
   let red = baseColor.r;

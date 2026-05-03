@@ -1,4 +1,15 @@
-import {Alert, Text, Box, useMantineTheme, Flex, LoadingOverlay, Button, Group, Title, Tooltip} from '@mantine/core';
+import {
+  Alert,
+  Text,
+  Box,
+  useMantineTheme,
+  Flex,
+  LoadingOverlay,
+  Button,
+  Group,
+  Title,
+  Tooltip,
+} from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle, IconPhotoOff, IconRefresh } from '@tabler/icons-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useSnapshots } from './hooks/useSnapshots';
@@ -71,11 +82,17 @@ function Snapshots() {
     return result;
   }, [data?.difficulties, selectedMode]);
 
-  const selectedGroup = groupedDifficulties.find((g) => g.mode === selectedMode) ?? groupedDifficulties[0];
+  const selectedGroup =
+    groupedDifficulties.find((g) => g.mode === selectedMode) ?? groupedDifficulties[0];
 
   if (!folder) {
     return (
-      <Alert icon={<IconAlertTriangle />} color="yellow" title="No beatmapset selected" withCloseButton>
+      <Alert
+        icon={<IconAlertTriangle />}
+        color="yellow"
+        title="No beatmapset selected"
+        withCloseButton
+      >
         <Text size="sm">Select a beatmapset from the sidebar to view snapshots.</Text>
       </Alert>
     );
@@ -96,7 +113,7 @@ function Snapshots() {
         justifyContent: 'flex-start',
       }}
     >
-      <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
+      <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
       <BeatmapHeader bgUrl={bgUrl}>
         <Group gap="sm">
           <Group
@@ -133,19 +150,14 @@ function Snapshots() {
       </BeatmapHeader>
       {data && (
         <Flex gap="sm" p="md" direction="column" style={{ flex: 1, overflow: 'hidden' }}>
-          <Title order={3}>
-            {selectedDifficulty}
-          </Title>
+          <Title order={3}>{selectedDifficulty}</Title>
           {data.errorMessage ? (
             <Alert icon={<IconPhotoOff />} color="yellow" title="Snapshots unavailable">
               <Text size="sm">{data.errorMessage}</Text>
             </Alert>
           ) : (
             <>
-              <SnapshotContent
-                data={data}
-                selectedDifficulty={selectedDifficulty}
-              />
+              <SnapshotContent data={data} selectedDifficulty={selectedDifficulty} />
             </>
           )}
         </Flex>
@@ -169,4 +181,3 @@ function Snapshots() {
 }
 
 export default Snapshots;
-

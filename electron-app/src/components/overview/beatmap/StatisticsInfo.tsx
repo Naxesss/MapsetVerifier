@@ -1,6 +1,9 @@
 ﻿import { Group, Paper, Stack, Table, Text, useMantineTheme } from '@mantine/core';
 import { formatGameModeLabel, getModeAccentColor } from '../../../utils/gameMode';
-import AppTable, { DifficultyTableCell, DifficultyTableHeaderCell } from '../../common/AppTable.tsx';
+import AppTable, {
+  DifficultyTableCell,
+  DifficultyTableHeaderCell,
+} from '../../common/AppTable.tsx';
 import StarRatingBadge from '../../common/StarRatingBadge.tsx';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
 import type { DifficultyStatistics } from '../../../Types';
@@ -28,7 +31,11 @@ function SliderCell({ stats }: { stats: DifficultyStatistics }) {
 
   return (
     <Stack gap={4}>
-      {<Text size="sm" fw={500}>{isMania ? "N/A" : formatCount(value)}</Text>}
+      {
+        <Text size="sm" fw={500}>
+          {isMania ? 'N/A' : formatCount(value)}
+        </Text>
+      }
     </Stack>
   );
 }
@@ -49,7 +56,7 @@ function StatisticsInfo({ statistics }: StatisticsInfoProps) {
             <Table.Tr>
               <DifficultyTableHeaderCell rowSpan={2}>Difficulty</DifficultyTableHeaderCell>
               <Table.Th rowSpan={2}>Mode</Table.Th>
-              <Table.Th rowSpan={2} >Star Rating</Table.Th>
+              <Table.Th rowSpan={2}>Star Rating</Table.Th>
               <Table.Th colSpan={3}>Objects</Table.Th>
               <Table.Th colSpan={2}>Misc</Table.Th>
               <Table.Th colSpan={2}>Timing</Table.Th>
@@ -71,7 +78,9 @@ function StatisticsInfo({ statistics }: StatisticsInfoProps) {
             {statistics.map((stats) => (
               <Table.Tr key={`${stats.mode}-${stats.version}`}>
                 <DifficultyTableCell>
-                  <Text size="sm" fw={600} style={{ whiteSpace: 'nowrap' }}>{stats.version}</Text>
+                  <Text size="sm" fw={600} style={{ whiteSpace: 'nowrap' }}>
+                    {stats.version}
+                  </Text>
                 </DifficultyTableCell>
                 <Table.Td>
                   <ModeCell mode={stats.mode} />
@@ -116,4 +125,3 @@ function StatisticsInfo({ statistics }: StatisticsInfoProps) {
 }
 
 export default StatisticsInfo;
-

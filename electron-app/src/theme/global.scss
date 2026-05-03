@@ -94,7 +94,9 @@
 *::-webkit-scrollbar-track {
   background-color: transparent;
   opacity: 0;
-  transition: background-color 0.15s ease, opacity 150ms ease;
+  transition:
+    background-color 0.15s ease,
+    opacity 150ms ease;
 
   &:hover {
     background-color: var(--mantine-color-dark-8);

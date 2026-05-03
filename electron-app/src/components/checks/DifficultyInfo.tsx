@@ -62,4 +62,3 @@ function DifficultyInfo({
 }
 
 export default DifficultyInfo;
-

@@ -1,4 +1,14 @@
-﻿import { Modal, Button, TextInput, Switch, Group, Stack, Alert, Divider, Text } from '@mantine/core';
+﻿import {
+  Modal,
+  Button,
+  TextInput,
+  Switch,
+  Group,
+  Stack,
+  Alert,
+  Divider,
+  Text,
+} from '@mantine/core';
 import { IconAlertTriangle, IconFolder, IconNote, IconRefresh } from '@tabler/icons-react';
 import React, { useEffect, useState } from 'react';
 import LazerLookupWarningModal from './LazerLookupWarningModal';
@@ -16,9 +26,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
   const { openUpdater } = useUpdater();
   const [songFolder, setSongFolder] = useState(settings.songFolder ?? '');
   const [showMinor, setShowMinor] = useState(settings.showMinor);
-  const [showGamemodeDifficultyNames, setShowGamemodeDifficultyNames] = useState(settings.showGamemodeDifficultyNames);
+  const [showGamemodeDifficultyNames, setShowGamemodeDifficultyNames] = useState(
+    settings.showGamemodeDifficultyNames
+  );
   const [showSnapshotDiffView, setShowSnapshotDiffView] = useState(settings.showSnapshotDiffView);
-  const [showAdvancedAudioAnalysis, setShowAdvancedAudioAnalysis] = useState(settings.showAdvancedAudioAnalysis);
+  const [showAdvancedAudioAnalysis, setShowAdvancedAudioAnalysis] = useState(
+    settings.showAdvancedAudioAnalysis
+  );
   const [lazerLookupEnabled, setLazerLookupEnabled] = useState(settings.lazerLookupEnabled);
   const [gateInDev, setGateInDev] = useState(settings.gateInDev);
   const [lazerWarningOpened, setLazerWarningOpened] = useState(false);
@@ -62,7 +76,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
   const isDev = import.meta.env.DEV;
   const [currentVersion, setCurrentVersion] = useState<string>('unknown');
   useEffect(() => {
-    window.electronAPI?.getVersion().then(setCurrentVersion).catch(() => setCurrentVersion('unknown'));
+    window.electronAPI
+      ?.getVersion()
+      .then(setCurrentVersion)
+      .catch(() => setCurrentVersion('unknown'));
   }, []);
 
   return (
@@ -127,7 +144,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
               <Group gap="xs" align="center">
                 <IconAlertTriangle size={16} color="var(--mantine-color-yellow-5)" />
                 <Group gap="sm">
-                  <Text size="xs" c="yellow">experimental</Text>
+                  <Text size="xs" c="yellow">
+                    experimental
+                  </Text>
                   <Text size="sm">osu!(lazer) support</Text>
                 </Group>
               </Group>
@@ -153,7 +172,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
                 Current version: {currentVersion}
               </Text>
             </div>
-            <Button leftSection={<IconRefresh size={18} />} variant="light" onClick={() => void openUpdater()}>
+            <Button
+              leftSection={<IconRefresh size={18} />}
+              variant="light"
+              onClick={() => void openUpdater()}
+            >
               Check for updates
             </Button>
           </Group>
@@ -162,7 +185,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
               <Divider my="sm" />
               <Stack gap="sm">
                 <Text size="sm" c="dimmed">
-                  The following options affect development mode only and have no effect in production builds.
+                  The following options affect development mode only and have no effect in
+                  production builds.
                 </Text>
                 <Switch
                   label="Gate backend in DEV (start sidecar port 5005)"
@@ -175,9 +199,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
                 />
                 <Alert icon={<IconNote />} title="Note" color="yellow" variant="light">
                   <Group gap="sm">
-                    <Text size="sm">Enabling this option will make the app mimic production mode by running the sidecar.</Text>
-                    <Text size="sm">This does need the sidecar to be built beforehand and available in the following folder <code>/bin/server/dist/&lt;rid&gt;/</code>.</Text>
-                    <Text size="sm">Changing this settings may require restarting the application to take</Text>
+                    <Text size="sm">
+                      Enabling this option will make the app mimic production mode by running the
+                      sidecar.
+                    </Text>
+                    <Text size="sm">
+                      This does need the sidecar to be built beforehand and available in the
+                      following folder <code>/bin/server/dist/&lt;rid&gt;/</code>.
+                    </Text>
+                    <Text size="sm">
+                      Changing this settings may require restarting the application to take
+                    </Text>
                   </Group>
                 </Alert>
               </Stack>

@@ -2,7 +2,9 @@ import { formatGameModeLabel } from '../../utils/gameMode';
 import type { ApiDocumentationCheck } from '../../Types';
 
 /** First occurrence wins (stable order from general → Standard → Taiko → Catch → Mania merge). */
-export function dedupeDocumentationChecksById(checks: ApiDocumentationCheck[]): ApiDocumentationCheck[] {
+export function dedupeDocumentationChecksById(
+  checks: ApiDocumentationCheck[]
+): ApiDocumentationCheck[] {
   const map = new Map<number, ApiDocumentationCheck>();
   for (const check of checks) {
     if (!map.has(check.id)) {
@@ -14,7 +16,7 @@ export function dedupeDocumentationChecksById(checks: ApiDocumentationCheck[]): 
 
 export function filterDocumentationChecks(
   checks: ApiDocumentationCheck[],
-  query: string,
+  query: string
 ): ApiDocumentationCheck[] {
   const q = query.trim().toLowerCase();
   if (!q) return checks;

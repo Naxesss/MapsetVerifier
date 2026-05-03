@@ -44,7 +44,12 @@ interface CheckCategoryProps {
   overrideResult?: ApiCategoryOverrideCheckResult;
 }
 
-const CheckCategory: React.FC<CheckCategoryProps> = ({ data, showMinor, selectedCategory, overrideResult }) => {
+const CheckCategory: React.FC<CheckCategoryProps> = ({
+  data,
+  showMinor,
+  selectedCategory,
+  overrideResult,
+}) => {
   const overrideCategoryResult = overrideResult?.categoryResult;
   const categoryData = React.useMemo(() => {
     // If we have an override result for the selected category, use it
@@ -138,7 +143,10 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({ data, showMinor, selected
               id={g.id}
               items={g.items}
               name={
-                overrideCategoryResult && overrideCategoryResult.category === selectedCategory ? overrideResult.checks[g.id]?.name : data.checks[g.id]?.name}
+                overrideCategoryResult && overrideCategoryResult.category === selectedCategory
+                  ? overrideResult.checks[g.id]?.name
+                  : data.checks[g.id]?.name
+              }
             />
           ))}
         </Stack>

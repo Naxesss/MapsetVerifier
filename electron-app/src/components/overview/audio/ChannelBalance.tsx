@@ -10,11 +10,16 @@ interface ChannelBalanceProps {
 
 function getSeverityColor(severity: string): string {
   switch (severity) {
-    case 'None': return 'green';
-    case 'Minor': return 'yellow';
-    case 'Warning': return 'orange';
-    case 'Severe': return 'red';
-    default: return 'gray';
+    case 'None':
+      return 'green';
+    case 'Minor':
+      return 'yellow';
+    case 'Warning':
+      return 'orange';
+    case 'Severe':
+      return 'red';
+    default:
+      return 'gray';
   }
 }
 
@@ -47,26 +52,51 @@ function ChannelBalance({ data }: ChannelBalanceProps) {
           <Badge color={getSeverityColor(data.severity)} variant="light">
             {data.severity === 'None' ? 'Balanced' : data.severity}
           </Badge>
-          <Badge color="gray" variant="light">{data.isMono ? 'Mono' : 'Stereo'}</Badge>
+          <Badge color="gray" variant="light">
+            {data.isMono ? 'Mono' : 'Stereo'}
+          </Badge>
         </Group>
       </Group>
       <Stack gap="xs" mb="md">
         <Group gap="xs">
-          <Text size="sm" w={60} c="blue.4">Left</Text>
+          <Text size="sm" w={60} c="blue.4">
+            Left
+          </Text>
           <Progress value={leftPercent} color="blue" style={{ flex: 1 }} size="lg" />
-          <Text size="sm" w={40}>{leftPercent}%</Text>
+          <Text size="sm" w={40}>
+            {leftPercent}%
+          </Text>
         </Group>
         <Group gap="xs">
-          <Text size="sm" w={60} c="pink.4">Right</Text>
+          <Text size="sm" w={60} c="pink.4">
+            Right
+          </Text>
           <Progress value={rightPercent} color="pink" style={{ flex: 1 }} size="lg" />
-          <Text size="sm" w={40}>{rightPercent}%</Text>
+          <Text size="sm" w={40}>
+            {rightPercent}%
+          </Text>
         </Group>
       </Stack>
       <Group gap="lg" mb="md">
-        <Text size="sm" c="dimmed">Stereo Width: <Text span fw={500} c="white">{(data.stereoWidth * 100).toFixed(0)}%</Text></Text>
-        <Text size="sm" c="dimmed">Phase: <Text span fw={500} c="white">{data.phaseCorrelation.toFixed(2)}</Text></Text>
+        <Text size="sm" c="dimmed">
+          Stereo Width:{' '}
+          <Text span fw={500} c="white">
+            {(data.stereoWidth * 100).toFixed(0)}%
+          </Text>
+        </Text>
+        <Text size="sm" c="dimmed">
+          Phase:{' '}
+          <Text span fw={500} c="white">
+            {data.phaseCorrelation.toFixed(2)}
+          </Text>
+        </Text>
         {data.louderChannel !== 'Balanced' && (
-          <Text size="sm" c="dimmed">Louder: <Text span fw={500} c="white">{data.louderChannel}</Text></Text>
+          <Text size="sm" c="dimmed">
+            Louder:{' '}
+            <Text span fw={500} c="white">
+              {data.louderChannel}
+            </Text>
+          </Text>
         )}
       </Group>
       {chartData.length > 0 ? (
@@ -89,11 +119,12 @@ function ChannelBalance({ data }: ChannelBalanceProps) {
           legendProps={{ verticalAlign: 'bottom', height: 30 }}
         />
       ) : (
-        <Text c="dimmed" ta="center" py="xl">No channel balance data available</Text>
+        <Text c="dimmed" ta="center" py="xl">
+          No channel balance data available
+        </Text>
       )}
     </Paper>
   );
 }
 
 export default ChannelBalance;
-

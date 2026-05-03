@@ -18,7 +18,10 @@ const WindowBar: React.FC = () => {
   const isDev = import.meta.env.DEV;
 
   useEffect(() => {
-    window.electronAPI?.getVersion().then(setVersion).catch(() => setVersion('unknown'));
+    window.electronAPI
+      ?.getVersion()
+      .then(setVersion)
+      .catch(() => setVersion('unknown'));
   }, []);
 
   const minimize = () => void window.electronAPI?.window.minimize();
@@ -98,7 +101,9 @@ const WindowBar: React.FC = () => {
           )}
         </span>
       </Group>
-      <div style={{ ...noDragStyle, display: 'flex', gap: theme.spacing.xs } as React.CSSProperties}>
+      <div
+        style={{ ...noDragStyle, display: 'flex', gap: theme.spacing.xs } as React.CSSProperties}
+      >
         <ActionIcon
           variant="subtle"
           color={isDark ? 'gray' : 'dark'}

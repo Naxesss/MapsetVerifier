@@ -30,4 +30,3 @@ const SnapshotApi = {
 };
 
 export default SnapshotApi;
-

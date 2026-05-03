@@ -1,6 +1,6 @@
 ﻿import { Box, Flex, Stack, Text } from '@mantine/core';
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useBeatmap } from '../../context/BeatmapContext';
 import { Beatmap } from '../../Types.ts';
 import { buildBeatmapImageUrl } from '../../utils/buildBeatmapFolderPath.ts';
@@ -20,7 +20,7 @@ function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: Beat
   const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
-    if (!beatmap.folder || beatmap.folder === "placeholder") {
+    if (!beatmap.folder || beatmap.folder === 'placeholder') {
       setBgUrl(undefined);
       return;
     }
@@ -34,7 +34,7 @@ function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: Beat
     };
 
     img.onerror = () => {
-      console.error("Could not load image: " + candidate);
+      console.error('Could not load image: ' + candidate);
       if (!cancelled) setBgUrl(undefined);
     };
 
@@ -45,7 +45,7 @@ function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: Beat
     };
   }, [beatmap.folder, songFolder]);
 
-  const isSelected = isSelectedOverride ?? (selectedFolder === beatmap.folder);
+  const isSelected = isSelectedOverride ?? selectedFolder === beatmap.folder;
 
   const transitionMs = '0.22s ease';
   const active = isSelected || isHovered;
@@ -72,7 +72,9 @@ function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: Beat
         position: 'relative',
         overflow: 'hidden',
         cursor: 'pointer',
-        border: active ? '1px solid var(--mantine-color-blue-6)' : '1px solid var(--mantine-color-dark-4)',
+        border: active
+          ? '1px solid var(--mantine-color-blue-6)'
+          : '1px solid var(--mantine-color-dark-4)',
         boxShadow: active
           ? '0 0 0 1px color-mix(in srgb, var(--mantine-color-blue-6) 35%, transparent), 0 8px 24px rgba(0, 0, 0, 0.35)'
           : '0 2px 8px rgba(0, 0, 0, 0.2)',
@@ -85,7 +87,11 @@ function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: Beat
           setSelectedFolder(beatmap.folder);
         }
         // No page open that uses a beatmap, redirect to checks page as default
-        if (location.pathname !== '/checks' && location.pathname !== '/snapshots' && location.pathname !== '/overview') {
+        if (
+          location.pathname !== '/checks' &&
+          location.pathname !== '/snapshots' &&
+          location.pathname !== '/overview'
+        ) {
           navigate('/checks', { viewTransition: true });
         }
       }}
@@ -140,18 +146,11 @@ function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: Beat
       >
         <Stack gap="sm">
           <Stack gap={0}>
-          <Text style={artistTitleStyle}>
-            {beatmap.artist}
-          </Text>
-          <Text style={artistTitleStyle}>
-            {beatmap.title}
-          </Text>
+            <Text style={artistTitleStyle}>{beatmap.artist}</Text>
+            <Text style={artistTitleStyle}>{beatmap.title}</Text>
           </Stack>
-        
-          <Text
-            fs="italic"
-            size="xs"
-            style={textStyle}>
+
+          <Text fs="italic" size="xs" style={textStyle}>
             Mapped by {beatmap.creator}
           </Text>
         </Stack>

@@ -58,11 +58,7 @@ function SnapshotDifficultySelector({
                 '--button-hover': `${alpha(color, 0.35)}`,
               }}
               onClick={() => onSelectDifficulty(diff.name)}
-              bd={
-                selectedDifficulty === diff.name
-                  ? `1px solid ${color}`
-                  : '1px solid transparent'
-              }
+              bd={selectedDifficulty === diff.name ? `1px solid ${color}` : '1px solid transparent'}
             >
               <Flex gap="xs" align="center">
                 <Text
@@ -86,4 +82,3 @@ function SnapshotDifficultySelector({
 }
 
 export default SnapshotDifficultySelector;
-

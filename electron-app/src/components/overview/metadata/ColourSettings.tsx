@@ -7,7 +7,15 @@ interface ColourSettingsProps {
   colourSettings: DifficultyColourSettings[];
 }
 
-function ColourSwatch({ colour, label, showWarning = true }: { colour: ComboColourInfo | ColourInfo; label?: string; showWarning?: boolean }) {
+function ColourSwatch({
+  colour,
+  label,
+  showWarning = true,
+}: {
+  colour: ComboColourInfo | ColourInfo;
+  label?: string;
+  showWarning?: boolean;
+}) {
   const theme = useMantineTheme();
   const hasWarning = showWarning && colour.luminosityWarning;
 
@@ -15,9 +23,15 @@ function ColourSwatch({ colour, label, showWarning = true }: { colour: ComboColo
     <Tooltip
       label={
         <Stack gap={2}>
-          <Text size="xs">RGB: {colour.r}, {colour.g}, {colour.b}</Text>
+          <Text size="xs">
+            RGB: {colour.r}, {colour.g}, {colour.b}
+          </Text>
           <Text size="xs">HSP Luminosity: {colour.hspLuminosity.toFixed(1)}</Text>
-          {hasWarning && <Text size="xs" c="yellow">{colour.luminosityWarning}</Text>}
+          {hasWarning && (
+            <Text size="xs" c="yellow">
+              {colour.luminosityWarning}
+            </Text>
+          )}
         </Stack>
       }
       multiline
@@ -55,13 +69,17 @@ function ColourSwatch({ colour, label, showWarning = true }: { colour: ComboColo
 function DifficultyColours({ settings }: { settings: DifficultyColourSettings }) {
   if (!settings.isApplicable) {
     return (
-      <Text size="xs" c="dimmed">N/A for {formatGameModeLabel(settings.mode)}</Text>
+      <Text size="xs" c="dimmed">
+        N/A for {formatGameModeLabel(settings.mode)}
+      </Text>
     );
   }
 
   if (settings.comboColours.length === 0 && !settings.sliderBorder && !settings.sliderTrack) {
     return (
-      <Text size="sm" c="dimmed">Using default colours</Text>
+      <Text size="sm" c="dimmed">
+        Using default colours
+      </Text>
     );
   }
 
@@ -70,7 +88,9 @@ function DifficultyColours({ settings }: { settings: DifficultyColourSettings })
       {/* Combo Colours */}
       {settings.comboColours.length > 0 && (
         <Box>
-          <Text size="xs" c="dimmed" mb={4}>Combo Colours</Text>
+          <Text size="xs" c="dimmed" mb={4}>
+            Combo Colours
+          </Text>
           <Group gap="xs">
             {settings.comboColours.map((colour, idx) => (
               <ColourSwatch key={idx} colour={colour} label={`${colour.index}`} />
@@ -84,13 +104,17 @@ function DifficultyColours({ settings }: { settings: DifficultyColourSettings })
         <Group gap="md">
           {settings.sliderBorder && (
             <Box>
-              <Text size="xs" c="dimmed" mb={4}>Slider Border</Text>
+              <Text size="xs" c="dimmed" mb={4}>
+                Slider Border
+              </Text>
               <ColourSwatch colour={settings.sliderBorder} />
             </Box>
           )}
           {settings.sliderTrack && (
             <Box>
-              <Text size="xs" c="dimmed" mb={4}>Slider Track</Text>
+              <Text size="xs" c="dimmed" mb={4}>
+                Slider Track
+              </Text>
               <ColourSwatch colour={settings.sliderTrack} showWarning={false} />
             </Box>
           )}
@@ -111,7 +135,7 @@ function getColourKey(settings: DifficultyColourSettings): string {
   if (settings.comboColours.length === 0 && !settings.sliderBorder && !settings.sliderTrack) {
     return 'default';
   }
-  const comboKey = settings.comboColours.map(c => c.hex).join(',');
+  const comboKey = settings.comboColours.map((c) => c.hex).join(',');
   const borderKey = settings.sliderBorder?.hex ?? '';
   const trackKey = settings.sliderTrack?.hex ?? '';
   return `${comboKey}|${borderKey}|${trackKey}`;
@@ -139,7 +163,8 @@ function groupByColours(colourSettings: DifficultyColourSettings[]): ColourGroup
 
 function ColourGroupDisplay({ group }: { group: ColourGroup }) {
   const theme = useMantineTheme();
-  const hasWarning = group.settings.comboColours.some(c => c.luminosityWarning) ||
+  const hasWarning =
+    group.settings.comboColours.some((c) => c.luminosityWarning) ||
     group.settings.sliderBorder?.luminosityWarning;
 
   return (
@@ -156,9 +181,7 @@ function ColourGroupDisplay({ group }: { group: ColourGroup }) {
             {diff}
           </Badge>
         ))}
-        {hasWarning && (
-          <IconAlertTriangle size={12} style={{ color: theme.colors.yellow[5] }} />
-        )}
+        {hasWarning && <IconAlertTriangle size={12} style={{ color: theme.colors.yellow[5] }} />}
       </Group>
       <DifficultyColours settings={group.settings} />
     </Box>
@@ -173,9 +196,8 @@ function ColourSettings({ colourSettings }: ColourSettingsProps) {
   }
 
   const groups = groupByColours(colourSettings);
-  const hasWarnings = colourSettings.some(s =>
-    s.comboColours.some(c => c.luminosityWarning) ||
-    (s.sliderBorder?.luminosityWarning)
+  const hasWarnings = colourSettings.some(
+    (s) => s.comboColours.some((c) => c.luminosityWarning) || s.sliderBorder?.luminosityWarning
   );
 
   return (
@@ -208,4 +230,3 @@ function ColourSettings({ colourSettings }: ColourSettingsProps) {
 }
 
 export default ColourSettings;
-

@@ -26,7 +26,14 @@ import {
   IconMinus,
   IconPlus,
 } from '@tabler/icons-react';
-import { Fragment, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
+import {
+  Fragment,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+} from 'react';
 import { useObjectsAnalysis } from './hooks/useObjectsAnalysis.ts';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
 import { useSettings } from '../../../context/SettingsContext.tsx';
@@ -39,7 +46,10 @@ import {
   type ObjectsTimelineObject,
 } from '../../../Types';
 import { formatGameModeLabel, getModeAccentColor } from '../../../utils/gameMode';
-import AppTable, { DifficultyTableCell, DifficultyTableHeaderCell } from '../../common/AppTable.tsx';
+import AppTable, {
+  DifficultyTableCell,
+  DifficultyTableHeaderCell,
+} from '../../common/AppTable.tsx';
 import AutoResizeCanvas from '../../common/AutoResizeCanvas.tsx';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
 
@@ -63,7 +73,9 @@ const REVERSE_ARROW_ICON_SIZE = 7.0;
 const TAIKO_DRUMROLL_COLOR = 'rgb(252,191,31)';
 const TAIKO_SPINNER_COLOR = 'rgb(125,135,150)';
 const MODE_ORDER: Mode[] = ['Standard', 'Taiko', 'Catch', 'Mania'];
-const TIMELINE_INTERVAL_STEPS_MS = [1000, 2000, 3000, 5000, 10000, 15000, 30000, 60000, 120000, 300000];
+const TIMELINE_INTERVAL_STEPS_MS = [
+  1000, 2000, 3000, 5000, 10000, 15000, 30000, 60000, 120000, 300000,
+];
 
 type ObjectsModeGroup = {
   mode: Mode;
@@ -76,7 +88,7 @@ type DifficultyDropIndicator = {
 };
 
 interface ObjectsOverviewProps {
-  reloadFlag: number
+  reloadFlag: number;
 }
 
 function ObjectsOverview({ reloadFlag }: ObjectsOverviewProps) {
@@ -124,7 +136,8 @@ function ObjectsOverview({ reloadFlag }: ObjectsOverviewProps) {
     }
   }, [groupedDifficulties, selectedMode]);
 
-  const selectedGroup = groupedDifficulties.find((group) => group.mode === selectedMode) ?? groupedDifficulties[0];
+  const selectedGroup =
+    groupedDifficulties.find((group) => group.mode === selectedMode) ?? groupedDifficulties[0];
 
   const summary = useMemo(() => {
     if (!data?.success) return null;
@@ -136,13 +149,18 @@ function ObjectsOverview({ reloadFlag }: ObjectsOverviewProps) {
         accumulator.unsnappedCount += difficulty.unsnappedCount;
         return accumulator;
       },
-      { objectCount: 0, edgeCount: 0, unsnappedCount: 0 },
+      { objectCount: 0, edgeCount: 0, unsnappedCount: 0 }
     );
   }, [data]);
 
   if (!folder) {
     return (
-      <Alert icon={<IconAlertTriangle />} color="yellow" title="No beatmapset selected" withCloseButton>
+      <Alert
+        icon={<IconAlertTriangle />}
+        color="yellow"
+        title="No beatmapset selected"
+        withCloseButton
+      >
         <Text size="sm">Select a beatmapset from the sidebar to analyze objects.</Text>
       </Alert>
     );
@@ -155,9 +173,13 @@ function ObjectsOverview({ reloadFlag }: ObjectsOverviewProps) {
       {isError && (
         <Flex p="md">
           <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing objects">
-            <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>{error?.message}</Text>
+            <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
+              {error?.message}
+            </Text>
             {error?.stackTrace && (
-              <Text mt="sm" size="xs" c="red.3" style={{ whiteSpace: 'pre-wrap' }}>{error.stackTrace}</Text>
+              <Text mt="sm" size="xs" c="red.3" style={{ whiteSpace: 'pre-wrap' }}>
+                {error.stackTrace}
+              </Text>
             )}
           </Alert>
         </Flex>
@@ -202,13 +224,29 @@ function ObjectsOverview({ reloadFlag }: ObjectsOverviewProps) {
   );
 }
 
-function SummaryCard({ label, value, subValue }: { label: string; value: string; subValue?: string }) {
+function SummaryCard({
+  label,
+  value,
+  subValue,
+}: {
+  label: string;
+  value: string;
+  subValue?: string;
+}) {
   return (
     <Paper p="md" radius="md" withBorder>
       <Stack gap={4}>
-        <Text size="xs" c="dimmed" tt="uppercase">{label}</Text>
-        <Text fw={700} size="lg">{value}</Text>
-        {subValue && <Text size="xs" c="dimmed">{subValue}</Text>}
+        <Text size="xs" c="dimmed" tt="uppercase">
+          {label}
+        </Text>
+        <Text fw={700} size="lg">
+          {value}
+        </Text>
+        {subValue && (
+          <Text size="xs" c="dimmed">
+            {subValue}
+          </Text>
+        )}
       </Stack>
     </Paper>
   );
@@ -237,18 +275,25 @@ function ObjectsTimelineComparison({
   const [zoom, setZoom] = useState(8.0);
   const [isDragging, setIsDragging] = useState(false);
   const [visibilityByDifficulty, setVisibilityByDifficulty] = useState<Record<string, boolean>>({});
-  const [difficultyOrderByMode, setDifficultyOrderByMode] = useState<Partial<Record<Mode, string[]>>>({});
+  const [difficultyOrderByMode, setDifficultyOrderByMode] = useState<
+    Partial<Record<Mode, string[]>>
+  >({});
   const [draggedDifficultyKey, setDraggedDifficultyKey] = useState<string | null>(null);
   const [dropIndicator, setDropIndicator] = useState<DifficultyDropIndicator | null>(null);
 
   const durationMs = Math.max(1, endTimeMs - startTimeMs);
   const tickIntervalMs = getTimelineIntervalMs(durationMs, zoom);
-  const timelineWidth = Math.max(MIN_TIMELINE_WIDTH, Math.min(MAX_TIMELINE_WIDTH, Math.round(durationMs * 0.02 * zoom)));
+  const timelineWidth = Math.max(
+    MIN_TIMELINE_WIDTH,
+    Math.min(MAX_TIMELINE_WIDTH, Math.round(durationMs * 0.02 * zoom))
+  );
   const contentWidth = timelineWidth + LABEL_WIDTH;
   const activeMode = selectedMode ?? groupedDifficulties[0]?.mode;
 
   useEffect(() => {
-    const allDifficultyKeys = groupedDifficulties.flatMap((group) => group.difficulties.map(getDifficultyKey));
+    const allDifficultyKeys = groupedDifficulties.flatMap((group) =>
+      group.difficulties.map(getDifficultyKey)
+    );
 
     setVisibilityByDifficulty((current) => {
       let changed = false;
@@ -296,7 +341,9 @@ function ObjectsTimelineComparison({
   }, [groupedDifficulties]);
 
   const orderedDifficulties = useMemo(() => {
-    const difficultyMap = new Map(difficulties.map((difficulty) => [getDifficultyKey(difficulty), difficulty]));
+    const difficultyMap = new Map(
+      difficulties.map((difficulty) => [getDifficultyKey(difficulty), difficulty])
+    );
     const currentOrder = activeMode ? difficultyOrderByMode[activeMode] : undefined;
     const fallbackOrder = difficulties.map(getDifficultyKey);
     const resolvedOrder = currentOrder && currentOrder.length > 0 ? currentOrder : fallbackOrder;
@@ -304,7 +351,9 @@ function ObjectsTimelineComparison({
       .map((key) => difficultyMap.get(key))
       .filter((difficulty): difficulty is ObjectsOverviewDifficulty => difficulty !== undefined);
     const orderedKeys = new Set(ordered.map(getDifficultyKey));
-    const missing = difficulties.filter((difficulty) => !orderedKeys.has(getDifficultyKey(difficulty)));
+    const missing = difficulties.filter(
+      (difficulty) => !orderedKeys.has(getDifficultyKey(difficulty))
+    );
 
     return [...ordered, ...missing];
   }, [activeMode, difficulties, difficultyOrderByMode]);
@@ -313,7 +362,9 @@ function ObjectsTimelineComparison({
     dropIndicatorRef.current = dropIndicator;
   }, [dropIndicator]);
 
-  const visibleCount = orderedDifficulties.filter((difficulty) => visibilityByDifficulty[getDifficultyKey(difficulty)] !== false).length;
+  const visibleCount = orderedDifficulties.filter(
+    (difficulty) => visibilityByDifficulty[getDifficultyKey(difficulty)] !== false
+  ).length;
   const allVisible = orderedDifficulties.length > 0 && visibleCount === orderedDifficulties.length;
   const allHidden = orderedDifficulties.length > 0 && visibleCount === 0;
 
@@ -372,7 +423,11 @@ function ObjectsTimelineComparison({
     setZoom((value) => clampZoom(value + getZoomStep(value) * direction));
   };
 
-  const reorderDifficulties = (sourceKey: string, targetKey: string, position: 'before' | 'after') => {
+  const reorderDifficulties = (
+    sourceKey: string,
+    targetKey: string,
+    position: 'before' | 'after'
+  ) => {
     if (!activeMode) return;
 
     setDifficultyOrderByMode((current) => {
@@ -398,7 +453,11 @@ function ObjectsTimelineComparison({
     const orderedKeys = orderedDifficulties.map(getDifficultyKey);
 
     const updateDropIndicator = (clientY: number) => {
-      const nextIndicator = getDifficultyDropIndicator(clientY, orderedKeys, rowElementsRef.current);
+      const nextIndicator = getDifficultyDropIndicator(
+        clientY,
+        orderedKeys,
+        rowElementsRef.current
+      );
       setDropIndicator((current) => {
         if (current?.key === nextIndicator?.key && current?.position === nextIndicator?.position) {
           return current;
@@ -414,7 +473,11 @@ function ObjectsTimelineComparison({
 
     const handleWindowMouseUp = () => {
       if (dropIndicatorRef.current) {
-        reorderDifficulties(draggedDifficultyKey, dropIndicatorRef.current.key, dropIndicatorRef.current.position);
+        reorderDifficulties(
+          draggedDifficultyKey,
+          dropIndicatorRef.current.key,
+          dropIndicatorRef.current.position
+        );
       }
 
       setDraggedDifficultyKey(null);
@@ -432,13 +495,20 @@ function ObjectsTimelineComparison({
     };
   }, [draggedDifficultyKey, orderedDifficulties]);
 
-  const handleDifficultyReorderMouseDown = (event: ReactMouseEvent<HTMLDivElement>, difficultyKey: string) => {
+  const handleDifficultyReorderMouseDown = (
+    event: ReactMouseEvent<HTMLDivElement>,
+    difficultyKey: string
+  ) => {
     event.preventDefault();
     event.stopPropagation();
     stopDragging();
     setDraggedDifficultyKey(difficultyKey);
 
-    const initialIndicator = getDifficultyDropIndicator(event.clientY, orderedDifficulties.map(getDifficultyKey), rowElementsRef.current);
+    const initialIndicator = getDifficultyDropIndicator(
+      event.clientY,
+      orderedDifficulties.map(getDifficultyKey),
+      rowElementsRef.current
+    );
     setDropIndicator(initialIndicator);
   };
 
@@ -448,7 +518,9 @@ function ObjectsTimelineComparison({
         <Group justify="space-between" align="flex-start">
           <Stack gap={2}>
             <Title order={4}>Timeline comparison</Title>
-            <Text size="sm" c="dimmed">Drag the grip to reorder rows. Drag horizontally in the timeline to pan.</Text>
+            <Text size="sm" c="dimmed">
+              Drag the grip to reorder rows. Drag horizontally in the timeline to pan.
+            </Text>
           </Stack>
           <Group gap="sm" align="center" wrap="wrap" justify="flex-end">
             <ObjectsGameModeSelector
@@ -520,7 +592,9 @@ function ObjectsTimelineComparison({
 
             {orderedDifficulties.length === 0 && (
               <Paper p="md" radius="md" withBorder>
-                <Text size="sm" c="dimmed">No difficulties available for the selected mode.</Text>
+                <Text size="sm" c="dimmed">
+                  No difficulties available for the selected mode.
+                </Text>
               </Paper>
             )}
 
@@ -599,14 +673,22 @@ function ObjectsTimelineComparison({
                       boxShadow: '8px 0 16px rgba(0, 0, 0, 0.18)',
                       boxSizing: 'border-box',
                       overflow: 'hidden',
-                      outline: showDropIndicator ? `1px solid ${withAlpha(dropIndicatorColor, 0.55)}` : undefined,
+                      outline: showDropIndicator
+                        ? `1px solid ${withAlpha(dropIndicatorColor, 0.55)}`
+                        : undefined,
                     }}
                   >
-                    <Flex align="center" gap={8} style={{ width: '100%', minWidth: 0, overflow: 'hidden' }}>
+                    <Flex
+                      align="center"
+                      gap={8}
+                      style={{ width: '100%', minWidth: 0, overflow: 'hidden' }}
+                    >
                       <Box
                         aria-label={`Reorder ${difficulty.version}`}
                         data-stop-timeline-pan="true"
-                        onMouseDown={(event) => handleDifficultyReorderMouseDown(event, difficultyKey)}
+                        onMouseDown={(event) =>
+                          handleDifficultyReorderMouseDown(event, difficultyKey)
+                        }
                         style={{
                           flex: '0 0 auto',
                           display: 'flex',
@@ -624,7 +706,13 @@ function ObjectsTimelineComparison({
                       <Group
                         gap={8}
                         wrap="nowrap"
-                        style={{ flex: 1, minWidth: 0, maxWidth: '100%', overflow: 'hidden', opacity: isVisible ? 1 : 0.7 }}
+                        style={{
+                          flex: 1,
+                          minWidth: 0,
+                          maxWidth: '100%',
+                          overflow: 'hidden',
+                          opacity: isVisible ? 1 : 0.7,
+                        }}
                       >
                         <GameModeIcon
                           mode={normalizeMode(difficulty.mode)}
@@ -632,12 +720,7 @@ function ObjectsTimelineComparison({
                           color={getModeAccentColor(normalizeMode(difficulty.mode))}
                         />
                         <Stack gap={0} style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-                          <Text
-                            fw={600}
-                            size="sm"
-                            truncate
-                            style={{ width: '100%', minWidth: 0 }}
-                          >
+                          <Text fw={600} size="sm" truncate style={{ width: '100%', minWidth: 0 }}>
                             {difficulty.version}
                           </Text>
                           <Text
@@ -653,7 +736,9 @@ function ObjectsTimelineComparison({
                       <ActionIcon
                         variant="subtle"
                         color={isVisible ? 'blue' : 'gray'}
-                        aria-label={isVisible ? `Hide ${difficulty.version}` : `Show ${difficulty.version}`}
+                        aria-label={
+                          isVisible ? `Hide ${difficulty.version}` : `Show ${difficulty.version}`
+                        }
                         data-stop-timeline-pan="true"
                         onMouseDown={(event) => event.stopPropagation()}
                         onClick={() => toggleDifficultyVisibility(difficulty)}
@@ -672,7 +757,9 @@ function ObjectsTimelineComparison({
                       borderRadius: theme.radius.sm,
                       overflow: 'hidden',
                       border: `1px solid ${showDropIndicator ? withAlpha(dropIndicatorColor, 0.75) : theme.colors.dark[4]}`,
-                      boxShadow: showDropIndicator ? `0 0 0 1px ${withAlpha(dropIndicatorColor, 0.35)} inset` : undefined,
+                      boxShadow: showDropIndicator
+                        ? `0 0 0 1px ${withAlpha(dropIndicatorColor, 0.35)} inset`
+                        : undefined,
                       boxSizing: 'border-box',
                     }}
                   >
@@ -692,7 +779,9 @@ function ObjectsTimelineComparison({
                         align="center"
                         style={{ boxSizing: 'border-box' }}
                       >
-                        <Text size="xs" c="dimmed" lh={1.2}>Timeline hidden for this difficulty.</Text>
+                        <Text size="xs" c="dimmed" lh={1.2}>
+                          Timeline hidden for this difficulty.
+                        </Text>
                       </Flex>
                     )}
                   </Box>
@@ -738,7 +827,9 @@ function ObjectsGameModeSelector({
           label: (
             <Flex gap="xs" align="center">
               <GameModeIcon mode={group.mode} size={22} color="currentColor" />
-              <Text size="xs" fw={600}>{group.difficulties.length}</Text>
+              <Text size="xs" fw={600}>
+                {group.difficulties.length}
+              </Text>
             </Flex>
           ),
           value: group.mode,
@@ -788,7 +879,9 @@ function TimelineAxisRow({
           boxSizing: 'border-box',
         }}
       />
-      <Box style={{ flex: `0 0 ${timelineWidth}px`, minWidth: timelineWidth, width: timelineWidth }}>
+      <Box
+        style={{ flex: `0 0 ${timelineWidth}px`, minWidth: timelineWidth, width: timelineWidth }}
+      >
         <TimelineAxis
           startTimeMs={startTimeMs}
           endTimeMs={endTimeMs}
@@ -829,12 +922,26 @@ function TimelineAxis({
   return (
     <Box style={{ position: 'relative', width, height: AXIS_HEIGHT }}>
       <svg width={width} height={AXIS_HEIGHT} style={{ display: 'block' }}>
-        <line x1={0} y1={lineY} x2={width} y2={lineY} stroke={theme.colors.dark[4]} strokeWidth={1} />
+        <line
+          x1={0}
+          y1={lineY}
+          x2={width}
+          y2={lineY}
+          stroke={theme.colors.dark[4]}
+          strokeWidth={1}
+        />
         {ticks.map((tick) => {
           const x = getAlignedTimelineLineX(tick, startTimeMs, durationMs, width);
           return (
             <g key={tick}>
-              <line x1={x} y1={lineY} x2={x} y2={tickEndY} stroke={theme.colors.dark[3]} strokeWidth={1} />
+              <line
+                x1={x}
+                y1={lineY}
+                x2={x}
+                y2={tickEndY}
+                stroke={theme.colors.dark[3]}
+                strokeWidth={1}
+              />
               <text
                 x={x}
                 y={labelY}
@@ -915,7 +1022,8 @@ function SnappingsOverview({
   totalEdgeCount: number;
 }) {
   const theme = useMantineTheme();
-  const totalUnsnappedPercentage = totalEdgeCount > 0 ? (totalUnsnappedCount * 100) / totalEdgeCount : 0;
+  const totalUnsnappedPercentage =
+    totalEdgeCount > 0 ? (totalUnsnappedCount * 100) / totalEdgeCount : 0;
   const difficulties = groupedDifficulties.flatMap((group) => group.difficulties);
   const snappingColumns = getSnappingColumns(difficulties);
 
@@ -925,10 +1033,13 @@ function SnappingsOverview({
         <Group justify="space-between" align="flex-start">
           <Stack gap={2}>
             <Title order={4}>Snapping overview</Title>
-            <Text size="sm" c="dimmed">Counts are based on object edge times, including slider reverses and tails.</Text>
+            <Text size="sm" c="dimmed">
+              Counts are based on object edge times, including slider reverses and tails.
+            </Text>
           </Stack>
           <Badge color={totalUnsnappedCount > 0 ? 'yellow' : 'green'} variant="light">
-            Unsnapped: {totalUnsnappedCount.toLocaleString()} ({totalUnsnappedPercentage.toFixed(1)}%)
+            Unsnapped: {totalUnsnappedCount.toLocaleString()} ({totalUnsnappedPercentage.toFixed(1)}
+            %)
           </Badge>
         </Group>
         <AppTable>
@@ -939,7 +1050,9 @@ function SnappingsOverview({
               <Table.Th style={{ textAlign: 'center' }}>Objects</Table.Th>
               <Table.Th style={{ textAlign: 'center' }}>Edges</Table.Th>
               {snappingColumns.map((column) => (
-                <Table.Th key={column.label} style={{ textAlign: 'center' }}>{column.label}</Table.Th>
+                <Table.Th key={column.label} style={{ textAlign: 'center' }}>
+                  {column.label}
+                </Table.Th>
               ))}
               <Table.Th style={{ textAlign: 'center' }}>Unsnapped</Table.Th>
             </Table.Tr>
@@ -956,7 +1069,9 @@ function SnappingsOverview({
                           size={16}
                           color={getModeAccentColor(group.mode)}
                         />
-                        <Text size="sm" fw={600}>{difficulty.version}</Text>
+                        <Text size="sm" fw={600}>
+                          {difficulty.version}
+                        </Text>
                       </Group>
                     </DifficultyTableCell>
                     <Table.Td>
@@ -969,13 +1084,22 @@ function SnappingsOverview({
                         <Text size="sm">{formatGameModeLabel(group.mode)}</Text>
                       </Group>
                     </Table.Td>
-                    <Table.Td><Text size="sm">{difficulty.objectCount.toLocaleString()}</Text></Table.Td>
-                    <Table.Td><Text size="sm">{difficulty.edgeCount.toLocaleString()}</Text></Table.Td>
+                    <Table.Td>
+                      <Text size="sm">{difficulty.objectCount.toLocaleString()}</Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm">{difficulty.edgeCount.toLocaleString()}</Text>
+                    </Table.Td>
                     {snappingColumns.map((column) => {
-                      const bucket = difficulty.snappings.find((candidate) => candidate.label === column.label);
+                      const bucket = difficulty.snappings.find(
+                        (candidate) => candidate.label === column.label
+                      );
                       return (
                         <Table.Td key={`${difficulty.mode}-${difficulty.version}-${column.label}`}>
-                          <SnappingTableValue count={bucket?.count ?? 0} percentage={bucket?.percentage ?? 0} />
+                          <SnappingTableValue
+                            count={bucket?.count ?? 0}
+                            percentage={bucket?.percentage ?? 0}
+                          />
                         </Table.Td>
                       );
                     })}
@@ -998,19 +1122,15 @@ function SnappingsOverview({
   );
 }
 
-function SnappingTableValue({
-  count,
-  percentage,
-}: {
-  count: number;
-  percentage: number;
-}) {
+function SnappingTableValue({ count, percentage }: { count: number; percentage: number }) {
   return (
     <Stack gap={0}>
       <Text size="sm" fw={600} c={count === 0 ? 'dimmed' : undefined}>
         {count.toLocaleString()}
       </Text>
-      <Text size="xs" c="dimmed">{percentage.toFixed(1)}%</Text>
+      <Text size="xs" c="dimmed">
+        {percentage.toFixed(1)}%
+      </Text>
     </Stack>
   );
 }
@@ -1043,7 +1163,7 @@ function drawTimelineRow(
     viewportWidth: number;
     height: number;
     theme: ReturnType<typeof useMantineTheme>;
-  },
+  }
 ) {
   const durationMs = Math.max(1, endTimeMs - startTimeMs);
   const centerY = height / 2;
@@ -1092,7 +1212,17 @@ function drawTimelineRow(
   const difficultyMode = normalizeMode(difficulty.mode);
 
   for (const timelineObject of difficulty.timelineObjects) {
-    drawTimelineObject(ctx, timelineObject, difficultyMode, startTimeMs, durationMs, timelineWidth, centerY, viewportStartX, viewportEndX);
+    drawTimelineObject(
+      ctx,
+      timelineObject,
+      difficultyMode,
+      startTimeMs,
+      durationMs,
+      timelineWidth,
+      centerY,
+      viewportStartX,
+      viewportEndX
+    );
   }
 
   const drawnMarkers = new Set<string>();
@@ -1137,7 +1267,7 @@ function drawBreakPeriods(
     visibleEndX: number;
     height: number;
     theme: ReturnType<typeof useMantineTheme>;
-  },
+  }
 ) {
   if (breakPeriods.length === 0) {
     return;
@@ -1167,7 +1297,12 @@ function drawBreakPeriods(
     ctx.setLineDash([5, 4]);
     ctx.strokeStyle = withAlpha(theme.colors.yellow[4], 0.45);
     ctx.lineWidth = 1;
-    ctx.strokeRect(bounds.startX + 0.5, blockY + 0.5, Math.max(0, blockWidth - 1), Math.max(0, blockHeight - 1));
+    ctx.strokeRect(
+      bounds.startX + 0.5,
+      blockY + 0.5,
+      Math.max(0, blockWidth - 1),
+      Math.max(0, blockHeight - 1)
+    );
     ctx.setLineDash([]);
 
     if (blockWidth >= 20) {
@@ -1200,16 +1335,21 @@ function drawTimingGrid(
     visibleStartX: number;
     visibleEndX: number;
     height: number;
-  },
+  }
 ) {
   if (timingSegments.length === 0) {
     return;
   }
 
   const roundedEdgeTimes = new Set(
-    timelineObjects.flatMap((timelineObject) => timelineObject.edges.map((edge) => Math.round(edge.timeMs))),
+    timelineObjects.flatMap((timelineObject) =>
+      timelineObject.edges.map((edge) => Math.round(edge.timeMs))
+    )
   );
-  const tickLines = new Map<string, { x: number; color: string; height: number; alpha: number; priority: number }>();
+  const tickLines = new Map<
+    string,
+    { x: number; color: string; height: number; alpha: number; priority: number }
+  >();
 
   for (const segment of timingSegments) {
     const visibleStartMs = Math.max(startTimeMs, segment.startTimeMs);
@@ -1220,7 +1360,10 @@ function drawTimingGrid(
       continue;
     }
 
-    const startSampleIndex = Math.max(0, Math.ceil((visibleStartMs - segment.offsetMs) / sampleStepMs));
+    const startSampleIndex = Math.max(
+      0,
+      Math.ceil((visibleStartMs - segment.offsetMs) / sampleStepMs)
+    );
     const endSampleIndex = Math.floor((visibleEndMs - segment.offsetMs) / sampleStepMs);
 
     for (let sampleIndex = startSampleIndex; sampleIndex <= endSampleIndex; sampleIndex += 1) {
@@ -1266,7 +1409,7 @@ function drawTimelineObject(
   width: number,
   centerY: number,
   visibleStartX: number,
-  visibleEndX: number,
+  visibleEndX: number
 ) {
   const color = getTimelineObjectColor(difficultyMode, timelineObject);
   const circleRadius = getTimelineObjectCircleRadius(difficultyMode, timelineObject);
@@ -1281,7 +1424,17 @@ function drawTimelineObject(
     return;
   }
 
-  drawObjectBody(ctx, timelineObject, difficultyMode, startTimeMs, durationMs, width, centerY, visibleStartX, visibleEndX);
+  drawObjectBody(
+    ctx,
+    timelineObject,
+    difficultyMode,
+    startTimeMs,
+    durationMs,
+    width,
+    centerY,
+    visibleStartX,
+    visibleEndX
+  );
 }
 
 function drawObjectBody(
@@ -1293,13 +1446,19 @@ function drawObjectBody(
   width: number,
   centerY: number,
   visibleStartX: number,
-  visibleEndX: number,
+  visibleEndX: number
 ) {
   if (timelineObject.endTimeMs <= timelineObject.startTimeMs) return;
 
   const startX = getTimelineX(timelineObject.startTimeMs, startTimeMs, durationMs, width);
   const endX = getTimelineX(timelineObject.endTimeMs, startTimeMs, durationMs, width);
-  const bodyBounds = getObjectBodyWidth(startX, endX, visibleStartX, visibleEndX, timelineObject.objectType === 'Spinner' ? 12 : 8);
+  const bodyBounds = getObjectBodyWidth(
+    startX,
+    endX,
+    visibleStartX,
+    visibleEndX,
+    timelineObject.objectType === 'Spinner' ? 12 : 8
+  );
   if (!bodyBounds) return;
 
   const color = getTimelineObjectColor(difficultyMode, timelineObject);
@@ -1353,7 +1512,7 @@ function drawObjectMarker(
   difficultyMode: Mode,
   partName: string,
   x: number,
-  centerY: number,
+  centerY: number
 ) {
   const lowerPart = partName.toLowerCase();
   const color = getTimelineObjectColor(difficultyMode, timelineObject);
@@ -1391,7 +1550,10 @@ function drawObjectMarker(
 function getTimelineIntervalMs(durationMs: number, zoom: number) {
   const baseIntervalMs = getAdaptiveBaseIntervalMs(durationMs);
   const normalizedZoom = Math.min(zoom, MAX_AXIS_PRECISION_ZOOM);
-  const zoomProgress = Math.max(0, Math.min(1, (normalizedZoom - MIN_ZOOM) / (MAX_AXIS_PRECISION_ZOOM - MIN_ZOOM)));
+  const zoomProgress = Math.max(
+    0,
+    Math.min(1, (normalizedZoom - MIN_ZOOM) / (MAX_AXIS_PRECISION_ZOOM - MIN_ZOOM))
+  );
 
   if (zoomProgress >= 1) {
     return 1000;
@@ -1413,14 +1575,22 @@ function getAdaptiveBaseIntervalMs(durationMs: number) {
 }
 
 function getNextTimelineIntervalStep(targetIntervalMs: number) {
-  return TIMELINE_INTERVAL_STEPS_MS.find((step) => step >= targetIntervalMs) ?? TIMELINE_INTERVAL_STEPS_MS[TIMELINE_INTERVAL_STEPS_MS.length - 1];
+  return (
+    TIMELINE_INTERVAL_STEPS_MS.find((step) => step >= targetIntervalMs) ??
+    TIMELINE_INTERVAL_STEPS_MS[TIMELINE_INTERVAL_STEPS_MS.length - 1]
+  );
 }
 
 function getTimelineX(timeMs: number, startTimeMs: number, durationMs: number, width: number) {
   return ((timeMs - startTimeMs) / durationMs) * width;
 }
 
-function getAlignedTimelineLineX(timeMs: number, startTimeMs: number, durationMs: number, width: number) {
+function getAlignedTimelineLineX(
+  timeMs: number,
+  startTimeMs: number,
+  durationMs: number,
+  width: number
+) {
   return Math.round(getTimelineX(timeMs, startTimeMs, durationMs, width)) + 0.5;
 }
 
@@ -1442,7 +1612,12 @@ function areStringArraysEqual(left: string[], right: string[]) {
   return true;
 }
 
-function reorderDifficultyKeys(keys: string[], sourceKey: string, targetKey: string, position: 'before' | 'after') {
+function reorderDifficultyKeys(
+  keys: string[],
+  sourceKey: string,
+  targetKey: string,
+  position: 'before' | 'after'
+) {
   if (sourceKey === targetKey) {
     return keys;
   }
@@ -1466,7 +1641,10 @@ function reorderDifficultyKeys(keys: string[], sourceKey: string, targetKey: str
   return next;
 }
 
-function getTimelineObjectCircleRadius(difficultyMode: Mode, timelineObject: ObjectsTimelineObject) {
+function getTimelineObjectCircleRadius(
+  difficultyMode: Mode,
+  timelineObject: ObjectsTimelineObject
+) {
   if (difficultyMode === 'Taiko' && timelineObject.hasFinishHitSound) {
     return TAIKO_FINISHER_CIRCLE_RADIUS;
   }
@@ -1485,7 +1663,7 @@ function getSpinnerMarkerRadius(difficultyMode: Mode) {
 function getDifficultyDropIndicator(
   clientY: number,
   orderedKeys: string[],
-  rowElements: Partial<Record<string, HTMLDivElement | null>>,
+  rowElements: Partial<Record<string, HTMLDivElement | null>>
 ): DifficultyDropIndicator | null {
   for (const key of orderedKeys) {
     const element = rowElements[key];
@@ -1505,7 +1683,13 @@ function getDifficultyDropIndicator(
   return lastKey ? { key: lastKey, position: 'after' } : null;
 }
 
-function getObjectBodyWidth(startX: number, endX: number, visibleStartX: number, visibleEndX: number, minimumWidth: number) {
+function getObjectBodyWidth(
+  startX: number,
+  endX: number,
+  visibleStartX: number,
+  visibleEndX: number,
+  minimumWidth: number
+) {
   const centerX = (startX + endX) / 2;
   let adjustedStartX = startX;
   let adjustedEndX = endX;
@@ -1539,8 +1723,11 @@ function getTimelineCanvasTiles(width: number) {
 }
 
 function getTimingTickStyle(sampleIndex: number, meter: number, hasNearbyEdge: boolean) {
-  const shouldShowTick = sampleIndex % (TIMING_SAMPLES_PER_BEAT / 4) === 0
-    || (hasNearbyEdge && (sampleIndex % (TIMING_SAMPLES_PER_BEAT / 12) === 0 || sampleIndex % (TIMING_SAMPLES_PER_BEAT / 16) === 0));
+  const shouldShowTick =
+    sampleIndex % (TIMING_SAMPLES_PER_BEAT / 4) === 0 ||
+    (hasNearbyEdge &&
+      (sampleIndex % (TIMING_SAMPLES_PER_BEAT / 12) === 0 ||
+        sampleIndex % (TIMING_SAMPLES_PER_BEAT / 16) === 0));
 
   if (!shouldShowTick) {
     return null;
@@ -1577,7 +1764,10 @@ function getTimingTickStyle(sampleIndex: number, meter: number, hasNearbyEdge: b
     return { color: 'rgb(255,225,100)', height: baseHeight, alpha: 0.5, priority: 2 };
   }
 
-  if (sampleIndex % (TIMING_SAMPLES_PER_BEAT / 12) === 0 || sampleIndex % (TIMING_SAMPLES_PER_BEAT / 16) === 0) {
+  if (
+    sampleIndex % (TIMING_SAMPLES_PER_BEAT / 12) === 0 ||
+    sampleIndex % (TIMING_SAMPLES_PER_BEAT / 16) === 0
+  ) {
     return { color: 'rgb(125,135,150)', height: baseHeight, alpha: 0.5, priority: 1 };
   }
 
@@ -1595,7 +1785,9 @@ function clampZoom(zoom: number) {
 }
 
 function formatZoom(zoom: number) {
-  return Number.isInteger(zoom) ? zoom.toFixed(0) : zoom.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+  return Number.isInteger(zoom)
+    ? zoom.toFixed(0)
+    : zoom.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
 }
 
 function hasNearbyRoundedEdge(roundedEdgeTimes: Set<number>, timeMs: number) {
@@ -1615,7 +1807,7 @@ function drawCircleObject(
   x: number,
   centerY: number,
   color: string,
-  radius: number,
+  radius: number
 ) {
   ctx.beginPath();
   ctx.fillStyle = withAlpha(color, 0.55);
@@ -1630,7 +1822,7 @@ function drawReverseArrowIcon(
   ctx: CanvasRenderingContext2D,
   x: number,
   centerY: number,
-  size = REVERSE_ARROW_ICON_SIZE,
+  size = REVERSE_ARROW_ICON_SIZE
 ) {
   const leftX = x - size;
   const middleX = x - size * 0.17;
@@ -1658,7 +1850,13 @@ function drawReverseArrowIcon(
   ctx.restore();
 }
 
-function drawSpinnerIcon(ctx: CanvasRenderingContext2D, x: number, centerY: number, color: string, radius: number) {
+function drawSpinnerIcon(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  centerY: number,
+  color: string,
+  radius: number
+) {
   const ringRadius = Math.max(radius * 0.72, radius - 4);
   const accentX = x + ringRadius * 0.55;
   const accentY = centerY - ringRadius * 0.6;
@@ -1691,7 +1889,12 @@ function drawSpinnerIcon(ctx: CanvasRenderingContext2D, x: number, centerY: numb
   ctx.restore();
 }
 
-function drawBreakPauseIcon(ctx: CanvasRenderingContext2D, x: number, centerY: number, color: string) {
+function drawBreakPauseIcon(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  centerY: number,
+  color: string
+) {
   ctx.save();
   ctx.fillStyle = withAlpha(color, 0.9);
   ctx.fillRect(x - 4, centerY - 5, 2.5, 10);
@@ -1717,9 +1920,10 @@ function withAlpha(color: string, alpha: number) {
   const safeAlpha = Math.max(0, Math.min(1, alpha));
 
   if (color.startsWith('#')) {
-    const normalized = color.length === 4
-      ? `#${color[1]}${color[1]}${color[2]}${color[2]}${color[3]}${color[3]}`
-      : color;
+    const normalized =
+      color.length === 4
+        ? `#${color[1]}${color[1]}${color[2]}${color[2]}${color[3]}${color[3]}`
+        : color;
     const red = Number.parseInt(normalized.slice(1, 3), 16);
     const green = Number.parseInt(normalized.slice(3, 5), 16);
     const blue = Number.parseInt(normalized.slice(5, 7), 16);

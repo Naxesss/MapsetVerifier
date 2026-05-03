@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef } from "react";
+﻿import React, { useEffect, useRef } from 'react';
 
 interface AutoResizeCanvasProps {
   draw: (ctx: CanvasRenderingContext2D, width: number, height: number) => void;
@@ -28,7 +28,7 @@ const AutoResizeCanvas: React.FC<AutoResizeCanvasProps> = ({
 
     if (!container || !canvas) return;
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     // If fixed dimensions are provided, use them and scale with CSS
@@ -40,8 +40,8 @@ const AutoResizeCanvas: React.FC<AutoResizeCanvasProps> = ({
       canvas.height = fixedHeight * ratio;
 
       // CSS will scale to fit container
-      canvas.style.width = "100%";
-      canvas.style.height = "100%";
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
 
       // Normalize scaling
       ctx.resetTransform?.();
@@ -51,7 +51,7 @@ const AutoResizeCanvas: React.FC<AutoResizeCanvasProps> = ({
       try {
         draw(ctx, fixedWidth, fixedHeight);
       } catch (error) {
-        console.error("Error drawing fixed-size canvas:", error);
+        console.error('Error drawing fixed-size canvas:', error);
       }
 
       // No need for ResizeObserver - canvas scales with CSS
@@ -84,7 +84,7 @@ const AutoResizeCanvas: React.FC<AutoResizeCanvasProps> = ({
       try {
         draw(ctx, width, height);
       } catch (error) {
-        console.error("Error drawing auto-resize canvas:", error);
+        console.error('Error drawing auto-resize canvas:', error);
       }
     };
 
@@ -128,11 +128,11 @@ const AutoResizeCanvas: React.FC<AutoResizeCanvasProps> = ({
     <div
       ref={containerRef}
       className={className}
-      style={{ width: "100%", height: "100%", ...style }}
+      style={{ width: '100%', height: '100%', ...style }}
     >
       <canvas ref={canvasRef} />
     </div>
   );
 };
 
-export default AutoResizeCanvas
+export default AutoResizeCanvas;

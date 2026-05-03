@@ -70,4 +70,3 @@ function BeatmapHeader({ bgUrl, children }: BeatmapHeaderProps) {
 }
 
 export default BeatmapHeader;
-

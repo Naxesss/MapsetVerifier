@@ -13,7 +13,8 @@ function BeatmapChecks({ mode }: BeatmapChecksProps) {
 
   if (isLoading) return <Text>Loading...</Text>;
   if (isError) return <Text>Error loading checks.</Text>;
-  if (!checks || checks.length === 0) return <Text>No {formatGameModeLabel(mode)} checks found.</Text>;
+  if (!checks || checks.length === 0)
+    return <Text>No {formatGameModeLabel(mode)} checks found.</Text>;
 
   return (
     <Group gap="xs">

@@ -3,7 +3,7 @@ import {
   ApiBeatmapInfo,
   ApiBeatmapSetCheckResult,
   ApiCategoryOverrideCheckResult,
-  ApiLazerLookupResult
+  ApiLazerLookupResult,
 } from '../Types.ts';
 import { apiFetch, FetchError } from './ApiHelper.ts';
 

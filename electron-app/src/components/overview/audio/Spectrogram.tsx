@@ -1,8 +1,21 @@
-﻿import {Box, Button, Center, Flex, Group, Loader, Modal, Paper, Select, Text, Tooltip, useMantineTheme} from '@mantine/core';
-import {IconInfoCircle, IconZoomIn} from "@tabler/icons-react";
-import {useCallback, useState} from 'react';
-import {useSpectrogram} from "./hooks/useAudioAnalysis.ts";
-import SpectrogramCanvas, {ColorScheme} from "./SpectrogramCanvas.tsx";
+﻿import {
+  Box,
+  Button,
+  Center,
+  Flex,
+  Group,
+  Loader,
+  Modal,
+  Paper,
+  Select,
+  Text,
+  Tooltip,
+  useMantineTheme,
+} from '@mantine/core';
+import { IconInfoCircle, IconZoomIn } from '@tabler/icons-react';
+import { useCallback, useState } from 'react';
+import { useSpectrogram } from './hooks/useAudioAnalysis.ts';
+import SpectrogramCanvas, { ColorScheme } from './SpectrogramCanvas.tsx';
 
 interface SpectrogramProps {
   folder: string;
@@ -20,7 +33,9 @@ function Spectrogram({ folder, songFolder }: SpectrogramProps) {
   const [colorScheme, setColorScheme] = useState<ColorScheme>('inferno');
 
   // Calculate values that depend on data (with safe defaults)
-  const duration = data?.timePositions?.length ? data.timePositions[data.timePositions.length - 1] : 0;
+  const duration = data?.timePositions?.length
+    ? data.timePositions[data.timePositions.length - 1]
+    : 0;
 
   // Calculate the average Nyquist frequency (highest frequency with any energy) across the entire song
   const calculatePeakFrequency = useCallback(() => {
@@ -36,7 +51,8 @@ function Spectrogram({ folder, songFolder }: SpectrogramProps) {
       // Find the highest frequency bin with magnitude above threshold for this frame
       for (let freqIdx = numBins - 1; freqIdx >= 0; freqIdx--) {
         if (frame.magnitudes[freqIdx] > magnitudeThreshold) {
-          highestFreqWithEnergy = data.frequencyBins?.[freqIdx] || (freqIdx * (data.sampleRate / 2) / numBins);
+          highestFreqWithEnergy =
+            data.frequencyBins?.[freqIdx] || (freqIdx * (data.sampleRate / 2)) / numBins;
           break;
         }
       }
@@ -53,27 +69,33 @@ function Spectrogram({ folder, songFolder }: SpectrogramProps) {
   const peakFreq = calculatePeakFrequency();
 
   // Generate dynamic Y-axis labels based on Nyquist frequency
-  const formatFreq = (hz: number) => hz >= 1000 ? `${(hz / 1000).toFixed(1)}kHz` : `${hz}Hz`;
+  const formatFreq = (hz: number) => (hz >= 1000 ? `${(hz / 1000).toFixed(1)}kHz` : `${hz}Hz`);
 
   if (isLoading) {
     return (
       <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
-        <Text fw={600} mb="sm">Spectrogram</Text>
+        <Text fw={600} mb="sm">
+          Spectrogram
+        </Text>
         <Center h={250}>
           <Loader size="lg" />
         </Center>
       </Paper>
     );
   }
-  
+
   if (isError) {
     return (
       <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
-        <Text fw={600} mb="sm">Spectrogram</Text>
+        <Text fw={600} mb="sm">
+          Spectrogram
+        </Text>
         <Center h={250}>
           <Text c="red">Error loading spectrogram: {error?.message}</Text>
           <Text c="red">{error?.stackTrace}</Text>
-          <Button color="red" variant="light" onClick={() => refetch()}>Retry</Button>
+          <Button color="red" variant="light" onClick={() => refetch()}>
+            Retry
+          </Button>
         </Center>
       </Paper>
     );
@@ -82,7 +104,9 @@ function Spectrogram({ folder, songFolder }: SpectrogramProps) {
   if (!data) {
     return (
       <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
-        <Text fw={600} mb="sm">Spectrogram</Text>
+        <Text fw={600} mb="sm">
+          Spectrogram
+        </Text>
         <Center h={250}>
           <Text c="dimmed">No spectrogram data available</Text>
         </Center>
@@ -95,13 +119,19 @@ function Spectrogram({ folder, songFolder }: SpectrogramProps) {
       <Group justify="space-between" mb="sm">
         <Group gap="lg">
           <Text size="sm" c="dimmed">
-            Average Peak Frequency: <Text span fw={500} c="white">{formatFreq(peakFreq)}</Text>
-            {' '}
-            <Text span c="cyan" fw={500}>(cyan line)</Text>
+            Average Peak Frequency:{' '}
+            <Text span fw={500} c="white">
+              {formatFreq(peakFreq)}
+            </Text>{' '}
+            <Text span c="cyan" fw={500}>
+              (cyan line)
+            </Text>
           </Text>
         </Group>
         <Group>
-          <Text size="sm" c="dimmed">Color Scheme:</Text>
+          <Text size="sm" c="dimmed">
+            Color Scheme:
+          </Text>
           <Select
             allowDeselect={false}
             value={colorScheme}
@@ -111,7 +141,7 @@ function Spectrogram({ folder, songFolder }: SpectrogramProps) {
               { value: 'plasma', label: 'Plasma' },
               { value: 'inferno', label: 'Inferno' },
               { value: 'magma', label: 'Magma' },
-              { value: 'cividis', label: 'Cividis' }
+              { value: 'cividis', label: 'Cividis' },
             ]}
             size="xs"
             w={120}
@@ -169,4 +199,3 @@ function Spectrogram({ folder, songFolder }: SpectrogramProps) {
 }
 
 export default Spectrogram;
-

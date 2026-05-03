@@ -1,4 +1,12 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { UpdateInfo } from '../electron-env';
 
 export type UpdaterStatus =
@@ -67,7 +75,10 @@ export const UpdaterProvider = ({ children }: { children: React.ReactNode }) => 
   // Fetch current version once from the main process.
   useEffect(() => {
     if (!isElectronRuntime()) return;
-    window.electronAPI!.getVersion().then(setCurrentVersion).catch(() => setCurrentVersion('unknown'));
+    window
+      .electronAPI!.getVersion()
+      .then(setCurrentVersion)
+      .catch(() => setCurrentVersion('unknown'));
   }, []);
 
   // Subscribe to updater events from the main process.
@@ -139,7 +150,11 @@ export const UpdaterProvider = ({ children }: { children: React.ReactNode }) => 
   }, []);
 
   const checkForUpdates = useCallback(
-    async ({ silent = false, openModal = false, openModalOnAvailable = false }: CheckForUpdatesOptions = {}) => {
+    async ({
+      silent = false,
+      openModal = false,
+      openModalOnAvailable = false,
+    }: CheckForUpdatesOptions = {}) => {
       if (!isElectronRuntime()) {
         // eslint-disable-next-line no-console
         console.info('[Updater] Skipping update check outside the Electron runtime.');
@@ -209,7 +224,21 @@ export const UpdaterProvider = ({ children }: { children: React.ReactNode }) => 
       closeUpdater,
       installUpdate,
     }),
-    [availableUpdate, checkForUpdates, closeUpdater, completedVersion, currentVersion, downloadedBytes, errorMessage, installUpdate, openUpdater, opened, progress, status, totalBytes]
+    [
+      availableUpdate,
+      checkForUpdates,
+      closeUpdater,
+      completedVersion,
+      currentVersion,
+      downloadedBytes,
+      errorMessage,
+      installUpdate,
+      openUpdater,
+      opened,
+      progress,
+      status,
+      totalBytes,
+    ]
   );
 
   return <UpdaterContext.Provider value={value}>{children}</UpdaterContext.Provider>;

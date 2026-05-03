@@ -1,10 +1,24 @@
-﻿import { Alert, CloseButton, Flex, Group, Loader, SimpleGrid, Space, Tabs, Text, TextInput } from '@mantine/core';
+﻿import {
+  Alert,
+  CloseButton,
+  Flex,
+  Group,
+  Loader,
+  SimpleGrid,
+  Space,
+  Tabs,
+  Text,
+  TextInput,
+} from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import { IconAlertCircle, IconLayoutGrid, IconSearch } from '@tabler/icons-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import BeatmapChecks from './BeatmapChecks.tsx';
 import DocumentationCheck from './DocumentationCheck';
-import { dedupeDocumentationChecksById, filterDocumentationChecks } from './filterDocumentationChecks';
+import {
+  dedupeDocumentationChecksById,
+  filterDocumentationChecks,
+} from './filterDocumentationChecks';
 import GeneralChecks from './GeneralChecks';
 import { useDocumentationChecks } from './hooks/useDocumentationChecks';
 import { countWord, pluralize } from '../../utils/countWord';
@@ -121,7 +135,7 @@ function DocumentationChecksBrowser() {
   const dedupedChecks = useMemo(() => dedupeDocumentationChecksById(allChecks), [allChecks]);
   const filteredAllChecks = useMemo(
     () => filterDocumentationChecks(dedupedChecks, appliedSearchQuery),
-    [dedupedChecks, appliedSearchQuery],
+    [dedupedChecks, appliedSearchQuery]
   );
 
   const isSearching = appliedSearchQuery.trim().length > 0;

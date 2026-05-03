@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import DocumentationCheckModal from './DocumentationCheckModal';
 import { ApiDocumentationCheck } from '../../Types.ts';
-import GameModeIcon from "../icons/GameModeIcon.tsx";
+import GameModeIcon from '../icons/GameModeIcon.tsx';
 import LevelIcon from '../icons/LevelIcon.tsx';
 
 interface DocumentationCheckProps {
@@ -36,7 +36,9 @@ function DocumentationCheck({ check }: DocumentationCheckProps) {
           <Text fw="bold">{check.description}</Text>
           <Group gap="xs">
             <Group gap="1">
-              {check.modes.map((mode) => <GameModeIcon size={16} key={mode} mode={mode} color={theme.colors.gray[5]} />)}
+              {check.modes.map((mode) => (
+                <GameModeIcon size={16} key={mode} mode={mode} color={theme.colors.gray[5]} />
+              ))}
             </Group>
             <Badge size="xs" variant="light">
               {`${check.category}`}

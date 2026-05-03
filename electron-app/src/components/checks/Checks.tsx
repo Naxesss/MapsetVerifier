@@ -1,4 +1,13 @@
-import { Alert, Text, Box, useMantineTheme, Group, Flex, LoadingOverlay, Collapse } from '@mantine/core';
+import {
+  Alert,
+  Text,
+  Box,
+  useMantineTheme,
+  Group,
+  Flex,
+  LoadingOverlay,
+  Collapse,
+} from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
 import React, { useEffect, useMemo } from 'react';
 import BeatmapActionButtons from './BeatmapActionButtons';
@@ -23,10 +32,12 @@ function Checks() {
   const [selectedCategory, setSelectedCategory] = React.useState<string | undefined>('General');
   const [displayedCategory, setDisplayedCategory] = React.useState<string | undefined>('General');
   const [isDifficultyContentVisible, setIsDifficultyContentVisible] = React.useState(true);
-  const [hoveredDifficulty, setHoveredDifficulty] = React.useState<ApiCategoryCheckResult | undefined>(undefined);
+  const [hoveredDifficulty, setHoveredDifficulty] = React.useState<
+    ApiCategoryCheckResult | undefined
+  >(undefined);
   const [selectedMode, setSelectedMode] = React.useState<Mode | undefined>();
   const difficultyTransitionDurationMs = 220;
-  
+
   useEffect(() => {
     // Reset selected category when changing beatmap
     if (folder) {
@@ -35,7 +46,7 @@ function Checks() {
       setIsDifficultyContentVisible(true);
       setHoveredDifficulty(undefined);
     }
-  }, [folder])
+  }, [folder]);
 
   const { data, isLoading, isError, error, beatmapFolderPath, refetch } = useBeatmapChecks({
     folder,
@@ -57,7 +68,9 @@ function Checks() {
   const selectedDifficulty = data?.difficulties?.find((d) => d.category === selectedCategory);
   const displayedDifficulty = data?.difficulties?.find((d) => d.category === displayedCategory);
   const selectedOverrideResult = selectedCategory ? getOverrideResult(selectedCategory) : undefined;
-  const displayedOverrideResult = displayedCategory ? getOverrideResult(displayedCategory) : undefined;
+  const displayedOverrideResult = displayedCategory
+    ? getOverrideResult(displayedCategory)
+    : undefined;
   const currentOverrideLevel = displayedCategory ? getOverrideLevel(displayedCategory) : undefined;
 
   useEffect(() => {
@@ -65,7 +78,8 @@ function Checks() {
 
     const nextCategory = selectedCategory ?? 'General';
     const categoryExists =
-      nextCategory === 'General' || data.difficulties.some((difficulty) => difficulty.category === nextCategory);
+      nextCategory === 'General' ||
+      data.difficulties.some((difficulty) => difficulty.category === nextCategory);
 
     if (!categoryExists) {
       setSelectedCategory('General');
@@ -98,7 +112,10 @@ function Checks() {
       // Check if there's an override result for this category
       const overrideResult = overrides[diff.category]?.result;
       if (overrideResult) {
-        levels[diff.category] = getCategoryHighestLevel(overrideResult.categoryResult.checkResults, settings.showMinor);
+        levels[diff.category] = getCategoryHighestLevel(
+          overrideResult.categoryResult.checkResults,
+          settings.showMinor
+        );
       } else {
         levels[diff.category] = getCategoryHighestLevel(diff.checkResults, settings.showMinor);
       }
@@ -130,22 +147,27 @@ function Checks() {
     // Create ordered array of mode groups (only include modes that have difficulties)
     const orderedModes: Mode[] = ['Standard', 'Taiko', 'Catch', 'Mania'];
 
-    
     const result = orderedModes
       .filter((mode) => modeGroups[mode].length > 0)
       .map((mode) => ({
         mode,
         difficulties: modeGroups[mode],
       }));
-    setSelectedMode(result[0].mode)
-    
+    setSelectedMode(result[0].mode);
+
     return result;
   }, [data?.difficulties]);
-  const selectedGroup = groupedDifficulties.find((g) => g.mode === selectedMode) ?? groupedDifficulties[0];
+  const selectedGroup =
+    groupedDifficulties.find((g) => g.mode === selectedMode) ?? groupedDifficulties[0];
 
   if (!folder) {
     return (
-      <Alert icon={<IconAlertTriangle />} color="yellow" title="Song folder not set" withCloseButton>
+      <Alert
+        icon={<IconAlertTriangle />}
+        color="yellow"
+        title="Song folder not set"
+        withCloseButton
+      >
         <Text size="sm">Please set the song folder in settings to run beatmap checks.</Text>
       </Alert>
     );
@@ -166,7 +188,7 @@ function Checks() {
         justifyContent: 'flex-start',
       }}
     >
-      <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
+      <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
       <BeatmapHeader bgUrl={bgUrl}>
         <Group gap="sm">
           <BeatmapActionButtons

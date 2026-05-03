@@ -32,7 +32,10 @@ export function DifficultyTableHeaderCell({
   );
 }
 
-export function DifficultyTableCell({ style, ...props }: ComponentPropsWithoutRef<typeof Table.Td>) {
+export function DifficultyTableCell({
+  style,
+  ...props
+}: ComponentPropsWithoutRef<typeof Table.Td>) {
   const theme = useMantineTheme();
 
   return (
@@ -71,10 +74,12 @@ function AppTable({
         highlightOnHover={highlightOnHover}
         horizontalSpacing={horizontalSpacing}
         verticalSpacing={verticalSpacing}
-        styles={styles ?? {
-          th: { textAlign: 'center' },
-          td: { textAlign: 'center' },
-        }}
+        styles={
+          styles ?? {
+            th: { textAlign: 'center' },
+            td: { textAlign: 'center' },
+          }
+        }
         style={{
           whiteSpace: 'nowrap',
           ...style,

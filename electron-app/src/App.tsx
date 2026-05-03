@@ -1,13 +1,19 @@
-import {AppShell, Container, CSSVariablesResolver, MantineProvider, ScrollArea} from '@mantine/core';
+import {
+  AppShell,
+  Container,
+  CSSVariablesResolver,
+  MantineProvider,
+  ScrollArea,
+} from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useLayoutEffect, useRef } from 'react';
 import { Outlet } from 'react-router-dom';
 import BackendGate from './components/backend/BackendGate.tsx';
 import NavBars from './components/navbar/NavBars.tsx';
 import UpdaterModal from './components/settings/UpdaterModal';
-import WindowBar from "./components/window/WindowBar.tsx";
-import { BeatmapProvider, useBeatmap } from "./context/BeatmapContext.tsx";
-import { SettingsProvider } from "./context/SettingsContext.tsx";
+import WindowBar from './components/window/WindowBar.tsx';
+import { BeatmapProvider, useBeatmap } from './context/BeatmapContext.tsx';
+import { SettingsProvider } from './context/SettingsContext.tsx';
 import { UpdaterProvider } from './context/UpdaterContext';
 import { theme } from './theme/Theme.ts';
 import '@mantine/core/styles.css';

@@ -1,7 +1,12 @@
 ﻿import { useQuery } from '@tanstack/react-query';
 import { FetchError } from '../../../../client/ApiHelper';
 import AudioAnalysisApi from '../../../../client/AudioAnalysisApi';
-import { AudioAnalysisResult, SpectralAnalysisResult, FrequencyAnalysisResult, HitSoundBatchResult } from '../../../../Types';
+import {
+  AudioAnalysisResult,
+  SpectralAnalysisResult,
+  FrequencyAnalysisResult,
+  HitSoundBatchResult,
+} from '../../../../Types';
 import { buildBeatmapFolderPath } from '../../../../utils/buildBeatmapFolderPath';
 
 interface UseAudioAnalysisArgs {
@@ -58,7 +63,7 @@ export function useFrequencyAnalysis({ folder, songFolder }: UseAudioAnalysisArg
     queryKey: ['frequency-analysis', beatmapFolderPath || 'unavailable'],
     queryFn: () => {
       if (!beatmapFolderPath) throw new Error('Beatmap folder path unavailable');
-      return AudioAnalysisApi.getFrequencyAnalysis({ 
+      return AudioAnalysisApi.getFrequencyAnalysis({
         beatmapSetFolder: beatmapFolderPath,
         fftSize: 4096,
       });
@@ -91,4 +96,3 @@ export function useHitSoundAnalysis({ folder, songFolder }: UseAudioAnalysisArgs
 
   return { ...query, beatmapFolderPath };
 }
-

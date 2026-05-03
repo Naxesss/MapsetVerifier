@@ -1,4 +1,16 @@
-﻿import { Text, Badge, Group, Paper, useMantineTheme, Stack, SimpleGrid, List, ThemeIcon, Tooltip, Box } from '@mantine/core';
+﻿import {
+  Text,
+  Badge,
+  Group,
+  Paper,
+  useMantineTheme,
+  Stack,
+  SimpleGrid,
+  List,
+  ThemeIcon,
+  Tooltip,
+  Box,
+} from '@mantine/core';
 import { IconCheck, IconX, IconAlertTriangle, IconInfoCircle } from '@tabler/icons-react';
 import { FormatAnalysisResult } from '../../../Types';
 
@@ -9,10 +21,14 @@ interface FormatInfoProps {
 
 function getBadgeColor(badgeType: string): string {
   switch (badgeType) {
-    case 'success': return 'green';
-    case 'warning': return 'yellow';
-    case 'error': return 'red';
-    default: return 'gray';
+    case 'success':
+      return 'green';
+    case 'warning':
+      return 'yellow';
+    case 'error':
+      return 'red';
+    default:
+      return 'gray';
   }
 }
 
@@ -50,44 +66,67 @@ function FormatInfo({ data, audioFilePath }: FormatInfoProps) {
 
       <SimpleGrid cols={3} mb="md" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
         <Stack gap={2}>
-          <Text size="xs" c="dimmed">File Name</Text>
+          <Text size="xs" c="dimmed">
+            File Name
+          </Text>
           <Text fw={500}>{audioFilePath}</Text>
         </Stack>
         <Stack gap={2}>
-          <Text size="xs" c="dimmed">Duration</Text>
+          <Text size="xs" c="dimmed">
+            Duration
+          </Text>
           <Text fw={500}>{data.durationFormatted}</Text>
         </Stack>
         <Stack gap={2}>
-          <Text size="xs" c="dimmed">File Size</Text>
+          <Text size="xs" c="dimmed">
+            File Size
+          </Text>
           <Text fw={500}>{data.fileSizeFormatted}</Text>
         </Stack>
         <Stack gap={2}>
-          <Text size="xs" c="dimmed">Channels</Text>
-          <Text fw={500}>{data.channels === 1 ? 'Mono' : data.channels === 2 ? 'Stereo' : `${data.channels}ch`}</Text>
+          <Text size="xs" c="dimmed">
+            Channels
+          </Text>
+          <Text fw={500}>
+            {data.channels === 1 ? 'Mono' : data.channels === 2 ? 'Stereo' : `${data.channels}ch`}
+          </Text>
         </Stack>
         <Stack gap={2}>
-          <Text size="xs" c="dimmed">Sample Rate</Text>
+          <Text size="xs" c="dimmed">
+            Sample Rate
+          </Text>
           <Text fw={500}>{(data.sampleRate / 1000).toFixed(1)} kHz</Text>
           {sampleRateExceeds48kHz && (
-            <Text size="xs" c="red.4">Exceeds 48 kHz limit</Text>
+            <Text size="xs" c="red.4">
+              Exceeds 48 kHz limit
+            </Text>
           )}
         </Stack>
         <Stack gap={2}>
           <Group gap={4} align="center">
-            <Text size="xs" c="dimmed">Codec</Text>
+            <Text size="xs" c="dimmed">
+              Codec
+            </Text>
             {!isValidFormat && (
               <Tooltip label="Must be MP3 or Ogg Vorbis">
-                <IconAlertTriangle size={12} style={{ color: theme.colors.red[5], cursor: 'help' }} />
+                <IconAlertTriangle
+                  size={12}
+                  style={{ color: theme.colors.red[5], cursor: 'help' }}
+                />
               </Tooltip>
             )}
           </Group>
-          <Text fw={500} c={isValidFormat ? 'white' : 'red.4'}>{data.codec}</Text>
+          <Text fw={500} c={isValidFormat ? 'white' : 'red.4'}>
+            {data.codec}
+          </Text>
         </Stack>
       </SimpleGrid>
 
       {/* Format Requirements Summary */}
       <Box p="xs" mb="md" bg={theme.colors.dark[6]} style={{ borderRadius: theme.radius.sm }}>
-        <Text size="xs" fw={500} c="dimmed" mb={4}>Ranking Requirements:</Text>
+        <Text size="xs" fw={500} c="dimmed" mb={4}>
+          Ranking Requirements:
+        </Text>
         <Stack gap={4}>
           <Group gap="xs">
             <ThemeIcon size="xs" color={isValidFormat ? 'green' : 'red'} variant="light">
@@ -110,7 +149,9 @@ function FormatInfo({ data, audioFilePath }: FormatInfoProps) {
 
       {data.complianceIssues?.length > 0 && (
         <Stack gap="xs">
-          <Text size="sm" fw={500} c="red.4">Compliance Issues:</Text>
+          <Text size="sm" fw={500} c="red.4">
+            Compliance Issues:
+          </Text>
           <List
             size="sm"
             spacing="xs"
@@ -131,4 +172,3 @@ function FormatInfo({ data, audioFilePath }: FormatInfoProps) {
 }
 
 export default FormatInfo;
-

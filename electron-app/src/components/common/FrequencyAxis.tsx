@@ -24,9 +24,9 @@ function FrequencyAxis({
   minFreqHz,
   maxFreqHz,
   width = 60,
-  height = "100%",
+  height = '100%',
   showTicks = true,
-  frequencyPoints
+  frequencyPoints,
 }: FrequencyAxisProps) {
   const theme = useMantineTheme();
   const freqRange = maxFreqHz - minFreqHz;
@@ -34,10 +34,10 @@ function FrequencyAxis({
   // Calculate adaptive frequency points if not provided
   const getAdaptiveFrequencyPoints = (min: number, max: number): number[] => {
     const points: number[] = [];
-    
+
     // Always include min and max
     points.push(max);
-    
+
     // Add intermediate points based on range
     if (max >= 20000) {
       points.push(20000, 15000, 10000, 5000, 2000);
@@ -48,22 +48,20 @@ function FrequencyAxis({
     } else {
       points.push(max * 0.75, max * 0.5, max * 0.25);
     }
-    
+
     // Filter to only include points within range and remove duplicates
-    return [...new Set(points.filter(f => f >= min && f <= max))].sort((a, b) => b - a);
+    return [...new Set(points.filter((f) => f >= min && f <= max))].sort((a, b) => b - a);
   };
 
   const freqLabels = frequencyPoints ?? getAdaptiveFrequencyPoints(minFreqHz, maxFreqHz);
 
   // Format frequency as Hz or kHz
   const formatFrequency = (hz: number): string => {
-    if (!Number.isFinite(hz)) return "";
+    if (!Number.isFinite(hz)) return '';
 
     if (hz >= 1000) {
       const khz = hz / 1000;
-      return khz >= 10
-        ? `${Math.round(khz)} kHz`
-        : `${khz.toFixed(1)} kHz`;
+      return khz >= 10 ? `${Math.round(khz)} kHz` : `${khz.toFixed(1)} kHz`;
     }
 
     return `${Math.round(hz)} Hz`;
@@ -79,11 +77,11 @@ function FrequencyAxis({
           const yPos = `${yPercent}%`;
 
           // Adjust dominantBaseline for edge labels to prevent clipping
-          let baseline: "auto" | "middle" | "hanging" = "middle";
+          let baseline: 'auto' | 'middle' | 'hanging' = 'middle';
           if (yPercent <= 2) {
-            baseline = "hanging"; // Top edge - align text below the position
+            baseline = 'hanging'; // Top edge - align text below the position
           } else if (yPercent >= 98) {
-            baseline = "auto"; // Bottom edge - align text above the position
+            baseline = 'auto'; // Bottom edge - align text above the position
           }
 
           return (
@@ -120,4 +118,3 @@ function FrequencyAxis({
 }
 
 export default FrequencyAxis;
-

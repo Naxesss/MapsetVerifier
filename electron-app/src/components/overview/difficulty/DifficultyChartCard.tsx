@@ -20,7 +20,9 @@ function formatStrainResolution(msPerPeak: number): string {
 function MetricStat({ label, value }: { label: string; value: string }) {
   return (
     <Stack gap={2}>
-      <Text size="xs" c="dimmed">{label}</Text>
+      <Text size="xs" c="dimmed">
+        {label}
+      </Text>
       <Text fw={600}>{value}</Text>
     </Stack>
   );
@@ -35,7 +37,10 @@ export function DifficultyChartCard({ chart }: { chart: ChartDefinition }) {
         <Text fw={600}>{chart.title}</Text>
 
         <SimpleGrid cols={4} spacing="md">
-          <MetricStat label="Peak" value={`${chart.maxValue.toFixed(2)}${chart.valueSuffix ?? ''}`} />
+          <MetricStat
+            label="Peak"
+            value={`${chart.maxValue.toFixed(2)}${chart.valueSuffix ?? ''}`}
+          />
           <MetricStat label="Peak at" value={formatSeconds(chart.peakTimeSeconds)} />
           <MetricStat label="Duration" value={formatChartDuration(chart.durationMs)} />
           <MetricStat label="Resolution" value={formatStrainResolution(chart.msPerPeak)} />
@@ -87,7 +92,9 @@ export function DifficultyChartCard({ chart }: { chart: ChartDefinition }) {
             />
           </Box>
         ) : (
-          <Text c="dimmed" ta="center" py="xl">No chart data available</Text>
+          <Text c="dimmed" ta="center" py="xl">
+            No chart data available
+          </Text>
         )}
       </Stack>
     </Paper>

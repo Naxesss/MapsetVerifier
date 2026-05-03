@@ -1,5 +1,20 @@
-import { Alert, Button, Divider, Group, Modal, Progress, ScrollArea, Stack, Text } from '@mantine/core';
-import { IconAlertCircle, IconCircleCheck, IconCloudDownload, IconLoader2 } from '@tabler/icons-react';
+import {
+  Alert,
+  Button,
+  Divider,
+  Group,
+  Modal,
+  Progress,
+  ScrollArea,
+  Stack,
+  Text,
+} from '@mantine/core';
+import {
+  IconAlertCircle,
+  IconCircleCheck,
+  IconCloudDownload,
+  IconLoader2,
+} from '@tabler/icons-react';
 import React from 'react';
 import { useUpdater } from '../../context/UpdaterContext';
 import MantineMarkdown from '../documentation/MantineMarkdown';
@@ -65,17 +80,27 @@ const UpdaterModal: React.FC = () => {
           </Alert>
         )}
 
-        {(status === 'available' || status === 'downloading' || status === 'installing') && availableUpdate && (
-          <Alert icon={<IconCloudDownload />} color="blue" title={`Update ${availableUpdate.version} is available`}>
-            {status === 'available'
-              ? 'A new version is available. Would you like to update now?'
-              : 'The update package is being downloaded and installed.'}
-          </Alert>
-        )}
+        {(status === 'available' || status === 'downloading' || status === 'installing') &&
+          availableUpdate && (
+            <Alert
+              icon={<IconCloudDownload />}
+              color="blue"
+              title={`Update ${availableUpdate.version} is available`}
+            >
+              {status === 'available'
+                ? 'A new version is available. Would you like to update now?'
+                : 'The update package is being downloaded and installed.'}
+            </Alert>
+          )}
 
         {status === 'installed' && (
-          <Alert icon={<IconCircleCheck />} color="green" title={`Update ${completedVersion ?? 'installed'}`}>
-            The update has been installed. On Windows, the app may close automatically while the installer finishes.
+          <Alert
+            icon={<IconCircleCheck />}
+            color="green"
+            title={`Update ${completedVersion ?? 'installed'}`}
+          >
+            The update has been installed. On Windows, the app may close automatically while the
+            installer finishes.
           </Alert>
         )}
 
@@ -109,7 +134,9 @@ const UpdaterModal: React.FC = () => {
           <Stack gap="xs">
             <Progress value={progress} animated={status !== 'installing'} />
             <Group justify="space-between">
-              <Text size="sm">{status === 'installing' ? 'Installing update…' : 'Downloading update…'}</Text>
+              <Text size="sm">
+                {status === 'installing' ? 'Installing update…' : 'Downloading update…'}
+              </Text>
               <Text size="sm" c="dimmed">
                 {formatBytes(downloadedBytes)} / {formatBytes(totalBytes)}
               </Text>
@@ -119,7 +146,10 @@ const UpdaterModal: React.FC = () => {
 
         <Group justify="flex-end">
           {(status === 'up-to-date' || status === 'error' || status === 'installed') && (
-            <Button variant="light" onClick={() => void checkForUpdates({ silent: false, openModal: true })}>
+            <Button
+              variant="light"
+              onClick={() => void checkForUpdates({ silent: false, openModal: true })}
+            >
               Check again
             </Button>
           )}

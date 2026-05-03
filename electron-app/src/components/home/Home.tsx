@@ -1,6 +1,6 @@
-﻿import { Alert, Button, Container, Text } from "@mantine/core";
-import { IconBug, IconLifebuoy, IconMessage } from "@tabler/icons-react";
-import Changelog from "./Changelog.tsx";
+﻿import { Alert, Button, Container, Text } from '@mantine/core';
+import { IconBug, IconLifebuoy, IconMessage } from '@tabler/icons-react';
+import Changelog from './Changelog.tsx';
 
 export default function Home() {
   return (
@@ -13,8 +13,9 @@ export default function Home() {
         mb="md"
       >
         <Text size="sm" mb="sm">
-          With the Mapset Verifier 2.0 release, a lot has changed, and while we&apos;ve worked hard to ensure stability, some issues may still arise.
-          If you encounter any bugs, have suggestions for new features, or need assistance, please don&apos;t hesitate to reach out!
+          With the Mapset Verifier 2.0 release, a lot has changed, and while we&apos;ve worked hard
+          to ensure stability, some issues may still arise. If you encounter any bugs, have
+          suggestions for new features, or need assistance, please don&apos;t hesitate to reach out!
         </Text>
         <Button
           color="green"

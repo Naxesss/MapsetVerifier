@@ -27,4 +27,3 @@ export function useBeatmapAnalysis({ folder, songFolder }: UseBeatmapAnalysisArg
 
   return { ...query, beatmapFolderPath, refetch: query.refetch };
 }
-

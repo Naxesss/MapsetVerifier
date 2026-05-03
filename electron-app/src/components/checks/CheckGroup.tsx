@@ -48,11 +48,7 @@ const CheckGroup: React.FC<CheckGroupProps> = ({ id, items, name }) => {
 
   return (
     <Stack gap="0" justify="center">
-      <Flex
-        justify="space-between"
-        wrap="nowrap"
-        align="center"
-      >
+      <Flex justify="space-between" wrap="nowrap" align="center">
         <Flex
           gap="xs"
           onClick={toggle}

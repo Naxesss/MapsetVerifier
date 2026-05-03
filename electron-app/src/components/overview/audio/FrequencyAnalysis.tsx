@@ -1,5 +1,15 @@
 ﻿import { AreaChart } from '@mantine/charts';
-import { Text, Group, Paper, useMantineTheme, Stack, SimpleGrid, Loader, Center, Badge } from '@mantine/core';
+import {
+  Text,
+  Group,
+  Paper,
+  useMantineTheme,
+  Stack,
+  SimpleGrid,
+  Loader,
+  Center,
+  Badge,
+} from '@mantine/core';
 import { useMemo } from 'react';
 import { FrequencyAnalysisResult, FftDataPoint, DetectedNote } from '../../../Types';
 
@@ -35,7 +45,9 @@ function FrequencyAnalysis({ data, isLoading }: FrequencyAnalysisProps) {
       const targetFreq = Math.pow(10, logFreq);
       // Find closest data point
       const closest = rawData.reduce((prev: FftDataPoint, curr: FftDataPoint) =>
-        Math.abs(curr.frequencyHz - targetFreq) < Math.abs(prev.frequencyHz - targetFreq) ? curr : prev
+        Math.abs(curr.frequencyHz - targetFreq) < Math.abs(prev.frequencyHz - targetFreq)
+          ? curr
+          : prev
       );
       result.push({
         freq: formatFrequency(targetFreq),
@@ -56,8 +68,12 @@ function FrequencyAnalysis({ data, isLoading }: FrequencyAnalysisProps) {
   if (isLoading) {
     return (
       <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
-        <Text fw={600} mb="sm">Frequency Analysis</Text>
-        <Center h={200}><Loader size="lg" /></Center>
+        <Text fw={600} mb="sm">
+          Frequency Analysis
+        </Text>
+        <Center h={200}>
+          <Loader size="lg" />
+        </Center>
       </Paper>
     );
   }
@@ -65,8 +81,12 @@ function FrequencyAnalysis({ data, isLoading }: FrequencyAnalysisProps) {
   if (!data) {
     return (
       <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
-        <Text fw={600} mb="sm">Frequency Analysis</Text>
-        <Center h={200}><Text c="dimmed">No frequency data available</Text></Center>
+        <Text fw={600} mb="sm">
+          Frequency Analysis
+        </Text>
+        <Center h={200}>
+          <Text c="dimmed">No frequency data available</Text>
+        </Center>
       </Paper>
     );
   }
@@ -75,20 +95,34 @@ function FrequencyAnalysis({ data, isLoading }: FrequencyAnalysisProps) {
     <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
       <Group justify="space-between" mb="sm">
         <Text fw={600}>Frequency Analysis (FFT)</Text>
-        <Text size="sm" c="dimmed">Window: {data.fftWindowSize}</Text>
+        <Text size="sm" c="dimmed">
+          Window: {data.fftWindowSize}
+        </Text>
       </Group>
       <SimpleGrid cols={3} mb="md">
         <Stack gap={2}>
-          <Text size="xs" c="dimmed">Bass (20-250Hz)</Text>
-          <Badge color="red" variant="light">{data.harmonicAnalysis?.bassEnergy?.toFixed(1) || 'N/A'} dB</Badge>
+          <Text size="xs" c="dimmed">
+            Bass (20-250Hz)
+          </Text>
+          <Badge color="red" variant="light">
+            {data.harmonicAnalysis?.bassEnergy?.toFixed(1) || 'N/A'} dB
+          </Badge>
         </Stack>
         <Stack gap={2}>
-          <Text size="xs" c="dimmed">Mids (250-4kHz)</Text>
-          <Badge color="green" variant="light">{data.harmonicAnalysis?.midEnergy?.toFixed(1) || 'N/A'} dB</Badge>
+          <Text size="xs" c="dimmed">
+            Mids (250-4kHz)
+          </Text>
+          <Badge color="green" variant="light">
+            {data.harmonicAnalysis?.midEnergy?.toFixed(1) || 'N/A'} dB
+          </Badge>
         </Stack>
         <Stack gap={2}>
-          <Text size="xs" c="dimmed">Highs (4k-20kHz)</Text>
-          <Badge color="blue" variant="light">{data.harmonicAnalysis?.highEnergy?.toFixed(1) || 'N/A'} dB</Badge>
+          <Text size="xs" c="dimmed">
+            Highs (4k-20kHz)
+          </Text>
+          <Badge color="blue" variant="light">
+            {data.harmonicAnalysis?.highEnergy?.toFixed(1) || 'N/A'} dB
+          </Badge>
         </Stack>
       </SimpleGrid>
       {chartData.length > 0 ? (
@@ -107,14 +141,22 @@ function FrequencyAnalysis({ data, isLoading }: FrequencyAnalysisProps) {
           withGradient
         />
       ) : (
-        <Center h={200}><Text c="dimmed">No FFT data available</Text></Center>
+        <Center h={200}>
+          <Text c="dimmed">No FFT data available</Text>
+        </Center>
       )}
-      <Text size="xs" c="dimmed" mt="xs" ta="center">Frequency (Hz) - Log-spaced sampling</Text>
+      <Text size="xs" c="dimmed" mt="xs" ta="center">
+        Frequency (Hz) - Log-spaced sampling
+      </Text>
       {data.detectedNotes?.length > 0 && (
         <Group gap="xs" mt="md">
-          <Text size="xs" c="dimmed">Detected Notes:</Text>
+          <Text size="xs" c="dimmed">
+            Detected Notes:
+          </Text>
           {data.detectedNotes.slice(0, 5).map((note: DetectedNote, idx: number) => (
-            <Badge key={idx} size="sm" variant="outline">{note.noteName}</Badge>
+            <Badge key={idx} size="sm" variant="outline">
+              {note.noteName}
+            </Badge>
           ))}
         </Group>
       )}
@@ -123,4 +165,3 @@ function FrequencyAnalysis({ data, isLoading }: FrequencyAnalysisProps) {
 }
 
 export default FrequencyAnalysis;
-

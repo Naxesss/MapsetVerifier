@@ -1,5 +1,5 @@
-﻿import {LineChart} from '@mantine/charts';
-import {Text, Badge, Group, Paper, useMantineTheme, Stack, Box, Tooltip} from '@mantine/core';
+﻿import { LineChart } from '@mantine/charts';
+import { Text, Badge, Group, Paper, useMantineTheme, Stack, Box, Tooltip } from '@mantine/core';
 import { IconAlertTriangle, IconInfoCircle } from '@tabler/icons-react';
 import { useMemo } from 'react';
 import { BitrateAnalysisResult, BitrateDataPoint } from '../../../Types';
@@ -80,24 +80,39 @@ function BitrateGraph({ data, durationMs }: BitrateGraphProps) {
             <Badge color={data.isCompliant ? 'green' : 'red'} variant="light">
               {data.isCompliant ? 'Compliant' : 'Non-Compliant'}
             </Badge>
-            {data.isVbr && <Badge color="blue" variant="light">VBR</Badge>}
+            {data.isVbr && (
+              <Badge color="blue" variant="light">
+                VBR
+              </Badge>
+            )}
           </Group>
         </Group>
         <Group gap="lg">
           <Text size="sm" c="dimmed">
-            Average: <Text span fw={500} c={data.isCompliant ? 'green.4' : 'red.4'}>
+            Average:{' '}
+            <Text span fw={500} c={data.isCompliant ? 'green.4' : 'red.4'}>
               {data.averageBitrate.toFixed(0)} kbps
             </Text>
           </Text>
           {data.isVbr && data.minBitrate && data.maxBitrate && (
             <>
               <Text size="sm" c="dimmed">
-                Min: <Text span fw={500} c={data.minBitrate < data.minAllowedBitrate ? 'red.4' : 'white'}>
+                Min:{' '}
+                <Text
+                  span
+                  fw={500}
+                  c={data.minBitrate < data.minAllowedBitrate ? 'red.4' : 'white'}
+                >
                   {data.minBitrate.toFixed(0)} kbps
                 </Text>
               </Text>
               <Text size="sm" c="dimmed">
-                Max: <Text span fw={500} c={data.maxBitrate > data.maxAllowedBitrate ? 'red.4' : 'white'}>
+                Max:{' '}
+                <Text
+                  span
+                  fw={500}
+                  c={data.maxBitrate > data.maxAllowedBitrate ? 'red.4' : 'white'}
+                >
                   {data.maxBitrate.toFixed(0)} kbps
                 </Text>
               </Text>
@@ -120,12 +135,19 @@ function BitrateGraph({ data, durationMs }: BitrateGraphProps) {
             />
           </Box>
         ) : (
-          <Text c="dimmed" ta="center" py="xl">No bitrate data available</Text>
+          <Text c="dimmed" ta="center" py="xl">
+            No bitrate data available
+          </Text>
         )}
 
         {/* Compliance Status */}
         {violations.hasViolations && (
-          <Group gap="xs" p="xs" bg={theme.colors.dark[6]} style={{ borderRadius: theme.radius.sm }}>
+          <Group
+            gap="xs"
+            p="xs"
+            bg={theme.colors.dark[6]}
+            style={{ borderRadius: theme.radius.sm }}
+          >
             <IconAlertTriangle size={16} color={theme.colors.red[5]} />
             <Text size="xs" c="red.4">
               {violations.aboveMax > 0 && `${violations.aboveMax} samples exceed max threshold`}
@@ -140,4 +162,3 @@ function BitrateGraph({ data, durationMs }: BitrateGraphProps) {
 }
 
 export default BitrateGraph;
-

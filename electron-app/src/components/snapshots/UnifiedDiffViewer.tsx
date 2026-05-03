@@ -1,8 +1,8 @@
 ﻿import { Accordion, Badge, Box, Group, Stack, Text, Code, useMantineTheme } from '@mantine/core';
 import { IconPlus, IconMinus, IconArrowsExchange } from '@tabler/icons-react';
-import {useSettings} from "../../context/SettingsContext.tsx";
+import { useSettings } from '../../context/SettingsContext.tsx';
 import { ApiSnapshotCommit, ApiSnapshotSection, ApiSnapshotDiff, DiffType } from '../../Types';
-import OsuLink from "../common/OsuLink.tsx";
+import OsuLink from '../common/OsuLink.tsx';
 
 interface UnifiedDiffViewerProps {
   commit: ApiSnapshotCommit;
@@ -41,7 +41,7 @@ function DiffLine({ diff }: { diff: ApiSnapshotDiff }) {
             <OsuLink text={diff.message} />
           </Text>
         </Group>
-        
+
         {settings.showSnapshotDiffView && (
           <>
             {/* Show unified diff format for changes */}
@@ -192,4 +192,3 @@ function UnifiedDiffViewer({ commit }: UnifiedDiffViewerProps) {
 }
 
 export default UnifiedDiffViewer;
-

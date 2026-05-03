@@ -19,7 +19,12 @@ export default function Beatmaps() {
           <Text size="sm" mb="sm">
             Please set your song folder in the settings to view your beatmaps.
           </Text>
-          <Button variant="light" color="gray" leftSection={<IconSettings />} onClick={() => setSettingsOpened(true)}>
+          <Button
+            variant="light"
+            color="gray"
+            leftSection={<IconSettings />}
+            onClick={() => setSettingsOpened(true)}
+          >
             Open settings
           </Button>
         </Alert>
@@ -30,7 +35,11 @@ export default function Beatmaps() {
 
   return (
     <>
-      <BeatmapsList songFolder={settings.songFolder} lazerLookupEnabled={lazerLookupEnabled} onOpenSettings={() => setSettingsOpened(true)} />
+      <BeatmapsList
+        songFolder={settings.songFolder}
+        lazerLookupEnabled={lazerLookupEnabled}
+        onOpenSettings={() => setSettingsOpened(true)}
+      />
       <SettingsModal opened={settingsOpened} onClose={() => setSettingsOpened(false)} />
     </>
   );

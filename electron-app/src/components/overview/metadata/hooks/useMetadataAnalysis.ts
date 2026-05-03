@@ -27,4 +27,3 @@ export function useMetadataAnalysis({ folder, songFolder }: UseMetadataAnalysisA
 
   return { ...query, beatmapFolderPath, refetch: query.refetch };
 }
-

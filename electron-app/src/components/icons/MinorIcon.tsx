@@ -33,7 +33,11 @@ export default function MinorIcon({ size = 32 }: { size?: number }) {
             backgroundColor: theme.black,
           }}
         />
-        <IconExclamationCircleFilled color={theme.colors.orange[5]} size={overlaySize} style={{ position: 'absolute', inset: 0 }} />
+        <IconExclamationCircleFilled
+          color={theme.colors.orange[5]}
+          size={overlaySize}
+          style={{ position: 'absolute', inset: 0 }}
+        />
       </span>
     </span>
   );

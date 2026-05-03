@@ -1,7 +1,4 @@
-import {
-  Flex,
-  SegmentedControl,
-} from '@mantine/core';
+import { Flex, SegmentedControl } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import LazerBeatmapsPanel from './LazerBeatmapsPanel.tsx';
 import StableBeatmapsPanel from './StableBeatmapsPanel.tsx';
@@ -44,7 +41,11 @@ export default function BeatmapsList({ songFolder, lazerLookupEnabled, onOpenSet
           />
         </Flex>
       )}
-      {stableEnabled ? <StableBeatmapsPanel songFolder={songFolder} onOpenSettings={onOpenSettings} /> : <LazerBeatmapsPanel />}
+      {stableEnabled ? (
+        <StableBeatmapsPanel songFolder={songFolder} onOpenSettings={onOpenSettings} />
+      ) : (
+        <LazerBeatmapsPanel />
+      )}
     </Flex>
   );
 }

@@ -5,7 +5,7 @@ import DocumentationOutcomeBlockquote from './DocumentationOutcomeBlockquote';
 import MantineMarkdown from './MantineMarkdown';
 import DocumentationApi from '../../client/DocumentationApi';
 import { ApiDocumentationCheck, ApiDocumentationCheckDetails } from '../../Types';
-import GameModeIcon from "../icons/GameModeIcon.tsx";
+import GameModeIcon from '../icons/GameModeIcon.tsx';
 
 interface DocumentationCheckModalProps {
   opened: boolean;
@@ -42,12 +42,16 @@ export default function DocumentationCheckModal({
       <Flex direction="column" gap="lg">
         <Flex justify="space-between">
           <Group gap="1">
-            {check.modes.map((mode) => <GameModeIcon size={16} key={mode} mode={mode} />)}
+            {check.modes.map((mode) => (
+              <GameModeIcon size={16} key={mode} mode={mode} />
+            ))}
             <Badge size="xs" variant="light">
               {`${check.category}`}
             </Badge>
           </Group>
-          <Text size="sm" c="dimmed">Created by {check.author}</Text>
+          <Text size="sm" c="dimmed">
+            Created by {check.author}
+          </Text>
         </Flex>
         {isLoading && <Loader />}
         {error && (

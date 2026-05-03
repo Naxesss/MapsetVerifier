@@ -1,5 +1,23 @@
-﻿import {Box, Group, Stack, Text, UnstyledButton, Badge, useMantineTheme, Flex, ScrollArea, ActionIcon} from '@mantine/core';
-import { IconGitCommit, IconPlus, IconMinus, IconArrowsExchange, IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
+﻿import {
+  Box,
+  Group,
+  Stack,
+  Text,
+  UnstyledButton,
+  Badge,
+  useMantineTheme,
+  Flex,
+  ScrollArea,
+  ActionIcon,
+} from '@mantine/core';
+import {
+  IconGitCommit,
+  IconPlus,
+  IconMinus,
+  IconArrowsExchange,
+  IconChevronLeft,
+  IconChevronRight,
+} from '@tabler/icons-react';
 import { useEffect, useRef } from 'react';
 import { ApiSnapshotCommit } from '../../Types';
 
@@ -32,10 +50,18 @@ function formatDate(dateString: string): string {
 
 function formatTime(dateString: string): string {
   const date = new Date(dateString);
-  return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  return date.toLocaleTimeString(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
 }
 
-function SnapshotCommitList({ commits, selectedCommitId, onSelectCommit }: SnapshotCommitListProps) {
+function SnapshotCommitList({
+  commits,
+  selectedCommitId,
+  onSelectCommit,
+}: SnapshotCommitListProps) {
   const theme = useMantineTheme();
   const viewportRef = useRef<HTMLDivElement>(null);
   const commitRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
@@ -62,8 +88,8 @@ function SnapshotCommitList({ commits, selectedCommitId, onSelectCommit }: Snaps
       viewport.scrollLeft +
       elementRect.left -
       viewportRect.left -
-      (viewportRect.width / 2) +
-      (elementRect.width / 2);
+      viewportRect.width / 2 +
+      elementRect.width / 2;
 
     // Smooth scroll to the calculated position
     viewport.scrollTo({
@@ -120,86 +146,83 @@ function SnapshotCommitList({ commits, selectedCommitId, onSelectCommit }: Snaps
         style={{ borderRadius: theme.radius.md, flex: 1 }}
         viewportRef={viewportRef}
       >
-        <Flex
-          gap="xs"
-          wrap="nowrap"
-        >
-        {commits.map((commit, index) => {
-          const isSelected = selectedCommitId === commit.id;
-          const isFirst = index === 0;
-  
-          return (
-            <UnstyledButton
-              key={commit.id}
-              ref={(el) => {
-                if (el) {
-                  commitRefs.current.set(commit.id, el);
-                } else {
-                  commitRefs.current.delete(commit.id);
-                }
-              }}
-              onClick={() => onSelectCommit(commit.id)}
-              style={{
-                borderTop: `3px solid ${isSelected ? theme.colors.blue[6] : theme.colors.dark[5]}`,
-                backgroundColor: isSelected ? theme.colors.dark[6] : theme.colors.dark[7],
-                transition: 'all 0.15s ease',
-                borderRadius: theme.radius.sm,
-                minWidth: '175px',
-                flexShrink: 0,
-              }}
-            >
-              <Box p="sm">
-                <Stack gap="xs">
-                  <Group gap="xs" wrap="nowrap">
-                    <IconGitCommit
-                      size={18}
-                      color={isFirst ? theme.colors.green[5] : theme.colors.dark[3]}
-                      style={{ flexShrink: 0 }}
-                    />
-                    <Text size="sm" fw={500} truncate>
-                      {formatDate(commit.date)}
+        <Flex gap="xs" wrap="nowrap">
+          {commits.map((commit, index) => {
+            const isSelected = selectedCommitId === commit.id;
+            const isFirst = index === 0;
+
+            return (
+              <UnstyledButton
+                key={commit.id}
+                ref={(el) => {
+                  if (el) {
+                    commitRefs.current.set(commit.id, el);
+                  } else {
+                    commitRefs.current.delete(commit.id);
+                  }
+                }}
+                onClick={() => onSelectCommit(commit.id)}
+                style={{
+                  borderTop: `3px solid ${isSelected ? theme.colors.blue[6] : theme.colors.dark[5]}`,
+                  backgroundColor: isSelected ? theme.colors.dark[6] : theme.colors.dark[7],
+                  transition: 'all 0.15s ease',
+                  borderRadius: theme.radius.sm,
+                  minWidth: '175px',
+                  flexShrink: 0,
+                }}
+              >
+                <Box p="sm">
+                  <Stack gap="xs">
+                    <Group gap="xs" wrap="nowrap">
+                      <IconGitCommit
+                        size={18}
+                        color={isFirst ? theme.colors.green[5] : theme.colors.dark[3]}
+                        style={{ flexShrink: 0 }}
+                      />
+                      <Text size="sm" fw={500} truncate>
+                        {formatDate(commit.date)}
+                      </Text>
+                    </Group>
+                    <Text size="xs" c="dimmed">
+                      {formatTime(commit.date)}
                     </Text>
-                  </Group>
-                  <Text size="xs" c="dimmed">
-                    {formatTime(commit.date)}
-                  </Text>
-                  <Group gap="xs" wrap="nowrap">
-                    {commit.additions > 0 && (
-                      <Badge
-                        size="xs"
-                        variant="light"
-                        color="green"
-                        leftSection={<IconPlus size={10} />}
-                      >
-                        {commit.additions}
-                      </Badge>
-                    )}
-                    {commit.removals > 0 && (
-                      <Badge
-                        size="xs"
-                        variant="light"
-                        color="red"
-                        leftSection={<IconMinus size={10} />}
-                      >
-                        {commit.removals}
-                      </Badge>
-                    )}
-                    {commit.modifications > 0 && (
-                      <Badge
-                        size="xs"
-                        variant="light"
-                        color="yellow"
-                        leftSection={<IconArrowsExchange size={10} />}
-                      >
-                        {commit.modifications}
-                      </Badge>
-                    )}
-                  </Group>
-                </Stack>
-              </Box>
-            </UnstyledButton>
-          );
-        })}
+                    <Group gap="xs" wrap="nowrap">
+                      {commit.additions > 0 && (
+                        <Badge
+                          size="xs"
+                          variant="light"
+                          color="green"
+                          leftSection={<IconPlus size={10} />}
+                        >
+                          {commit.additions}
+                        </Badge>
+                      )}
+                      {commit.removals > 0 && (
+                        <Badge
+                          size="xs"
+                          variant="light"
+                          color="red"
+                          leftSection={<IconMinus size={10} />}
+                        >
+                          {commit.removals}
+                        </Badge>
+                      )}
+                      {commit.modifications > 0 && (
+                        <Badge
+                          size="xs"
+                          variant="light"
+                          color="yellow"
+                          leftSection={<IconArrowsExchange size={10} />}
+                        >
+                          {commit.modifications}
+                        </Badge>
+                      )}
+                    </Group>
+                  </Stack>
+                </Box>
+              </UnstyledButton>
+            );
+          })}
         </Flex>
       </ScrollArea>
       <ActionIcon
@@ -219,4 +242,3 @@ function SnapshotCommitList({ commits, selectedCommitId, onSelectCommit }: Snaps
 }
 
 export default SnapshotCommitList;
-

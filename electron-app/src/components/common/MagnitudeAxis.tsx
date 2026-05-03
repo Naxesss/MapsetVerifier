@@ -24,16 +24,16 @@ function MagnitudeAxis({
   minDb = -120,
   maxDb = 0,
   width = 50,
-  height = "100%",
+  height = '100%',
   showTicks = true,
-  dbPoints
+  dbPoints,
 }: MagnitudeAxisProps) {
   const theme = useMantineTheme();
   const dbRange = maxDb - minDb;
 
   // Standard dB points if not provided
   const defaultDbPoints = [0, -20, -40, -60, -80, -100, -120];
-  const dbLabels = dbPoints ?? defaultDbPoints.filter(db => db >= minDb && db <= maxDb);
+  const dbLabels = dbPoints ?? defaultDbPoints.filter((db) => db >= minDb && db <= maxDb);
 
   // Format dB value
   const formatDb = (db: number): string => {
@@ -50,11 +50,11 @@ function MagnitudeAxis({
           const yPos = `${yPercent}%`;
 
           // Adjust dominantBaseline for edge labels to prevent clipping
-          let baseline: "auto" | "middle" | "hanging" = "middle";
+          let baseline: 'auto' | 'middle' | 'hanging' = 'middle';
           if (yPercent <= 2) {
-            baseline = "hanging"; // Top edge - align text below the position
+            baseline = 'hanging'; // Top edge - align text below the position
           } else if (yPercent >= 98) {
-            baseline = "auto"; // Bottom edge - align text above the position
+            baseline = 'auto'; // Bottom edge - align text above the position
           }
 
           return (
@@ -91,4 +91,3 @@ function MagnitudeAxis({
 }
 
 export default MagnitudeAxis;
-

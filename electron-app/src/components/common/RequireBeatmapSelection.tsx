@@ -1,5 +1,5 @@
-import {Alert} from '@mantine/core';
-import {IconAlertTriangle} from "@tabler/icons-react";
+import { Alert } from '@mantine/core';
+import { IconAlertTriangle } from '@tabler/icons-react';
 import { Outlet } from 'react-router-dom';
 import { useBeatmap } from '../../context/BeatmapContext.tsx';
 
@@ -11,7 +11,7 @@ function RequireBeatmapSelection() {
       <Alert title="No beatmapset selected" color="yellow" icon={<IconAlertTriangle />}>
         You need to select a beatmapset on the left side menu.
       </Alert>
-    )
+    );
   }
 
   return <Outlet />;

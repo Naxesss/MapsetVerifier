@@ -42,35 +42,33 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
   const queryClient = useQueryClient();
   const stepSize = 16;
 
-  const { data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } = useInfiniteQuery<
-    ApiBeatmapPage,
-    FetchError
-  >({
-    queryKey: ['beatmaps', songFolder, debouncedSearch, stepSize],
-    enabled: !!songFolder,
-    initialPageParam: 0,
-    queryFn: async ({ pageParam }) => {
-      const params = new URLSearchParams();
-      if (songFolder) params.append('songsFolder', songFolder);
-      if (debouncedSearch) params.append('search', debouncedSearch);
-      params.append('page', String(pageParam));
-      params.append('pageSize', stepSize.toString());
-      try {
-        return await BeatmapApi.get(params);
-      } catch (err) {
-        if (err instanceof FetchError && err.res?.status === 404) {
-          return { items: [], page: Number(pageParam), pageSize: stepSize, hasMore: false };
+  const { data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } =
+    useInfiniteQuery<ApiBeatmapPage, FetchError>({
+      queryKey: ['beatmaps', songFolder, debouncedSearch, stepSize],
+      enabled: !!songFolder,
+      initialPageParam: 0,
+      queryFn: async ({ pageParam }) => {
+        const params = new URLSearchParams();
+        if (songFolder) params.append('songsFolder', songFolder);
+        if (debouncedSearch) params.append('search', debouncedSearch);
+        params.append('page', String(pageParam));
+        params.append('pageSize', stepSize.toString());
+        try {
+          return await BeatmapApi.get(params);
+        } catch (err) {
+          if (err instanceof FetchError && err.res?.status === 404) {
+            return { items: [], page: Number(pageParam), pageSize: stepSize, hasMore: false };
+          }
+          throw err;
         }
-        throw err;
-      }
-    },
-    getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.page + 1 : undefined),
-    staleTime: Infinity,
-    retry: (failureCount, queryError) => {
-      if (queryError.res?.status === 404) return false;
-      return failureCount < 2;
-    },
-  });
+      },
+      getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.page + 1 : undefined),
+      staleTime: Infinity,
+      retry: (failureCount, queryError) => {
+        if (queryError.res?.status === 404) return false;
+        return failureCount < 2;
+      },
+    });
 
   const stableCurrentQuery = useQuery<ApiLazerLookupResult, FetchError>({
     queryKey: ['stable-current', songFolder || 'auto'],
@@ -126,8 +124,17 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
     const stableCurrentStatus = stableCurrentQuery.data?.status;
     if (stableCurrentStatus === 'ambiguous_client') {
       return (
-        <Alert icon={<IconAlertCircle />} color="yellow" title="Ambiguous osu! client" mt="xs" variant="light">
-          <Text size="sm">{stableCurrentQuery.data?.message ?? 'Could not confidently identify osu!stable while multiple osu! clients are open.'}</Text>
+        <Alert
+          icon={<IconAlertCircle />}
+          color="yellow"
+          title="Ambiguous osu! client"
+          mt="xs"
+          variant="light"
+        >
+          <Text size="sm">
+            {stableCurrentQuery.data?.message ??
+              'Could not confidently identify osu!stable while multiple osu! clients are open.'}
+          </Text>
         </Alert>
       );
     }
@@ -166,24 +173,25 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
   };
 
   const renderStableCurrentMap = () => {
-    if (!songFolder)
-      return null;
+    if (!songFolder) return null;
 
     return (
       <Collapse in={!!stableCurrentResult}>
         {stableCurrentResult && (
           <>
-          <Text size="xs" fw={500} my="sm" ml="sm" c="dimmed">Current beatmapset</Text>
-          <BeatmapCard
-            beatmap={stableCurrentResult.beatmap!}
-            songFolder={stableCurrentResult.lookupRoot ?? undefined}
-            isSelectedOverride={selectedFolderPath === stableCurrentResult.folderPath}
-            onSelect={() => setSelectedFolderPath(stableCurrentResult.folderPath ?? undefined)}
-          />
-          <Divider my="sm" />
+            <Text size="xs" fw={500} my="sm" ml="sm" c="dimmed">
+              Current beatmapset
+            </Text>
+            <BeatmapCard
+              beatmap={stableCurrentResult.beatmap!}
+              songFolder={stableCurrentResult.lookupRoot ?? undefined}
+              isSelectedOverride={selectedFolderPath === stableCurrentResult.folderPath}
+              onSelect={() => setSelectedFolderPath(stableCurrentResult.folderPath ?? undefined)}
+            />
+            <Divider my="sm" />
           </>
         )}
-        </Collapse>
+      </Collapse>
     );
   };
 
@@ -231,11 +239,22 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
           </Tooltip>
         </Flex>
         {!songFolder && (
-          <Alert icon={<IconAlertCircle />} title="Song folder not set" color="yellow" variant="light">
+          <Alert
+            icon={<IconAlertCircle />}
+            title="Song folder not set"
+            color="yellow"
+            variant="light"
+          >
             <Text size="sm" mb="xs">
               Stable mode requires the osu! Songs folder.
             </Text>
-            <Button size="xs" variant="light" color="gray" leftSection={<IconSettings />} onClick={onOpenSettings}>
+            <Button
+              size="xs"
+              variant="light"
+              color="gray"
+              leftSection={<IconSettings />}
+              onClick={onOpenSettings}
+            >
               Open settings
             </Button>
           </Alert>
@@ -262,7 +281,12 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
               <div ref={sentinelRef} style={{ height: 1 }} />
               {showNextPagePlaceholder && <PlaceholderBeatmapCard />}
               {beatmaps.length > 0 && !hasNextPage && !isFetchingNextPage && !error && (
-                <Alert icon={<IconListDetails />} color="gray" title="No more beatmaps" variant="light">
+                <Alert
+                  icon={<IconListDetails />}
+                  color="gray"
+                  title="No more beatmaps"
+                  variant="light"
+                >
                   You have reached the last available beatmap.
                   <Button
                     size="xs"

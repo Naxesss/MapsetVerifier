@@ -6,7 +6,10 @@ export interface UseBeatmapBackgroundResult {
   isLoading: boolean;
 }
 
-export function useBeatmapBackground(folder?: string, songFolder?: string): UseBeatmapBackgroundResult {
+export function useBeatmapBackground(
+  folder?: string,
+  songFolder?: string
+): UseBeatmapBackgroundResult {
   const [bgUrl, setBgUrl] = useState<string | undefined>(undefined);
   const [loaded, setLoaded] = useState(false);
 

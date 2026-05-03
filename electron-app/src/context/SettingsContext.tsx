@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import {BACKEND_BASE_URL} from "../Constants.ts";
+import { BACKEND_BASE_URL } from '../Constants.ts';
 
 // Type-safe Settings type
 export type Settings = {
@@ -48,7 +48,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       }
       const loaded = JSON.parse(text);
       // Backward compatibility for old key naming.
-      if (loaded?.lazerLookupEnabled === undefined && loaded?.experimentalLazerLookup !== undefined) {
+      if (
+        loaded?.lazerLookupEnabled === undefined &&
+        loaded?.experimentalLazerLookup !== undefined
+      ) {
         loaded.lazerLookupEnabled = loaded.experimentalLazerLookup;
       }
       // Merge loaded settings with defaults to ensure new keys exist

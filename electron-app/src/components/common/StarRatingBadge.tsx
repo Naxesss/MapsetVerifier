@@ -15,10 +15,10 @@ function StarRatingBadge({ rating, ...props }: StarRatingBadgeProps) {
       variant="filled"
       size="sm"
       style={{
-          backgroundColor: bg,
-          color: textColor,
-          fontFamily: 'Torus, sans-serif',
-          fontSize: 12,
+        backgroundColor: bg,
+        color: textColor,
+        fontFamily: 'Torus, sans-serif',
+        fontSize: 12,
       }}
     >
       ★ {rating.toFixed(2)}

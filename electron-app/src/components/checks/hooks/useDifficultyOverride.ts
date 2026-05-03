@@ -2,7 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import React from 'react';
 import { FetchError } from '../../../client/ApiHelper';
 import BeatmapApi from '../../../client/BeatmapApi';
-import {ApiCategoryOverrideCheckResult} from '../../../Types';
+import { ApiCategoryOverrideCheckResult } from '../../../Types';
 
 interface UseDifficultyOverrideArgs {
   beatmapFolderPath?: string;
@@ -88,4 +88,3 @@ export function useDifficultyOverride({ beatmapFolderPath }: UseDifficultyOverri
     reset,
   };
 }
-

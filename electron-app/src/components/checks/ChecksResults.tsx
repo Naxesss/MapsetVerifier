@@ -2,7 +2,7 @@
 import { IconAlertCircle } from '@tabler/icons-react';
 import CheckCategory from './CheckCategory.tsx';
 import { FetchError } from '../../client/ApiHelper';
-import {ApiBeatmapSetCheckResult, ApiCategoryOverrideCheckResult} from '../../Types';
+import { ApiBeatmapSetCheckResult, ApiCategoryOverrideCheckResult } from '../../Types';
 
 interface ChecksResultsProps {
   data?: ApiBeatmapSetCheckResult;
@@ -14,7 +14,15 @@ interface ChecksResultsProps {
   overrideResult?: ApiCategoryOverrideCheckResult;
 }
 
-function ChecksResults({ data, isLoading, isError, error, showMinor, selectedCategory, overrideResult }: ChecksResultsProps) {
+function ChecksResults({
+  data,
+  isLoading,
+  isError,
+  error,
+  showMinor,
+  selectedCategory,
+  overrideResult,
+}: ChecksResultsProps) {
   return (
     <Box>
       {isLoading && (
@@ -37,7 +45,14 @@ function ChecksResults({ data, isLoading, isError, error, showMinor, selectedCat
         </Alert>
       )}
 
-      {data && <CheckCategory data={data} showMinor={showMinor} selectedCategory={selectedCategory} overrideResult={overrideResult} />}
+      {data && (
+        <CheckCategory
+          data={data}
+          showMinor={showMinor}
+          selectedCategory={selectedCategory}
+          overrideResult={overrideResult}
+        />
+      )}
 
       {!isLoading && !isError && !data && (
         <Box>
