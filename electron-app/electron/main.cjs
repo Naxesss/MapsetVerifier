@@ -16,7 +16,7 @@ function createWindow() {
     minWidth: 800,
     minHeight: 600,
     frame: false,
-    backgroundColor: '#101014',
+    backgroundColor: '#161d28',
     show: false,
     icon: path.join(__dirname, '..', '..', 'assets', 'icons', 'icon.png'),
     webPreferences: {
@@ -30,8 +30,12 @@ function createWindow() {
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
 
-    globalShortcut.register('CommandOrControl+Shift+I', () => mainWindow.webContents.toggleDevTools());
-    globalShortcut.register('F12', () => mainWindow.webContents.toggleDevTools());
+    globalShortcut.register('CommandOrControl+Shift+I', () =>
+      mainWindow.webContents.toggleDevTools()
+    );
+    globalShortcut.register('F12', () =>
+      mainWindow.webContents.toggleDevTools()
+    );
     globalShortcut.register('CommandOrControl+R', () => mainWindow.reload());
     globalShortcut.register('F5', () => mainWindow.reload());
   });
@@ -42,7 +46,9 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
   }
 
-  mainWindow.on('closed', () => { mainWindow = null; });
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
 }
 
 // Prevent duplicate instances.
@@ -59,7 +65,9 @@ if (!gotLock) {
   });
 }
 
-function getMainWindow() { return mainWindow; }
+function getMainWindow() {
+  return mainWindow;
+}
 
 app.whenReady().then(() => {
   sidecar.spawnSidecar();

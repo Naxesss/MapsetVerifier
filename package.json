@@ -43,9 +43,8 @@
     ],
     "extraResources": [
       {
-        "from": "bin/server/dist/${os}-${arch}/",
-        "to": "bin/",
-        "filter": ["**/*"]
+        "from": "bin/server/dist",
+        "to": "bin/server/dist"
       }
     ],
     "publish": [

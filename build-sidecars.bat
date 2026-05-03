@@ -1,4 +1,3 @@
-```bat
 @echo off
 setlocal enabledelayedexpansion
 

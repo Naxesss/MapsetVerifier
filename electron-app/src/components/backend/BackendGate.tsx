@@ -41,7 +41,7 @@ declare global {
 /** Waits for the main-process-spawned backend sidecar to respond, and gates rendering until ready. */
 const BackendGate: React.FC<BackendGateProps> = ({
   children,
-  healthTimeoutMs = 15000,
+  healthTimeoutMs = 5000,
   probeIntervalMs = 500,
 }) => {
   const { settings } = useSettings();
