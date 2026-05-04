@@ -20,7 +20,7 @@ public class SnapshotController : ControllerBase
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to get snapshots for {Folder}", request.Folder);
-            return StatusCode(500, new ApiError("An error occurred while getting snapshots.", ex.Message, ex.StackTrace));
+            return StatusCode(500, ApiErrorFactory.FromException(ex, "An error occurred while getting snapshots."));
         }
     }
 }

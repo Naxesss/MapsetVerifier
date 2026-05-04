@@ -34,7 +34,7 @@ public class BeatmapAnalysisController : ControllerBase
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to analyze beatmap for {Folder}", request.BeatmapSetFolder);
-            return StatusCode(500, new ApiError("An error occurred during beatmap analysis.", ex.Message, ex.StackTrace));
+            return StatusCode(500, ApiErrorFactory.FromException(ex, "An error occurred during beatmap analysis."));
         }
     }
 
@@ -56,7 +56,7 @@ public class BeatmapAnalysisController : ControllerBase
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to analyze objects overview for {Folder}", request.BeatmapSetFolder);
-            return StatusCode(500, new ApiError("An error occurred during objects overview analysis.", ex.Message, ex.StackTrace));
+            return StatusCode(500, ApiErrorFactory.FromException(ex, "An error occurred during objects overview analysis."));
         }
     }
 
@@ -78,7 +78,7 @@ public class BeatmapAnalysisController : ControllerBase
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to analyze difficulty overview for {Folder}", request.BeatmapSetFolder);
-            return StatusCode(500, new ApiError("An error occurred during difficulty overview analysis.", ex.Message, ex.StackTrace));
+            return StatusCode(500, ApiErrorFactory.FromException(ex, "An error occurred during difficulty overview analysis."));
         }
     }
 }

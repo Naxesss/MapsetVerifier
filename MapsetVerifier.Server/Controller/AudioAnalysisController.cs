@@ -34,7 +34,7 @@ public class AudioAnalysisController : ControllerBase
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to analyze audio for {Folder}", request.BeatmapSetFolder);
-            return StatusCode(500, new ApiError("An error occurred during audio analysis.", ex.Message, ex.StackTrace));
+            return StatusCode(500, ApiErrorFactory.FromException(ex, "An error occurred during audio analysis."));
         }
     }
 
@@ -60,7 +60,7 @@ public class AudioAnalysisController : ControllerBase
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to generate spectrogram for {Folder}", request.BeatmapSetFolder);
-            return StatusCode(500, new ApiError("An error occurred generating spectrogram.", ex.Message, ex.StackTrace));
+            return StatusCode(500, ApiErrorFactory.FromException(ex, "An error occurred generating spectrogram."));
         }
     }
 
@@ -85,7 +85,7 @@ public class AudioAnalysisController : ControllerBase
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to analyze frequency for {Folder}", request.BeatmapSetFolder);
-            return StatusCode(500, new ApiError("An error occurred during frequency analysis.", ex.Message, ex.StackTrace));
+            return StatusCode(500, ApiErrorFactory.FromException(ex, "An error occurred during frequency analysis."));
         }
     }
 
@@ -106,7 +106,7 @@ public class AudioAnalysisController : ControllerBase
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to analyze hit sounds for {Folder}", request.BeatmapSetFolder);
-            return StatusCode(500, new ApiError("An error occurred during hit sound analysis.", ex.Message, ex.StackTrace));
+            return StatusCode(500, ApiErrorFactory.FromException(ex, "An error occurred during hit sound analysis."));
         }
     }
 }

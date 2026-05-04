@@ -106,7 +106,7 @@ public class BeatmapController : ControllerBase
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to get beatmap info for {Folder}", request.Folder);
-            return StatusCode(500, new ApiError("An error occurred while getting beatmap info.", ex.Message, ex.StackTrace));
+            return StatusCode(500, ApiErrorFactory.FromException(ex, "An error occurred while getting beatmap info."));
         }
     }
     
@@ -121,7 +121,7 @@ public class BeatmapController : ControllerBase
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to run beatmap checks for {Folder}", request.Folder);
-            return StatusCode(500, new ApiError("An error occurred while running beatmap checks.", ex.Message, ex.StackTrace));
+            return StatusCode(500, ApiErrorFactory.FromException(ex, "An error occurred while running beatmap checks."));
         }
     }
 
@@ -142,7 +142,7 @@ public class BeatmapController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new ApiError("An error occurred while running beatmap check with override.", ex.Message, ex.StackTrace));
+            return StatusCode(500, ApiErrorFactory.FromException(ex, "An error occurred while running beatmap check with override."));
         }
     }
 }

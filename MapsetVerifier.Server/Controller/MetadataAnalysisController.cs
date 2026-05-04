@@ -34,7 +34,7 @@ public class MetadataAnalysisController : ControllerBase
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to analyze metadata for {Folder}", request.BeatmapSetFolder);
-            return StatusCode(500, new ApiError("An error occurred during metadata analysis.", ex.Message, ex.StackTrace));
+            return StatusCode(500, ApiErrorFactory.FromException(ex, "An error occurred during metadata analysis."));
         }
     }
 }
