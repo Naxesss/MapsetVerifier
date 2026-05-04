@@ -14,9 +14,16 @@ namespace MapsetVerifier.Framework.Objects.Resources
 
         public void CloseStream(Stream stream) => stream.Position = 0;
 
-        public File GetTagFile()
+        public File? GetTagFile()
         {
-            return File.Create(this);
+            try
+            {
+                return File.Create(this);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
     }
 }

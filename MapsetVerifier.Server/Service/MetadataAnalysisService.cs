@@ -155,9 +155,16 @@ public static class MetadataAnalysisService
                             bgInfo.FileSizeBytes = fileInfo.Length;
                             bgInfo.FileSizeFormatted = FormatFileSize(fileInfo.Length);
                             var tagFile = new FileAbstraction(fullPath).GetTagFile();
-                            bgInfo.Width = tagFile.Properties.PhotoWidth;
-                            bgInfo.Height = tagFile.Properties.PhotoHeight;
-                            bgInfo.Resolution = $"{bgInfo.Width} × {bgInfo.Height}";
+                            if (tagFile != null)
+                            {
+                                bgInfo.Width = tagFile.Properties.PhotoWidth;
+                                bgInfo.Height = tagFile.Properties.PhotoHeight;
+                                bgInfo.Resolution = $"{bgInfo.Width} × {bgInfo.Height}";
+                            }
+                            else
+                            {
+                                throw new Exception("Unsupported file format for background");
+                            }
                         }
                         catch (Exception ex) { Log.Warning(ex, "Failed to get bg info for {File}", bg.path); }
                     }
@@ -192,10 +199,19 @@ public static class MetadataAnalysisService
                             videoInfo.FileSizeBytes = fileInfo.Length;
                             videoInfo.FileSizeFormatted = FormatFileSize(fileInfo.Length);
                             var tagFile = new FileAbstraction(fullPath).GetTagFile();
-                            videoInfo.Width = tagFile.Properties.VideoWidth;
-                            videoInfo.Height = tagFile.Properties.VideoHeight;
-                            videoInfo.Resolution = $"{videoInfo.Width} × {videoInfo.Height}";
-                            videoInfo.DurationMs = tagFile.Properties.Duration.TotalMilliseconds;
+
+                            if (tagFile != null)
+                            {
+                                videoInfo.Width = tagFile.Properties.VideoWidth;
+                                videoInfo.Height = tagFile.Properties.VideoHeight;
+                                videoInfo.Resolution = $"{videoInfo.Width} × {videoInfo.Height}";
+                                videoInfo.DurationMs = tagFile.Properties.Duration.TotalMilliseconds;
+                            }
+                            else
+                            {
+                                throw new Exception("Unsupported file format for video");
+                            }
+                            
                             videoInfo.DurationFormatted = Timestamp.Get(videoInfo.DurationMs);
                         }
                         catch (Exception ex) { Log.Warning(ex, "Failed to get video info for {File}", video.path); }
@@ -224,10 +240,17 @@ public static class MetadataAnalysisService
                         videoInfo.FileSizeBytes = fileInfo.Length;
                         videoInfo.FileSizeFormatted = FormatFileSize(fileInfo.Length);
                         var tagFile = new FileAbstraction(fullPath).GetTagFile();
-                        videoInfo.Width = tagFile.Properties.VideoWidth;
-                        videoInfo.Height = tagFile.Properties.VideoHeight;
-                        videoInfo.Resolution = $"{videoInfo.Width} × {videoInfo.Height}";
-                        videoInfo.DurationMs = tagFile.Properties.Duration.TotalMilliseconds;
+                        if (tagFile != null)
+                        {
+                            videoInfo.Width = tagFile.Properties.VideoWidth;
+                            videoInfo.Height = tagFile.Properties.VideoHeight;
+                            videoInfo.Resolution = $"{videoInfo.Width} × {videoInfo.Height}";
+                            videoInfo.DurationMs = tagFile.Properties.Duration.TotalMilliseconds;
+                        }
+                        else
+                        {
+                            throw new Exception("Unsupported file format for video");
+                        }
                         videoInfo.DurationFormatted = Timestamp.Get(videoInfo.DurationMs);
                     }
                     catch (Exception ex) { Log.Warning(ex, "Failed to get video info for {File}", video.path); }

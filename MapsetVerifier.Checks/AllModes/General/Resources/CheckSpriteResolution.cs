@@ -69,7 +69,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
             // .osu
-            foreach (var issue in Common.GetTagOsuIssues(beatmapSet, beatmap => beatmap.Sprites.Count > 0 ? beatmap.Sprites.Select(sprite => sprite.path) : [], tagFile =>
+            foreach (var issue in Common.GetTagOsuIssues(beatmapSet, GetTemplate, beatmap => beatmap.Sprites.Count > 0 ? beatmap.Sprites.Select(sprite => sprite.path) : [], tagFile =>
                      {
                          // Executes for each non-faulty sprite file used in one of the beatmaps in the set.
                          var issues = new List<Issue>();
@@ -82,7 +82,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                 // Returns issues from both non-faulty and faulty files.
                 yield return issue;
 
-            foreach (var issue in Common.GetTagOsuIssues(beatmapSet, beatmap => beatmap.Animations.Count > 0 ? beatmap.Animations.SelectMany(animation => animation.framePaths) : [], tagFile =>
+            foreach (var issue in Common.GetTagOsuIssues(beatmapSet, GetTemplate, beatmap => beatmap.Animations.Count > 0 ? beatmap.Animations.SelectMany(animation => animation.framePaths) : [], tagFile =>
                      {
                          var issues = new List<Issue>();
 

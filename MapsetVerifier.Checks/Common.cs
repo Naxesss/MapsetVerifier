@@ -48,14 +48,26 @@ namespace MapsetVerifier.Checks
             }
         }
 
-        public static IEnumerable<Issue> GetTagOsuIssues(BeatmapSet beatmapSet, Func<Beatmap, IEnumerable<string?>> beatmapFunc, Func<TagFile, List<Issue>> successFunc)
+        public static IEnumerable<Issue> GetTagOsuIssues(BeatmapSet beatmapSet,
+            Func<String, IssueTemplate> getTemplate,
+            Func<Beatmap, IEnumerable<string?>> beatmapFunc,
+            Func<TagFile, List<Issue>> successFunc)
         {
             var tagFiles = GetTagOsuFiles(beatmapSet, beatmapFunc);
 
             foreach (var tagFile in tagFiles)
-                // error
-                foreach (var issue in successFunc(tagFile))
-                    yield return issue;
+            {
+                if (tagFile.templateName == "Exception" || tagFile.file == null)
+                {
+                    yield return new Issue(getTemplate("Exception"), null, tagFile.templateArgs[0]);
+                }
+                else
+                {
+                    // error
+                    foreach (var issue in successFunc(tagFile))
+                        yield return issue;
+                }
+            }
         }
 
         public static IEnumerable<Issue> GetTagOsbIssues(BeatmapSet beatmapSet, Func<Osb, IEnumerable<string?>> osbFunc, Func<string, IssueTemplate> templateFunc, Func<TagFile, List<Issue>> successFunc)
@@ -80,13 +92,13 @@ namespace MapsetVerifier.Checks
                 }
         }
 
-        private static IEnumerable<TagFile> GetTagOsuFiles(BeatmapSet beatmapSet, Func<Beatmap, IEnumerable<string?>> BeatmapFunc)
+        private static IEnumerable<TagFile> GetTagOsuFiles(BeatmapSet beatmapSet, Func<Beatmap, IEnumerable<string?>> beatmapFunc)
         {
             var fileNames = new List<string>();
 
             foreach (var beatmap in beatmapSet.Beatmaps)
             {
-                var fileNameList = BeatmapFunc(beatmap);
+                var fileNameList = beatmapFunc(beatmap);
 
                 foreach (var fileName in fileNameList)
                     if (fileName != null && !fileNames.Contains(fileName))

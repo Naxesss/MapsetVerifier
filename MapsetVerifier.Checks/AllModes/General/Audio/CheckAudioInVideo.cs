@@ -63,7 +63,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
-            var issues = Common.GetTagOsuIssues(beatmapSet,
+            var issues = Common.GetTagOsuIssues(beatmapSet, GetTemplate,
                 beatmap => beatmap.Videos.Count > 0 ? beatmap.Videos.Select(video => video.path) : [],
                 tagFile =>
                 {
