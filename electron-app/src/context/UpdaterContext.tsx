@@ -156,8 +156,6 @@ export const UpdaterProvider = ({ children }: { children: React.ReactNode }) => 
       openModalOnAvailable = false,
     }: CheckForUpdatesOptions = {}) => {
       if (!isElectronRuntime()) {
-        // eslint-disable-next-line no-console
-        console.info('[Updater] Skipping update check outside the Electron runtime.');
         setStatus('idle');
         setErrorMessage(null);
         return null;

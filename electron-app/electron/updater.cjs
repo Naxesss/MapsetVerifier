@@ -25,6 +25,11 @@ function serializeUpdateInfo(info) {
 
 function registerUpdater(getMainWindow) {
   const getWin = forwardingEnabled(getMainWindow);
+  
+  if (!app.isPackaged) {
+    // For testing only on local builds
+    autoUpdater.forceDevUpdateConfig = true;
+  }
 
   // Never auto-download; the renderer drives the flow via installUpdate().
   autoUpdater.autoDownload = false;
@@ -48,15 +53,27 @@ function registerUpdater(getMainWindow) {
   autoUpdater.on('update-downloaded', (info) => send('updater:downloaded', serializeUpdateInfo(info)));
   autoUpdater.on('error', (err) => send('updater:error', err && err.message ? err.message : String(err)));
 
-  ipcMain.handle('updater:check', async () => {
-    try {
-      const result = await autoUpdater.checkForUpdates();
-      return serializeUpdateInfo(result && result.updateInfo);
-    } catch (e) {
-      send('updater:error', e && e.message ? e.message : String(e));
-      return null;
-    }
-  });
+  if (!app.isPackaged) {
+    // Fake update for testing
+    ipcMain.handle('updater:check', async () => {
+      return { version: app.getVersion(), fake: true };
+    });
+  } else {
+    ipcMain.handle('updater:check', async () => {
+      console.info('[Updater] IPC check received');
+
+      try {
+        console.info('[Updater] calling checkForUpdates');
+        const result = await autoUpdater.checkForUpdates();
+        console.info('[Updater] checkForUpdates returned');
+        return serializeUpdateInfo(result?.updateInfo);
+      } catch (e) {
+        console.error('[Updater] check failed', e);
+        send('updater:error', e.message || String(e));
+        return null;
+      }
+    });
+  }
   ipcMain.handle('updater:download', async () => {
     try {
       await autoUpdater.downloadUpdate();

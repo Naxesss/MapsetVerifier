@@ -47,14 +47,15 @@ function cleanupSidecar() {
 function resolveSidecarPath() {
   const isPackaged = require('electron').app.isPackaged;
   const exe = process.platform === 'win32' ? 'MapsetVerifier.exe' : 'MapsetVerifier';
-  if (isPackaged) {
-    return path.join(process.resourcesPath, 'bin', exe);
-  }
   const arch = process.arch === 'arm64' ? 'arm64' : 'x64';
   const rid =
     process.platform === 'win32' ? `win-${arch}` :
-    process.platform === 'darwin' ? `mac-${arch}` :
-    `linux-${arch}`;
+      process.platform === 'darwin' ? `mac-${arch}` :
+        `linux-${arch}`;
+  
+  if (isPackaged) {
+    return path.join(process.resourcesPath, 'bin', 'server', 'dist', rid, exe);
+  }
   return path.join(__dirname, '..', '..', 'bin', 'server', 'dist', rid, exe);
 }
 
