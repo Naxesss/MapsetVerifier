@@ -29,6 +29,21 @@ export default function MantineMarkdown({ children }: MantineMarkdownProps) {
         h2: ({ node: _node, ...props }) => <Title order={3} {...props} />,
         h3: ({ node: _node, ...props }) => <Title order={4} {...props} />,
         p: ({ node: _node, ...props }) => <Text component="p" {...props} />,
+        a: ({ node: _node, href, ...props }) => {
+          const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+            e.preventDefault();
+
+            if (href) {
+              if (window.electronAPI?.shell.openExternal) {
+                return window.electronAPI.shell.openExternal(href);
+              } else {
+                window.open(href, '_blank', 'noopener,noreferrer');
+              }
+            }
+          };
+
+          return <a href={href} onClick={handleClick} {...props} />;
+        },
         strong: ({ node: _node, ...props }) => <Text component="span" fw={700} {...props} />,
         em: ({ node: _node, ...props }) => <Text component="span" fs="italic" {...props} />,
         blockquote: ({ node: _node, ...props }) => <Blockquote p="sm" {...props} />,
