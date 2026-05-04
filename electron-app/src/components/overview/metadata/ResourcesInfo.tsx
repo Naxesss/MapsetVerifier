@@ -22,8 +22,8 @@ import {
   IconX,
 } from '@tabler/icons-react';
 import { ResourcesInfo as ResourcesInfoType } from '../../../Types';
-import AppTable from '../../common/AppTable.tsx';
 import { countWord } from '../../../utils/countWord';
+import AppTable from '../../common/AppTable.tsx';
 
 interface ResourcesInfoProps {
   resources: ResourcesInfoType;

@@ -7,6 +7,7 @@ import MetadataInfo from './MetadataInfo';
 import ResourcesInfo from './ResourcesInfo';
 import { useBeatmap } from '../../../context/BeatmapContext';
 import { useSettings } from '../../../context/SettingsContext';
+import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 
 interface MetadataOverviewProps {
   reloadFlag: number;
@@ -47,11 +48,7 @@ function MetadataOverview({ reloadFlag }: MetadataOverviewProps) {
             <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
               {error?.message}
             </Text>
-            {error?.stackTrace && (
-              <Text mt="sm" size="xs" c="red.3" style={{ whiteSpace: 'pre-wrap' }}>
-                {error.stackTrace}
-              </Text>
-            )}
+            {error?.stackTrace && <StackTraceMessage stackTrace={error.stackTrace} />}
           </Alert>
         </Flex>
       )}

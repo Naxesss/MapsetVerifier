@@ -29,9 +29,7 @@ namespace MapsetVerifier.Checks.AllModes.Spread
                     {
                         "Reasoning",
                         @"
-                        Newer players usually struggle with especially long songs, so encouraging them to try shorter songs first at lower difficulty levels allows them to learn the basics before trying to train their stamina or similar. This is done by requiring that shorter songs have lower difficulties, while longer songs can have less of them. This also reduces the workload on mappers and as such introduces a larger variety of songs into the game that otherwise wouldn't be so common due to their length.
-
-                        > The star rating algorithm is currently only implemented for standard, so the suggested difficulty level of beatmaps not from standard is highly inaccurate. Changing the interpretation of difficulty levels manually will fix this."
+                        Newer players usually struggle with especially long songs, so encouraging them to try shorter songs first at lower difficulty levels allows them to learn the basics before trying to train their stamina or similar. This is done by requiring that shorter songs have lower difficulties, while longer songs can have less of them. This also reduces the workload on mappers and as such introduces a larger variety of songs into the game that otherwise wouldn't be so common due to their length."
                     }
                 }
             };

@@ -37,14 +37,14 @@ namespace MapsetVerifier.Parser.Objects
             Mania
         }
 
-        private static readonly int[] divisors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 16];
+        private static readonly int[] Divisors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 16];
 
         /// <summary>
         ///     A list of aliases for difficulty levels. Can't be ambigious with named top diffs, so something
         ///     like "Lunatic", "Another", or "Special" which could be either Insane or top diff is no good.
         ///     See https://osu.ppy.sh/help/wiki/Ranking_Criteria/Difficulty_Naming for reference.
         /// </summary>
-        private static readonly Dictionary<Mode, Dictionary<Difficulty, IEnumerable<string>>> nameDiffPairs = new()
+        private static readonly Dictionary<Mode, Dictionary<Difficulty, IEnumerable<string>>> NameDiffPairs = new()
         {
             {
                 Mode.Standard,
@@ -215,7 +215,7 @@ namespace MapsetVerifier.Parser.Objects
 
                                 // Sliders are never less than 0 stack index.
                                 // Circles go below 0 when stacked under slider tails.
-                                if (hitObject.stackIndex < 0 && !hitObject.isOnSlider)
+                                if (hitObject is { stackIndex: < 0, isOnSlider: false })
                                 {
                                     // Objects stacked under slider tails will continue to stack downwards.
                                     otherHitObject.stackIndex = hitObject.stackIndex - 1;
@@ -336,7 +336,7 @@ namespace MapsetVerifier.Parser.Objects
         ///     Since the list is sorted, we can use the Binary Search algorithm here to get
         ///     O(logn) time complexity, instead of O(n), which we would get from linear searching.
         /// </summary>
-        private static int BinaryTimeSearch<T>(IReadOnlyList<T> sortedList, Func<T, double> Time, double time, int start = 0, int end = int.MaxValue)
+        private static int BinaryTimeSearch<T>(IReadOnlyList<T> sortedList, Func<T, double> timeSelector, double targetTime, int start = 0, int end = int.MaxValue)
         {
             while (true)
             {
@@ -359,10 +359,10 @@ namespace MapsetVerifier.Parser.Objects
                 var cur = sortedList[i];
                 var next = sortedList[i + 1];
 
-                if (time >= Time(cur) && time < Time(next))
+                if (targetTime >= timeSelector(cur) && targetTime < timeSelector(next))
                     return i;
 
-                if (time >= Time(next))
+                if (targetTime >= timeSelector(next))
                     // Element is too far back, move forward.
                     start = i + 1;
 
@@ -571,11 +571,6 @@ namespace MapsetVerifier.Parser.Objects
         {
             var difficultyFromStarRating = GetDifficultyFromStarRating();
             var difficultyFromName = GetDifficultyFromName();
-            if (difficultyFromName == null && GeneralSettings.mode is Mode.Catch or Mode.Mania)
-            {
-                // Assume custom diff names are always experts for modes we can't calculate star rating for
-                return Difficulty.Expert;
-            }
 
             if (difficultyFromName != null)
             {
@@ -597,12 +592,15 @@ namespace MapsetVerifier.Parser.Objects
 
         private Difficulty GetDifficultyFromStarRating()
         {
-            if (StarRating < 2.0f) return Difficulty.Easy;
-            if (StarRating < 2.7f) return Difficulty.Normal;
-            if (StarRating < 4.0f) return Difficulty.Hard;
-            if (StarRating < 5.3f) return Difficulty.Insane;
-            if (StarRating < 6.5f) return Difficulty.Expert;
-            return Difficulty.Ultra;
+            return StarRating switch
+            {
+                < 2.0f => Difficulty.Easy,
+                < 2.7f => Difficulty.Normal,
+                < 4.0f => Difficulty.Hard,
+                < 5.3f => Difficulty.Insane,
+                < 6.5f => Difficulty.Expert,
+                _ => Difficulty.Ultra
+            };
         }
 
         public Difficulty? GetDifficultyFromName()
@@ -610,7 +608,7 @@ namespace MapsetVerifier.Parser.Objects
             var name = MetadataSettings.version;
 
             // Reverse order allows e.g. "Inner Oni"/"Black Another" to be looked for separately from just "Oni"/"Another".
-            var pairs = nameDiffPairs[GeneralSettings.mode].Reverse();
+            var pairs = NameDiffPairs[GeneralSettings.mode].Reverse();
 
             foreach (var pair in pairs)
                 // Allows difficulty names such as "Normal...!??" and ">{(__HARD;)}" to be detected,
@@ -752,12 +750,12 @@ namespace MapsetVerifier.Parser.Objects
 
             double GetAbsoluteUnsnap(int divisor) => Math.Abs(GetPracticalUnsnap(time, divisor, line));
 
-            var minUnsnap = divisors.Min(GetAbsoluteUnsnap);
+            var minUnsnap = Divisors.Min(GetAbsoluteUnsnap);
 
             if (minUnsnap > 2)
                 return 0;
 
-            return divisors.First(divisor => GetAbsoluteUnsnap(divisor).AlmostEqual(minUnsnap));
+            return Divisors.First(divisor => GetAbsoluteUnsnap(divisor).AlmostEqual(minUnsnap));
         }
 
         /// <summary> Returns the unsnap ignoring all of the game's rounding and other approximations. Can be negative. </summary>
@@ -983,7 +981,7 @@ namespace MapsetVerifier.Parser.Objects
                 var firstLine = TimingLines[i];
                 var secondLine = TimingLines[i+1];
 
-                if (firstLine.SvMult != secondLine.SvMult && firstLine.Offset != secondLine.Offset)
+                if (!firstLine.SvMult.AlmostEqual(secondLine.SvMult) && !firstLine.Offset.AlmostEqual(secondLine.Offset))
                 {
                     svChanges.Add(secondLine);
                 }

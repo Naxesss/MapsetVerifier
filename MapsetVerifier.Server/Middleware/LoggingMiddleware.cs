@@ -21,11 +21,11 @@ namespace MapsetVerifier.Server.Middleware
                 var path = request.Path;
                 var query = request.QueryString.HasValue ? request.QueryString.Value : "";
                 
-                logger.LogInformation("[IN ] {Method} {Path}{Query}", method, path, query);
+                logger.LogDebug("[IN ] {Method} {Path}{Query}", method, path, query);
                 var sw = Stopwatch.StartNew();
                 await next(context);
                 sw.Stop();
-                logger.LogInformation("[OUT] {Method} {StatusCode} {Path}{Query} ({Elapsed}ms)", method, context.Response.StatusCode, path, query, sw.ElapsedMilliseconds);
+                logger.LogDebug("[OUT] {Method} {StatusCode} {Path}{Query} ({Elapsed}ms)", method, context.Response.StatusCode, path, query, sw.ElapsedMilliseconds);
             }
         }
     }

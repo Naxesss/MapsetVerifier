@@ -7,6 +7,7 @@ import { useBeatmapAnalysis } from './hooks/useBeatmapAnalysis';
 import StatisticsInfo from './StatisticsInfo';
 import { useBeatmap } from '../../../context/BeatmapContext';
 import { useSettings } from '../../../context/SettingsContext';
+import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 
 interface BeatmapOverviewProps {
   reloadFlag: number;
@@ -42,11 +43,7 @@ function BeatmapOverview({ reloadFlag }: BeatmapOverviewProps) {
             <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
               {error?.message}
             </Text>
-            {error?.stackTrace && (
-              <Text mt="sm" size="xs" c="red.3" style={{ whiteSpace: 'pre-wrap' }}>
-                {error.stackTrace}
-              </Text>
-            )}
+            {error?.stackTrace && <StackTraceMessage stackTrace={error.stackTrace} />}
           </Alert>
         </Flex>
       )}

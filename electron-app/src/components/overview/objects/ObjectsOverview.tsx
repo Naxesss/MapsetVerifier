@@ -51,6 +51,7 @@ import AppTable, {
   DifficultyTableHeaderCell,
 } from '../../common/AppTable.tsx';
 import AutoResizeCanvas from '../../common/AutoResizeCanvas.tsx';
+import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
 
 const LABEL_WIDTH = 208;
@@ -176,11 +177,7 @@ function ObjectsOverview({ reloadFlag }: ObjectsOverviewProps) {
             <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
               {error?.message}
             </Text>
-            {error?.stackTrace && (
-              <Text mt="sm" size="xs" c="red.3" style={{ whiteSpace: 'pre-wrap' }}>
-                {error.stackTrace}
-              </Text>
-            )}
+            {error?.stackTrace && <StackTraceMessage stackTrace={error.stackTrace} />}
           </Alert>
         </Flex>
       )}

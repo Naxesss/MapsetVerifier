@@ -23,6 +23,7 @@ import { SummaryCard } from './DifficultySummaryCards.tsx';
 import { useDifficultyOverview } from './hooks/useDifficultyOverview.ts';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
 import { useSettings } from '../../../context/SettingsContext.tsx';
+import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 import type { DifficultyOverviewDifficulty, Mode } from '../../../Types';
 
 interface DifficultyOverviewProps {
@@ -118,11 +119,7 @@ function DifficultyOverview({ reloadFlag }: DifficultyOverviewProps) {
             <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
               {error?.message}
             </Text>
-            {error?.stackTrace && (
-              <Text mt="sm" size="xs" c="red.3" style={{ whiteSpace: 'pre-wrap' }}>
-                {error.stackTrace}
-              </Text>
-            )}
+            {error?.stackTrace && <StackTraceMessage stackTrace={error.stackTrace} />}
           </Alert>
         </Flex>
       )}

@@ -3,6 +3,7 @@ import { IconAlertCircle } from '@tabler/icons-react';
 import CheckCategory from './CheckCategory.tsx';
 import { FetchError } from '../../client/ApiHelper';
 import { ApiBeatmapSetCheckResult, ApiCategoryOverrideCheckResult } from '../../Types';
+import StackTraceMessage from '../common/StackTraceMessage.tsx';
 
 interface ChecksResultsProps {
   data?: ApiBeatmapSetCheckResult;
@@ -37,11 +38,7 @@ function ChecksResults({
           <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
             {error?.message}
           </Text>
-          {error?.stackTrace && (
-            <Text mt="sm" size="xs" c="red.3" style={{ whiteSpace: 'pre-wrap' }}>
-              {error.stackTrace}
-            </Text>
-          )}
+          {error?.stackTrace && <StackTraceMessage stackTrace={error.stackTrace} />}
         </Alert>
       )}
 

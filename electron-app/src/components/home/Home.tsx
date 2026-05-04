@@ -1,10 +1,13 @@
 ﻿import { Alert, Button, Container, Text } from '@mantine/core';
 import { IconBug, IconLifebuoy, IconMessage } from '@tabler/icons-react';
 import Changelog from './Changelog.tsx';
+import { useOpenExternal } from '../../hooks/useOpenExternal.ts';
 
 export default function Home() {
+  const openExternal = useOpenExternal();
+
   return (
-    <Container size="md">
+    <Container size="md" p={0}>
       <Alert
         icon={<IconLifebuoy />}
         title="Having an issue while using Mapset Verifier?"
@@ -21,10 +24,14 @@ export default function Home() {
           color="green"
           variant="light"
           leftSection={<IconBug />}
-          component="a"
-          href="https://github.com/Naxesss/MapsetVerifier/issues"
-          target="_blank"
-          rel="noreferrer"
+          onClick={async () => {
+            try {
+              await openExternal('https://github.com/Naxesss/MapsetVerifier/issues');
+            } catch (e) {
+              console.error('Failed to open beatmap page:', e);
+              alert('Failed to open beatmap page. See console for details.');
+            }
+          }}
         >
           Report an issue on GitHub
         </Button>
@@ -33,15 +40,18 @@ export default function Home() {
           variant="light"
           ml="md"
           leftSection={<IconMessage />}
-          component="a"
-          href="https://osu.ppy.sh/users/2369776"
-          target="_blank"
-          rel="noreferrer"
+          onClick={async () => {
+            try {
+              await openExternal('https://osu.ppy.sh/users/2369776');
+            } catch (e) {
+              console.error('Failed to open beatmap page:', e);
+              alert('Failed to open beatmap page. See console for details.');
+            }
+          }}
         >
           Contact Greaper on osu!
         </Button>
       </Alert>
-
       <Changelog />
     </Container>
   );

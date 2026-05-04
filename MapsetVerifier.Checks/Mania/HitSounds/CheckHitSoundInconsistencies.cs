@@ -4,35 +4,30 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
 using MathNet.Numerics;
-
 using static MapsetVerifier.Checks.Utils.ManiaUtils;
 
 namespace MapsetVerifier.Checks.Mania.HitSounds
 {
-	[Check]
-	public class CheckHitSoundInconsistencies : BeatmapSetCheck
-	{
-		public override CheckMetadata GetMetadata() => new BeatmapCheckMetadata
-		{
-			Modes = [Beatmap.Mode.Mania],
-			Category = "Hit Sounds",
-			Message = "Hitsound inconsistency detected",
-			Author = "Tailsdk",
+    [Check]
+    public class CheckHitSoundInconsistencies : BeatmapSetCheck
+    {
+        private record HitSoundEvent(
+            HitObject.HitSounds Type,
+            double Time,
+            string? FileName,
+            HitSample.SamplesetType SampleSet,
+            string CustomIndex
+        );
 
-			Documentation = new Dictionary<string, string>
-			{
-				{
-					"Purpose",
-					@"
-					Check for incosistent hitsounds between difficulties."
-				},
-				{
-					"Reasoning",
-					@"
-					Hitsounds should generally be consistent between difficulties unless it is intentional."
-				}
-			}
-		};
+        private record SampleEvent(string? FileName, double Time, HitObject.HitSounds Sound);
+
+        public override CheckMetadata GetMetadata() => new BeatmapCheckMetadata
+        {
+            Modes = [Beatmap.Mode.Mania],
+            Category = "Hit Sounds",
+            Message = "Hitsound inconsistency detected",
+            Author = "Tailsdk, Greaper"
+        };
 
 		public override Dictionary<string, IssueTemplate> GetTemplates()
 		{
@@ -59,214 +54,182 @@ namespace MapsetVerifier.Checks.Mania.HitSounds
             };
 		}
 
-		public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
-		{
-			
-			// List of objects
-			List<List<(HitObject.HitSounds, double, string, HitSample.SamplesetType, string)>> beatmapListHS = [];
-			List<List<(string, double, HitObject.HitSounds)>> beatmapListSI = [];
-			List<int> beatmapsList = [];
-			List<string> filesList = [];
-            foreach (var s in beatmapSet.HitSoundFiles)
+        public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
+        {
+            var files = beatmapSet.HitSoundFiles
+                .Select(f => f.ToLower())
+                .ToHashSet();
+
+            var beatmaps = beatmapSet.Beatmaps.ToList();
+
+            var hitSoundMaps = new List<List<HitSoundEvent>>();
+            var beatmapIndex = new List<int>();
+
+            foreach (var (beatmap, i) in beatmaps.Select((b, i) => (b, i)))
             {
-                filesList.Add(s.ToLower());
+                beatmapIndex.Add(i);
 
-            }
-			List<(HitObject.HitSounds, HitSample.SamplesetType, string)> checkedHS = [];
-            foreach (var item in beatmapSet.Beatmaps.Select((beatmap, i) => new { i, beatmap }))
-			{
-				beatmapsList.Add(item.i);
-				if(item.beatmap.GeneralSettings.mode != Beatmap.Mode.Mania)
-				{
-					continue;
-				}
-				List<(HitObject.HitSounds, double, string, HitSample.SamplesetType, string)> hitsoundList = [];
-				List<(string, double, HitObject.HitSounds)> sampleList = [];
-				List<(double, HitSample.SamplesetType, string)> samplesetList = [];
-				var index = 0;
+                if (beatmap.GeneralSettings.mode != Beatmap.Mode.Mania)
+                    continue;
 
-				foreach (var tL in item.beatmap.TimingLines)
-				{
-					samplesetList.Add((tL.Offset, tL.Sampleset, tL.CustomIndex.ToString()));
-				}
-                samplesetList.Add((double.MaxValue, HitSample.SamplesetType.Normal, ""));
-                List<(HitObject.HitSounds, string, HitSample.SamplesetType, string)> Added = [];
-                List<(string, HitObject.HitSounds)> SampleAdded = [];
-                double checkingTime = 0;
+                var timing = BuildTimingMap(beatmap);
 
-                foreach (var hitObject in item.beatmap.HitObjects)
-				{
-					if (hitObject.time.AlmostEqual(checkingTime)) 
-					{
-						checkingTime = hitObject.time;
-						Added.Clear();
-						SampleAdded.Clear();
-					}
-					while (samplesetList[index+1].Item1 <= hitObject.time)
-					{
-						index += 1;
-					}
-					// Adds the various hitsounds to the hitsound list
-					if (hitObject.HasHitSound(HitObject.HitSounds.Clap))
-					{
+                var hitEvents = new List<HitSoundEvent>();
 
-						(HitObject.HitSounds, double, string, HitSample.SamplesetType, string) hitsound = ( (hitObject.filename == null)? HitObject.HitSounds.Clap : HitObject.HitSounds.None, hitObject.time, hitObject.filename, (hitObject.addition == HitSample.SamplesetType.Auto) ? ((hitObject.sampleset == HitSample.SamplesetType.Auto) ? samplesetList[index].Item2 : hitObject.sampleset) : hitObject.addition, (samplesetList[index].Item3 == "1")? "" : samplesetList[index].Item3);
-						if (!Added.Contains((hitsound.Item1,hitsound.Item3,hitsound.Item4,hitsound.Item5)))
-						{
-                            hitsoundList.Add(hitsound);
-							Added.Add((hitsound.Item1, hitsound.Item3, hitsound.Item4, hitsound.Item5));
-                            if (hitsound.Item1 != HitObject.HitSounds.None && hitsound.Item5 != "0" && !isHitNormalInList((hitsound.Item4.ToString().ToLower() + "-hit" + hitsound.Item1.ToString().ToLower() + hitsound.Item5), filesList))
-                            {
-                                yield return new Issue(GetTemplate("Problem"), item.beatmap, hitsound.Item4.ToString().ToLower() + "-hit" + hitsound.Item1.ToString().ToLower() + hitsound.Item5 + ".wav/ogg", Timestamp.Get(hitObject.time));
-                            }
-                        }
-						else
-						{
-							yield return new Issue(GetTemplate("Double Hitsound"), item.beatmap, Timestamp.Get(hitObject.time), hitObject.hitSound);
-                        }
-					} 
-					if (hitObject.HasHitSound(HitObject.HitSounds.Normal))
-					{      
-						(HitObject.HitSounds, double, string, HitSample.SamplesetType, string) hitsound = ((hitObject.filename == null) ? HitObject.HitSounds.Normal : HitObject.HitSounds.None, hitObject.time, hitObject.filename, (hitObject.addition == HitSample.SamplesetType.Auto) ? ((hitObject.sampleset == HitSample.SamplesetType.Auto) ? samplesetList[index].Item2 : hitObject.sampleset) : hitObject.addition, (samplesetList[index].Item3 == "1") ? "" : samplesetList[index].Item3);
-                        if (!Added.Contains((hitsound.Item1, hitsound.Item3, hitsound.Item4, hitsound.Item5)))
-                        {
-                            hitsoundList.Add(hitsound);
-                            Added.Add((hitsound.Item1, hitsound.Item3, hitsound.Item4, hitsound.Item5));
-                            if (hitsound.Item1 != HitObject.HitSounds.None && hitsound.Item5 != "0" && !isHitNormalInList((hitsound.Item4.ToString().ToLower() + "-hit" + hitsound.Item1.ToString().ToLower() + hitsound.Item5), filesList))
-                            {
-                                yield return new Issue(GetTemplate("Problem"), item.beatmap, hitsound.Item4.ToString().ToLower() + "-hit" + hitsound.Item1.ToString().ToLower() + hitsound.Item5 + ".wav/ogg", Timestamp.Get(hitObject.time));
-                            }
-                        }
-                    }
-					if (hitObject.HasHitSound(HitObject.HitSounds.None))
-					{
-						(HitObject.HitSounds, double, string, HitSample.SamplesetType, string) hitsound = (HitObject.HitSounds.None, hitObject.time, hitObject.filename, (hitObject.addition == HitSample.SamplesetType.Auto) ? ((hitObject.sampleset == HitSample.SamplesetType.Auto) ? samplesetList[index].Item2 : hitObject.sampleset) : hitObject.addition, (samplesetList[index].Item3 == "1") ? "" : samplesetList[index].Item3);
-                    }
-					
-					if (hitObject.HasHitSound(HitObject.HitSounds.Whistle))
-					{
-						(HitObject.HitSounds, double, string, HitSample.SamplesetType, string) hitsound = ((hitObject.filename == null) ? HitObject.HitSounds.Whistle : HitObject.HitSounds.None, hitObject.time, hitObject.filename, (hitObject.addition == HitSample.SamplesetType.Auto) ? ((hitObject.sampleset == HitSample.SamplesetType.Auto) ? samplesetList[index].Item2 : hitObject.sampleset) : hitObject.addition, (samplesetList[index].Item3 == "1") ? "" : samplesetList[index].Item3);
-                        if (!Added.Contains((hitsound.Item1, hitsound.Item3, hitsound.Item4, hitsound.Item5)))
-                        {
-                            hitsoundList.Add(hitsound);
-                            Added.Add((hitsound.Item1, hitsound.Item3, hitsound.Item4, hitsound.Item5));
-                            if (hitsound.Item1 != HitObject.HitSounds.None && hitsound.Item5 != "0" && !isHitNormalInList((hitsound.Item4.ToString().ToLower() + "-hit" + hitsound.Item1.ToString().ToLower() + hitsound.Item5), filesList))
-                            {
-                                yield return new Issue(GetTemplate("Problem"), item.beatmap, hitsound.Item4.ToString().ToLower() + "-hit" + hitsound.Item1.ToString().ToLower() + hitsound.Item5 + ".wav/ogg", Timestamp.Get(hitObject.time));
-                            }
-                        }
-                        else
-                        {
-                            yield return new Issue(GetTemplate("Double Hitsound"), item.beatmap, Timestamp.Get(hitObject.time), hitObject.hitSound);
-                        }
-                    }
-					if (hitObject.HasHitSound(HitObject.HitSounds.Finish))
-					{
-						(HitObject.HitSounds, double, string, HitSample.SamplesetType, string) hitsound = ((hitObject.filename == null) ? HitObject.HitSounds.Finish : HitObject.HitSounds.None, hitObject.time, hitObject.filename, (hitObject.addition == HitSample.SamplesetType.Auto) ? ((hitObject.sampleset == HitSample.SamplesetType.Auto) ? samplesetList[index].Item2 : hitObject.sampleset) : hitObject.addition, (samplesetList[index].Item3 == "1") ? "" : samplesetList[index].Item3);
-                        if (!Added.Contains((hitsound.Item1, hitsound.Item3, hitsound.Item4, hitsound.Item5)))
-                        {
-                            hitsoundList.Add(hitsound);
-                            Added.Add((hitsound.Item1, hitsound.Item3, hitsound.Item4, hitsound.Item5));
-                            if (hitsound.Item1 != HitObject.HitSounds.None && hitsound.Item5 != "0" && !isHitNormalInList((hitsound.Item4.ToString().ToLower() + "-hit" + hitsound.Item1.ToString().ToLower() + hitsound.Item5), filesList))
-                            {
-                                yield return new Issue(GetTemplate("Problem"), item.beatmap, hitsound.Item4.ToString().ToLower() + "-hit" + hitsound.Item1.ToString().ToLower() + hitsound.Item5 + ".wav/ogg", Timestamp.Get(hitObject.time));
-                            }
-                        }
-                        else
-                        {
-                            yield return new Issue(GetTemplate("Double Hitsound"), item.beatmap, Timestamp.Get(hitObject.time), hitObject.hitSound);
-                        }
-                    }
-					// Adds samples to the sample list
-					if (!SampleAdded.Contains((hitObject.filename, hitObject.hitSound)))
-					{
-                        sampleList.Add((hitObject.filename, hitObject.time, hitObject.hitSound));
-						SampleAdded.Add((hitObject.filename, hitObject.hitSound));
-                    }
-                    if (hitObject.filename != null && !filesList.Contains(hitObject.filename.ToLower()))
-                    {
-                        yield return new Issue(GetTemplate("Problem"), item.beatmap, hitObject.filename, Timestamp.Get(hitObject.time));
-                    }
-                }
-				beatmapListHS.Add(hitsoundList);
-				beatmapListSI.Add(sampleList);
-			}
-			// Checks if a hitsound could be placed on another difficulty
-			for (var i = 0; i < beatmapListHS.Count; i++)
-			{
-				for (var j = 0; j < beatmapListHS.Count; j++)
-				{
-					if (j == i)
-					{
-						continue;
-					}
-					foreach (var T1 in beatmapListHS[i])
-					{
-						if (T1.Item1 != HitObject.HitSounds.None)
-						{
-                            var hasNote = false;
-							foreach (var T2 in beatmapListHS[j])
-							{
+                var usedAtTime = new HashSet<(HitObject.HitSounds, string?, string, string)>();
+                var sampleUsed = new HashSet<(string?, HitObject.HitSounds)>();
 
-								if (T1.Item2 == T2.Item2 && T1.Item1 == T2.Item1 && T1.Item4 == T2.Item4 && T1.Item5 == T2.Item5)
-								{
-									break;
-								}
-								else if (T1.Item2 == T2.Item2 && T2.Item3 == null && T1.Item4 == T2.Item4)
-								{
-									hasNote = true;
-								}
-								else if (T1.Item2 < T2.Item2)
-								{
-									if (hasNote)
-									{
-										yield return new Issue(GetTemplate("Warning"), beatmapSet.Beatmaps[beatmapsList[i]], Timestamp.Get(T1.Item2), beatmapSet.Beatmaps[beatmapsList[j]]);
-									}
-									break;
-								}
-							}
-						}
-					}
-				}
-			}
-            // Checks if a import sample could be placed on another difficulty
-            for (var i = 0; i < beatmapListSI.Count; i++)
-            {
-                for (var j = 0; j < beatmapListSI.Count; j++)
+                double lastTime = -1;
+
+                foreach (var ho in beatmap.HitObjects)
                 {
-                    if (j == i)
+                    if (ho.time.AlmostEqual(lastTime))
                     {
-                        continue;
+                        usedAtTime.Clear();
+                        sampleUsed.Clear();
                     }
-                    foreach (var T1 in beatmapListSI[i])
-					{
-						if (T1.Item1 != null)
-						{
-                            var hasNote = false;
-                            foreach (var T2 in beatmapListSI[j])
-                            {
 
-                                if (T1.Item2 == T2.Item2 && T1.Item1 == T2.Item1)
-                                {
-                                    break;
-                                }
-                                else if (T1.Item2 == T2.Item2 && T2.Item1 == null && (T2.Item3 == HitObject.HitSounds.Normal || T2.Item3 == HitObject.HitSounds.None) )
-                                {
-                                    hasNote = true;
-                                }
-                                else if (T1.Item2 < T2.Item2)
-                                {
-                                    if (hasNote)
-                                    {
-                                        yield return new Issue(GetTemplate("Warning"), beatmapSet.Beatmaps[beatmapsList[i]], Timestamp.Get(T1.Item2), beatmapSet.Beatmaps[beatmapsList[j]]);
-                                    }
-                                    break;
-                                }
-                            }
+                    lastTime = ho.time;
+
+                    foreach (var type in EnumerateHitSounds(ho))
+                    {
+                        var ev = BuildEvent(ho, type, timing);
+
+                        if (!usedAtTime.Add((ev.Type, ev.FileName, ev.SampleSet.ToString(), ev.CustomIndex)))
+                        {
+                            yield return new Issue(GetTemplate("Double Hitsound"), beatmap, Timestamp.Get(ev.Time), ho.hitSound);
+                            continue;
                         }
-					}
+
+                        hitEvents.Add(ev);
+
+                        if (ev.Type != HitObject.HitSounds.None &&
+                            ev.CustomIndex != "0" &&
+                            !IsHitNormalInList($"{ev.SampleSet.ToString().ToLower()}-hit{ev.Type.ToString().ToLower()}{ev.CustomIndex}", files))
+                        {
+                            yield return new Issue(
+                                GetTemplate("Problem"),
+                                beatmap,
+                                $"{ev.SampleSet.ToString().ToLower()}-hit{ev.Type.ToString().ToLower()}{ev.CustomIndex}.wav/ogg",
+                                Timestamp.Get(ev.Time)
+                            );
+                        }
+                    }
+
+                    if (!sampleUsed.Add((ho.filename, ho.hitSound)))
+                        continue;
+
+                    if (ho.filename != null && !files.Contains(ho.filename.ToLower()))
+                    {
+                        yield return new Issue(GetTemplate("Problem"), beatmap, ho.filename, Timestamp.Get(ho.time));
+                    }
                 }
-			}
-		}
-	}
+
+                hitSoundMaps.Add(hitEvents);
+            }
+
+            foreach (var issue in CompareBeatmaps(hitSoundMaps, beatmapIndex, beatmapSet))
+                yield return issue;
+        }
+
+        private static IEnumerable<HitObject.HitSounds> EnumerateHitSounds(HitObject ho)
+        {
+            if (ho.HasHitSound(HitObject.HitSounds.Clap)) yield return HitObject.HitSounds.Clap;
+            if (ho.HasHitSound(HitObject.HitSounds.Normal)) yield return HitObject.HitSounds.Normal;
+            if (ho.HasHitSound(HitObject.HitSounds.None)) yield return HitObject.HitSounds.None;
+            if (ho.HasHitSound(HitObject.HitSounds.Whistle)) yield return HitObject.HitSounds.Whistle;
+            if (ho.HasHitSound(HitObject.HitSounds.Finish)) yield return HitObject.HitSounds.Finish;
+        }
+
+        private static HitSoundEvent BuildEvent(
+            HitObject ho,
+            HitObject.HitSounds type,
+            List<(double, HitSample.SamplesetType, string)> timing)
+        {
+            return new HitSoundEvent(
+                type == HitObject.HitSounds.None && ho.filename != null ? HitObject.HitSounds.None : type,
+                ho.time,
+                ho.filename,
+                ResolveSampleSet(ho, timing),
+                ResolveIndex(timing)
+            );
+        }
+
+        private static HitSample.SamplesetType ResolveSampleSet(HitObject ho, List<(double, HitSample.SamplesetType, string)> timing)
+        {
+            return ho.addition != HitSample.SamplesetType.Auto
+                ? ho.addition
+                : ho.sampleset != HitSample.SamplesetType.Auto
+                    ? ho.sampleset
+                    : timing.Last(t => t.Item1 <= ho.time).Item2;
+        }
+
+        private static string ResolveIndex(List<(double, HitSample.SamplesetType, string)> timing)
+            => timing.Last().Item3 == "1" ? "" : timing.Last().Item3;
+
+        private IEnumerable<Issue> CompareBeatmaps(
+            List<List<HitSoundEvent>> hs,
+            List<int> indices,
+            BeatmapSet set)
+        {
+            for (int i = 0; i < hs.Count; i++)
+            for (int j = 0; j < hs.Count; j++)
+            {
+                if (i == j) continue;
+
+                foreach (var e in hs[i])
+                {
+                    if (e.Type == HitObject.HitSounds.None) continue;
+
+                    bool hasNote = false;
+
+                    foreach (var o in hs[j])
+                    {
+                        if (SameHit(e, o)) break;
+
+                        if (SameTimeDifferentObject(e, o))
+                            hasNote = true;
+
+                        if (o.Time > e.Time)
+                        {
+                            if (hasNote)
+                            {
+                                yield return new Issue(
+                                    GetTemplate("Warning"),
+                                    set.Beatmaps[indices[i]],
+                                    Timestamp.Get(e.Time),
+                                    set.Beatmaps[indices[j]]
+                                );
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        private static bool SameHit(HitSoundEvent a, HitSoundEvent b)
+            => a.Time.AlmostEqual(b.Time) && a.Type == b.Type && a.SampleSet == b.SampleSet && a.CustomIndex == b.CustomIndex;
+
+        private static bool SameTimeDifferentObject(HitSoundEvent a, HitSoundEvent b)
+            => a.Time.AlmostEqual(b.Time) && b.FileName == null && a.SampleSet == b.SampleSet;
+        
+        private static List<(double Time, HitSample.SamplesetType SampleSet, string CustomIndex)> BuildTimingMap(Beatmap beatmap)
+        {
+            var map = beatmap.TimingLines
+                .Select(t => (t.Offset, t.Sampleset, t.CustomIndex.ToString()))
+                .OrderBy(t => t.Offset)
+                .ToList();
+
+            // Sentinel ensures safe lookups without bounds checks
+            map.Add((double.MaxValue, HitSample.SamplesetType.Normal, ""));
+
+            return map;
+        }
+        
+        private static bool IsHitNormalInList(string fileName, HashSet<string> files)
+        {
+            return files.Contains(fileName.ToLower());
+        }
+    }
 }

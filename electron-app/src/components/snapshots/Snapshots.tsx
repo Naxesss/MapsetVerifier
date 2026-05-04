@@ -21,6 +21,7 @@ import { useSettings } from '../../context/SettingsContext';
 import { ApiSnapshotDifficulty, Mode } from '../../Types';
 import { useBeatmapBackground } from '../checks/hooks/useBeatmapBackground';
 import BeatmapHeader from '../common/BeatmapHeader';
+import StackTraceMessage from '../common/StackTraceMessage.tsx';
 
 interface ModeGroup {
   mode: Mode;
@@ -168,11 +169,7 @@ function Snapshots() {
             <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
               {error?.message}
             </Text>
-            {error?.stackTrace && (
-              <Text mt="sm" size="xs" c="red.3" style={{ whiteSpace: 'pre-wrap' }}>
-                {error.stackTrace}
-              </Text>
-            )}
+            {error?.stackTrace && <StackTraceMessage stackTrace={error.stackTrace} />}
           </Alert>
         </Flex>
       )}

@@ -1,7 +1,7 @@
 import { Flex, Group, SegmentedControl, Text } from '@mantine/core';
-import type { Mode } from '../../../Types';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
 import type { DifficultyModeGroup } from './difficultyChartModel.ts';
+import type { Mode } from '../../../Types';
 
 export function DifficultyGameModeSelector({
   groupedDifficulties,

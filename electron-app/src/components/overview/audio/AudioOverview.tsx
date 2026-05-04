@@ -10,6 +10,7 @@ import { useAudioAnalysis, useFrequencyAnalysis } from './hooks/useAudioAnalysis
 import Spectrogram from './Spectrogram';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
 import { useSettings } from '../../../context/SettingsContext.tsx';
+import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 
 interface AudioOverviewProps {
   reloadFlag: number;
@@ -67,11 +68,7 @@ function AudioOverview({ reloadFlag }: AudioOverviewProps) {
             <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
               {error?.message}
             </Text>
-            {error?.stackTrace && (
-              <Text mt="sm" size="xs" c="red.3" style={{ whiteSpace: 'pre-wrap' }}>
-                {error.stackTrace}
-              </Text>
-            )}
+            {error?.stackTrace && <StackTraceMessage stackTrace={error.stackTrace} />}
           </Alert>
         </Flex>
       )}

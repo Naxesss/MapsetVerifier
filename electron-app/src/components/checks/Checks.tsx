@@ -24,6 +24,7 @@ import { getCategoryHighestLevel } from './utils/levelUtils';
 import { useBeatmap } from '../../context/BeatmapContext';
 import { useSettings } from '../../context/SettingsContext';
 import { ApiCategoryCheckResult, Level, Mode } from '../../Types';
+import StackTraceMessage from '../common/StackTraceMessage.tsx';
 
 function Checks() {
   const theme = useMantineTheme();
@@ -229,11 +230,7 @@ function Checks() {
               {error.details}
             </Text>
           )}
-          {error?.stackTrace && (
-            <Text mt="sm" size="xs" c="red.3" style={{ whiteSpace: 'pre-wrap' }}>
-              {error.stackTrace}
-            </Text>
-          )}
+          {error?.stackTrace && <StackTraceMessage stackTrace={error.stackTrace} />}
         </Alert>
       )}
       {data && (

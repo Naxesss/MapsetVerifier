@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*.*.*'
+      - 'v*.*.*-*'
   workflow_dispatch:
     inputs:
       tag_name:
@@ -32,7 +33,7 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             TAG_NAME="${{ inputs.tag_name }}"
           else
-            TAG_NAME="${GITHUB_REF_NAME}"
+            TAG_NAME="${GITHUB_REF_NAME#v}"
           fi
 
           if [ -z "$TAG_NAME" ]; then

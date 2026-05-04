@@ -12,29 +12,29 @@ function parseChangelog(raw: string): {
   intro: string | null;
   releases: ChangelogRelease[];
 } {
-  const parts = raw.trim().split(/\n(?=### )/);
+  const parts = raw.trim().split(/\n(?=## )/);
   const first = parts[0]?.trim() ?? '';
 
   let pageHeading: string | null = null;
   let intro: string | null = null;
 
-  const h2Match = first.match(/^##\s+(.+?)(?:\n|$)/);
-  if (h2Match) {
-    pageHeading = h2Match[1].trim();
-    const afterH2 = first.slice(h2Match[0].length).trim();
-    intro = afterH2 || null;
+  const h1Match = first.match(/^#\s+(.+?)(?:\n|$)/);
+  if (h1Match) {
+    pageHeading = h1Match[1].trim();
+    const afterH1 = first.slice(h1Match[0].length).trim();
+    intro = afterH1 || null;
   } else if (first) {
     intro = first;
   }
 
-  const releaseParts = h2Match ? parts.slice(1) : parts;
+  const releaseParts = h1Match ? parts.slice(1) : parts;
   const releases: ChangelogRelease[] = [];
 
   for (const block of releaseParts) {
     const trimmed = block.trim();
-    if (!trimmed.startsWith('###')) continue;
+    if (!trimmed.startsWith('##')) continue;
     const lines = trimmed.split('\n');
-    const title = lines[0].replace(/^###\s+/, '').trim();
+    const title = lines[0].replace(/^##\s+/, '').trim();
     const body = lines.slice(1).join('\n').trim();
     releases.push({ title, body });
   }
@@ -48,7 +48,7 @@ export default function Changelog() {
   return (
     <Stack gap="md">
       {pageHeading && (
-        <Title order={3} fw={600}>
+        <Title order={2} fw={600}>
           {pageHeading}
         </Title>
       )}
@@ -57,7 +57,7 @@ export default function Changelog() {
       {releases.map((release, index) => (
         <Card key={`${release.title}-${index}`} withBorder padding="lg" radius="md" shadow="sm">
           <Stack gap="sm">
-            <Title order={4} fw={600} fz="md">
+            <Title order={3} fw={600}>
               {release.title}
             </Title>
             {release.body ? <MantineMarkdown>{release.body}</MantineMarkdown> : null}
