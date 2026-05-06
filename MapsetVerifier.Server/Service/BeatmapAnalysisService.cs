@@ -390,6 +390,7 @@ public static class BeatmapAnalysisService
         {
             Version = beatmap.MetadataSettings.version,
             Mode = beatmap.GeneralSettings.mode.ToString(),
+            StarRating = beatmap.StarRating,
             ObjectCount = beatmap.HitObjects.Count,
             EdgeCount = edgeCount,
             UnsnappedCount = unsnappedCount,

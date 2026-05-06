@@ -706,6 +706,7 @@ function ObjectsTimelineComparison({
                         <GameModeIcon
                           mode={normalizeMode(difficulty.mode)}
                           size={18}
+                          starRating={difficulty.starRating}
                           color={getModeAccentColor(normalizeMode(difficulty.mode))}
                         />
                         <Stack gap={0} style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
@@ -1056,7 +1057,7 @@ function SnappingsOverview({
                         <GameModeIcon
                           mode={group.mode}
                           size={16}
-                          color={getModeAccentColor(group.mode)}
+                          starRating={difficulty.starRating}
                         />
                         <Text size="sm" fw={600}>
                           {difficulty.version}
