@@ -27,6 +27,23 @@ public sealed class CheckTestContext : IDisposable
         return new CheckTestContext(tempPath);
     }
 
+    public static CheckTestContext CreateFromOsuFiles(IEnumerable<(string FileName, string Content)> osuFiles, IEnumerable<string>? extraFiles = null)
+    {
+        var tempPath = Path.Combine(Path.GetTempPath(), "MapsetVerifierChecksTests", "Generated", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(tempPath);
+
+        foreach (var (fileName, content) in osuFiles)
+            File.WriteAllText(Path.Combine(tempPath, fileName), content);
+
+        if (extraFiles != null)
+        {
+            foreach (var file in extraFiles)
+                File.WriteAllText(Path.Combine(tempPath, file), string.Empty);
+        }
+
+        return new CheckTestContext(tempPath);
+    }
+
     public Beatmap GetBeatmap(string difficultyName) =>
         BeatmapSet.Beatmaps.FirstOrDefault(beatmap => beatmap.MetadataSettings.version == difficultyName)
         ?? throw new InvalidOperationException($"Beatmap '{difficultyName}' was not found in fixture '{BeatmapSet}'.");
@@ -34,6 +51,10 @@ public sealed class CheckTestContext : IDisposable
     public List<Issue> RunBeatmapCheck<TCheck>(string difficultyName)
         where TCheck : BeatmapCheck, new() =>
         new TCheck().GetIssues(GetBeatmap(difficultyName)).ToList();
+
+    public List<Issue> RunBeatmapSetCheck<TCheck>()
+        where TCheck : BeatmapSetCheck, new() =>
+        new TCheck().GetIssues(BeatmapSet).ToList();
 
     public void Dispose()
     {
