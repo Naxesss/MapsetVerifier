@@ -70,8 +70,6 @@ function getMainWindow() {
 }
 
 app.whenReady().then(() => {
-  sidecar.spawnSidecar();
-
   registerIpc(getMainWindow);
   registerUpdater(getMainWindow);
 
