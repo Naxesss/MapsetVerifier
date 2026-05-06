@@ -47,7 +47,7 @@ const WindowBar: React.FC = () => {
           borderBottom: `1px solid ${theme.colors.dark[4]}`,
         } as React.CSSProperties
       }
-      px={theme.spacing.sm}
+      pl={theme.spacing.sm}
       justify="flex-end"
     >
       <Group
@@ -102,14 +102,22 @@ const WindowBar: React.FC = () => {
         </span>
       </Group>
       <div
-        style={{ ...noDragStyle, display: 'flex', gap: theme.spacing.xs } as React.CSSProperties}
+        style={
+          {
+            ...noDragStyle,
+            display: 'flex',
+            alignSelf: 'stretch',
+            height: '100%',
+            gap: 0
+          } as React.CSSProperties
+        }
       >
         <ActionIcon
           variant="subtle"
           color={isDark ? 'gray' : 'dark'}
           aria-label="Minimize"
           onClick={minimize}
-          style={noDragStyle}
+          style={{ ...noDragStyle, height: '100%', width: 36, borderRadius: 0 } as React.CSSProperties}
         >
           <IconMinus size={20} color={textColor} />
         </ActionIcon>
@@ -118,7 +126,7 @@ const WindowBar: React.FC = () => {
           color={isDark ? 'gray' : 'dark'}
           aria-label="Maximize"
           onClick={toggleMaximize}
-          style={noDragStyle}
+          style={{ ...noDragStyle, height: '100%', width: 36, borderRadius: 0 } as React.CSSProperties}
         >
           <IconSquare size={14} color={textColor} />
         </ActionIcon>
@@ -127,7 +135,7 @@ const WindowBar: React.FC = () => {
           color="red"
           aria-label="Close"
           onClick={close}
-          style={noDragStyle}
+          style={{ ...noDragStyle, height: '100%', width: 36, borderRadius: 0 } as React.CSSProperties}
         >
           <IconX size={20} color={theme.colors.red[6]} />
         </ActionIcon>
