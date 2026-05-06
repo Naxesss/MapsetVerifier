@@ -12,7 +12,7 @@ namespace MapsetVerifier.Snapshots.Translators
         public override string Section => "TimingPoints";
         public override string TranslatedSection => "Timing";
 
-        public override IEnumerable<DiffInstance> Translate(IEnumerable<DiffInstance> diffs)
+        public override IEnumerable<DiffInstance> Translate(IEnumerable<DiffInstance> diffs, Beatmap beatmap)
         {
             var addedTimingLines = new List<Tuple<DiffInstance, TimingLine>>();
             var removedTimingLines = new List<Tuple<DiffInstance, TimingLine>>();
@@ -23,7 +23,7 @@ namespace MapsetVerifier.Snapshots.Translators
 
                 try
                 {
-                    timingLine = new TimingLine(diff.Diff.Split(','), null!);
+                    timingLine = new TimingLine(diff.Diff.Split(','), beatmap);
                 }
                 catch
                 {
@@ -83,8 +83,8 @@ namespace MapsetVerifier.Snapshots.Translators
 
                     if (type == "Uninherited line")
                     {
-                        var addedUninherited = new UninheritedLine(addedLine.Code.Split(','), null!);
-                        var removedUninherited = new UninheritedLine(removedLine.Code.Split(','), null!);
+                        var addedUninherited = new UninheritedLine(addedLine.Code.Split(','), beatmap);
+                        var removedUninherited = new UninheritedLine(removedLine.Code.Split(','), beatmap);
 
                         if (!addedUninherited.bpm.AlmostEqual(removedUninherited.bpm))
                             changes.Add("BPM changed from " + removedUninherited.bpm + " to " + addedUninherited.bpm + ".");

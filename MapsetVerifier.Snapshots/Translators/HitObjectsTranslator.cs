@@ -3,6 +3,7 @@ using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
 using MapsetVerifier.Snapshots.Objects;
 using MathNet.Numerics;
+using Serilog;
 using static MapsetVerifier.Snapshots.Snapshotter;
 
 namespace MapsetVerifier.Snapshots.Translators
@@ -12,7 +13,7 @@ namespace MapsetVerifier.Snapshots.Translators
         public override string Section => "HitObjects";
         public override string TranslatedSection => "Hit Objects";
 
-        public override IEnumerable<DiffInstance> Translate(IEnumerable<DiffInstance> diffs)
+        public override IEnumerable<DiffInstance> Translate(IEnumerable<DiffInstance> diffs, Beatmap beatmap)
         {
             var addedHitObjects = new List<Tuple<DiffInstance, HitObject>>();
             var removedHitObjects = new List<Tuple<DiffInstance, HitObject>>();
@@ -23,11 +24,11 @@ namespace MapsetVerifier.Snapshots.Translators
 
                 try
                 {
-                    hitObject = new HitObject(diff.Diff.Split(','), null!);
+                    hitObject = new HitObject(diff.Diff.Split(','), beatmap);
                 }
-                catch
+                catch (Exception e)
                 {
-                    // Cannot yield in a catch clause, so checks for null in the following statement instead.
+                    Log.Error(e, "Could not translate hit object");
                 }
 
                 if (hitObject != null)
@@ -60,7 +61,7 @@ namespace MapsetVerifier.Snapshots.Translators
                         if (type != removedType)
                             continue;
 
-                        var changes = GetChanges(addedObject, removedObject).ToList();
+                        var changes = GetChanges(addedObject, removedObject, beatmap).ToList();
 
                         if (changes.Count == 1)
                             yield return new DiffInstance(stamp + changes[0], Section, DiffType.Changed, new List<string>(), addedDiff.SnapshotCreationDate);
@@ -91,7 +92,7 @@ namespace MapsetVerifier.Snapshots.Translators
             }
         }
 
-        private IEnumerable<string> GetChanges(HitObject addedObject, HitObject removedObject)
+        private IEnumerable<string> GetChanges(HitObject addedObject, HitObject removedObject, Beatmap beatmap)
         {
             if (addedObject.Position != removedObject.Position)
                 yield return "Moved from (" + removedObject.Position.X + "; " + removedObject.Position.Y + ") to (" + addedObject.Position.X + "; " + addedObject.Position.Y + ").";
@@ -156,8 +157,8 @@ namespace MapsetVerifier.Snapshots.Translators
 
             if (type == "Slider")
             {
-                var addedSlider = new Slider(addedObject.code.Split(','), null!);
-                var removedSlider = new Slider(removedObject.code.Split(','), null!);
+                var addedSlider = new Slider(addedObject.code.Split(','), beatmap);
+                var removedSlider = new Slider(removedObject.code.Split(','), beatmap);
 
                 if (addedSlider.CurveType != removedSlider.CurveType)
                     yield return "Curve type changed from " + removedSlider.CurveType + " to " + addedSlider.CurveType + ".";
@@ -237,8 +238,8 @@ namespace MapsetVerifier.Snapshots.Translators
 
             if (type == "Spinner")
             {
-                var addedSpinner = new Spinner(addedObject.code.Split(','), null!);
-                var removedSpinner = new Spinner(removedObject.code.Split(','), null!);
+                var addedSpinner = new Spinner(addedObject.code.Split(','), beatmap);
+                var removedSpinner = new Spinner(removedObject.code.Split(','), beatmap);
 
                 if (!addedSpinner.endTime.AlmostEqual(removedSpinner.endTime))
                     yield return "End time changed from " + removedSpinner.endTime + " to " + addedSpinner.endTime + ".";
@@ -246,8 +247,8 @@ namespace MapsetVerifier.Snapshots.Translators
 
             if (type == "Hold note")
             {
-                var addedNote = new HoldNote(addedObject.code.Split(','), null!);
-                var removedNote = new HoldNote(removedObject.code.Split(','), null!);
+                var addedNote = new HoldNote(addedObject.code.Split(','), beatmap);
+                var removedNote = new HoldNote(removedObject.code.Split(','), beatmap);
 
                 if (!addedNote.endTime.AlmostEqual(removedNote.endTime))
                     yield return "End time changed from " + removedNote.endTime + " to " + addedNote.endTime + ".";

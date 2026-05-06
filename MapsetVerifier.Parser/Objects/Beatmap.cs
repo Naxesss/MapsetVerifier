@@ -103,7 +103,7 @@ namespace MapsetVerifier.Parser.Objects
         // Star Rating
         public double StarRating { get; }
         public DifficultyAttributes? DifficultyAttributes { get; }
-        public Skill[] Skills { get; set; } = null!;
+        public Skill[] Skills { get; set; } = [];
 
         // Settings
         public GeneralSettings GeneralSettings { get; }

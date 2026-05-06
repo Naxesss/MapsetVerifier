@@ -75,7 +75,9 @@ public static class SnapshotService
             var currentSnapshot = sortedSnapshots[i];
 
             var diffs = Snapshotter.Compare(previousSnapshot, currentSnapshot.code).ToList();
-            var translatedDiffs = Snapshotter.TranslateComparison(diffs).ToList();
+            
+            // TODO null! is not very nice needs quite some refactor in snapshotter logic to avoid
+            var translatedDiffs = Snapshotter.TranslateComparison(diffs, null!).ToList();
 
             if (translatedDiffs.Count == 0) continue;
 
@@ -109,7 +111,7 @@ public static class SnapshotService
             var currentSnapshot = sortedSnapshots[i];
 
             var diffs = Snapshotter.Compare(previousSnapshot, currentSnapshot.code).ToList();
-            var translatedDiffs = Snapshotter.TranslateComparison(diffs).ToList();
+            var translatedDiffs = Snapshotter.TranslateComparison(diffs, beatmap).ToList();
 
             if (translatedDiffs.Count == 0) continue;
 
@@ -122,7 +124,7 @@ public static class SnapshotService
         {
             var latestSnapshot = sortedSnapshots.Last();
             var currentDiffs = Snapshotter.Compare(latestSnapshot, beatmap.Code).ToList();
-            var translatedCurrentDiffs = Snapshotter.TranslateComparison(currentDiffs).ToList();
+            var translatedCurrentDiffs = Snapshotter.TranslateComparison(currentDiffs, beatmap).ToList();
 
             if (translatedCurrentDiffs.Count > 0)
             {

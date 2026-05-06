@@ -305,14 +305,14 @@ namespace MapsetVerifier.Snapshots
             }
         }
 
-        public static IEnumerable<DiffInstance> TranslateComparison(IEnumerable<DiffInstance> diffs)
+        public static IEnumerable<DiffInstance> TranslateComparison(IEnumerable<DiffInstance> diffs, Beatmap beatmap)
         {
             foreach (var diffsBySection in diffs.GroupBy(diff => diff.Section).Distinct())
             {
                 var translator = TranslatorRegistry.GetTranslators().FirstOrDefault(translator => translator.Section == diffsBySection.Key);
 
                 if (translator != null)
-                    foreach (var diff in translator.Translate(diffsBySection))
+                    foreach (var diff in translator.Translate(diffsBySection, beatmap))
                     {
                         // Since all translators should be able to translate sections, we do that here.
                         diff.Section = translator.TranslatedSection;

@@ -1,4 +1,5 @@
-﻿using MapsetVerifier.Snapshots.Objects;
+﻿using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.Snapshots.Objects;
 
 namespace MapsetVerifier.Snapshots.Translators
 {
@@ -6,7 +7,7 @@ namespace MapsetVerifier.Snapshots.Translators
     {
         public override string Section => "Metadata";
 
-        public override IEnumerable<DiffInstance> Translate(IEnumerable<DiffInstance> diffs)
+        public override IEnumerable<DiffInstance> Translate(IEnumerable<DiffInstance> diffs, Beatmap beatmap)
         {
             foreach (var diff in Snapshotter.TranslateSettings(Section, diffs, TranslateKey))
                 yield return diff;
