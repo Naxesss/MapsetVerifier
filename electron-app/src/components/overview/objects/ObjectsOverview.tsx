@@ -1,4 +1,21 @@
 ﻿import {
+  DndContext,
+  MeasuringStrategy,
+  PointerSensor,
+  closestCorners,
+  type DragEndEvent,
+  type DragStartEvent,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import {
   ActionIcon,
   Alert,
   Badge,
@@ -82,11 +99,6 @@ const TIMELINE_INTERVAL_STEPS_MS = [
 type ObjectsModeGroup = {
   mode: Mode;
   difficulties: ObjectsOverviewDifficulty[];
-};
-
-type DifficultyDropIndicator = {
-  key: string;
-  position: 'before' | 'after';
 };
 
 interface ObjectsOverviewProps {
@@ -255,19 +267,14 @@ function ObjectsTimelineComparison({
   selectedMode?: Mode;
   onModeChange: (mode: Mode) => void;
 }) {
-  const theme = useMantineTheme();
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  const rowElementsRef = useRef<Partial<Record<string, HTMLDivElement | null>>>({});
   const dragState = useRef({ isDragging: false, startX: 0, scrollLeft: 0 });
-  const dropIndicatorRef = useRef<DifficultyDropIndicator | null>(null);
   const [zoom, setZoom] = useState(8.0);
-  const [isDragging, setIsDragging] = useState(false);
+  const [isPanningTimeline, setIsPanningTimeline] = useState(false);
   const [visibilityByDifficulty, setVisibilityByDifficulty] = useState<Record<string, boolean>>({});
   const [difficultyOrderByMode, setDifficultyOrderByMode] = useState<
     Partial<Record<Mode, string[]>>
   >({});
-  const [draggedDifficultyKey, setDraggedDifficultyKey] = useState<string | null>(null);
-  const [dropIndicator, setDropIndicator] = useState<DifficultyDropIndicator | null>(null);
 
   const durationMs = Math.max(1, endTimeMs - startTimeMs);
   const tickIntervalMs = getTimelineIntervalMs(durationMs, zoom);
@@ -277,6 +284,13 @@ function ObjectsTimelineComparison({
   );
   const contentWidth = timelineWidth + LABEL_WIDTH;
   const activeMode = selectedMode ?? groupedDifficulties[0]?.mode;
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 6,
+      },
+    })
+  );
 
   useEffect(() => {
     const allDifficultyKeys = groupedDifficulties.flatMap((group) =>
@@ -346,10 +360,6 @@ function ObjectsTimelineComparison({
     return [...ordered, ...missing];
   }, [activeMode, difficulties, difficultyOrderByMode]);
 
-  useEffect(() => {
-    dropIndicatorRef.current = dropIndicator;
-  }, [dropIndicator]);
-
   const visibleCount = orderedDifficulties.filter(
     (difficulty) => visibilityByDifficulty[getDifficultyKey(difficulty)] !== false
   ).length;
@@ -370,7 +380,7 @@ function ObjectsTimelineComparison({
       startX: event.clientX,
       scrollLeft: container.scrollLeft,
     };
-    setIsDragging(true);
+    setIsPanningTimeline(true);
   };
 
   const handleMouseMove = (event: ReactMouseEvent<HTMLDivElement>) => {
@@ -383,7 +393,7 @@ function ObjectsTimelineComparison({
 
   const stopDragging = () => {
     dragState.current.isDragging = false;
-    setIsDragging(false);
+    setIsPanningTimeline(false);
   };
 
   const setSelectedDifficultyVisibility = (visible: boolean) => {
@@ -411,16 +421,18 @@ function ObjectsTimelineComparison({
     setZoom((value) => clampZoom(value + getZoomStep(value) * direction));
   };
 
-  const reorderDifficulties = (
-    sourceKey: string,
-    targetKey: string,
-    position: 'before' | 'after'
-  ) => {
+  const moveDifficulty = (sourceKey: string, targetKey: string) => {
     if (!activeMode) return;
 
     setDifficultyOrderByMode((current) => {
       const currentOrder = current[activeMode] ?? orderedDifficulties.map(getDifficultyKey);
-      const nextOrder = reorderDifficultyKeys(currentOrder, sourceKey, targetKey, position);
+      const oldIndex = currentOrder.indexOf(sourceKey);
+      const newIndex = currentOrder.indexOf(targetKey);
+      if (oldIndex === -1 || newIndex === -1) {
+        return current;
+      }
+
+      const nextOrder = arrayMove(currentOrder, oldIndex, newIndex);
 
       if (areStringArraysEqual(currentOrder, nextOrder)) {
         return current;
@@ -433,71 +445,22 @@ function ObjectsTimelineComparison({
     });
   };
 
-  useEffect(() => {
-    if (!draggedDifficultyKey) {
-      return;
+  const handleDragStart = (_event: DragStartEvent) => {
+    stopDragging();
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const sourceKey = String(event.active.id);
+    const targetKey = event.over ? String(event.over.id) : null;
+
+    if (targetKey && sourceKey !== targetKey) {
+      moveDifficulty(sourceKey, targetKey);
     }
 
-    const orderedKeys = orderedDifficulties.map(getDifficultyKey);
+  };
 
-    const updateDropIndicator = (clientY: number) => {
-      const nextIndicator = getDifficultyDropIndicator(
-        clientY,
-        orderedKeys,
-        rowElementsRef.current
-      );
-      setDropIndicator((current) => {
-        if (current?.key === nextIndicator?.key && current?.position === nextIndicator?.position) {
-          return current;
-        }
-
-        return nextIndicator;
-      });
-    };
-
-    const handleWindowMouseMove = (event: MouseEvent) => {
-      updateDropIndicator(event.clientY);
-    };
-
-    const handleWindowMouseUp = () => {
-      if (dropIndicatorRef.current) {
-        reorderDifficulties(
-          draggedDifficultyKey,
-          dropIndicatorRef.current.key,
-          dropIndicatorRef.current.position
-        );
-      }
-
-      setDraggedDifficultyKey(null);
-      setDropIndicator(null);
-    };
-
-    window.addEventListener('mousemove', handleWindowMouseMove);
-    window.addEventListener('mouseup', handleWindowMouseUp);
-    document.body.style.userSelect = 'none';
-
-    return () => {
-      window.removeEventListener('mousemove', handleWindowMouseMove);
-      window.removeEventListener('mouseup', handleWindowMouseUp);
-      document.body.style.userSelect = '';
-    };
-  }, [draggedDifficultyKey, orderedDifficulties]);
-
-  const handleDifficultyReorderMouseDown = (
-    event: ReactMouseEvent<HTMLDivElement>,
-    difficultyKey: string
-  ) => {
-    event.preventDefault();
-    event.stopPropagation();
-    stopDragging();
-    setDraggedDifficultyKey(difficultyKey);
-
-    const initialIndicator = getDifficultyDropIndicator(
-      event.clientY,
-      orderedDifficulties.map(getDifficultyKey),
-      rowElementsRef.current
-    );
-    setDropIndicator(initialIndicator);
+  const handleDragCancel = () => {
+    // No-op: state cleanup is handled in sortable items and onDragEnd.
   };
 
   return (
@@ -565,7 +528,7 @@ function ObjectsTimelineComparison({
           style={{
             overflowX: 'auto',
             overflowY: 'hidden',
-            cursor: isDragging ? 'grabbing' : 'grab',
+            cursor: isPanningTimeline ? 'grabbing' : 'grab',
             userSelect: 'none',
           }}
         >
@@ -586,197 +549,43 @@ function ObjectsTimelineComparison({
               </Paper>
             )}
 
-            {orderedDifficulties.map((difficulty) => {
-              const difficultyKey = getDifficultyKey(difficulty);
-              const isVisible = visibilityByDifficulty[difficultyKey] !== false;
-              const rowHeight = isVisible ? ROW_HEIGHT : HIDDEN_ROW_HEIGHT;
-              const showDropIndicator = dropIndicator?.key === difficultyKey;
-              const dropIndicatorColor = theme.colors.blue[4];
-              const dropLineShadow = `0 0 0 1px ${withAlpha(dropIndicatorColor, 0.8)}, 0 0 12px ${withAlpha(dropIndicatorColor, 0.45)}`;
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCorners}
+              autoScroll={false}
+              measuring={{
+                droppable: {
+                  strategy: MeasuringStrategy.Always,
+                },
+              }}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+              onDragCancel={handleDragCancel}
+            >
+              <SortableContext
+                items={orderedDifficulties.map(getDifficultyKey)}
+                strategy={verticalListSortingStrategy}
+              >
+                {orderedDifficulties.map((difficulty) => {
+                  const difficultyKey = getDifficultyKey(difficulty);
+                  const isVisible = visibilityByDifficulty[difficultyKey] !== false;
 
-              return (
-                <Box
-                  key={difficultyKey}
-                  ref={(element) => {
-                    rowElementsRef.current[difficultyKey] = element;
-                  }}
-                  style={{
-                    position: 'relative',
-                    display: 'flex',
-                    alignItems: 'stretch',
-                    width: contentWidth,
-                    minWidth: contentWidth,
-                    height: rowHeight,
-                    borderRadius: theme.radius.sm,
-                    background: showDropIndicator ? withAlpha(dropIndicatorColor, 0.08) : undefined,
-                    opacity: draggedDifficultyKey === difficultyKey ? 0.72 : 1,
-                  }}
-                >
-                  {showDropIndicator && (
-                    <>
-                      <Box
-                        style={{
-                          pointerEvents: 'none',
-                          position: 'absolute',
-                          left: 0,
-                          right: 0,
-                          height: 4,
-                          zIndex: 6,
-                          borderRadius: 999,
-                          background: dropIndicatorColor,
-                          boxShadow: dropLineShadow,
-                          top: dropIndicator.position === 'before' ? -3 : undefined,
-                          bottom: dropIndicator.position === 'after' ? -3 : undefined,
-                        }}
-                      />
-                      <Box
-                        style={{
-                          pointerEvents: 'none',
-                          position: 'absolute',
-                          left: 8,
-                          width: 10,
-                          height: 10,
-                          zIndex: 7,
-                          borderRadius: '50%',
-                          background: dropIndicatorColor,
-                          boxShadow: dropLineShadow,
-                          top: dropIndicator.position === 'before' ? -6 : undefined,
-                          bottom: dropIndicator.position === 'after' ? -6 : undefined,
-                        }}
-                      />
-                    </>
-                  )}
-                  <Box
-                    style={{
-                      position: 'sticky',
-                      left: 0,
-                      zIndex: 2,
-                      display: 'flex',
-                      alignItems: 'center',
-                      flex: `0 0 ${LABEL_WIDTH}px`,
-                      height: rowHeight,
-                      paddingInline: theme.spacing.xs,
-                      background: isVisible ? theme.colors.dark[8] : theme.colors.dark[7],
-                      borderRight: `1px solid ${theme.colors.dark[4]}`,
-                      boxShadow: '8px 0 16px rgba(0, 0, 0, 0.18)',
-                      boxSizing: 'border-box',
-                      overflow: 'hidden',
-                      outline: showDropIndicator
-                        ? `1px solid ${withAlpha(dropIndicatorColor, 0.55)}`
-                        : undefined,
-                    }}
-                  >
-                    <Flex
-                      align="center"
-                      gap={8}
-                      style={{ width: '100%', minWidth: 0, overflow: 'hidden' }}
-                    >
-                      <Box
-                        aria-label={`Reorder ${difficulty.version}`}
-                        data-stop-timeline-pan="true"
-                        onMouseDown={(event) =>
-                          handleDifficultyReorderMouseDown(event, difficultyKey)
-                        }
-                        style={{
-                          flex: '0 0 auto',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: 22,
-                          height: 22,
-                          borderRadius: theme.radius.sm,
-                          color: theme.colors.gray[4],
-                          cursor: draggedDifficultyKey === difficultyKey ? 'grabbing' : 'grab',
-                        }}
-                      >
-                        <IconGripVertical size={16} />
-                      </Box>
-                      <Group
-                        gap={8}
-                        wrap="nowrap"
-                        style={{
-                          flex: 1,
-                          minWidth: 0,
-                          maxWidth: '100%',
-                          overflow: 'hidden',
-                          opacity: isVisible ? 1 : 0.7,
-                        }}
-                      >
-                        <GameModeIcon
-                          mode={normalizeMode(difficulty.mode)}
-                          size={18}
-                          starRating={difficulty.starRating}
-                          color={getModeAccentColor(normalizeMode(difficulty.mode))}
-                        />
-                        <Stack gap={0} style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-                          <Text fw={600} size="sm" truncate style={{ width: '100%', minWidth: 0 }}>
-                            {difficulty.version}
-                          </Text>
-                          <Text
-                            size="xs"
-                            c="dimmed"
-                            truncate
-                            style={{ width: '100%', minWidth: 0 }}
-                          >
-                            {isVisible ? formatGameModeLabel(difficulty.mode) : 'Hidden'}
-                          </Text>
-                        </Stack>
-                      </Group>
-                      <ActionIcon
-                        variant="subtle"
-                        color={isVisible ? 'blue' : 'gray'}
-                        aria-label={
-                          isVisible ? `Hide ${difficulty.version}` : `Show ${difficulty.version}`
-                        }
-                        data-stop-timeline-pan="true"
-                        onMouseDown={(event) => event.stopPropagation()}
-                        onClick={() => toggleDifficultyVisibility(difficulty)}
-                        style={{ flex: '0 0 auto' }}
-                      >
-                        {isVisible ? <IconEye size={16} /> : <IconEyeOff size={16} />}
-                      </ActionIcon>
-                    </Flex>
-                  </Box>
-                  <Box
-                    h={rowHeight}
-                    style={{
-                      flex: `0 0 ${timelineWidth}px`,
-                      minWidth: timelineWidth,
-                      width: timelineWidth,
-                      borderRadius: theme.radius.sm,
-                      overflow: 'hidden',
-                      border: `1px solid ${showDropIndicator ? withAlpha(dropIndicatorColor, 0.75) : theme.colors.dark[4]}`,
-                      boxShadow: showDropIndicator
-                        ? `0 0 0 1px ${withAlpha(dropIndicatorColor, 0.35)} inset`
-                        : undefined,
-                      boxSizing: 'border-box',
-                    }}
-                  >
-                    {isVisible ? (
-                      <TimelineRow
-                        difficulty={difficulty}
-                        startTimeMs={startTimeMs}
-                        endTimeMs={endTimeMs}
-                        width={timelineWidth}
-                        height={ROW_HEIGHT}
-                      />
-                    ) : (
-                      <Flex
-                        h="100%"
-                        px="sm"
-                        py={HIDDEN_ROW_VERTICAL_PADDING}
-                        align="center"
-                        style={{ boxSizing: 'border-box' }}
-                      >
-                        <Text size="xs" c="dimmed" lh={1.2}>
-                          Timeline hidden for this difficulty.
-                        </Text>
-                      </Flex>
-                    )}
-                  </Box>
-                </Box>
-              );
-            })}
+                  return (
+                    <SortableTimelineDifficultyRow
+                      key={difficultyKey}
+                      difficulty={difficulty}
+                      difficultyKey={difficultyKey}
+                      isVisible={isVisible}
+                      timelineWidth={timelineWidth}
+                      contentWidth={contentWidth}
+                      startTimeMs={startTimeMs}
+                      endTimeMs={endTimeMs}
+                      onToggleVisibility={toggleDifficultyVisibility}
+                    />
+                  );
+                })}
+              </SortableContext>
+            </DndContext>
 
             {orderedDifficulties.length > 0 && (
               <TimelineAxisRow
@@ -791,6 +600,180 @@ function ObjectsTimelineComparison({
         </Box>
       </Stack>
     </Paper>
+  );
+}
+
+function SortableTimelineDifficultyRow({
+  difficulty,
+  difficultyKey,
+  isVisible,
+  timelineWidth,
+  contentWidth,
+  startTimeMs,
+  endTimeMs,
+  onToggleVisibility,
+}: {
+  difficulty: ObjectsOverviewDifficulty;
+  difficultyKey: string;
+  isVisible: boolean;
+  timelineWidth: number;
+  contentWidth: number;
+  startTimeMs: number;
+  endTimeMs: number;
+  onToggleVisibility: (difficulty: ObjectsOverviewDifficulty) => void;
+}) {
+  const theme = useMantineTheme();
+  const rowHeight = isVisible ? ROW_HEIGHT : HIDDEN_ROW_HEIGHT;
+  const dropIndicatorColor = theme.colors.blue[4];
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+    isOver,
+  } = useSortable({
+    id: difficultyKey,
+    transition: {
+      duration: 120,
+      easing: 'cubic-bezier(0.2, 0, 0, 1)',
+    },
+  });
+
+  return (
+    <Box
+      ref={setNodeRef}
+      style={{
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'stretch',
+        width: contentWidth,
+        minWidth: contentWidth,
+        height: rowHeight,
+        borderRadius: theme.radius.sm,
+        background: isOver ? withAlpha(dropIndicatorColor, 0.08) : undefined,
+        opacity: isDragging ? 0.78 : 1,
+        zIndex: isDragging ? 10 : undefined,
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }}
+    >
+      <Box
+        style={{
+          position: 'sticky',
+          left: 0,
+          zIndex: 2,
+          display: 'flex',
+          alignItems: 'center',
+          flex: `0 0 ${LABEL_WIDTH}px`,
+          height: rowHeight,
+          paddingInline: theme.spacing.xs,
+          background: isVisible ? theme.colors.dark[8] : theme.colors.dark[7],
+          borderRight: `1px solid ${theme.colors.dark[4]}`,
+          boxShadow: '8px 0 16px rgba(0, 0, 0, 0.18)',
+          boxSizing: 'border-box',
+          overflow: 'hidden',
+          outline: isOver ? `1px solid ${withAlpha(dropIndicatorColor, 0.55)}` : undefined,
+        }}
+      >
+        <Flex align="center" gap={8} style={{ width: '100%', minWidth: 0, overflow: 'hidden' }}>
+          <Box
+            ref={setActivatorNodeRef}
+            aria-label={`Reorder ${difficulty.version}`}
+            data-stop-timeline-pan="true"
+            {...attributes}
+            {...listeners}
+            style={{
+              flex: '0 0 auto',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 22,
+              height: 22,
+              borderRadius: theme.radius.sm,
+              color: theme.colors.gray[4],
+              cursor: isDragging ? 'grabbing' : 'grab',
+            }}
+          >
+            <IconGripVertical size={16} />
+          </Box>
+          <Group
+            gap={8}
+            wrap="nowrap"
+            style={{
+              flex: 1,
+              minWidth: 0,
+              maxWidth: '100%',
+              overflow: 'hidden',
+              opacity: isVisible ? 1 : 0.7,
+            }}
+          >
+            <GameModeIcon
+              mode={normalizeMode(difficulty.mode)}
+              size={18}
+              starRating={difficulty.starRating}
+              color={getModeAccentColor(normalizeMode(difficulty.mode))}
+            />
+            <Stack gap={0} style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+              <Text fw={600} size="sm" truncate style={{ width: '100%', minWidth: 0 }}>
+                {difficulty.version}
+              </Text>
+              <Text size="xs" c="dimmed" truncate style={{ width: '100%', minWidth: 0 }}>
+                {isVisible ? formatGameModeLabel(difficulty.mode) : 'Hidden'}
+              </Text>
+            </Stack>
+          </Group>
+          <ActionIcon
+            variant="subtle"
+            color={isVisible ? 'blue' : 'gray'}
+            aria-label={isVisible ? `Hide ${difficulty.version}` : `Show ${difficulty.version}`}
+            data-stop-timeline-pan="true"
+            onMouseDown={(event) => event.stopPropagation()}
+            onClick={() => onToggleVisibility(difficulty)}
+            style={{ flex: '0 0 auto' }}
+          >
+            {isVisible ? <IconEye size={16} /> : <IconEyeOff size={16} />}
+          </ActionIcon>
+        </Flex>
+      </Box>
+      <Box
+        h={rowHeight}
+        style={{
+          flex: `0 0 ${timelineWidth}px`,
+          minWidth: timelineWidth,
+          width: timelineWidth,
+          borderRadius: theme.radius.sm,
+          overflow: 'hidden',
+          border: `1px solid ${isOver ? withAlpha(dropIndicatorColor, 0.75) : theme.colors.dark[4]}`,
+          boxShadow: isOver ? `0 0 0 1px ${withAlpha(dropIndicatorColor, 0.35)} inset` : undefined,
+          boxSizing: 'border-box',
+        }}
+      >
+        {isVisible ? (
+          <TimelineRow
+            difficulty={difficulty}
+            startTimeMs={startTimeMs}
+            endTimeMs={endTimeMs}
+            width={timelineWidth}
+            height={ROW_HEIGHT}
+          />
+        ) : (
+          <Flex
+            h="100%"
+            px="sm"
+            py={HIDDEN_ROW_VERTICAL_PADDING}
+            align="center"
+            style={{ boxSizing: 'border-box' }}
+          >
+            <Text size="xs" c="dimmed" lh={1.2}>
+              Timeline hidden for this difficulty.
+            </Text>
+          </Flex>
+        )}
+      </Box>
+    </Box>
   );
 }
 
@@ -1601,35 +1584,6 @@ function areStringArraysEqual(left: string[], right: string[]) {
   return true;
 }
 
-function reorderDifficultyKeys(
-  keys: string[],
-  sourceKey: string,
-  targetKey: string,
-  position: 'before' | 'after'
-) {
-  if (sourceKey === targetKey) {
-    return keys;
-  }
-
-  if (!keys.includes(sourceKey) || !keys.includes(targetKey)) {
-    return keys;
-  }
-
-  const next = keys.filter((key) => key !== sourceKey);
-  let targetIndex = next.indexOf(targetKey);
-
-  if (targetIndex === -1) {
-    return keys;
-  }
-
-  if (position === 'after') {
-    targetIndex += 1;
-  }
-
-  next.splice(targetIndex, 0, sourceKey);
-  return next;
-}
-
 function getTimelineObjectCircleRadius(
   difficultyMode: Mode,
   timelineObject: ObjectsTimelineObject
@@ -1647,29 +1601,6 @@ function getSpinnerMarkerRadius(difficultyMode: Mode) {
   }
 
   return CIRCLE_OBJECT_RADIUS - 1.5;
-}
-
-function getDifficultyDropIndicator(
-  clientY: number,
-  orderedKeys: string[],
-  rowElements: Partial<Record<string, HTMLDivElement | null>>
-): DifficultyDropIndicator | null {
-  for (const key of orderedKeys) {
-    const element = rowElements[key];
-    if (!element) {
-      continue;
-    }
-
-    const bounds = element.getBoundingClientRect();
-    const midpointY = bounds.top + bounds.height / 2;
-
-    if (clientY < midpointY) {
-      return { key, position: 'before' };
-    }
-  }
-
-  const lastKey = orderedKeys[orderedKeys.length - 1];
-  return lastKey ? { key: lastKey, position: 'after' } : null;
 }
 
 function getObjectBodyWidth(
@@ -1931,18 +1862,40 @@ function withAlpha(color: string, alpha: number) {
 }
 
 function getSnappingColumns(difficulties: ObjectsOverviewDifficulty[]) {
-  const columnMap = new Map<string, ObjectsSnappingBucket>();
+  const columnMap = new Map<
+    string,
+    {
+      bucket: ObjectsSnappingBucket;
+      hasNonZeroCount: boolean;
+    }
+  >();
 
   for (const difficulty of difficulties) {
     for (const bucket of difficulty.snappings) {
       const existing = columnMap.get(bucket.label);
-      if (!existing || bucket.divisor < existing.divisor) {
-        columnMap.set(bucket.label, bucket);
+      const hasNonZeroCount = (existing?.hasNonZeroCount ?? false) || bucket.count > 0;
+
+      if (!existing || bucket.divisor < existing.bucket.divisor) {
+        columnMap.set(bucket.label, {
+          bucket,
+          hasNonZeroCount,
+        });
+        continue;
+      }
+
+      if (hasNonZeroCount !== existing.hasNonZeroCount) {
+        columnMap.set(bucket.label, {
+          bucket: existing.bucket,
+          hasNonZeroCount,
+        });
       }
     }
   }
 
-  return Array.from(columnMap.values()).sort((left, right) => left.divisor - right.divisor);
+  return Array.from(columnMap.values())
+    .filter((column) => column.hasNonZeroCount)
+    .map((column) => column.bucket)
+    .sort((left, right) => left.divisor - right.divisor);
 }
 
 function normalizeMode(mode: string): Mode {
