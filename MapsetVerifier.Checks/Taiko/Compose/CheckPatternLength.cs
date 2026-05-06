@@ -68,17 +68,17 @@ namespace MapsetVerifier.Checks.Taiko.Compose
             }
         };
 
-        private static bool HasKantan(BeatmapSet beatmapSet)
+        private static bool HasKantan(IEnumerable<Beatmap> taikoBeatmaps)
         {
-            return beatmapSet.Beatmaps.Any(b => b.GetDifficulty() == Beatmap.Difficulty.Easy);
+            return taikoBeatmaps.Any(beatmap => beatmap.GetDifficulty() == Beatmap.Difficulty.Easy);
         }
 
         /// <summary>
         ///     Returns a dictionary of difficulty, [snap size, snap count] pairs.
         /// </summary>
-        private static Dictionary<Beatmap.Difficulty, Dictionary<double, int>> GetShortSnapParams(BeatmapSet beatmapSet)
+        private static Dictionary<Beatmap.Difficulty, Dictionary<double, int>> GetShortSnapParams(IEnumerable<Beatmap> taikoBeatmaps)
         {
-            var hasKantan = HasKantan(beatmapSet);
+            var hasKantan = HasKantan(taikoBeatmaps);
 
             return new Dictionary<Beatmap.Difficulty, Dictionary<double, int>>()
             {
@@ -117,9 +117,12 @@ namespace MapsetVerifier.Checks.Taiko.Compose
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
-            var shortSnapParams = GetShortSnapParams(beatmapSet);
+            var taikoBeatmaps = beatmapSet.Beatmaps
+                .Where(beatmap => beatmap.GeneralSettings.mode == Beatmap.Mode.Taiko)
+                .ToList();
+            var shortSnapParams = GetShortSnapParams(taikoBeatmaps);
 
-            foreach (var beatmap in beatmapSet.Beatmaps)
+            foreach (var beatmap in taikoBeatmaps)
             {
                 var objects = beatmap.HitObjects.Where(x => x is Circle).ToList();
 

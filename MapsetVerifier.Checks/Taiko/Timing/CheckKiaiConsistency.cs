@@ -46,10 +46,14 @@ namespace MapsetVerifier.Checks.Taiko.Timing
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
+            var taikoBeatmaps = beatmapSet.Beatmaps
+                .Where(beatmap => beatmap.GeneralSettings.mode == Beatmap.Mode.Taiko)
+                .ToList();
+
             // Store all kiai times in a Dictionary
             var mapsetKiais = new Dictionary<string, List<string>>();
 
-            foreach (var beatmap in beatmapSet.Beatmaps)
+            foreach (var beatmap in taikoBeatmaps)
             {
                 var beatmapKiais = string.Join(',', beatmap.GetKiaiToggles().Select(x => x.Offset));
                 mapsetKiais.TryAdd(beatmapKiais, new List<string>());

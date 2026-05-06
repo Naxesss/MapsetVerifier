@@ -50,8 +50,12 @@ namespace MapsetVerifier.Checks.Mania.Timing
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
+            var maniaBeatmaps = beatmapSet.Beatmaps
+                .Where(beatmap => beatmap.GeneralSettings.mode == Beatmap.Mode.Mania)
+                .ToList();
+
             List<float> keymodes = [];
-            foreach (var beatmap in beatmapSet.Beatmaps)
+            foreach (var beatmap in maniaBeatmaps)
             {
                 var difficulty = beatmap.GetDifficulty();
 
