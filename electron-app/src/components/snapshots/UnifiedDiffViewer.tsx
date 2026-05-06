@@ -1,12 +1,61 @@
-﻿import { Accordion, Badge, Box, Group, Stack, Text, Code, useMantineTheme } from '@mantine/core';
-import { IconPlus, IconMinus, IconArrowsExchange } from '@tabler/icons-react';
-import { useEffect, useState } from 'react';
+﻿import {
+  Accordion,
+  Badge,
+  Box,
+  Collapse,
+  Group,
+  Stack,
+  Text,
+  Code,
+  Tooltip,
+  useMantineTheme,
+} from '@mantine/core';
+import { IconPlus, IconMinus, IconArrowsExchange, IconX, IconInfoCircle } from '@tabler/icons-react';
+import { MouseEvent, useEffect, useState } from 'react';
 import { useSettings } from '../../context/SettingsContext.tsx';
 import { ApiSnapshotCommit, ApiSnapshotSection, ApiSnapshotDiff, DiffType } from '../../Types';
 import OsuLink from '../common/OsuLink.tsx';
 
 interface UnifiedDiffViewerProps {
   commit: ApiSnapshotCommit;
+}
+
+function parseDiffTimestampMs(message: string): number | null {
+  const normalTimestampMatch = message.match(/^(\d+):(\d{2}):(\d{3})\s-\s/);
+  if (normalTimestampMatch) {
+    const minutes = Number.parseInt(normalTimestampMatch[1], 10);
+    const seconds = Number.parseInt(normalTimestampMatch[2], 10);
+    const milliseconds = Number.parseInt(normalTimestampMatch[3], 10);
+    return minutes * 60_000 + seconds * 1_000 + milliseconds;
+  }
+
+  const negativeTimestampMatch = message.match(/^(-\d+(?:\.\d+)?)\s-\s/);
+  if (negativeTimestampMatch) {
+    return Number.parseFloat(negativeTimestampMatch[1]);
+  }
+
+  return null;
+}
+
+function sortDiffsChronologically(diffs: ApiSnapshotDiff[]): ApiSnapshotDiff[] {
+  return diffs
+    .map((diff, index) => ({
+      diff,
+      index,
+      timestampMs: parseDiffTimestampMs(diff.message),
+    }))
+    .sort((a, b) => {
+      if (a.timestampMs === null || b.timestampMs === null) {
+        return a.index - b.index;
+      }
+
+      if (a.timestampMs === b.timestampMs) {
+        return a.index - b.index;
+      }
+
+      return a.timestampMs - b.timestampMs;
+    })
+    .map((entry) => entry.diff);
 }
 
 function getDiffTypeIcon(diffType: DiffType, size: number = 16) {
@@ -125,33 +174,80 @@ function DiffLine({ diff }: { diff: ApiSnapshotDiff }) {
 }
 
 function SectionAccordion({ section }: { section: ApiSnapshotSection }) {
+  const [activeDiffFilter, setActiveDiffFilter] = useState<DiffType | null>(null);
+  const sortedDiffs = sortDiffsChronologically(section.diffs);
+
+  const handleBadgeClick = (event: MouseEvent<HTMLElement>, diffType: DiffType) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setActiveDiffFilter((current) => (current === diffType ? null : diffType));
+  };
+
+  const renderFilterBadge = (count: number, label: string, color: string, diffType: DiffType) => {
+    if (count <= 0) {
+      return null;
+    }
+
+    const isActive = activeDiffFilter === diffType;
+    return (
+      <Badge
+        size="sm"
+        color={color}
+        variant={isActive ? 'filled' : 'light'}
+        style={{ cursor: 'pointer', userSelect: 'none' }}
+        onMouseDown={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        }}
+        onClick={(event) => handleBadgeClick(event, diffType)}
+      >
+        <Group gap={4} wrap="nowrap">
+          <Text inherit>{count}</Text>
+          <Text inherit>{label}</Text>
+          {isActive && <IconX size={12} />}
+        </Group>
+      </Badge>
+    );
+  };
+
   return (
     <Accordion.Item value={section.name}>
       <Accordion.Control>
         <Group gap="sm">
           {getDiffTypeIcon(section.aggregatedDiffType, 18)}
           <Text fw={500}>{section.name}</Text>
-          {section.additions > 0 && (
-            <Badge size="sm" color="green" variant="light">
-              {section.additions} Added
-            </Badge>
-          )}
-          {section.removals > 0 && (
-            <Badge size="sm" color="red" variant="light">
-              {section.removals} Removed
-            </Badge>
-          )}
-          {section.modifications > 0 && (
-            <Badge size="sm" color="yellow" variant="light">
-              {section.modifications} Changed
-            </Badge>
-          )}
+          {renderFilterBadge(section.additions, 'Added', 'green', 'Added')}
+          {renderFilterBadge(section.removals, 'Removed', 'red', 'Removed')}
+          {renderFilterBadge(section.modifications, 'Changed', 'yellow', 'Changed')}
+          <Tooltip label="Click badges to filter by diff type">
+            <Box
+              component="span"
+              style={{ display: 'inline-flex', alignItems: 'center', cursor: 'help' }}
+              onMouseDown={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+              }}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+              }}
+            >
+              <IconInfoCircle size={16} color="var(--mantine-color-gray-6)" />
+            </Box>
+          </Tooltip>
         </Group>
       </Accordion.Control>
       <Accordion.Panel>
         <Stack gap="xs">
-          {section.diffs.map((diff, index) => (
-            <DiffLine key={`${diff.message}-${index}`} diff={diff} />
+          {sortedDiffs.map((diff, index) => (
+            <Collapse
+              key={`${diff.message}-${index}`}
+              in={activeDiffFilter === null || diff.diffType === activeDiffFilter}
+              transitionDuration={180}
+              transitionTimingFunction="ease"
+            >
+              <DiffLine diff={diff} />
+            </Collapse>
           ))}
         </Stack>
       </Accordion.Panel>
