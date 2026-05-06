@@ -208,6 +208,15 @@ namespace MapsetVerifier.Parser.Objects
         public bool HasHitSound(HitSounds? hitSound = null) => hitSound == null ? this.hitSound > 0 : (this.hitSound & hitSound) != 0;
 
         /// <summary>
+        /// Returns all hit sounds applied to this hit object.
+        /// </summary>
+        public IEnumerable<HitSounds> GetHitSounds()
+        {
+            return Enum.GetValues<HitSounds>()
+                .Where(sound => sound != 0 && HasHitSound(sound));
+        }
+        
+        /// <summary>
         /// Returns the difference in time between the end of this object and the start of the next object.
         /// </summary>
         public double GetPrevDeltaTime(HitObject previous)

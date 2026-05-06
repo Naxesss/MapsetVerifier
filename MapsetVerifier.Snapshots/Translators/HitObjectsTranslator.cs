@@ -1,4 +1,5 @@
-﻿using MapsetVerifier.Parser.Objects;
+﻿using System.Text;
+using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
 using MapsetVerifier.Snapshots.Objects;
@@ -92,22 +93,89 @@ namespace MapsetVerifier.Snapshots.Translators
             }
         }
 
-        private IEnumerable<string> GetChanges(HitObject addedObject, HitObject removedObject, Beatmap beatmap)
+        /// <summary>
+        /// Handle taiko with custom logic given their hitobject types are based on hitsounds
+        /// </summary>
+        private static string? GetTaikoHitSoundChange(HitObject addedObject, HitObject removedObject)
+        {
+            var current = addedObject.GetHitSounds().ToList();
+            var old = removedObject.GetHitSounds().ToList();
+
+            var added = current.Except(old);
+            var removed = old.Except(current);
+
+            // No changes so nothing to return
+            if (!added.Any() && !removed.Any())
+            {
+                return null;
+            }
+            
+            var isBig = current.Contains(HitObject.HitSounds.Finish);
+            
+            var isKat = current.Contains(HitObject.HitSounds.Clap) || current.Contains(HitObject.HitSounds.Whistle);
+
+            var builder = new StringBuilder("Changed to ");
+            if (addedObject.HasType(HitObject.Types.Slider))
+            {
+                builder.Append(isBig ? "Big " : "Regular ");
+                builder.Append("Slider.");
+            }
+            else
+            {
+                builder.Append(isBig ? "Big " : "");
+                builder.Append(isKat ? "Kat." : "Don.");
+            }
+            
+            return builder.ToString();
+        }
+
+        private static string GetHitSoundChange(bool isAddition, HitObject.HitSounds hitSound, HitObject addedObject, HitObject removedObject, Beatmap beatmap)
+        {
+            var prefix = isAddition ? "Addition " : "Removal ";
+            var suffix = "";
+            
+            if (addedObject.type.HasFlag(HitObject.Types.Slider))
+            {
+                suffix = " to head";
+            }
+
+            var hitSoundName = Enum.GetName(hitSound)?.ToLower();
+            
+            return prefix + hitSoundName + suffix + ".";
+        }
+
+        private static IEnumerable<string> GetChanges(HitObject addedObject, HitObject removedObject, Beatmap beatmap)
         {
             if (addedObject.Position != removedObject.Position)
                 yield return "Moved from (" + removedObject.Position.X + "; " + removedObject.Position.Y + ") to (" + addedObject.Position.X + "; " + addedObject.Position.Y + ").";
 
             if (addedObject.hitSound != removedObject.hitSound)
-                foreach (HitObject.HitSounds hitSound in Enum.GetValues(typeof(HitObject.HitSounds)))
+            {
+                if (beatmap.GeneralSettings.mode == Beatmap.Mode.Taiko)
                 {
-                    if (addedObject.HasHitSound(hitSound) && !removedObject.HasHitSound(hitSound))
-                        yield return "Added " + Enum.GetName(typeof(HitObject.HitSounds), hitSound)?.ToLower() +
-                            (addedObject.type.HasFlag(HitObject.Types.Slider) ? " to head" : "") + ".";
-
-                    if (!addedObject.HasHitSound(hitSound) && removedObject.HasHitSound(hitSound))
-                        yield return "Removed " + Enum.GetName(typeof(HitObject.HitSounds), hitSound)?.ToLower() +
-                            (addedObject.type.HasFlag(HitObject.Types.Slider) ? " from head" : "") + ".";
+                    var taikoHitSoundChange = GetTaikoHitSoundChange(addedObject, removedObject);
+                    if (taikoHitSoundChange != null)
+                    {
+                        yield return taikoHitSoundChange;
+                    }
                 }
+                else
+                {
+                    foreach (HitObject.HitSounds hitSound in Enum.GetValues(typeof(HitObject.HitSounds)))
+                    {
+                        if (addedObject.HasHitSound(hitSound) && !removedObject.HasHitSound(hitSound))
+                        {
+                            yield return GetHitSoundChange(true, hitSound, addedObject, removedObject, beatmap);
+                        }
+
+                        if (!addedObject.HasHitSound(hitSound) && removedObject.HasHitSound(hitSound))
+                        {
+                            yield return GetHitSoundChange(false, hitSound, addedObject, removedObject, beatmap);
+                        }
+                    }
+                }
+            }
+                
 
             if (addedObject.sampleset != removedObject.sampleset)
                 yield return "Sampleset changed from " + removedObject.sampleset.ToString().ToLower() + " to " + addedObject.sampleset.ToString().ToLower() + ".";
