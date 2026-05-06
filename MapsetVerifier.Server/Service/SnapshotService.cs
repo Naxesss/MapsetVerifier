@@ -40,6 +40,9 @@ public static class SnapshotService
                 errorMessage: null);
         }
 
+        // Snapshot the current beatmap before we start comparing with previous snapshots
+        Snapshotter.SnapshotBeatmapSet(beatmapSet);
+
         // Get general/files snapshot history
         var refSnapshots = Snapshotter.GetSnapshots(beatmapSetId, "files").ToArray();
         var generalHistory = GetGeneralSnapshotHistory(refSnapshots);
