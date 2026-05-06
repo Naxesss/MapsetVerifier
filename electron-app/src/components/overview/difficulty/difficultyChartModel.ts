@@ -1,3 +1,5 @@
+import { clampColor, hexToRgb } from '../../../utils/color.ts';
+export { MODE_ORDER, normalizeMode } from '../../../utils/gameMode.ts';
 import { getDifficultyLevelColor } from '../../common/DifficultyColor.ts';
 import { formatChartTime } from '../../common/TimeAxis.tsx';
 import type {
@@ -7,8 +9,6 @@ import type {
   DifficultyOverviewDifficulty,
   Mode,
 } from '../../../Types';
-
-export const MODE_ORDER: Mode[] = ['Standard', 'Taiko', 'Catch', 'Mania'];
 
 export type ChartRow = {
   time: string;
@@ -189,10 +189,6 @@ function buildChartDefinition(
   };
 }
 
-export function normalizeMode(mode: string): Mode {
-  return MODE_ORDER.includes(mode as Mode) ? (mode as Mode) : 'Standard';
-}
-
 function getGraphColor(
   series: DifficultyChartSeries,
   previousSeries: DifficultyChartSeries[]
@@ -237,15 +233,3 @@ function normalizeDifficultyLevel(level: DifficultyLevel): DifficultyLevel {
   return level === 'Ultra' ? 'Expert' : level;
 }
 
-function hexToRgb(hex: string) {
-  const normalized = hex.replace('#', '');
-  return {
-    r: Number.parseInt(normalized.slice(0, 2), 16),
-    g: Number.parseInt(normalized.slice(2, 4), 16),
-    b: Number.parseInt(normalized.slice(4, 6), 16),
-  };
-}
-
-function clampColor(value: number) {
-  return Math.max(0, Math.min(255, Math.round(value)));
-}

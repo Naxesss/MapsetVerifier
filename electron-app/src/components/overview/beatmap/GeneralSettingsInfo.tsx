@@ -1,4 +1,5 @@
 ﻿import { Badge, Group, Paper, Stack, Table, Text, useMantineTheme } from '@mantine/core';
+import { formatNullable } from '../../../utils/formatters';
 import { formatGameModeLabel, getModeAccentColor } from '../../../utils/gameMode';
 import AppTable, {
   DifficultyTableCell,
@@ -10,14 +11,6 @@ import type { DifficultyGeneralSettings } from '../../../Types';
 
 interface GeneralSettingsInfoProps {
   generalSettings: DifficultyGeneralSettings[];
-}
-
-function formatNullable(value: string | number | null | undefined, fallback = 'N/A') {
-  if (value === null || value === undefined || value === '') {
-    return fallback;
-  }
-
-  return String(value);
 }
 
 function ModeCell({ mode }: { mode: string }) {

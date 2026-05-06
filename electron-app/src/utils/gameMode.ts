@@ -7,6 +7,12 @@ const LABELS: Record<Mode, string> = {
   Mania: 'osu!mania',
 };
 
+export const MODE_ORDER: Mode[] = ['Standard', 'Taiko', 'Catch', 'Mania'];
+
+export function normalizeMode(mode: string): Mode {
+  return MODE_ORDER.includes(mode as Mode) ? (mode as Mode) : 'Standard';
+}
+
 export function formatGameModeLabel(mode: Mode | string): string {
   if (mode in LABELS) {
     return LABELS[mode as Mode];
