@@ -188,9 +188,8 @@ function ObjectsOverview({ reloadFlag }: ObjectsOverviewProps) {
             <SummaryCard label="Difficulties" value={String(data.difficulties.length)} />
             <SummaryCard label="Hit objects" value={summary.objectCount.toLocaleString()} />
             <SummaryCard
-              label="Timeline range"
+              label={`Timeline range (${formatDuration(data.endTimeMs - data.startTimeMs)})`}
               value={`${formatTime(data.startTimeMs)} → ${formatTime(data.endTimeMs)}`}
-              subValue={`${formatDuration(data.endTimeMs - data.startTimeMs)} total`}
             />
           </SimpleGrid>
 

@@ -1,4 +1,4 @@
-import { createTheme, DEFAULT_THEME, MantineColorsTuple, mergeMantineTheme } from '@mantine/core';
+import { createTheme, DEFAULT_THEME, MantineColorsTuple, mergeMantineTheme, px } from '@mantine/core';
 
 const blue: MantineColorsTuple = [
   '#e0fbff',
@@ -133,6 +133,11 @@ const themeOverride = createTheme({
     Tooltip: {
       defaultProps: {
         withArrow: true,
+      },
+      styles: {
+        tooltip: {
+          textAlign: "center",
+        },
       },
     },
     ScrollArea: {
