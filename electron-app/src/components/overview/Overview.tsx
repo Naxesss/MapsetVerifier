@@ -71,7 +71,7 @@ function Overview() {
           />
         </Group>
       </BeatmapHeader>
-      <Box style={{ flex: 1, overflow: 'auto' }}>
+      <Box style={{ flex: 1, overflow: 'auto' }} bg="dark.6">
         {activeTab === 'Metadata' && <MetadataOverview reloadFlag={reloadFlag} />}
         {activeTab === 'Beatmap' && <BeatmapOverview reloadFlag={reloadFlag} />}
         {activeTab === 'Difficulty' && <DifficultyOverview reloadFlag={reloadFlag} />}

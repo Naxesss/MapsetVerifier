@@ -234,7 +234,7 @@ function Checks() {
         </Alert>
       )}
       {data && (
-        <Flex gap="sm" p="md" direction="column">
+        <Flex gap="sm" p="md" direction="column" bg="dark.6">
           <DifficultyInfo
             hoveredDifficulty={hoveredDifficulty}
             selectedCategory={selectedCategory}
