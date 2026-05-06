@@ -101,10 +101,12 @@ namespace MapsetVerifier.Snapshots.Translators
                 foreach (HitObject.HitSounds hitSound in Enum.GetValues(typeof(HitObject.HitSounds)))
                 {
                     if (addedObject.HasHitSound(hitSound) && !removedObject.HasHitSound(hitSound))
-                        yield return "Added " + Enum.GetName(typeof(HitObject.HitSounds), hitSound)?.ToLower() + ".";
+                        yield return "Added " + Enum.GetName(typeof(HitObject.HitSounds), hitSound)?.ToLower() +
+                            (addedObject.type.HasFlag(HitObject.Types.Slider) ? " to head" : "") + ".";
 
                     if (!addedObject.HasHitSound(hitSound) && removedObject.HasHitSound(hitSound))
-                        yield return "Removed " + Enum.GetName(typeof(HitObject.HitSounds), hitSound)?.ToLower() + ".";
+                        yield return "Removed " + Enum.GetName(typeof(HitObject.HitSounds), hitSound)?.ToLower() +
+                            (addedObject.type.HasFlag(HitObject.Types.Slider) ? " from head" : "") + ".";
                 }
 
             if (addedObject.sampleset != removedObject.sampleset)
