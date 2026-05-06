@@ -7,6 +7,7 @@ import MetadataInfo from './MetadataInfo';
 import ResourcesInfo from './ResourcesInfo';
 import { useBeatmap } from '../../../context/BeatmapContext';
 import { useSettings } from '../../../context/SettingsContext';
+import NoBeatmapsetDisplay from '../../common/NoBeatmapsetDisplay.tsx';
 import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 
 interface MetadataOverviewProps {
@@ -27,16 +28,7 @@ function MetadataOverview({ reloadFlag }: MetadataOverviewProps) {
   }, [reloadFlag]);
 
   if (!folder) {
-    return (
-      <Alert
-        icon={<IconAlertTriangle />}
-        color="yellow"
-        title="No beatmapset selected"
-        withCloseButton
-      >
-        <Text size="sm">Select a beatmapset from the sidebar to analyze metadata.</Text>
-      </Alert>
-    );
+    return <NoBeatmapsetDisplay />;
   }
 
   return (

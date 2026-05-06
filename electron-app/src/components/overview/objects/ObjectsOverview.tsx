@@ -51,6 +51,7 @@ import AppTable, {
   DifficultyTableHeaderCell,
 } from '../../common/AppTable.tsx';
 import AutoResizeCanvas from '../../common/AutoResizeCanvas.tsx';
+import NoBeatmapsetDisplay from '../../common/NoBeatmapsetDisplay.tsx';
 import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
 
@@ -155,16 +156,7 @@ function ObjectsOverview({ reloadFlag }: ObjectsOverviewProps) {
   }, [data]);
 
   if (!folder) {
-    return (
-      <Alert
-        icon={<IconAlertTriangle />}
-        color="yellow"
-        title="No beatmapset selected"
-        withCloseButton
-      >
-        <Text size="sm">Select a beatmapset from the sidebar to analyze objects.</Text>
-      </Alert>
-    );
+    return <NoBeatmapsetDisplay />;
   }
 
   return (

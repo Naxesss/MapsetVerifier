@@ -23,6 +23,7 @@ import { SummaryCard } from './DifficultySummaryCards.tsx';
 import { useDifficultyOverview } from './hooks/useDifficultyOverview.ts';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
 import { useSettings } from '../../../context/SettingsContext.tsx';
+import NoBeatmapsetDisplay from '../../common/NoBeatmapsetDisplay.tsx';
 import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 import type { DifficultyOverviewDifficulty, Mode } from '../../../Types';
 
@@ -102,11 +103,7 @@ function DifficultyOverview({ reloadFlag }: DifficultyOverviewProps) {
   );
 
   if (!folder) {
-    return (
-      <Alert icon={<IconAlertTriangle />} color="yellow" title="No beatmapset selected">
-        <Text size="sm">Select a beatmapset from the sidebar to analyze difficulty data.</Text>
-      </Alert>
-    );
+    return <NoBeatmapsetDisplay />;
   }
 
   return (

@@ -10,7 +10,7 @@ import {
   Title,
   Tooltip,
 } from '@mantine/core';
-import { IconAlertCircle, IconAlertTriangle, IconPhotoOff, IconRefresh } from '@tabler/icons-react';
+import { IconAlertCircle, IconPhotoOff, IconRefresh } from '@tabler/icons-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useSnapshots } from './hooks/useSnapshots';
 import SnapshotContent from './SnapshotContent';
@@ -21,6 +21,7 @@ import { useSettings } from '../../context/SettingsContext';
 import { ApiSnapshotDifficulty, Mode } from '../../Types';
 import { useBeatmapBackground } from '../checks/hooks/useBeatmapBackground';
 import BeatmapHeader from '../common/BeatmapHeader';
+import NoBeatmapsetDisplay from '../common/NoBeatmapsetDisplay.tsx';
 import StackTraceMessage from '../common/StackTraceMessage.tsx';
 
 interface ModeGroup {
@@ -87,16 +88,7 @@ function Snapshots() {
     groupedDifficulties.find((g) => g.mode === selectedMode) ?? groupedDifficulties[0];
 
   if (!folder) {
-    return (
-      <Alert
-        icon={<IconAlertTriangle />}
-        color="yellow"
-        title="No beatmapset selected"
-        withCloseButton
-      >
-        <Text size="sm">Select a beatmapset from the sidebar to view snapshots.</Text>
-      </Alert>
-    );
+    return <NoBeatmapsetDisplay />;
   }
 
   return (

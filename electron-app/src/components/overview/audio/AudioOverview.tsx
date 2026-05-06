@@ -10,6 +10,7 @@ import { useAudioAnalysis, useFrequencyAnalysis } from './hooks/useAudioAnalysis
 import Spectrogram from './Spectrogram';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
 import { useSettings } from '../../../context/SettingsContext.tsx';
+import NoBeatmapsetDisplay from '../../common/NoBeatmapsetDisplay.tsx';
 import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 
 interface AudioOverviewProps {
@@ -46,11 +47,7 @@ function AudioOverview({ reloadFlag }: AudioOverviewProps) {
   }, [reloadFlag]);
 
   if (!folder) {
-    return (
-      <Alert icon={<IconAlertTriangle />} color="yellow" title="No beatmapset selected">
-        <Text size="sm">Select a beatmapset from the sidebar to analyze audio.</Text>
-      </Alert>
-    );
+    return <NoBeatmapsetDisplay />;
   }
 
   const durationMs = data?.formatAnalysis?.durationMs || 0;
