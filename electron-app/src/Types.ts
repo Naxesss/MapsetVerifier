@@ -580,6 +580,7 @@ export type ObjectsOverviewResult = {
 export type ObjectsOverviewDifficulty = {
   version: string;
   mode: string;
+  starRating: number | null;
   objectCount: number;
   edgeCount: number;
   unsnappedCount: number;

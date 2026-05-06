@@ -56,6 +56,7 @@ function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: Beat
     whiteSpace: 'nowrap',
     display: 'block',
     maxWidth: '100%',
+    opacity: 0.9,
     textShadow:
       '0 1px 2px rgba(0, 0, 0, 0.62), 0 0 8px rgba(0, 0, 0, 0.28), 0 0 1px rgba(0, 0, 0, 0.55)',
   } as const;

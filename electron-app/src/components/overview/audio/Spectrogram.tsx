@@ -1,4 +1,4 @@
-﻿import {
+import {
   Box,
   Button,
   Center,
@@ -117,16 +117,16 @@ function Spectrogram({ folder, songFolder }: SpectrogramProps) {
   const spectrogramContent = (
     <Box>
       <Group justify="space-between" mb="sm">
-        <Group gap="lg">
+        <Group gap="xs" align="center" wrap="nowrap">
           <Text size="sm" c="dimmed">
             Average Peak Frequency:{' '}
-            <Text span fw={500} c="white">
+            <Text span fw={500} c="cyan">
               {formatFreq(peakFreq)}
-            </Text>{' '}
-            <Text span c="cyan" fw={500}>
-              (cyan line)
             </Text>
           </Text>
+          <Tooltip label={`Indicated by the cyan line below`}>
+            <IconInfoCircle size={16} style={{ color: theme.colors.gray[6], cursor: 'help' }} />
+          </Tooltip>
         </Group>
         <Group>
           <Text size="sm" c="dimmed">

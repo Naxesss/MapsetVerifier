@@ -14,6 +14,7 @@
 import { IconInfoCircle } from '@tabler/icons-react';
 import { DifficultyMetadata } from '../../../Types';
 import { countWord } from '../../../utils/countWord';
+import { getModeAccentColor } from '../../../utils/gameMode.ts';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
 
 interface MetadataInfoProps {
@@ -221,7 +222,7 @@ function MetadataInfo({ difficulties }: MetadataInfoProps) {
             </Text>
             <Group gap="xs">
               {[...new Set(difficulties.map((d) => d.mode))].map((mode) => (
-                <GameModeIcon key={mode} mode={mode} size={16} />
+                <GameModeIcon key={mode} mode={mode} size={16} color={getModeAccentColor(mode)} />
               ))}
             </Group>
           </Box>

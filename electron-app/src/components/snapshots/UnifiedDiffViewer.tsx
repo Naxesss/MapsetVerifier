@@ -1,5 +1,6 @@
 ﻿import { Accordion, Badge, Box, Group, Stack, Text, Code, useMantineTheme } from '@mantine/core';
 import { IconPlus, IconMinus, IconArrowsExchange } from '@tabler/icons-react';
+import { useEffect, useState } from 'react';
 import { useSettings } from '../../context/SettingsContext.tsx';
 import { ApiSnapshotCommit, ApiSnapshotSection, ApiSnapshotDiff, DiffType } from '../../Types';
 import OsuLink from '../common/OsuLink.tsx';
@@ -160,6 +161,13 @@ function SectionAccordion({ section }: { section: ApiSnapshotSection }) {
 
 function UnifiedDiffViewer({ commit }: UnifiedDiffViewerProps) {
   const theme = useMantineTheme();
+  const [expandedSections, setExpandedSections] = useState<string[]>(
+    commit.sections.map((section) => section.name)
+  );
+
+  useEffect(() => {
+    setExpandedSections(commit.sections.map((section) => section.name));
+  }, [commit]);
 
   if (commit.sections.length === 0) {
     return (
@@ -173,11 +181,14 @@ function UnifiedDiffViewer({ commit }: UnifiedDiffViewerProps) {
     <Accordion
       variant="separated"
       multiple
-      defaultValue={commit.sections.map((s) => s.name)}
+      value={expandedSections}
+      onChange={setExpandedSections}
       styles={{
         item: {
           backgroundColor: theme.colors.dark[7],
           borderRadius: theme.radius.md,
+          border: `1px solid ${theme.colors.dark[4]}`,
+          overflow: 'hidden',
         },
         control: {
           borderRadius: theme.radius.md,

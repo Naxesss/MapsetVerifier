@@ -30,6 +30,7 @@ public class ObjectsOverviewDifficulty
 {
     public string Version { get; set; } = string.Empty;
     public string Mode { get; set; } = string.Empty;
+    public double? StarRating { get; set; }
     public int ObjectCount { get; set; }
     public int EdgeCount { get; set; }
     public int UnsnappedCount { get; set; }

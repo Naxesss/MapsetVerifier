@@ -11,6 +11,7 @@
 } from '@mantine/core';
 import { IconAlertTriangle, IconFolder, IconNote, IconRefresh } from '@tabler/icons-react';
 import React, { useEffect, useState } from 'react';
+import AdvancedAudioWarningModal from './AdvancedAudioWarningModal';
 import LazerLookupWarningModal from './LazerLookupWarningModal';
 import { useSettings } from '../../context/SettingsContext';
 import { useUpdater } from '../../context/UpdaterContext';
@@ -36,6 +37,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
   const [lazerLookupEnabled, setLazerLookupEnabled] = useState(settings.lazerLookupEnabled);
   const [gateInDev, setGateInDev] = useState(settings.gateInDev);
   const [lazerWarningOpened, setLazerWarningOpened] = useState(false);
+  const [advancedAudioConfirmOpened, setAdvancedAudioConfirmOpened] = useState(false);
 
   // Keep local state in sync when modal is opened or settings change asynchronously
   useEffect(() => {
@@ -135,8 +137,19 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
             checked={showAdvancedAudioAnalysis}
             onChange={(e) => {
               const checked = e.currentTarget.checked;
-              setShowAdvancedAudioAnalysis(checked);
-              setSettings((prev) => ({ ...prev, showAdvancedAudioAnalysis: checked }));
+              if (checked === showAdvancedAudioAnalysis) {
+                return;
+              }
+
+              if (!checked) {
+                setShowAdvancedAudioAnalysis(false);
+                setSettings((prev) => ({ ...prev, showAdvancedAudioAnalysis: false }));
+                return;
+              }
+
+              if (!showAdvancedAudioAnalysis) {
+                setAdvancedAudioConfirmOpened(true);
+              }
             }}
           />
           <Switch
@@ -208,7 +221,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
                       following folder <code>/bin/server/dist/&lt;rid&gt;/</code>.
                     </Text>
                     <Text size="sm">
-                      Changing this settings may require restarting the application to take
+                      Changing this settings may require restarting the application to take 
                     </Text>
                   </Group>
                 </Alert>
@@ -224,6 +237,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
           setLazerLookupEnabled(true);
           setSettings((prev) => ({ ...prev, lazerLookupEnabled: true }));
           setLazerWarningOpened(false);
+        }}
+      />
+      <AdvancedAudioWarningModal
+        opened={advancedAudioConfirmOpened}
+        onCancel={() => {
+          setAdvancedAudioConfirmOpened(false);
+        }}
+        onConfirm={() => {
+          setShowAdvancedAudioAnalysis(true);
+          setSettings((prev) => ({ ...prev, showAdvancedAudioAnalysis: true }));
+          setAdvancedAudioConfirmOpened(false);
         }}
       />
     </>

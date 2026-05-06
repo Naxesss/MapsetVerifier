@@ -7,6 +7,7 @@ import { useBeatmapAnalysis } from './hooks/useBeatmapAnalysis';
 import StatisticsInfo from './StatisticsInfo';
 import { useBeatmap } from '../../../context/BeatmapContext';
 import { useSettings } from '../../../context/SettingsContext';
+import NoBeatmapsetDisplay from '../../common/NoBeatmapsetDisplay.tsx';
 import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 
 interface BeatmapOverviewProps {
@@ -27,11 +28,7 @@ function BeatmapOverview({ reloadFlag }: BeatmapOverviewProps) {
   }, [reloadFlag]);
 
   if (!folder) {
-    return (
-      <Alert icon={<IconAlertTriangle />} color="yellow" title="No beatmapset selected">
-        <Text size="sm">Select a beatmapset from the sidebar to analyze beatmaps.</Text>
-      </Alert>
-    );
+    return <NoBeatmapsetDisplay />;
   }
 
   return (

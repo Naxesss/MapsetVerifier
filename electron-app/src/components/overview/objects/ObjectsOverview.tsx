@@ -51,6 +51,7 @@ import AppTable, {
   DifficultyTableHeaderCell,
 } from '../../common/AppTable.tsx';
 import AutoResizeCanvas from '../../common/AutoResizeCanvas.tsx';
+import NoBeatmapsetDisplay from '../../common/NoBeatmapsetDisplay.tsx';
 import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
 
@@ -155,16 +156,7 @@ function ObjectsOverview({ reloadFlag }: ObjectsOverviewProps) {
   }, [data]);
 
   if (!folder) {
-    return (
-      <Alert
-        icon={<IconAlertTriangle />}
-        color="yellow"
-        title="No beatmapset selected"
-        withCloseButton
-      >
-        <Text size="sm">Select a beatmapset from the sidebar to analyze objects.</Text>
-      </Alert>
-    );
+    return <NoBeatmapsetDisplay />;
   }
 
   return (
@@ -196,9 +188,8 @@ function ObjectsOverview({ reloadFlag }: ObjectsOverviewProps) {
             <SummaryCard label="Difficulties" value={String(data.difficulties.length)} />
             <SummaryCard label="Hit objects" value={summary.objectCount.toLocaleString()} />
             <SummaryCard
-              label="Timeline range"
+              label={`Timeline range (${formatDuration(data.endTimeMs - data.startTimeMs)})`}
               value={`${formatTime(data.startTimeMs)} → ${formatTime(data.endTimeMs)}`}
-              subValue={`${formatDuration(data.endTimeMs - data.startTimeMs)} total`}
             />
           </SimpleGrid>
 
@@ -714,6 +705,7 @@ function ObjectsTimelineComparison({
                         <GameModeIcon
                           mode={normalizeMode(difficulty.mode)}
                           size={18}
+                          starRating={difficulty.starRating}
                           color={getModeAccentColor(normalizeMode(difficulty.mode))}
                         />
                         <Stack gap={0} style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
@@ -1064,7 +1056,7 @@ function SnappingsOverview({
                         <GameModeIcon
                           mode={group.mode}
                           size={16}
-                          color={getModeAccentColor(group.mode)}
+                          starRating={difficulty.starRating}
                         />
                         <Text size="sm" fw={600}>
                           {difficulty.version}
