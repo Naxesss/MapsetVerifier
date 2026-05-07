@@ -20,8 +20,9 @@ import {
   IconSettings,
 } from '@tabler/icons-react';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import BeatmapCard from './BeatmapCard.tsx';
+import CurrentBeatmapCard, { CurrentBeatmapData } from './CurrentBeatmapCard.tsx';
 import PlaceholderBeatmapCard from './PlaceholderBeatmapCard.tsx';
 import { FetchError } from '../../client/ApiHelper.ts';
 import BeatmapApi from '../../client/BeatmapApi.ts';
@@ -85,14 +86,23 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
   const lastPage = data?.pages[data.pages.length - 1];
   const showNextPagePlaceholder =
     isFetchingNextPage || (lastPage && lastPage.items.length === 0 && lastPage.hasMore);
-  const stableCurrentResult =
-    stableCurrentQuery.data &&
-    stableCurrentQuery.data.status === 'folder_found' &&
-    stableCurrentQuery.data.beatmap &&
-    stableCurrentQuery.data.folderPath &&
-    stableCurrentQuery.data.lookupRoot
-      ? stableCurrentQuery.data
-      : null;
+  const stableCurrentResult: CurrentBeatmapData | null = useMemo(() => {
+    if (
+      stableCurrentQuery.data &&
+      stableCurrentQuery.data.status === 'folder_found' &&
+      stableCurrentQuery.data.beatmap &&
+      stableCurrentQuery.data.folderPath &&
+      stableCurrentQuery.data.lookupRoot
+    ) {
+      return {
+        beatmap: stableCurrentQuery.data.beatmap,
+        folderPath: stableCurrentQuery.data.folderPath,
+        lookupRoot: stableCurrentQuery.data.lookupRoot,
+      };
+    }
+
+    return null;
+  }, [stableCurrentQuery.data]);
 
   useEffect(() => {
     if (!lastPage) return;
@@ -177,20 +187,15 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
 
     return (
       <Collapse in={!!stableCurrentResult}>
-        {stableCurrentResult && (
-          <>
-            <Text size="xs" fw={500} my="sm" ml="sm" c="dimmed">
-              Current beatmapset
-            </Text>
-            <BeatmapCard
-              beatmap={stableCurrentResult.beatmap!}
-              songFolder={stableCurrentResult.lookupRoot ?? undefined}
-              isSelectedOverride={selectedFolderPath === stableCurrentResult.folderPath}
-              onSelect={() => setSelectedFolderPath(stableCurrentResult.folderPath ?? undefined)}
-            />
-            <Divider my="sm" />
-          </>
-        )}
+        <Text size="xs" fw={500} my="sm" ml="sm" c="dimmed">
+          Current mapset
+        </Text>
+        <CurrentBeatmapCard
+          current={stableCurrentResult}
+          selectedFolderPath={selectedFolderPath}
+          onSelectFolderPath={setSelectedFolderPath}
+        />
+        <Divider my="sm" />
       </Collapse>
     );
   };
