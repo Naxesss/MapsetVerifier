@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net9.0</TargetFramework>
@@ -7,10 +6,8 @@
     <Nullable>enable</Nullable>
     <RootNamespace>MapsetVerifier.Exports</RootNamespace>
   </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\MapsetVerifier.Checks\MapsetVerifier.Checks.csproj" />
     <ProjectReference Include="..\MapsetVerifier.Framework\MapsetVerifier.Framework.csproj" />
   </ItemGroup>
-
 </Project>

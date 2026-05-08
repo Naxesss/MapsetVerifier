@@ -32,6 +32,8 @@ namespace MapsetVerifier
             else
                 appdataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
+            Log.Information("Mapset Verifier selected app data folder {0}", appdataPath);
+            
             Checker.RelativeDLLDirectory = Path.Combine(appdataPath, ExternalsFolderName, Checker.DefaultRelativeDLLDirectory);
             Snapshotter.RelativeDirectory = Path.Combine(appdataPath, ExternalsFolderName);
 

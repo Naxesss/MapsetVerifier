@@ -10,7 +10,6 @@ STAGING_DIR="bin/server/staging"
 PUBLISH_CONFIGURATION="${CONFIGURATION:-Release}"
 ERROR_COUNT=0
 
-# Map dotnet RIDs to electron-builder's ${os}-${arch} directory names.
 get_dir_name() {
     case "$1" in
         win-x64)     echo "win-x64" ;;
@@ -23,7 +22,6 @@ get_dir_name() {
     esac
 }
 
-# Accept runtimes via env var, CLI args, or use the default set.
 if [ -n "${RUNTIMES:-}" ]; then
     read -r -a RUNTIME_LIST <<< "${RUNTIMES}"
 elif [ $# -gt 0 ]; then
@@ -35,9 +33,6 @@ fi
 echo "[INFO] Using configuration: ${PUBLISH_CONFIGURATION}"
 echo "[INFO] Building runtimes: ${RUNTIME_LIST[*]}"
 
-rm -rf "${DIST_DIR}" "${STAGING_DIR}"
-mkdir -p "${DIST_DIR}" "${STAGING_DIR}"
-
 command -v dotnet >/dev/null 2>&1 || {
     echo "[ERROR] dotnet CLI not found in PATH"
     exit 1
@@ -47,6 +42,9 @@ command -v dotnet >/dev/null 2>&1 || {
     echo "[ERROR] Project file not found: ${PROJECT_PATH}"
     exit 1
 }
+
+rm -rf "${DIST_DIR}" "${STAGING_DIR}"
+mkdir -p "${DIST_DIR}" "${STAGING_DIR}"
 
 for RID in "${RUNTIME_LIST[@]}"; do
     echo "[INFO] --- Begin runtime ${RID} ---"
@@ -59,66 +57,31 @@ for RID in "${RUNTIME_LIST[@]}"; do
 
     STAGE_SUB="${STAGING_DIR}/${RID}"
     FINAL_SUB="${DIST_DIR}/${OUT_DIR_NAME}"
-    mkdir -p "${STAGE_SUB}" "${FINAL_SUB}"
 
-    PUBLISH_LOG="${STAGE_SUB}/publish.log"
+    mkdir -p "${STAGE_SUB}" "${FINAL_SUB}"
 
     echo "[INFO][${RID}] Running dotnet publish..."
 
     if ! dotnet publish "${PROJECT_PATH}" \
         -c "${PUBLISH_CONFIGURATION}" \
         -r "${RID}" \
-        -o "${STAGE_SUB}" \
-        --self-contained true \
-        -p:PublishSingleFile=true \
-        -p:IncludeNativeLibrariesForSelfExtract=true \
-        -p:EnableCompressionInSingleFile=true \
-        -p:UseAppHost=true \
-        -p:DebugType=none \
-        -p:DebugSymbols=false \
-        -p:StripSymbols=true \
-        -p:PublishReadyToRun=false > "${PUBLISH_LOG}" 2>&1; then
+        -o "${STAGE_SUB}"; then
 
         echo "[ERROR] dotnet publish failed for ${RID}"
-        cat "${PUBLISH_LOG}"
         ERROR_COUNT=$((ERROR_COUNT + 1))
         continue
     fi
 
-    echo "[INFO][${RID}] Locating executable..."
-    if [[ "${RID}" == win-* ]]; then
-        EXEC_FILE="${STAGE_SUB}/${APP_NAME}.exe"
-        TARGET_NAME="${APP_NAME}.exe"
-    else
-        EXEC_FILE="${STAGE_SUB}/${APP_NAME}"
-        TARGET_NAME="${APP_NAME}"
-    fi
-
-    if [[ ! -f "${EXEC_FILE}" ]]; then
-        echo "[ERROR] Expected executable not found: ${EXEC_FILE}"
-        echo "[DEBUG] Directory contents:"
-        ls -la "${STAGE_SUB}"
-        ERROR_COUNT=$((ERROR_COUNT + 1))
-        continue
-    fi
-
-    echo "[INFO][${RID}] Moving to ${FINAL_SUB}/${TARGET_NAME}"
-    mv -f "${EXEC_FILE}" "${FINAL_SUB}/${TARGET_NAME}"
-
-    if [[ ! -f "${FINAL_SUB}/${TARGET_NAME}" ]]; then
-        echo "[ERROR] Move failed: ${FINAL_SUB}/${TARGET_NAME}"
-        ERROR_COUNT=$((ERROR_COUNT + 1))
-        continue
-    fi
-
+    echo "[INFO][${RID}] Copying full publish output..."
+    cp -R "${STAGE_SUB}/." "${FINAL_SUB}/"
     rm -rf "${STAGE_SUB}"
-    echo "[INFO] --- End runtime ${RID} (success) ---"
+    echo "[INFO] --- End runtime ${RID} ---"
 done
 
 rm -rf "${STAGING_DIR}"
 
 echo "[INFO] Dist contents:"
-find "${DIST_DIR}" -maxdepth 2 -type f 2>/dev/null || echo "[WARN] Dist directory empty or missing"
+find "${DIST_DIR}" -maxdepth 3 -type f 2>/dev/null || true
 
 if [ "${ERROR_COUNT}" -gt 0 ]; then
     echo "[SUMMARY] Errors: ${ERROR_COUNT}"

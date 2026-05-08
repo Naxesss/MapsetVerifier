@@ -1,38 +1,42 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-        <OutputType>Exe</OutputType>
-        <TargetFramework>net9.0</TargetFramework>
-        <PublishTrimmed>false</PublishTrimmed>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-        <DebugType>full</DebugType>
-        <DebugSymbols>true</DebugSymbols>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)'=='Release'">
-        <DebugType>none</DebugType>
-        <DebugSymbols>false</DebugSymbols>
-        <Optimize>true</Optimize>
-        <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
-        <InvariantGlobalization>true</InvariantGlobalization>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
-        <PackageReference Include="NAudio" Version="2.3.0" />
-        <PackageReference Include="ppy.ManagedBass" Version="2022.1216.0" />
-        <PackageReference Include="TagLibSharp" Version="2.3.0" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\MapsetVerifier.Framework\MapsetVerifier.Framework.csproj" />
-      <ProjectReference Include="..\MapsetVerifier.Server\MapsetVerifier.Server.csproj" />
-      <ProjectReference Include="..\MapsetVerifier.Snapshots\MapsetVerifier.Snapshots.csproj" />
-      <ProjectReference Include="..\MapsetVerifier.Logging\MapsetVerifier.Logging.csproj" />
-      <!-- Added reference to checks project to ensure inclusion in single-file publish -->
-      <ProjectReference Include="..\MapsetVerifier.Checks\MapsetVerifier.Checks.csproj" />
-    </ItemGroup>
-
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <PublishTrimmed>false</PublishTrimmed>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <UseAppHost>true</UseAppHost>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <StripSymbols>true</StripSymbols>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <PublishReadyToRun>false</PublishReadyToRun>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+    <PublishSingleFile>false</PublishSingleFile>
+    <SelfContained>false</SelfContained>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <Optimize>true</Optimize>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
+    <PackageReference Include="NAudio" Version="2.3.0" />
+    <PackageReference Include="ppy.ManagedBass" Version="2022.1216.0" />
+    <PackageReference Include="TagLibSharp" Version="2.3.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MapsetVerifier.Framework\MapsetVerifier.Framework.csproj" />
+    <ProjectReference Include="..\MapsetVerifier.Server\MapsetVerifier.Server.csproj" />
+    <ProjectReference Include="..\MapsetVerifier.Snapshots\MapsetVerifier.Snapshots.csproj" />
+    <ProjectReference Include="..\MapsetVerifier.Logging\MapsetVerifier.Logging.csproj" />
+    <ProjectReference Include="..\MapsetVerifier.Checks\MapsetVerifier.Checks.csproj" />
+  </ItemGroup>
 </Project>
