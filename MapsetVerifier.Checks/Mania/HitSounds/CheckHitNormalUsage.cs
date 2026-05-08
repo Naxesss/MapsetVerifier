@@ -53,11 +53,15 @@ namespace MapsetVerifier.Checks.Mania.HitSounds
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
+            var maniaBeatmaps = beatmapSet.Beatmaps
+                .Where(beatmap => beatmap.GeneralSettings.mode == Beatmap.Mode.Mania)
+                .ToList();
+
             // No hitnormal sample found in beatmapSet's folder
             var hitnormalList = getHitNormalSamples(beatmapSet.HitSoundFiles).ToList();
             if (hitnormalList.Count == 0)
             {
-                foreach (var beatmap in beatmapSet.Beatmaps)
+                foreach (var beatmap in maniaBeatmaps)
                 {
                     yield return new Issue(GetTemplate("HitnormalFile"), beatmap);
                 }
@@ -66,7 +70,7 @@ namespace MapsetVerifier.Checks.Mania.HitSounds
             // A hitnormal has been found. Check whether it is overriding it.
             else
             {
-                foreach (var beatmap in beatmapSet.Beatmaps)
+                foreach (var beatmap in maniaBeatmaps)
                 {
                     foreach (var timingLine in beatmap.TimingLines)
                     {

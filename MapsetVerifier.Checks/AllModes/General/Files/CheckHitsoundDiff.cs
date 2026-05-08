@@ -3,16 +3,14 @@ using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
-using static MapsetVerifier.Checks.Utils.ManiaUtils;
 
-namespace MapsetVerifier.Checks.Mania.Files
+namespace MapsetVerifier.Checks.AllModes.General.Files
 {
     [Check]
-    public class CheckHitsoundDiff : BeatmapSetCheck 
+    public class CheckHitsoundDiff : BeatmapSetCheck
     {
         public override CheckMetadata GetMetadata() => new BeatmapCheckMetadata
         {
-            Modes = [Beatmap.Mode.Mania],
             Category = "Files",
             Message = "Hitsound difficulty present.",
             Author = "RandomeLoL",
@@ -27,7 +25,7 @@ namespace MapsetVerifier.Checks.Mania.Files
                 {
                     "Reasoning",
                     @"
-                    Hitsounding template difficulties are commonly used in osu!mania as an easy way to copy and apply hitsounding across all difficulties of the beatmap. However, they must be deleted before nominating the beatmap.
+                    Hitsounding template difficulties are commonly used as an easy way to copy and apply hitsounds across all difficulties of the beatmapset. However, they must be deleted before nominating the beatmapset.
                     "
                 }
             }
@@ -48,12 +46,12 @@ namespace MapsetVerifier.Checks.Mania.Files
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
-            foreach (Beatmap beatmap in beatmapSet.Beatmaps) 
+            foreach (Beatmap beatmap in beatmapSet.Beatmaps)
             {
                 string difficulty = beatmap.MetadataSettings.version;
-                if (Regex.IsMatch(difficulty, WildCardToRegular("*hit*sound*"), RegexOptions.IgnoreCase) | 
-                    Regex.IsMatch(difficulty, WildCardToRegular("_hs_"), RegexOptions.IgnoreCase)) 
-                        yield return new Issue(GetTemplate("HitsoundDiff"), beatmap, difficulty);
+                if (Regex.IsMatch(difficulty, "^.*hit.*sound.*$", RegexOptions.IgnoreCase) |
+                    Regex.IsMatch(difficulty, "^_hs_$", RegexOptions.IgnoreCase))
+                    yield return new Issue(GetTemplate("HitsoundDiff"), beatmap, difficulty);
             }
         }
     }

@@ -116,6 +116,13 @@ const themeOverride = createTheme({
         },
       },
     },
+    Badge: {
+      styles: {
+        root: {
+          transition: 'all 0.1s ease',
+        },
+      },
+    },
     Modal: {
       styles: {
         title: {

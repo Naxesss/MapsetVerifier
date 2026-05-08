@@ -60,9 +60,12 @@ namespace MapsetVerifier.Checks.Standard.Spread
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
+            var standardBeatmaps = beatmapSet.Beatmaps
+                .Where(beatmap => beatmap.GeneralSettings.mode == Beatmap.Mode.Standard)
+                .ToList();
             var skipAfterDifficulty = Beatmap.Difficulty.Normal;
 
-            foreach (var beatmap in beatmapSet.Beatmaps)
+            foreach (var beatmap in standardBeatmaps)
             {
                 // Beatmaps are sorted by interpreted difficulty.
                 if (beatmap.GetDifficulty() > skipAfterDifficulty)
