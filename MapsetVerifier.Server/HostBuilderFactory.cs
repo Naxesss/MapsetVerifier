@@ -1,8 +1,8 @@
 ﻿using MapsetVerifier.Server.Filter;
+using MapsetVerifier.Server.Middleware;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using MapsetVerifier.Server.Middleware;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 
@@ -21,22 +21,23 @@ public static class HostBuilderFactory
                 {
                     webBuilder.ConfigureServices(services =>
                     {
-                        services.AddControllers(options =>
+                        services
+                            .AddControllers(options =>
                             {
                                 options.Filters.Add<ApiExceptionFilter>();
                             })
                             .AddJsonOptions(options =>
                             {
-                                options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+                                options.JsonSerializerOptions.Converters.Add(
+                                    new System.Text.Json.Serialization.JsonStringEnumConverter()
+                                );
                             });
                         services.AddSwaggerGen();
                         services.AddCors(options =>
                         {
                             options.AddDefaultPolicy(builder =>
                             {
-                                builder.AllowAnyOrigin()
-                                    .AllowAnyHeader()
-                                    .AllowAnyMethod();
+                                builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
                             });
                         });
                     });

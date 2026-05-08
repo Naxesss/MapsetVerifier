@@ -5,9 +5,8 @@ using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
-
-using static MapsetVerifier.Checks.Utils.TaikoUtils;
 using static MapsetVerifier.Checks.Utils.GeneralUtils;
+using static MapsetVerifier.Checks.Utils.TaikoUtils;
 
 namespace MapsetVerifier.Checks.Taiko.Compose
 {
@@ -43,30 +42,36 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                         "Reasoning",
                         @"
                     On lower difficulties, patterns that use smaller snaps should be avoided as they can become straining if they exceed an unreasonable length."
-                    }
-                }
+                    },
+                },
             };
 
-        public override Dictionary<string, IssueTemplate> GetTemplates() => new()
-        {
+        public override Dictionary<string, IssueTemplate> GetTemplates() =>
+            new()
             {
-                Minor,
-
-                new IssueTemplate(Issue.Level.Minor,
-                    "{0} > {1} {2} pattern is {3} notes long.",
-                    "start", "end", "snap", "number")
-                .WithCause("Pattern length is equal to the RC guideline")
-            },
-
-
-            {
-                Warning,
-                new IssueTemplate(Issue.Level.Warning,
-                    "{0} > {1} {2} pattern is {3} notes long, ensure this makes sense.",
-                    "start", "end", "snap", "number")
-                .WithCause("Pattern length is surpassing the RC guideline.")
-            }
-        };
+                {
+                    Minor,
+                    new IssueTemplate(
+                        Issue.Level.Minor,
+                        "{0} > {1} {2} pattern is {3} notes long.",
+                        "start",
+                        "end",
+                        "snap",
+                        "number"
+                    ).WithCause("Pattern length is equal to the RC guideline")
+                },
+                {
+                    Warning,
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "{0} > {1} {2} pattern is {3} notes long, ensure this makes sense.",
+                        "start",
+                        "end",
+                        "snap",
+                        "number"
+                    ).WithCause("Pattern length is surpassing the RC guideline.")
+                },
+            };
 
         private static bool HasKantan(IEnumerable<Beatmap> taikoBeatmaps)
         {
@@ -76,29 +81,35 @@ namespace MapsetVerifier.Checks.Taiko.Compose
         /// <summary>
         ///     Returns a dictionary of difficulty, [snap size, snap count] pairs.
         /// </summary>
-        private static Dictionary<Beatmap.Difficulty, Dictionary<double, int>> GetShortSnapParams(IEnumerable<Beatmap> taikoBeatmaps)
+        private static Dictionary<Beatmap.Difficulty, Dictionary<double, int>> GetShortSnapParams(
+            IEnumerable<Beatmap> taikoBeatmaps
+        )
         {
             var hasKantan = HasKantan(taikoBeatmaps);
 
             return new Dictionary<Beatmap.Difficulty, Dictionary<double, int>>()
             {
-                { Beatmap.Difficulty.Easy, new Dictionary<double, int>() {
-                    { 1.0 / 1, 7 },
-                    { 1.0 / 2, 2 }
-                }},
-                { Beatmap.Difficulty.Normal, new Dictionary<double, int>() {
-                    { 1.0 / 2, hasKantan ? 7 : 5 },
-                    { 1.0 / 3, 2 }
-                }},
-                { Beatmap.Difficulty.Hard, new Dictionary<double, int>() {
-                    { 1.0 / 4, 5 },
-                    { 1.0 / 6, 4 },
-                }},
-                { Beatmap.Difficulty.Insane, new Dictionary<double, int>() {
-                    { 1.0 / 4, 9 },
-                    { 1.0 / 6, 4 },
-                    { 1.0 / 8, 2 },
-                }},
+                {
+                    Beatmap.Difficulty.Easy,
+                    new Dictionary<double, int>() { { 1.0 / 1, 7 }, { 1.0 / 2, 2 } }
+                },
+                {
+                    Beatmap.Difficulty.Normal,
+                    new Dictionary<double, int>() { { 1.0 / 2, hasKantan ? 7 : 5 }, { 1.0 / 3, 2 } }
+                },
+                {
+                    Beatmap.Difficulty.Hard,
+                    new Dictionary<double, int>() { { 1.0 / 4, 5 }, { 1.0 / 6, 4 } }
+                },
+                {
+                    Beatmap.Difficulty.Insane,
+                    new Dictionary<double, int>()
+                    {
+                        { 1.0 / 4, 9 },
+                        { 1.0 / 6, 4 },
+                        { 1.0 / 8, 2 },
+                    }
+                },
             };
         }
 
@@ -112,13 +123,13 @@ namespace MapsetVerifier.Checks.Taiko.Compose
             { 1.0 / 3, "1/3" },
             { 1.0 / 4, "1/4" },
             { 1.0 / 6, "1/6" },
-            { 1.0 / 8, "1/8" }
+            { 1.0 / 8, "1/8" },
         };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
-            var taikoBeatmaps = beatmapSet.Beatmaps
-                .Where(beatmap => beatmap.GeneralSettings.mode == Beatmap.Mode.Taiko)
+            var taikoBeatmaps = beatmapSet
+                .Beatmaps.Where(beatmap => beatmap.GeneralSettings.mode == Beatmap.Mode.Taiko)
                 .ToList();
             var shortSnapParams = GetShortSnapParams(taikoBeatmaps);
 
@@ -145,18 +156,17 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                                 // End of beatmap
                                 break;
                             }
-                            
+
                             var timing = beatmap.GetTimingLine<UninheritedLine>(current.time);
                             if (timing == null)
                             {
                                 break;
                             }
-                            
+
                             var normalizedMsPerBeat = timing.GetNormalizedMsPerBeat();
 
                             // convert minimal gap beats to milliseconds
                             var snapMs = snapValues.Key * normalizedMsPerBeat;
-
 
                             // check if this is end of pattern
                             if (i + 1 < objects.Count && foundStartOfPattern)
@@ -174,8 +184,8 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                                         currentPatternEndTimeMs = gapBeginObject.time;
                                     }
                                 }
-
-                            } else if (i == objects.Count - 1 && foundStartOfPattern)
+                            }
+                            else if (i == objects.Count - 1 && foundStartOfPattern)
                             {
                                 // last note, so forced end of pattern
                                 foundEndOfPattern = true;
@@ -207,7 +217,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                                 foundEndOfPattern = false;
                                 foundStartOfPattern = false; // resume checking for start of pattern
                                 var durationOfPattern = i - patternStartIndex + 1;
-                                
+
                                 if (durationOfPattern > snapValues.Value)
                                 {
                                     yield return new Issue(
@@ -218,7 +228,8 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                                         OutputDict[snapValues.Key],
                                         durationOfPattern
                                     ).ForDifficulties(diff);
-                                } else if (durationOfPattern == snapValues.Value)
+                                }
+                                else if (durationOfPattern == snapValues.Value)
                                 {
                                     yield return new Issue(
                                         GetTemplate(Minor),

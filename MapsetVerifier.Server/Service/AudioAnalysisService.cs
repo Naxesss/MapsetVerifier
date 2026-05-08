@@ -22,20 +22,25 @@ public static class AudioAnalysisService
     /// <summary>
     /// Performs complete audio analysis on the main audio file of a beatmap set.
     /// </summary>
-    public static AudioAnalysisResult AnalyzeAudio(string beatmapSetFolder, string? specificAudioFile = null)
+    public static AudioAnalysisResult AnalyzeAudio(
+        string beatmapSetFolder,
+        string? specificAudioFile = null
+    )
     {
         try
         {
             var beatmapSet = new BeatmapSet(beatmapSetFolder);
-            var audioPath = specificAudioFile != null
-                ? Path.Combine(beatmapSetFolder, specificAudioFile)
-                : beatmapSet.GetAudioFilePath();
+            var audioPath =
+                specificAudioFile != null
+                    ? Path.Combine(beatmapSetFolder, specificAudioFile)
+                    : beatmapSet.GetAudioFilePath();
 
             if (audioPath == null || !File.Exists(audioPath))
             {
                 return AudioAnalysisResult.CreateError(
                     specificAudioFile ?? "unknown",
-                    "Audio file not found in beatmap set.");
+                    "Audio file not found in beatmap set."
+                );
             }
 
             var complianceIssues = new List<string>();
@@ -51,21 +56,26 @@ public static class AudioAnalysisService
                 channelAnalysis,
                 formatAnalysis,
                 dynamicRangeAnalysis,
-                complianceIssues);
+                complianceIssues
+            );
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to analyze audio for {Folder}", beatmapSetFolder);
             return AudioAnalysisResult.CreateError(
                 specificAudioFile ?? "unknown",
-                $"Analysis failed: {ex.Message}");
+                $"Analysis failed: {ex.Message}"
+            );
         }
     }
 
     /// <summary>
     /// Analyzes bitrate and VBR characteristics.
     /// </summary>
-    private static BitrateAnalysisResult AnalyzeBitrate(string audioPath, ref List<string> complianceIssues)
+    private static BitrateAnalysisResult AnalyzeBitrate(
+        string audioPath,
+        ref List<string> complianceIssues
+    )
     {
         var format = AudioBASS.GetFormat(audioPath);
         var bitrate = Math.Round(AudioBASS.GetBitrate(audioPath));
@@ -80,20 +90,25 @@ public static class AudioAnalysisService
         {
             if (bitrate < MinAllowedBitrate)
             {
-                var issue = $"Bitrate {bitrate} kbps is below minimum {MinAllowedBitrate} kbps (recommended for ranking)";
+                var issue =
+                    $"Bitrate {bitrate} kbps is below minimum {MinAllowedBitrate} kbps (recommended for ranking)";
                 complianceIssues.Add(issue);
-                complianceMessage = $"Bitrate too low: {bitrate} kbps < {MinAllowedBitrate} kbps minimum. Use at least {MinAllowedBitrate} kbps if source quality allows.";
+                complianceMessage =
+                    $"Bitrate too low: {bitrate} kbps < {MinAllowedBitrate} kbps minimum. Use at least {MinAllowedBitrate} kbps if source quality allows.";
             }
             else
             {
-                var issue = $"Bitrate {bitrate} kbps exceeds maximum {maxAllowed} kbps for {formatName}";
+                var issue =
+                    $"Bitrate {bitrate} kbps exceeds maximum {maxAllowed} kbps for {formatName}";
                 complianceIssues.Add(issue);
-                complianceMessage = $"Bitrate too high: {bitrate} kbps > {maxAllowed} kbps maximum for {formatName}. Re-encode to comply with ranking criteria.";
+                complianceMessage =
+                    $"Bitrate too high: {bitrate} kbps > {maxAllowed} kbps maximum for {formatName}. Re-encode to comply with ranking criteria.";
             }
         }
         else
         {
-            complianceMessage = $"Bitrate is within acceptable range ({MinAllowedBitrate}-{maxAllowed} kbps for {formatName})";
+            complianceMessage =
+                $"Bitrate is within acceptable range ({MinAllowedBitrate}-{maxAllowed} kbps for {formatName})";
         }
 
         // Generate bitrate over time data (simplified - BASS reports average bitrate)
@@ -109,7 +124,7 @@ public static class AudioAnalysisService
             IsCompliant = isCompliant,
             ComplianceMessage = complianceMessage,
             MaxAllowedBitrate = maxAllowed,
-            MinAllowedBitrate = MinAllowedBitrate
+            MinAllowedBitrate = MinAllowedBitrate,
         };
     }
 
@@ -124,7 +139,8 @@ public static class AudioAnalysisService
         var isMono = channels == 1;
         var isStereo = channels >= 2;
 
-        float leftSum = 0, rightSum = 0;
+        float leftSum = 0,
+            rightSum = 0;
         var balanceOverTime = new List<ChannelBalanceDataPoint>();
 
         for (var i = 0; i < peaks.Count; i++)
@@ -140,13 +156,15 @@ public static class AudioAnalysisService
             if (i % 100 == 0)
             {
                 var balance = (left + right) > 0 ? (right - left) / (left + right) : 0;
-                balanceOverTime.Add(new ChannelBalanceDataPoint
-                {
-                    TimeMs = i,
-                    LeftLevel = left,
-                    RightLevel = right,
-                    Balance = balance
-                });
+                balanceOverTime.Add(
+                    new ChannelBalanceDataPoint
+                    {
+                        TimeMs = i,
+                        LeftLevel = left,
+                        RightLevel = right,
+                        Balance = balance,
+                    }
+                );
             }
         }
 
@@ -158,7 +176,10 @@ public static class AudioAnalysisService
         if (leftSum > 0 && rightSum > 0)
         {
             balanceRatio = leftSum > rightSum ? leftSum / rightSum : rightSum / leftSum;
-            louderChannel = Math.Abs(leftSum - rightSum) < 0.01 ? "Balanced" : (leftSum > rightSum ? "Left" : "Right");
+            louderChannel =
+                Math.Abs(leftSum - rightSum) < 0.01
+                    ? "Balanced"
+                    : (leftSum > rightSum ? "Left" : "Right");
         }
         else if (leftSum > 0)
         {
@@ -189,14 +210,17 @@ public static class AudioAnalysisService
             LouderChannel = louderChannel,
             PhaseCorrelation = phaseCorrelation,
             StereoWidth = stereoWidth,
-            BalanceOverTime = balanceOverTime
+            BalanceOverTime = balanceOverTime,
         };
     }
 
     /// <summary>
     /// Analyzes audio format and compliance.
     /// </summary>
-    private static FormatAnalysisResult AnalyzeFormat(string audioPath, ref List<string> complianceIssues)
+    private static FormatAnalysisResult AnalyzeFormat(
+        string audioPath,
+        ref List<string> complianceIssues
+    )
     {
         var format = AudioBASS.GetFormat(audioPath);
         var info = AudioAnalyzer.GetAudioInfo(audioPath);
@@ -211,19 +235,26 @@ public static class AudioAnalysisService
         var isValidFormat = format is ChannelType.MP3 or ChannelType.OGG;
         if (!isValidFormat)
         {
-            issues.Add($"Audio format must be MP3 (.mp3) or Ogg Vorbis (.ogg), found: {formatName}");
+            issues.Add(
+                $"Audio format must be MP3 (.mp3) or Ogg Vorbis (.ogg), found: {formatName}"
+            );
             complianceIssues.Add($"Invalid audio format: {formatName}. Must be MP3 or Ogg Vorbis");
         }
 
         // Check sample rate compliance (must not exceed 48 kHz)
         if (info.SampleRate > MaxAllowedSampleRate)
         {
-            issues.Add($"Sample rate {info.SampleRate} Hz exceeds maximum allowed {MaxAllowedSampleRate} Hz");
-            complianceIssues.Add($"Sample rate {info.SampleRate} Hz exceeds maximum {MaxAllowedSampleRate} Hz");
+            issues.Add(
+                $"Sample rate {info.SampleRate} Hz exceeds maximum allowed {MaxAllowedSampleRate} Hz"
+            );
+            complianceIssues.Add(
+                $"Sample rate {info.SampleRate} Hz exceeds maximum {MaxAllowedSampleRate} Hz"
+            );
         }
 
         var badgeType = issues.Count == 0 ? "success" : "warning";
-        if (formatName == "Unknown" || !isValidFormat) badgeType = "error";
+        if (formatName == "Unknown" || !isValidFormat)
+            badgeType = "error";
 
         return new FormatAnalysisResult
         {
@@ -239,7 +270,7 @@ public static class AudioAnalysisService
             Channels = info.Channels,
             IsCompliant = issues.Count == 0,
             ComplianceIssues = issues,
-            BadgeType = badgeType
+            BadgeType = badgeType,
         };
     }
 
@@ -265,23 +296,27 @@ public static class AudioAnalysisService
         var compressionDetected = compressionSeverity != CompressionSeverity.None;
 
         // Build clipping markers
-        var clippingMarkers = levelInfo.ClippingTimestamps.Select(t => new ClippingMarker
-        {
-            TimeMs = t,
-            DurationMs = 10, // Approximate
-            PeakLevel = 1.0,
-            Channel = "Both"
-        }).ToList();
+        var clippingMarkers = levelInfo
+            .ClippingTimestamps.Select(t => new ClippingMarker
+            {
+                TimeMs = t,
+                DurationMs = 10, // Approximate
+                PeakLevel = 1.0,
+                Channel = "Both",
+            })
+            .ToList();
 
         // Build loudness over time data
-        var loudnessOverTime = channelLevels.Select(s => new LoudnessDataPoint
-        {
-            TimeMs = s.TimeMs,
-            MomentaryLoudness = CalculateLufs(s.LeftLevel, s.RightLevel),
-            ShortTermLoudness = CalculateLufs(s.LeftLevel, s.RightLevel),
-            PeakLevel = 20 * Math.Log10(Math.Max(s.LeftLevel, s.RightLevel) + 0.0001),
-            RmsLevel = 20 * Math.Log10((s.LeftLevel + s.RightLevel) / 2 + 0.0001)
-        }).ToList();
+        var loudnessOverTime = channelLevels
+            .Select(s => new LoudnessDataPoint
+            {
+                TimeMs = s.TimeMs,
+                MomentaryLoudness = CalculateLufs(s.LeftLevel, s.RightLevel),
+                ShortTermLoudness = CalculateLufs(s.LeftLevel, s.RightLevel),
+                PeakLevel = 20 * Math.Log10(Math.Max(s.LeftLevel, s.RightLevel) + 0.0001),
+                RmsLevel = 20 * Math.Log10((s.LeftLevel + s.RightLevel) / 2 + 0.0001),
+            })
+            .ToList();
 
         return new DynamicRangeResult
         {
@@ -297,7 +332,7 @@ public static class AudioAnalysisService
             ClippingDetected = levelInfo.ClippingCount > 0,
             ClippingCount = levelInfo.ClippingCount,
             ClippingMarkers = clippingMarkers,
-            LoudnessOverTime = loudnessOverTime
+            LoudnessOverTime = loudnessOverTime,
         };
     }
 
@@ -320,7 +355,7 @@ public static class AudioAnalysisService
             TotalFiles = results.Count,
             CompliantFiles = results.Count(r => r.IsCompliant),
             NonCompliantFiles = results.Count(r => !r.IsCompliant),
-            Results = results
+            Results = results,
         };
     }
 
@@ -348,7 +383,9 @@ public static class AudioAnalysisService
             // Check sample rate compliance
             if (info.SampleRate > MaxAllowedSampleRate)
             {
-                issues.Add($"Sample rate {info.SampleRate} Hz exceeds maximum {MaxAllowedSampleRate} Hz");
+                issues.Add(
+                    $"Sample rate {info.SampleRate} Hz exceeds maximum {MaxAllowedSampleRate} Hz"
+                );
             }
 
             // Check bitrate for compressed formats
@@ -358,10 +395,13 @@ public static class AudioAnalysisService
             }
             else if (isValidFormat)
             {
-                var maxAllowed = format is ChannelType.MP3 ? MaxAllowedBitrateMp3 : MaxAllowedBitrateOgg;
+                var maxAllowed =
+                    format is ChannelType.MP3 ? MaxAllowedBitrateMp3 : MaxAllowedBitrateOgg;
                 if (bitrate > maxAllowed)
                 {
-                    issues.Add($"Bitrate {bitrate} kbps exceeds maximum {maxAllowed} kbps for {GetFormatName(format)}");
+                    issues.Add(
+                        $"Bitrate {bitrate} kbps exceeds maximum {maxAllowed} kbps for {GetFormatName(format)}"
+                    );
                 }
             }
 
@@ -403,7 +443,7 @@ public static class AudioAnalysisService
                 IsCompliant = issues.Count == 0,
                 Issues = issues,
                 ChannelBalanceRatio = balanceRatio,
-                HasImbalance = hasImbalance
+                HasImbalance = hasImbalance,
             };
         }
         catch (Exception ex)
@@ -419,7 +459,7 @@ public static class AudioAnalysisService
                 IsCompliant = false,
                 Issues = [$"Failed to analyze: {ex.Message}"],
                 ChannelBalanceRatio = 1.0,
-                HasImbalance = false
+                HasImbalance = false,
             };
         }
     }
@@ -427,13 +467,18 @@ public static class AudioAnalysisService
     /// <summary>
     /// Gets spectrogram data for visualization.
     /// </summary>
-    public static SpectralAnalysisResult GetSpectralAnalysis(string beatmapSetFolder, string? specificAudioFile = null,
-        int fftSize = 4096, int timeResolutionMs = 10)
+    public static SpectralAnalysisResult GetSpectralAnalysis(
+        string beatmapSetFolder,
+        string? specificAudioFile = null,
+        int fftSize = 4096,
+        int timeResolutionMs = 10
+    )
     {
         var beatmapSet = new BeatmapSet(beatmapSetFolder);
-        var audioPath = specificAudioFile != null
-            ? Path.Combine(beatmapSetFolder, specificAudioFile)
-            : beatmapSet.GetAudioFilePath();
+        var audioPath =
+            specificAudioFile != null
+                ? Path.Combine(beatmapSetFolder, specificAudioFile)
+                : beatmapSet.GetAudioFilePath();
 
         if (audioPath == null || !File.Exists(audioPath))
         {
@@ -446,30 +491,36 @@ public static class AudioAnalysisService
                 MaxDb = 0,
                 FftSize = fftSize,
                 SampleRate = 0,
-                PeakFrequencies = []
+                PeakFrequencies = [],
             };
         }
 
-        var spectrogramData = AudioAnalyzer.GetSpectrogramData(audioPath, fftSize, timeResolutionMs);
+        var spectrogramData = AudioAnalyzer.GetSpectrogramData(
+            audioPath,
+            fftSize,
+            timeResolutionMs
+        );
 
         // Calculate frequency range dynamically using Nyquist frequency
         const int minFreq = 20; // Minimum audible frequency
         var maxFreq = spectrogramData.SampleRate / 2; // Nyquist frequency
 
         // Filter frequency bins to valid range
-        var filteredBins = spectrogramData.FrequencyBins
-            .Select((freq, idx) => new { Freq = freq, Idx = idx })
+        var filteredBins = spectrogramData
+            .FrequencyBins.Select((freq, idx) => new { Freq = freq, Idx = idx })
             .Where(x => x.Freq >= minFreq && x.Freq <= maxFreq)
             .ToList();
 
         var minIdx = filteredBins.FirstOrDefault()?.Idx ?? 0;
         var maxIdx = filteredBins.LastOrDefault()?.Idx ?? spectrogramData.FrequencyBins.Length - 1;
 
-        var frames = spectrogramData.Frames.Select(f => new Model.AudioAnalysis.SpectrogramFrame
-        {
-            TimeMs = f.TimeMs,
-            Magnitudes = f.Magnitudes.Skip(minIdx).Take(maxIdx - minIdx + 1)
-        }).ToList();
+        var frames = spectrogramData
+            .Frames.Select(f => new Model.AudioAnalysis.SpectrogramFrame
+            {
+                TimeMs = f.TimeMs,
+                Magnitudes = f.Magnitudes.Skip(minIdx).Take(maxIdx - minIdx + 1),
+            })
+            .ToList();
 
         var allMagnitudes = frames.SelectMany(f => f.Magnitudes).ToList();
         var minDb = allMagnitudes.Count > 0 ? allMagnitudes.Min() : -100;
@@ -487,20 +538,24 @@ public static class AudioAnalysisService
             MaxDb = maxDb,
             FftSize = fftSize,
             SampleRate = spectrogramData.SampleRate,
-            PeakFrequencies = peakFrequencies
+            PeakFrequencies = peakFrequencies,
         };
     }
 
     /// <summary>
     /// Gets frequency analysis with FFT data and harmonic analysis.
     /// </summary>
-    public static FrequencyAnalysisResult GetFrequencyAnalysis(string beatmapSetFolder, string? specificAudioFile = null,
-        int fftSize = 4096)
+    public static FrequencyAnalysisResult GetFrequencyAnalysis(
+        string beatmapSetFolder,
+        string? specificAudioFile = null,
+        int fftSize = 4096
+    )
     {
         var beatmapSet = new BeatmapSet(beatmapSetFolder);
-        var audioPath = specificAudioFile != null
-            ? Path.Combine(beatmapSetFolder, specificAudioFile)
-            : beatmapSet.GetAudioFilePath();
+        var audioPath =
+            specificAudioFile != null
+                ? Path.Combine(beatmapSetFolder, specificAudioFile)
+                : beatmapSet.GetAudioFilePath();
 
         if (audioPath == null || !File.Exists(audioPath))
         {
@@ -512,7 +567,7 @@ public static class AudioAnalysisService
                 HarmonicAnalysis = new HarmonicAnalysis(),
                 MaskingResults = [],
                 DominantFrequency = 0,
-                FundamentalFrequency = 0
+                FundamentalFrequency = 0,
             };
         }
 
@@ -520,11 +575,17 @@ public static class AudioAnalysisService
         var info = AudioAnalyzer.GetAudioInfo(audioPath);
 
         var binWidth = (double)info.SampleRate / fftSize;
-        var fftPoints = fftData.Select((mag, idx) => new FftDataPoint
-        {
-            FrequencyHz = idx * binWidth,
-            MagnitudeDb = mag > 0 ? 20 * Math.Log10(mag) : -100
-        }).Where(p => p.FrequencyHz <= 24000).ToList();
+        var fftPoints = fftData
+            .Select(
+                (mag, idx) =>
+                    new FftDataPoint
+                    {
+                        FrequencyHz = idx * binWidth,
+                        MagnitudeDb = mag > 0 ? 20 * Math.Log10(mag) : -100,
+                    }
+            )
+            .Where(p => p.FrequencyHz <= 24000)
+            .ToList();
 
         // Find dominant frequency
         var dominantPoint = fftPoints.OrderByDescending(p => p.MagnitudeDb).FirstOrDefault();
@@ -544,13 +605,16 @@ public static class AudioAnalysisService
             HarmonicAnalysis = harmonicAnalysis,
             MaskingResults = DetectFrequencyMasking(fftPoints),
             DominantFrequency = dominantFreq,
-            FundamentalFrequency = harmonicAnalysis.FundamentalHz
+            FundamentalFrequency = harmonicAnalysis.FundamentalHz,
         };
     }
 
     #region Helper Methods
 
-    private static IEnumerable<BitrateDataPoint> GenerateBitrateOverTime(double durationMs, double avgBitrate)
+    private static IEnumerable<BitrateDataPoint> GenerateBitrateOverTime(
+        double durationMs,
+        double avgBitrate
+    )
     {
         // Use 1 second intervals to prevent memory issues
         const int intervalMs = 1000;
@@ -563,7 +627,11 @@ public static class AudioAnalysisService
         return points;
     }
 
-    private static ImbalanceSeverity GetImbalanceSeverity(double balanceRatio, float leftSum, float rightSum)
+    private static ImbalanceSeverity GetImbalanceSeverity(
+        double balanceRatio,
+        float leftSum,
+        float rightSum
+    )
     {
         if (leftSum == 0 || rightSum == 0)
             return ImbalanceSeverity.Severe;
@@ -576,9 +644,12 @@ public static class AudioAnalysisService
 
     private static double CalculatePhaseCorrelation(List<float[]> peaks, int channels)
     {
-        if (channels < 2 || peaks.Count == 0) return 1.0;
+        if (channels < 2 || peaks.Count == 0)
+            return 1.0;
 
-        double sumProduct = 0, sumLeftSq = 0, sumRightSq = 0;
+        double sumProduct = 0,
+            sumLeftSq = 0,
+            sumRightSq = 0;
         foreach (var peak in peaks)
         {
             var left = peak[0];
@@ -594,9 +665,11 @@ public static class AudioAnalysisService
 
     private static double CalculateStereoWidth(List<float[]> peaks, int channels)
     {
-        if (channels < 2 || peaks.Count == 0) return 0.0;
+        if (channels < 2 || peaks.Count == 0)
+            return 0.0;
 
-        double sumDiff = 0, sumTotal = 0;
+        double sumDiff = 0,
+            sumTotal = 0;
         foreach (var peak in peaks)
         {
             var left = peak[0];
@@ -617,7 +690,7 @@ public static class AudioAnalysisService
             ChannelType.Wave => "WAV",
             ChannelType.AIFF => "AIFF",
             ChannelType.FLAC => "FLAC",
-            _ => "Unknown"
+            _ => "Unknown",
         };
     }
 
@@ -630,7 +703,7 @@ public static class AudioAnalysisService
             ChannelType.Wave => "PCM Wave",
             ChannelType.AIFF => "Audio Interchange File Format",
             ChannelType.FLAC => "Free Lossless Audio Codec",
-            _ => "Unknown Codec"
+            _ => "Unknown Codec",
         };
     }
 
@@ -657,9 +730,12 @@ public static class AudioAnalysisService
 
     private static CompressionSeverity GetCompressionSeverity(double dynamicRange)
     {
-        if (dynamicRange >= 14) return CompressionSeverity.None;
-        if (dynamicRange >= 10) return CompressionSeverity.Light;
-        if (dynamicRange >= 6) return CompressionSeverity.Moderate;
+        if (dynamicRange >= 14)
+            return CompressionSeverity.None;
+        if (dynamicRange >= 10)
+            return CompressionSeverity.Light;
+        if (dynamicRange >= 6)
+            return CompressionSeverity.Moderate;
         return CompressionSeverity.Heavy;
     }
 
@@ -680,15 +756,19 @@ public static class AudioAnalysisService
             4096 => DataFlags.FFT4096,
             8192 => DataFlags.FFT8192,
             16384 => DataFlags.FFT16384,
-            _ => DataFlags.FFT4096
+            _ => DataFlags.FFT4096,
         };
     }
 
-
-    private static IEnumerable<PeakFrequency> DetectPeakFrequencies(SpectrogramData data, int minFreq, int maxFreq)
+    private static IEnumerable<PeakFrequency> DetectPeakFrequencies(
+        SpectrogramData data,
+        int minFreq,
+        int maxFreq
+    )
     {
         var peaks = new List<PeakFrequency>();
-        if (data.Frames.Count == 0) return peaks;
+        if (data.Frames.Count == 0)
+            return peaks;
 
         // Average magnitudes across all frames
         var avgMagnitudes = new float[data.FrequencyBins.Length];
@@ -708,19 +788,26 @@ public static class AudioAnalysisService
         for (var i = 1; i < avgMagnitudes.Length - 1; i++)
         {
             var freq = data.FrequencyBins[i];
-            if (freq < minFreq || freq > maxFreq) continue;
+            if (freq < minFreq || freq > maxFreq)
+                continue;
 
-            if (avgMagnitudes[i] > avgMagnitudes[i - 1] && avgMagnitudes[i] > avgMagnitudes[i + 1] && avgMagnitudes[i] > -60)
+            if (
+                avgMagnitudes[i] > avgMagnitudes[i - 1]
+                && avgMagnitudes[i] > avgMagnitudes[i + 1]
+                && avgMagnitudes[i] > -60
+            )
             {
                 var (noteName, cents) = FrequencyToNote(freq);
-                peaks.Add(new PeakFrequency
-                {
-                    FrequencyHz = freq,
-                    MagnitudeDb = avgMagnitudes[i],
-                    TimeMs = 0,
-                    NoteName = noteName,
-                    CentsDeviation = cents
-                });
+                peaks.Add(
+                    new PeakFrequency
+                    {
+                        FrequencyHz = freq,
+                        MagnitudeDb = avgMagnitudes[i],
+                        TimeMs = 0,
+                        NoteName = noteName,
+                        CentsDeviation = cents,
+                    }
+                );
             }
         }
 
@@ -741,20 +828,25 @@ public static class AudioAnalysisService
         {
             var (noteName, cents) = FrequencyToNote(peak.FrequencyHz);
             var midiNote = FrequencyToMidi(peak.FrequencyHz);
-            notes.Add(new DetectedNote
-            {
-                FrequencyHz = peak.FrequencyHz,
-                NoteName = noteName,
-                MidiNote = midiNote,
-                CentsDeviation = cents,
-                Confidence = (peak.MagnitudeDb - threshold) / 20
-            });
+            notes.Add(
+                new DetectedNote
+                {
+                    FrequencyHz = peak.FrequencyHz,
+                    NoteName = noteName,
+                    MidiNote = midiNote,
+                    CentsDeviation = cents,
+                    Confidence = (peak.MagnitudeDb - threshold) / 20,
+                }
+            );
         }
 
         return notes;
     }
 
-    private static HarmonicAnalysis AnalyzeHarmonics(List<FftDataPoint> fftPoints, double fundamentalFreq)
+    private static HarmonicAnalysis AnalyzeHarmonics(
+        List<FftDataPoint> fftPoints,
+        double fundamentalFreq
+    )
     {
         var harmonics = new List<Harmonic>();
 
@@ -763,23 +855,33 @@ public static class AudioAnalysisService
             for (var h = 1; h <= 8; h++)
             {
                 var targetFreq = fundamentalFreq * h;
-                var closest = fftPoints.OrderBy(p => Math.Abs(p.FrequencyHz - targetFreq)).FirstOrDefault();
+                var closest = fftPoints
+                    .OrderBy(p => Math.Abs(p.FrequencyHz - targetFreq))
+                    .FirstOrDefault();
                 if (Math.Abs(closest.FrequencyHz - targetFreq) < targetFreq * 0.05)
                 {
-                    harmonics.Add(new Harmonic
-                    {
-                        HarmonicNumber = h,
-                        FrequencyHz = closest.FrequencyHz,
-                        MagnitudeDb = closest.MagnitudeDb
-                    });
+                    harmonics.Add(
+                        new Harmonic
+                        {
+                            HarmonicNumber = h,
+                            FrequencyHz = closest.FrequencyHz,
+                            MagnitudeDb = closest.MagnitudeDb,
+                        }
+                    );
                 }
             }
         }
 
         // Calculate energy in frequency bands
-        var bassEnergy = fftPoints.Where(p => p.FrequencyHz is >= 20 and < 250).Average(p => p.MagnitudeDb);
-        var midEnergy = fftPoints.Where(p => p.FrequencyHz is >= 250 and < 4000).Average(p => p.MagnitudeDb);
-        var highEnergy = fftPoints.Where(p => p.FrequencyHz is >= 4000 and <= 24000).Average(p => p.MagnitudeDb);
+        var bassEnergy = fftPoints
+            .Where(p => p.FrequencyHz is >= 20 and < 250)
+            .Average(p => p.MagnitudeDb);
+        var midEnergy = fftPoints
+            .Where(p => p.FrequencyHz is >= 250 and < 4000)
+            .Average(p => p.MagnitudeDb);
+        var highEnergy = fftPoints
+            .Where(p => p.FrequencyHz is >= 4000 and <= 24000)
+            .Average(p => p.MagnitudeDb);
 
         return new HarmonicAnalysis
         {
@@ -788,7 +890,7 @@ public static class AudioAnalysisService
             HarmonicToNoiseRatio = 0, // Would require more complex analysis
             BassEnergy = bassEnergy,
             MidEnergy = midEnergy,
-            HighEnergy = highEnergy
+            HighEnergy = highEnergy,
         };
     }
 
@@ -801,21 +903,26 @@ public static class AudioAnalysisService
 
         foreach (var (min, max, name) in bands)
         {
-            var bandPoints = fftPoints.Where(p => p.FrequencyHz >= min && p.FrequencyHz < max).ToList();
-            if (bandPoints.Count == 0) continue;
+            var bandPoints = fftPoints
+                .Where(p => p.FrequencyHz >= min && p.FrequencyHz < max)
+                .ToList();
+            if (bandPoints.Count == 0)
+                continue;
 
             var avgEnergy = bandPoints.Average(p => p.MagnitudeDb);
             var maxEnergy = bandPoints.Max(p => p.MagnitudeDb);
 
             if (maxEnergy - avgEnergy < 6 && avgEnergy > -40)
             {
-                results.Add(new FrequencyMaskingResult
-                {
-                    CenterFrequencyHz = (min + max) / 2.0,
-                    BandwidthHz = max - min,
-                    Severity = (maxEnergy - avgEnergy) / 6,
-                    Description = $"Potential masking in {name} range ({min}-{max} Hz)"
-                });
+                results.Add(
+                    new FrequencyMaskingResult
+                    {
+                        CenterFrequencyHz = (min + max) / 2.0,
+                        BandwidthHz = max - min,
+                        Severity = (maxEnergy - avgEnergy) / 6,
+                        Description = $"Potential masking in {name} range ({min}-{max} Hz)",
+                    }
+                );
             }
         }
 
@@ -824,7 +931,8 @@ public static class AudioAnalysisService
 
     private static (string NoteName, double Cents) FrequencyToNote(double frequency)
     {
-        if (frequency <= 0) return ("N/A", 0);
+        if (frequency <= 0)
+            return ("N/A", 0);
 
         var noteNames = new[] { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
         var a4 = 440.0;
@@ -833,7 +941,8 @@ public static class AudioAnalysisService
         var halfSteps = 12 * Math.Log2(frequency / c0);
         var octave = (int)(halfSteps / 12);
         var noteIndex = (int)Math.Round(halfSteps) % 12;
-        if (noteIndex < 0) noteIndex += 12;
+        if (noteIndex < 0)
+            noteIndex += 12;
 
         var exactNote = c0 * Math.Pow(2, Math.Round(halfSteps) / 12.0);
         var cents = 1200 * Math.Log2(frequency / exactNote);
@@ -843,7 +952,8 @@ public static class AudioAnalysisService
 
     private static int FrequencyToMidi(double frequency)
     {
-        if (frequency <= 0) return 0;
+        if (frequency <= 0)
+            return 0;
         return (int)Math.Round(69 + 12 * Math.Log2(frequency / 440.0));
     }
 

@@ -35,8 +35,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                         As a rough guideline, ensure that the position of aimed objects are clear and that indicators are identifiable (so for 
                         example when to start spinning or that a slider reverses). Basically don't cover up important gameplay elements unless 
                         otherwise clear."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -44,23 +44,27 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
             {
                 {
                     "Warning",
-                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" Check the {1} to see where it appears.", "file name", ".osu/.osb")
-                        .WithCause("A storyboard sprite or animation is using the overlay layer.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "\"{0}\" Check the {1} to see where it appears.",
+                        "file name",
+                        ".osu/.osb"
+                    ).WithCause("A storyboard sprite or animation is using the overlay layer.")
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
             // Checks .osu-specific storyboard elements.
             foreach (var beatmap in beatmapSet.Beatmaps)
-                foreach (var sprite in beatmap.Sprites)
-                    if (sprite.layer == Sprite.Layer.Overlay)
-                        yield return new Issue(GetTemplate("Warning"), beatmap, sprite.path, ".osu");
+            foreach (var sprite in beatmap.Sprites)
+                if (sprite.layer == Sprite.Layer.Overlay)
+                    yield return new Issue(GetTemplate("Warning"), beatmap, sprite.path, ".osu");
 
             foreach (var beatmap in beatmapSet.Beatmaps)
-                foreach (var animation in beatmap.Animations)
-                    if (animation.layer == Sprite.Layer.Overlay)
-                        yield return new Issue(GetTemplate("Warning"), beatmap, animation.path, ".osu");
+            foreach (var animation in beatmap.Animations)
+                if (animation.layer == Sprite.Layer.Overlay)
+                    yield return new Issue(GetTemplate("Warning"), beatmap, animation.path, ".osu");
 
             // Checks .osb storyboard elements.
             if (beatmapSet.Osb == null)

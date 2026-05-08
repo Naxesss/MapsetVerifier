@@ -19,7 +19,7 @@ namespace MapsetVerifier.Checks.AllModes.Settings
                     // Does not apply to taiko, due to always using red/blue.
                     // Does not apply to mania, due to not having combo colours (based on column instead).
                     Beatmap.Mode.Standard,
-                    Beatmap.Mode.Catch
+                    Beatmap.Mode.Catch,
                 ],
                 Category = "Settings",
                 Message = "Too dark or bright combo colours or slider borders.",
@@ -54,8 +54,8 @@ namespace MapsetVerifier.Checks.AllModes.Settings
                         luminosity as deep blue, see image.
                         ![](https://i.imgur.com/CjPhf0b.png)
                         The HSP colour system compared to the in-game HSL system."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -63,33 +63,51 @@ namespace MapsetVerifier.Checks.AllModes.Settings
             {
                 {
                     "Problem Combo",
-                    new IssueTemplate(Issue.Level.Problem, "Combo colour {0} is way too dark.", "number")
-                        .WithCause("The HSP luminosity value of a combo colour is lower than 30. These values are visible in the overview section as tooltips for each colour if you want to check them manually.")
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "Combo colour {0} is way too dark.",
+                        "number"
+                    ).WithCause(
+                        "The HSP luminosity value of a combo colour is lower than 30. These values are visible in the overview section as tooltips for each colour if you want to check them manually."
+                    )
                 },
-
                 {
                     "Warning Combo",
-                    new IssueTemplate(Issue.Level.Warning, "Combo colour {0} is really dark.", "number")
-                        .WithCause("Same as the first check, but lower than 43 instead.")
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "Combo colour {0} is really dark.",
+                        "number"
+                    ).WithCause("Same as the first check, but lower than 43 instead.")
                 },
-
                 {
                     "Problem Border",
-                    new IssueTemplate(Issue.Level.Problem, "Slider border is way too dark.")
-                        .WithCause("Same as the first check, except applies on the slider border instead.")
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "Slider border is way too dark."
+                    ).WithCause(
+                        "Same as the first check, except applies on the slider border instead."
+                    )
                 },
-
                 {
                     "Warning Border",
-                    new IssueTemplate(Issue.Level.Warning, "Slider border is really dark.")
-                        .WithCause("Same as the second check, except applies on the slider border instead.")
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "Slider border is really dark."
+                    ).WithCause(
+                        "Same as the second check, except applies on the slider border instead."
+                    )
                 },
-
                 {
                     "Bright",
-                    new IssueTemplate(Issue.Level.Warning, "Combo colour {0} is really bright in kiai sections, see {1}.", "number", "example object")
-                        .WithCause("Same as the first check, but higher than 250 and requires that at least one hit object with the combo is in a kiai section.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "Combo colour {0} is really bright in kiai sections, see {1}.",
+                        "number",
+                        "example object"
+                    ).WithCause(
+                        "Same as the first check, but higher than 250 and requires that at least one hit object with the combo is in a kiai section."
+                    )
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
@@ -139,19 +157,36 @@ namespace MapsetVerifier.Checks.AllModes.Settings
                 var displayedColourIndex = beatmap.AsDisplayedComboColourIndex(i);
 
                 if (luminosity < luminosityMinRankable)
-                    yield return new Issue(GetTemplate("Problem Combo"), beatmap, displayedColourIndex);
-
+                    yield return new Issue(
+                        GetTemplate("Problem Combo"),
+                        beatmap,
+                        displayedColourIndex
+                    );
                 else if (luminosity < luminosityMinWarning)
-                    yield return new Issue(GetTemplate("Warning Combo"), beatmap, displayedColourIndex);
+                    yield return new Issue(
+                        GetTemplate("Warning Combo"),
+                        beatmap,
+                        displayedColourIndex
+                    );
 
                 for (var j = 0; j < comboColoursInKiai.Count; ++j)
                     if (luminosity > luminosityMax && comboColoursInKiai[j] == i)
-                        yield return new Issue(GetTemplate("Bright"), beatmap, displayedColourIndex, Timestamp.Get(comboColourTime[j]));
+                        yield return new Issue(
+                            GetTemplate("Bright"),
+                            beatmap,
+                            displayedColourIndex,
+                            Timestamp.Get(comboColourTime[j])
+                        );
             }
         }
 
         private static float GetLuminosity(Vector3 colour) =>
             // HSP colour model http://alienryderflex.com/hsp.html
-            (float)Math.Sqrt(colour.X * colour.X * 0.299f + colour.Y * colour.Y * 0.587f + colour.Z * colour.Z * 0.114f);
+            (float)
+                Math.Sqrt(
+                    colour.X * colour.X * 0.299f
+                        + colour.Y * colour.Y * 0.587f
+                        + colour.Z * colour.Z * 0.114f
+                );
     }
 }

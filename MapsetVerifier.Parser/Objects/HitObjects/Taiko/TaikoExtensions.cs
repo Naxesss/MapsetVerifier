@@ -5,17 +5,21 @@
         /// <summary>
         ///     Returns whether the hit object is a don hit.
         /// </summary>
-        public static bool IsDon(this HitObject hitObject) => !hitObject.HasHitSound(HitObject.HitSounds.Whistle) && !hitObject.HasHitSound(HitObject.HitSounds.Clap);
+        public static bool IsDon(this HitObject hitObject) =>
+            !hitObject.HasHitSound(HitObject.HitSounds.Whistle)
+            && !hitObject.HasHitSound(HitObject.HitSounds.Clap);
 
         /// <summary>
         ///     Returns whether the hit object is a finisher hit.
         /// </summary>
-        public static bool IsFinisher(this HitObject hitObject) => hitObject.HasHitSound(HitObject.HitSounds.Finish);
+        public static bool IsFinisher(this HitObject hitObject) =>
+            hitObject.HasHitSound(HitObject.HitSounds.Finish);
 
         /// <summary>
         ///     Returns whether the hit object is the same color as the previous hit object.
         /// </summary>
-        public static bool IsMono(this HitObject hitObject) => (hitObject.Prev()?.IsDon() ?? null) == hitObject.IsDon();
+        public static bool IsMono(this HitObject hitObject) =>
+            (hitObject.Prev()?.IsDon() ?? null) == hitObject.IsDon();
 
         /// <summary>
         ///     Returns whether the hit object is at the beginning of a pattern.

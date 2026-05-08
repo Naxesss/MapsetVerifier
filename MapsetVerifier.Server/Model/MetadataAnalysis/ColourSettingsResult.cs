@@ -47,4 +47,3 @@ public class ColourUsageInfo
     public string Hex { get; set; } = string.Empty;
     public int UsageCount { get; set; }
 }
-

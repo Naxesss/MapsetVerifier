@@ -26,7 +26,8 @@ namespace MapsetVerifier.Snapshots
             initialized = true;
         }
 
-        public static void RegisterTranslator(DiffTranslator translator) => translators.Add(translator);
+        public static void RegisterTranslator(DiffTranslator translator) =>
+            translators.Add(translator);
 
         public static IEnumerable<DiffTranslator> GetTranslators()
         {

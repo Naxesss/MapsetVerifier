@@ -14,7 +14,9 @@ namespace MapsetVerifier.Framework.Objects.Resources
             {
                 // 0 = No Output Device
                 if (!Bass.Init(0) && Bass.LastError != Errors.Already)
-                    throw new BadImageFormatException($"Could not initialize ManagedBass, error \"{Bass.LastError}\".");
+                    throw new BadImageFormatException(
+                        $"Could not initialize ManagedBass, error \"{Bass.LastError}\"."
+                    );
 
                 isInitialized = true;
             }
@@ -32,7 +34,9 @@ namespace MapsetVerifier.Framework.Objects.Resources
             var stream = Bass.CreateStream(filePath, 0, 0, BassFlags.Decode);
 
             if (stream == 0)
-                throw new BadImageFormatException($"Could not create stream of \"{filePath.Split('\\', '/').Last()}\", error \"{Bass.LastError}\".");
+                throw new BadImageFormatException(
+                    $"Could not create stream of \"{filePath.Split('\\', '/').Last()}\", error \"{Bass.LastError}\"."
+                );
 
             return stream;
         }
@@ -140,7 +144,11 @@ namespace MapsetVerifier.Framework.Objects.Resources
                         var error = Bass.LastError;
 
                         if (error != Errors.Ended)
-                            throw new BadImageFormatException($"Could not parse audio peak of \"{filePath.Split('\\', '/').Last()}\" at " + i * 1000 + " ms.");
+                            throw new BadImageFormatException(
+                                $"Could not parse audio peak of \"{filePath.Split('\\', '/').Last()}\" at "
+                                    + i * 1000
+                                    + " ms."
+                            );
 
                         break;
                     }

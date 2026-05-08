@@ -14,10 +14,7 @@ namespace MapsetVerifier.Checks.Standard.Compose
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
-                Modes =
-                [
-                    Beatmap.Mode.Standard
-                ],
+                Modes = [Beatmap.Mode.Standard],
                 Category = "Compose",
                 Message = "Ambiguous slider intersection.",
                 Author = "Naxess",
@@ -41,8 +38,8 @@ namespace MapsetVerifier.Checks.Standard.Compose
 
                         ![](https://i.imgur.com/LPVmy81.png)
                         Two sliders which are practically the same in gameplay. The left one has a much higher chance of players guessing wrong on due to the tail not being visible."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -50,13 +47,26 @@ namespace MapsetVerifier.Checks.Standard.Compose
             {
                 {
                     "Warning",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Slider edges are almost perfectly overlapping.", "timestamp -").WithCause("The edges of a slider curve are 5 px or less apart, and a slider tick is 2 circle radii from the head.")
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "{0} Slider edges are almost perfectly overlapping.",
+                        "timestamp -"
+                    ).WithCause(
+                        "The edges of a slider curve are 5 px or less apart, and a slider tick is 2 circle radii from the head."
+                    )
                 },
-
                 {
                     "Anchor",
-                    new IssueTemplate(Issue.Level.Warning, "{0} {1} and red anchor overlap is possibly ambigious.", "timestamp -", "Head/tail").WithCause("The head or tail of a slider is a distance of 10 px or less to a red node, having been more than 30 px away " + "at a point in time between the two.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "{0} {1} and red anchor overlap is possibly ambigious.",
+                        "timestamp -",
+                        "Head/tail"
+                    ).WithCause(
+                        "The head or tail of a slider is a distance of 10 px or less to a red node, having been more than 30 px away "
+                            + "at a point in time between the two."
+                    )
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
@@ -70,7 +80,11 @@ namespace MapsetVerifier.Checks.Standard.Compose
                 var curveEdgesDistance = Vector2.Distance(slider.Position, tailPosition);
 
                 if (curveEdgesDistance <= 5 && CouldSliderBreak(slider))
-                    yield return new Issue(GetTemplate("Warning"), beatmap, Timestamp.Get(hitObject));
+                    yield return new Issue(
+                        GetTemplate("Warning"),
+                        beatmap,
+                        Timestamp.Get(hitObject)
+                    );
 
                 var anchorPositions = slider.RedAnchorPositions;
 
@@ -78,7 +92,13 @@ namespace MapsetVerifier.Checks.Standard.Compose
                     anchorPositions = slider.NodePositions;
 
                 // Anchors only exist for bezier sliders (red nodes) and linear sliders (where any node acts as a red node).
-                if ((slider.CurveType != Slider.Curve.Bezier && slider.CurveType != Slider.Curve.Linear) || anchorPositions.Count == 0)
+                if (
+                    (
+                        slider.CurveType != Slider.Curve.Bezier
+                        && slider.CurveType != Slider.Curve.Linear
+                    )
+                    || anchorPositions.Count == 0
+                )
                     continue;
 
                 var prevAnchorPosition = anchorPositions[0];
@@ -105,14 +125,24 @@ namespace MapsetVerifier.Checks.Standard.Compose
 
                     if (headAnchorDistance <= 5)
                     {
-                        yield return new Issue(GetTemplate("Anchor"), beatmap, Timestamp.Get(hitObject), "Head");
+                        yield return new Issue(
+                            GetTemplate("Anchor"),
+                            beatmap,
+                            Timestamp.Get(hitObject),
+                            "Head"
+                        );
 
                         break;
                     }
 
                     if (tailAnchorDistance <= 5)
                     {
-                        yield return new Issue(GetTemplate("Anchor"), beatmap, Timestamp.Get(hitObject), "Tail");
+                        yield return new Issue(
+                            GetTemplate("Anchor"),
+                            beatmap,
+                            Timestamp.Get(hitObject),
+                            "Tail"
+                        );
 
                         break;
                     }
@@ -122,7 +152,9 @@ namespace MapsetVerifier.Checks.Standard.Compose
             }
         }
 
-        private static bool CouldSliderBreak(Slider slider) => MaxDistanceFromHead(slider) - slider.beatmap.DifficultySettings.GetCircleRadius() * 2 > 0;
+        private static bool CouldSliderBreak(Slider slider) =>
+            MaxDistanceFromHead(slider) - slider.beatmap.DifficultySettings.GetCircleRadius() * 2
+            > 0;
 
         private static float MaxDistanceFromHead(Slider slider)
         {

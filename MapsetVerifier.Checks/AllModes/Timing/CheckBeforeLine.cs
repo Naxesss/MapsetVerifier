@@ -15,12 +15,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             new BeatmapCheckMetadata
             {
                 // Mania doesn't have this issue since SV affects scroll speed rather than properties of objects.
-                Modes =
-                [
-                    Beatmap.Mode.Standard,
-                    Beatmap.Mode.Taiko,
-                    Beatmap.Mode.Catch
-                ],
+                Modes = [Beatmap.Mode.Standard, Beatmap.Mode.Taiko, Beatmap.Mode.Catch],
 
                 Category = "Timing",
                 Message = "Hit object is unaffected by a line very close to it.",
@@ -42,8 +37,8 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         becomes a common issue for all game modes (excluding mania since SV works differently there).
 
                         > If bpm changes, this will still keep track of the effective slider velocity, thereby preventing false positives. So if it wouldn't make a difference, it's not pointed out."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -51,24 +46,39 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             {
                 {
                     "Before",
-                    new IssueTemplate(Issue.Level.Warning, "{0} {1} is snapped {2} ms before a line which would modify its slider velocity.", "timestamp -", "object", "unsnap")
-                        .WithCause("A hit object is snapped 5 ms or less behind a timing line which would otherwise modify its slider velocity. For standard and catch this only looks at slider heads.")
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "{0} {1} is snapped {2} ms before a line which would modify its slider velocity.",
+                        "timestamp -",
+                        "object",
+                        "unsnap"
+                    ).WithCause(
+                        "A hit object is snapped 5 ms or less behind a timing line which would otherwise modify its slider velocity. For standard and catch this only looks at slider heads."
+                    )
                 },
-
                 {
                     "After",
-                    new IssueTemplate(Issue.Level.Warning, "{0} {1} is snapped {2} ms after a line which would modify its slider velocity.", "timestamp -", "object", "unsnap")
-                        .WithCause("Same as the other check, except after instead of before. Only applies to taiko.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "{0} {1} is snapped {2} ms after a line which would modify its slider velocity.",
+                        "timestamp -",
+                        "object",
+                        "unsnap"
+                    ).WithCause(
+                        "Same as the other check, except after instead of before. Only applies to taiko."
+                    )
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
         {
             foreach (var hitObject in beatmap.HitObjects)
             {
-                var type = hitObject is Circle ? "Circle" :
-                    hitObject is Slider ? "Slider head" :
-                    hitObject is HoldNote ? "Hold note" : "Spinner";
+                var type =
+                    hitObject is Circle ? "Circle"
+                    : hitObject is Slider ? "Slider head"
+                    : hitObject is HoldNote ? "Hold note"
+                    : "Spinner";
 
                 // SV in taiko and mania speed up all objects, whereas in catch and standard it only affects sliders.
                 if (hitObject is not Slider && !IsSVAffectingAR(beatmap))
@@ -90,19 +100,42 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             if (curLine == null || nextLine == null)
                 yield break;
 
-            var curEffectiveBPM = curLine.SvMult * beatmap.GetTimingLine<UninheritedLine>(time)!.bpm;
-            var nextEffectiveBPM = nextLine.SvMult * beatmap.GetTimingLine<UninheritedLine>(nextLine.Offset)!.bpm;
+            var curEffectiveBPM =
+                curLine.SvMult * beatmap.GetTimingLine<UninheritedLine>(time)!.bpm;
+            var nextEffectiveBPM =
+                nextLine.SvMult * beatmap.GetTimingLine<UninheritedLine>(nextLine.Offset)!.bpm;
 
             var deltaEffectiveBPM = curEffectiveBPM - nextEffectiveBPM;
 
             var timeDiff = nextLine.Offset - time;
 
-            if (timeDiff is > 0 and <= 5 && Math.Abs(unsnap) <= 1 && Math.Abs(deltaEffectiveBPM) > 1)
-                yield return new Issue(GetTemplate("Before"), beatmap, Timestamp.Get(time), type, $"{timeDiff:0.##}");
+            if (
+                timeDiff is > 0 and <= 5
+                && Math.Abs(unsnap) <= 1
+                && Math.Abs(deltaEffectiveBPM) > 1
+            )
+                yield return new Issue(
+                    GetTemplate("Before"),
+                    beatmap,
+                    Timestamp.Get(time),
+                    type,
+                    $"{timeDiff:0.##}"
+                );
 
             // Modes where SV affects AR would be impacted even if the object was right after the line.
-            if (IsSVAffectingAR(beatmap) && timeDiff is < 0 and >= -5 && Math.Abs(unsnap) <= 1 && Math.Abs(deltaEffectiveBPM) > 1)
-                yield return new Issue(GetTemplate("After"), beatmap, Timestamp.Get(time), type, $"{timeDiff:0.##}");
+            if (
+                IsSVAffectingAR(beatmap)
+                && timeDiff is < 0 and >= -5
+                && Math.Abs(unsnap) <= 1
+                && Math.Abs(deltaEffectiveBPM) > 1
+            )
+                yield return new Issue(
+                    GetTemplate("After"),
+                    beatmap,
+                    Timestamp.Get(time),
+                    type,
+                    $"{timeDiff:0.##}"
+                );
         }
 
         private static bool IsSVAffectingAR(Beatmap beatmap) =>

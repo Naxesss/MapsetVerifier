@@ -4,7 +4,13 @@ namespace MapsetVerifier.Snapshots.Objects
 {
     public class DiffInstance
     {
-        public DiffInstance(string diff, string section, DiffType diffType, List<string> details, DateTime snapshotCreationDate)
+        public DiffInstance(
+            string diff,
+            string section,
+            DiffType diffType,
+            List<string> details,
+            DateTime snapshotCreationDate
+        )
         {
             Section = section;
             Diff = diff;

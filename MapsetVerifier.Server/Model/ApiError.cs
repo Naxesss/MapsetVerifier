@@ -13,11 +13,7 @@ public static class ApiErrorFactory
     {
         var root = Unwrap(ex);
 
-        return new ApiError(
-            message,
-            root.Message,
-            ex.ToString()
-        );
+        return new ApiError(message, root.Message, ex.ToString());
     }
 
     private static Exception Unwrap(Exception ex)

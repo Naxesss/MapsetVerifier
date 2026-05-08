@@ -6,9 +6,7 @@ using Serilog.Context;
 
 namespace MapsetVerifier.Server.Middleware
 {
-    public class LoggingMiddleware(
-        RequestDelegate next,
-        ILogger<LoggingMiddleware> logger)
+    public class LoggingMiddleware(RequestDelegate next, ILogger<LoggingMiddleware> logger)
     {
         public async Task Invoke(HttpContext context)
         {
@@ -20,19 +18,26 @@ namespace MapsetVerifier.Server.Middleware
                 var method = request.Method;
                 var path = request.Path;
                 var query = request.QueryString.HasValue ? request.QueryString.Value : "";
-                
+
                 logger.LogDebug("[IN ] {Method} {Path}{Query}", method, path, query);
                 var sw = Stopwatch.StartNew();
                 await next(context);
                 sw.Stop();
-                logger.LogDebug("[OUT] {Method} {StatusCode} {Path}{Query} ({Elapsed}ms)", method, context.Response.StatusCode, path, query, sw.ElapsedMilliseconds);
+                logger.LogDebug(
+                    "[OUT] {Method} {StatusCode} {Path}{Query} ({Elapsed}ms)",
+                    method,
+                    context.Response.StatusCode,
+                    path,
+                    query,
+                    sw.ElapsedMilliseconds
+                );
             }
         }
     }
 
     public static class RequestResponseLoggingMiddlewareExtensions
     {
-        public static IApplicationBuilder UseRequestResponseLogging(this IApplicationBuilder app)
-            => app.UseMiddleware<LoggingMiddleware>();
+        public static IApplicationBuilder UseRequestResponseLogging(this IApplicationBuilder app) =>
+            app.UseMiddleware<LoggingMiddleware>();
     }
 }

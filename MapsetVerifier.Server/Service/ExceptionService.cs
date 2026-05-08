@@ -12,9 +12,13 @@ public static class ExceptionService
         // Unwind AggregateException to get the most meaningful error
         while (printedException is AggregateException aggregateException && depth < 10) // Safety limit
         {
-            Console.WriteLine($"Unwinding AggregateException at depth {depth}: {aggregateException.Message}");
-            Console.WriteLine($"Inner exceptions count: {aggregateException.InnerExceptions.Count}");
-        
+            Console.WriteLine(
+                $"Unwinding AggregateException at depth {depth}: {aggregateException.Message}"
+            );
+            Console.WriteLine(
+                $"Inner exceptions count: {aggregateException.InnerExceptions.Count}"
+            );
+
             if (aggregateException.InnerExceptions.Count == 1)
             {
                 // Single inner exception - use it directly

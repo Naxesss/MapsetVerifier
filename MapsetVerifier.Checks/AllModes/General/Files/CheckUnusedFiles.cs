@@ -43,8 +43,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
                         
                         ![](https://i.imgur.com/TnXmgt9.png)
                         Spreadsheet over which scorebar elements are used. Only consistent regardless of user settings when both marker and ki elements exist."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -52,15 +52,21 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
             {
                 {
                     "Unused",
-                    new IssueTemplate(Issue.Level.Problem, "\"{0}\"", "path")
-                        .WithCause("A file in the song folder is not used in any of the .osu or .osb files. Includes unused .osb files. Ignores thumbs.db.")
+                    new IssueTemplate(Issue.Level.Problem, "\"{0}\"", "path").WithCause(
+                        "A file in the song folder is not used in any of the .osu or .osb files. Includes unused .osb files. Ignores thumbs.db."
+                    )
                 },
-
                 {
                     "Unused Overridden",
-                    new IssueTemplate(Issue.Level.Problem, "\"{0}\", likely due to \"{1}\" being used instead.", "path", "path with different extension")
-                        .WithCause("Same as the other check, but where a file with the same name is used.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "\"{0}\", likely due to \"{1}\" being used instead.",
+                        "path",
+                        "path with different extension"
+                    ).WithCause(
+                        "Same as the other check, but where a file with the same name is used."
+                    )
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
@@ -74,10 +80,17 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
                     continue;
 
                 var fileName = PathStatic.ParsePath(fileNameWithExtension, true);
-                var otherFilePath = beatmapSet.HitSoundFiles.FirstOrDefault(file => file.StartsWith(fileName + "."));
+                var otherFilePath = beatmapSet.HitSoundFiles.FirstOrDefault(file =>
+                    file.StartsWith(fileName + ".")
+                );
 
                 if (otherFilePath != null)
-                    yield return new Issue(GetTemplate("Unused Overridden"), null, filePath, otherFilePath);
+                    yield return new Issue(
+                        GetTemplate("Unused Overridden"),
+                        null,
+                        filePath,
+                        otherFilePath
+                    );
                 else
                     yield return new Issue(GetTemplate("Unused"), null, filePath);
             }

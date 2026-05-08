@@ -34,8 +34,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
                         MP3 often has an inherent delay, which is why it isn't allowed in active hit sounding. In audio 
                         files, however, this delay can be counteracted with offset."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -43,21 +43,33 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             {
                 {
                     "Incorrect Format",
-                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" is using the {1} format. Song audio files must be in either MP3 or OGG format. (Note: extension ≠ format.)", "path", "actual format")
-                        .WithCause("A song audio file is not using the MP3 format.")
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "\"{0}\" is using the {1} format. Song audio files must be in either MP3 or OGG format. (Note: extension ≠ format.)",
+                        "path",
+                        "actual format"
+                    ).WithCause("A song audio file is not using the MP3 format.")
                 },
-
                 {
                     "Incorrect Extension",
-                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" is using the {1} format, but doesn't use the {2} extension.", "path", "actual format", "expected extension")
-                        .WithCause("A song audio file is using an incorrect extension.")
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "\"{0}\" is using the {1} format, but doesn't use the {2} extension.",
+                        "path",
+                        "actual format",
+                        "expected extension"
+                    ).WithCause("A song audio file is using an incorrect extension.")
                 },
-
                 {
                     "Exception",
-                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path")
-                        .WithCause("An error occurred trying to check the format of a song audio file.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Error,
+                        Common.FILE_EXCEPTION_MESSAGE,
+                        "path"
+                    ).WithCause(
+                        "An error occurred trying to check the format of a song audio file."
+                    )
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
@@ -86,13 +98,28 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                 yield return new Issue(GetTemplate("Exception"), null, audioName);
             }
             else if (actualFormat != ChannelType.MP3 && actualFormat != ChannelType.OGG)
-                yield return new Issue(GetTemplate("Incorrect Format"), null, audioName, AudioBASS.EnumToString(actualFormat));
-
+                yield return new Issue(
+                    GetTemplate("Incorrect Format"),
+                    null,
+                    audioName,
+                    AudioBASS.EnumToString(actualFormat)
+                );
             else if (!audioName.ToLower().EndsWith(".mp3") && actualFormat == ChannelType.MP3)
-                yield return new Issue(GetTemplate("Incorrect Extension"), null, audioName, AudioBASS.EnumToString(actualFormat), ".mp3");
-
+                yield return new Issue(
+                    GetTemplate("Incorrect Extension"),
+                    null,
+                    audioName,
+                    AudioBASS.EnumToString(actualFormat),
+                    ".mp3"
+                );
             else if (!audioName.ToLower().EndsWith(".ogg") && actualFormat == ChannelType.OGG)
-                yield return new Issue(GetTemplate("Incorrect Extension"), null, audioName, AudioBASS.EnumToString(actualFormat), ".ogg");
+                yield return new Issue(
+                    GetTemplate("Incorrect Extension"),
+                    null,
+                    audioName,
+                    AudioBASS.EnumToString(actualFormat),
+                    ".ogg"
+                );
         }
     }
 }

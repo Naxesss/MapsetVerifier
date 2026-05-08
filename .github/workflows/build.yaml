@@ -17,6 +17,10 @@ jobs:
           dotnet-version: '9.x'
       - name: Build .NET solution
         run: dotnet build MapsetVerifier.sln -c Release
+      - name: Restore tools
+        run: dotnet tool restore
+      - name: Run csharpier
+        run: dotnet csharpier check .
       - name: Run .NET solution tests
         run: dotnet test MapsetVerifier.sln -c Release --logger "trx;LogFileName=test-results.trx" --results-directory TestResults
       - name: Upload test results

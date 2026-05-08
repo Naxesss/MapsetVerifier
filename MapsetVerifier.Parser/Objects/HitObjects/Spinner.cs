@@ -6,13 +6,15 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
     {
         public readonly double endTime;
 
-        public Spinner(string[] args, Beatmap beatmap) : base(args, beatmap)
+        public Spinner(string[] args, Beatmap beatmap)
+            : base(args, beatmap)
         {
             endTime = GetEndTime(args);
 
             usedHitSamples = GetUsedHitSamples().ToList();
         }
 
-        private double GetEndTime(string[] args) => double.Parse(args[5], CultureInfo.InvariantCulture);
+        private double GetEndTime(string[] args) =>
+            double.Parse(args[5], CultureInfo.InvariantCulture);
     }
 }

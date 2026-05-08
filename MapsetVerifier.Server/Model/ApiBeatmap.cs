@@ -9,14 +9,18 @@ public readonly struct ApiBeatmap(
     string creator,
     string beatmapId,
     string beatmapSetId,
-    string backgroundPath)
+    string backgroundPath
+)
 {
     public string Folder { get; } = folder;
     public string Title { get; } = title;
     public string Artist { get; } = artist;
     public string Creator { get; } = creator;
-    [JsonPropertyName("beatmapID")] public string BeatmapId { get; } = beatmapId;
-    [JsonPropertyName("beatmapSetID")] public string BeatmapSetId { get; } = beatmapSetId;
+
+    [JsonPropertyName("beatmapID")]
+    public string BeatmapId { get; } = beatmapId;
+
+    [JsonPropertyName("beatmapSetID")]
+    public string BeatmapSetId { get; } = beatmapSetId;
     public string BackgroundPath { get; } = backgroundPath;
 }
-

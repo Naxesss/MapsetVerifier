@@ -5,4 +5,3 @@
         public string Folder { get; set; } = string.Empty;
     }
 }
-

@@ -35,8 +35,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
                         Note that this applies only to beatmapsets where **all** beatmaps exclude the last portion of the audio. If **any** 
                         uses it, then the audio does not need to be cut."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -44,21 +44,32 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             {
                 {
                     "Without Video/Storyboard",
-                    new IssueTemplate(Issue.Level.Warning, "Currently {0}% unused audio. Ensure the outro significantly contributes to the song, otherwise cut the outro.", "percent")
-                        .WithCause("The amount of time after the last object exceeds 20% of the length of the audio file. No storyboard or video is present.")
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "Currently {0}% unused audio. Ensure the outro significantly contributes to the song, otherwise cut the outro.",
+                        "percent"
+                    ).WithCause(
+                        "The amount of time after the last object exceeds 20% of the length of the audio file. No storyboard or video is present."
+                    )
                 },
-
                 {
                     "With Video/Storyboard",
-                    new IssueTemplate(Issue.Level.Warning, "Currently {0}% unused audio. Ensure the outro either significantly contributes to the song, or is being occupied by the video or storyboard, otherwise cut the outro.", "percent")
-                        .WithCause("Same as the other check, except with a storyboard or video present.")
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "Currently {0}% unused audio. Ensure the outro either significantly contributes to the song, or is being occupied by the video or storyboard, otherwise cut the outro.",
+                        "percent"
+                    ).WithCause(
+                        "Same as the other check, except with a storyboard or video present."
+                    )
                 },
-
                 {
                     "Unable to check",
-                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path")
-                        .WithCause("There was an error parsing the audio file.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Error,
+                        Common.FILE_EXCEPTION_MESSAGE,
+                        "path"
+                    ).WithCause("There was an error parsing the audio file.")
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
@@ -69,7 +80,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             {
                 var hasVideo = beatmap.Videos.Count > 0;
 
-                var hasStoryboard = beatmap.HasDifficultySpecificStoryboard() || (beatmapSet.Osb?.IsUsed() ?? false);
+                var hasStoryboard =
+                    beatmap.HasDifficultySpecificStoryboard()
+                    || (beatmapSet.Osb?.IsUsed() ?? false);
 
                 var audioPath = beatmap.GetAudioFilePath();
 
@@ -90,7 +103,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
                 if (exception != null)
                 {
-                    yield return new Issue(GetTemplate("Unable to check"), null, PathStatic.RelativePath(audioPath, beatmap.SongPath));
+                    yield return new Issue(
+                        GetTemplate("Unable to check"),
+                        null,
+                        PathStatic.RelativePath(audioPath, beatmap.SongPath)
+                    );
 
                     continue;
                 }
@@ -111,8 +128,10 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
                 foreach (var usage in audioUsage[audioPath])
                 {
-                    if (usage.fraction > maxFraction) maxFraction = usage.fraction;
-                    if (usage.hasVideoOrSb) anyHasVideoOrSb = true;
+                    if (usage.fraction > maxFraction)
+                        maxFraction = usage.fraction;
+                    if (usage.hasVideoOrSb)
+                        anyHasVideoOrSb = true;
                 }
 
                 if (maxFraction > 0.8d)
@@ -120,7 +139,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
                 var templateKey = (anyHasVideoOrSb ? "With" : "Without") + " Video/Storyboard";
 
-                yield return new Issue(GetTemplate(templateKey), null, $"{(1 - maxFraction) * 100:0.##}");
+                yield return new Issue(
+                    GetTemplate(templateKey),
+                    null,
+                    $"{(1 - maxFraction) * 100:0.##}"
+                );
             }
         }
 

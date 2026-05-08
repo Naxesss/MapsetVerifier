@@ -37,8 +37,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         "Example",
                         @"
                         soft-hitnormal.wav is shorter than 25 ms (2.95 ms) in https://osu.ppy.sh/beatmapsets/1527, see 00:25:880 (1) - . Set music to 0% and effect to 100% for clarity."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -46,15 +46,21 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             {
                 {
                     "Length",
-                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" is shorter than 25 ms ({1} ms).", "path", "length")
-                        .WithCause("A hit sound file is shorter than 25 ms and longer than 0 ms.")
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "\"{0}\" is shorter than 25 ms ({1} ms).",
+                        "path",
+                        "length"
+                    ).WithCause("A hit sound file is shorter than 25 ms and longer than 0 ms.")
                 },
-
                 {
                     "Unable to check",
-                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path")
-                        .WithCause("There was an error parsing a hit sound file.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Error,
+                        Common.FILE_EXCEPTION_MESSAGE,
+                        "path"
+                    ).WithCause("There was an error parsing a hit sound file.")
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
@@ -79,7 +85,12 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                 {
                     // Greater than 0 since 44-byte muted hit sounds are fine.
                     if (duration < 25 && duration > 0)
-                        yield return new Issue(GetTemplate("Length"), null, hsFile, $"{duration:0.##}");
+                        yield return new Issue(
+                            GetTemplate("Length"),
+                            null,
+                            hsFile,
+                            $"{duration:0.##}"
+                        );
                 }
                 else
                 {

@@ -9,8 +9,8 @@ public static class GeneralUtils
     /// <param name="range">The range tolerance.</param>
     /// <param name="of">The target value to check against.</param>
     /// <returns>True if the number is within the range, otherwise false.</returns>
-    public static bool IsWithin(this double num, double range, double of)
-        => num <= of + range && num >= of - range;
+    public static bool IsWithin(this double num, double range, double of) =>
+        num <= of + range && num >= of - range;
 
     /// <summary>
     ///     Adds a range of keys to the dictionary with the specified value.
@@ -20,7 +20,12 @@ public static class GeneralUtils
     /// <param name="dictionary">The dictionary to add keys to.</param>
     /// <param name="keys">The collection of keys to add.</param>
     /// <param name="value">The value to associate with all keys.</param>
-    public static void AddRange<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, IEnumerable<TKey> keys, TValue value) where TKey : notnull
+    public static void AddRange<TKey, TValue>(
+        this Dictionary<TKey, TValue> dictionary,
+        IEnumerable<TKey> keys,
+        TValue value
+    )
+        where TKey : notnull
     {
         foreach (var key in keys)
             dictionary.Add(key, value);
@@ -34,7 +39,12 @@ public static class GeneralUtils
     /// <param name="dictionary">The dictionary to add keys to.</param>
     /// <param name="keys">The collection of keys to add.</param>
     /// <param name="valueFactory">The factory function to generate values for each key.</param>
-    public static void AddRange<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, IEnumerable<TKey> keys, Func<TValue> valueFactory) where TKey : notnull
+    public static void AddRange<TKey, TValue>(
+        this Dictionary<TKey, TValue> dictionary,
+        IEnumerable<TKey> keys,
+        Func<TValue> valueFactory
+    )
+        where TKey : notnull
     {
         foreach (var key in keys)
             dictionary.Add(key, valueFactory());
@@ -47,8 +57,8 @@ public static class GeneralUtils
     /// <param name="collection">The collection to get the element from.</param>
     /// <param name="index">The zero-based index of the element to get.</param>
     /// <returns>The element at the specified index, or the default value if the index is out of range.</returns>
-    public static T? SafeGetIndex<T>(this List<T> collection, int index)
-        => index >= 0 && index < collection.Count ? collection[index] : default;
+    public static T? SafeGetIndex<T>(this List<T> collection, int index) =>
+        index >= 0 && index < collection.Count ? collection[index] : default;
 
     /// <summary>
     ///     Returns the value with the lower absolute value between two values.

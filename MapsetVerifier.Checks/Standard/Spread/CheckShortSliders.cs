@@ -13,14 +13,8 @@ namespace MapsetVerifier.Checks.Standard.Spread
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
-                Modes =
-                [
-                    Beatmap.Mode.Standard
-                ],
-                Difficulties =
-                [
-                    Beatmap.Difficulty.Easy
-                ],
+                Modes = [Beatmap.Mode.Standard],
+                Difficulties = [Beatmap.Difficulty.Easy],
                 Category = "Spread",
                 Message = "Too short sliders.",
                 Author = "Naxess",
@@ -39,8 +33,8 @@ namespace MapsetVerifier.Checks.Standard.Spread
                         the action of pressing the slider and very shortly afterwards letting it go will sometimes be difficult to 
                         handle. The action of lifting a key is similar in difficulty to pressing a key for newer players. So any 
                         distance in time you wouldn't place circles apart, you shouldn't place slider head and tail apart either."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -48,9 +42,14 @@ namespace MapsetVerifier.Checks.Standard.Spread
             {
                 {
                     "Too Short",
-                    new IssueTemplate(Issue.Level.Warning, "{0} {1} ms, expected at least {2}.", "timestamp -", "duration", "threshold")
-                        .WithCause("A slider in an Easy difficulty is less than 125 ms (240 bpm 1/2).")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "{0} {1} ms, expected at least {2}.",
+                        "timestamp -",
+                        "duration",
+                        "threshold"
+                    ).WithCause("A slider in an Easy difficulty is less than 125 ms (240 bpm 1/2).")
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
@@ -60,7 +59,13 @@ namespace MapsetVerifier.Checks.Standard.Spread
 
             foreach (var slider in beatmap.HitObjects.OfType<Slider>())
                 if (slider.EndTime - slider.time < timeThreshold)
-                    yield return new Issue(GetTemplate("Too Short"), beatmap, Timestamp.Get(slider), $"{slider.EndTime - slider.time:0.##}", timeThreshold);
+                    yield return new Issue(
+                        GetTemplate("Too Short"),
+                        beatmap,
+                        Timestamp.Get(slider),
+                        $"{slider.EndTime - slider.time:0.##}",
+                        timeThreshold
+                    );
         }
     }
 }

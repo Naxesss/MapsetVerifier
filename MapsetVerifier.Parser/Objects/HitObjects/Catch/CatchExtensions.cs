@@ -11,19 +11,24 @@ public static class CatchExtensions
     /// <param name="beatmap">The beatmap we want to get the CatchHitObjects for.</param>
     /// <param name="includeJuiceStreamParts">When true it adds all slider parts as seperate objects to the result list.</param>
     /// <returns>A list containing all catch hit objects.</returns>
-    public static List<ICatchHitObject> GetCatchHitObjects(this Beatmap? beatmap, bool includeJuiceStreamParts)
+    public static List<ICatchHitObject> GetCatchHitObjects(
+        this Beatmap? beatmap,
+        bool includeJuiceStreamParts
+    )
     {
-        if (beatmap == null) return [];
-        
+        if (beatmap == null)
+            return [];
+
         var result = new List<ICatchHitObject>();
-        
+
         foreach (var obj in beatmap.HitObjects)
         {
             // This should not be possible but check to be sure.
-            if (obj is not ICatchHitObject catchHitObject) continue;
-            
+            if (obj is not ICatchHitObject catchHitObject)
+                continue;
+
             result.Add(catchHitObject);
-                
+
             if (includeJuiceStreamParts && catchHitObject is JuiceStream juiceStream)
             {
                 result.AddRange(juiceStream.Parts);
@@ -32,7 +37,7 @@ public static class CatchExtensions
 
         return result;
     }
-    
+
     public static string GetTimestamps(params ICatchHitObject?[] input)
     {
         var timestampObjects = new List<ICatchHitObject>();
@@ -53,10 +58,7 @@ public static class CatchExtensions
             }
         }
 
-        var uniqueTimestamps = timestampObjects
-            .Cast<HitObject>()
-            .Distinct()
-            .ToArray();
+        var uniqueTimestamps = timestampObjects.Cast<HitObject>().Distinct().ToArray();
 
         return Timestamp.Get(uniqueTimestamps);
     }
@@ -70,31 +72,47 @@ public static class CatchExtensions
         return timingLine?.GetScaledBpm() ?? 0f;
     }
 
-    public static float GetCurrentTriggerDistance(this ICatchHitObject current, ICatchHitObject? next)
+    public static float GetCurrentTriggerDistance(
+        this ICatchHitObject current,
+        ICatchHitObject? next
+    )
     {
         return GetTriggerDistance(current, next) / current.DistanceToHyper;
     }
 
     public static float GetTriggerDistance(this ICatchHitObject current, ICatchHitObject? next)
     {
-        return GetTriggerDistance(current, next, CatchMovementType.Hyperdash, current.DistanceToHyper);
+        return GetTriggerDistance(
+            current,
+            next,
+            CatchMovementType.Hyperdash,
+            current.DistanceToHyper
+        );
     }
-        
-    private static float GetTriggerDistance(ICatchHitObject current, ICatchHitObject? next, CatchMovementType movementType, float distanceTo)
+
+    private static float GetTriggerDistance(
+        ICatchHitObject current,
+        ICatchHitObject? next,
+        CatchMovementType movementType,
+        float distanceTo
+    )
     {
-        if (current.MovementType != movementType) return 0f;
-        
+        if (current.MovementType != movementType)
+            return 0f;
+
         // No target means no distance to calculate.
-        if (next == null) return 0f;
+        if (next == null)
+            return 0f;
 
         var xDistance = current.NoteDirection switch
         {
             CatchNoteDirection.Left => current.Position.X - next.Position.X,
             CatchNoteDirection.Right => next.Position.X - current.Position.X,
-            _ => 0f
+            _ => 0f,
         };
 
-        if (xDistance > 0f) return xDistance - Math.Abs(distanceTo);
+        if (xDistance > 0f)
+            return xDistance - Math.Abs(distanceTo);
 
         return 0f;
     }
@@ -111,7 +129,11 @@ public static class CatchExtensions
     /// <param name="next">The next object that follows</param>
     /// <param name="difficulty">The difficulty we want to check for</param>
     /// <returns>True if the origin object is higher-snapped</returns>
-    public static bool IsHigherSnapped(this ICatchHitObject current, ICatchHitObject next, Beatmap.Difficulty difficulty)
+    public static bool IsHigherSnapped(
+        this ICatchHitObject current,
+        ICatchHitObject next,
+        Beatmap.Difficulty difficulty
+    )
     {
         var ms = next.Time - current.Time;
 
@@ -133,9 +155,9 @@ public static class CatchExtensions
                 return false;
         }
     }
-    
+
     private const double SnapMargin = 4.0;
-    
+
     /// <summary>
     /// Check if the current object is the same snap as the other object.
     /// There is a snap margin of 4 ms since objects can be at most 2 ms off before they are detected by MV.
@@ -145,7 +167,7 @@ public static class CatchExtensions
     {
         var timeToB = b.Time - a.Time;
         var timeToC = c.Time - b.Time;
-        
+
         var snapMin = timeToB - SnapMargin;
         var snapMax = timeToB + SnapMargin;
 

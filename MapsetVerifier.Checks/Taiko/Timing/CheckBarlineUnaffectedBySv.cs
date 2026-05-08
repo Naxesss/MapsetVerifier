@@ -3,7 +3,6 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
-
 using static MapsetVerifier.Checks.Utils.TaikoUtils;
 
 namespace MapsetVerifier.Checks.Taiko.Timing
@@ -33,8 +32,8 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         "Reasoning",
                         @"
                     Barlines before a timing line (even if just by 1 ms or less), will not be affected by its slider velocity. With 1 ms unsnaps being common due to rounding errors when copy-pasting, this in turn becomes a common issue."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -42,7 +41,6 @@ namespace MapsetVerifier.Checks.Taiko.Timing
             {
                 {
                     Warning,
-
                     new IssueTemplate(
                         Issue.Level.Warning,
                         "{0} Barline is snapped {1} ms before a line which would modify its slider velocity.",
@@ -52,13 +50,12 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                 },
                 {
                     RoundingErrorWarning,
-
                     new IssueTemplate(
                         Issue.Level.Warning,
                         "{0} Barline may not have slider velocity properly applied due to rounding error. Double-check manually.",
                         "timestamp -"
                     ).WithCause("Rounding error.")
-                }
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
@@ -69,19 +66,19 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                 if (unsnapMs < 0d && unsnapMs > -Common.ROUNDING_ERROR_MARGIN)
                 {
                     yield return new Issue(
-                       GetTemplate(RoundingErrorWarning),
-                       beatmap,
-                       Timestamp.Get(svChange.Offset - unsnapMs)
-                   );
+                        GetTemplate(RoundingErrorWarning),
+                        beatmap,
+                        Timestamp.Get(svChange.Offset - unsnapMs)
+                    );
                 }
                 else if (unsnapMs < 0d && unsnapMs >= -ThresholdMs)
                 {
                     yield return new Issue(
-                       GetTemplate(Warning),
-                       beatmap,
-                       Timestamp.Get(svChange.Offset - unsnapMs),
-                       $"{Math.Abs(unsnapMs):0.##}"
-                   );
+                        GetTemplate(Warning),
+                        beatmap,
+                        Timestamp.Get(svChange.Offset - unsnapMs),
+                        $"{Math.Abs(unsnapMs):0.##}"
+                    );
                 }
             }
         }

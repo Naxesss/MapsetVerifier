@@ -9,51 +9,65 @@ namespace MapsetVerifier.Checks.Catch.Compose
     [Check]
     public class CheckHasHyperdash : BeatmapCheck
     {
-        public override CheckMetadata GetMetadata() => new BeatmapCheckMetadata
-        {
-            Category = "Compose",
-            Message = "Contains hyperdashes.",
-            Modes = new[] { Beatmap.Mode.Catch },
-            Difficulties = new [] { Beatmap.Difficulty.Easy, Beatmap.Difficulty.Normal, Beatmap.Difficulty.Hard },
-            Author = "Greaper",
-
-            Documentation = new Dictionary<string, string>
+        public override CheckMetadata GetMetadata() =>
+            new BeatmapCheckMetadata
             {
+                Category = "Compose",
+                Message = "Contains hyperdashes.",
+                Modes = new[] { Beatmap.Mode.Catch },
+                Difficulties = new[]
                 {
-                    "Purpose",
-                    @"
+                    Beatmap.Difficulty.Easy,
+                    Beatmap.Difficulty.Normal,
+                    Beatmap.Difficulty.Hard,
+                },
+                Author = "Greaper",
+
+                Documentation = new Dictionary<string, string>
+                {
+                    {
+                        "Purpose",
+                        @"
                     Hyperdashes are not allowed in Cups and Salads.
 
                     In Platters they can't be used on drops or slider repetitions."
-                },
-                {
-                    "Reasoning",
-                    @"
+                    },
+                    {
+                        "Reasoning",
+                        @"
                     Platter is the first difficulty where a hyperdash is introduced. This is to ensure a manageable step in difficulty for novice players.
 
                     Only simple hyperdashes are allowed in a Platter given more advanced patterning requires accuracy and control."
-                }
-            }
-        };
-        
+                    },
+                },
+            };
+
         public override Dictionary<string, IssueTemplate> GetTemplates()
         {
             return new Dictionary<string, IssueTemplate>
             {
-                { "Hyperdash",
-                    new IssueTemplate(Issue.Level.Problem,
-                            "{0} {1} is a hyperdash.",
-                            "timestamp -", "object")
-                        .WithCause(
-                            "Distance between the two objects is too high, triggering a hyperdash distance")
+                {
+                    "Hyperdash",
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "{0} {1} is a hyperdash.",
+                        "timestamp -",
+                        "object"
+                    ).WithCause(
+                        "Distance between the two objects is too high, triggering a hyperdash distance"
+                    )
                 },
-                { "HyperdashSliderPart",
-                    new IssueTemplate(Issue.Level.Problem,
-                            "{0} Slider hyperdash on {1}.",
-                            "timestamp -", "object")
-                        .WithCause(
-                            "Distance between the two objects is too high, triggering a hyperdash distance")
-                }
+                {
+                    "HyperdashSliderPart",
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "{0} Slider hyperdash on {1}.",
+                        "timestamp -",
+                        "object"
+                    ).WithCause(
+                        "Distance between the two objects is too high, triggering a hyperdash distance"
+                    )
+                },
             };
         }
 
@@ -86,7 +100,7 @@ namespace MapsetVerifier.Checks.Catch.Compose
                     {
                         continue;
                     }
-                    
+
                     yield return new Issue(
                         GetTemplate("HyperdashSliderPart"),
                         beatmap,

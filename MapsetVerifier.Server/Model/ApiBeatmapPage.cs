@@ -4,7 +4,8 @@ public readonly struct ApiBeatmapPage(
     IEnumerable<ApiBeatmap> items,
     int page,
     int pageSize,
-    bool hasMore)
+    bool hasMore
+)
 {
     public IEnumerable<ApiBeatmap> Items { get; } = items;
     public int Page { get; } = page;

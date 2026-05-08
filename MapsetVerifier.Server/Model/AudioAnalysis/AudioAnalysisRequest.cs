@@ -9,7 +9,7 @@ public class AudioAnalysisRequest
     /// The folder path of the beatmap set to analyze.
     /// </summary>
     public string BeatmapSetFolder { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Optional: Specific audio file path relative to the beatmap folder.
     /// If not provided, the main audio file will be analyzed.
@@ -74,4 +74,3 @@ public class FrequencyAnalysisRequest
     /// </summary>
     public int FftSize { get; set; } = 4096;
 }
-

@@ -9,38 +9,42 @@ namespace MapsetVerifier.Checks.Catch.Compose.Platter;
 [Check]
 public class CheckPlatterHigherSnappedHyperdash : BeatmapCheck
 {
-    public override CheckMetadata GetMetadata() => new BeatmapCheckMetadata
-    {
-        Category = "Compose",
-        Message = "Higher-snapped hyperdash.",
-        Modes = [Beatmap.Mode.Catch],
-        Difficulties = [Beatmap.Difficulty.Hard],
-        Author = "Greaper",
-
-        Documentation = new Dictionary<string, string>
+    public override CheckMetadata GetMetadata() =>
+        new BeatmapCheckMetadata
         {
+            Category = "Compose",
+            Message = "Higher-snapped hyperdash.",
+            Modes = [Beatmap.Mode.Catch],
+            Difficulties = [Beatmap.Difficulty.Hard],
+            Author = "Greaper",
+
+            Documentation = new Dictionary<string, string>
             {
-                "Purpose",
-                @"
+                {
+                    "Purpose",
+                    @"
                 Higher-snapped hyperdashes should not be followed by antiflow patterns."
-            },
-            {
-                "Reason",
-                @"
+                },
+                {
+                    "Reason",
+                    @"
                 When a higher-snapped hyperdash is followed by an antiflow pattern (a walk in the opposite direction), it can create a harsh experience for players. Given that Platters introduce hyperdashes they should be used thoughtfully."
-            }
-        }
-    };
+                },
+            },
+        };
 
     public override Dictionary<string, IssueTemplate> GetTemplates()
     {
         return new Dictionary<string, IssueTemplate>
         {
-            { "HigherSnapFollowedByAntiFlow",
-                new IssueTemplate(Issue.Level.Warning,
-                        "{0} Higher-snapped hyperdashes followed by antiflow.",
-                        "timestamp -")
-            }
+            {
+                "HigherSnapFollowedByAntiFlow",
+                new IssueTemplate(
+                    Issue.Level.Warning,
+                    "{0} Higher-snapped hyperdashes followed by antiflow.",
+                    "timestamp -"
+                )
+            },
         };
     }
 
@@ -54,17 +58,21 @@ public class CheckPlatterHigherSnappedHyperdash : BeatmapCheck
             var next = catchObjects[i + 1];
 
             // Only higher-snapped hyperdashes are relevant for this check.
-            if (current.MovementType != CatchMovementType.Hyperdash)continue;// || !current.IsHigherSnapped(next, Beatmap.Difficulty.Hard)) continue;
+            if (current.MovementType != CatchMovementType.Hyperdash)
+                continue; // || !current.IsHigherSnapped(next, Beatmap.Difficulty.Hard)) continue;
 
             // No need to check for dashes or hyperdashes as they are covered in other checks.
             if (next.MovementType == CatchMovementType.Walk)
             {
                 // Only direction changes are classified as antiflow patterns.
-                if (current.NoteDirection == CatchNoteDirection.None || current.NoteDirection == next.NoteDirection)
+                if (
+                    current.NoteDirection == CatchNoteDirection.None
+                    || current.NoteDirection == next.NoteDirection
+                )
                 {
                     continue;
                 }
-                        
+
                 // Hyperdashes that are higher-snapped should not be followed by antiflow patterns.
                 yield return new Issue(
                     GetTemplate("HigherSnapFollowedByAntiFlow"),

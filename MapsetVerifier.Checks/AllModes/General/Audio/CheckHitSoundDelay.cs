@@ -50,8 +50,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         so copying this and using as a custom sample is acceptable.
                         ![](https://i.imgur.com/W9yJiV6.png)
                         A spectrogram of the default `normal-hitfinish.wav`."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -59,27 +59,47 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             {
                 {
                     "Pure Delay",
-                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" has a {1} ms period of complete silence at the start.", "path", "pure delay")
-                        .WithCause("A hit sound file used on an active hit object has a definite delay (complete silence) of at least 5 ms.")
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "\"{0}\" has a {1} ms period of complete silence at the start.",
+                        "path",
+                        "pure delay"
+                    ).WithCause(
+                        "A hit sound file used on an active hit object has a definite delay (complete silence) of at least 5 ms."
+                    )
                 },
-
                 {
                     "Delay",
-                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" has a delay of ~{2} ms, of which {1} ms is complete silence. (Active at e.g. {3} in {4}.)", "path", "pure delay", "delay", "timestamp", "difficulty")
-                        .WithCause("A hit sound file used on an active hit object has very low volume for ~5 ms or more.")
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "\"{0}\" has a delay of ~{2} ms, of which {1} ms is complete silence. (Active at e.g. {3} in {4}.)",
+                        "path",
+                        "pure delay",
+                        "delay",
+                        "timestamp",
+                        "difficulty"
+                    ).WithCause(
+                        "A hit sound file used on an active hit object has very low volume for ~5 ms or more."
+                    )
                 },
-
                 {
                     "Minor Delay",
-                    new IssueTemplate(Issue.Level.Minor, "\"{0}\" has a delay of ~{2} ms, of which {1} ms is complete silence.", "path", "pure delay", "delay")
-                        .WithCause("Same as the regular delay, except anything between 1 to 5 ms.")
+                    new IssueTemplate(
+                        Issue.Level.Minor,
+                        "\"{0}\" has a delay of ~{2} ms, of which {1} ms is complete silence.",
+                        "path",
+                        "pure delay",
+                        "delay"
+                    ).WithCause("Same as the regular delay, except anything between 1 to 5 ms.")
                 },
-
                 {
                     "Unable to check",
-                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path")
-                        .WithCause("There was an error parsing a hit sound file.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Error,
+                        Common.FILE_EXCEPTION_MESSAGE,
+                        "path"
+                    ).WithCause("There was an error parsing a hit sound file.")
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
@@ -138,13 +158,30 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                     }
 
                     if (pureDelay >= 5)
-                        yield return new Issue(GetTemplate("Pure Delay"), null, hsFile, $"{pureDelay:0.##}");
-
+                        yield return new Issue(
+                            GetTemplate("Pure Delay"),
+                            null,
+                            hsFile,
+                            $"{pureDelay:0.##}"
+                        );
                     else if (delay + pureDelay >= 5)
-                        yield return new Issue(GetTemplate("Delay"), null, hsFile, $"{pureDelay:0.##}", $"{delay:0.##}", Timestamp.Get(hitObjectActiveAt), hitObjectActiveAt.beatmap);
-
+                        yield return new Issue(
+                            GetTemplate("Delay"),
+                            null,
+                            hsFile,
+                            $"{pureDelay:0.##}",
+                            $"{delay:0.##}",
+                            Timestamp.Get(hitObjectActiveAt),
+                            hitObjectActiveAt.beatmap
+                        );
                     else if (delay + pureDelay >= 1)
-                        yield return new Issue(GetTemplate("Minor Delay"), null, hsFile, $"{pureDelay:0.##}", $"{delay:0.##}");
+                        yield return new Issue(
+                            GetTemplate("Minor Delay"),
+                            null,
+                            hsFile,
+                            $"{pureDelay:0.##}",
+                            $"{delay:0.##}"
+                        );
                 }
                 else
                 {
@@ -157,15 +194,21 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
         private static HitObject? GetHitObjectActiveAt(BeatmapSet beatmapSet, string hitSoundFile)
         {
             foreach (var beatmap in beatmapSet.Beatmaps)
-                foreach (var hitObject in beatmap.HitObjects)
-                {
-                    if (hitObject is Spinner)
-                        continue;
+            foreach (var hitObject in beatmap.HitObjects)
+            {
+                if (hitObject is Spinner)
+                    continue;
 
-                    // Only the edge at which the object is clicked is considered active.
-                    if (hitObject.usedHitSamples.Any(sample => sample.Time.AlmostEqual(hitObject.time) && sample.HitSource == HitSample.HitSourceType.Edge && sample.SameFileName(hitSoundFile)))
-                        return hitObject;
-                }
+                // Only the edge at which the object is clicked is considered active.
+                if (
+                    hitObject.usedHitSamples.Any(sample =>
+                        sample.Time.AlmostEqual(hitObject.time)
+                        && sample.HitSource == HitSample.HitSourceType.Edge
+                        && sample.SameFileName(hitSoundFile)
+                    )
+                )
+                    return hitObject;
+            }
 
             return null;
         }

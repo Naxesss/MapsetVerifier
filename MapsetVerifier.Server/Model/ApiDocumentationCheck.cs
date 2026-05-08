@@ -9,7 +9,8 @@ public readonly struct ApiDocumentationCheck(
     string category,
     Beatmap.Mode[] modes,
     string author,
-    IEnumerable<Issue.Level> outcomes)
+    IEnumerable<Issue.Level> outcomes
+)
 {
     public int Id { get; } = id;
     public string Description { get; } = description;

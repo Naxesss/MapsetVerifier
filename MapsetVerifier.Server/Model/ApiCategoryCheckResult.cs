@@ -8,7 +8,8 @@ public readonly struct ApiCategoryCheckResult(
     IEnumerable<ApiCheckResult> checkResults,
     Beatmap.Mode? mode,
     Beatmap.Difficulty? difficultyLevel,
-    double? starRating)
+    double? starRating
+)
 {
     public string Category { get; } = category;
     public ulong? BeatmapId { get; } = beatmapId;

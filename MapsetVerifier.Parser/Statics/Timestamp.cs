@@ -18,7 +18,8 @@ namespace MapsetVerifier.Parser.Statics
         public static string Get(double time) => GetTimestamp(time);
 
         /// <summary> Returns the timestamp of given hit objects, so the timestamp includes the object(s). </summary>
-        public static string Get(params HitObject[] hitObjects) => GetTimestamp(hitObjects[0].beatmap, hitObjects);
+        public static string Get(params HitObject[] hitObjects) =>
+            GetTimestamp(hitObjects[0].beatmap, hitObjects);
 
         private static string GetTimestamp(double time)
         {
@@ -44,11 +45,15 @@ namespace MapsetVerifier.Parser.Statics
                 ++seconds;
             }
 
-            var minuteString = minutes >= 10 ? minutes.ToString(CultureInfo.InvariantCulture) : "0" + minutes;
-            var secondString = seconds >= 10 ? seconds.ToString(CultureInfo.InvariantCulture) : "0" + seconds;
+            var minuteString =
+                minutes >= 10 ? minutes.ToString(CultureInfo.InvariantCulture) : "0" + minutes;
+            var secondString =
+                seconds >= 10 ? seconds.ToString(CultureInfo.InvariantCulture) : "0" + seconds;
 
-            var milisecondsString = miliseconds >= 100 ? miliseconds.ToString(CultureInfo.InvariantCulture) :
-                miliseconds >= 10 ? "0" + miliseconds : "00" + miliseconds;
+            var milisecondsString =
+                miliseconds >= 100 ? miliseconds.ToString(CultureInfo.InvariantCulture)
+                : miliseconds >= 10 ? "0" + miliseconds
+                : "00" + miliseconds;
 
             return minuteString + ":" + secondString + ":" + milisecondsString + " - ";
         }
@@ -66,10 +71,12 @@ namespace MapsetVerifier.Parser.Statics
 
                 if (beatmap.GeneralSettings.mode == Beatmap.Mode.Mania)
                 {
-                    var row = hitObject.Position.X.AlmostEqual(64) ? 0 :
-                        hitObject.Position.X.AlmostEqual(192) ? 1 :
-                        hitObject.Position.X.AlmostEqual(320) ? 2 :
-                        hitObject.Position.X.AlmostEqual(448) ? 3 : -1;
+                    var row =
+                        hitObject.Position.X.AlmostEqual(64) ? 0
+                        : hitObject.Position.X.AlmostEqual(192) ? 1
+                        : hitObject.Position.X.AlmostEqual(320) ? 2
+                        : hitObject.Position.X.AlmostEqual(448) ? 3
+                        : -1;
 
                     objectRef = hitObject.time + "|" + row;
                 }

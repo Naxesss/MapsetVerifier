@@ -31,8 +31,8 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                         @"
                         Beatmaps this short do not offer a substantial enough gameplay experience for the standards of 
                         the ranked section."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -40,15 +40,20 @@ namespace MapsetVerifier.Checks.AllModes.Compose
             {
                 {
                     "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "Less than 30 seconds of drain time, currently {0}.", "drain time")
-                        .WithCause("The time from the first object to the end of the last object, subtracting any time between two objects where a break exists, is in total less than 30 seconds.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "Less than 30 seconds of drain time, currently {0}.",
+                        "drain time"
+                    ).WithCause(
+                        "The time from the first object to the end of the last object, subtracting any time between two objects where a break exists, is in total less than 30 seconds."
+                    )
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
         {
             var drainTime = beatmap.GetDrainTime(beatmap.GeneralSettings.mode);
-            
+
             if (drainTime >= 30 * 1000)
                 yield break;
 

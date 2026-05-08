@@ -14,20 +14,33 @@ namespace MapsetVerifier.Parser.Difficulty;
 /// This extended class serves to provide access to the calculated skills via the <see cref="GetSkills"/> method.<br/>
 /// Sourced from <a href="https://github.com/ppy/osu-tools/blob/ab97b64f60901952926b2121ddffb8976d7f8775/PerformanceCalculatorGUI/ExtendedOsuDifficultyCalculator.cs"><c>osu-tools</c>' approach of tackling the same problem</a>.
 /// </summary>
-public class ExtendedOsuDifficultyCalculator : OsuDifficultyCalculator, IExtendedDifficultyCalculator
+public class ExtendedOsuDifficultyCalculator
+    : OsuDifficultyCalculator,
+        IExtendedDifficultyCalculator
 {
     private Beatmap mvBeatmap;
 
-    public ExtendedOsuDifficultyCalculator(IRulesetInfo ruleset, IWorkingBeatmap beatmap, Beatmap mvBeatmap)
+    public ExtendedOsuDifficultyCalculator(
+        IRulesetInfo ruleset,
+        IWorkingBeatmap beatmap,
+        Beatmap mvBeatmap
+    )
         : base(ruleset, beatmap)
     {
         this.mvBeatmap = mvBeatmap;
     }
 
     public Skill[] GetSkills() => mvBeatmap.Skills;
-    public DifficultyHitObject[] GetDifficultyHitObjects(IBeatmap beatmap, double clockRate) => CreateDifficultyHitObjects(beatmap, clockRate).ToArray();
 
-    protected override DifficultyAttributes CreateDifficultyAttributes(IBeatmap beatmap, Mod[] mods, Skill[] skills, double clockRate)
+    public DifficultyHitObject[] GetDifficultyHitObjects(IBeatmap beatmap, double clockRate) =>
+        CreateDifficultyHitObjects(beatmap, clockRate).ToArray();
+
+    protected override DifficultyAttributes CreateDifficultyAttributes(
+        IBeatmap beatmap,
+        Mod[] mods,
+        Skill[] skills,
+        double clockRate
+    )
     {
         mvBeatmap.Skills = skills;
         return base.CreateDifficultyAttributes(beatmap, mods, mvBeatmap.Skills, clockRate);

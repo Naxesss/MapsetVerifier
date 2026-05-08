@@ -12,7 +12,7 @@ namespace MapsetVerifier.Parser.Objects.Events
             Fail = 1,
             Pass = 2,
             Foreground = 3,
-            Unknown
+            Unknown,
         }
 
         public readonly Layer layer;
@@ -20,6 +20,7 @@ namespace MapsetVerifier.Parser.Objects.Events
 
         /// <summary> The path in lowercase without extension or quotationmarks. </summary>
         public readonly string? strippedPath;
+
         // Sample,15707,0,"drum-hitnormal.wav",60
         // Sample, time, layer, path, volume
 
@@ -37,10 +38,12 @@ namespace MapsetVerifier.Parser.Objects.Events
         }
 
         /// <summary> Returns after how many miliseconds this storyboard sample will play. </summary>
-        private double GetTime(string[] args) => double.Parse(args[1], CultureInfo.InvariantCulture);
+        private double GetTime(string[] args) =>
+            double.Parse(args[1], CultureInfo.InvariantCulture);
 
         /// <summary> Returns on which layer the storyboard sample will play (e.g. Fail or Pass). </summary>
-        private Layer GetLayer(string[] args) => ParserStatic.GetEnumMatch<Layer>(args[2]) ?? Layer.Unknown;
+        private Layer GetLayer(string[] args) =>
+            ParserStatic.GetEnumMatch<Layer>(args[2]) ?? Layer.Unknown;
 
         /// <summary> Returns the file path which this sample uses. Retains case and extension. </summary>
         private string? GetPath(string[] args) => PathStatic.ParsePath(args[3], retainCase: true);

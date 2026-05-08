@@ -31,8 +31,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                         it takes up additional space.
 
                         > For taiko, videos usually need to be modified in some way since they're only visible on the bottom half of the screen, so this check ignores any inconsistency with that mode from other modes."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -40,26 +40,41 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
             {
                 {
                     "Same Mode",
-                    new IssueTemplate(Issue.Level.Warning, "{0} : {1}.", "path", "difficulties")
-                        .WithCause("Difficulties of the same mode do not share the same video.")
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "{0} : {1}.",
+                        "path",
+                        "difficulties"
+                    ).WithCause("Difficulties of the same mode do not share the same video.")
                 },
-
                 {
                     "Cross Mode",
-                    new IssueTemplate(Issue.Level.Warning, "Inconsistent video between the {0} and {1} beatmaps.", "mode", "mode")
-                        .WithCause("Difficulties of separate modes (except taiko) do not share the same video.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "Inconsistent video between the {0} and {1} beatmaps.",
+                        "mode",
+                        "mode"
+                    ).WithCause(
+                        "Difficulties of separate modes (except taiko) do not share the same video."
+                    )
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
             var modeVideoPairs = new List<ModeVideoPair>();
 
-            var modes = beatmapSet.Beatmaps.Select(beatmap => beatmap.GeneralSettings.mode).Distinct();
+            var modes = beatmapSet
+                .Beatmaps.Select(beatmap => beatmap.GeneralSettings.mode)
+                .Distinct();
 
             foreach (var mode in modes)
             {
-                var videoNames = beatmapSet.Beatmaps.Where(beatmap => beatmap.GeneralSettings.mode == mode).Select(beatmap => beatmap.Videos.FirstOrDefault()?.path ?? "None").Distinct().ToList();
+                var videoNames = beatmapSet
+                    .Beatmaps.Where(beatmap => beatmap.GeneralSettings.mode == mode)
+                    .Select(beatmap => beatmap.Videos.FirstOrDefault()?.path ?? "None")
+                    .Distinct()
+                    .ToList();
 
                 // It's possible the .osb file includes a video as well, which would run at the
                 // same time as *any* .osu video file (either in front of or behind the other).
@@ -70,12 +85,26 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
 
                 foreach (var videoName in videoNames)
                 {
-                    var suchBeatmaps = beatmapSet.Beatmaps.Where(beatmap => (beatmap.Videos.FirstOrDefault()?.path ?? "None") == videoName || beatmapSet.Osb?.videos.FirstOrDefault()?.path == videoName).ToList();
+                    var suchBeatmaps = beatmapSet
+                        .Beatmaps.Where(beatmap =>
+                            (beatmap.Videos.FirstOrDefault()?.path ?? "None") == videoName
+                            || beatmapSet.Osb?.videos.FirstOrDefault()?.path == videoName
+                        )
+                        .ToList();
 
                     if (videoNames.Count > 1 && suchBeatmaps.Any())
-                        yield return new Issue(GetTemplate("Same Mode"), null, videoName, string.Join(", ", suchBeatmaps));
+                        yield return new Issue(
+                            GetTemplate("Same Mode"),
+                            null,
+                            videoName,
+                            string.Join(", ", suchBeatmaps)
+                        );
 
-                    if (!modeVideoPairs.Any(pair => pair.mode == mode && pair.videoName == videoName))
+                    if (
+                        !modeVideoPairs.Any(pair =>
+                            pair.mode == mode && pair.videoName == videoName
+                        )
+                    )
                         modeVideoPairs.Add(new ModeVideoPair(mode, videoName));
                 }
             }
@@ -89,27 +118,35 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
             var inconsistentModes = new List<(Beatmap.Mode, Beatmap.Mode)>();
 
             for (var i = 0; i < modeVideoPairs.Count - 1; ++i)
-                for (var j = i; j < modeVideoPairs.Count; ++j)
-                {
-                    var pair = modeVideoPairs[i];
-                    var otherPair = modeVideoPairs[j];
+            for (var j = i; j < modeVideoPairs.Count; ++j)
+            {
+                var pair = modeVideoPairs[i];
+                var otherPair = modeVideoPairs[j];
 
-                    // We're only looking for inconsistenties between modes here.
-                    if (pair.mode == otherPair.mode || pair.videoName == otherPair.videoName)
-                        continue;
+                // We're only looking for inconsistenties between modes here.
+                if (pair.mode == otherPair.mode || pair.videoName == otherPair.videoName)
+                    continue;
 
-                    // Taiko generally does not include videos due to their playfield covering it, hence ignoring inconsistencies.
-                    if (pair.mode == Beatmap.Mode.Taiko || otherPair.mode == Beatmap.Mode.Taiko)
-                        continue;
+                // Taiko generally does not include videos due to their playfield covering it, hence ignoring inconsistencies.
+                if (pair.mode == Beatmap.Mode.Taiko || otherPair.mode == Beatmap.Mode.Taiko)
+                    continue;
 
-                    // Only mention this once for each combination of modes.
-                    if (inconsistentModes.Contains((pair.mode, otherPair.mode)) || inconsistentModes.Contains((otherPair.mode, pair.mode)))
-                        continue;
+                // Only mention this once for each combination of modes.
+                if (
+                    inconsistentModes.Contains((pair.mode, otherPair.mode))
+                    || inconsistentModes.Contains((otherPair.mode, pair.mode))
+                )
+                    continue;
 
-                    inconsistentModes.Add((pair.mode, otherPair.mode));
+                inconsistentModes.Add((pair.mode, otherPair.mode));
 
-                    yield return new Issue(GetTemplate("Cross Mode"), null, pair.mode.ToString().ToLower(), otherPair.mode.ToString().ToLower());
-                }
+                yield return new Issue(
+                    GetTemplate("Cross Mode"),
+                    null,
+                    pair.mode.ToString().ToLower(),
+                    otherPair.mode.ToString().ToLower()
+                );
+            }
         }
 
         private readonly struct ModeVideoPair

@@ -8,7 +8,8 @@ namespace MapsetVerifier.Framework.Objects.Resources
 
         public string Name { get; } = filePath;
 
-        public Stream ReadStream { get; } = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        public Stream ReadStream { get; } =
+            new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
         public Stream WriteStream => ReadStream;
 

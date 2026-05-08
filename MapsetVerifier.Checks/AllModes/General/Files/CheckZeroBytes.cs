@@ -34,8 +34,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
 
                         ![](https://i.imgur.com/Qb9z95T.png)
                         A 0-byte slidertick hit sound file."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -43,13 +43,18 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
             {
                 {
                     "0-byte",
-                    new IssueTemplate(Issue.Level.Problem, "\"{0}\"", "path").WithCause("A file in the song folder contains no data; consists of 0 bytes.")
+                    new IssueTemplate(Issue.Level.Problem, "\"{0}\"", "path").WithCause(
+                        "A file in the song folder contains no data; consists of 0 bytes."
+                    )
                 },
-
                 {
                     "Exception",
-                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path").WithCause("A file which was attempted to be checked could not be opened.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Error,
+                        Common.FILE_EXCEPTION_MESSAGE,
+                        "path"
+                    ).WithCause("A file which was attempted to be checked could not be opened.")
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
@@ -66,7 +71,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
                 catch (Exception exception)
                 {
                     Log.Error(exception, "Couldn't check audio file");
-                    errorIssue = new Issue(GetTemplate("Exception"), null, PathStatic.RelativePath(filePath, beatmapSet.SongPath));
+                    errorIssue = new Issue(
+                        GetTemplate("Exception"),
+                        null,
+                        PathStatic.RelativePath(filePath, beatmapSet.SongPath)
+                    );
                 }
 
                 if (errorIssue != null)
@@ -77,7 +86,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
                 }
 
                 if (file is { Length: 0 })
-                    yield return new Issue(GetTemplate("0-byte"), null, PathStatic.RelativePath(filePath, beatmapSet.SongPath));
+                    yield return new Issue(
+                        GetTemplate("0-byte"),
+                        null,
+                        PathStatic.RelativePath(filePath, beatmapSet.SongPath)
+                    );
             }
         }
     }

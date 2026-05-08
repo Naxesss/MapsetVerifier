@@ -4,32 +4,31 @@ public class MetadataAnalysisResult
 {
     public bool Success { get; set; }
     public string? ErrorMessage { get; set; }
-    
+
     // Metadata
     public List<DifficultyMetadata> Difficulties { get; set; } = [];
-    
+
     // Resources
     public ResourcesInfo Resources { get; set; } = new();
-    
+
     // Colour Settings
     public List<DifficultyColourSettings> ColourSettings { get; set; } = [];
 
-    public static MetadataAnalysisResult CreateError(string message) => new()
-    {
-        Success = false,
-        ErrorMessage = message
-    };
+    public static MetadataAnalysisResult CreateError(string message) =>
+        new() { Success = false, ErrorMessage = message };
 
     public static MetadataAnalysisResult CreateSuccess(
         List<DifficultyMetadata> difficulties,
         ResourcesInfo resources,
-        List<DifficultyColourSettings> colourSettings) => new()
-    {
-        Success = true,
-        Difficulties = difficulties,
-        Resources = resources,
-        ColourSettings = colourSettings
-    };
+        List<DifficultyColourSettings> colourSettings
+    ) =>
+        new()
+        {
+            Success = true,
+            Difficulties = difficulties,
+            Resources = resources,
+            ColourSettings = colourSettings,
+        };
 }
 
 public class DifficultyMetadata
@@ -129,4 +128,3 @@ public class AudioFileInfo
     public string Format { get; set; } = string.Empty;
     public double AverageBitrate { get; set; }
 }
-

@@ -30,7 +30,7 @@ public class DocumentationController : ControllerBase
         {
             return NotFound("Check doesn't have any documentation details");
         }
-        
+
         return Ok(documentDetails);
     }
 }

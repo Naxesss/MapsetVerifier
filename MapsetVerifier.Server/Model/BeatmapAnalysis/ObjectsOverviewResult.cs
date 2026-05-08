@@ -8,22 +8,21 @@ public class ObjectsOverviewResult
     public double EndTimeMs { get; set; }
     public List<ObjectsOverviewDifficulty> Difficulties { get; set; } = [];
 
-    public static ObjectsOverviewResult CreateError(string message) => new()
-    {
-        Success = false,
-        ErrorMessage = message
-    };
+    public static ObjectsOverviewResult CreateError(string message) =>
+        new() { Success = false, ErrorMessage = message };
 
     public static ObjectsOverviewResult CreateSuccess(
         double startTimeMs,
         double endTimeMs,
-        List<ObjectsOverviewDifficulty> difficulties) => new()
-    {
-        Success = true,
-        StartTimeMs = startTimeMs,
-        EndTimeMs = endTimeMs,
-        Difficulties = difficulties
-    };
+        List<ObjectsOverviewDifficulty> difficulties
+    ) =>
+        new()
+        {
+            Success = true,
+            StartTimeMs = startTimeMs,
+            EndTimeMs = endTimeMs,
+            Difficulties = difficulties,
+        };
 }
 
 public class ObjectsOverviewDifficulty

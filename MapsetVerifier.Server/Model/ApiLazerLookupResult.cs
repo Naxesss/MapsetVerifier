@@ -6,7 +6,8 @@ public readonly struct ApiLazerLookupResult(
     string? detectedMetadata,
     string? folderPath,
     string? lookupRoot,
-    ApiBeatmap? beatmap)
+    ApiBeatmap? beatmap
+)
 {
     public string Status { get; } = status;
     public string? Message { get; } = message;

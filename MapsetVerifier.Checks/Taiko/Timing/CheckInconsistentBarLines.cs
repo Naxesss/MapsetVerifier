@@ -13,10 +13,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
-                Modes =
-                [
-                    Beatmap.Mode.Taiko
-                ],
+                Modes = [Beatmap.Mode.Taiko],
                 Category = "Timing",
                 Message = "Inconsistent omitted bar lines.",
                 Author = "Naxess",
@@ -34,8 +31,8 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                     Since all difficulties in a set are based around a single song, and bar lines are meant to act as a point of reference
                     for timing in gameplay, it would make the most sense if all difficulties would use the same bar lines. For this reason,
                     if one difficulty skips one, others probably should too."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -43,34 +40,50 @@ namespace MapsetVerifier.Checks.Taiko.Timing
             {
                 {
                     "Inconsistent",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Inconsistent omitted bar line, see {1}.", "timestamp -", "difficulty").WithCause("A beatmap does not omit bar line where the reference beatmap does, or visa versa.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "{0} Inconsistent omitted bar line, see {1}.",
+                        "timestamp -",
+                        "difficulty"
+                    ).WithCause(
+                        "A beatmap does not omit bar line where the reference beatmap does, or visa versa."
+                    )
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
-            var taikoBeatmaps = beatmapSet.Beatmaps.Where(beatmap => beatmap.GeneralSettings.mode == Beatmap.Mode.Taiko).ToList();
+            var taikoBeatmaps = beatmapSet
+                .Beatmaps.Where(beatmap => beatmap.GeneralSettings.mode == Beatmap.Mode.Taiko)
+                .ToList();
 
             var refBeatmap = taikoBeatmaps.First();
             // ms tolerance to consider offsets equal
             const double epsilon = 1.0;
 
             foreach (var beatmap in taikoBeatmaps)
-                foreach (var line in refBeatmap.TimingLines.OfType<UninheritedLine>())
-                {
-                    var respectiveLine = beatmap.TimingLines
-                        .OfType<UninheritedLine>()
-                        .FirstOrDefault(otherLine => Math.Abs(otherLine.Offset - line.Offset) < epsilon);
+            foreach (var line in refBeatmap.TimingLines.OfType<UninheritedLine>())
+            {
+                var respectiveLine = beatmap
+                    .TimingLines.OfType<UninheritedLine>()
+                    .FirstOrDefault(otherLine =>
+                        Math.Abs(otherLine.Offset - line.Offset) < epsilon
+                    );
 
-                    if (respectiveLine == null)
-                        // Inconsistent lines, which is the responsibility of another check, so we skip this case.
-                        continue;
+                if (respectiveLine == null)
+                    // Inconsistent lines, which is the responsibility of another check, so we skip this case.
+                    continue;
 
-                    double offset = Timestamp.Round(line.Offset);
+                double offset = Timestamp.Round(line.Offset);
 
-                    if (line.OmitsBarLine != respectiveLine.OmitsBarLine)
-                        yield return new Issue(GetTemplate("Inconsistent"), beatmap, Timestamp.Get(offset), refBeatmap);
-                }
+                if (line.OmitsBarLine != respectiveLine.OmitsBarLine)
+                    yield return new Issue(
+                        GetTemplate("Inconsistent"),
+                        beatmap,
+                        Timestamp.Get(offset),
+                        refBeatmap
+                    );
+            }
         }
     }
 }

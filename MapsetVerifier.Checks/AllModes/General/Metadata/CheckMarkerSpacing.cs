@@ -34,8 +34,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         most part eliminated through standardization. Standardization also reduces confusion in case of 
                         multiple correct ways to write certain fields and contributes to making metadata more consistent 
                         across official content."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -43,15 +43,26 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             {
                 {
                     "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "Missing {0} in {1}; \"{2}\".", "something", "field", "field content")
-                        .WithCause("Some whitespace or parameter is missing from the artist or title fields where only alphabetic and numerical characters are involved.")
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "Missing {0} in {1}; \"{2}\".",
+                        "something",
+                        "field",
+                        "field content"
+                    ).WithCause(
+                        "Some whitespace or parameter is missing from the artist or title fields where only alphabetic and numerical characters are involved."
+                    )
                 },
-
                 {
                     "Warning",
-                    new IssueTemplate(Issue.Level.Warning, "Missing {0} in {1}; \"{2}\".", "something", "field", "field content")
-                        .WithCause("Same as the other check, but can involve any type of characters.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "Missing {0} in {1}; \"{2}\".",
+                        "something",
+                        "field",
+                        "field content"
+                    ).WithCause("Same as the other check, but can involve any type of characters.")
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
@@ -63,17 +74,20 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                 field => EnsureSpaceBeforeAndAfter(field, "CV:"),
                 field => EnsureSpaceBeforeAndAfter(field, @"vs\."),
                 field => EnsureSpaceBeforeAndAfter(field, @"feat\."),
-
-                field => new Regex(@"[a-zA-Z0-9]\(CV:").IsMatch(field) ? "whitespace before \"(CV:\" or full-width bracket \"（\"" : null,
-                field => new Regex(@"(?<!(\(|（))CV:").IsMatch(field) ? "\"(\" before \"CV:\"" : null,
-                field => new Regex(@",[a-zA-Z0-9]").IsMatch(field) ? "whitespace after \",\"" : null
+                field =>
+                    new Regex(@"[a-zA-Z0-9]\(CV:").IsMatch(field)
+                        ? "whitespace before \"(CV:\" or full-width bracket \"（\""
+                        : null,
+                field =>
+                    new Regex(@"(?<!(\(|（))CV:").IsMatch(field) ? "\"(\" before \"CV:\"" : null,
+                field =>
+                    new Regex(@",[a-zA-Z0-9]").IsMatch(field) ? "whitespace after \",\"" : null,
             };
 
             var warningTests = new List<Func<string, string?>>
             {
                 // Some artists include ampersand as part of their name.
                 field => EnsureSpaceBeforeAndAfter(field, "&"),
-
                 // Markers only need spaces around them if both of the following are true
                 // - They are not full width (i.e. "、" for comma and "：" for colon)
                 // - The character after/before is not full width (i.e. most chinese/japanese characters)
@@ -81,17 +95,42 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
 
                 // The regex "[一-龠]+|[ぁ-ゔ]+|[ァ-ヴー]" matches all japanese characters.
 
-                field => new Regex(@"(?<! |\(|（)feat\.").IsMatch(field) ? "whitespace before \"feat.\"" : null,
-                field => new Regex(@"(?<! )(\(|（)feat\.").IsMatch(field) ? "whitespace before \"(feat.\"" : null,
-                field => new Regex(@"(?<! |[一-龠]+|[ぁ-ゔ]+|[ァ-ヴー])vs\.").IsMatch(field) ? "whitespace before \"vs.\"" : null,
-                field => new Regex(@"(?<! |[一-龠]+|[ぁ-ゔ]+|[ァ-ヴー])&").IsMatch(field) ? "whitespace before \"&\"" : null,
-
-                field => new Regex(@"CV(?!:[ 一-龠]+|[ぁ-ゔ]+|[ァ-ヴー]|：)").IsMatch(field) ? "whitespace after \"CV:\" or full-width colon \"：\"" : null,
-                field => new Regex(@",(?![ 一-龠]+|[ぁ-ゔ]+|[ァ-ヴー])").IsMatch(field) ? "whitespace after \",\" or full-width comma \"、\"" : null,
-
-                field => new Regex(@"feat\.(?! |[一-龠]+|[ぁ-ゔ]+|[ァ-ヴー])").IsMatch(field) ? "whitespace after \"feat.\"" : null,
-                field => new Regex(@"vs\.(?! |[一-龠]+|[ぁ-ゔ]+|[ァ-ヴー])").IsMatch(field) ? "whitespace after \"vs.\"" : null,
-                field => new Regex(@"&(?! |[一-龠]+|[ぁ-ゔ]+|[ァ-ヴー])").IsMatch(field) ? "whitespace after \"&\"" : null
+                field =>
+                    new Regex(@"(?<! |\(|（)feat\.").IsMatch(field)
+                        ? "whitespace before \"feat.\""
+                        : null,
+                field =>
+                    new Regex(@"(?<! )(\(|（)feat\.").IsMatch(field)
+                        ? "whitespace before \"(feat.\""
+                        : null,
+                field =>
+                    new Regex(@"(?<! |[一-龠]+|[ぁ-ゔ]+|[ァ-ヴー])vs\.").IsMatch(field)
+                        ? "whitespace before \"vs.\""
+                        : null,
+                field =>
+                    new Regex(@"(?<! |[一-龠]+|[ぁ-ゔ]+|[ァ-ヴー])&").IsMatch(field)
+                        ? "whitespace before \"&\""
+                        : null,
+                field =>
+                    new Regex(@"CV(?!:[ 一-龠]+|[ぁ-ゔ]+|[ァ-ヴー]|：)").IsMatch(field)
+                        ? "whitespace after \"CV:\" or full-width colon \"：\""
+                        : null,
+                field =>
+                    new Regex(@",(?![ 一-龠]+|[ぁ-ゔ]+|[ァ-ヴー])").IsMatch(field)
+                        ? "whitespace after \",\" or full-width comma \"、\""
+                        : null,
+                field =>
+                    new Regex(@"feat\.(?! |[一-龠]+|[ぁ-ゔ]+|[ァ-ヴー])").IsMatch(field)
+                        ? "whitespace after \"feat.\""
+                        : null,
+                field =>
+                    new Regex(@"vs\.(?! |[一-龠]+|[ぁ-ゔ]+|[ァ-ヴー])").IsMatch(field)
+                        ? "whitespace after \"vs.\""
+                        : null,
+                field =>
+                    new Regex(@"&(?! |[一-龠]+|[ぁ-ゔ]+|[ァ-ヴー])").IsMatch(field)
+                        ? "whitespace after \"&\""
+                        : null,
             };
 
             var metadata = refBeatmap.MetadataSettings;
@@ -99,7 +138,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             var fields = new List<Field>
             {
                 new("artist", metadata.artist),
-                new("artist unicode", metadata.artistUnicode)
+                new("artist unicode", metadata.artistUnicode),
             };
 
             var fieldIssues = new List<FieldIssue>();
@@ -110,7 +149,12 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                 {
                     var message = problemTest(field.Content);
 
-                    if (message != null && !fieldIssues.Any(fieldIssue => fieldIssue.Message == message && fieldIssue.Field == field))
+                    if (
+                        message != null
+                        && !fieldIssues.Any(fieldIssue =>
+                            fieldIssue.Message == message && fieldIssue.Field == field
+                        )
+                    )
                         fieldIssues.Add(new FieldIssue(field, message, true));
                 }
 
@@ -118,13 +162,24 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                 {
                     var message = warningTest(field.Content);
 
-                    if (message != null && !fieldIssues.Any(fieldIssue => fieldIssue.Message == message && fieldIssue.Field == field))
+                    if (
+                        message != null
+                        && !fieldIssues.Any(fieldIssue =>
+                            fieldIssue.Message == message && fieldIssue.Field == field
+                        )
+                    )
                         fieldIssues.Add(new FieldIssue(field, message, false));
                 }
             }
 
             foreach (var fieldIssue in fieldIssues)
-                yield return new Issue(GetTemplate(fieldIssue.IsProblem ? "Problem" : "Warning"), null, fieldIssue.Message, fieldIssue.Field.Name, fieldIssue.Field.Content);
+                yield return new Issue(
+                    GetTemplate(fieldIssue.IsProblem ? "Problem" : "Warning"),
+                    null,
+                    fieldIssue.Message,
+                    fieldIssue.Field.Name,
+                    fieldIssue.Field.Content
+                );
         }
 
         /// <summary> Returns a message describing where a space is missing given a field and what is tested against. </summary>

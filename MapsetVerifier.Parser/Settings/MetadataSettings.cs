@@ -12,6 +12,7 @@
         public string source;
 
         public string tags;
+
         /*
             Title:Yuumeikyou o Wakatsu Koto
             TitleUnicode:幽明境を分かつこと
@@ -47,7 +48,6 @@
             // check to see if the ids are even there (don't exist in lower osu file versions, and aren't set on non-published maps)
             beatmapId = GetBeatmapId(lines, "BeatmapID", 0);
             beatmapSetId = GetBeatmapId(lines, "BeatmapSetID", -1);
-            
         }
 
         private static string? GetValue(string[] lines, string key)
@@ -59,14 +59,24 @@
 
         /// <summary> Returns the same string lowercase and filtered from characters disabled in file names. </summary>
         public string GetFileNameFiltered(string str) =>
-            str.Replace("/", "").Replace("\\", "").Replace("?", "").Replace("*", "").Replace(":", "").Replace("|", "").Replace("\"", "").Replace("<", "").Replace(">", "");
+            str.Replace("/", "")
+                .Replace("\\", "")
+                .Replace("?", "")
+                .Replace("*", "")
+                .Replace(":", "")
+                .Replace("|", "")
+                .Replace("\"", "")
+                .Replace("<", "")
+                .Replace(">", "");
 
         /// <summary> Returns the tag which covers the given word, if any, otherwise null. </summary>
         /// <param name="searchWord"> The search word which we want a tag covering, cannot contain spaces. </param>
         public string? GetCoveringTag(string searchWord)
         {
             if (searchWord.Contains(" "))
-                throw new ArgumentException($"`searchWord` cannot contain whitespace characters, was given \"{searchWord}\".");
+                throw new ArgumentException(
+                    $"`searchWord` cannot contain whitespace characters, was given \"{searchWord}\"."
+                );
 
             foreach (var tagWord in tags.ToLower().Split(" "))
                 if (tagWord.Contains(searchWord.ToLower()))
@@ -92,7 +102,8 @@
         ///     (e.g. "Skull Kid" would be covered by "skull_kid").
         /// </summary>
         /// <param name="searchTerm"> The search term which we want tags covering. </param>
-        public bool IsCoveredByTags(string searchTerm) => !GetMissingWordsFromTags(searchTerm).Any();
+        public bool IsCoveredByTags(string searchTerm) =>
+            !GetMissingWordsFromTags(searchTerm).Any();
 
         /// <summary>
         /// Returns the beatmap id or null if it doesn't exist.
@@ -102,10 +113,10 @@
         public ulong? GetBeatmapId(string[] lines, string key, int defaultValue)
         {
             var value = GetValue(lines, key);
-            
+
             if (value == null || value == defaultValue.ToString())
                 return null;
-            
+
             return ulong.Parse(value);
         }
     }

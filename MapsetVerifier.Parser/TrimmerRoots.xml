@@ -5,7 +5,10 @@
     <type fullname="osu.Game.Rulesets.Difficulty.DifficultyCalculator" preserve="all" />
     <type fullname="osu.Game.Rulesets.Difficulty.DifficultyAttributes" preserve="all" />
     <type fullname="osu.Game.Rulesets.Difficulty.Skills.Skill" preserve="all" />
-    <type fullname="osu.Game.Rulesets.Difficulty.Preprocessing.DifficultyHitObject" preserve="all" />
+    <type
+      fullname="osu.Game.Rulesets.Difficulty.Preprocessing.DifficultyHitObject"
+      preserve="all"
+    />
     <type fullname="osu.Game.Beatmaps.FlatWorkingBeatmap" preserve="all" />
     <type fullname="osu.Game.Beatmaps.IWorkingBeatmap" preserve="all" />
     <type fullname="osu.Game.Beatmaps.IBeatmap" preserve="all" />
@@ -40,4 +43,3 @@
     <type fullname="osu.Game.Rulesets.Mania.Difficulty.Skills.*" preserve="all" />
   </assembly>
 </linker>
-

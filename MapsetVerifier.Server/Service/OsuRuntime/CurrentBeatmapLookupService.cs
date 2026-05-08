@@ -8,24 +8,52 @@ namespace MapsetVerifier.Server.Service.OsuRuntime;
 
 public static class CurrentBeatmapLookupService
 {
-    private static readonly Regex OsuEditorWindowRegex = new(@"^\s*osu!\s*-\s*(?<metadata>.+?\.osu)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-    private static readonly Regex AnyOsuFilenameRegex = new(@"(?<metadata>[^\\/:*?""<>|\r\n]+?\.osu)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-    private static readonly Regex BackgroundRegex = new("0,0,\"(?<file>[^\"]+)\"", RegexOptions.Compiled);
+    private static readonly Regex OsuEditorWindowRegex = new(
+        @"^\s*osu!\s*-\s*(?<metadata>.+?\.osu)\s*$",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase
+    );
+    private static readonly Regex AnyOsuFilenameRegex = new(
+        @"(?<metadata>[^\\/:*?""<>|\r\n]+?\.osu)",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase
+    );
+    private static readonly Regex BackgroundRegex = new(
+        "0,0,\"(?<file>[^\"]+)\"",
+        RegexOptions.Compiled
+    );
     private static readonly object StickyMetadataLock = new();
     private static readonly Dictionary<OsuClientKind, string> LastDetectedMetadataByClient = new();
 
-    public static ApiLazerLookupResult GetCurrentLazerBeatmap() => GetCurrentBeatmap(OsuClientKind.Lazer, null);
+    public static ApiLazerLookupResult GetCurrentLazerBeatmap() =>
+        GetCurrentBeatmap(OsuClientKind.Lazer, null);
 
-    public static ApiLazerLookupResult GetCurrentStableBeatmap(string? songsFolderOverride) => GetCurrentBeatmap(OsuClientKind.Stable, songsFolderOverride);
+    public static ApiLazerLookupResult GetCurrentStableBeatmap(string? songsFolderOverride) =>
+        GetCurrentBeatmap(OsuClientKind.Stable, songsFolderOverride);
 
-    private static ApiLazerLookupResult GetCurrentBeatmap(OsuClientKind clientKind, string? songsFolderOverride)
+    private static ApiLazerLookupResult GetCurrentBeatmap(
+        OsuClientKind clientKind,
+        string? songsFolderOverride
+    )
     {
         if (!OperatingSystem.IsWindows())
-            return new ApiLazerLookupResult("unsupported_platform", "Current map lookup is only supported on Windows.", null, null, null, null);
+            return new ApiLazerLookupResult(
+                "unsupported_platform",
+                "Current map lookup is only supported on Windows.",
+                null,
+                null,
+                null,
+                null
+            );
 
         var processes = SnapshotOsuProcesses();
         if (processes.Count == 0)
-            return new ApiLazerLookupResult("no_process", "Could not detect an osu! process.", null, null, null, null);
+            return new ApiLazerLookupResult(
+                "no_process",
+                "Could not detect an osu! process.",
+                null,
+                null,
+                null,
+                null
+            );
 
         if (clientKind == OsuClientKind.Stable)
             return GetCurrentStableBeatmapFromAllOsuProcesses(processes, songsFolderOverride);
@@ -35,12 +63,28 @@ public static class CurrentBeatmapLookupService
         {
             var hasUnknown = processes.Any(p => p.ClientKind == OsuClientKind.Unknown);
             if (hasUnknown)
-                return new ApiLazerLookupResult("ambiguous_client", $"Could not confidently identify an osu!{clientKind.ToString().ToLowerInvariant()} process while multiple osu! clients are running.", null, null, null, null);
+                return new ApiLazerLookupResult(
+                    "ambiguous_client",
+                    $"Could not confidently identify an osu!{clientKind.ToString().ToLowerInvariant()} process while multiple osu! clients are running.",
+                    null,
+                    null,
+                    null,
+                    null
+                );
 
-            return new ApiLazerLookupResult("no_process", $"Could not detect an osu!{clientKind.ToString().ToLowerInvariant()} process.", null, null, null, null);
+            return new ApiLazerLookupResult(
+                "no_process",
+                $"Could not detect an osu!{clientKind.ToString().ToLowerInvariant()} process.",
+                null,
+                null,
+                null,
+                null
+            );
         }
 
-        var titleCandidates = GetWindowTitleCandidates(targetProcesses.Select(p => p.ProcessId).ToHashSet());
+        var titleCandidates = GetWindowTitleCandidates(
+            targetProcesses.Select(p => p.ProcessId).ToHashSet()
+        );
         var liveMetadata = titleCandidates
             .OrderBy(c => c.ProcessId)
             .ThenBy(c => c.Title, StringComparer.OrdinalIgnoreCase)
@@ -49,22 +93,50 @@ public static class CurrentBeatmapLookupService
 
         var metadata = ResolveStickyMetadata(clientKind, liveMetadata);
         if (string.IsNullOrWhiteSpace(metadata))
-            return new ApiLazerLookupResult("no_editor_title", "Open a map in the editor first.", null, null, null, null);
+            return new ApiLazerLookupResult(
+                "no_editor_title",
+                "Open a map in the editor first.",
+                null,
+                null,
+                null,
+                null
+            );
 
         return ResolveLazerCurrentMap(metadata, liveMetadata, targetProcesses);
     }
 
-    private static ApiLazerLookupResult GetCurrentStableBeatmapFromAllOsuProcesses(IReadOnlyList<OsuProcessSnapshot> processes, string? songsFolderOverride)
+    private static ApiLazerLookupResult GetCurrentStableBeatmapFromAllOsuProcesses(
+        IReadOnlyList<OsuProcessSnapshot> processes,
+        string? songsFolderOverride
+    )
     {
         var songsFolder = BeatmapService.ResolveSongsFolder(songsFolderOverride);
         if (string.IsNullOrWhiteSpace(songsFolder))
-            return new ApiLazerLookupResult("songs_folder_not_found", "Songs folder could not be detected.", null, null, null, null);
+            return new ApiLazerLookupResult(
+                "songs_folder_not_found",
+                "Songs folder could not be detected.",
+                null,
+                null,
+                null,
+                null
+            );
 
-        var stableRoot = Path.GetDirectoryName(songsFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        var stableRoot = Path.GetDirectoryName(
+            songsFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+        );
         if (string.IsNullOrWhiteSpace(stableRoot) || !Directory.Exists(stableRoot))
-            return new ApiLazerLookupResult("songs_folder_not_found", "Songs folder path is invalid for stable lookup.", null, null, songsFolder, null);
+            return new ApiLazerLookupResult(
+                "songs_folder_not_found",
+                "Songs folder path is invalid for stable lookup.",
+                null,
+                null,
+                songsFolder,
+                null
+            );
 
-        static string NormalizePath(string path) => Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        static string NormalizePath(string path) =>
+            Path.GetFullPath(path)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         var normalizedStableRoot = NormalizePath(stableRoot);
         var stableProcessIds = processes
             .Where(p => !string.IsNullOrWhiteSpace(p.ExecutablePath))
@@ -73,7 +145,11 @@ public static class CurrentBeatmapLookupService
                 var exeDir = Path.GetDirectoryName(p.ExecutablePath!);
                 if (string.IsNullOrWhiteSpace(exeDir))
                     return false;
-                return string.Equals(NormalizePath(exeDir), normalizedStableRoot, StringComparison.OrdinalIgnoreCase);
+                return string.Equals(
+                    NormalizePath(exeDir),
+                    normalizedStableRoot,
+                    StringComparison.OrdinalIgnoreCase
+                );
             })
             .Select(p => p.ProcessId)
             .ToHashSet();
@@ -103,7 +179,14 @@ public static class CurrentBeatmapLookupService
         var liveMetadata = metadataCandidates.FirstOrDefault() ?? string.Empty;
         var metadata = ResolveStickyMetadata(OsuClientKind.Stable, liveMetadata);
         if (string.IsNullOrWhiteSpace(metadata))
-            return new ApiLazerLookupResult("no_editor_title", "osu! is running, but no editor window title with a .osu filename was detected.", null, null, songsFolder, null);
+            return new ApiLazerLookupResult(
+                "no_editor_title",
+                "osu! is running, but no editor window title with a .osu filename was detected.",
+                null,
+                null,
+                songsFolder,
+                null
+            );
 
         string? resolvedFolder = null;
         string? resolvedMetadata = null;
@@ -123,41 +206,86 @@ public static class CurrentBeatmapLookupService
         {
             var beatmap = TryBuildBeatmapFromFolder(resolvedFolder);
             var displayMetadata = resolvedMetadata ?? metadata;
-            return new ApiLazerLookupResult("folder_found", "Current stable map found.", displayMetadata, resolvedFolder, songsFolder, beatmap);
+            return new ApiLazerLookupResult(
+                "folder_found",
+                "Current stable map found.",
+                displayMetadata,
+                resolvedFolder,
+                songsFolder,
+                beatmap
+            );
         }
 
         var stickyResolved = TryFindStableBeatmapSetFolder(songsFolder, metadata);
         if (!string.IsNullOrWhiteSpace(stickyResolved))
         {
             var beatmap = TryBuildBeatmapFromFolder(stickyResolved);
-            return new ApiLazerLookupResult("folder_found", "Current stable map found from sticky metadata.", metadata, stickyResolved, songsFolder, beatmap);
+            return new ApiLazerLookupResult(
+                "folder_found",
+                "Current stable map found from sticky metadata.",
+                metadata,
+                stickyResolved,
+                songsFolder,
+                beatmap
+            );
         }
 
-        var message = liveMetadata == null
-            ? "Using the last detected metadata. Keep the map open in the editor to resolve it in Songs."
-            : "Metadata detected. Could not find an exact .osu filename match in Songs yet.";
-        return new ApiLazerLookupResult("metadata_detected", message, metadata, null, songsFolder, null);
+        var message =
+            liveMetadata == null
+                ? "Using the last detected metadata. Keep the map open in the editor to resolve it in Songs."
+                : "Metadata detected. Could not find an exact .osu filename match in Songs yet.";
+        return new ApiLazerLookupResult(
+            "metadata_detected",
+            message,
+            metadata,
+            null,
+            songsFolder,
+            null
+        );
     }
 
-    private static ApiLazerLookupResult ResolveLazerCurrentMap(string metadata, string? liveMetadata, IReadOnlyList<OsuProcessSnapshot> lazerProcesses)
+    private static ApiLazerLookupResult ResolveLazerCurrentMap(
+        string metadata,
+        string? liveMetadata,
+        IReadOnlyList<OsuProcessSnapshot> lazerProcesses
+    )
     {
         var resolved = TryFindLazerTempBeatmapFolder(metadata, lazerProcesses);
         if (resolved == null)
         {
-            var message = liveMetadata == null
-                ? "Using the last detected beatmap. In the osu! editor, go to File → Edit externally to load the beatmap."
-                : "Beatmap detected. In the osu! editor, go to File → Edit externally to load the beatmap.";
+            var message =
+                liveMetadata == null
+                    ? "Using the last detected beatmap. In the osu! editor, go to File → Edit externally to load the beatmap."
+                    : "Beatmap detected. In the osu! editor, go to File → Edit externally to load the beatmap.";
 
-            return new ApiLazerLookupResult("metadata_detected", message, metadata, null, null, null);
+            return new ApiLazerLookupResult(
+                "metadata_detected",
+                message,
+                metadata,
+                null,
+                null,
+                null
+            );
         }
 
         var beatmap = TryBuildBeatmapFromFolder(resolved.Value.FolderPath);
-        return new ApiLazerLookupResult("folder_found", "Beatmap loaded!", metadata, resolved.Value.FolderPath, resolved.Value.LookupRoot, beatmap);
+        return new ApiLazerLookupResult(
+            "folder_found",
+            "Beatmap loaded!",
+            metadata,
+            resolved.Value.FolderPath,
+            resolved.Value.LookupRoot,
+            beatmap
+        );
     }
 
     private static string? TryFindStableBeatmapSetFolder(string songsFolder, string metadata)
     {
-        if (string.IsNullOrWhiteSpace(songsFolder) || string.IsNullOrWhiteSpace(metadata) || !Directory.Exists(songsFolder))
+        if (
+            string.IsNullOrWhiteSpace(songsFolder)
+            || string.IsNullOrWhiteSpace(metadata)
+            || !Directory.Exists(songsFolder)
+        )
             return null;
 
         var matches = new List<string>();
@@ -175,13 +303,14 @@ public static class CurrentBeatmapLookupService
             return null;
         }
 
-        var selected = matches
-            .OrderByDescending(File.GetLastWriteTimeUtc)
-            .FirstOrDefault();
+        var selected = matches.OrderByDescending(File.GetLastWriteTimeUtc).FirstOrDefault();
         return string.IsNullOrWhiteSpace(selected) ? null : Path.GetDirectoryName(selected);
     }
 
-    private static (string FolderPath, string LookupRoot)? TryFindLazerTempBeatmapFolder(string metadata, IReadOnlyList<OsuProcessSnapshot> lazerProcesses)
+    private static (string FolderPath, string LookupRoot)? TryFindLazerTempBeatmapFolder(
+        string metadata,
+        IReadOnlyList<OsuProcessSnapshot> lazerProcesses
+    )
     {
         foreach (var root in GetLazerTempRoots(lazerProcesses))
         {
@@ -197,12 +326,19 @@ public static class CurrentBeatmapLookupService
         var metadataNoExtension = Path.GetFileNameWithoutExtension(metadata);
         var normalizedMetadata = NormalizeLookupName(metadataNoExtension);
         var best = GetLazerTempRoots(lazerProcesses)
-            .SelectMany(root => EnumerateOsuCandidates(root).Select(candidate => new
-            {
-                Root = root,
-                Path = candidate,
-                Score = GetMetadataMatchScore(metadataNoExtension, normalizedMetadata, candidate)
-            }))
+            .SelectMany(root =>
+                EnumerateOsuCandidates(root)
+                    .Select(candidate => new
+                    {
+                        Root = root,
+                        Path = candidate,
+                        Score = GetMetadataMatchScore(
+                            metadataNoExtension,
+                            normalizedMetadata,
+                            candidate
+                        ),
+                    })
+            )
             .Where(x => x.Score > 0)
             .OrderByDescending(x => x.Score)
             .ThenByDescending(x => File.GetLastWriteTimeUtc(x.Path))
@@ -218,7 +354,9 @@ public static class CurrentBeatmapLookupService
         return (bestFolder, best.Root);
     }
 
-    private static IEnumerable<string> GetLazerTempRoots(IReadOnlyList<OsuProcessSnapshot> lazerProcesses)
+    private static IEnumerable<string> GetLazerTempRoots(
+        IReadOnlyList<OsuProcessSnapshot> lazerProcesses
+    )
     {
         var roots = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -258,12 +396,17 @@ public static class CurrentBeatmapLookupService
 
     private static string? TryFindExactMetadataOsuFile(string root, string metadata)
     {
-        if (string.IsNullOrWhiteSpace(root) || string.IsNullOrWhiteSpace(metadata) || !Directory.Exists(root))
+        if (
+            string.IsNullOrWhiteSpace(root)
+            || string.IsNullOrWhiteSpace(metadata)
+            || !Directory.Exists(root)
+        )
             return null;
 
         try
         {
-            return Directory.EnumerateFiles(root, metadata, SearchOption.AllDirectories)
+            return Directory
+                .EnumerateFiles(root, metadata, SearchOption.AllDirectories)
                 .OrderByDescending(File.GetLastWriteTimeUtc)
                 .FirstOrDefault();
         }
@@ -281,7 +424,8 @@ public static class CurrentBeatmapLookupService
         IEnumerable<DirectoryInfo> folders;
         try
         {
-            folders = new DirectoryInfo(root).GetDirectories()
+            folders = new DirectoryInfo(root)
+                .GetDirectories()
                 .OrderByDescending(d => d.LastWriteTimeUtc)
                 .Take(150)
                 .ToList();
@@ -296,7 +440,11 @@ public static class CurrentBeatmapLookupService
             IEnumerable<string> files;
             try
             {
-                files = Directory.EnumerateFiles(folder.FullName, "*.osu", SearchOption.AllDirectories);
+                files = Directory.EnumerateFiles(
+                    folder.FullName,
+                    "*.osu",
+                    SearchOption.AllDirectories
+                );
             }
             catch (Exception)
             {
@@ -308,7 +456,11 @@ public static class CurrentBeatmapLookupService
         }
     }
 
-    private static int GetMetadataMatchScore(string metadataNoExtension, string normalizedMetadata, string osuFilePath)
+    private static int GetMetadataMatchScore(
+        string metadataNoExtension,
+        string normalizedMetadata,
+        string osuFilePath
+    )
     {
         var fileName = Path.GetFileNameWithoutExtension(osuFilePath);
         if (string.IsNullOrWhiteSpace(fileName))
@@ -322,7 +474,10 @@ public static class CurrentBeatmapLookupService
             return 100;
         if (normalizedFileName.Equals(normalizedMetadata, StringComparison.Ordinal))
             return 95;
-        if (normalizedFileName.Contains(normalizedMetadata, StringComparison.Ordinal) || normalizedMetadata.Contains(normalizedFileName, StringComparison.Ordinal))
+        if (
+            normalizedFileName.Contains(normalizedMetadata, StringComparison.Ordinal)
+            || normalizedMetadata.Contains(normalizedFileName, StringComparison.Ordinal)
+        )
             return 75;
 
         var editorLikeMetadata = TryBuildEditorLikeMetadata(osuFilePath);
@@ -332,7 +487,10 @@ public static class CurrentBeatmapLookupService
 
         if (normalizedEditorLikeMetadata.Equals(normalizedMetadata, StringComparison.Ordinal))
             return 70;
-        if (normalizedEditorLikeMetadata.Contains(normalizedMetadata, StringComparison.Ordinal) || normalizedMetadata.Contains(normalizedEditorLikeMetadata, StringComparison.Ordinal))
+        if (
+            normalizedEditorLikeMetadata.Contains(normalizedMetadata, StringComparison.Ordinal)
+            || normalizedMetadata.Contains(normalizedEditorLikeMetadata, StringComparison.Ordinal)
+        )
             return 60;
 
         return 0;
@@ -363,13 +521,18 @@ public static class CurrentBeatmapLookupService
 
             var content = File.ReadAllText(osuFilePath);
             var meta = ParseBeatmapMetadata(folder, content);
-            if (string.IsNullOrWhiteSpace(meta.artist) || string.IsNullOrWhiteSpace(meta.title) || string.IsNullOrWhiteSpace(meta.creator))
+            if (
+                string.IsNullOrWhiteSpace(meta.artist)
+                || string.IsNullOrWhiteSpace(meta.title)
+                || string.IsNullOrWhiteSpace(meta.creator)
+            )
                 return null;
 
             var difficulty = Path.GetFileNameWithoutExtension(osuFilePath)
                 .Split('[')
                 .Skip(1)
-                .FirstOrDefault()?.TrimEnd(']');
+                .FirstOrDefault()
+                ?.TrimEnd(']');
 
             if (string.IsNullOrWhiteSpace(difficulty))
                 return null;
@@ -396,7 +559,9 @@ public static class CurrentBeatmapLookupService
 
             var content = File.ReadAllText(osuFile);
             var meta = ParseBeatmapMetadata(folder.FullName, content);
-            var backgroundUrl = string.IsNullOrEmpty(meta.backgroundPath) ? string.Empty : $"/beatmap/image?folder={Uri.EscapeDataString(folder.Name)}";
+            var backgroundUrl = string.IsNullOrEmpty(meta.backgroundPath)
+                ? string.Empty
+                : $"/beatmap/image?folder={Uri.EscapeDataString(folder.Name)}";
             return new ApiBeatmap(
                 folder.Name,
                 meta.title ?? string.Empty,
@@ -413,11 +578,19 @@ public static class CurrentBeatmapLookupService
         }
     }
 
-    private static (string? title, string? artist, string? creator, string? beatmapId, string? beatmapSetId, string? backgroundPath) ParseBeatmapMetadata(string folderPath, string data)
+    private static (
+        string? title,
+        string? artist,
+        string? creator,
+        string? beatmapId,
+        string? beatmapSetId,
+        string? backgroundPath
+    ) ParseBeatmapMetadata(string folderPath, string data)
     {
         string? GetValue(string prefix)
         {
-            var line = data.Split('\n').FirstOrDefault(l => l.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
+            var line = data.Split('\n')
+                .FirstOrDefault(l => l.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
             if (line == null)
                 return null;
             return line.Substring(prefix.Length).Trim();
@@ -478,7 +651,9 @@ public static class CurrentBeatmapLookupService
                 }
             }
 
-            return LastDetectedMetadataByClient.TryGetValue(clientKind, out var cached) ? cached : null;
+            return LastDetectedMetadataByClient.TryGetValue(clientKind, out var cached)
+                ? cached
+                : null;
         }
     }
 
@@ -503,7 +678,14 @@ public static class CurrentBeatmapLookupService
                     // Ignore process path access failures.
                 }
 
-                snapshots.Add(new OsuProcessSnapshot(process.Id, kind, executablePath, process.MainWindowTitle));
+                snapshots.Add(
+                    new OsuProcessSnapshot(
+                        process.Id,
+                        kind,
+                        executablePath,
+                        process.MainWindowTitle
+                    )
+                );
             }
             catch (Exception)
             {
@@ -530,37 +712,49 @@ public static class CurrentBeatmapLookupService
                 continue;
 
             var key = $"{snapshot.ProcessId}:{snapshot.MainWindowTitle}";
-            candidates[key] = new OsuWindowTitleCandidate(snapshot.ProcessId, snapshot.MainWindowTitle);
+            candidates[key] = new OsuWindowTitleCandidate(
+                snapshot.ProcessId,
+                snapshot.MainWindowTitle
+            );
         }
 
-        EnumWindows((hwnd, _) =>
-        {
-            if (!IsWindowVisible(hwnd))
-                return true;
+        EnumWindows(
+            (hwnd, _) =>
+            {
+                if (!IsWindowVisible(hwnd))
+                    return true;
 
-            GetWindowThreadProcessId(hwnd, out var processId);
-            if (!processIds.Contains((int)processId))
-                return true;
+                GetWindowThreadProcessId(hwnd, out var processId);
+                if (!processIds.Contains((int)processId))
+                    return true;
 
-            var titleLength = GetWindowTextLengthW(hwnd);
-            if (titleLength <= 0)
-                return true;
+                var titleLength = GetWindowTextLengthW(hwnd);
+                if (titleLength <= 0)
+                    return true;
 
-            var sb = new StringBuilder(titleLength + 1);
-            GetWindowTextW(hwnd, sb, sb.Capacity);
-            var title = sb.ToString();
-            if (string.IsNullOrWhiteSpace(title))
-                return true;
+                var sb = new StringBuilder(titleLength + 1);
+                GetWindowTextW(hwnd, sb, sb.Capacity);
+                var title = sb.ToString();
+                if (string.IsNullOrWhiteSpace(title))
+                    return true;
 
-            var key = $"{processId}:{title}";
-            candidates[key] = new OsuWindowTitleCandidate((int)processId, title);
-            return true;
-        }, IntPtr.Zero);
+                var key = $"{processId}:{title}";
+                candidates[key] = new OsuWindowTitleCandidate((int)processId, title);
+                return true;
+            },
+            IntPtr.Zero
+        );
 
         return candidates.Values.ToList();
     }
 
-    private readonly record struct OsuProcessSnapshot(int ProcessId, OsuClientKind ClientKind, string? ExecutablePath, string? MainWindowTitle);
+    private readonly record struct OsuProcessSnapshot(
+        int ProcessId,
+        OsuClientKind ClientKind,
+        string? ExecutablePath,
+        string? MainWindowTitle
+    );
+
     private readonly record struct OsuWindowTitleCandidate(int ProcessId, string Title);
 
     private delegate bool EnumWindowsProc(IntPtr hwnd, IntPtr lParam);

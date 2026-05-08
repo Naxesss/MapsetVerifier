@@ -2,7 +2,6 @@
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
-
 using static MapsetVerifier.Checks.Utils.ManiaUtils;
 
 namespace MapsetVerifier.Checks.Mania.Compose
@@ -10,67 +9,73 @@ namespace MapsetVerifier.Checks.Mania.Compose
     [Check]
     public class CheckColumnDistribution : BeatmapSetCheck
     {
-        public override CheckMetadata GetMetadata() => new BeatmapCheckMetadata
-        {
-            Modes = [Beatmap.Mode.Mania],
-            Category = "Compose",
-            Message = "Column usage.",
-            Author = "Tailsdk",
-
-            Documentation = new Dictionary<string, string>
+        public override CheckMetadata GetMetadata() =>
+            new BeatmapCheckMetadata
             {
+                Modes = [Beatmap.Mode.Mania],
+                Category = "Compose",
+                Message = "Column usage.",
+                Author = "Tailsdk",
+
+                Documentation = new Dictionary<string, string>
                 {
-                    "Purpose",
-                    @"
+                    {
+                        "Purpose",
+                        @"
                     Maps should use all columns somewhat equally."
-                },
-                {
-                    "Reasoning",
-                    @"
+                    },
+                    {
+                        "Reasoning",
+                        @"
                     Maps that do not use all columns somewhat evenly may have major handbalancing issues."
-                }
-            }
-        };
+                    },
+                },
+            };
 
         public override Dictionary<string, IssueTemplate> GetTemplates()
         {
             return new Dictionary<string, IssueTemplate>
             {
                 {
-                "Underused column warning",
-                    new IssueTemplate(Issue.Level.Warning,
+                    "Underused column warning",
+                    new IssueTemplate(
+                        Issue.Level.Warning,
                         "Column {0} is underused",
-                        "column")
-                    .WithCause("A column is being underused.")
+                        "column"
+                    ).WithCause("A column is being underused.")
                 },
                 {
-                "Overused column warning",
-                    new IssueTemplate(Issue.Level.Warning,
+                    "Overused column warning",
+                    new IssueTemplate(
+                        Issue.Level.Warning,
                         "Column {0} is overused",
-                        "column")
-                    .WithCause("A column is being overused.")
+                        "column"
+                    ).WithCause("A column is being overused.")
                 },
                 {
-                "Underused column problem",
-                    new IssueTemplate(Issue.Level.Problem,
+                    "Underused column problem",
+                    new IssueTemplate(
+                        Issue.Level.Problem,
                         "Column {0} is severely underused",
-                        "column")
-                    .WithCause("A column is being severely underused.")
+                        "column"
+                    ).WithCause("A column is being severely underused.")
                 },
                 {
-                "Overused column problem",
-                    new IssueTemplate(Issue.Level.Problem,
+                    "Overused column problem",
+                    new IssueTemplate(
+                        Issue.Level.Problem,
                         "Column {0} is severely overused",
-                        "column")
-                    .WithCause("A column is being severely overused.")
+                        "column"
+                    ).WithCause("A column is being severely overused.")
                 },
                 {
-                "Unused column",
-                    new IssueTemplate(Issue.Level.Problem,
+                    "Unused column",
+                    new IssueTemplate(
+                        Issue.Level.Problem,
                         "Column {0} is unused",
-                        "column")
-                    .WithCause("A column is unused.")
-                }
+                        "column"
+                    ).WithCause("A column is unused.")
+                },
             };
         }
 
@@ -106,19 +111,35 @@ namespace MapsetVerifier.Checks.Mania.Compose
                     }
                     else if (columnDistribution[i] >= aboveAverageNotes)
                     {
-                        yield return new Issue(GetTemplate("Overused column warning"), beatmap, i + 1);
+                        yield return new Issue(
+                            GetTemplate("Overused column warning"),
+                            beatmap,
+                            i + 1
+                        );
                     }
                     else if (columnDistribution[i] <= belowAverageNotes)
                     {
-                        yield return new Issue(GetTemplate("Underused column warning"), beatmap, i + 1);
+                        yield return new Issue(
+                            GetTemplate("Underused column warning"),
+                            beatmap,
+                            i + 1
+                        );
                     }
                     else if (columnDistribution[i] >= sigAboveAverageNotes)
                     {
-                        yield return new Issue(GetTemplate("Overused column problem"), beatmap, i + 1);
+                        yield return new Issue(
+                            GetTemplate("Overused column problem"),
+                            beatmap,
+                            i + 1
+                        );
                     }
                     else if (columnDistribution[i] <= sigBelowAverageNotes)
                     {
-                        yield return new Issue(GetTemplate("Underused column problem"), beatmap, i + 1);
+                        yield return new Issue(
+                            GetTemplate("Underused column problem"),
+                            beatmap,
+                            i + 1
+                        );
                     }
                 }
             }

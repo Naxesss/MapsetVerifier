@@ -13,13 +13,22 @@ public static class OsuProcessClassifier
         var exePath = GetExecutablePath(process)?.Replace('/', '\\').ToLowerInvariant();
         if (!string.IsNullOrWhiteSpace(exePath))
         {
-            if (exePath.Contains("\\osu!.lazer\\", StringComparison.Ordinal) || exePath.Contains("\\lazer\\", StringComparison.Ordinal))
+            if (
+                exePath.Contains("\\osu!.lazer\\", StringComparison.Ordinal)
+                || exePath.Contains("\\lazer\\", StringComparison.Ordinal)
+            )
                 return OsuClientKind.Lazer;
 
-            if (exePath.Contains("\\appdata\\local\\osu!\\osu!.exe", StringComparison.Ordinal) || exePath.EndsWith("\\osu!\\osu!.exe", StringComparison.Ordinal))
+            if (
+                exePath.Contains("\\appdata\\local\\osu!\\osu!.exe", StringComparison.Ordinal)
+                || exePath.EndsWith("\\osu!\\osu!.exe", StringComparison.Ordinal)
+            )
                 return OsuClientKind.Stable;
 
-            if (exePath.EndsWith("\\osu!.exe", StringComparison.Ordinal) && !exePath.Contains("lazer", StringComparison.Ordinal))
+            if (
+                exePath.EndsWith("\\osu!.exe", StringComparison.Ordinal)
+                && !exePath.Contains("lazer", StringComparison.Ordinal)
+            )
                 return OsuClientKind.Stable;
         }
 
@@ -51,10 +60,12 @@ public static class OsuProcessClassifier
                 if (string.IsNullOrWhiteSpace(moduleName))
                     continue;
 
-                if (moduleName.Contains("osu.game.dll", StringComparison.Ordinal)
+                if (
+                    moduleName.Contains("osu.game.dll", StringComparison.Ordinal)
                     || moduleName.Contains("osu.framework.dll", StringComparison.Ordinal)
                     || moduleName.Contains("coreclr.dll", StringComparison.Ordinal)
-                    || moduleName.Contains("hostfxr.dll", StringComparison.Ordinal))
+                    || moduleName.Contains("hostfxr.dll", StringComparison.Ordinal)
+                )
                 {
                     return true;
                 }

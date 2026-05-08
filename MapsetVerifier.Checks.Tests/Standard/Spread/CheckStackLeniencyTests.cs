@@ -23,7 +23,13 @@ public class CheckStackLeniencyTests
         var issues = context.RunBeatmapCheck<CheckStackLeniency>("broken stack ar10");
 
         Assert.NotEmpty(issues);
-        Assert.Contains(issues, issue => issue.message.Contains("Stack leniency should be at least", StringComparison.OrdinalIgnoreCase)
-                                         || issue.message.Contains("Failed stack", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(
+            issues,
+            issue =>
+                issue.message.Contains(
+                    "Stack leniency should be at least",
+                    StringComparison.OrdinalIgnoreCase
+                ) || issue.message.Contains("Failed stack", StringComparison.OrdinalIgnoreCase)
+        );
     }
 }

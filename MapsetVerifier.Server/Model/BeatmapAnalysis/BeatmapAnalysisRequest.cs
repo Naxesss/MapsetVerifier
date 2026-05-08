@@ -4,4 +4,3 @@ public class BeatmapAnalysisRequest
 {
     public string BeatmapSetFolder { get; set; } = string.Empty;
 }
-

@@ -4,7 +4,6 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
-
 using static MapsetVerifier.Checks.Utils.TaikoUtils;
 
 namespace MapsetVerifier.Checks.Taiko.Compose
@@ -34,8 +33,8 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                         "Reasoning",
                         @"
                     This causes the last barline in the map to not be rendered."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -43,7 +42,6 @@ namespace MapsetVerifier.Checks.Taiko.Compose
             {
                 {
                     Minor,
-
                     new IssueTemplate(
                         Issue.Level.Minor,
                         "{0} Last spinner/slider end in the map is hiding its barline, due to being unsnapped 1ms early",
@@ -52,7 +50,6 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                 },
                 {
                     Problem,
-
                     new IssueTemplate(
                         Issue.Level.Problem,
                         "{0} Last note in the map is hiding its barline, due to being unsnapped 1ms early",
@@ -61,13 +58,12 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                 },
                 {
                     RoundingErrorWarning,
-
                     new IssueTemplate(
                         Issue.Level.Warning,
                         "{0} Last note in the map may have its barline hidden, due to rounding error. Doublecheck manually.",
                         "timestamp -"
                     ).WithCause("Rounding error.")
-                }
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
@@ -81,7 +77,10 @@ namespace MapsetVerifier.Checks.Taiko.Compose
 
             var unsnapFromLastBarline = lastObject.GetTailOffsetFromNextBarlineMs();
 
-            if (unsnapFromLastBarline > -1.0 && unsnapFromLastBarline <= -1.0 + Common.ROUNDING_ERROR_MARGIN)
+            if (
+                unsnapFromLastBarline > -1.0
+                && unsnapFromLastBarline <= -1.0 + Common.ROUNDING_ERROR_MARGIN
+            )
             {
                 yield return new Issue(
                     GetTemplate(RoundingErrorWarning),

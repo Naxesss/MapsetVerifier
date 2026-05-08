@@ -17,7 +17,9 @@ public class MetadataAnalysisController : ControllerBase
     /// Performs complete metadata analysis on a beatmap set including metadata, resources, and colour settings.
     /// </summary>
     [HttpPost("analyze")]
-    public ActionResult<MetadataAnalysisResult> AnalyzeMetadata([FromBody] MetadataAnalysisRequest request)
+    public ActionResult<MetadataAnalysisResult> AnalyzeMetadata(
+        [FromBody] MetadataAnalysisRequest request
+    )
     {
         try
         {
@@ -27,15 +29,19 @@ public class MetadataAnalysisController : ControllerBase
             var result = MetadataAnalysisService.Analyze(request.BeatmapSetFolder);
 
             if (!result.Success)
-                return NotFound(new ApiError(result.ErrorMessage ?? "Metadata analysis failed.", null));
+                return NotFound(
+                    new ApiError(result.ErrorMessage ?? "Metadata analysis failed.", null)
+                );
 
             return Ok(result);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to analyze metadata for {Folder}", request.BeatmapSetFolder);
-            return StatusCode(500, ApiErrorFactory.FromException(ex, "An error occurred during metadata analysis."));
+            return StatusCode(
+                500,
+                ApiErrorFactory.FromException(ex, "An error occurred during metadata analysis.")
+            );
         }
     }
 }
-

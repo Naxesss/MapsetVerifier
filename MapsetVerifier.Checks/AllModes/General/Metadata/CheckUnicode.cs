@@ -39,8 +39,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         Some unicode characters do seem to work, however. The title and artist fields are regulated by the Ranking Criteria, and 
                         creator names filtered upon creation, but difficulty names are not regulated or filtered by anything, so we do those case by 
                         case."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -48,28 +48,52 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             {
                 {
                     "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "{0} field contains unicode characters,\"{1}\", those being \"{2}\".", "Artist/title/creator", "field", "unicode char(s)")
-                        .WithCause("The romanized title, artist, or creator field contains unicode characters.")
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "{0} field contains unicode characters,\"{1}\", those being \"{2}\".",
+                        "Artist/title/creator",
+                        "field",
+                        "unicode char(s)"
+                    ).WithCause(
+                        "The romanized title, artist, or creator field contains unicode characters."
+                    )
                 },
-
                 {
                     "Warning",
-                    new IssueTemplate(Issue.Level.Warning, "{0} field contains unicode characters,\"{1}\", those being \"{2}\". If the map can still be downloaded this is probably ok.", "difficulty name", "field", "unicode char(s)")
-                        .WithCause("The difficulty name field contains unicode characters.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "{0} field contains unicode characters,\"{1}\", those being \"{2}\". If the map can still be downloaded this is probably ok.",
+                        "difficulty name",
+                        "field",
+                        "unicode char(s)"
+                    ).WithCause("The difficulty name field contains unicode characters.")
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
             foreach (var beatmap in beatmapSet.Beatmaps)
             {
-                foreach (var issue in GetUnicodeIssues("Difficulty name", beatmap.MetadataSettings.version, "Warning"))
+                foreach (
+                    var issue in GetUnicodeIssues(
+                        "Difficulty name",
+                        beatmap.MetadataSettings.version,
+                        "Warning"
+                    )
+                )
                     yield return issue;
 
-                foreach (var issue in GetUnicodeIssues("Romanized title", beatmap.MetadataSettings.title))
+                foreach (
+                    var issue in GetUnicodeIssues("Romanized title", beatmap.MetadataSettings.title)
+                )
                     yield return issue;
 
-                foreach (var issue in GetUnicodeIssues("Romanized artist", beatmap.MetadataSettings.artist))
+                foreach (
+                    var issue in GetUnicodeIssues(
+                        "Romanized artist",
+                        beatmap.MetadataSettings.artist
+                    )
+                )
                     yield return issue;
 
                 foreach (var issue in GetUnicodeIssues("Creator", beatmap.MetadataSettings.creator))
@@ -77,16 +101,27 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             }
         }
 
-        private IEnumerable<Issue> GetUnicodeIssues(string fieldName, string field, string template = "Problem")
+        private IEnumerable<Issue> GetUnicodeIssues(
+            string fieldName,
+            string field,
+            string template = "Problem"
+        )
         {
             if (ContainsUnicode(field))
-                yield return new Issue(GetTemplate(template), null, fieldName, field, GetUnicodeCharacters(field));
+                yield return new Issue(
+                    GetTemplate(template),
+                    null,
+                    fieldName,
+                    field,
+                    GetUnicodeCharacters(field)
+                );
         }
 
         private static bool IsUnicode(char ch) => ch > 127;
 
         private static bool ContainsUnicode(string str) => str.Any(IsUnicode);
 
-        private static string GetUnicodeCharacters(string str) => string.Join("", str.Where(IsUnicode));
+        private static string GetUnicodeCharacters(string str) =>
+            string.Join("", str.Where(IsUnicode));
     }
 }

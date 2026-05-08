@@ -14,12 +14,12 @@ namespace MapsetVerifier
     internal static class Program
     {
         private const string ExternalsFolderName = "Mapset Verifier Externals";
-        
+
         private static void Main(string[] args)
         {
             LoggerConfigurator.Configure();
             Log.Information("Mapset Verifier Server starting up");
-            
+
             // Ensures that numbers are displayed consistently across cultures, for example
             // that decimals are indicated by a period and not a comma.
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
@@ -28,13 +28,19 @@ namespace MapsetVerifier
             string appdataPath;
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                appdataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                appdataPath = Environment.GetFolderPath(
+                    Environment.SpecialFolder.LocalApplicationData
+                );
             else
                 appdataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
             Log.Information("Mapset Verifier selected app data folder {0}", appdataPath);
-            
-            Checker.RelativeDLLDirectory = Path.Combine(appdataPath, ExternalsFolderName, Checker.DefaultRelativeDLLDirectory);
+
+            Checker.RelativeDLLDirectory = Path.Combine(
+                appdataPath,
+                ExternalsFolderName,
+                Checker.DefaultRelativeDLLDirectory
+            );
             Snapshotter.RelativeDirectory = Path.Combine(appdataPath, ExternalsFolderName);
 
             Log.Information("Start loading checks");

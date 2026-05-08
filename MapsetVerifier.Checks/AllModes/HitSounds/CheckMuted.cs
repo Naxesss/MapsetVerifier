@@ -34,8 +34,8 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
 
                         Reverses are generally always done on sound cues, and assuming that's the case, it wouldn't make much sense 
                         being silent."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -43,27 +43,44 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
             {
                 {
                     "Warning Volume",
-                    new IssueTemplate(Issue.Level.Warning, "{0} {1}% volume {2}, this may be hard to hear over the song.", "timestamp -", "percent", "active hit object")
-                        .WithCause("An active hit object is at 10% or lower volume.")
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "{0} {1}% volume {2}, this may be hard to hear over the song.",
+                        "timestamp -",
+                        "percent",
+                        "active hit object"
+                    ).WithCause("An active hit object is at 10% or lower volume.")
                 },
-
                 {
                     "Minor Volume",
-                    new IssueTemplate(Issue.Level.Minor, "{0} {1}% volume {2}, this may be hard to hear over the song.", "timestamp -", "percent", "active hit object")
-                        .WithCause("An active hit object is at 20% or lower volume.")
+                    new IssueTemplate(
+                        Issue.Level.Minor,
+                        "{0} {1}% volume {2}, this may be hard to hear over the song.",
+                        "timestamp -",
+                        "percent",
+                        "active hit object"
+                    ).WithCause("An active hit object is at 20% or lower volume.")
                 },
-
                 {
                     "Passive Reverse",
-                    new IssueTemplate(Issue.Level.Warning, "{0} {1}% volume {2}, ensure there is no distinct sound here in the song.", "timestamp -", "percent", "reverse")
-                        .WithCause("A slider reverse is at 10% or lower volume.")
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "{0} {1}% volume {2}, ensure there is no distinct sound here in the song.",
+                        "timestamp -",
+                        "percent",
+                        "reverse"
+                    ).WithCause("A slider reverse is at 10% or lower volume.")
                 },
-
                 {
                     "Passive",
-                    new IssueTemplate(Issue.Level.Minor, "{0} {1}% volume {2}, ensure there is no distinct sound here in the song.", "timestamp -", "percent", "tick/tail")
-                        .WithCause("A passive hit object is at 10% or lower volume.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Minor,
+                        "{0} {1}% volume {2}, ensure there is no distinct sound here in the song.",
+                        "timestamp -",
+                        "percent",
+                        "tick/tail"
+                    ).WithCause("A passive hit object is at 10% or lower volume.")
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
@@ -77,7 +94,10 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
 
                 // Object-specific volume overrides line-specific volume for circles and hold notes
                 // (feature for Mania hit sounding) when it is > 0. However, this applies to other modes as well.
-                var volume = hitObject is not Slider && hitObject.volume > 0 && hitObject.volume != null ? hitObject.volume.GetValueOrDefault() : GetTimingLine(beatmap, ref lineIndex, hitObject.time).Volume;
+                var volume =
+                    hitObject is not Slider && hitObject.volume > 0 && hitObject.volume != null
+                        ? hitObject.volume.GetValueOrDefault()
+                        : GetTimingLine(beatmap, ref lineIndex, hitObject.time).Volume;
 
                 foreach (var issue in GetIssue(hitObject, hitObject.time, volume, true))
                     yield return issue;
@@ -87,7 +107,9 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
 
                 for (var edgeIndex = 1; edgeIndex <= slider.EdgeAmount; ++edgeIndex)
                 {
-                    double time = Timestamp.Round(slider.time + slider.GetCurveDuration() * edgeIndex);
+                    double time = Timestamp.Round(
+                        slider.time + slider.GetCurveDuration() * edgeIndex
+                    );
                     var isReverse = edgeIndex < slider.EdgeAmount;
 
                     if (!isReverse)
@@ -110,7 +132,12 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
             }
         }
 
-        private IEnumerable<Issue> GetIssue(HitObject hitObject, double time, float volume, bool isActive = false)
+        private IEnumerable<Issue> GetIssue(
+            HitObject hitObject,
+            double time,
+            float volume,
+            bool isActive = false
+        )
         {
             volume = GetActualVolume(volume);
 
@@ -127,21 +154,45 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
                 if (isHead)
                 {
                     if (volume <= 10)
-                        yield return new Issue(GetTemplate("Warning Volume"), hitObject.beatmap, timestamp, volume, partName);
+                        yield return new Issue(
+                            GetTemplate("Warning Volume"),
+                            hitObject.beatmap,
+                            timestamp,
+                            volume,
+                            partName
+                        );
                     else
-                        yield return new Issue(GetTemplate("Minor Volume"), hitObject.beatmap, timestamp, volume, partName);
+                        yield return new Issue(
+                            GetTemplate("Minor Volume"),
+                            hitObject.beatmap,
+                            timestamp,
+                            volume,
+                            partName
+                        );
                 }
                 else
                 {
                     // Must be a slider reverse, mappers rarely map these to nothing.
                     if (volume <= 10)
-                        yield return new Issue(GetTemplate("Passive Reverse"), hitObject.beatmap, timestamp, volume, partName);
+                        yield return new Issue(
+                            GetTemplate("Passive Reverse"),
+                            hitObject.beatmap,
+                            timestamp,
+                            volume,
+                            partName
+                        );
                 }
             }
             else if (volume <= 10)
             {
                 // Must be a slider tail or similar, these are often silenced intentionally.
-                yield return new Issue(GetTemplate("Passive"), hitObject.beatmap, timestamp, volume, partName);
+                yield return new Issue(
+                    GetTemplate("Passive"),
+                    hitObject.beatmap,
+                    timestamp,
+                    volume,
+                    partName
+                );
             }
         }
 

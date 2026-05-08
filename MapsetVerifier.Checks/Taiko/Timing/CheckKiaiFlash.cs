@@ -4,7 +4,6 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
-
 using static MapsetVerifier.Checks.Utils.GeneralUtils;
 using static MapsetVerifier.Checks.Utils.TaikoUtils;
 
@@ -15,7 +14,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
     {
         private const string Minor = nameof(Issue.Level.Minor);
         private const string Warning = nameof(Issue.Level.Warning);
-        
+
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata()
             {
@@ -34,8 +33,8 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         "Reasoning",
                         @"
                     Kiai flashes in osu!taiko cause the entire playfield to flash, which can cause performance problems, alongside potentially causing epileptic effects if abused."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -43,16 +42,20 @@ namespace MapsetVerifier.Checks.Taiko.Timing
             {
                 {
                     Minor,
-                    new IssueTemplate(Issue.Level.Minor, "{0} Kiai flash ", "timestamp -").WithCause(
-                        "A kiai flash exists, but is not too drastic"
-                    )
+                    new IssueTemplate(
+                        Issue.Level.Minor,
+                        "{0} Kiai flash ",
+                        "timestamp -"
+                    ).WithCause("A kiai flash exists, but is not too drastic")
                 },
                 {
                     Warning,
-                    new IssueTemplate(Issue.Level.Warning, "{0} Kiai flash", "timestamp -").WithCause(
-                        "A kiai flash that's too drastic exists"
-                    )
-                }
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "{0} Kiai flash",
+                        "timestamp -"
+                    ).WithCause("A kiai flash that's too drastic exists")
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
@@ -71,7 +74,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                     {
                         continue;
                     }
-                    
+
                     var normalizedMsPerBeat = timing.GetNormalizedMsPerBeat();
                     var kiaiToggle = kiaiToggles[nextIndex];
                     double gap = kiaiToggle.Offset - toggle.Offset;

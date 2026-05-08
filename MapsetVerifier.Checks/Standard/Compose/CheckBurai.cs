@@ -14,10 +14,7 @@ namespace MapsetVerifier.Checks.Standard.Compose
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
-                Modes =
-                [
-                    Beatmap.Mode.Standard
-                ],
+                Modes = [Beatmap.Mode.Standard],
                 Category = "Compose",
                 Message = "Burai slider.",
                 Author = "Naxess",
@@ -43,8 +40,8 @@ namespace MapsetVerifier.Checks.Standard.Compose
 
                         ![](https://i.imgur.com/StRTQzZ.png)
                         A slider which goes back on itself multiple times and is impossible to read for players with slider tails hidden, which is common in skinning."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -52,15 +49,18 @@ namespace MapsetVerifier.Checks.Standard.Compose
             {
                 {
                     "Definitely",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Burai.", "timestamp -")
-                        .WithCause("The burai score of a slider shape, based on the distance and delta angle between intersecting parts of the curve, is very high.")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Burai.", "timestamp -").WithCause(
+                        "The burai score of a slider shape, based on the distance and delta angle between intersecting parts of the curve, is very high."
+                    )
                 },
-
                 {
                     "Potentially",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Potentially burai.", "timestamp -")
-                        .WithCause("Same as the other check, but with a lower score threshold.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "{0} Potentially burai.",
+                        "timestamp -"
+                    ).WithCause("Same as the other check, but with a lower score threshold.")
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
@@ -86,7 +86,10 @@ namespace MapsetVerifier.Checks.Standard.Compose
                     // Only check places we haven't been yet for optimization.
                     for (var j = i + 1; j < slider.PathPxPositions.Count - 1; ++j)
                     {
-                        var distance = GetDistance(slider.PathPxPositions[i], slider.PathPxPositions[j]);
+                        var distance = GetDistance(
+                            slider.PathPxPositions[i],
+                            slider.PathPxPositions[j]
+                        );
 
                         // First ensure the point is far enough away to not be a small burai structure.
                         if (!passedMargin && distance >= maxDistance)
@@ -96,14 +99,23 @@ namespace MapsetVerifier.Checks.Standard.Compose
                         if (passedMargin && distance >= maxDistance)
                             continue;
 
-                        var angleIntersect = GetAngle(slider.PathPxPositions[i - 1], slider.PathPxPositions[i]);
-                        var otherAngleIntersect = GetAngle(slider.PathPxPositions[j], slider.PathPxPositions[j + 1]);
+                        var angleIntersect = GetAngle(
+                            slider.PathPxPositions[i - 1],
+                            slider.PathPxPositions[i]
+                        );
+                        var otherAngleIntersect = GetAngle(
+                            slider.PathPxPositions[j],
+                            slider.PathPxPositions[j + 1]
+                        );
 
                         // Compare the intersection angles, resets after 180 degrees since we're comparing tangents.
-                        var diffAngleIntersect = Math.Abs(WrapAngle(angleIntersect - otherAngleIntersect, 0.5));
+                        var diffAngleIntersect = Math.Abs(
+                            WrapAngle(angleIntersect - otherAngleIntersect, 0.5)
+                        );
 
                         var distanceScore = 100 * Math.Sqrt(10) / Math.Pow(10, 2 * distance) / 125;
-                        var angleScore = 1 / (Math.Pow(diffAngleIntersect / Math.PI * 20, 3) + 0.01) / 250;
+                        var angleScore =
+                            1 / (Math.Pow(diffAngleIntersect / Math.PI * 20, 3) + 0.01) / 250;
 
                         buraiScores.Add(angleScore * distanceScore);
                     }
@@ -116,27 +128,40 @@ namespace MapsetVerifier.Checks.Standard.Compose
 
                 // Note that this may false positive in places with slight but readable overlapping curves.
                 if (totalBuraiScore > 5)
-                    yield return new Issue(GetTemplate("Definitely"), beatmap, Timestamp.Get(hitObject));
-
+                    yield return new Issue(
+                        GetTemplate("Definitely"),
+                        beatmap,
+                        Timestamp.Get(hitObject)
+                    );
                 else if (totalBuraiScore > 2)
-                    yield return new Issue(GetTemplate("Potentially"), beatmap, Timestamp.Get(hitObject));
+                    yield return new Issue(
+                        GetTemplate("Potentially"),
+                        beatmap,
+                        Timestamp.Get(hitObject)
+                    );
             }
         }
 
         /// <summary> Returns the smallest angle in radians. </summary>
-        private static double WrapAngle(double radians, double scale = 1) => radians > Math.PI * scale ? Math.PI * 2 * scale - radians : radians;
+        private static double WrapAngle(double radians, double scale = 1) =>
+            radians > Math.PI * scale ? Math.PI * 2 * scale - radians : radians;
 
         /// <summary> Returns the angle between two 2D vectors, a value between 0 and 2 PI. </summary>
         private static double GetAngle(Vector2 vector, Vector2 otherVector, double wrapScale = 1)
         {
-            var radians = WrapAngle(Math.Atan2(vector.Y - otherVector.Y, vector.X - otherVector.X), wrapScale);
+            var radians = WrapAngle(
+                Math.Atan2(vector.Y - otherVector.Y, vector.X - otherVector.X),
+                wrapScale
+            );
 
             return (radians >= 0 ? radians : Math.PI * 2 + radians) % Math.PI;
         }
 
         /// <summary> Returns the euclidean distance between two 2D vectors. </summary>
         private static double GetDistance(Vector2 vector, Vector2 otherVector) =>
-            Math.Sqrt(Math.Pow(vector.X - otherVector.X, 2) + Math.Pow(vector.Y - otherVector.Y, 2));
+            Math.Sqrt(
+                Math.Pow(vector.X - otherVector.X, 2) + Math.Pow(vector.Y - otherVector.Y, 2)
+            );
 
         /// <summary> Returns the weighted score of burai scores, decaying by 90% for each lower number. </summary>
         private static double GetWeighedScore(IEnumerable<double> buraiScores)

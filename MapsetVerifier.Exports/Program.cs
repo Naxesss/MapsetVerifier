@@ -68,8 +68,10 @@ internal static class Program
 
         for (var d = new DirectoryInfo(dir); d != null; d = d.Parent)
         {
-            if (File.Exists(Path.Combine(d.FullName, "MapsetVerifier.sln")) ||
-                Directory.Exists(Path.Combine(d.FullName, ".git")))
+            if (
+                File.Exists(Path.Combine(d.FullName, "MapsetVerifier.sln"))
+                || Directory.Exists(Path.Combine(d.FullName, ".git"))
+            )
                 return d.FullName;
         }
 

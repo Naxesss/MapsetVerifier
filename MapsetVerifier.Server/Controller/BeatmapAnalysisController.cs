@@ -17,7 +17,9 @@ public class BeatmapAnalysisController : ControllerBase
     /// Performs complete beatmap analysis on a beatmap set including statistics, general settings, and difficulty settings.
     /// </summary>
     [HttpPost("analyze")]
-    public ActionResult<BeatmapAnalysisResult> AnalyzeBeatmap([FromBody] BeatmapAnalysisRequest request)
+    public ActionResult<BeatmapAnalysisResult> AnalyzeBeatmap(
+        [FromBody] BeatmapAnalysisRequest request
+    )
     {
         try
         {
@@ -27,19 +29,26 @@ public class BeatmapAnalysisController : ControllerBase
             var result = BeatmapAnalysisService.Analyze(request.BeatmapSetFolder);
 
             if (!result.Success)
-                return NotFound(new ApiError(result.ErrorMessage ?? "Beatmap analysis failed.", null));
+                return NotFound(
+                    new ApiError(result.ErrorMessage ?? "Beatmap analysis failed.", null)
+                );
 
             return Ok(result);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to analyze beatmap for {Folder}", request.BeatmapSetFolder);
-            return StatusCode(500, ApiErrorFactory.FromException(ex, "An error occurred during beatmap analysis."));
+            return StatusCode(
+                500,
+                ApiErrorFactory.FromException(ex, "An error occurred during beatmap analysis.")
+            );
         }
     }
 
     [HttpPost("objects")]
-    public ActionResult<ObjectsOverviewResult> AnalyzeObjects([FromBody] BeatmapAnalysisRequest request)
+    public ActionResult<ObjectsOverviewResult> AnalyzeObjects(
+        [FromBody] BeatmapAnalysisRequest request
+    )
     {
         try
         {
@@ -49,19 +58,33 @@ public class BeatmapAnalysisController : ControllerBase
             var result = BeatmapAnalysisService.AnalyzeObjects(request.BeatmapSetFolder);
 
             if (!result.Success)
-                return NotFound(new ApiError(result.ErrorMessage ?? "Objects overview analysis failed.", null));
+                return NotFound(
+                    new ApiError(result.ErrorMessage ?? "Objects overview analysis failed.", null)
+                );
 
             return Ok(result);
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Failed to analyze objects overview for {Folder}", request.BeatmapSetFolder);
-            return StatusCode(500, ApiErrorFactory.FromException(ex, "An error occurred during objects overview analysis."));
+            Log.Error(
+                ex,
+                "Failed to analyze objects overview for {Folder}",
+                request.BeatmapSetFolder
+            );
+            return StatusCode(
+                500,
+                ApiErrorFactory.FromException(
+                    ex,
+                    "An error occurred during objects overview analysis."
+                )
+            );
         }
     }
 
     [HttpPost("difficulty")]
-    public ActionResult<DifficultyOverviewResult> AnalyzeDifficulty([FromBody] BeatmapAnalysisRequest request)
+    public ActionResult<DifficultyOverviewResult> AnalyzeDifficulty(
+        [FromBody] BeatmapAnalysisRequest request
+    )
     {
         try
         {
@@ -71,15 +94,29 @@ public class BeatmapAnalysisController : ControllerBase
             var result = BeatmapAnalysisService.AnalyzeDifficulty(request.BeatmapSetFolder);
 
             if (!result.Success)
-                return NotFound(new ApiError(result.ErrorMessage ?? "Difficulty overview analysis failed.", null));
+                return NotFound(
+                    new ApiError(
+                        result.ErrorMessage ?? "Difficulty overview analysis failed.",
+                        null
+                    )
+                );
 
             return Ok(result);
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Failed to analyze difficulty overview for {Folder}", request.BeatmapSetFolder);
-            return StatusCode(500, ApiErrorFactory.FromException(ex, "An error occurred during difficulty overview analysis."));
+            Log.Error(
+                ex,
+                "Failed to analyze difficulty overview for {Folder}",
+                request.BeatmapSetFolder
+            );
+            return StatusCode(
+                500,
+                ApiErrorFactory.FromException(
+                    ex,
+                    "An error occurred during difficulty overview analysis."
+                )
+            );
         }
     }
 }
-

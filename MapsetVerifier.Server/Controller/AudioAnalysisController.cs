@@ -24,17 +24,25 @@ public class AudioAnalysisController : ControllerBase
             if (string.IsNullOrWhiteSpace(request.BeatmapSetFolder))
                 return BadRequest(new ApiError("Folder is required.", null));
 
-            var result = AudioAnalysisService.AnalyzeAudio(request.BeatmapSetFolder, request.AudioFile);
+            var result = AudioAnalysisService.AnalyzeAudio(
+                request.BeatmapSetFolder,
+                request.AudioFile
+            );
 
             if (!result.Success)
-                return NotFound(new ApiError(result.ErrorMessage ?? "Audio analysis failed.", null));
+                return NotFound(
+                    new ApiError(result.ErrorMessage ?? "Audio analysis failed.", null)
+                );
 
             return Ok(result);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to analyze audio for {Folder}", request.BeatmapSetFolder);
-            return StatusCode(500, ApiErrorFactory.FromException(ex, "An error occurred during audio analysis."));
+            return StatusCode(
+                500,
+                ApiErrorFactory.FromException(ex, "An error occurred during audio analysis.")
+            );
         }
     }
 
@@ -42,7 +50,9 @@ public class AudioAnalysisController : ControllerBase
     /// Gets spectrogram data for visualization.
     /// </summary>
     [HttpPost("spectrogram")]
-    public ActionResult<SpectralAnalysisResult> GetSpectrogram([FromBody] SpectrogramRequest request)
+    public ActionResult<SpectralAnalysisResult> GetSpectrogram(
+        [FromBody] SpectrogramRequest request
+    )
     {
         try
         {
@@ -53,14 +63,18 @@ public class AudioAnalysisController : ControllerBase
                 request.BeatmapSetFolder,
                 request.AudioFile,
                 request.FftSize,
-                request.TimeResolutionMs);
+                request.TimeResolutionMs
+            );
 
             return Ok(result);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to generate spectrogram for {Folder}", request.BeatmapSetFolder);
-            return StatusCode(500, ApiErrorFactory.FromException(ex, "An error occurred generating spectrogram."));
+            return StatusCode(
+                500,
+                ApiErrorFactory.FromException(ex, "An error occurred generating spectrogram.")
+            );
         }
     }
 
@@ -68,7 +82,9 @@ public class AudioAnalysisController : ControllerBase
     /// Gets frequency analysis with FFT data and harmonic analysis.
     /// </summary>
     [HttpPost("frequency")]
-    public ActionResult<FrequencyAnalysisResult> GetFrequencyAnalysis([FromBody] FrequencyAnalysisRequest request)
+    public ActionResult<FrequencyAnalysisResult> GetFrequencyAnalysis(
+        [FromBody] FrequencyAnalysisRequest request
+    )
     {
         try
         {
@@ -78,14 +94,18 @@ public class AudioAnalysisController : ControllerBase
             var result = AudioAnalysisService.GetFrequencyAnalysis(
                 request.BeatmapSetFolder,
                 request.AudioFile,
-                request.FftSize);
+                request.FftSize
+            );
 
             return Ok(result);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to analyze frequency for {Folder}", request.BeatmapSetFolder);
-            return StatusCode(500, ApiErrorFactory.FromException(ex, "An error occurred during frequency analysis."));
+            return StatusCode(
+                500,
+                ApiErrorFactory.FromException(ex, "An error occurred during frequency analysis.")
+            );
         }
     }
 
@@ -93,7 +113,9 @@ public class AudioAnalysisController : ControllerBase
     /// Performs batch analysis on all hit sounds in a beatmap set.
     /// </summary>
     [HttpPost("hitsounds")]
-    public ActionResult<HitSoundBatchResult> AnalyzeHitSounds([FromBody] HitSoundAnalysisRequest request)
+    public ActionResult<HitSoundBatchResult> AnalyzeHitSounds(
+        [FromBody] HitSoundAnalysisRequest request
+    )
     {
         try
         {
@@ -106,8 +128,10 @@ public class AudioAnalysisController : ControllerBase
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to analyze hit sounds for {Folder}", request.BeatmapSetFolder);
-            return StatusCode(500, ApiErrorFactory.FromException(ex, "An error occurred during hit sound analysis."));
+            return StatusCode(
+                500,
+                ApiErrorFactory.FromException(ex, "An error occurred during hit sound analysis.")
+            );
         }
     }
 }
-

@@ -11,15 +11,15 @@ namespace MapsetVerifier.Parser.Objects
             Auto,
             Normal,
             Soft,
-            Drum
+            Drum,
         }
-        
+
         public enum HitSourceType
         {
             Edge,
             Body,
             Tick,
-            Unknown
+            Unknown,
         }
 
         public int CustomIndex { get; }
@@ -30,7 +30,14 @@ namespace MapsetVerifier.Parser.Objects
 
         public double Time { get; }
 
-        public HitSample(int customIndex, SamplesetType? sampleset, HitSounds? hitSound, HitSourceType hitSource, double time, bool taiko = false)
+        public HitSample(
+            int customIndex,
+            SamplesetType? sampleset,
+            HitSounds? hitSound,
+            HitSourceType hitSource,
+            double time,
+            bool taiko = false
+        )
         {
             CustomIndex = customIndex;
             Sampleset = sampleset;
@@ -43,7 +50,9 @@ namespace MapsetVerifier.Parser.Objects
 
         public HitSample(string fileName)
         {
-            var regex = new Regex(@"(?i)^(taiko-)?(soft|normal|drum)-(hit(whistle|normal|finish)|slider(slide|whistle|tick))(\d+)?");
+            var regex = new Regex(
+                @"(?i)^(taiko-)?(soft|normal|drum)-(hit(whistle|normal|finish)|slider(slide|whistle|tick))(\d+)?"
+            );
 
             var match = regex.Match(fileName);
             var groups = match.Groups;
@@ -71,9 +80,10 @@ namespace MapsetVerifier.Parser.Objects
         {
             var lowerText = text.ToLower();
 
-            return lowerText == "soft" ? SamplesetType.Soft :
-                lowerText == "normal" ? SamplesetType.Normal :
-                lowerText == "drum" ? SamplesetType.Drum : null;
+            return lowerText == "soft" ? SamplesetType.Soft
+                : lowerText == "normal" ? SamplesetType.Normal
+                : lowerText == "drum" ? SamplesetType.Drum
+                : null;
         }
 
         /// <summary>
@@ -84,9 +94,10 @@ namespace MapsetVerifier.Parser.Objects
         {
             var lowerText = text.ToLower();
 
-            return lowerText.StartsWith("hit") ? HitSourceType.Edge :
-                lowerText.StartsWith("slidertick") ? HitSourceType.Tick :
-                lowerText.StartsWith("slider") ? HitSourceType.Body : HitSourceType.Unknown;
+            return lowerText.StartsWith("hit") ? HitSourceType.Edge
+                : lowerText.StartsWith("slidertick") ? HitSourceType.Tick
+                : lowerText.StartsWith("slider") ? HitSourceType.Body
+                : HitSourceType.Unknown;
         }
 
         /// <summary>
@@ -97,10 +108,11 @@ namespace MapsetVerifier.Parser.Objects
         {
             var lowerText = text.ToLower();
 
-            return lowerText == "normal" ? HitSounds.Normal :
-                lowerText == "clap" ? HitSounds.Clap :
-                lowerText == "whistle" ? HitSounds.Whistle :
-                lowerText == "finish" ? HitSounds.Finish : null;
+            return lowerText == "normal" ? HitSounds.Normal
+                : lowerText == "clap" ? HitSounds.Clap
+                : lowerText == "whistle" ? HitSounds.Whistle
+                : lowerText == "finish" ? HitSounds.Finish
+                : null;
         }
 
         /// <summary> Returns the given text as an integer if possible, else 1 (i.e. implicit custom index). </summary>
@@ -128,8 +140,9 @@ namespace MapsetVerifier.Parser.Objects
                 hitSoundString = HitSource switch
                 {
                     HitSourceType.Edge when hs != HitSounds.None => "hit" + hs.ToString().ToLower(),
-                    HitSourceType.Body => "slider" + (hs == HitSounds.Whistle ? "whistle" : "slide"),
-                    _ => null
+                    HitSourceType.Body => "slider"
+                        + (hs == HitSounds.Whistle ? "whistle" : "slide"),
+                    _ => null,
                 };
             }
 
@@ -148,6 +161,7 @@ namespace MapsetVerifier.Parser.Objects
         ///     Returns whether the sample file name is the same as the given file name (i.e. same sample file).
         ///     Ignores case sensitivity.
         /// </summary>
-        public bool SameFileName(string fileNameWithExtension) => fileNameWithExtension.ToLower().StartsWith(GetFileName() + ".");
+        public bool SameFileName(string fileNameWithExtension) =>
+            fileNameWithExtension.ToLower().StartsWith(GetFileName() + ".");
     }
 }

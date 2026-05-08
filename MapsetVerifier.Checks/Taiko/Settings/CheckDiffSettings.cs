@@ -1,7 +1,7 @@
-﻿using MapsetVerifier.Parser.Objects;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
+using MapsetVerifier.Parser.Objects;
 
 namespace MapsetVerifier.Checks.Taiko.Settings;
 
@@ -21,7 +21,7 @@ public class CheckDiffSettings : BeatmapCheck
         { Beatmap.Difficulty.Easy, 3 },
         { Beatmap.Difficulty.Normal, 4 },
         { Beatmap.Difficulty.Hard, 5 },
-        { Beatmap.Difficulty.Insane, 5.5 }
+        { Beatmap.Difficulty.Insane, 5.5 },
     };
 
     /// <summary>
@@ -38,7 +38,7 @@ public class CheckDiffSettings : BeatmapCheck
         { Beatmap.Difficulty.Easy, [9, 8, 7, 6] },
         { Beatmap.Difficulty.Normal, [8, 7, 6, 5] },
         { Beatmap.Difficulty.Hard, [7, 6, 5, 4] },
-        { Beatmap.Difficulty.Insane, [7, 5.5, 5, 4] }
+        { Beatmap.Difficulty.Insane, [7, 5.5, 5, 4] },
     };
 
     private static int GetDrainIndex(double drain)
@@ -93,8 +93,8 @@ public class CheckDiffSettings : BeatmapCheck
 | Futsuu     | 8~9           | 7~8                  | 6~7                  | 5~6            |
 | Muzukashii | 7~8           | 6~7                  | 5~6                  | 4~5            |
 | Oni        | 7~8           | 5.5~6.5              | 5~6                  | 4~5            |"
-                }
-            }
+                },
+            },
         };
 
     public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -116,9 +116,7 @@ public class CheckDiffSettings : BeatmapCheck
                     "HP is different from suggested value {0}, currently {1}. Ensure this makes sense.",
                     "limit",
                     "current"
-                ).WithCause(
-                    "Current value is considerably different from the recommended limits."
-                )
+                ).WithCause("Current value is considerably different from the recommended limits.")
             },
             {
                 "odMinor",
@@ -136,16 +134,18 @@ public class CheckDiffSettings : BeatmapCheck
                     "OD is different from suggested value {0}, currently {1}. Ensure this makes sense.",
                     "limit",
                     "current"
-                ).WithCause(
-                    "Current value is considerably different from the recommended limits."
-                )
+                ).WithCause("Current value is considerably different from the recommended limits.")
             },
         };
 
     public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
     {
         double hp = Math.Round(beatmap.DifficultySettings.hpDrain, 2, MidpointRounding.ToEven);
-        double od = Math.Round(beatmap.DifficultySettings.overallDifficulty, 2, MidpointRounding.ToEven);
+        double od = Math.Round(
+            beatmap.DifficultySettings.overallDifficulty,
+            2,
+            MidpointRounding.ToEven
+        );
 
         foreach (var diff in difficulties)
         {

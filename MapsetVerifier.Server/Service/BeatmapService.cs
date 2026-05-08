@@ -5,15 +5,18 @@ using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Server.Model;
 using MapsetVerifier.Server.Service.OsuRuntime;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.Processing;
 
 namespace MapsetVerifier.Server.Service;
 
 public static class BeatmapService
 {
-    private static readonly Regex BackgroundRegex = new Regex("0,0,\"(?<file>[^\"]+)\"", RegexOptions.Compiled);
+    private static readonly Regex BackgroundRegex = new Regex(
+        "0,0,\"(?<file>[^\"]+)\"",
+        RegexOptions.Compiled
+    );
     private static readonly string[] SupportedImageExtensions = [".jpg", ".jpeg", ".png", ".gif"];
 
     /// <summary>
@@ -43,7 +46,9 @@ public static class BeatmapService
                     }
                 }
             }
-            catch { /* ignore registry errors */ }
+            catch
+            { /* ignore registry errors */
+            }
 
             // Fallback to %USERPROFILE%\AppData\Local\osu!\Songs
             try
@@ -56,7 +61,9 @@ public static class BeatmapService
                         return fallback;
                 }
             }
-            catch { /* ignore */ }
+            catch
+            { /* ignore */
+            }
         }
         return null;
     }
@@ -66,26 +73,31 @@ public static class BeatmapService
     /// </summary>
     public static string? ResolveSongsFolder(string? songsFolderOverride)
     {
-        if (!string.IsNullOrWhiteSpace(songsFolderOverride) && Directory.Exists(songsFolderOverride))
+        if (
+            !string.IsNullOrWhiteSpace(songsFolderOverride) && Directory.Exists(songsFolderOverride)
+        )
             return songsFolderOverride;
         return DetectSongsFolder();
     }
 
-    public static ApiLazerLookupResult GetCurrentLazerBeatmap()
-        => CurrentBeatmapLookupService.GetCurrentLazerBeatmap();
+    public static ApiLazerLookupResult GetCurrentLazerBeatmap() =>
+        CurrentBeatmapLookupService.GetCurrentLazerBeatmap();
 
-    public static ApiLazerLookupResult GetCurrentStableBeatmap(string? songsFolderOverride)
-        => CurrentBeatmapLookupService.GetCurrentStableBeatmap(songsFolderOverride);
+    public static ApiLazerLookupResult GetCurrentStableBeatmap(string? songsFolderOverride) =>
+        CurrentBeatmapLookupService.GetCurrentStableBeatmap(songsFolderOverride);
 
-    public static ApiBeatmapPage GetBeatmaps(string songsFolder, string? search, int page, int pageSize)
+    public static ApiBeatmapPage GetBeatmaps(
+        string songsFolder,
+        string? search,
+        int page,
+        int pageSize
+    )
     {
         if (!Directory.Exists(songsFolder))
             return new ApiBeatmapPage([], page, pageSize, false);
 
         var dirInfo = new DirectoryInfo(songsFolder);
-        var folders = dirInfo.GetDirectories()
-            .OrderByDescending(d => d.LastWriteTimeUtc)
-            .ToList();
+        var folders = dirInfo.GetDirectories().OrderByDescending(d => d.LastWriteTimeUtc).ToList();
 
         var skipped = page * pageSize;
         var pageFolders = folders.Skip(skipped).Take(pageSize + 1).ToList();
@@ -101,16 +113,20 @@ public static class BeatmapService
                 var meta = ParseBeatmapMetadata(folder.FullName, content);
                 if (MatchesSearch(meta, search))
                 {
-                    var backgroundUrl = string.IsNullOrEmpty(meta.backgroundPath) ? string.Empty : $"/beatmap/image?folder={Uri.EscapeDataString(folder.Name)}";
-                    results.Add(new ApiBeatmap(
-                        folder: folder.Name,
-                        title: meta.title ?? string.Empty,
-                        artist: meta.artist ?? string.Empty,
-                        creator: meta.creator ?? string.Empty,
-                        beatmapId: meta.beatmapId ?? string.Empty,
-                        beatmapSetId: meta.beatmapSetId ?? string.Empty,
-                        backgroundPath: backgroundUrl
-                    ));
+                    var backgroundUrl = string.IsNullOrEmpty(meta.backgroundPath)
+                        ? string.Empty
+                        : $"/beatmap/image?folder={Uri.EscapeDataString(folder.Name)}";
+                    results.Add(
+                        new ApiBeatmap(
+                            folder: folder.Name,
+                            title: meta.title ?? string.Empty,
+                            artist: meta.artist ?? string.Empty,
+                            creator: meta.creator ?? string.Empty,
+                            beatmapId: meta.beatmapId ?? string.Empty,
+                            beatmapSetId: meta.beatmapSetId ?? string.Empty,
+                            backgroundPath: backgroundUrl
+                        )
+                    );
                 }
             }
             catch (Exception)
@@ -146,20 +162,40 @@ public static class BeatmapService
         );
     }
 
-    private static bool MatchesSearch((string? title, string? artist, string? creator, string? beatmapId, string? beatmapSetId, string? backgroundPath) meta, string? search)
+    private static bool MatchesSearch(
+        (
+            string? title,
+            string? artist,
+            string? creator,
+            string? beatmapId,
+            string? beatmapSetId,
+            string? backgroundPath
+        ) meta,
+        string? search
+    )
     {
         if (string.IsNullOrWhiteSpace(search))
             return true;
-        var searchable = $"{meta.title} - {meta.artist} | {meta.creator} ({meta.beatmapId} {meta.beatmapSetId})";
+        var searchable =
+            $"{meta.title} - {meta.artist} | {meta.creator} ({meta.beatmapId} {meta.beatmapSetId})";
         return searchable.Contains(search, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static (string? title, string? artist, string? creator, string? beatmapId, string? beatmapSetId, string? backgroundPath) ParseBeatmapMetadata(string folderPath, string data)
+    private static (
+        string? title,
+        string? artist,
+        string? creator,
+        string? beatmapId,
+        string? beatmapSetId,
+        string? backgroundPath
+    ) ParseBeatmapMetadata(string folderPath, string data)
     {
         string? GetValue(string prefix)
         {
-            var line = data.Split('\n').FirstOrDefault(l => l.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
-            if (line == null) return null;
+            var line = data.Split('\n')
+                .FirstOrDefault(l => l.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
+            if (line == null)
+                return null;
             var value = line.Substring(prefix.Length).Trim();
             return value;
         }
@@ -188,7 +224,11 @@ public static class BeatmapService
     /// <param name="original">When set to true, return the full-sized background without thumbnail resize</param>
     /// <param name="songsFolderOverride">Song folder used to when finding the background of a song. When not provided it will try to detect it.</param>
     /// <returns>The background of the beatmapset</returns>
-    public static BeatmapImageResult GetBeatmapImage(string folder, bool original = false, string? songsFolderOverride = null)
+    public static BeatmapImageResult GetBeatmapImage(
+        string folder,
+        bool original = false,
+        string? songsFolderOverride = null
+    )
     {
         const int maxHeight = MaxImageHeight; // use constant
         var songsFolder = ResolveSongsFolder(songsFolderOverride);
@@ -205,7 +245,9 @@ public static class BeatmapService
         var extLower = Path.GetExtension(imagePath).ToLowerInvariant();
 
         var fi = new FileInfo(imagePath);
-        var baseEtagCore = fi.Exists ? $"{fi.LastWriteTimeUtc.Ticks:x}-{fi.Length:x}" : Path.GetFileName(imagePath);
+        var baseEtagCore = fi.Exists
+            ? $"{fi.LastWriteTimeUtc.Ticks:x}-{fi.Length:x}"
+            : Path.GetFileName(imagePath);
 
         var originalHeight = 0;
         try
@@ -234,15 +276,21 @@ public static class BeatmapService
             var ratio = (double)maxHeight / img.Height;
             var targetW = Math.Max(1, (int)Math.Round(img.Width * ratio));
             var targetH = maxHeight;
-            img.Mutate(c => c.Resize(new ResizeOptions
-            {
-                Mode = ResizeMode.Max,
-                Size = new Size(targetW, targetH),
-                Sampler = KnownResamplers.Lanczos3
-            }));
+            img.Mutate(c =>
+                c.Resize(
+                    new ResizeOptions
+                    {
+                        Mode = ResizeMode.Max,
+                        Size = new Size(targetW, targetH),
+                        Sampler = KnownResamplers.Lanczos3,
+                    }
+                )
+            );
             var ms = new MemoryStream();
-            if (extLower == ".png") img.Save(ms, new PngEncoder());
-            else img.Save(ms, new JpegEncoder { Quality = 85 });
+            if (extLower == ".png")
+                img.Save(ms, new PngEncoder());
+            else
+                img.Save(ms, new JpegEncoder { Quality = 85 });
             ms.Position = 0; // reset for reading
             var mime = extLower == ".png" ? "image/png" : "image/jpeg";
             var etag = '"' + baseEtagCore + $"-h{maxHeight}" + '"';
@@ -256,7 +304,11 @@ public static class BeatmapService
 
     private static string? GetConfiguredBackgroundImagePath(string beatmapSetFolder)
     {
-        foreach (var osuFile in Directory.GetFiles(beatmapSetFolder, "*.osu").OrderBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase))
+        foreach (
+            var osuFile in Directory
+                .GetFiles(beatmapSetFolder, "*.osu")
+                .OrderBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase)
+        )
         {
             try
             {
@@ -276,8 +328,8 @@ public static class BeatmapService
         return null;
     }
 
-    private static bool IsSupportedImageFile(string filePath) => SupportedImageExtensions.Contains(Path.GetExtension(filePath).ToLowerInvariant());
-
+    private static bool IsSupportedImageFile(string filePath) =>
+        SupportedImageExtensions.Contains(Path.GetExtension(filePath).ToLowerInvariant());
 
     public static ApiBeatmapSetCheckResult RunBeatmapSetChecks(string beatmapSetFolder)
     {
@@ -287,54 +339,63 @@ public static class BeatmapService
 
         var generalIssues = issues.Where(issue => issue.CheckOrigin is GeneralCheck).ToArray();
 
-        var apiBeatmapCheckResults = beatmapSet.Beatmaps.Select(beatmap =>
-        {
-            var interpretedDifficulty = beatmap.GetDifficulty();
-            var beatmapIssues = issues.Where(issue => issue.beatmap == beatmap)
-                .Except(generalIssues)
-                .Where(issue => issue.AppliesToDifficulty(interpretedDifficulty));
+        var apiBeatmapCheckResults = beatmapSet
+            .Beatmaps.Select(beatmap =>
+            {
+                var interpretedDifficulty = beatmap.GetDifficulty();
+                var beatmapIssues = issues
+                    .Where(issue => issue.beatmap == beatmap)
+                    .Except(generalIssues)
+                    .Where(issue => issue.AppliesToDifficulty(interpretedDifficulty));
 
-            var beatmapCheckResults = beatmapIssues.Select(issue =>
+                var beatmapCheckResults = beatmapIssues.Select(issue =>
+                {
+                    var checkId = checksById
+                        .FirstOrDefault(c => c.Value.GetType() == issue.CheckOrigin?.GetType())
+                        .Key;
+
+                    return new ApiCheckResult(
+                        id: checkId,
+                        level: issue.level,
+                        message: issue.message
+                    );
+                });
+
+                var parsedDifficulty =
+                    interpretedDifficulty == Beatmap.Difficulty.Ultra
+                        ? Beatmap.Difficulty.Expert
+                        : interpretedDifficulty;
+
+                return new ApiCategoryCheckResult(
+                    checkResults: beatmapCheckResults,
+                    category: beatmap.MetadataSettings.version,
+                    beatmapId: beatmap.MetadataSettings.beatmapId,
+                    mode: beatmap.GeneralSettings.mode,
+                    difficultyLevel: parsedDifficulty,
+                    starRating: beatmap.StarRating
+                );
+            })
+            .ToList();
+
+        var generalCheckResults = generalIssues
+            .Select(issue =>
             {
                 var checkId = checksById
                     .FirstOrDefault(c => c.Value.GetType() == issue.CheckOrigin?.GetType())
                     .Key;
 
-                return new ApiCheckResult(
-                    id: checkId,
-                    level: issue.level,
-                    message: issue.message
-                );
-            });
-            
-            var parsedDifficulty = interpretedDifficulty == Beatmap.Difficulty.Ultra ? Beatmap.Difficulty.Expert : interpretedDifficulty;
-
-            return new ApiCategoryCheckResult(
-                checkResults: beatmapCheckResults,
-                category: beatmap.MetadataSettings.version,
-                beatmapId: beatmap.MetadataSettings.beatmapId,
-                mode: beatmap.GeneralSettings.mode,
-                difficultyLevel: parsedDifficulty,
-                starRating: beatmap.StarRating
-            );
-        }).ToList();
-
-        var generalCheckResults = generalIssues.Select(issue =>
-        {
-            var checkId = checksById
-                .FirstOrDefault(c => c.Value.GetType() == issue.CheckOrigin?.GetType())
-                .Key;
-
-            return new ApiCheckResult(
-                id: checkId,
-                level: issue.level,
-                message: issue.message
-            );
-        }).ToList();
+                return new ApiCheckResult(id: checkId, level: issue.level, message: issue.message);
+            })
+            .ToList();
 
         // Build checks dictionary: include checks present in general or any difficulty
-        var checksPresentIds = new HashSet<int>(generalCheckResults.Select(c => c.Id)
-            .Concat(apiBeatmapCheckResults.SelectMany(cat => cat.CheckResults.Select(cr => cr.Id))));
+        var checksPresentIds = new HashSet<int>(
+            generalCheckResults
+                .Select(c => c.Id)
+                .Concat(
+                    apiBeatmapCheckResults.SelectMany(cat => cat.CheckResults.Select(cr => cr.Id))
+                )
+        );
         var checksDict = new Dictionary<int, ApiCheckDefinition>();
         foreach (var id in checksPresentIds)
         {
@@ -373,10 +434,13 @@ public static class BeatmapService
     public static ApiCategoryOverrideCheckResult? RunDifficultyCheckWithOverride(
         string beatmapSetFolder,
         string difficultyName,
-        Beatmap.Difficulty overrideDifficulty)
+        Beatmap.Difficulty overrideDifficulty
+    )
     {
         var beatmapSet = new BeatmapSet(beatmapSetFolder);
-        var beatmap = beatmapSet.Beatmaps.FirstOrDefault(b => b.MetadataSettings.version == difficultyName);
+        var beatmap = beatmapSet.Beatmaps.FirstOrDefault(b =>
+            b.MetadataSettings.version == difficultyName
+        );
 
         if (beatmap == null)
             return null;
@@ -387,23 +451,22 @@ public static class BeatmapService
 
         var generalIssues = issues.Where(issue => issue.CheckOrigin is GeneralCheck).ToArray();
 
-        var beatmapIssues = issues.Where(issue => issue.beatmap == beatmap)
+        var beatmapIssues = issues
+            .Where(issue => issue.beatmap == beatmap)
             .Except(generalIssues)
             .Where(issue => issue.AppliesToDifficulty(overrideDifficulty));
 
-        var beatmapCheckResults = beatmapIssues.Select(issue =>
-        {
-            var checkId = checksById
-                .FirstOrDefault(c => c.Value.GetType() == issue.CheckOrigin?.GetType())
-                .Key;
+        var beatmapCheckResults = beatmapIssues
+            .Select(issue =>
+            {
+                var checkId = checksById
+                    .FirstOrDefault(c => c.Value.GetType() == issue.CheckOrigin?.GetType())
+                    .Key;
 
-            return new ApiCheckResult(
-                id: checkId,
-                level: issue.level,
-                message: issue.message
-            );
-        }).ToList();
-        
+                return new ApiCheckResult(id: checkId, level: issue.level, message: issue.message);
+            })
+            .ToList();
+
         // Build checks dictionary: include checks present in general or any difficulty
         var checksPresentIds = new HashSet<int>(beatmapCheckResults.Select(c => c.Id));
         var checksDict = new Dictionary<int, ApiCheckDefinition>();

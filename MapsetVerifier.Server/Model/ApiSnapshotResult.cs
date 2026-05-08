@@ -11,7 +11,8 @@ public readonly struct ApiSnapshotResult(
     IEnumerable<ApiSnapshotDifficulty> difficulties,
     ApiSnapshotHistory? general,
     IEnumerable<ApiSnapshotHistory> beatmapHistories,
-    string? errorMessage)
+    string? errorMessage
+)
 {
     /// <summary>
     /// The difficulties (beatmap versions) in the set.
@@ -41,7 +42,8 @@ public readonly struct ApiSnapshotDifficulty(
     string name,
     bool isGeneral,
     double? starRating = null,
-    Beatmap.Mode? mode = null)
+    Beatmap.Mode? mode = null
+)
 {
     /// <summary>
     /// The difficulty name (version) or "General" for files.
@@ -69,7 +71,8 @@ public readonly struct ApiSnapshotDifficulty(
 /// </summary>
 public readonly struct ApiSnapshotHistory(
     string difficultyName,
-    IEnumerable<ApiSnapshotCommit> commits)
+    IEnumerable<ApiSnapshotCommit> commits
+)
 {
     /// <summary>
     /// The difficulty name this history represents.
@@ -93,7 +96,8 @@ public readonly struct ApiSnapshotCommit(
     int additions,
     int removals,
     int modifications,
-    IEnumerable<ApiSnapshotSection> sections)
+    IEnumerable<ApiSnapshotSection> sections
+)
 {
     /// <summary>
     /// The date when this snapshot was created.
@@ -140,7 +144,8 @@ public readonly struct ApiSnapshotSection(
     int additions,
     int removals,
     int modifications,
-    IEnumerable<ApiSnapshotDiff> diffs)
+    IEnumerable<ApiSnapshotDiff> diffs
+)
 {
     /// <summary>
     /// The section name (e.g., "General", "Metadata", "Difficulty").
@@ -181,7 +186,8 @@ public readonly struct ApiSnapshotDiff(
     Snapshotter.DiffType diffType,
     string? oldValue,
     string? newValue,
-    IEnumerable<string> details)
+    IEnumerable<string> details
+)
 {
     /// <summary>
     /// The diff message describing what changed.
@@ -208,4 +214,3 @@ public readonly struct ApiSnapshotDiff(
     /// </summary>
     public IEnumerable<string> Details { get; } = details;
 }
-

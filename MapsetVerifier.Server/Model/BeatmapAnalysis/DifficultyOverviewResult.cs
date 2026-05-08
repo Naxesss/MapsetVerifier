@@ -7,18 +7,19 @@ public class DifficultyOverviewResult
     public int MsPerPeak { get; set; }
     public List<DifficultyOverviewDifficulty> Difficulties { get; set; } = [];
 
-    public static DifficultyOverviewResult CreateError(string message) => new()
-    {
-        Success = false,
-        ErrorMessage = message
-    };
+    public static DifficultyOverviewResult CreateError(string message) =>
+        new() { Success = false, ErrorMessage = message };
 
-    public static DifficultyOverviewResult CreateSuccess(int msPerPeak, List<DifficultyOverviewDifficulty> difficulties) => new()
-    {
-        Success = true,
-        MsPerPeak = msPerPeak,
-        Difficulties = difficulties
-    };
+    public static DifficultyOverviewResult CreateSuccess(
+        int msPerPeak,
+        List<DifficultyOverviewDifficulty> difficulties
+    ) =>
+        new()
+        {
+            Success = true,
+            MsPerPeak = msPerPeak,
+            Difficulties = difficulties,
+        };
 }
 
 public class DifficultyOverviewDifficulty

@@ -32,8 +32,8 @@ namespace MapsetVerifier.Checks.AllModes.Timing
 
                         Similarly to metadata and timing, preview points should really just be a global setting for the whole beatmapset and 
                         not difficulty-specific."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -41,15 +41,20 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             {
                 {
                     "Not Set",
-                    new IssueTemplate(Issue.Level.Problem, "Preview time is not set.")
-                        .WithCause("The preview time of a beatmap is missing.")
+                    new IssueTemplate(Issue.Level.Problem, "Preview time is not set.").WithCause(
+                        "The preview time of a beatmap is missing."
+                    )
                 },
-
                 {
                     "Inconsistent",
-                    new IssueTemplate(Issue.Level.Problem, "Preview time is inconsistent, see {0}.", "difficulty")
-                        .WithCause("The preview time of a beatmap is different from the reference beatmap.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "Preview time is inconsistent, see {0}.",
+                        "difficulty"
+                    ).WithCause(
+                        "The preview time of a beatmap is different from the reference beatmap."
+                    )
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
@@ -61,8 +66,9 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                 // ReSharper disable twice CompareOfFloatsByEqualityOperator
                 if (beatmap.GeneralSettings.previewTime == -1)
                     yield return new Issue(GetTemplate("Not Set"), beatmap);
-
-                else if (beatmap.GeneralSettings.previewTime != refBeatmap.GeneralSettings.previewTime)
+                else if (
+                    beatmap.GeneralSettings.previewTime != refBeatmap.GeneralSettings.previewTime
+                )
                     yield return new Issue(GetTemplate("Inconsistent"), beatmap, refBeatmap);
         }
     }

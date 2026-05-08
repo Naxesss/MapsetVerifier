@@ -5,9 +5,8 @@ using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
-
-using static MapsetVerifier.Checks.Utils.TaikoUtils;
 using static MapsetVerifier.Checks.Utils.GeneralUtils;
+using static MapsetVerifier.Checks.Utils.TaikoUtils;
 
 namespace MapsetVerifier.Checks.Taiko.Compose
 {
@@ -43,8 +42,8 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                         "Reasoning",
                         @"
                     Certain snaps are too difficult/unreasonable for certain difficulties."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -57,7 +56,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                         "{0} abnormally small gap, ensure it makes sense",
                         "timestamp -"
                     ).WithCause("Gap between notes may be too small")
-                }
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
@@ -84,7 +83,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                 {
                     continue;
                 }
-                
+
                 var normalizedMsPerBeat = timing.GetNormalizedMsPerBeat();
 
                 // for each diff: double minimalGap = ?;
@@ -93,7 +92,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                     { Beatmap.Difficulty.Easy, normalizedMsPerBeat / 2 },
                     { Beatmap.Difficulty.Normal, normalizedMsPerBeat / 3 },
                     { Beatmap.Difficulty.Hard, normalizedMsPerBeat / 6 },
-                    { Beatmap.Difficulty.Insane, normalizedMsPerBeat / 6 }
+                    { Beatmap.Difficulty.Insane, normalizedMsPerBeat / 6 },
                 };
 
                 var gap = next.time - current.time;

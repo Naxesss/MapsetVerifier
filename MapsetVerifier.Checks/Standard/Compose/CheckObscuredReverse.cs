@@ -13,16 +13,13 @@ namespace MapsetVerifier.Checks.Standard.Compose
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
-                Modes =
-                [
-                    Beatmap.Mode.Standard
-                ],
+                Modes = [Beatmap.Mode.Standard],
                 Difficulties =
                 [
                     Beatmap.Difficulty.Easy,
                     Beatmap.Difficulty.Normal,
                     Beatmap.Difficulty.Hard,
-                    Beatmap.Difficulty.Insane
+                    Beatmap.Difficulty.Insane,
                 ],
                 Category = "Compose",
                 Message = "Obscured reverse arrows.",
@@ -42,8 +39,8 @@ namespace MapsetVerifier.Checks.Standard.Compose
                         "Reasoning",
                         @"
                         Some mappers like to stack objects on upcoming slider ends to make everything seem more coherent, but in doing so, reverses can become obscured and impossible to read unless you know they're there. For more experienced players, however, this isn't as much of a problem since you learn to hold sliders more efficiently and can react faster."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -51,9 +48,15 @@ namespace MapsetVerifier.Checks.Standard.Compose
             {
                 {
                     "Obscured",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Reverse arrow {1} obscured.", "timestamp -", "(potentially)")
-                        .WithCause("An object before a reverse arrow ends over where it appears close in time.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "{0} Reverse arrow {1} obscured.",
+                        "timestamp -",
+                        "(potentially)"
+                    ).WithCause(
+                        "An object before a reverse arrow ends over where it appears close in time."
+                    )
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
@@ -75,7 +78,10 @@ namespace MapsetVerifier.Checks.Standard.Compose
                 var selectedObjects = new List<HitObject>();
                 var isSerious = false;
 
-                var hitObjectsRightBeforeReverse = beatmap.HitObjects.Where(otherHitObject => otherHitObject.GetEndTime() > reverseTime - opaqueTime && otherHitObject.GetEndTime() < reverseTime);
+                var hitObjectsRightBeforeReverse = beatmap.HitObjects.Where(otherHitObject =>
+                    otherHitObject.GetEndTime() > reverseTime - opaqueTime
+                    && otherHitObject.GetEndTime() < reverseTime
+                );
 
                 foreach (var otherHitObject in hitObjectsRightBeforeReverse)
                 {
@@ -86,9 +92,17 @@ namespace MapsetVerifier.Checks.Standard.Compose
                     float distanceToReverse;
 
                     if (otherHitObject is Slider otherSlider)
-                        distanceToReverse = (float)Math.Sqrt(Math.Pow(otherSlider.EndPosition.X - reversePosition.X, 2) + Math.Pow(otherSlider.EndPosition.Y - reversePosition.Y, 2));
+                        distanceToReverse = (float)
+                            Math.Sqrt(
+                                Math.Pow(otherSlider.EndPosition.X - reversePosition.X, 2)
+                                    + Math.Pow(otherSlider.EndPosition.Y - reversePosition.Y, 2)
+                            );
                     else
-                        distanceToReverse = (float)Math.Sqrt(Math.Pow(otherHitObject.Position.X - reversePosition.X, 2) + Math.Pow(otherHitObject.Position.Y - reversePosition.Y, 2));
+                        distanceToReverse = (float)
+                            Math.Sqrt(
+                                Math.Pow(otherHitObject.Position.X - reversePosition.X, 2)
+                                    + Math.Pow(otherHitObject.Position.Y - reversePosition.Y, 2)
+                            );
 
                     if (distanceToReverse < tooCloseThreshold)
                         isSerious = true;
@@ -109,7 +123,12 @@ namespace MapsetVerifier.Checks.Standard.Compose
                 }
 
                 if (selectedObjects.Count > 0)
-                    yield return new Issue(GetTemplate("Obscured"), beatmap, Timestamp.Get(selectedObjects.ToArray()), isSerious ? "" : "potentially ");
+                    yield return new Issue(
+                        GetTemplate("Obscured"),
+                        beatmap,
+                        Timestamp.Get(selectedObjects.ToArray()),
+                        isSerious ? "" : "potentially "
+                    );
             }
         }
     }

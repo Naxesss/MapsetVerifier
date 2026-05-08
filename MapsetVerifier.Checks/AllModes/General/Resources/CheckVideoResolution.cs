@@ -30,8 +30,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                         even if it is possible to download without the video.
 
                         > This is partly to ensure a reasonable load on the server, not only on the players' end, due to ranked content being downloaded more often."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -39,41 +39,71 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
             {
                 {
                     "Resolution",
-                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" greater than 1280 x 720 ({1} x {2})", "file name", "width", "height")
-                        .WithCause("A video has a width exceeding 1280 pixels or a height exceeding 720 pixels.")
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "\"{0}\" greater than 1280 x 720 ({1} x {2})",
+                        "file name",
+                        "width",
+                        "height"
+                    ).WithCause(
+                        "A video has a width exceeding 1280 pixels or a height exceeding 720 pixels."
+                    )
                 },
-
                 {
                     "Leaves Folder",
-                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" leaves the current song folder, which shouldn't ever happen.", "file name")
-                        .WithCause("The file path of a video starts with two dots.")
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "\"{0}\" leaves the current song folder, which shouldn't ever happen.",
+                        "file name"
+                    ).WithCause("The file path of a video starts with two dots.")
                 },
-
                 {
                     "Missing",
-                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" is missing" + Common.CHECK_MANUALLY_MESSAGE, "file name")
-                        .WithCause("A video referenced is not present.")
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "\"{0}\" is missing" + Common.CHECK_MANUALLY_MESSAGE,
+                        "file name"
+                    ).WithCause("A video referenced is not present.")
                 },
-
                 {
                     "Exception",
-                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "file name")
-                        .WithCause("An exception occurred trying to parse a video.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Error,
+                        Common.FILE_EXCEPTION_MESSAGE,
+                        "file name"
+                    ).WithCause("An exception occurred trying to parse a video.")
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
-            return Common.GetTagOsuIssues(beatmapSet, GetTemplate, beatmap => beatmap.Videos.Count > 0 ? beatmap.Videos.Select(video => video.path) : [], tagFile =>
-            {
-                // Executes for each non-faulty video file used in one of the beatmaps in the set.
-                var issues = new List<Issue>();
+            return Common.GetTagOsuIssues(
+                beatmapSet,
+                GetTemplate,
+                beatmap =>
+                    beatmap.Videos.Count > 0 ? beatmap.Videos.Select(video => video.path) : [],
+                tagFile =>
+                {
+                    // Executes for each non-faulty video file used in one of the beatmaps in the set.
+                    var issues = new List<Issue>();
 
-                if (tagFile.file.Properties.VideoWidth > 1280 || tagFile.file.Properties.VideoHeight > 720)
-                    issues.Add(new Issue(GetTemplate("Resolution"), null, tagFile.templateArgs[0], tagFile.file.Properties.VideoWidth, tagFile.file.Properties.VideoHeight));
+                    if (
+                        tagFile.file.Properties.VideoWidth > 1280
+                        || tagFile.file.Properties.VideoHeight > 720
+                    )
+                        issues.Add(
+                            new Issue(
+                                GetTemplate("Resolution"),
+                                null,
+                                tagFile.templateArgs[0],
+                                tagFile.file.Properties.VideoWidth,
+                                tagFile.file.Properties.VideoHeight
+                            )
+                        );
 
-                return issues;
-            });
+                    return issues;
+                }
+            );
         }
     }
 }

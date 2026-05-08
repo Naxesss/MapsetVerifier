@@ -7,7 +7,8 @@ namespace MapsetVerifier.Parser.Objects.TimingLines
         public readonly double bpm;
         public readonly double msPerBeat;
 
-        public UninheritedLine(string[] args, Beatmap beatmap) : base(args, beatmap)
+        public UninheritedLine(string[] args, Beatmap beatmap)
+            : base(args, beatmap)
         {
             msPerBeat = GetMsPerBeat(args);
 
@@ -15,7 +16,8 @@ namespace MapsetVerifier.Parser.Objects.TimingLines
         }
 
         /// <summary> Returns the miliseconds per beat of the uninherited line. </summary>
-        private double GetMsPerBeat(string[] args) => double.Parse(args[1], CultureInfo.InvariantCulture);
+        private double GetMsPerBeat(string[] args) =>
+            double.Parse(args[1], CultureInfo.InvariantCulture);
 
         /// <summary> Returns the beats per minute (BPM) of the uninherited line. </summary>
         private double GetBpm() => 60000 / msPerBeat;

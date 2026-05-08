@@ -10,7 +10,8 @@ public static class LoggerConfigurator
 
     public static void Configure()
     {
-        const string template = "[{Timestamp:HH:mm:ss} {Level:u3}] {Application} {ShortSourceContext} {Message:lj}{NewLine}{Exception}";
+        const string template =
+            "[{Timestamp:HH:mm:ss} {Level:u3}] {Application} {ShortSourceContext} {Message:lj}{NewLine}{Exception}";
 
         var appdataPath = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
             ? Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)
@@ -31,10 +32,12 @@ public static class LoggerConfigurator
             .Enrich.FromLogContext()
             .Enrich.With<ShortSourceContextEnricher>()
             .WriteTo.Console(outputTemplate: template)
-            .WriteTo.File(logPath,
+            .WriteTo.File(
+                logPath,
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: 7,
-                outputTemplate: template)
+                outputTemplate: template
+            )
             .CreateLogger();
     }
 }

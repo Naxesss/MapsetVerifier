@@ -9,14 +9,18 @@ public class ShortSourceContextEnricher : ILogEventEnricher
     {
         if (!logEvent.Properties.TryGetValue("SourceContext", out var sc))
         {
-            logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty("ShortSourceContext", "main"));
+            logEvent.AddPropertyIfAbsent(
+                propertyFactory.CreateProperty("ShortSourceContext", "main")
+            );
             return;
         }
 
         var raw = sc is ScalarValue sv ? sv.Value?.ToString() : sc.ToString();
         if (string.IsNullOrWhiteSpace(raw))
         {
-            logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty("ShortSourceContext", raw ?? ""));
+            logEvent.AddPropertyIfAbsent(
+                propertyFactory.CreateProperty("ShortSourceContext", raw ?? "")
+            );
             return;
         }
 
@@ -32,4 +36,3 @@ public class ShortSourceContextEnricher : ILogEventEnricher
         logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty("ShortSourceContext", raw));
     }
 }
-

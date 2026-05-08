@@ -16,7 +16,7 @@ namespace MapsetVerifier.Parser.Objects
             Normal = 1,
             Whistle = 2,
             Finish = 4,
-            Clap = 8
+            Clap = 8,
         }
 
         /// <summary> Determines the properties of the hit object (can be combined, bitflags). </summary>
@@ -30,9 +30,9 @@ namespace MapsetVerifier.Parser.Objects
             ComboSkip1 = 16,
             ComboSkip2 = 32,
             ComboSkip3 = 64,
-            ManiaHoldNote = 128
+            ManiaHoldNote = 128,
         }
-        
+
         // 131,304,1166,1,0,0:0:0:0:                                        circle
         // 319,179,1392,6,0,L|389:160,2,62.5,2|0|0,0:0|0:0|0:0,0:0:0:0:     slider
         // 256,192,187300,12,0,188889,1:0:0:0:                              spinner
@@ -44,7 +44,7 @@ namespace MapsetVerifier.Parser.Objects
         public readonly Beatmap beatmap;
         public readonly string code;
         private int hitObjectIndex;
-        
+
         public readonly double time;
         public readonly Types type;
         public readonly HitSounds hitSound;
@@ -84,7 +84,10 @@ namespace MapsetVerifier.Parser.Objects
                 // hitsound filenames only apply to circles and hold notes
                 var hitSoundFile = extras.Item5;
 
-                if (hitSoundFile.Trim() != "" && (HasType(Types.Circle) || HasType(Types.ManiaHoldNote)))
+                if (
+                    hitSoundFile.Trim() != ""
+                    && (HasType(Types.Circle) || HasType(Types.ManiaHoldNote))
+                )
                     filename = PathStatic.ParsePath(hitSoundFile, false, true);
             }
 
@@ -108,13 +111,20 @@ namespace MapsetVerifier.Parser.Objects
             return new Vector2(x, y);
         }
 
-        private double GetTime(string[] args) => double.Parse(args[2], CultureInfo.InvariantCulture);
+        private double GetTime(string[] args) =>
+            double.Parse(args[2], CultureInfo.InvariantCulture);
 
         private Types GetTypeFlags(string[] args) => (Types)int.Parse(args[3]);
 
         private HitSounds GetHitSound(string[] args) => (HitSounds)int.Parse(args[4]);
 
-        private Tuple<HitSample.SamplesetType, HitSample.SamplesetType, int?, int?, string>? GetExtras(string[] args)
+        private Tuple<
+            HitSample.SamplesetType,
+            HitSample.SamplesetType,
+            int?,
+            int?,
+            string
+        >? GetExtras(string[] args)
         {
             var extras = args.Last();
 
@@ -124,7 +134,8 @@ namespace MapsetVerifier.Parser.Objects
             if (extras.Contains(":"))
             {
                 var samplesetValue = (HitSample.SamplesetType)int.Parse(extras.Split(':')[index]);
-                var additionsValue = (HitSample.SamplesetType)int.Parse(extras.Split(':')[index + 1]);
+                var additionsValue = (HitSample.SamplesetType)
+                    int.Parse(extras.Split(':')[index + 1]);
                 int? customIndexValue = int.Parse(extras.Split(':')[index + 2]);
 
                 // Does not exist in file v11.
@@ -138,7 +149,13 @@ namespace MapsetVerifier.Parser.Objects
                 if (extras.Split(':').Count() > index + 4)
                     filenameValue = extras.Split(':')[index + 4];
 
-                return Tuple.Create(samplesetValue, additionsValue, customIndexValue, volumeValue, filenameValue);
+                return Tuple.Create(
+                    samplesetValue,
+                    additionsValue,
+                    customIndexValue,
+                    volumeValue,
+                    filenameValue
+                );
             }
 
             return null;
@@ -200,22 +217,23 @@ namespace MapsetVerifier.Parser.Objects
          */
 
         /// <summary> Returns whether a hit object code has the given type. </summary>
-        public static bool HasType(string[] args, Types type) => ((Types)int.Parse(args[3]) & type) != 0;
+        public static bool HasType(string[] args, Types type) =>
+            ((Types)int.Parse(args[3]) & type) != 0;
 
         public bool HasType(Types type) => (this.type & type) != 0;
 
         /// <summary> Returns whether the hit object has a hit sound, or optionally a certain type of hit sound. </summary>
-        public bool HasHitSound(HitSounds? hitSound = null) => hitSound == null ? this.hitSound > 0 : (this.hitSound & hitSound) != 0;
+        public bool HasHitSound(HitSounds? hitSound = null) =>
+            hitSound == null ? this.hitSound > 0 : (this.hitSound & hitSound) != 0;
 
         /// <summary>
         /// Returns all hit sounds applied to this hit object.
         /// </summary>
         public IEnumerable<HitSounds> GetHitSounds()
         {
-            return Enum.GetValues<HitSounds>()
-                .Where(sound => sound != 0 && HasHitSound(sound));
+            return Enum.GetValues<HitSounds>().Where(sound => sound != 0 && HasHitSound(sound));
         }
-        
+
         /// <summary>
         /// Returns the difference in time between the end of this object and the start of the next object.
         /// </summary>
@@ -265,7 +283,11 @@ namespace MapsetVerifier.Parser.Objects
         }
 
         /// <summary> Returns the effective sampleset of the hit object (body for sliders), optionally prioritizing the addition. </summary>
-        public HitSample.SamplesetType GetSampleset(bool additionOverrides = false, double? specificTime = null, bool isSliderTick = false)
+        public HitSample.SamplesetType GetSampleset(
+            bool additionOverrides = false,
+            double? specificTime = null,
+            bool isSliderTick = false
+        )
         {
             if (additionOverrides && addition != HitSample.SamplesetType.Auto)
                 return addition;
@@ -277,7 +299,6 @@ namespace MapsetVerifier.Parser.Objects
                 // Timing line should always exist so we should never fall back to Auto here.
                 return timingLine?.Sampleset ?? HitSample.SamplesetType.Auto;
             }
-                
             else
                 return sampleset;
         }
@@ -288,7 +309,8 @@ namespace MapsetVerifier.Parser.Objects
         ///     Spinners have no start sample.
         /// </summary>
         public HitSample.SamplesetType? GetStartSampleset(bool additionOverrides = false) =>
-            (this as Slider)?.GetStartSampleset(additionOverrides) ?? (this is Spinner ? null : GetSampleset(additionOverrides));
+            (this as Slider)?.GetStartSampleset(additionOverrides)
+            ?? (this is Spinner ? null : GetSampleset(additionOverrides));
 
         /// <summary>
         ///     Returns the effective sampleset of the tail of the object, if applicable, otherwise null, optionally prioritizing
@@ -296,7 +318,8 @@ namespace MapsetVerifier.Parser.Objects
         ///     Spinners have no start sample.
         /// </summary>
         public virtual HitSample.SamplesetType? GetEndSampleset(bool additionOverrides = false) =>
-            (this as Slider)?.GetEndSampleset(additionOverrides) ?? (this is Spinner ? GetSampleset(additionOverrides) : null);
+            (this as Slider)?.GetEndSampleset(additionOverrides)
+            ?? (this is Spinner ? GetSampleset(additionOverrides) : null);
 
         /// <summary>
         ///     Returns the hit sound(s) of the head of the object, if applicable, otherwise null.
@@ -309,7 +332,8 @@ namespace MapsetVerifier.Parser.Objects
         ///     Returns the hit sound(s) of the tail of the object, if it applicable, otherwise null.
         ///     Circles and hold notes have no end sample.
         /// </summary>
-        public HitSounds? GetEndHitSound() => (this as Slider)?.EndHitSound ?? (this as Spinner)?.hitSound;
+        public HitSounds? GetEndHitSound() =>
+            (this as Slider)?.EndHitSound ?? (this as Spinner)?.hitSound;
 
         /// <summary>
         ///     Returns the hit sound(s) of the slide of the object, if applicable, otherwise null.
@@ -328,11 +352,21 @@ namespace MapsetVerifier.Parser.Objects
                     yield return individualHitSound;
         }
 
-        private HitSample GetEdgeSample(double time, HitSample.SamplesetType? sampleset, HitSounds? hitSound)
+        private HitSample GetEdgeSample(
+            double time,
+            HitSample.SamplesetType? sampleset,
+            HitSounds? hitSound
+        )
         {
             var line = beatmap.GetTimingLine(time, true);
 
-            return new HitSample(line!.CustomIndex, sampleset ?? line.Sampleset, hitSound, HitSample.HitSourceType.Edge, time);
+            return new HitSample(
+                line!.CustomIndex,
+                sampleset ?? line.Sampleset,
+                hitSound,
+                HitSample.HitSourceType.Edge,
+                time
+            );
         }
 
         /// <summary> Returns all used combinations of customs, samplesets and hit sounds for this object. </summary>
@@ -360,7 +394,9 @@ namespace MapsetVerifier.Parser.Objects
             if (this is not Spinner)
             {
                 // Head
-                foreach (var splitStartHitSound in SplitHitSound(GetStartHitSound().GetValueOrDefault()))
+                foreach (
+                    var splitStartHitSound in SplitHitSound(GetStartHitSound().GetValueOrDefault())
+                )
                     yield return GetEdgeSample(time, GetStartSampleset(true), splitStartHitSound);
 
                 yield return GetEdgeSample(time, GetStartSampleset(), HitSounds.Normal);
@@ -370,8 +406,14 @@ namespace MapsetVerifier.Parser.Objects
             if (this is not HoldNote)
             {
                 // Tail
-                foreach (var splitEndHitSound in SplitHitSound(GetEndHitSound().GetValueOrDefault()))
-                    yield return GetEdgeSample(GetEndTime(), GetEndSampleset(true), splitEndHitSound);
+                foreach (
+                    var splitEndHitSound in SplitHitSound(GetEndHitSound().GetValueOrDefault())
+                )
+                    yield return GetEdgeSample(
+                        GetEndTime(),
+                        GetEndSampleset(true),
+                        splitEndHitSound
+                    );
 
                 yield return GetEdgeSample(GetEndTime(), GetEndSampleset(), HitSounds.Normal);
             }
@@ -384,18 +426,36 @@ namespace MapsetVerifier.Parser.Objects
                     HitSounds? reverseHitSound = slider.ReverseHitSounds.ElementAt(i);
 
                     var theoreticalStart = time - beatmap.GetTheoreticalUnsnap(time);
-                    double reverseTime = Timestamp.Round(theoreticalStart + slider.GetCurveDuration() * (i + 1));
+                    double reverseTime = Timestamp.Round(
+                        theoreticalStart + slider.GetCurveDuration() * (i + 1)
+                    );
 
-                    foreach (var splitReverseHitSound in SplitHitSound(reverseHitSound.GetValueOrDefault()))
-                        yield return GetEdgeSample(reverseTime, slider.GetReverseSampleset(i, true), splitReverseHitSound);
+                    foreach (
+                        var splitReverseHitSound in SplitHitSound(
+                            reverseHitSound.GetValueOrDefault()
+                        )
+                    )
+                        yield return GetEdgeSample(
+                            reverseTime,
+                            slider.GetReverseSampleset(i, true),
+                            splitReverseHitSound
+                        );
 
-                    yield return GetEdgeSample(reverseTime, slider.GetReverseSampleset(i), HitSounds.Normal);
+                    yield return GetEdgeSample(
+                        reverseTime,
+                        slider.GetReverseSampleset(i),
+                        HitSounds.Normal
+                    );
                 }
 
-                var lines = beatmap.TimingLines.Where(line => line.Offset > slider.time && line.Offset <= slider.EndTime).ToList();
+                var lines = beatmap
+                    .TimingLines.Where(line =>
+                        line.Offset > slider.time && line.Offset <= slider.EndTime
+                    )
+                    .ToList();
 
                 var sliderTimingLine = beatmap.GetTimingLine(slider.time, true);
-                
+
                 if (sliderTimingLine != null)
                     lines.Add(sliderTimingLine);
 
@@ -405,21 +465,40 @@ namespace MapsetVerifier.Parser.Objects
                     {
                         // Priority: object sampleset > line sampleset
                         // The addition is ignored for sliderslides, it seems.
-                        var effectiveSampleset = sampleset != HitSample.SamplesetType.Auto ? sampleset : line.Sampleset;
+                        var effectiveSampleset =
+                            sampleset != HitSample.SamplesetType.Auto ? sampleset : line.Sampleset;
 
                         // The regular sliderslide will always play regardless of using sliderwhistle.
-                        yield return new HitSample(line.CustomIndex, effectiveSampleset, HitSounds.None, HitSample.HitSourceType.Body, line.Offset);
+                        yield return new HitSample(
+                            line.CustomIndex,
+                            effectiveSampleset,
+                            HitSounds.None,
+                            HitSample.HitSourceType.Body,
+                            line.Offset
+                        );
 
                         // Additions are not ignored for sliderwhistles, however.
                         if (slider.hitSound == HitSounds.Whistle)
-                            effectiveSampleset = addition != HitSample.SamplesetType.Auto ? addition : effectiveSampleset;
+                            effectiveSampleset =
+                                addition != HitSample.SamplesetType.Auto
+                                    ? addition
+                                    : effectiveSampleset;
 
                         if (hitSound != HitSounds.None)
-                            yield return new HitSample(line.CustomIndex, effectiveSampleset, hitSound, HitSample.HitSourceType.Body, line.Offset);
+                            yield return new HitSample(
+                                line.CustomIndex,
+                                effectiveSampleset,
+                                hitSound,
+                                HitSample.HitSourceType.Body,
+                                line.Offset
+                            );
                     }
 
                 // Tick, only applies to standard and catch. Mania has no ticks, taiko sliders play regular impacts.
-                if (beatmap.GeneralSettings.mode == Beatmap.Mode.Standard || beatmap.GeneralSettings.mode == Beatmap.Mode.Catch)
+                if (
+                    beatmap.GeneralSettings.mode == Beatmap.Mode.Standard
+                    || beatmap.GeneralSettings.mode == Beatmap.Mode.Catch
+                )
                     foreach (var tickTime in slider.SliderTickTimes)
                     {
                         // Our `sliderTickTimes` are approximate values, the game chooses sampleset based on precise tick times, so we should too.
@@ -437,7 +516,13 @@ namespace MapsetVerifier.Parser.Objects
                         if (resolvedSampleset == HitSample.SamplesetType.Auto)
                             resolvedSampleset = HitSample.SamplesetType.Normal;
 
-                        yield return new HitSample(resolvedCustomIndex, resolvedSampleset, null, HitSample.HitSourceType.Tick, tickTime);
+                        yield return new HitSample(
+                            resolvedCustomIndex,
+                            resolvedSampleset,
+                            null,
+                            HitSample.HitSourceType.Tick,
+                            tickTime
+                        );
                     }
             }
         }
@@ -457,8 +542,22 @@ namespace MapsetVerifier.Parser.Objects
             if (line == null)
                 throw new Exception("Beatmap has no timing line.");
 
-            yield return new HitSample(line.CustomIndex, line.Sampleset, HitSounds.Clap, HitSample.HitSourceType.Edge, line.Offset, true);
-            yield return new HitSample(line.CustomIndex, line.Sampleset, HitSounds.Normal, HitSample.HitSourceType.Edge, line.Offset, true);
+            yield return new HitSample(
+                line.CustomIndex,
+                line.Sampleset,
+                HitSounds.Clap,
+                HitSample.HitSourceType.Edge,
+                line.Offset,
+                true
+            );
+            yield return new HitSample(
+                line.CustomIndex,
+                line.Sampleset,
+                HitSounds.Normal,
+                HitSample.HitSourceType.Edge,
+                line.Offset,
+                true
+            );
 
             var isKat = HasHitSound(HitSounds.Clap) || HasHitSound(HitSounds.Whistle);
             var isBig = HasHitSound(HitSounds.Finish);
@@ -466,13 +565,24 @@ namespace MapsetVerifier.Parser.Objects
             HitSounds resolvedHitSound;
 
             if (isBig)
-                if (isKat) resolvedHitSound = HitSounds.Whistle;
-                else resolvedHitSound = HitSounds.Finish;
-            else if (isKat) resolvedHitSound = HitSounds.Clap;
-            else resolvedHitSound = HitSounds.Normal;
+                if (isKat)
+                    resolvedHitSound = HitSounds.Whistle;
+                else
+                    resolvedHitSound = HitSounds.Finish;
+            else if (isKat)
+                resolvedHitSound = HitSounds.Clap;
+            else
+                resolvedHitSound = HitSounds.Normal;
 
             // In case the hit object's custom index/sampleset/additions are different from the timing line's.
-            yield return new HitSample(GetCustomIndex(line), GetSampleset(true), resolvedHitSound, HitSample.HitSourceType.Edge, time, true);
+            yield return new HitSample(
+                GetCustomIndex(line),
+                GetSampleset(true),
+                resolvedHitSound,
+                HitSample.HitSourceType.Edge,
+                time,
+                true
+            );
         }
 
         /// <summary>
@@ -488,7 +598,10 @@ namespace MapsetVerifier.Parser.Objects
             if (filename != null)
             {
                 if (filename.Contains("."))
-                    specificHsFileName = filename.Substring(0, filename.IndexOf(".", StringComparison.Ordinal));
+                    specificHsFileName = filename.Substring(
+                        0,
+                        filename.IndexOf(".", StringComparison.Ordinal)
+                    );
                 else
                     specificHsFileName = filename;
             }
@@ -496,7 +609,8 @@ namespace MapsetVerifier.Parser.Objects
             if (specificHsFileName != null)
                 return new List<string> { specificHsFileName };
 
-            var usedHitSoundFileNames = usedHitSamples.Select(sample => sample.GetFileName())
+            var usedHitSoundFileNames = usedHitSamples
+                .Select(sample => sample.GetFileName())
                 .OfType<string>()
                 .Distinct();
 
@@ -506,7 +620,10 @@ namespace MapsetVerifier.Parser.Objects
         /// <summary> Returns the end time of the hit object, or the start time if no end time exists. </summary>
         public double GetEndTime() =>
             // regardless of circle/slider/spinner/hold note, finds the end of the object
-            (this as Slider)?.EndTime ?? (this as Spinner)?.endTime ?? (this as HoldNote)?.endTime ?? time;
+            (this as Slider)?.EndTime
+            ?? (this as Spinner)?.endTime
+            ?? (this as HoldNote)?.endTime
+            ?? time;
 
         /// <summary> Returns the length of the hit object, if it has one, otherwise 0. </summary>
         public double GetLength() => GetEndTime() - time;
@@ -517,26 +634,33 @@ namespace MapsetVerifier.Parser.Objects
         /// </summary>
         public string GetPartName(double time)
         {
-            var edgeType = IsClose(this.time, time) ? "head" :
-                IsClose(GetEndTime(), time) || IsClose(GetEdgeTimes().Last(), time) ? "tail" :
-                GetEdgeTimes().Any(edgeTime => IsClose(edgeTime, time)) ? "reverse" : "body";
+            var edgeType =
+                IsClose(this.time, time) ? "head"
+                : IsClose(GetEndTime(), time) || IsClose(GetEdgeTimes().Last(), time) ? "tail"
+                : GetEdgeTimes().Any(edgeTime => IsClose(edgeTime, time)) ? "reverse"
+                : "body";
 
             return GetObjectType() + (this is not Circle ? " " + edgeType : "");
         }
-        
+
         /// <summary>
         /// Checks within 2 ms leniency in case of decimals or unsnaps.
         /// </summary>
-        private static bool IsClose(double edgeTime, double otherTime) => edgeTime <= otherTime + 2 && edgeTime >= otherTime - 2;
+        private static bool IsClose(double edgeTime, double otherTime) =>
+            edgeTime <= otherTime + 2 && edgeTime >= otherTime - 2;
 
         /// <summary> Returns the name of the object in general, for example "Slider", "Circle", "Hold note", etc. </summary>
         public string GetObjectType() =>
             // Creating a hit object instance rather than circle, slider, etc will prevent polymorphism, so we check the type as well.
-            this is Slider || type.HasFlag(Types.Slider) ? "Slider" :
-            this is Circle || type.HasFlag(Types.Circle) ? "Circle" :
-            this is Spinner || type.HasFlag(Types.Spinner) ? "Spinner" :
-            this is HoldNote || type.HasFlag(Types.ManiaHoldNote) ? "Hold note" : "Unknown object";
+            this is Slider
+            || type.HasFlag(Types.Slider)
+                ? "Slider"
+            : this is Circle || type.HasFlag(Types.Circle) ? "Circle"
+            : this is Spinner || type.HasFlag(Types.Spinner) ? "Spinner"
+            : this is HoldNote || type.HasFlag(Types.ManiaHoldNote) ? "Hold note"
+            : "Unknown object";
 
-        public override string ToString() => time + " ms: " + GetObjectType() + " at (" + Position.X + "; " + Position.Y + ")";
+        public override string ToString() =>
+            time + " ms: " + GetObjectType() + " at (" + Position.X + "; " + Position.Y + ")";
     }
 }

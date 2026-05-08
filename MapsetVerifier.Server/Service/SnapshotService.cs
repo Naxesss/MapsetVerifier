@@ -15,10 +15,16 @@ public static class SnapshotService
         // Build difficulties list
         var difficulties = new List<ApiSnapshotDifficulty>
         {
-            new("General", isGeneral: true, starRating: null, mode: null)
+            new("General", isGeneral: true, starRating: null, mode: null),
         };
-        difficulties.AddRange(beatmapSet.Beatmaps.Select(beatmap =>
-            new ApiSnapshotDifficulty(beatmap.MetadataSettings.version, isGeneral: false, starRating: beatmap.StarRating, mode: beatmap.GeneralSettings.mode)));
+        difficulties.AddRange(
+            beatmapSet.Beatmaps.Select(beatmap => new ApiSnapshotDifficulty(
+                beatmap.MetadataSettings.version,
+                isGeneral: false,
+                starRating: beatmap.StarRating,
+                mode: beatmap.GeneralSettings.mode
+            ))
+        );
 
         // Check if beatmapset ID is valid
         if (refBeatmap.MetadataSettings.beatmapSetId == null)
@@ -27,7 +33,8 @@ public static class SnapshotService
                 difficulties: difficulties,
                 general: null,
                 beatmapHistories: [],
-                errorMessage: "The BeatmapSet ID is -1, indicating that the map is not submitted. This makes the snapshotter not work. Either download the submitted version from the osu! website, or submit the map before using this feature.");
+                errorMessage: "The BeatmapSet ID is -1, indicating that the map is not submitted. This makes the snapshotter not work. Either download the submitted version from the osu! website, or submit the map before using this feature."
+            );
         }
 
         var beatmapSetId = refBeatmap.MetadataSettings.beatmapSetId.ToString();
@@ -37,7 +44,8 @@ public static class SnapshotService
                 difficulties: difficulties,
                 general: null,
                 beatmapHistories: [],
-                errorMessage: null);
+                errorMessage: null
+            );
         }
 
         // Snapshot the current beatmap before we start comparing with previous snapshots
@@ -54,7 +62,8 @@ public static class SnapshotService
             difficulties: difficulties,
             general: generalHistory,
             beatmapHistories: beatmapHistories,
-            errorMessage: null);
+            errorMessage: null
+        );
     }
 
     private static ApiSnapshotHistory GetGeneralSnapshotHistory(Snapshotter.Snapshot[] snapshots)
@@ -75,13 +84,18 @@ public static class SnapshotService
             var currentSnapshot = sortedSnapshots[i];
 
             var diffs = Snapshotter.Compare(previousSnapshot, currentSnapshot.code).ToList();
-            
+
             // TODO null! is not very nice needs quite some refactor in snapshotter logic to avoid
             var translatedDiffs = Snapshotter.TranslateComparison(diffs, null!).ToList();
 
-            if (translatedDiffs.Count == 0) continue;
+            if (translatedDiffs.Count == 0)
+                continue;
 
-            var commit = CreateCommit(currentSnapshot.creationTime, translatedDiffs, filesOnly: true);
+            var commit = CreateCommit(
+                currentSnapshot.creationTime,
+                translatedDiffs,
+                filesOnly: true
+            );
             commits.Add(commit);
         }
 
@@ -113,9 +127,14 @@ public static class SnapshotService
             var diffs = Snapshotter.Compare(previousSnapshot, currentSnapshot.code).ToList();
             var translatedDiffs = Snapshotter.TranslateComparison(diffs, beatmap).ToList();
 
-            if (translatedDiffs.Count == 0) continue;
+            if (translatedDiffs.Count == 0)
+                continue;
 
-            var commit = CreateCommit(currentSnapshot.creationTime, translatedDiffs, filesOnly: false);
+            var commit = CreateCommit(
+                currentSnapshot.creationTime,
+                translatedDiffs,
+                filesOnly: false
+            );
             commits.Add(commit);
         }
 
@@ -124,11 +143,17 @@ public static class SnapshotService
         {
             var latestSnapshot = sortedSnapshots.Last();
             var currentDiffs = Snapshotter.Compare(latestSnapshot, beatmap.Code).ToList();
-            var translatedCurrentDiffs = Snapshotter.TranslateComparison(currentDiffs, beatmap).ToList();
+            var translatedCurrentDiffs = Snapshotter
+                .TranslateComparison(currentDiffs, beatmap)
+                .ToList();
 
             if (translatedCurrentDiffs.Count > 0)
             {
-                var uncommittedCommit = CreateCommit(DateTime.UtcNow, translatedCurrentDiffs, filesOnly: false);
+                var uncommittedCommit = CreateCommit(
+                    DateTime.UtcNow,
+                    translatedCurrentDiffs,
+                    filesOnly: false
+                );
                 commits.Add(uncommittedCommit);
             }
         }
@@ -139,7 +164,11 @@ public static class SnapshotService
         return new ApiSnapshotHistory(beatmap.MetadataSettings.version, commits);
     }
 
-    private static ApiSnapshotCommit CreateCommit(DateTime date, List<DiffInstance> diffs, bool filesOnly)
+    private static ApiSnapshotCommit CreateCommit(
+        DateTime date,
+        List<DiffInstance> diffs,
+        bool filesOnly
+    )
     {
         var filteredDiffs = diffs
             .Where(diff => filesOnly ? diff.Section == "Files" : diff.Section != "Files")
@@ -155,9 +184,15 @@ public static class SnapshotService
             .Select(sectionDiffs =>
             {
                 var sectionDiffsList = sectionDiffs.ToList();
-                var sectionAdditions = sectionDiffsList.Count(d => d.DiffType == Snapshotter.DiffType.Added);
-                var sectionRemovals = sectionDiffsList.Count(d => d.DiffType == Snapshotter.DiffType.Removed);
-                var sectionModifications = sectionDiffsList.Count(d => d.DiffType == Snapshotter.DiffType.Changed);
+                var sectionAdditions = sectionDiffsList.Count(d =>
+                    d.DiffType == Snapshotter.DiffType.Added
+                );
+                var sectionRemovals = sectionDiffsList.Count(d =>
+                    d.DiffType == Snapshotter.DiffType.Removed
+                );
+                var sectionModifications = sectionDiffsList.Count(d =>
+                    d.DiffType == Snapshotter.DiffType.Changed
+                );
 
                 return new ApiSnapshotSection(
                     name: sectionDiffsList.First().Section,
@@ -170,7 +205,9 @@ public static class SnapshotService
                         diffType: diff.DiffType,
                         oldValue: ExtractOldValue(diff),
                         newValue: ExtractNewValue(diff),
-                        details: diff.Details)));
+                        details: diff.Details
+                    ))
+                );
             })
             .ToList();
 
@@ -181,7 +218,8 @@ public static class SnapshotService
             additions: additions,
             removals: removals,
             modifications: modifications,
-            sections: sections);
+            sections: sections
+        );
     }
 
     private static string? ExtractOldValue(DiffInstance diff)

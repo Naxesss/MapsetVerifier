@@ -32,7 +32,7 @@ public static class AudioAnalyzer
                     ChannelType = channelInfo.ChannelType,
                     DurationMs = seconds * 1000,
                     Bitrate = bitrate,
-                    IsFloatingPoint = (channelInfo.Flags & BassFlags.Float) != 0
+                    IsFloatingPoint = (channelInfo.Flags & BassFlags.Float) != 0,
                 };
             }
             finally
@@ -67,7 +67,11 @@ public static class AudioAnalyzer
     /// <summary>
     /// Gets FFT data at a specific time position in the audio.
     /// </summary>
-    public static float[] GetFftDataAtPosition(string filePath, double positionMs, DataFlags fftSize = DataFlags.FFT4096)
+    public static float[] GetFftDataAtPosition(
+        string filePath,
+        double positionMs,
+        DataFlags fftSize = DataFlags.FFT4096
+    )
     {
         lock (Locks.GetOrAdd(filePath, new object()))
         {
@@ -121,7 +125,8 @@ public static class AudioAnalyzer
                 {
                     if (!Bass.ChannelGetLevel(stream, levels, intervalSeconds, 0))
                     {
-                        if (Bass.LastError == Errors.Ended) break;
+                        if (Bass.LastError == Errors.Ended)
+                            break;
                         sampleIndex++;
                         continue;
                     }
@@ -129,8 +134,10 @@ public static class AudioAnalyzer
                     var left = levels[0];
                     var right = channelInfo.Channels > 1 ? levels[1] : levels[0];
 
-                    if (left > peakLeft) peakLeft = left;
-                    if (right > peakRight) peakRight = right;
+                    if (left > peakLeft)
+                        peakLeft = left;
+                    if (right > peakRight)
+                        peakRight = right;
 
                     sumSquaredLeft += left * left;
                     sumSquaredRight += right * right;
@@ -157,7 +164,7 @@ public static class AudioAnalyzer
                     RmsRight = rmsRight,
                     ClippingCount = clippingCount,
                     ClippingTimestamps = clippingTimestamps,
-                    SampleCount = sampleCount
+                    SampleCount = sampleCount,
                 };
             }
             finally
@@ -170,7 +177,10 @@ public static class AudioAnalyzer
     /// <summary>
     /// Gets channel balance data over time for visualization.
     /// </summary>
-    public static List<ChannelLevelSample> GetChannelLevelsOverTime(string filePath, int sampleIntervalMs = 50)
+    public static List<ChannelLevelSample> GetChannelLevelsOverTime(
+        string filePath,
+        int sampleIntervalMs = 50
+    )
     {
         lock (Locks.GetOrAdd(filePath, new object()))
         {
@@ -194,17 +204,20 @@ public static class AudioAnalyzer
                 {
                     if (!Bass.ChannelGetLevel(stream, levels, intervalSeconds, 0))
                     {
-                        if (Bass.LastError == Errors.Ended) break;
+                        if (Bass.LastError == Errors.Ended)
+                            break;
                         sampleIndex++;
                         continue;
                     }
 
-                    samples.Add(new ChannelLevelSample
-                    {
-                        TimeMs = sampleIndex * sampleIntervalMs,
-                        LeftLevel = levels[0],
-                        RightLevel = channelInfo.Channels > 1 ? levels[1] : levels[0]
-                    });
+                    samples.Add(
+                        new ChannelLevelSample
+                        {
+                            TimeMs = sampleIndex * sampleIntervalMs,
+                            LeftLevel = levels[0],
+                            RightLevel = channelInfo.Channels > 1 ? levels[1] : levels[0],
+                        }
+                    );
 
                     sampleIndex++;
                 }
@@ -221,7 +234,11 @@ public static class AudioAnalyzer
     /// <summary>
     /// Gets spectrogram data for visualization.
     /// </summary>
-    public static SpectrogramData GetSpectrogramData(string filePath, int fftSize = 4096, int timeResolutionMs = 10)
+    public static SpectrogramData GetSpectrogramData(
+        string filePath,
+        int fftSize = 4096,
+        int timeResolutionMs = 10
+    )
     {
         lock (Locks.GetOrAdd(filePath, new object()))
         {
@@ -260,7 +277,8 @@ public static class AudioAnalyzer
                     var bytesRead = Bass.ChannelGetData(stream, fftData, (int)fftFlag);
                     if (bytesRead <= 0)
                     {
-                        if (Bass.LastError == Errors.Ended) break;
+                        if (Bass.LastError == Errors.Ended)
+                            break;
                         currentPosition += intervalBytes;
                         Bass.ChannelSetPosition(stream, currentPosition);
                         continue;
@@ -274,11 +292,9 @@ public static class AudioAnalyzer
                         magnitudes[j] = magnitude > 0 ? (float)(20 * Math.Log10(magnitude)) : -100f;
                     }
 
-                    frames.Add(new SpectrogramFrame
-                    {
-                        TimeMs = currentTimeMs,
-                        Magnitudes = magnitudes
-                    });
+                    frames.Add(
+                        new SpectrogramFrame { TimeMs = currentTimeMs, Magnitudes = magnitudes }
+                    );
 
                     // Advance by the time resolution interval
                     currentPosition += intervalBytes;
@@ -290,7 +306,7 @@ public static class AudioAnalyzer
                     Frames = frames,
                     FrequencyBins = frequencyBins,
                     SampleRate = channelInfo.Frequency,
-                    FftSize = fftSize
+                    FftSize = fftSize,
                 };
             }
             finally
@@ -305,7 +321,9 @@ public static class AudioAnalyzer
         AudioBASS.EnsureInitialized();
         var stream = Bass.CreateStream(filePath, 0, 0, BassFlags.Decode);
         if (stream == 0)
-            throw new BadImageFormatException($"Could not create stream of \"{Path.GetFileName(filePath)}\", error \"{Bass.LastError}\".");
+            throw new BadImageFormatException(
+                $"Could not create stream of \"{Path.GetFileName(filePath)}\", error \"{Bass.LastError}\"."
+            );
         return stream;
     }
 
@@ -321,7 +339,7 @@ public static class AudioAnalyzer
             DataFlags.FFT8192 => 4096,
             DataFlags.FFT16384 => 8192,
             DataFlags.FFT32768 => 16384,
-            _ => 2048
+            _ => 2048,
         };
     }
 
@@ -337,7 +355,7 @@ public static class AudioAnalyzer
             8192 => DataFlags.FFT8192,
             16384 => DataFlags.FFT16384,
             32768 => DataFlags.FFT32768,
-            _ => DataFlags.FFT4096
+            _ => DataFlags.FFT4096,
         };
     }
 }
@@ -398,4 +416,3 @@ public struct SpectrogramData
     public int SampleRate { get; init; }
     public int FftSize { get; init; }
 }
-

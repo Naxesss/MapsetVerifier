@@ -30,8 +30,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         beatmapset is based around a single song. As such, having multiple songs in a single beatmapset is not 
                         supported properly. Each song will also need its own spread, so having each set of difficulties in its 
                         own beatmapset makes things more organized."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -39,15 +39,19 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             {
                 {
                     "Multiple",
-                    new IssueTemplate(Issue.Level.Problem, "{0}", "audio file : difficulties")
-                        .WithCause("There is more than one audio file used between all difficulties.")
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "{0}",
+                        "audio file : difficulties"
+                    ).WithCause("There is more than one audio file used between all difficulties.")
                 },
-
                 {
                     "Missing",
-                    new IssueTemplate(Issue.Level.Problem, "No audio file could be found.")
-                        .WithCause("There is no audio file used in any difficulty.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "No audio file could be found."
+                    ).WithCause("There is no audio file used in any difficulty.")
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
@@ -59,13 +63,17 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             }
             else
             {
-                var issues = Common.GetInconsistencies(beatmapSet, beatmap =>
-                {
-                    var audioPath = beatmap.GetAudioFilePath();
-                    return audioPath != null
-                        ? PathStatic.RelativePath(audioPath, beatmap.SongPath)
-                        : "None";
-                }, GetTemplate("Multiple"));
+                var issues = Common.GetInconsistencies(
+                    beatmapSet,
+                    beatmap =>
+                    {
+                        var audioPath = beatmap.GetAudioFilePath();
+                        return audioPath != null
+                            ? PathStatic.RelativePath(audioPath, beatmap.SongPath)
+                            : "None";
+                    },
+                    GetTemplate("Multiple")
+                );
 
                 foreach (var issue in issues)
                     yield return issue;

@@ -26,8 +26,8 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         "Reasoning",
                         @"
                     Kiais in osu!taiko have more impact than in other modes (illuminates entire playfield, slight score boost), so consistency is important unless there's a valid reason to break it (i.e. GDs)."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -36,18 +36,18 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                 {
                     "Inconsistent",
                     new IssueTemplate(
-                            Issue.Level.Minor,
+                        Issue.Level.Minor,
                         "Group {0}: ({1})",
                         "Kiai Group #",
-                        "List of Difficulties")
-                    .WithCause("Kiai start and end times are not aligned across difficulties.")
-                }
+                        "List of Difficulties"
+                    ).WithCause("Kiai start and end times are not aligned across difficulties.")
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
-            var taikoBeatmaps = beatmapSet.Beatmaps
-                .Where(beatmap => beatmap.GeneralSettings.mode == Beatmap.Mode.Taiko)
+            var taikoBeatmaps = beatmapSet
+                .Beatmaps.Where(beatmap => beatmap.GeneralSettings.mode == Beatmap.Mode.Taiko)
                 .ToList();
 
             // Store all kiai times in a Dictionary

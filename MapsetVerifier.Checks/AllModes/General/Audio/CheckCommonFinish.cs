@@ -16,7 +16,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                     // This check would take on another meaning if applied to taiko, since there you basically map with hit sounds.
                     Beatmap.Mode.Standard,
                     Beatmap.Mode.Catch,
-                    Beatmap.Mode.Mania
+                    Beatmap.Mode.Mania,
                 ],
                 Category = "Audio",
                 Message = "Frequent finish hit sounds.",
@@ -35,8 +35,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         @"
                         Although possibly fine when using custom samples, this will still get very jarring if the player 
                         turns off custom hit sounds and the finishes are used as frequently as claps/whistles, for example."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -44,15 +44,26 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             {
                 {
                     "Warning Common",
-                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" may be obnoxious without custom samples. Used most commonly in {1}.", "path", "[difficulty]")
-                        .WithCause("The usage of non-drum finish hit sounds to drain time ratio in a map is 2 seconds or more.")
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "\"{0}\" may be obnoxious without custom samples. Used most commonly in {1}.",
+                        "path",
+                        "[difficulty]"
+                    ).WithCause(
+                        "The usage of non-drum finish hit sounds to drain time ratio in a map is 2 seconds or more."
+                    )
                 },
-
                 {
                     "Warning Timestamp",
-                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" may be obnoxious without custom samples. Used most frequently leading up to {1}.", "path", "timestamp in [difficulty]")
-                        .WithCause("Non-drum finish hit sounds are used frequently in a short timespan.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "\"{0}\" may be obnoxious without custom samples. Used most frequently leading up to {1}.",
+                        "path",
+                        "timestamp in [difficulty]"
+                    ).WithCause(
+                        "Non-drum finish hit sounds are used frequently in a short timespan."
+                    )
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
@@ -61,21 +72,41 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             {
                 var sample = new HitSample(hsFile);
 
-                if (sample.Sampleset == HitSample.SamplesetType.Drum || sample.HitSound != HitObject.HitSounds.Finish || sample.HitSource != HitSample.HitSourceType.Edge)
+                if (
+                    sample.Sampleset == HitSample.SamplesetType.Drum
+                    || sample.HitSound != HitObject.HitSounds.Finish
+                    || sample.HitSource != HitSample.HitSourceType.Edge
+                )
                     continue;
 
-                Common.CollectHitSoundFrequency(beatmapSet, hsFile, 9, out var mostFrequentTimestamp, out var uses);
+                Common.CollectHitSoundFrequency(
+                    beatmapSet,
+                    hsFile,
+                    9,
+                    out var mostFrequentTimestamp,
+                    out var uses
+                );
 
                 if (mostFrequentTimestamp != null)
                 {
-                    yield return new Issue(GetTemplate("Warning Timestamp"), null, hsFile, mostFrequentTimestamp);
+                    yield return new Issue(
+                        GetTemplate("Warning Timestamp"),
+                        null,
+                        hsFile,
+                        mostFrequentTimestamp
+                    );
                 }
                 else
                 {
                     var mapCommonlyUsedIn = Common.GetBeatmapCommonlyUsedIn(beatmapSet, uses, 3000);
 
                     if (mapCommonlyUsedIn != null)
-                        yield return new Issue(GetTemplate("Warning Common"), null, hsFile, mapCommonlyUsedIn);
+                        yield return new Issue(
+                            GetTemplate("Warning Common"),
+                            null,
+                            hsFile,
+                            mapCommonlyUsedIn
+                        );
                 }
             }
         }

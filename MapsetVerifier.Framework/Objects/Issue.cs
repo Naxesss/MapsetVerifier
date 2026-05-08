@@ -13,7 +13,7 @@ namespace MapsetVerifier.Framework.Objects
             Error,
             Minor,
             Warning,
-            Problem
+            Problem,
         }
 
         public readonly Beatmap? beatmap;
@@ -39,9 +39,15 @@ namespace MapsetVerifier.Framework.Objects
         /// <summary> Whether this issue applies to the given difficulty level according to the metadata and interpretation. </summary>
         public bool AppliesToDifficulty(Beatmap.Difficulty difficulty)
         {
-            var appliesByMetadata = CheckOrigin?.GetMetadata() is not BeatmapCheckMetadata metadata || metadata.Difficulties.Contains(difficulty);
+            var appliesByMetadata =
+                CheckOrigin?.GetMetadata() is not BeatmapCheckMetadata metadata
+                || metadata.Difficulties.Contains(difficulty);
 
-            var appliesByInterpretation = !InterpretationPairs.Any() || InterpretationPairs.Any(pair => pair.Key == "difficulty" && (Beatmap.Difficulty)pair.Value == difficulty);
+            var appliesByInterpretation =
+                !InterpretationPairs.Any()
+                || InterpretationPairs.Any(pair =>
+                    pair.Key == "difficulty" && (Beatmap.Difficulty)pair.Value == difficulty
+                );
 
             return appliesByMetadata && appliesByInterpretation;
         }
@@ -58,7 +64,8 @@ namespace MapsetVerifier.Framework.Objects
         ///     Equivalent to using <see cref="WithInterpretation" /> with first argument "difficulty" and rest cast to
         ///     integers.
         /// </summary>
-        public Issue ForDifficulties(params Beatmap.Difficulty[] difficulties) => WithInterpretation("difficulty", difficulties.Select(diff => (int)diff).ToArray());
+        public Issue ForDifficulties(params Beatmap.Difficulty[] difficulties) =>
+            WithInterpretation("difficulty", difficulties.Select(diff => (int)diff).ToArray());
 
         /// <summary>
         ///     Sets the data of the issue, which can be used by applications to only show the check in certain settings,
@@ -80,13 +87,13 @@ namespace MapsetVerifier.Framework.Objects
             foreach (var interpretParam in interpretParams)
                 if (interpretParam is string param)
                     interpretType = param;
-
                 else if (interpretParam is int paramInt)
                     InterpretationPairs.Add(new KeyValuePair<string, int>(interpretType, paramInt));
-
                 else if (interpretParam is int[] paramInts)
                     foreach (var interpretation in paramInts)
-                        InterpretationPairs.Add(new KeyValuePair<string, int>(interpretType, interpretation));
+                        InterpretationPairs.Add(
+                            new KeyValuePair<string, int>(interpretType, interpretation)
+                        );
         }
     }
 }

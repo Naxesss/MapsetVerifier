@@ -46,8 +46,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         OGG and MP3 files are typically compressed, unlike Wave, making too low bitrate a concern even for 
                         hit sounds using those formats. An upper limit for hit sound quality is not enforced due to their short 
                         length and small impact on file size, even with uncompressed formats like Wave."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -55,19 +55,35 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             {
                 {
                     "Bitrate",
-                    new IssueTemplate(Issue.Level.Problem, "Average audio bitrate for \"{0}\", {1} kbps, is too {2}.", "path", "bitrate", "high/low")
-                        .WithCause("The average bitrate of an audio file is either higher than 192/208 kbps for MP3/OGG respectively or lower than 128 kbps.")
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "Average audio bitrate for \"{0}\", {1} kbps, is too {2}.",
+                        "path",
+                        "bitrate",
+                        "high/low"
+                    ).WithCause(
+                        "The average bitrate of an audio file is either higher than 192/208 kbps for MP3/OGG respectively or lower than 128 kbps."
+                    )
                 },
                 {
                     "Hit Sound",
-                    new IssueTemplate(Issue.Level.Warning, "Average audio bitrate for \"{0}\", {1} kbps, is really low.", "path", "bitrate")
-                        .WithCause("Same as the other check, except only applies to hit sounds using the lower threshold.")
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "Average audio bitrate for \"{0}\", {1} kbps, is really low.",
+                        "path",
+                        "bitrate"
+                    ).WithCause(
+                        "Same as the other check, except only applies to hit sounds using the lower threshold."
+                    )
                 },
                 {
                     "Exception",
-                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "path")
-                        .WithCause("A file which was attempted to be checked could not be opened.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Error,
+                        Common.FILE_EXCEPTION_MESSAGE,
+                        "path"
+                    ).WithCause("A file which was attempted to be checked could not be opened.")
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
@@ -96,7 +112,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             catch (Exception exception)
             {
                 Log.Error(exception, "Couldn't check audio file");
-                errorIssue = new Issue(GetTemplate("Exception"), null, PathStatic.RelativePath(audioPath, beatmapSet.SongPath));
+                errorIssue = new Issue(
+                    GetTemplate("Exception"),
+                    null,
+                    PathStatic.RelativePath(audioPath, beatmapSet.SongPath)
+                );
             }
 
             if (errorIssue != null)
@@ -115,7 +135,13 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
             var relativePath = PathStatic.RelativePath(audioPath, beatmapSet.SongPath);
 
-            yield return new Issue(GetTemplate("Bitrate"), null, relativePath, $"{bitrate:0.##}", bitrate < 128 ? "low" : "high");
+            yield return new Issue(
+                GetTemplate("Bitrate"),
+                null,
+                relativePath,
+                $"{bitrate:0.##}",
+                bitrate < 128 ? "low" : "high"
+            );
         }
 
         private IEnumerable<Issue> GetHitSoundIssues(BeatmapSet beatmapSet)
@@ -134,7 +160,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                 catch (Exception exception)
                 {
                     Log.Error(exception, "Couldn't check hitsound file");
-                    errorIssue = new Issue(GetTemplate("Exception"), null, PathStatic.RelativePath(hitSoundPath, beatmapSet.SongPath));
+                    errorIssue = new Issue(
+                        GetTemplate("Exception"),
+                        null,
+                        PathStatic.RelativePath(hitSoundPath, beatmapSet.SongPath)
+                    );
                 }
 
                 if (errorIssue != null)
@@ -144,7 +174,10 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                     continue;
                 }
 
-                if ((hitSoundFormat & ChannelType.OGG) != 0 && (hitSoundFormat & ChannelType.MP3) != 0)
+                if (
+                    (hitSoundFormat & ChannelType.OGG) != 0
+                    && (hitSoundFormat & ChannelType.MP3) != 0
+                )
                     continue;
 
                 var bitrate = Math.Round(AudioBASS.GetBitrate(hitSoundPath));
@@ -156,7 +189,12 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
                 var relativePath = PathStatic.RelativePath(hitSoundPath, beatmapSet.SongPath);
 
-                yield return new Issue(GetTemplate("Hit Sound"), null, relativePath, $"{bitrate:0.##}");
+                yield return new Issue(
+                    GetTemplate("Hit Sound"),
+                    null,
+                    relativePath,
+                    $"{bitrate:0.##}"
+                );
             }
         }
     }

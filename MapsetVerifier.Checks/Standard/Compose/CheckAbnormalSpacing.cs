@@ -13,10 +13,7 @@ namespace MapsetVerifier.Checks.Standard.Compose
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
-                Modes =
-                [
-                    Beatmap.Mode.Standard
-                ],
+                Modes = [Beatmap.Mode.Standard],
                 Category = "Compose",
                 Message = "Abnormally large spacing.",
                 Author = "Naxess",
@@ -35,8 +32,8 @@ namespace MapsetVerifier.Checks.Standard.Compose
                         With two objects being spaced way further than previous objects of the same snapping, it can be extremely difficult to expect, much less play.
 
                         When combined with incorrect snappings (which abnormal spacing is often a cause of), this can really throw players off to the point where the map is pretty much considered unplayable."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -44,21 +41,39 @@ namespace MapsetVerifier.Checks.Standard.Compose
             {
                 {
                     "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Space/time ratio is {1} times the expected, see e.g. {2}.", "timestamp -", "times", "example objects")
-                        .WithCause(@"The space/time ratio between two objects is absurdly large in comparison to other objects with the same snapping prior.
-                                    > Accounts for slider leniency by assuming that the gap is a circle's diameter smaller.")
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "{0} Space/time ratio is {1} times the expected, see e.g. {2}.",
+                        "timestamp -",
+                        "times",
+                        "example objects"
+                    ).WithCause(
+                        @"The space/time ratio between two objects is absurdly large in comparison to other objects with the same snapping prior.
+                                    > Accounts for slider leniency by assuming that the gap is a circle's diameter smaller."
+                    )
                 },
-
                 {
                     "Warning",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Space/time ratio is {1} times the expected, see e.g. {2}.", "timestamp -", "times", "example objects")
-                        .WithCause("Same as the first check, but with slightly less absurd, yet often still extreme, differences.")
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "{0} Space/time ratio is {1} times the expected, see e.g. {2}.",
+                        "timestamp -",
+                        "times",
+                        "example objects"
+                    ).WithCause(
+                        "Same as the first check, but with slightly less absurd, yet often still extreme, differences."
+                    )
                 },
                 {
                     "Minor",
-                    new IssueTemplate(Issue.Level.Minor, "{0} Space/time ratio is {1} times the expected, see e.g. {2}.", "timestamp -", "times", "example objects")
-                        .WithCause("Same as the first check, but with more common differences.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Minor,
+                        "{0} Space/time ratio is {1} times the expected, see e.g. {2}.",
+                        "timestamp -",
+                        "times",
+                        "example objects"
+                    ).WithCause("Same as the first check, but with more common differences.")
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
@@ -92,14 +107,25 @@ namespace MapsetVerifier.Checks.Standard.Compose
                 if (distance < 20)
                     distance = 20;
 
-                var sameSnappedDistances = observedDistances.FindAll(observedDistance => deltaTime <= observedDistance.deltaTime + snapLeniencyMs && deltaTime >= observedDistance.deltaTime - snapLeniencyMs &&
-                                                                                         // Count the distances of sliders separately, as these have leniency unlike circles.
-                                                                                         observedDistance.hitObject is Slider == hitObject is Slider);
+                var sameSnappedDistances = observedDistances.FindAll(observedDistance =>
+                    deltaTime <= observedDistance.deltaTime + snapLeniencyMs
+                    && deltaTime >= observedDistance.deltaTime - snapLeniencyMs
+                    &&
+                    // Count the distances of sliders separately, as these have leniency unlike circles.
+                    observedDistance.hitObject is Slider
+                        == hitObject is Slider
+                );
 
                 var observedDistance = new ObservedDistance(deltaTime, distance, hitObject);
                 observedDistances.Add(observedDistance);
 
-                if (!sameSnappedDistances.Any() || distance / deltaTime < sameSnappedDistances.Max(obvDist => obvDist.distance / obvDist.deltaTime * Decay(hitObject, obvDist)))
+                if (
+                    !sameSnappedDistances.Any()
+                    || distance / deltaTime
+                        < sameSnappedDistances.Max(obvDist =>
+                            obvDist.distance / obvDist.deltaTime * Decay(hitObject, obvDist)
+                        )
+                )
                     continue;
 
                 if (distance <= beatmap.DifficultySettings.GetCircleRadius() * 4)
@@ -109,20 +135,32 @@ namespace MapsetVerifier.Checks.Standard.Compose
                     // Too few samples, probably going to get inaccurate readings.
                     continue;
 
-                var expectedDistance = sameSnappedDistances.Sum(obvDist => obvDist.distance * Decay(hitObject, obvDist)) / sameSnappedDistances.Count;
+                var expectedDistance =
+                    sameSnappedDistances.Sum(obvDist =>
+                        obvDist.distance * Decay(hitObject, obvDist)
+                    ) / sameSnappedDistances.Count;
 
-                var expectedDeltaTime = sameSnappedDistances.Sum(obvDist => obvDist.deltaTime * Decay(hitObject, obvDist)) / sameSnappedDistances.Count;
+                var expectedDeltaTime =
+                    sameSnappedDistances.Sum(obvDist =>
+                        obvDist.deltaTime * Decay(hitObject, obvDist)
+                    ) / sameSnappedDistances.Count;
 
                 if (hitObject is Slider)
                     // Account for slider follow circle leniency.
-                    distance -= Math.Min(beatmap.DifficultySettings.GetCircleRadius() * 3, distance);
+                    distance -= Math.Min(
+                        beatmap.DifficultySettings.GetCircleRadius() * 3,
+                        distance
+                    );
 
-                var actualExpectedRatio = distance / deltaTime / (expectedDistance / expectedDeltaTime);
+                var actualExpectedRatio =
+                    distance / deltaTime / (expectedDistance / expectedDeltaTime);
 
                 if (actualExpectedRatio <= ratioMinorThreshold)
                     continue;
 
-                var comparisonTimestamps = sameSnappedDistances.Select(obvDist => Timestamp.Get(obvDist.hitObject, obvDist.hitObject.Next()!)).TakeLast(3);
+                var comparisonTimestamps = sameSnappedDistances
+                    .Select(obvDist => Timestamp.Get(obvDist.hitObject, obvDist.hitObject.Next()!))
+                    .TakeLast(3);
 
                 var templateName = "Minor";
 
@@ -131,11 +169,18 @@ namespace MapsetVerifier.Checks.Standard.Compose
                 else if (actualExpectedRatio > ratioWarningThreshold)
                     templateName = "Warning";
 
-                yield return new Issue(GetTemplate(templateName), beatmap, Timestamp.Get(hitObject, nextObject), Math.Round(actualExpectedRatio * 10) / 10, string.Join("", comparisonTimestamps));
+                yield return new Issue(
+                    GetTemplate(templateName),
+                    beatmap,
+                    Timestamp.Get(hitObject, nextObject),
+                    Math.Round(actualExpectedRatio * 10) / 10,
+                    string.Join("", comparisonTimestamps)
+                );
             }
         }
 
-        private static double Decay(HitObject hitObject, ObservedDistance obvDist) => Math.Min(1 / (hitObject.time - obvDist.hitObject.time) * 4000, 1);
+        private static double Decay(HitObject hitObject, ObservedDistance obvDist) =>
+            Math.Min(1 / (hitObject.time - obvDist.hitObject.time) * 4000, 1);
 
         private readonly struct ObservedDistance
         {

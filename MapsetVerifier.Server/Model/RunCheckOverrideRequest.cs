@@ -8,4 +8,3 @@ public class RunCheckOverrideRequest
     public string DifficultyName { get; set; } = string.Empty;
     public Beatmap.Difficulty OverrideDifficulty { get; set; }
 }
-

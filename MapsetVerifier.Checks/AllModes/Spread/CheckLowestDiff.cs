@@ -30,8 +30,8 @@ namespace MapsetVerifier.Checks.AllModes.Spread
                         "Reasoning",
                         @"
                         Newer players usually struggle with especially long songs, so encouraging them to try shorter songs first at lower difficulty levels allows them to learn the basics before trying to train their stamina or similar. This is done by requiring that shorter songs have lower difficulties, while longer songs can have less of them. This also reduces the workload on mappers and as such introduces a larger variety of songs into the game that otherwise wouldn't be so common due to their length."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -39,9 +39,18 @@ namespace MapsetVerifier.Checks.AllModes.Spread
             {
                 {
                     "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "With a lowest difficulty {0}, the {1} time of {2} must be at least {3}, currently {4}.", "lowest diff", "drain/play", "beatmap", "lowest drain", "current drain")
-                        .WithCause("The lowest difficulty of a beatmapset is too high of a difficulty level considering the drain time of the other difficulties, alternatively play time if their drain is 80% or more of it and it isn't the top difficulty.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "With a lowest difficulty {0}, the {1} time of {2} must be at least {3}, currently {4}.",
+                        "lowest diff",
+                        "drain/play",
+                        "beatmap",
+                        "lowest drain",
+                        "current drain"
+                    ).WithCause(
+                        "The lowest difficulty of a beatmapset is too high of a difficulty level considering the drain time of the other difficulties, alternatively play time if their drain is 80% or more of it and it isn't the top difficulty."
+                    )
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
@@ -49,8 +58,9 @@ namespace MapsetVerifier.Checks.AllModes.Spread
             const double breakTimeLeniency = 30 * 1000;
 
             // Check for each mode separately as hybrids all need to apply to their drain time rules
-            var groupedModeBeatmaps = beatmapSet.Beatmaps
-                .GroupBy(beatmap => beatmap.GeneralSettings.mode);
+            var groupedModeBeatmaps = beatmapSet.Beatmaps.GroupBy(beatmap =>
+                beatmap.GeneralSettings.mode
+            );
 
             foreach (var modeBeatmapGroup in groupedModeBeatmaps)
             {
@@ -59,28 +69,28 @@ namespace MapsetVerifier.Checks.AllModes.Spread
                 double insaneThreshold;
                 double expertThreshold;
 
-            switch (mode)
-            {
-                case Beatmap.Mode.Taiko:
-                case Beatmap.Mode.Catch:
-                    hardThreshold = CreateThreshold(2, 30);
-                    insaneThreshold = CreateThreshold(3, 15);
-                    expertThreshold = CreateThreshold(4, 0);
-                    break;
+                switch (mode)
+                {
+                    case Beatmap.Mode.Taiko:
+                    case Beatmap.Mode.Catch:
+                        hardThreshold = CreateThreshold(2, 30);
+                        insaneThreshold = CreateThreshold(3, 15);
+                        expertThreshold = CreateThreshold(4, 0);
+                        break;
 
-                case Beatmap.Mode.Mania:
-                    hardThreshold = CreateThreshold(2, 0);
-                    insaneThreshold = CreateThreshold(2, 45);
-                    expertThreshold = CreateThreshold(3, 30);
-                    break;
-                case Beatmap.Mode.Standard:
-                default:
-                    hardThreshold = CreateThreshold(3, 30);
-                    insaneThreshold = CreateThreshold(4, 15);
-                    expertThreshold = CreateThreshold(5, 0);
-                    break;
-            }
-                
+                    case Beatmap.Mode.Mania:
+                        hardThreshold = CreateThreshold(2, 0);
+                        insaneThreshold = CreateThreshold(2, 45);
+                        expertThreshold = CreateThreshold(3, 30);
+                        break;
+                    case Beatmap.Mode.Standard:
+                    default:
+                        hardThreshold = CreateThreshold(3, 30);
+                        insaneThreshold = CreateThreshold(4, 15);
+                        expertThreshold = CreateThreshold(5, 0);
+                        break;
+                }
+
                 var modeBeatmaps = modeBeatmapGroup.ToList();
 
                 var lowestBeatmap = modeBeatmaps.First();
@@ -91,8 +101,9 @@ namespace MapsetVerifier.Checks.AllModes.Spread
                     var playTime = beatmap.GetPlayTime();
                     var breakTime = playTime - drainTime;
 
-                    var isHighestDifficulty = beatmapSet.Beatmaps.Last().MetadataSettings.version ==
-                                              beatmap.MetadataSettings.version;
+                    var isHighestDifficulty =
+                        beatmapSet.Beatmaps.Last().MetadataSettings.version
+                        == beatmap.MetadataSettings.version;
 
                     var canUsePlayTime = !isHighestDifficulty || breakTime < breakTimeLeniency;
 
@@ -110,25 +121,46 @@ namespace MapsetVerifier.Checks.AllModes.Spread
 
                     if (effectiveTime < hardThreshold - thresholdReduction)
                     {
-                        yield return new Issue(GetTemplate("Problem"), lowestBeatmap, Beatmap.Difficulty.Hard, canUsePlayTime ? "play" : "drain", beatmap, Timestamp.Get(hardThreshold - thresholdReduction), Timestamp.Get(effectiveTime))
-                            .ForDifficulties(Beatmap.Difficulty.Hard);
+                        yield return new Issue(
+                            GetTemplate("Problem"),
+                            lowestBeatmap,
+                            Beatmap.Difficulty.Hard,
+                            canUsePlayTime ? "play" : "drain",
+                            beatmap,
+                            Timestamp.Get(hardThreshold - thresholdReduction),
+                            Timestamp.Get(effectiveTime)
+                        ).ForDifficulties(Beatmap.Difficulty.Hard);
                     }
 
                     if (effectiveTime < insaneThreshold - thresholdReduction)
                     {
-                        yield return new Issue(GetTemplate("Problem"), lowestBeatmap, Beatmap.Difficulty.Insane, canUsePlayTime ? "play" : "drain", beatmap, Timestamp.Get(insaneThreshold - thresholdReduction), Timestamp.Get(effectiveTime))
-                            .ForDifficulties(Beatmap.Difficulty.Insane);
+                        yield return new Issue(
+                            GetTemplate("Problem"),
+                            lowestBeatmap,
+                            Beatmap.Difficulty.Insane,
+                            canUsePlayTime ? "play" : "drain",
+                            beatmap,
+                            Timestamp.Get(insaneThreshold - thresholdReduction),
+                            Timestamp.Get(effectiveTime)
+                        ).ForDifficulties(Beatmap.Difficulty.Insane);
                     }
 
                     if (effectiveTime < expertThreshold - thresholdReduction)
                     {
-                        yield return new Issue(GetTemplate("Problem"), lowestBeatmap, Beatmap.Difficulty.Expert, canUsePlayTime ? "play" : "drain", beatmap, Timestamp.Get(expertThreshold - thresholdReduction), Timestamp.Get(effectiveTime))
-                            .ForDifficulties(Beatmap.Difficulty.Expert, Beatmap.Difficulty.Ultra);
+                        yield return new Issue(
+                            GetTemplate("Problem"),
+                            lowestBeatmap,
+                            Beatmap.Difficulty.Expert,
+                            canUsePlayTime ? "play" : "drain",
+                            beatmap,
+                            Timestamp.Get(expertThreshold - thresholdReduction),
+                            Timestamp.Get(effectiveTime)
+                        ).ForDifficulties(Beatmap.Difficulty.Expert, Beatmap.Difficulty.Ultra);
                     }
                 }
             }
         }
-        
+
         private static int CreateThreshold(int minutes, int seconds)
         {
             // Thresholds need to be in milliseconds

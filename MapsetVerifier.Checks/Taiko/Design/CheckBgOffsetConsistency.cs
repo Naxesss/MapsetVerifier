@@ -10,7 +10,7 @@ namespace MapsetVerifier.Checks.Taiko.Design
     public class CheckBgOffsetConsistency : BeatmapSetCheck
     {
         private const string Minor = nameof(Issue.Level.Minor);
-        
+
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata()
             {
@@ -29,8 +29,8 @@ namespace MapsetVerifier.Checks.Taiko.Design
                         "Reasoning",
                         @"
                     Background offset should generally be consistent across osu!taiko difficulties that share the same background."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -38,23 +38,28 @@ namespace MapsetVerifier.Checks.Taiko.Design
             {
                 {
                     Minor,
-                    new IssueTemplate(Issue.Level.Minor,
+                    new IssueTemplate(
+                        Issue.Level.Minor,
                         "\"{0}\" {1}: ({2})",
                         "Filename",
                         "Offset Coordinates",
-                        "List of Difficulties")
-                    .WithCause("Background offset is inconsistent across difficulties. Make sure this is intentional.")
-                }
+                        "List of Difficulties"
+                    ).WithCause(
+                        "Background offset is inconsistent across difficulties. Make sure this is intentional."
+                    )
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
             // Record known offsets for each unique BG file
             var files = new Dictionary<string, Dictionary<Vector2, HashSet<string>>>();
-            
+
             // Filter to osu!taiko beatmaps only
-            var taikoBeatmaps = beatmapSet.Beatmaps.Where(beatmap => beatmap.GeneralSettings.mode == Beatmap.Mode.Taiko).ToList();
-            
+            var taikoBeatmaps = beatmapSet
+                .Beatmaps.Where(beatmap => beatmap.GeneralSettings.mode == Beatmap.Mode.Taiko)
+                .ToList();
+
             foreach (var beatmap in taikoBeatmaps)
             {
                 foreach (var beatmapBg in beatmap.Backgrounds)
@@ -65,17 +70,17 @@ namespace MapsetVerifier.Checks.Taiko.Design
                     {
                         continue;
                     }
-                     
+
                     files.TryAdd(path, new Dictionary<Vector2, HashSet<string>>());
                     var file = files[path];
                     var offset = beatmapBg.offset;
-                    if (offset == null) continue;
-                    var castOffset = (Vector2) offset;
+                    if (offset == null)
+                        continue;
+                    var castOffset = (Vector2)offset;
                     file.TryAdd(castOffset, []);
-                        
+
                     var diffNames = file[castOffset];
                     diffNames.Add(beatmap.MetadataSettings.version);
-
                 }
             }
 

@@ -31,8 +31,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         @"
                         If you're looking for beatmaps of a specific user, it'd make sense if sets containing their
                         guest difficulties would appear, and not only sets they hosted."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -40,21 +40,35 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             {
                 {
                     "Warning",
-                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" is possessive but \"{1}\" isn't in the tags, ignore if not a user.", "guest's diff", "guest")
-                        .WithCause("A difficulty name is prefixed by text containing an apostrophe (') before or after the character \"s\", which is not in the tags.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "\"{0}\" is possessive but \"{1}\" isn't in the tags, ignore if not a user.",
+                        "guest's diff",
+                        "guest"
+                    ).WithCause(
+                        "A difficulty name is prefixed by text containing an apostrophe (') before or after the character \"s\", which is not in the tags."
+                    )
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
             foreach (var beatmap in beatmapSet.Beatmaps)
-                foreach (var possessor in GetAllPossessors(beatmap.MetadataSettings.version))
-                {
-                    if (beatmap.MetadataSettings.IsCoveredByTags(possessor) || beatmap.MetadataSettings.creator.ToLower() == possessor.ToLower())
-                        continue;
+            foreach (var possessor in GetAllPossessors(beatmap.MetadataSettings.version))
+            {
+                if (
+                    beatmap.MetadataSettings.IsCoveredByTags(possessor)
+                    || beatmap.MetadataSettings.creator.ToLower() == possessor.ToLower()
+                )
+                    continue;
 
-                    yield return new Issue(GetTemplate("Warning"), null, beatmap.MetadataSettings.version, possessor.ToLower().Replace(" ", "_"));
-                }
+                yield return new Issue(
+                    GetTemplate("Warning"),
+                    null,
+                    beatmap.MetadataSettings.version,
+                    possessor.ToLower().Replace(" ", "_")
+                );
+            }
         }
 
         /// <summary>
@@ -64,7 +78,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
         private string? GetPossessor(string text)
         {
             Match match;
-            
+
             try
             {
                 match = possessorRegex.Match(text);
@@ -90,9 +104,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
         /// </summary>
         private IEnumerable<string> GetAllPossessors(string text)
         {
-            return text.Split(collabChars)
-                .Select(GetPossessor)
-                .OfType<string>();
+            return text.Split(collabChars).Select(GetPossessor).OfType<string>();
         }
     }
 }

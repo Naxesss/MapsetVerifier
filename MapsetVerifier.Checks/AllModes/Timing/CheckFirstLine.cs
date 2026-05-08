@@ -37,8 +37,8 @@ namespace MapsetVerifier.Checks.AllModes.Timing
 
                         ![](https://i.imgur.com/yqSEObl.png)
                         The first line being inherited, as seen from the timing view."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -46,21 +46,26 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             {
                 {
                     "Inherited",
-                    new IssueTemplate(Issue.Level.Problem, "{0} First timing line is inherited.", "timestamp -")
-                        .WithCause("The first timing line of a beatmap is inherited.")
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "{0} First timing line is inherited.",
+                        "timestamp -"
+                    ).WithCause("The first timing line of a beatmap is inherited.")
                 },
-
                 {
                     "Toggles Kiai",
-                    new IssueTemplate(Issue.Level.Problem, "{0} First timing line toggles kiai.", "timestamp -")
-                        .WithCause("The first timing line of a beatmap has kiai enabled.")
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "{0} First timing line toggles kiai.",
+                        "timestamp -"
+                    ).WithCause("The first timing line of a beatmap has kiai enabled.")
                 },
-
                 {
                     "No Lines",
-                    new IssueTemplate(Issue.Level.Problem, "There are no timing lines.")
-                        .WithCause("A beatmap has no timing lines.")
-                }
+                    new IssueTemplate(Issue.Level.Problem, "There are no timing lines.").WithCause(
+                        "A beatmap has no timing lines."
+                    )
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
@@ -75,9 +80,17 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             var line = beatmap.TimingLines[0];
 
             if (!line.Uninherited)
-                yield return new Issue(GetTemplate("Inherited"), beatmap, Timestamp.Get(line.Offset));
+                yield return new Issue(
+                    GetTemplate("Inherited"),
+                    beatmap,
+                    Timestamp.Get(line.Offset)
+                );
             else if (line.Kiai)
-                yield return new Issue(GetTemplate("Toggles Kiai"), beatmap, Timestamp.Get(line.Offset));
+                yield return new Issue(
+                    GetTemplate("Toggles Kiai"),
+                    beatmap,
+                    Timestamp.Get(line.Offset)
+                );
         }
     }
 }

@@ -18,10 +18,7 @@ namespace MapsetVerifier.Checks.Standard.Spread
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
-                Modes =
-                [
-                    Beatmap.Mode.Standard
-                ],
+                Modes = [Beatmap.Mode.Standard],
                 Category = "Spread",
                 Message = "Too short spinner time or spinner recovery time.",
                 Author = "Naxess",
@@ -39,8 +36,8 @@ namespace MapsetVerifier.Checks.Standard.Spread
                         Newer players need time to recognize that they should begin spinning, as well as time to regain control of their 
                         cursor after spinning. Hence, too short spinners will often lose them accuracy or combo, and objects very close 
                         to the end of spinners will probably be missed or clicked on in panic before the spinner has ended."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -48,27 +45,52 @@ namespace MapsetVerifier.Checks.Standard.Spread
             {
                 {
                     "Problem Length",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Spinner length is too short ({1} ms, expected {2}).", "timestamp -", "duration", "duration")
-                        .WithCause("A spinner is shorter than 4, 3 or 2 beats for Easy, Normal and Hard respectively, assuming 240 bpm.")
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "{0} Spinner length is too short ({1} ms, expected {2}).",
+                        "timestamp -",
+                        "duration",
+                        "duration"
+                    ).WithCause(
+                        "A spinner is shorter than 4, 3 or 2 beats for Easy, Normal and Hard respectively, assuming 240 bpm."
+                    )
                 },
-
                 {
                     "Warning Length",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Spinner length is probably too short ({1} ms, expected {2}).", "timestamp -", "duration", "duration")
-                        .WithCause("Same as the first check, except 20% more lenient, implying that 200 bpm is assumed instead.")
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "{0} Spinner length is probably too short ({1} ms, expected {2}).",
+                        "timestamp -",
+                        "duration",
+                        "duration"
+                    ).WithCause(
+                        "Same as the first check, except 20% more lenient, implying that 200 bpm is assumed instead."
+                    )
                 },
-
                 {
                     "Problem Recovery",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Spinner recovery time is too short ({1} ms, expected {2}).", "timestamp -", "duration", "duration")
-                        .WithCause("The time after a spinner ends to the next object is shorter than 4, 3 or 2 beats for Easy, Normal and Hard respectively, assuming 240 bpm, where both the non-scaled and bpm-scaled thresholds must be exceeded.")
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "{0} Spinner recovery time is too short ({1} ms, expected {2}).",
+                        "timestamp -",
+                        "duration",
+                        "duration"
+                    ).WithCause(
+                        "The time after a spinner ends to the next object is shorter than 4, 3 or 2 beats for Easy, Normal and Hard respectively, assuming 240 bpm, where both the non-scaled and bpm-scaled thresholds must be exceeded."
+                    )
                 },
-
                 {
                     "Warning Recovery",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Spinner recovery time is probably too short ({1} ms, expected {2}).", "timestamp -", "duration", "duration")
-                        .WithCause("Same as the other recovery check, except 20% more lenient, implying that 200 bpm is assumed instead.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "{0} Spinner recovery time is probably too short ({1} ms, expected {2}).",
+                        "timestamp -",
+                        "duration",
+                        "duration"
+                    ).WithCause(
+                        "Same as the other recovery check, except 20% more lenient, implying that 200 bpm is assumed instead."
+                    )
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
@@ -93,16 +115,29 @@ namespace MapsetVerifier.Checks.Standard.Spread
 
             for (var diffIndex = 0; diffIndex < spinnerTimeExpected.Length; ++diffIndex)
             {
-                var expectedLength = Math.Ceiling(spinnerTimeExpected[diffIndex] * expectedMultiplier);
+                var expectedLength = Math.Ceiling(
+                    spinnerTimeExpected[diffIndex] * expectedMultiplier
+                );
 
                 var problemThreshold = spinnerTimeExpected[diffIndex];
                 var warningThreshold = spinnerTimeExpected[diffIndex] * 1.2; // same thing but 200 bpm instead
 
                 if (spinnerTime < problemThreshold)
-                    yield return new Issue(GetTemplate("Problem Length"), beatmap, Timestamp.Get(spinner), spinnerTime, expectedLength).ForDifficulties((Beatmap.Difficulty)diffIndex);
-
+                    yield return new Issue(
+                        GetTemplate("Problem Length"),
+                        beatmap,
+                        Timestamp.Get(spinner),
+                        spinnerTime,
+                        expectedLength
+                    ).ForDifficulties((Beatmap.Difficulty)diffIndex);
                 else if (spinnerTime < warningThreshold)
-                    yield return new Issue(GetTemplate("Warning Length"), beatmap, Timestamp.Get(spinner), spinnerTime, expectedLength).ForDifficulties((Beatmap.Difficulty)diffIndex);
+                    yield return new Issue(
+                        GetTemplate("Warning Length"),
+                        beatmap,
+                        Timestamp.Get(spinner),
+                        spinnerTime,
+                        expectedLength
+                    ).ForDifficulties((Beatmap.Difficulty)diffIndex);
             }
         }
 
@@ -122,7 +157,7 @@ namespace MapsetVerifier.Checks.Standard.Spread
             {
                 yield break;
             }
-            
+
             var bpmScaling = line.GetScaledBpm();
             var recoveryTimeScaled = recoveryTime / bpmScaling;
 
@@ -134,16 +169,29 @@ namespace MapsetVerifier.Checks.Standard.Spread
                 // Picks whichever is greatest of the scaled and regular versions.
                 var expectedScaledMultiplier = bpmScaling < 1 ? bpmScaling : 1;
 
-                var expectedRecovery = Math.Ceiling(recoveryTimeExpected[diffIndex] * expectedScaledMultiplier * expectedMultiplier);
+                var expectedRecovery = Math.Ceiling(
+                    recoveryTimeExpected[diffIndex] * expectedScaledMultiplier * expectedMultiplier
+                );
 
                 var problemThreshold = recoveryTimeExpected[diffIndex];
                 var warningThreshold = recoveryTimeExpected[diffIndex] * 1.2;
 
                 if (recoveryTimeScaled < problemThreshold && recoveryTime < problemThreshold)
-                    yield return new Issue(GetTemplate("Problem Recovery"), beatmap, Timestamp.Get(spinner, nextObject), recoveryTime, expectedRecovery).ForDifficulties((Beatmap.Difficulty)diffIndex);
-
+                    yield return new Issue(
+                        GetTemplate("Problem Recovery"),
+                        beatmap,
+                        Timestamp.Get(spinner, nextObject),
+                        recoveryTime,
+                        expectedRecovery
+                    ).ForDifficulties((Beatmap.Difficulty)diffIndex);
                 else if (recoveryTimeScaled < warningThreshold && recoveryTime < warningThreshold)
-                    yield return new Issue(GetTemplate("Warning Recovery"), beatmap, Timestamp.Get(spinner, nextObject), recoveryTime, expectedRecovery).ForDifficulties((Beatmap.Difficulty)diffIndex);
+                    yield return new Issue(
+                        GetTemplate("Warning Recovery"),
+                        beatmap,
+                        Timestamp.Get(spinner, nextObject),
+                        recoveryTime,
+                        expectedRecovery
+                    ).ForDifficulties((Beatmap.Difficulty)diffIndex);
             }
         }
     }

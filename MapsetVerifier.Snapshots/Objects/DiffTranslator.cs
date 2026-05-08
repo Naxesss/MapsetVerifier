@@ -7,6 +7,9 @@ namespace MapsetVerifier.Snapshots.Objects
         public abstract string Section { get; }
         public virtual string TranslatedSection => Section;
 
-        public abstract IEnumerable<DiffInstance> Translate(IEnumerable<DiffInstance> diffs, Beatmap beatmap);
+        public abstract IEnumerable<DiffInstance> Translate(
+            IEnumerable<DiffInstance> diffs,
+            Beatmap beatmap
+        );
     }
 }

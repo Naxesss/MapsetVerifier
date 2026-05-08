@@ -33,21 +33,23 @@ public static class MetadataAnalysisService
 
     private static List<DifficultyMetadata> GetDifficultyMetadata(BeatmapSet beatmapSet)
     {
-        return beatmapSet.Beatmaps.Select(beatmap => new DifficultyMetadata
-        {
-            Version = beatmap.MetadataSettings.version,
-            Artist = beatmap.MetadataSettings.artist,
-            ArtistUnicode = beatmap.MetadataSettings.artistUnicode,
-            Title = beatmap.MetadataSettings.title,
-            TitleUnicode = beatmap.MetadataSettings.titleUnicode,
-            Creator = beatmap.MetadataSettings.creator,
-            Source = beatmap.MetadataSettings.source,
-            Tags = beatmap.MetadataSettings.tags,
-            BeatmapId = beatmap.MetadataSettings.beatmapId,
-            BeatmapSetId = beatmap.MetadataSettings.beatmapSetId,
-            Mode = beatmap.GeneralSettings.mode.ToString(),
-            StarRating = beatmap.StarRating
-        }).ToList();
+        return beatmapSet
+            .Beatmaps.Select(beatmap => new DifficultyMetadata
+            {
+                Version = beatmap.MetadataSettings.version,
+                Artist = beatmap.MetadataSettings.artist,
+                ArtistUnicode = beatmap.MetadataSettings.artistUnicode,
+                Title = beatmap.MetadataSettings.title,
+                TitleUnicode = beatmap.MetadataSettings.titleUnicode,
+                Creator = beatmap.MetadataSettings.creator,
+                Source = beatmap.MetadataSettings.source,
+                Tags = beatmap.MetadataSettings.tags,
+                BeatmapId = beatmap.MetadataSettings.beatmapId,
+                BeatmapSetId = beatmap.MetadataSettings.beatmapSetId,
+                Mode = beatmap.GeneralSettings.mode.ToString(),
+                StarRating = beatmap.StarRating,
+            })
+            .ToList();
     }
 
     private static ResourcesInfo GetResourcesInfo(BeatmapSet beatmapSet)
@@ -58,7 +60,7 @@ public static class MetadataAnalysisService
             Backgrounds = GetBackgroundInfo(beatmapSet),
             Videos = GetVideoInfo(beatmapSet),
             Storyboard = GetStoryboardInfo(beatmapSet),
-            AudioFile = GetAudioFileInfo(beatmapSet)
+            AudioFile = GetAudioFileInfo(beatmapSet),
         };
 
         // Calculate total folder size
@@ -76,11 +78,7 @@ public static class MetadataAnalysisService
         foreach (var hsFile in beatmapSet.HitSoundFiles)
         {
             var fullPath = Path.Combine(beatmapSet.SongPath, hsFile);
-            var usage = new HitSoundUsage
-            {
-                FileName = hsFile,
-                UsagePerDifficulty = []
-            };
+            var usage = new HitSoundUsage { FileName = hsFile, UsagePerDifficulty = [] };
 
             if (File.Exists(fullPath))
             {
@@ -102,26 +100,37 @@ public static class MetadataAnalysisService
             var fileNameWithoutExt = Path.GetFileNameWithoutExtension(hsFile);
             foreach (var beatmap in beatmapSet.Beatmaps)
             {
-                var usedFiles = beatmap.HitObjects
-                    .SelectMany(obj => obj.GetUsedHitSoundFileNames())
-                    .Where(name => name.Equals(fileNameWithoutExt, StringComparison.OrdinalIgnoreCase))
+                var usedFiles = beatmap
+                    .HitObjects.SelectMany(obj => obj.GetUsedHitSoundFileNames())
+                    .Where(name =>
+                        name.Equals(fileNameWithoutExt, StringComparison.OrdinalIgnoreCase)
+                    )
                     .ToList();
 
                 if (usedFiles.Count > 0)
                 {
-                    var timestamps = beatmap.HitObjects
-                        .Where(obj => obj.GetUsedHitSoundFileNames()
-                            .Any(name => name.Equals(fileNameWithoutExt, StringComparison.OrdinalIgnoreCase)))
+                    var timestamps = beatmap
+                        .HitObjects.Where(obj =>
+                            obj.GetUsedHitSoundFileNames()
+                                .Any(name =>
+                                    name.Equals(
+                                        fileNameWithoutExt,
+                                        StringComparison.OrdinalIgnoreCase
+                                    )
+                                )
+                        )
                         .Take(10)
                         .Select(obj => Timestamp.Get(obj.time))
                         .ToList();
 
-                    usage.UsagePerDifficulty.Add(new DifficultyHitSoundUsage
-                    {
-                        Version = beatmap.MetadataSettings.version,
-                        UsageCount = usedFiles.Count,
-                        Timestamps = timestamps
-                    });
+                    usage.UsagePerDifficulty.Add(
+                        new DifficultyHitSoundUsage
+                        {
+                            Version = beatmap.MetadataSettings.version,
+                            UsageCount = usedFiles.Count,
+                            Timestamps = timestamps,
+                        }
+                    );
                 }
             }
 
@@ -140,7 +149,8 @@ public static class MetadataAnalysisService
         {
             foreach (var bg in beatmap.Backgrounds)
             {
-                if (bg.path == null) continue;
+                if (bg.path == null)
+                    continue;
 
                 if (!backgrounds.TryGetValue(bg.path, out var bgInfo))
                 {
@@ -166,7 +176,10 @@ public static class MetadataAnalysisService
                                 throw new Exception("Unsupported file format for background");
                             }
                         }
-                        catch (Exception ex) { Log.Warning(ex, "Failed to get bg info for {File}", bg.path); }
+                        catch (Exception ex)
+                        {
+                            Log.Warning(ex, "Failed to get bg info for {File}", bg.path);
+                        }
                     }
                     backgrounds[bg.path] = bgInfo;
                 }
@@ -184,11 +197,17 @@ public static class MetadataAnalysisService
         {
             foreach (var video in beatmap.Videos)
             {
-                if (video.path == null) continue;
+                if (video.path == null)
+                    continue;
 
                 if (!videos.TryGetValue(video.path, out var videoInfo))
                 {
-                    videoInfo = new VideoInfo { FileName = video.path, OffsetMs = video.offset, UsedByDifficulties = [] };
+                    videoInfo = new VideoInfo
+                    {
+                        FileName = video.path,
+                        OffsetMs = video.offset,
+                        UsedByDifficulties = [],
+                    };
                     var fullPath = Path.Combine(beatmapSet.SongPath, video.path);
 
                     if (File.Exists(fullPath))
@@ -205,16 +224,22 @@ public static class MetadataAnalysisService
                                 videoInfo.Width = tagFile.Properties.VideoWidth;
                                 videoInfo.Height = tagFile.Properties.VideoHeight;
                                 videoInfo.Resolution = $"{videoInfo.Width} × {videoInfo.Height}";
-                                videoInfo.DurationMs = tagFile.Properties.Duration.TotalMilliseconds;
+                                videoInfo.DurationMs = tagFile
+                                    .Properties
+                                    .Duration
+                                    .TotalMilliseconds;
                             }
                             else
                             {
                                 throw new Exception("Unsupported file format for video");
                             }
-                            
+
                             videoInfo.DurationFormatted = Timestamp.Get(videoInfo.DurationMs);
                         }
-                        catch (Exception ex) { Log.Warning(ex, "Failed to get video info for {File}", video.path); }
+                        catch (Exception ex)
+                        {
+                            Log.Warning(ex, "Failed to get video info for {File}", video.path);
+                        }
                     }
                     videos[video.path] = videoInfo;
                 }
@@ -227,9 +252,15 @@ public static class MetadataAnalysisService
         {
             foreach (var video in beatmapSet.Osb.videos)
             {
-                if (video.path == null || videos.ContainsKey(video.path)) continue;
+                if (video.path == null || videos.ContainsKey(video.path))
+                    continue;
 
-                var videoInfo = new VideoInfo { FileName = video.path, OffsetMs = video.offset, UsedByDifficulties = ["(Storyboard)"] };
+                var videoInfo = new VideoInfo
+                {
+                    FileName = video.path,
+                    OffsetMs = video.offset,
+                    UsedByDifficulties = ["(Storyboard)"],
+                };
                 var fullPath = Path.Combine(beatmapSet.SongPath, video.path);
 
                 if (File.Exists(fullPath))
@@ -253,7 +284,10 @@ public static class MetadataAnalysisService
                         }
                         videoInfo.DurationFormatted = Timestamp.Get(videoInfo.DurationMs);
                     }
-                    catch (Exception ex) { Log.Warning(ex, "Failed to get video info for {File}", video.path); }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, "Failed to get video info for {File}", video.path);
+                    }
                 }
                 videos[video.path] = videoInfo;
             }
@@ -269,19 +303,21 @@ public static class MetadataAnalysisService
             HasOsb = beatmapSet.Osb != null,
             OsbFileName = beatmapSet.GetOsbFileName(),
             OsbIsUsed = beatmapSet.Osb?.IsUsed() ?? false,
-            DifficultySpecificStoryboards = []
+            DifficultySpecificStoryboards = [],
         };
 
         foreach (var beatmap in beatmapSet.Beatmaps)
         {
-            info.DifficultySpecificStoryboards.Add(new DifficultyStoryboardInfo
-            {
-                Version = beatmap.MetadataSettings.version,
-                HasStoryboard = beatmap.HasDifficultySpecificStoryboard(),
-                SpriteCount = beatmap.Sprites.Count,
-                AnimationCount = beatmap.Animations.Count,
-                SampleCount = beatmap.Samples.Count
-            });
+            info.DifficultySpecificStoryboards.Add(
+                new DifficultyStoryboardInfo
+                {
+                    Version = beatmap.MetadataSettings.version,
+                    HasStoryboard = beatmap.HasDifficultySpecificStoryboard(),
+                    SpriteCount = beatmap.Sprites.Count,
+                    AnimationCount = beatmap.Animations.Count,
+                    SampleCount = beatmap.Samples.Count,
+                }
+            );
         }
 
         return info;
@@ -290,7 +326,8 @@ public static class MetadataAnalysisService
     private static AudioFileInfo? GetAudioFileInfo(BeatmapSet beatmapSet)
     {
         var audioPath = beatmapSet.GetAudioFilePath();
-        if (audioPath == null || !File.Exists(audioPath)) return null;
+        if (audioPath == null || !File.Exists(audioPath))
+            return null;
 
         try
         {
@@ -303,7 +340,7 @@ public static class MetadataAnalysisService
                 DurationMs = AudioBASS.GetDuration(audioPath),
                 DurationFormatted = Timestamp.Get(AudioBASS.GetDuration(audioPath)),
                 Format = AudioBASS.EnumToString(AudioBASS.GetFormat(audioPath)),
-                AverageBitrate = Math.Round(AudioBASS.GetBitrate(audioPath))
+                AverageBitrate = Math.Round(AudioBASS.GetBitrate(audioPath)),
             };
         }
         catch (Exception ex)
@@ -315,42 +352,51 @@ public static class MetadataAnalysisService
 
     private static List<DifficultyColourSettings> GetColourSettings(BeatmapSet beatmapSet)
     {
-        return beatmapSet.Beatmaps.Select(beatmap =>
-        {
-            var mode = beatmap.GeneralSettings.mode;
-            var isApplicable = mode != Beatmap.Mode.Taiko && mode != Beatmap.Mode.Mania;
-
-            var settings = new DifficultyColourSettings
+        return beatmapSet
+            .Beatmaps.Select(beatmap =>
             {
-                Version = beatmap.MetadataSettings.version,
-                Mode = mode.ToString(),
-                IsApplicable = isApplicable,
-                ComboColours = [],
-                SliderBorder = null,
-                SliderTrack = null
-            };
+                var mode = beatmap.GeneralSettings.mode;
+                var isApplicable = mode != Beatmap.Mode.Taiko && mode != Beatmap.Mode.Mania;
 
-            if (!isApplicable) return settings;
+                var settings = new DifficultyColourSettings
+                {
+                    Version = beatmap.MetadataSettings.version,
+                    Mode = mode.ToString(),
+                    IsApplicable = isApplicable,
+                    ComboColours = [],
+                    SliderBorder = null,
+                    SliderTrack = null,
+                };
 
-            // Combo colours - account for that colour at index 0 is actually last displayed in-game
-            for (var i = 0; i < beatmap.ColourSettings.combos.Count; i++)
-            {
-                var displayIndex = i == 0 ? beatmap.ColourSettings.combos.Count : i;
-                var colour = beatmap.ColourSettings.combos[i];
-                settings.ComboColours.Add(CreateComboColourInfo(displayIndex, colour));
-            }
+                if (!isApplicable)
+                    return settings;
 
-            // Sort by display index
-            settings.ComboColours = settings.ComboColours.OrderBy(c => c.Index).ToList();
+                // Combo colours - account for that colour at index 0 is actually last displayed in-game
+                for (var i = 0; i < beatmap.ColourSettings.combos.Count; i++)
+                {
+                    var displayIndex = i == 0 ? beatmap.ColourSettings.combos.Count : i;
+                    var colour = beatmap.ColourSettings.combos[i];
+                    settings.ComboColours.Add(CreateComboColourInfo(displayIndex, colour));
+                }
 
-            if (beatmap.ColourSettings.sliderBorder.HasValue)
-                settings.SliderBorder = CreateColourInfo(beatmap.ColourSettings.sliderBorder.Value, false);
+                // Sort by display index
+                settings.ComboColours = settings.ComboColours.OrderBy(c => c.Index).ToList();
 
-            if (beatmap.ColourSettings.sliderTrackOverride.HasValue)
-                settings.SliderTrack = CreateColourInfo(beatmap.ColourSettings.sliderTrackOverride.Value, false);
+                if (beatmap.ColourSettings.sliderBorder.HasValue)
+                    settings.SliderBorder = CreateColourInfo(
+                        beatmap.ColourSettings.sliderBorder.Value,
+                        false
+                    );
 
-            return settings;
-        }).ToList();
+                if (beatmap.ColourSettings.sliderTrackOverride.HasValue)
+                    settings.SliderTrack = CreateColourInfo(
+                        beatmap.ColourSettings.sliderTrackOverride.Value,
+                        false
+                    );
+
+                return settings;
+            })
+            .ToList();
     }
 
     private static ComboColourInfo CreateComboColourInfo(int index, Vector3 colour)
@@ -364,7 +410,7 @@ public static class MetadataAnalysisService
             B = (int)colour.Z,
             Hex = $"#{(int)colour.X:X2}{(int)colour.Y:X2}{(int)colour.Z:X2}",
             HspLuminosity = luminosity,
-            LuminosityWarning = GetLuminosityWarning(luminosity, true)
+            LuminosityWarning = GetLuminosityWarning(luminosity, true),
         };
     }
 
@@ -378,12 +424,17 @@ public static class MetadataAnalysisService
             B = (int)colour.Z,
             Hex = $"#{(int)colour.X:X2}{(int)colour.Y:X2}{(int)colour.Z:X2}",
             HspLuminosity = luminosity,
-            LuminosityWarning = GetLuminosityWarning(luminosity, isCombo)
+            LuminosityWarning = GetLuminosityWarning(luminosity, isCombo),
         };
     }
 
     private static float GetHspLuminosity(Vector3 colour) =>
-        (float)Math.Sqrt(colour.X * colour.X * 0.299f + colour.Y * colour.Y * 0.587f + colour.Z * colour.Z * 0.114f);
+        (float)
+            Math.Sqrt(
+                colour.X * colour.X * 0.299f
+                    + colour.Y * colour.Y * 0.587f
+                    + colour.Z * colour.Z * 0.114f
+            );
 
     private static string GetLuminosityWarning(float luminosity, bool checkKiai)
     {
@@ -415,4 +466,3 @@ public static class MetadataAnalysisService
         return $"{bytes} B";
     }
 }
-

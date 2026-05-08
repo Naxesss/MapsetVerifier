@@ -41,8 +41,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
                         for the sake of consistency, we'll simply arbitrarily make 130 characters the limit.
                         ![](https://i.imgur.com/PO8eKvZ.png)
                         A file name longer than 130 characters, caused by a combination of a long title and a long difficulty name."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -50,13 +50,26 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
             {
                 {
                     "Wrong Format",
-                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" should be named \"{1}\" to receive updates.", "file name", "artist - title (creator) [version].osu").WithCause("A .osu file is not named after the mentioned format using its respective properties.")
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "\"{0}\" should be named \"{1}\" to receive updates.",
+                        "file name",
+                        "artist - title (creator) [version].osu"
+                    ).WithCause(
+                        "A .osu file is not named after the mentioned format using its respective properties."
+                    )
                 },
-
                 {
                     "Too Long Name",
-                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" has a file name longer than 130 characters ({1}), which causes the .osz to fail " + "to unzip for some users. Consider truncating the artist, title, and/or difficulty name fields " + "where it makes sense to do so.", "path", "length").WithCause("A .osu file has a file name longer than 130 characters.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "\"{0}\" has a file name longer than 130 characters ({1}), which causes the .osz to fail "
+                            + "to unzip for some users. Consider truncating the artist, title, and/or difficulty name fields "
+                            + "where it makes sense to do so.",
+                        "path",
+                        "length"
+                    ).WithCause("A .osu file has a file name longer than 130 characters.")
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
@@ -67,15 +80,27 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
                 var fileName = filePath.Split(new[] { '/', '\\' }).Last();
 
                 if (fileName.Length > 130)
-                    yield return new Issue(GetTemplate("Too Long Name"), null!, filePath, fileName.Length);
+                    yield return new Issue(
+                        GetTemplate("Too Long Name"),
+                        null!,
+                        filePath,
+                        fileName.Length
+                    );
 
                 if (!fileName.EndsWith(".osu"))
                     continue;
 
-                var beatmap = beatmapSet.Beatmaps.First(otherBeatmap => otherBeatmap.MapPath == filePath);
+                var beatmap = beatmapSet.Beatmaps.First(otherBeatmap =>
+                    otherBeatmap.MapPath == filePath
+                );
 
                 if (beatmap.GetOsuFileName().ToLower() != fileName.ToLower())
-                    yield return new Issue(GetTemplate("Wrong Format"), null!, fileName, beatmap.GetOsuFileName());
+                    yield return new Issue(
+                        GetTemplate("Wrong Format"),
+                        null!,
+                        fileName,
+                        beatmap.GetOsuFileName()
+                    );
             }
         }
     }

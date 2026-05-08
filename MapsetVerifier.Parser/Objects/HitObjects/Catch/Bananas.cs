@@ -7,5 +7,6 @@ public class Bananas(string[] args, Beatmap beatmap) : Spinner(args, beatmap), I
     public float DistanceToHyper { get; set; } = float.PositiveInfinity;
     public CatchMovementType MovementType { get; set; }
     public CatchNoteDirection NoteDirection { get; set; }
+
     public string GetNoteTypeName() => "Spinner";
 }

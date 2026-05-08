@@ -4,7 +4,6 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
-
 using static MapsetVerifier.Checks.Utils.GeneralUtils;
 
 namespace MapsetVerifier.Checks.Taiko.Timing
@@ -34,8 +33,8 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         "Reasoning",
                         @"
                     Double barlines are caused by rounding errors. They are visually disruptive and confusing in the representation of a song's downbeat."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -67,19 +66,15 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         Issue.Level.Warning,
                         "{0} Potential double barline due to rounding error, doublecheck manually",
                         "timestamp -"
-                    ).WithCause(
-                        "Rounding error"
-                    )
-                }
+                    ).WithCause("Rounding error")
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
         {
             const double threshold = 50;
 
-            var redLines = beatmap.TimingLines
-                .OfType<UninheritedLine>()
-                .ToList();
+            var redLines = beatmap.TimingLines.OfType<UninheritedLine>().ToList();
 
             for (int i = 0; i < redLines.Count; i++)
             {

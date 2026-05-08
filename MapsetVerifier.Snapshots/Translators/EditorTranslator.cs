@@ -7,16 +7,20 @@ namespace MapsetVerifier.Snapshots.Translators
     {
         public override string Section => "Editor";
 
-        public override IEnumerable<DiffInstance> Translate(IEnumerable<DiffInstance> diffs, Beatmap beatmap)
+        public override IEnumerable<DiffInstance> Translate(
+            IEnumerable<DiffInstance> diffs,
+            Beatmap beatmap
+        )
         {
             foreach (var diff in Snapshotter.TranslateSettings(Section, diffs, TranslateKey))
                 yield return diff;
         }
 
         private static string TranslateKey(string key) =>
-            key == "DistanceSpacing" ? "Distance spacing" :
-            key == "BeatDivisor" ? "Beat snap divisor" :
-            key == "GridSize" ? "Grid size" :
-            key == "TimelineZoom" ? "Timeline zoom" : key;
+            key == "DistanceSpacing" ? "Distance spacing"
+            : key == "BeatDivisor" ? "Beat snap divisor"
+            : key == "GridSize" ? "Grid size"
+            : key == "TimelineZoom" ? "Timeline zoom"
+            : key;
     }
 }

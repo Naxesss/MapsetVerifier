@@ -27,8 +27,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                         @"
                         Unlike background images, storyboard images can be used to pan, zoom, scroll, rotate, etc, so they have more lenient 
                         limits in terms of resolution, but otherwise follow the same reasoning."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -36,84 +36,160 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
             {
                 {
                     "Resolution",
-                    new IssueTemplate(Issue.Level.Problem, "\"{0}\"", "file name")
-                        .WithCause("A storyboard image has a width height product exceeding 17,000,000 pixels.")
+                    new IssueTemplate(Issue.Level.Problem, "\"{0}\"", "file name").WithCause(
+                        "A storyboard image has a width height product exceeding 17,000,000 pixels."
+                    )
                 },
-
                 {
                     "Resolution Animation Frame",
-                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" (Animation Frame)", "file name")
-                        .WithCause("Same as the regular storyboard image check, except on one used in an animation.")
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "\"{0}\" (Animation Frame)",
+                        "file name"
+                    ).WithCause(
+                        "Same as the regular storyboard image check, except on one used in an animation."
+                    )
                 },
-
                 // parsing results
                 {
                     "Leaves Folder",
-                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" leaves the current song folder, which shouldn't ever happen.", "file name")
-                        .WithCause("The file path of a storyboard image starts with two dots.")
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "\"{0}\" leaves the current song folder, which shouldn't ever happen.",
+                        "file name"
+                    ).WithCause("The file path of a storyboard image starts with two dots.")
                 },
-
                 {
                     "Missing",
-                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" is missing" + Common.CHECK_MANUALLY_MESSAGE, "file name")
-                        .WithCause("A storyboard image referenced is not present.")
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "\"{0}\" is missing" + Common.CHECK_MANUALLY_MESSAGE,
+                        "file name"
+                    ).WithCause("A storyboard image referenced is not present.")
                 },
-
                 {
                     "Exception",
-                    new IssueTemplate(Issue.Level.Error, Common.FILE_EXCEPTION_MESSAGE, "file name")
-                        .WithCause("An exception occurred trying to parse a storyboard image.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Error,
+                        Common.FILE_EXCEPTION_MESSAGE,
+                        "file name"
+                    ).WithCause("An exception occurred trying to parse a storyboard image.")
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
             // .osu
-            foreach (var issue in Common.GetTagOsuIssues(beatmapSet, GetTemplate, beatmap => beatmap.Sprites.Count > 0 ? beatmap.Sprites.Select(sprite => sprite.path) : [], tagFile =>
-                     {
-                         // Executes for each non-faulty sprite file used in one of the beatmaps in the set.
-                         var issues = new List<Issue>();
+            foreach (
+                var issue in Common.GetTagOsuIssues(
+                    beatmapSet,
+                    GetTemplate,
+                    beatmap =>
+                        beatmap.Sprites.Count > 0
+                            ? beatmap.Sprites.Select(sprite => sprite.path)
+                            : [],
+                    tagFile =>
+                    {
+                        // Executes for each non-faulty sprite file used in one of the beatmaps in the set.
+                        var issues = new List<Issue>();
 
-                         if (tagFile.file.Properties.PhotoWidth * tagFile.file.Properties.PhotoHeight > 17000000)
-                             issues.Add(new Issue(GetTemplate("Resolution"), null, tagFile.templateArgs[0]));
+                        if (
+                            tagFile.file.Properties.PhotoWidth * tagFile.file.Properties.PhotoHeight
+                            > 17000000
+                        )
+                            issues.Add(
+                                new Issue(GetTemplate("Resolution"), null, tagFile.templateArgs[0])
+                            );
 
-                         return issues;
-                     }))
+                        return issues;
+                    }
+                )
+            )
                 // Returns issues from both non-faulty and faulty files.
                 yield return issue;
 
-            foreach (var issue in Common.GetTagOsuIssues(beatmapSet, GetTemplate, beatmap => beatmap.Animations.Count > 0 ? beatmap.Animations.SelectMany(animation => animation.framePaths) : [], tagFile =>
-                     {
-                         var issues = new List<Issue>();
+            foreach (
+                var issue in Common.GetTagOsuIssues(
+                    beatmapSet,
+                    GetTemplate,
+                    beatmap =>
+                        beatmap.Animations.Count > 0
+                            ? beatmap.Animations.SelectMany(animation => animation.framePaths)
+                            : [],
+                    tagFile =>
+                    {
+                        var issues = new List<Issue>();
 
-                         if (tagFile.file.Properties.PhotoWidth * tagFile.file.Properties.PhotoHeight > 17000000)
-                             issues.Add(new Issue(GetTemplate("Resolution Animation Frame"), null, tagFile.templateArgs[0]));
+                        if (
+                            tagFile.file.Properties.PhotoWidth * tagFile.file.Properties.PhotoHeight
+                            > 17000000
+                        )
+                            issues.Add(
+                                new Issue(
+                                    GetTemplate("Resolution Animation Frame"),
+                                    null,
+                                    tagFile.templateArgs[0]
+                                )
+                            );
 
-                         return issues;
-                     }))
+                        return issues;
+                    }
+                )
+            )
                 yield return issue;
 
             // .osb
-            foreach (var issue in Common.GetTagOsbIssues(beatmapSet, osb => osb.sprites.Count > 0 ? osb.sprites.Select(sprite => sprite.path) : [], GetTemplate, tagFile =>
-                     {
-                         var issues = new List<Issue>();
+            foreach (
+                var issue in Common.GetTagOsbIssues(
+                    beatmapSet,
+                    osb => osb.sprites.Count > 0 ? osb.sprites.Select(sprite => sprite.path) : [],
+                    GetTemplate,
+                    tagFile =>
+                    {
+                        var issues = new List<Issue>();
 
-                         if (tagFile.file.Properties.PhotoWidth * tagFile.file.Properties.PhotoHeight > 17000000)
-                             issues.Add(new Issue(GetTemplate("Resolution"), null, tagFile.templateArgs[0]));
+                        if (
+                            tagFile.file.Properties.PhotoWidth * tagFile.file.Properties.PhotoHeight
+                            > 17000000
+                        )
+                            issues.Add(
+                                new Issue(GetTemplate("Resolution"), null, tagFile.templateArgs[0])
+                            );
 
-                         return issues;
-                     }))
+                        return issues;
+                    }
+                )
+            )
                 yield return issue;
 
-            foreach (var issue in Common.GetTagOsbIssues(beatmapSet, osb => osb.animations.Count > 0 ? osb.animations.SelectMany(animation => animation.framePaths) : [], GetTemplate, tagFile =>
-                     {
-                         var issues = new List<Issue>();
+            foreach (
+                var issue in Common.GetTagOsbIssues(
+                    beatmapSet,
+                    osb =>
+                        osb.animations.Count > 0
+                            ? osb.animations.SelectMany(animation => animation.framePaths)
+                            : [],
+                    GetTemplate,
+                    tagFile =>
+                    {
+                        var issues = new List<Issue>();
 
-                         if (tagFile.file.Properties.PhotoWidth * tagFile.file.Properties.PhotoHeight > 17000000)
-                             issues.Add(new Issue(GetTemplate("Resolution Animation Frame"), null, tagFile.templateArgs[0]));
+                        if (
+                            tagFile.file.Properties.PhotoWidth * tagFile.file.Properties.PhotoHeight
+                            > 17000000
+                        )
+                            issues.Add(
+                                new Issue(
+                                    GetTemplate("Resolution Animation Frame"),
+                                    null,
+                                    tagFile.templateArgs[0]
+                                )
+                            );
 
-                         return issues;
-                     }))
+                        return issues;
+                    }
+                )
+            )
                 yield return issue;
         }
     }

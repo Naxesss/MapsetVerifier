@@ -14,7 +14,8 @@ public class BeatmapController : ControllerBase
         [FromQuery] string? songsFolder,
         [FromQuery] string? search,
         [FromQuery] int page = 0,
-        [FromQuery] int pageSize = 16)
+        [FromQuery] int pageSize = 16
+    )
     {
         if (string.IsNullOrWhiteSpace(songsFolder))
         {
@@ -23,9 +24,12 @@ public class BeatmapController : ControllerBase
         if (string.IsNullOrWhiteSpace(songsFolder))
             return NotFound(new ApiError("Songs folder could not be detected.", null));
 
-        if (page < 0) page = 0;
-        if (pageSize <= 0) pageSize = 16;
-        if (pageSize > 100) pageSize = 100; // safety cap
+        if (page < 0)
+            page = 0;
+        if (pageSize <= 0)
+            pageSize = 16;
+        if (pageSize > 100)
+            pageSize = 100; // safety cap
 
         var pageResult = BeatmapService.GetBeatmaps(songsFolder, search, page, pageSize);
 
@@ -35,7 +39,14 @@ public class BeatmapController : ControllerBase
 
         // No items: only 404 when first page and no more folders.
         if (page == 0 && !pageResult.HasMore)
-            return NotFound(new ApiError(search != null ? "The search yielded no results." : "No mapsets could be found in the Songs folder.", null));
+            return NotFound(
+                new ApiError(
+                    search != null
+                        ? "The search yielded no results."
+                        : "No mapsets could be found in the Songs folder.",
+                    null
+                )
+            );
 
         // Empty page beyond available results (or intermediate) -> still 200 with empty payload.
         return Ok(pageResult);
@@ -58,7 +69,9 @@ public class BeatmapController : ControllerBase
     }
 
     [HttpGet("stable/current")]
-    public ActionResult<ApiLazerLookupResult> GetCurrentStableBeatmap([FromQuery] string? songsFolder = null)
+    public ActionResult<ApiLazerLookupResult> GetCurrentStableBeatmap(
+        [FromQuery] string? songsFolder = null
+    )
     {
         var result = BeatmapService.GetCurrentStableBeatmap(songsFolder);
         return Ok(result);
@@ -68,7 +81,8 @@ public class BeatmapController : ControllerBase
     public ActionResult GetBeatmapImage(
         [FromQuery] string folder,
         [FromQuery] bool original = false,
-        [FromQuery] string? songsFolder = null)
+        [FromQuery] string? songsFolder = null
+    )
     {
         var result = BeatmapService.GetBeatmapImage(folder, original, songsFolder);
         if (!result.Success)
@@ -106,12 +120,17 @@ public class BeatmapController : ControllerBase
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to get beatmap info for {Folder}", request.Folder);
-            return StatusCode(500, ApiErrorFactory.FromException(ex, "An error occurred while getting beatmap info."));
+            return StatusCode(
+                500,
+                ApiErrorFactory.FromException(ex, "An error occurred while getting beatmap info.")
+            );
         }
     }
-    
+
     [HttpPost("runChecks")]
-    public ActionResult<ApiBeatmapSetCheckResult> RunBeatmapSetChecks([FromBody] RunChecksRequest request)
+    public ActionResult<ApiBeatmapSetCheckResult> RunBeatmapSetChecks(
+        [FromBody] RunChecksRequest request
+    )
     {
         try
         {
@@ -121,28 +140,45 @@ public class BeatmapController : ControllerBase
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to run beatmap checks for {Folder}", request.Folder);
-            return StatusCode(500, ApiErrorFactory.FromException(ex, "An error occurred while running beatmap checks."));
+            return StatusCode(
+                500,
+                ApiErrorFactory.FromException(ex, "An error occurred while running beatmap checks.")
+            );
         }
     }
 
     [HttpPost("runCheck/override")]
-    public ActionResult<ApiCategoryOverrideCheckResult> RunCheckWithOverride([FromBody] RunCheckOverrideRequest request)
+    public ActionResult<ApiCategoryOverrideCheckResult> RunCheckWithOverride(
+        [FromBody] RunCheckOverrideRequest request
+    )
     {
         try
         {
             var result = BeatmapService.RunDifficultyCheckWithOverride(
                 request.Folder,
                 request.DifficultyName,
-                request.OverrideDifficulty);
+                request.OverrideDifficulty
+            );
 
             if (result == null)
-                return NotFound(new ApiError($"Difficulty '{request.DifficultyName}' not found in beatmap set.", null));
+                return NotFound(
+                    new ApiError(
+                        $"Difficulty '{request.DifficultyName}' not found in beatmap set.",
+                        null
+                    )
+                );
 
             return Ok(result);
         }
         catch (Exception ex)
         {
-            return StatusCode(500, ApiErrorFactory.FromException(ex, "An error occurred while running beatmap check with override."));
+            return StatusCode(
+                500,
+                ApiErrorFactory.FromException(
+                    ex,
+                    "An error occurred while running beatmap check with override."
+                )
+            );
         }
     }
 }

@@ -15,7 +15,7 @@ public class ApiExceptionFilter : IExceptionFilter
 
         context.Result = new JsonResult(apiError)
         {
-            StatusCode = StatusCodes.Status500InternalServerError
+            StatusCode = StatusCodes.Status500InternalServerError,
         };
 
         context.ExceptionHandled = true;
