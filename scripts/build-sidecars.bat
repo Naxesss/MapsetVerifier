@@ -43,7 +43,7 @@ mkdir "%STAGING_DIR%" 2>nul
 
 set "ERROR_COUNT=0"
 
-for %%R in (%RUNTIME_LIST%) do (
+for %%I in (%RUNTIME_LIST%) do (
     set "RID=%%I"
     if /I "%%I"=="mac-x64"       set "RID=osx-x64"
     if /I "%%I"=="mac-arm64"     set "RID=osx-arm64"
