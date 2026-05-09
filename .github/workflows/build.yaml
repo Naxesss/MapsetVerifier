@@ -88,13 +88,13 @@ jobs:
         if: matrix.runner != 'windows-latest'
         shell: bash
         run: |
-          chmod +x build-sidecars.sh
-          RUNTIMES="${{ matrix.sidecar_runtime }}" ./build-sidecars.sh
+          chmod +x scripts/build-sidecars.sh
+          RUNTIMES="${{ matrix.sidecar_runtime }}" ./scripts/build-sidecars.sh
 
       - name: Build sidecar (Windows)
         if: matrix.runner == 'windows-latest'
         shell: cmd
-        run: build-sidecars.bat ${{ matrix.sidecar_runtime }}
+        run: scripts/build-sidecars.bat ${{ matrix.sidecar_runtime }}
 
       - name: Install root dependencies
         run: npm ci
