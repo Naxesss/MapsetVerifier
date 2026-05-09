@@ -3,10 +3,11 @@ set -euo pipefail
 
 echo "[INFO] Starting sidecar build script..."
 
+PROJECT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/.."
 APP_NAME="MapsetVerifier"
-PROJECT_PATH="src/MapsetVerifier.csproj"
-DIST_DIR="bin/server/dist"
-STAGING_DIR="bin/server/staging"
+PROJECT_PATH="$PROJECT_ROOT/src/MapsetVerifier.csproj"
+DIST_DIR="$PROJECT_ROOT/bin/server/dist"
+STAGING_DIR="$PROJECT_ROOT/bin/server/staging"
 PUBLISH_CONFIGURATION="${CONFIGURATION:-Release}"
 ERROR_COUNT=0
 
@@ -19,6 +20,14 @@ get_dir_name() {
         linux-x64)   echo "linux-x64" ;;
         linux-arm64) echo "linux-arm64" ;;
         *)           echo "" ;;
+    esac
+}
+
+normalize_rid() {
+    case "$1" in
+        mac-x64)   echo "osx-x64" ;;
+	mac-arm64) echo "osx-arm64" ;;
+	*)         echo "$1" ;;
     esac
 }
 
@@ -46,7 +55,8 @@ command -v dotnet >/dev/null 2>&1 || {
 rm -rf "${DIST_DIR}" "${STAGING_DIR}"
 mkdir -p "${DIST_DIR}" "${STAGING_DIR}"
 
-for RID in "${RUNTIME_LIST[@]}"; do
+for INPUT_RID in "${RUNTIME_LIST[@]}"; do
+    RID=$(normalize_rid "${INPUT_RID}")
     echo "[INFO] --- Begin runtime ${RID} ---"
 
     OUT_DIR_NAME=$(get_dir_name "${RID}")

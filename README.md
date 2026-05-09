@@ -26,6 +26,46 @@ See [the latest release](https://github.com/Naxesss/MapsetVerifier/releases/late
 | 1.6.6   | 2020-08-04    | [![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.6.6/mapsetverifier-setup-1.6.6.exe.svg)](https://github.com/Naxesss/MapsetVerifier/releases/download/v1.6.6/mapsetverifier-setup-1.6.6.exe) | [![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.6.6/mapsetverifier-1.6.6.tar.gz.svg)](https://github.com/Naxesss/MapsetVerifier/releases/download/v1.6.6/mapsetverifier-1.6.6.tar.gz) |
 | 1.6.5   | 2020-07-03    | [![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.6.5/mapsetverifier-setup-1.6.5.exe.svg)](https://github.com/Naxesss/MapsetVerifier/releases/download/v1.6.5/mapsetverifier-setup-1.6.5.exe) | [![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.6.5/mapsetverifier-1.6.5.tar.gz.svg)](https://github.com/Naxesss/MapsetVerifier/releases/download/v1.6.5/mapsetverifier-1.6.5.tar.gz) |
 
+## Building
+### Dependencies
+You will need:
+- .NET SDK 9
+- Node.js
+
+### Building locally
+#### Windows
+Run:
+```bat
+start.bat
+```
+
+#### Linux and macOS
+Run:
+```sh
+chmod +x start.sh
+./start.sh
+```
+
+### Building the backend for other systems
+Run: 
+```bat
+scripts\build-sidecars.bat <runtimes>
+```
+or:
+```sh
+scripts/build-sidecars.sh <runtimes>
+```
+depending on your system.
+
+Available Runtimes:
+
+- win-x64
+- win-arm64
+- mac-x64
+- mac-arm64
+- linux-x64
+- linux-arm64
+
 ## Common Problems
 
 - **Windows protected pc**
