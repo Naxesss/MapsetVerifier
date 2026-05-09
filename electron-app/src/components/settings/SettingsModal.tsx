@@ -30,7 +30,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
   const [showGamemodeDifficultyNames, setShowGamemodeDifficultyNames] = useState(
     settings.showGamemodeDifficultyNames
   );
-  const [showSnapshotDiffView, setShowSnapshotDiffView] = useState(settings.showSnapshotDiffView);
   const [showAdvancedAudioAnalysis, setShowAdvancedAudioAnalysis] = useState(
     settings.showAdvancedAudioAnalysis
   );
@@ -45,7 +44,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
       setSongFolder(settings.songFolder ?? '');
       setShowMinor(settings.showMinor);
       setShowGamemodeDifficultyNames(settings.showGamemodeDifficultyNames);
-      setShowSnapshotDiffView(settings.showSnapshotDiffView);
       setShowAdvancedAudioAnalysis(settings.showAdvancedAudioAnalysis);
       setLazerLookupEnabled(settings.lazerLookupEnabled);
       setGateInDev(settings.gateInDev);
@@ -55,7 +53,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
     settings.songFolder,
     settings.showMinor,
     settings.showGamemodeDifficultyNames,
-    settings.showSnapshotDiffView,
     settings.showAdvancedAudioAnalysis,
     settings.lazerLookupEnabled,
     settings.gateInDev,
@@ -121,15 +118,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
               const checked = e.currentTarget.checked;
               setShowGamemodeDifficultyNames(checked);
               setSettings((prev) => ({ ...prev, showGamemodeDifficultyNames: checked }));
-            }}
-          />
-          <Switch
-            label="Show additional info in snapshot comparison"
-            checked={showSnapshotDiffView}
-            onChange={(e) => {
-              const checked = e.currentTarget.checked;
-              setShowSnapshotDiffView(checked);
-              setSettings((prev) => ({ ...prev, showSnapshotDiffView: checked }));
             }}
           />
           <Switch

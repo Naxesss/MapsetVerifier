@@ -6,7 +6,6 @@ export type Settings = {
   songFolder?: string;
   showMinor: boolean;
   showGamemodeDifficultyNames: boolean;
-  showSnapshotDiffView: boolean;
   showAdvancedAudioAnalysis: boolean;
   lazerLookupEnabled: boolean;
   // DEV-only: whether to gate Backend in development mode
@@ -24,7 +23,6 @@ const defaultSettings: Settings = {
   songFolder: undefined,
   showMinor: false,
   showGamemodeDifficultyNames: true,
-  showSnapshotDiffView: false,
   showAdvancedAudioAnalysis: false,
   lazerLookupEnabled: false,
   gateInDev: false,

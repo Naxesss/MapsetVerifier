@@ -34,7 +34,6 @@ function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: Beat
     };
 
     img.onerror = () => {
-      console.error('Could not load image: ' + candidate);
       if (!cancelled) setBgUrl(undefined);
     };
 

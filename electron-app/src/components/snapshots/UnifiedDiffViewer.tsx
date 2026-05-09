@@ -2,11 +2,9 @@
   Accordion,
   Badge,
   Box,
-  Collapse,
   Group,
   Stack,
   Text,
-  Code,
   Tooltip,
   useMantineTheme,
 } from '@mantine/core';
@@ -18,7 +16,6 @@ import {
   IconInfoCircle,
 } from '@tabler/icons-react';
 import { MouseEvent, useEffect, useState } from 'react';
-import { useSettings } from '../../context/SettingsContext.tsx';
 import { ApiSnapshotCommit, ApiSnapshotSection, ApiSnapshotDiff, DiffType } from '../../Types';
 import OsuLink from '../common/OsuLink.tsx';
 
@@ -79,7 +76,6 @@ function getDiffTypeIcon(diffType: DiffType, size: number = 16) {
 
 function DiffLine({ diff }: { diff: ApiSnapshotDiff }) {
   const theme = useMantineTheme();
-  const { settings } = useSettings();
 
   return (
     <Box
@@ -98,73 +94,6 @@ function DiffLine({ diff }: { diff: ApiSnapshotDiff }) {
           </Text>
         </Group>
 
-        {settings.showSnapshotDiffView && (
-          <>
-            {/* Show unified diff format for changes */}
-            {diff.diffType === 'Changed' && (diff.oldValue || diff.newValue) && (
-              <Stack gap={2} pl="md">
-                {diff.oldValue && (
-                  <Code
-                    block
-                    style={{
-                      backgroundColor: 'rgba(250, 82, 82, 0.15)',
-                      borderLeft: `3px solid ${theme.colors.red[6]}`,
-                      color: theme.colors.red[4],
-                    }}
-                  >
-                    - <OsuLink text={diff.oldValue} />
-                  </Code>
-                )}
-                {diff.newValue && (
-                  <Code
-                    block
-                    style={{
-                      backgroundColor: 'rgba(64, 192, 87, 0.15)',
-                      borderLeft: `3px solid ${theme.colors.green[6]}`,
-                      color: theme.colors.green[4],
-                    }}
-                  >
-                    + <OsuLink text={diff.newValue} />
-                  </Code>
-                )}
-              </Stack>
-            )}
-
-            {/* Show value for added items */}
-            {diff.diffType === 'Added' && diff.newValue && (
-              <Box pl="md">
-                <Code
-                  block
-                  style={{
-                    backgroundColor: 'rgba(64, 192, 87, 0.15)',
-                    borderLeft: `3px solid ${theme.colors.green[6]}`,
-                    color: theme.colors.green[4],
-                  }}
-                >
-                  + <OsuLink text={diff.newValue} />
-                </Code>
-              </Box>
-            )}
-
-            {/* Show value for removed items */}
-            {diff.diffType === 'Removed' && diff.oldValue && (
-              <Box pl="md">
-                <Code
-                  block
-                  style={{
-                    backgroundColor: 'rgba(250, 82, 82, 0.15)',
-                    borderLeft: `3px solid ${theme.colors.red[6]}`,
-                    color: theme.colors.red[4],
-                  }}
-                >
-                  - <OsuLink text={diff.oldValue} />
-                </Code>
-              </Box>
-            )}
-          </>
-        )}
-
-        {/* Show details if available */}
         {diff.details.length > 0 && (
           <Stack gap={2} pl="md">
             {diff.details.map((detail, index) => (
@@ -179,7 +108,7 @@ function DiffLine({ diff }: { diff: ApiSnapshotDiff }) {
   );
 }
 
-function SectionAccordion({ section }: { section: ApiSnapshotSection }) {
+function SectionAccordion({ key, section }: { key: string, section: ApiSnapshotSection }) {
   const [activeDiffFilter, setActiveDiffFilter] = useState<DiffType | null>(null);
   const sortedDiffs = sortDiffsChronologically(section.diffs);
 
@@ -201,10 +130,6 @@ function SectionAccordion({ section }: { section: ApiSnapshotSection }) {
         color={color}
         variant={isActive ? 'filled' : 'light'}
         style={{ cursor: 'pointer', userSelect: 'none' }}
-        onMouseDown={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
-        }}
         onClick={(event) => handleBadgeClick(event, diffType)}
       >
         <Group gap={4} wrap="nowrap">
@@ -229,14 +154,6 @@ function SectionAccordion({ section }: { section: ApiSnapshotSection }) {
             <Box
               component="span"
               style={{ display: 'inline-flex', alignItems: 'center', cursor: 'help' }}
-              onMouseDown={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-              }}
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-              }}
             >
               <IconInfoCircle size={16} color="var(--mantine-color-gray-6)" />
             </Box>
@@ -246,14 +163,9 @@ function SectionAccordion({ section }: { section: ApiSnapshotSection }) {
       <Accordion.Panel>
         <Stack gap="xs">
           {sortedDiffs.map((diff, index) => (
-            <Collapse
-              key={`${diff.message}-${index}`}
-              in={activeDiffFilter === null || diff.diffType === activeDiffFilter}
-              transitionDuration={180}
-              transitionTimingFunction="ease"
-            >
-              <DiffLine diff={diff} />
-            </Collapse>
+            (activeDiffFilter === null || diff.diffType === activeDiffFilter) && (
+              <DiffLine key={`snapshot-${key}-${section.name}-${index}`} diff={diff} />
+            )
           ))}
         </Stack>
       </Accordion.Panel>
