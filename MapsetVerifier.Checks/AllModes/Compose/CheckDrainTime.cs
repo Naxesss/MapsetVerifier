@@ -9,6 +9,8 @@ namespace MapsetVerifier.Checks.AllModes.Compose
     [Check]
     public class CheckDrainTime : BeatmapCheck
     {
+        private const double ThirtySecondsMs = 30_000;
+        
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
@@ -42,7 +44,7 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                     "Problem",
                     new IssueTemplate(
                         Issue.Level.Problem,
-                        "Less than 30 seconds of drain time, currently {0}.",
+                        "Less than 30 seconds of drain time, currently {0} seconds.",
                         "drain time"
                     ).WithCause(
                         "The time from the first object to the end of the last object, subtracting any time between two objects where a break exists, is in total less than 30 seconds."
@@ -54,10 +56,12 @@ namespace MapsetVerifier.Checks.AllModes.Compose
         {
             var drainTime = beatmap.GetDrainTime(beatmap.GeneralSettings.mode);
 
-            if (drainTime >= 30 * 1000)
+            if (drainTime >= ThirtySecondsMs)
                 yield break;
 
-            yield return new Issue(GetTemplate("Problem"), beatmap, Timestamp.Get(drainTime));
+            var drainTimeSeconds = (int) TimeSpan.FromMilliseconds(drainTime).TotalSeconds;
+            
+            yield return new Issue(GetTemplate("Problem"), beatmap, drainTimeSeconds);
         }
     }
 }
