@@ -45,18 +45,18 @@ set "ERROR_COUNT=0"
 
 for %%R in (%RUNTIME_LIST%) do (
     set "RID=%%I"
-    if /I "%%I"=="mac-x64"     set "RID=osx-x64"
-    if /I "%%I"=="mac-arm64"   set "RID=osx-arm64"
+    if /I "%%I"=="mac-x64"       set "RID=osx-x64"
+    if /I "%%I"=="mac-arm64"     set "RID=osx-arm64"
     
     echo [INFO] --- Begin runtime !RID! ---
 
     set OUT_DIR_NAME=
-    if /I "%%R"=="win-x64"     set "OUT_DIR_NAME=win-x64"
-    if /I "%%R"=="win-arm64"   set "OUT_DIR_NAME=win-arm64"
-    if /I "%%R"=="osx-x64"     set "OUT_DIR_NAME=mac-x64"
-    if /I "%%R"=="osx-arm64"   set "OUT_DIR_NAME=mac-arm64"
-    if /I "%%R"=="linux-x64"   set "OUT_DIR_NAME=linux-x64"
-    if /I "%%R"=="linux-arm64" set "OUT_DIR_NAME=linux-arm64"
+    if /I "!RID!"=="win-x64"     set "OUT_DIR_NAME=win-x64"
+    if /I "!RID!"=="win-arm64"   set "OUT_DIR_NAME=win-arm64"
+    if /I "!RID!"=="osx-x64"     set "OUT_DIR_NAME=mac-x64"
+    if /I "!RID!"=="osx-arm64"   set "OUT_DIR_NAME=mac-arm64"
+    if /I "!RID!"=="linux-x64"   set "OUT_DIR_NAME=linux-x64"
+    if /I "!RID!"=="linux-arm64" set "OUT_DIR_NAME=linux-arm64"
 
     if "!OUT_DIR_NAME!"=="" (
         echo [WARN] Skip unknown RID !RID!
