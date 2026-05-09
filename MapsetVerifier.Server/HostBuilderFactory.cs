@@ -1,4 +1,5 @@
-﻿using MapsetVerifier.Server.Filter;
+﻿using System.Diagnostics;
+using MapsetVerifier.Server.Filter;
 using MapsetVerifier.Server.Middleware;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -14,13 +15,23 @@ public static class HostBuilderFactory
     {
         try
         {
-            Log.Information("Building host...");
+            Log.Information("Host build initiated. Args: {Args}", args);
+
             var host = Host.CreateDefaultBuilder(args)
-                .UseSerilog(Log.Logger)
+                .UseSerilog(
+                    (ctx, lc) =>
+                    {
+                        lc.ReadFrom.Configuration(ctx.Configuration);
+                    }
+                )
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    Log.Information("Configuring WebHost...");
+
                     webBuilder.ConfigureServices(services =>
                     {
+                        Log.Information("Registering services...");
+
                         services
                             .AddControllers(options =>
                             {
@@ -32,7 +43,12 @@ public static class HostBuilderFactory
                                     new System.Text.Json.Serialization.JsonStringEnumConverter()
                                 );
                             });
+
+                        Log.Information("Controllers configured");
+
                         services.AddSwaggerGen();
+                        Log.Information("Swagger registered");
+
                         services.AddCors(options =>
                         {
                             options.AddDefaultPolicy(builder =>
@@ -40,13 +56,17 @@ public static class HostBuilderFactory
                                 builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
                             });
                         });
+
+                        Log.Information("CORS policy registered");
                     });
 
                     webBuilder.Configure(app =>
                     {
                         app.UseRequestResponseLogging();
+                        Log.Information("Request/Response logging middleware enabled");
 
                         app.UseCors();
+                        Log.Information("CORS middleware enabled");
 
                         app.UseSwagger();
                         app.UseSwaggerUI(c =>
@@ -54,31 +74,42 @@ public static class HostBuilderFactory
                             c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
                         });
 
+                        Log.Information("Swagger middleware enabled");
+
                         app.UseRouting();
 
                         app.UseEndpoints(endpoints =>
                         {
                             endpoints.MapControllers();
+                            Log.Information("Controllers mapped");
                         });
+
+                        Log.Information("Middleware pipeline configured");
                     });
                 })
                 .Build();
 
-            // Register application lifetime logging to know when host actually starts and stops.
+            Log.Information("Host built");
+
             var lifetime = host.Services.GetService<IHostApplicationLifetime>();
             if (lifetime != null)
             {
-                lifetime.ApplicationStarted.Register(() => Log.Information("Host started"));
-                lifetime.ApplicationStopping.Register(() => Log.Information("Host stopping..."));
-                lifetime.ApplicationStopped.Register(() => Log.Information("Host stopped"));
+                lifetime.ApplicationStarted.Register(() =>
+                    Log.Information("Host started successfully")
+                );
+                lifetime.ApplicationStopping.Register(() => Log.Warning("Host is stopping..."));
+                lifetime.ApplicationStopped.Register(() => Log.Warning("Host has stopped"));
+            }
+            else
+            {
+                Log.Warning("IHostApplicationLifetime not available from DI container");
             }
 
-            Log.Information("Host build complete.");
             return host;
         }
         catch (Exception ex)
         {
-            Log.Fatal(ex, "Host terminated unexpectedly");
+            Log.Fatal(ex, "Host terminated during build");
             throw;
         }
     }

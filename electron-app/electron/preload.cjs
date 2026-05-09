@@ -36,7 +36,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   backend: {
     status: () => ipcRenderer.invoke('backend:status'),
-    restart: () => ipcRenderer.invoke('backend:restart'),
+    start: () => ipcRenderer.invoke('backend:start'),
     onLog: (cb) => on('backend:log', cb),
   },
 

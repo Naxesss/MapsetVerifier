@@ -78,9 +78,7 @@ function registerIpc(getMainWindow) {
     running: sidecar.isRunning(),
     port: sidecar.BACKEND_PORT,
   }));
-  ipcMain.handle('backend:restart', () => {
-    sidecar.killSidecar();
-    sidecar.cleanupSidecar();
+  ipcMain.handle('backend:start', () => {
     sidecar.spawnSidecar();
   });
 

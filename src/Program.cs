@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -17,40 +18,64 @@ namespace MapsetVerifier
 
         private static void Main(string[] args)
         {
-            LoggerConfigurator.Configure();
-            Log.Information("Mapset Verifier Server starting up");
+            var sw = Stopwatch.StartNew();
 
-            // Ensures that numbers are displayed consistently across cultures, for example
-            // that decimals are indicated by a period and not a comma.
-            CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+            try
+            {
+                LoggerConfigurator.Configure();
+                Log.Information("Mapset Verifier starting up");
 
-            // Use `AppData/Roaming/` for windows and `~/.local/share` for linux.
-            string appdataPath;
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                appdataPath = Environment.GetFolderPath(
-                    Environment.SpecialFolder.LocalApplicationData
+                Log.Information(
+                    "Runtime: {Runtime}, OS: {OS}, Version: {Version}",
+                    RuntimeInformation.RuntimeIdentifier,
+                    RuntimeInformation.OSDescription,
+                    Environment.Version
                 );
-            else
-                appdataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
-            Log.Information("Mapset Verifier selected app data folder {0}", appdataPath);
+                CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+                CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
-            Checker.RelativeDLLDirectory = Path.Combine(
-                appdataPath,
-                ExternalsFolderName,
-                Checker.DefaultRelativeDLLDirectory
-            );
-            Snapshotter.RelativeDirectory = Path.Combine(appdataPath, ExternalsFolderName);
+                var folder = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                    ? Environment.SpecialFolder.LocalApplicationData
+                    : Environment.SpecialFolder.ApplicationData;
+                var appdataPath = Environment.GetFolderPath(folder);
+                Log.Information("App data root resolved to: {AppDataPath}", appdataPath);
 
-            Log.Information("Start loading checks");
-            Checker.LoadDefaultChecks();
-            Checker.LoadCustomChecks();
+                Checker.RelativeDLLDirectory = Path.Combine(
+                    appdataPath,
+                    ExternalsFolderName,
+                    Checker.DefaultRelativeDLLDirectory
+                );
+                Log.Information("Checker DLL directory: {Path}", Checker.RelativeDLLDirectory);
 
-            Log.Information("Starting API");
-            var host = HostBuilderFactory.Build(args);
-            host.Run();
-            Log.CloseAndFlush();
+                Snapshotter.RelativeDirectory = Path.Combine(appdataPath, ExternalsFolderName);
+                Log.Information("Snapshotter directory: {Path}", Snapshotter.RelativeDirectory);
+
+                Log.Information("Loading default checks...");
+                Checker.LoadDefaultChecks();
+
+                Log.Information("Loading custom checks...");
+                Checker.LoadCustomChecks();
+
+                var host = HostBuilderFactory.Build(args);
+                Log.Information("Running host...");
+                host.Run();
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Fatal error during startup or runtime initialization");
+                throw;
+            }
+            finally
+            {
+                sw.Stop();
+                Log.Information(
+                    "Total application lifetime (process scope): {ElapsedMs}ms",
+                    sw.ElapsedMilliseconds
+                );
+
+                Log.CloseAndFlush();
+            }
         }
     }
 }

@@ -47,7 +47,7 @@ export interface ElectronAPI {
 
   backend: {
     status(): Promise<BackendStatus>;
-    restart(): Promise<void>;
+    start(): Promise<void>;
     onLog(cb: (line: string) => void): Unsubscribe;
   };
 

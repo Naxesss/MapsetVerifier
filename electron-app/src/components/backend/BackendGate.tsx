@@ -95,7 +95,7 @@ const BackendGate: React.FC<BackendGateProps> = ({
       setProgress(10);
       try {
         if (manual) {
-          await window.electronAPI?.backend.restart();
+          await window.electronAPI?.backend.start();
           setSidecarLogs([]);
         }
         const pre = await isHealthy(BACKEND_BASE_URL, 2500);
