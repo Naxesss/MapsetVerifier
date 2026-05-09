@@ -232,4 +232,3 @@ function getGraphColor(
 function normalizeDifficultyLevel(level: DifficultyLevel): DifficultyLevel {
   return level === 'Ultra' ? 'Expert' : level;
 }
-

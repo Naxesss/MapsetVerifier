@@ -1,7 +1,7 @@
-import { Box, Transition } from "@mantine/core";
-import { useEffect, useRef, useState } from "react";
-import BeatmapCard from "./BeatmapCard.tsx";
-import { Beatmap } from "../../Types.ts";
+import { Box, Transition } from '@mantine/core';
+import { useEffect, useRef, useState } from 'react';
+import BeatmapCard from './BeatmapCard.tsx';
+import { Beatmap } from '../../Types.ts';
 
 export interface CurrentBeatmapData {
   beatmap: Beatmap;
@@ -17,10 +17,10 @@ interface CurrentBeatmapCardProps {
 
 const SWAP_DURATION_MS = 220;
 const POP_DOWN_TRANSITION = {
-  in: { opacity: 1, transform: "scale(1) translateY(0)" },
-  out: { opacity: 0, transform: "scale(0.95) translateY(-12px)" },
-  common: { transformOrigin: "top center" },
-  transitionProperty: "transform, opacity",
+  in: { opacity: 1, transform: 'scale(1) translateY(0)' },
+  out: { opacity: 0, transform: 'scale(0.95) translateY(-12px)' },
+  common: { transformOrigin: 'top center' },
+  transitionProperty: 'transform, opacity',
 } as const;
 
 export default function CurrentBeatmapCard({
@@ -69,7 +69,8 @@ export default function CurrentBeatmapCard({
         } else {
           setRenderedCurrent(null);
         }
-      }}>
+      }}
+    >
       {(styles) => (
         <div style={styles}>
           {renderedCurrent && (

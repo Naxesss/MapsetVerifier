@@ -10,7 +10,13 @@
   Tooltip,
   useMantineTheme,
 } from '@mantine/core';
-import { IconPlus, IconMinus, IconArrowsExchange, IconX, IconInfoCircle } from '@tabler/icons-react';
+import {
+  IconPlus,
+  IconMinus,
+  IconArrowsExchange,
+  IconX,
+  IconInfoCircle,
+} from '@tabler/icons-react';
 import { MouseEvent, useEffect, useState } from 'react';
 import { useSettings } from '../../context/SettingsContext.tsx';
 import { ApiSnapshotCommit, ApiSnapshotSection, ApiSnapshotDiff, DiffType } from '../../Types';

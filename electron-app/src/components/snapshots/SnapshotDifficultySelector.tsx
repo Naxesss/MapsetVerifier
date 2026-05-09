@@ -58,9 +58,7 @@ function SnapshotDifficultySelector({
                 '--button-bg': `${alpha(color, 0.25)}`,
                 '--button-hover': `${alpha(color, 0.35)}`,
               }}
-              leftSection={
-                <GameModeIcon mode={diff.mode ?? 'Standard'} size={18} color={color} />
-              }
+              leftSection={<GameModeIcon mode={diff.mode ?? 'Standard'} size={18} color={color} />}
               onClick={() => onSelectDifficulty(diff.name)}
               bd={selectedDifficulty === diff.name ? `1px solid ${color}` : '1px solid transparent'}
             >

@@ -221,7 +221,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
                       following folder <code>/bin/server/dist/&lt;rid&gt;/</code>.
                     </Text>
                     <Text size="sm">
-                      Changing this settings may require restarting the application to take 
+                      Changing this settings may require restarting the application to take
                     </Text>
                   </Group>
                 </Alert>

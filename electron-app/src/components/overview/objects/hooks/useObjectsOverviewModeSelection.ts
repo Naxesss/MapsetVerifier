@@ -17,7 +17,8 @@ export function useObjectsOverviewModeSelection(groupedDifficulties: ObjectsMode
   }, [groupedDifficulties, selectedMode]);
 
   const selectedGroup = useMemo(
-    () => groupedDifficulties.find((group) => group.mode === selectedMode) ?? groupedDifficulties[0],
+    () =>
+      groupedDifficulties.find((group) => group.mode === selectedMode) ?? groupedDifficulties[0],
     [groupedDifficulties, selectedMode]
   );
 

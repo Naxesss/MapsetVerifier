@@ -7,7 +7,11 @@ export function useTimelineZoom(durationMs: number) {
 
   const tickIntervalMs = useMemo(() => getTimelineIntervalMs(durationMs, zoom), [durationMs, zoom]);
   const timelineWidth = useMemo(
-    () => Math.max(MIN_TIMELINE_WIDTH, Math.min(MAX_TIMELINE_WIDTH, Math.round(durationMs * 0.02 * zoom))),
+    () =>
+      Math.max(
+        MIN_TIMELINE_WIDTH,
+        Math.min(MAX_TIMELINE_WIDTH, Math.round(durationMs * 0.02 * zoom))
+      ),
     [durationMs, zoom]
   );
 

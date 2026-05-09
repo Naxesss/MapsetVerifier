@@ -5,7 +5,12 @@ import { IconEye, IconEyeOff, IconGripVertical } from '@tabler/icons-react';
 import { withAlpha } from '../../../../utils/color.ts';
 import { formatGameModeLabel, getModeAccentColor, normalizeMode } from '../../../../utils/gameMode';
 import GameModeIcon from '../../../icons/GameModeIcon.tsx';
-import { HIDDEN_ROW_HEIGHT, HIDDEN_ROW_VERTICAL_PADDING, LABEL_WIDTH, ROW_HEIGHT } from '../constants.ts';
+import {
+  HIDDEN_ROW_HEIGHT,
+  HIDDEN_ROW_VERTICAL_PADDING,
+  LABEL_WIDTH,
+  ROW_HEIGHT,
+} from '../constants.ts';
 import TimelineRow from './TimelineRow.tsx';
 import type { ObjectsOverviewDifficulty } from '../../../../Types';
 

@@ -47,7 +47,12 @@ function getNextTimelineIntervalStep(targetIntervalMs: number) {
   );
 }
 
-export function getTimelineX(timeMs: number, startTimeMs: number, durationMs: number, width: number) {
+export function getTimelineX(
+  timeMs: number,
+  startTimeMs: number,
+  durationMs: number,
+  width: number
+) {
   return ((timeMs - startTimeMs) / durationMs) * width;
 }
 

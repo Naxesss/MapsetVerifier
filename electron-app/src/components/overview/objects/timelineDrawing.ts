@@ -151,7 +151,12 @@ export function getTimelineTimestampAtX({
 
   for (const timelineObject of difficulty.timelineObjects) {
     if (timelineObject.objectType === 'Circle') {
-      const centerX = getTimelineX(timelineObject.startTimeMs, startTimeMs, durationMs, timelineWidth);
+      const centerX = getTimelineX(
+        timelineObject.startTimeMs,
+        startTimeMs,
+        durationMs,
+        timelineWidth
+      );
       const radius = getTimelineObjectCircleRadius(difficultyMode, timelineObject);
       consider(timelineObject.startTimeMs, Math.abs(x - centerX), radius + 4);
       continue;
@@ -161,10 +166,14 @@ export function getTimelineTimestampAtX({
     const endX = getTimelineX(timelineObject.endTimeMs, startTimeMs, durationMs, timelineWidth);
     const minX = Math.min(startX, endX);
     const maxX = Math.max(startX, endX);
-    const distanceToBody = x >= minX && x <= maxX ? 0 : Math.min(Math.abs(x - minX), Math.abs(x - maxX));
-    const bodyTimeMs = startX === endX
-      ? timelineObject.startTimeMs
-      : timelineObject.startTimeMs + ((x - startX) / (endX - startX)) * (timelineObject.endTimeMs - timelineObject.startTimeMs);
+    const distanceToBody =
+      x >= minX && x <= maxX ? 0 : Math.min(Math.abs(x - minX), Math.abs(x - maxX));
+    const bodyTimeMs =
+      startX === endX
+        ? timelineObject.startTimeMs
+        : timelineObject.startTimeMs +
+          ((x - startX) / (endX - startX)) *
+            (timelineObject.endTimeMs - timelineObject.startTimeMs);
     consider(bodyTimeMs, distanceToBody, 8);
 
     for (const edge of timelineObject.edges) {

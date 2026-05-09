@@ -143,7 +143,7 @@ const themeOverride = createTheme({
       },
       styles: {
         tooltip: {
-          textAlign: "center",
+          textAlign: 'center',
         },
       },
     },

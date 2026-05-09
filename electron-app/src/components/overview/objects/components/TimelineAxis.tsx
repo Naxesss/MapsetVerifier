@@ -32,7 +32,14 @@ export default function TimelineAxis({
   return (
     <Box style={{ position: 'relative', width, height: AXIS_HEIGHT }}>
       <svg width={width} height={AXIS_HEIGHT} style={{ display: 'block' }}>
-        <line x1={0} y1={lineY} x2={width} y2={lineY} stroke={theme.colors.dark[4]} strokeWidth={1} />
+        <line
+          x1={0}
+          y1={lineY}
+          x2={width}
+          y2={lineY}
+          stroke={theme.colors.dark[4]}
+          strokeWidth={1}
+        />
         {ticks.map((tick) => {
           const x = getAlignedTimelineLineX(tick, startTimeMs, durationMs, width);
           return (

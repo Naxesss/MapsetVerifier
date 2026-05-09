@@ -10,14 +10,9 @@
   ScrollArea,
   Tooltip,
   Loader,
-  Center, Stack,
+  Stack,
 } from '@mantine/core';
-import {
-  IconAlertCircle,
-  IconCheck,
-  IconCopy, IconGhost2,
-  IconTerminal2,
-} from '@tabler/icons-react';
+import { IconAlertCircle, IconCheck, IconCopy, IconTerminal2 } from '@tabler/icons-react';
 import React, { useEffect, useState, useRef, useCallback, ReactNode } from 'react';
 
 import { cssVarResolver } from '../../App';
@@ -79,10 +74,10 @@ async function waitForHealthy(
 }
 
 const BackendGate: React.FC<BackendGateProps> = ({
-                                                   children,
-                                                   healthTimeoutMs = 5000,
-                                                   probeIntervalMs = 500,
-                                                 }) => {
+  children,
+  healthTimeoutMs = 5000,
+  probeIntervalMs = 500,
+}) => {
   const { settings, loaded } = useSettings();
 
   const [status, setStatus] = useState<Status>('idle');
@@ -153,10 +148,8 @@ const BackendGate: React.FC<BackendGateProps> = ({
 
       setStage('health');
 
-      const healthy = await waitForHealthy(
-        healthTimeoutMs,
-        probeIntervalMs,
-        () => isHealthy(BACKEND_BASE_URL, 2500)
+      const healthy = await waitForHealthy(healthTimeoutMs, probeIntervalMs, () =>
+        isHealthy(BACKEND_BASE_URL, 2500)
       );
 
       if (!healthy) {
@@ -172,14 +165,7 @@ const BackendGate: React.FC<BackendGateProps> = ({
     } finally {
       startingRef.current = false;
     }
-  }, [
-    shouldGate,
-    healthTimeoutMs,
-    probeIntervalMs,
-    markReady,
-    markError,
-    reset,
-  ]);
+  }, [shouldGate, healthTimeoutMs, probeIntervalMs, markReady, markError, reset]);
 
   useEffect(() => {
     const off = window.electronAPI?.backend.onLog(appendLog);
@@ -216,11 +202,7 @@ const BackendGate: React.FC<BackendGateProps> = ({
   const starting = status === 'idle' || status === 'starting';
 
   return (
-    <MantineProvider
-      defaultColorScheme="dark"
-      theme={theme}
-      cssVariablesResolver={cssVarResolver}
-    >
+    <MantineProvider defaultColorScheme="dark" theme={theme} cssVariablesResolver={cssVarResolver}>
       <Container size="sm" pt={80}>
         {starting && (
           <Stack
@@ -282,26 +264,15 @@ const BackendGate: React.FC<BackendGateProps> = ({
                     </Code>
                   </ScrollArea.Autosize>
 
-                  <CopyButton
-                    value={`Error: ${errorMsg ?? ''}\n\n${sidecarLogs.join('\n')}`}
-                  >
+                  <CopyButton value={`Error: ${errorMsg ?? ''}\n\n${sidecarLogs.join('\n')}`}>
                     {({ copied, copy }) => (
-                      <Tooltip
-                        label={copied ? 'Copied' : 'Copy output'}
-                        withArrow
-                      >
+                      <Tooltip label={copied ? 'Copied' : 'Copy output'} withArrow>
                         <Button
                           size="xs"
                           variant="light"
                           color={copied ? 'teal' : 'gray'}
                           onClick={copy}
-                          leftSection={
-                            copied ? (
-                              <IconCheck size={14} />
-                            ) : (
-                              <IconCopy size={14} />
-                            )
-                          }
+                          leftSection={copied ? <IconCheck size={14} /> : <IconCopy size={14} />}
                         >
                           {copied ? 'Copied' : 'Copy to clipboard'}
                         </Button>

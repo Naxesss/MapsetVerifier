@@ -108,7 +108,7 @@ const WindowBar: React.FC = () => {
             display: 'flex',
             alignSelf: 'stretch',
             height: '100%',
-            gap: 0
+            gap: 0,
           } as React.CSSProperties
         }
       >
@@ -117,7 +117,9 @@ const WindowBar: React.FC = () => {
           color={isDark ? 'gray' : 'dark'}
           aria-label="Minimize"
           onClick={minimize}
-          style={{ ...noDragStyle, height: '100%', width: 36, borderRadius: 0 } as React.CSSProperties}
+          style={
+            { ...noDragStyle, height: '100%', width: 36, borderRadius: 0 } as React.CSSProperties
+          }
         >
           <IconMinus size={20} color={textColor} />
         </ActionIcon>
@@ -126,7 +128,9 @@ const WindowBar: React.FC = () => {
           color={isDark ? 'gray' : 'dark'}
           aria-label="Maximize"
           onClick={toggleMaximize}
-          style={{ ...noDragStyle, height: '100%', width: 36, borderRadius: 0 } as React.CSSProperties}
+          style={
+            { ...noDragStyle, height: '100%', width: 36, borderRadius: 0 } as React.CSSProperties
+          }
         >
           <IconSquare size={14} color={textColor} />
         </ActionIcon>
@@ -135,7 +139,9 @@ const WindowBar: React.FC = () => {
           color="red"
           aria-label="Close"
           onClick={close}
-          style={{ ...noDragStyle, height: '100%', width: 36, borderRadius: 0 } as React.CSSProperties}
+          style={
+            { ...noDragStyle, height: '100%', width: 36, borderRadius: 0 } as React.CSSProperties
+          }
         >
           <IconX size={20} color={theme.colors.red[6]} />
         </ActionIcon>

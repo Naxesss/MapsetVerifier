@@ -142,7 +142,13 @@ function Snapshots() {
         )}
       </BeatmapHeader>
       {data && (
-        <Flex gap="sm" p="md" direction="column" style={{ flex: 1, overflow: 'hidden' }} bg="dark.6">
+        <Flex
+          gap="sm"
+          p="md"
+          direction="column"
+          style={{ flex: 1, overflow: 'hidden' }}
+          bg="dark.6"
+        >
           <Title order={3}>{selectedDifficulty}</Title>
           {data.errorMessage ? (
             <Alert icon={<IconPhotoOff />} color="yellow" title="Snapshots unavailable">

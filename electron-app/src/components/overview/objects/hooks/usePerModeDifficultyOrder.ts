@@ -13,7 +13,9 @@ export function usePerModeDifficultyOrder({
   activeMode: Mode | undefined;
   difficulties: ObjectsOverviewDifficulty[];
 }) {
-  const [difficultyOrderByMode, setDifficultyOrderByMode] = useState<Partial<Record<Mode, string[]>>>({});
+  const [difficultyOrderByMode, setDifficultyOrderByMode] = useState<
+    Partial<Record<Mode, string[]>>
+  >({});
 
   useEffect(() => {
     setDifficultyOrderByMode((current) => {
@@ -56,7 +58,9 @@ export function usePerModeDifficultyOrder({
       .map((key) => difficultyMap.get(key))
       .filter((difficulty): difficulty is ObjectsOverviewDifficulty => difficulty !== undefined);
     const orderedKeys = new Set(ordered.map(getDifficultyKey));
-    const missing = difficulties.filter((difficulty) => !orderedKeys.has(getDifficultyKey(difficulty)));
+    const missing = difficulties.filter(
+      (difficulty) => !orderedKeys.has(getDifficultyKey(difficulty))
+    );
 
     return [...ordered, ...missing];
   }, [activeMode, difficulties, difficultyOrderByMode]);

@@ -41,7 +41,9 @@ export default function TimelineAxisRow({
           boxSizing: 'border-box',
         }}
       />
-      <Box style={{ flex: `0 0 ${timelineWidth}px`, minWidth: timelineWidth, width: timelineWidth }}>
+      <Box
+        style={{ flex: `0 0 ${timelineWidth}px`, minWidth: timelineWidth, width: timelineWidth }}
+      >
         <TimelineAxis
           startTimeMs={startTimeMs}
           endTimeMs={endTimeMs}
