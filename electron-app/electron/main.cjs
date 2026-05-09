@@ -88,7 +88,6 @@ app.on('window-all-closed', () => {
 app.on('will-quit', () => {
   globalShortcut.unregisterAll();
   sidecar.killSidecar();
-  sidecar.cleanupSidecar();
 });
 
 process.on('exit', () => {

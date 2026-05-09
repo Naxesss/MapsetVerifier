@@ -16,6 +16,7 @@ export type Settings = {
 // Context type includes settings and setter
 interface SettingsContextType {
   settings: Settings;
+  loaded: boolean;
   setSettings: React.Dispatch<React.SetStateAction<Settings>>;
 }
 
@@ -32,33 +33,37 @@ const defaultSettings: Settings = {
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
+  const [loaded, setLoaded] = useState(false);
   const [settings, setSettings] = useState<Settings>(defaultSettings);
 
   async function loadSettings() {
     const api = window.electronAPI;
     if (!api) {
       setSettings(defaultSettings);
+      setLoaded(true);
       return;
     }
     try {
       const text = await api.settings.read();
       if (!text) {
         setSettings(defaultSettings);
-        return;
+      } else {
+        const loaded = JSON.parse(text);
+
+        if (
+          loaded?.lazerLookupEnabled === undefined &&
+          loaded?.experimentalLazerLookup !== undefined
+        ) {
+          loaded.lazerLookupEnabled = loaded.experimentalLazerLookup;
+        }
+
+        setSettings({ ...defaultSettings, ...loaded });
       }
-      const loaded = JSON.parse(text);
-      // Backward compatibility for old key naming.
-      if (
-        loaded?.lazerLookupEnabled === undefined &&
-        loaded?.experimentalLazerLookup !== undefined
-      ) {
-        loaded.lazerLookupEnabled = loaded.experimentalLazerLookup;
-      }
-      // Merge loaded settings with defaults to ensure new keys exist
-      setSettings({ ...defaultSettings, ...loaded });
     } catch (e) {
       console.error('[Settings] Error loading settings. Using defaults.', e);
       setSettings(defaultSettings);
+    } finally {
+      setLoaded(true);
     }
   }
 
@@ -100,7 +105,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   }, [settings]);
 
   return (
-    <SettingsContext.Provider value={{ settings, setSettings }}>
+    <SettingsContext.Provider value={{ settings, loaded, setSettings }}>
       {children}
     </SettingsContext.Provider>
   );
