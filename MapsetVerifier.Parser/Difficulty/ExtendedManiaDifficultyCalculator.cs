@@ -16,8 +16,8 @@ namespace MapsetVerifier.Parser.Difficulty;
 public class ExtendedManiaDifficultyCalculator(
     IRulesetInfo ruleset,
     IWorkingBeatmap beatmap,
-    Beatmap mvBeatmap)
-    : ManiaDifficultyCalculator(ruleset, beatmap)
+    Beatmap mvBeatmap
+) : ManiaDifficultyCalculator(ruleset, beatmap)
 {
     protected override DifficultyAttributes CreateDifficultyAttributes(
         IBeatmap beatmap,

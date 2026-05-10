@@ -16,8 +16,8 @@ namespace MapsetVerifier.Parser.Difficulty;
 public class ExtendedCatchDifficultyCalculator(
     IRulesetInfo ruleset,
     IWorkingBeatmap beatmap,
-    Beatmap mvBeatmap)
-    : CatchDifficultyCalculator(ruleset, beatmap)
+    Beatmap mvBeatmap
+) : CatchDifficultyCalculator(ruleset, beatmap)
 {
     protected override DifficultyAttributes CreateDifficultyAttributes(
         IBeatmap beatmap,

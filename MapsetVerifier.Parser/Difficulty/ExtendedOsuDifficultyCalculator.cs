@@ -16,8 +16,8 @@ namespace MapsetVerifier.Parser.Difficulty;
 public class ExtendedOsuDifficultyCalculator(
     IRulesetInfo ruleset,
     IWorkingBeatmap beatmap,
-    Beatmap mvBeatmap)
-    : OsuDifficultyCalculator(ruleset, beatmap)
+    Beatmap mvBeatmap
+) : OsuDifficultyCalculator(ruleset, beatmap)
 {
     protected override DifficultyAttributes CreateDifficultyAttributes(
         IBeatmap beatmap,

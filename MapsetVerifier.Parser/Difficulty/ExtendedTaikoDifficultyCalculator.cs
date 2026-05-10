@@ -16,8 +16,8 @@ namespace MapsetVerifier.Parser.Difficulty;
 public class ExtendedTaikoDifficultyCalculator(
     IRulesetInfo ruleset,
     IWorkingBeatmap beatmap,
-    Beatmap mvBeatmap)
-    : TaikoDifficultyCalculator(ruleset, beatmap)
+    Beatmap mvBeatmap
+) : TaikoDifficultyCalculator(ruleset, beatmap)
 {
     protected override DifficultyAttributes CreateDifficultyAttributes(
         IBeatmap beatmap,
