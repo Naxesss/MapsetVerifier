@@ -27,7 +27,11 @@ namespace MapsetVerifier
                     .CreateBootstrapLogger();
                 
                 LoggerConfigurator.Configure();
-                Log.Information("Mapset Verifier starting up");
+                
+                var version = typeof(Program).Assembly
+                    .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+                    ?.InformationalVersion;
+                Log.Information("Mapset Verifier starting up {Version}", version);
 
                 Log.Information(
                     "Runtime: {Runtime}, OS: {OS}, Version: {Version}",
