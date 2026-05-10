@@ -87,7 +87,8 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                 foreach (var edgeTime in hitObject.GetEdgeTimes())
                 {
                     var issues = GetUnsnapIssue(hitObject.GetPartName(edgeTime), edgeTime, beatmap);
-                    foreach (var issue in issues) yield return issue;
+                    foreach (var issue in issues)
+                        yield return issue;
                 }
             }
         }

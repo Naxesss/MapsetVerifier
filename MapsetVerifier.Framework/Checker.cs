@@ -13,7 +13,7 @@ namespace MapsetVerifier.Framework
         private const string CustomCheckFolder = "CustomChecks";
 
         private static string? CustomCheckDirectory { get; set; }
-        
+
         public static void ConfigureCustomChecksPath(string appDataPath, string externalFolderName)
         {
             var path = Path.Combine(appDataPath, externalFolderName, CustomCheckFolder);
@@ -121,7 +121,7 @@ namespace MapsetVerifier.Framework
                 Log.Information("No custom checks found");
                 return;
             }
-            
+
             Parallel.ForEach(
                 paths,
                 dllPath =>
@@ -140,7 +140,8 @@ namespace MapsetVerifier.Framework
 
         private static List<string> GetCustomCheckPaths()
         {
-            var directoryPath = CustomCheckDirectory ?? throw new Exception("Custom check directory not set up");
+            var directoryPath =
+                CustomCheckDirectory ?? throw new Exception("Custom check directory not set up");
 
             if (Directory.Exists(directoryPath))
                 return Directory

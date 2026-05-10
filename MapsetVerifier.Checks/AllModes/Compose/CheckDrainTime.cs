@@ -10,7 +10,7 @@ namespace MapsetVerifier.Checks.AllModes.Compose
     public class CheckDrainTime : BeatmapCheck
     {
         private const double ThirtySecondsMs = 30_000;
-        
+
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
@@ -59,8 +59,8 @@ namespace MapsetVerifier.Checks.AllModes.Compose
             if (drainTime >= ThirtySecondsMs)
                 yield break;
 
-            var drainTimeSeconds = (int) TimeSpan.FromMilliseconds(drainTime).TotalSeconds;
-            
+            var drainTimeSeconds = (int)TimeSpan.FromMilliseconds(drainTime).TotalSeconds;
+
             yield return new Issue(GetTemplate("Problem"), beatmap, drainTimeSeconds);
         }
     }

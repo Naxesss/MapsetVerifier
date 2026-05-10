@@ -77,11 +77,7 @@ namespace MapsetVerifier.Snapshots
                     continue;
 
                 // ./snapshots/571202/258378/2019-01-26 22-12-49
-                var saveDirectory = Path.Combine(
-                    SnapshotSavePath,
-                    beatmapSetId,
-                    beatmapId
-                );
+                var saveDirectory = Path.Combine(SnapshotSavePath, beatmapSetId, beatmapId);
                 var saveName = creationDate.ToString(fileNameFormat) + ".osu";
 
                 if (!Directory.Exists(saveDirectory))
@@ -102,7 +98,7 @@ namespace MapsetVerifier.Snapshots
             {
                 throw new Exception("Snapshot directory not set up");
             }
-            
+
             var beatmapSetId = beatmapSet
                 .Beatmaps?.First()
                 .MetadataSettings.beatmapSetId?.ToString();
@@ -146,11 +142,7 @@ namespace MapsetVerifier.Snapshots
             if (!shouldSave)
                 return;
 
-            var filesSnapshotDirectory = Path.Combine(
-                SnapshotSavePath,
-                beatmapSetId,
-                "files"
-            );
+            var filesSnapshotDirectory = Path.Combine(SnapshotSavePath, beatmapSetId, "files");
 
             var filesSnapshotName =
                 filesSnapshotDirectory
@@ -181,11 +173,7 @@ namespace MapsetVerifier.Snapshots
             if (beatmapSetId == null || beatmapId == null)
                 yield break;
 
-            var saveDirectory = Path.Combine(
-                SnapshotSavePath,
-                beatmapSetId,
-                beatmapId
-            );
+            var saveDirectory = Path.Combine(SnapshotSavePath, beatmapSetId, beatmapId);
 
             if (!Directory.Exists(saveDirectory))
                 yield break;

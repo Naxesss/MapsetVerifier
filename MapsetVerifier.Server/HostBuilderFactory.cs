@@ -89,7 +89,9 @@ public static class HostBuilderFactory
             var lifetime = host.Services.GetService<IHostApplicationLifetime>();
             if (lifetime != null)
             {
-                lifetime.ApplicationStarted.Register(() => Log.Information("Host started successfully"));
+                lifetime.ApplicationStarted.Register(() =>
+                    Log.Information("Host started successfully")
+                );
                 lifetime.ApplicationStopping.Register(() => Log.Warning("Host is stopping..."));
                 lifetime.ApplicationStopped.Register(() => Log.Warning("Host has stopped"));
             }

@@ -22,14 +22,12 @@ namespace MapsetVerifier
             try
             {
                 // Temp logger that wil later be replaced
-                Log.Logger = new LoggerConfiguration()
-                    .WriteTo.Console()
-                    .CreateBootstrapLogger();
-                
+                Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateBootstrapLogger();
+
                 LoggerConfigurator.Configure();
-                
-                var version = typeof(Program).Assembly
-                    .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+
+                var version = typeof(Program)
+                    .Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
                     ?.InformationalVersion;
                 Log.Information("Mapset Verifier starting up {Version}", version);
 

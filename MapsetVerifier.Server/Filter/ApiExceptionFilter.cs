@@ -10,7 +10,11 @@ public class ApiExceptionFilter : IExceptionFilter
 {
     public void OnException(ExceptionContext context)
     {
-        Log.Error(context.Exception, "Caught unhandled exception: {Message}", context.Exception.Message);
+        Log.Error(
+            context.Exception,
+            "Caught unhandled exception: {Message}",
+            context.Exception.Message
+        );
         var apiError = ExceptionService.GetApiError(context.Exception);
 
         context.Result = new JsonResult(apiError)
