@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "lint": "eslint \"src/**/*.{ts,tsx}\" --max-warnings=0",
     "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix",
-    "format": "prettier \"src/**/*.{ts,tsx,css,scss,md}\" --write"
+    "format": "prettier \"src/**/*.{ts,tsx,css,scss,md}\" --write && npm run lint:fix"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
