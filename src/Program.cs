@@ -7,8 +7,6 @@ using MapsetVerifier.Logging;
 using MapsetVerifier.Server;
 using MapsetVerifier.Snapshots;
 using Microsoft.Extensions.Hosting;
-using osu.Game.Beatmaps.Formats;
-using osu.Game.Rulesets;
 using Serilog;
 
 namespace MapsetVerifier
@@ -37,11 +35,6 @@ namespace MapsetVerifier
                     RuntimeInformation.OSDescription,
                     Environment.Version
                 );
-
-                // Needed for osu!lazer beatmap parsing to work
-                var rulesets = new AssemblyRulesetStore();
-                Decoder.RegisterDependencies(rulesets);
-                Log.Information("Done setting up osu!lazer ruleset store");
 
                 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
                 CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
