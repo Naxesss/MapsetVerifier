@@ -13,7 +13,7 @@ namespace MapsetVerifier.Framework
             if (check == null)
                 return;
 
-            Log.Information("Registering check {check}", check.GetType().ToString());
+            Log.Debug("Registering check {Check}", check.GetType().ToString());
 
             Checks.Add(check);
         }

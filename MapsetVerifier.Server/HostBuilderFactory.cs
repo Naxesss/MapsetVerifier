@@ -18,12 +18,7 @@ public static class HostBuilderFactory
             Log.Information("Host build initiated. Args: {Args}", args);
 
             var host = Host.CreateDefaultBuilder(args)
-                .UseSerilog(
-                    (ctx, lc) =>
-                    {
-                        lc.ReadFrom.Configuration(ctx.Configuration);
-                    }
-                )
+                .UseSerilog()
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     Log.Information("Configuring WebHost...");
@@ -94,9 +89,7 @@ public static class HostBuilderFactory
             var lifetime = host.Services.GetService<IHostApplicationLifetime>();
             if (lifetime != null)
             {
-                lifetime.ApplicationStarted.Register(() =>
-                    Log.Information("Host started successfully")
-                );
+                lifetime.ApplicationStarted.Register(() => Log.Information("Host started successfully"));
                 lifetime.ApplicationStopping.Register(() => Log.Warning("Host is stopping..."));
                 lifetime.ApplicationStopped.Register(() => Log.Warning("Host has stopped"));
             }

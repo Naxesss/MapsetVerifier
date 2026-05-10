@@ -10,16 +10,20 @@ namespace MapsetVerifier.Framework
 {
     public static class Checker
     {
-        public const string DefaultRelativeDLLDirectory = "checksV2";
+        private const string CustomCheckFolder = "CustomChecks";
 
-        public static string? RelativeDLLDirectory { get; set; }
+        private static string? CustomCheckDirectory { get; set; }
+        
+        public static void ConfigureCustomChecksPath(string appDataPath, string externalFolderName)
+        {
+            var path = Path.Combine(appDataPath, externalFolderName, CustomCheckFolder);
+            CustomCheckDirectory = path;
+            Log.Information("Custom checks directory: {Path}", path);
+        }
 
         /// <summary> Returns a list of issues sorted by level, in the given beatmap set. </summary>
         public static List<Issue> GetBeatmapSetIssues(BeatmapSet beatmapSet)
         {
-            if (!CheckerRegistry.GetChecks().Any())
-                LoadCustomChecks();
-
             var issueBag = new ConcurrentBag<Issue>();
 
             TryGetIssuesParallel(
@@ -111,14 +115,20 @@ namespace MapsetVerifier.Framework
         /// <summary> Loads the .dll files from the current directory + relative path ("/checks" by default). </summary>
         public static void LoadCustomChecks()
         {
-            var paths = GetCustomCheckDLLPaths();
+            var paths = GetCustomCheckPaths();
+            if (paths.Count == 0)
+            {
+                Log.Information("No custom checks found");
+                return;
+            }
+            
             Parallel.ForEach(
                 paths,
                 dllPath =>
                 {
                     try
                     {
-                        LoadCheckDLL(dllPath);
+                        LoadCustomChecks(dllPath);
                     }
                     catch (Exception exception)
                     {
@@ -128,14 +138,15 @@ namespace MapsetVerifier.Framework
             );
         }
 
-        private static IEnumerable<string> GetCustomCheckDLLPaths()
+        private static List<string> GetCustomCheckPaths()
         {
-            var directoryPath = RelativeDLLDirectory ?? DefaultRelativeDLLDirectory;
+            var directoryPath = CustomCheckDirectory ?? throw new Exception("Custom check directory not set up");
 
             if (Directory.Exists(directoryPath))
                 return Directory
                     .GetFiles(directoryPath)
-                    .Where(filePath => filePath.EndsWith(".dll"));
+                    .Where(filePath => filePath.EndsWith(".dll"))
+                    .ToList();
 
             try
             {
@@ -146,14 +157,14 @@ namespace MapsetVerifier.Framework
                 // e.g. creating a new directory in Program Files.
             }
 
-            return new List<string>();
+            return [];
         }
 
         /// <summary>
         ///     Adds checks from the assembly of the given DLL file path (can be
         ///     either absolute or relative) to the CheckerRegistry.
         /// </summary>
-        private static void LoadCheckDLL(string checkPath)
+        private static void LoadCustomChecks(string checkPath)
         {
             var rootedPath = checkPath;
 

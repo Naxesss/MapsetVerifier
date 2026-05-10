@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Globalization;
-using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using MapsetVerifier.Framework;
 using MapsetVerifier.Logging;
@@ -20,8 +19,6 @@ namespace MapsetVerifier
 
         private static void Main(string[] args)
         {
-            var sw = Stopwatch.StartNew();
-
             try
             {
                 // Temp logger that wil later be replaced
@@ -50,18 +47,11 @@ namespace MapsetVerifier
                 var folder = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
                     ? Environment.SpecialFolder.LocalApplicationData
                     : Environment.SpecialFolder.ApplicationData;
-                var appdataPath = Environment.GetFolderPath(folder);
-                Log.Information("App data root resolved to: {AppDataPath}", appdataPath);
+                var appDataPath = Environment.GetFolderPath(folder);
+                Log.Information("App data root resolved to: {AppDataPath}", appDataPath);
 
-                Checker.RelativeDLLDirectory = Path.Combine(
-                    appdataPath,
-                    ExternalsFolderName,
-                    Checker.DefaultRelativeDLLDirectory
-                );
-                Log.Information("Checker DLL directory: {Path}", Checker.RelativeDLLDirectory);
-
-                Snapshotter.RelativeDirectory = Path.Combine(appdataPath, ExternalsFolderName);
-                Log.Information("Snapshotter directory: {Path}", Snapshotter.RelativeDirectory);
+                Checker.ConfigureCustomChecksPath(appDataPath, ExternalsFolderName);
+                Snapshotter.ConfigurePath(appDataPath, ExternalsFolderName);
 
                 Log.Information("Loading default checks...");
                 Checker.LoadDefaultChecks();
@@ -80,12 +70,7 @@ namespace MapsetVerifier
             }
             finally
             {
-                sw.Stop();
-                Log.Information(
-                    "Total application lifetime (process scope): {ElapsedMs}ms",
-                    sw.ElapsedMilliseconds
-                );
-
+                Log.Information("Mapset Verifier stopped");
                 Log.CloseAndFlush();
             }
         }

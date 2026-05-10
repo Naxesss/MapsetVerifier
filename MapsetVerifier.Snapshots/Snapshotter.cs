@@ -3,6 +3,7 @@ using System.Text;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
 using MapsetVerifier.Snapshots.Objects;
+using Serilog;
 
 namespace MapsetVerifier.Snapshots
 {
@@ -16,10 +17,23 @@ namespace MapsetVerifier.Snapshots
         }
 
         private const string fileNameFormat = "yyyy-MM-dd HH-mm-ss";
-        public static string RelativeDirectory { get; set; } = "";
+        private const string DirectoryName = "snapshots";
+
+        private static string? SnapshotSavePath { get; set; }
+
+        public static void ConfigurePath(string appDataPath, string externalFolderName)
+        {
+            var path = Path.Combine(appDataPath, externalFolderName, DirectoryName);
+            SnapshotSavePath = path;
+            Log.Information("Snapshotter directory: {Path}", path);
+        }
 
         public static void SnapshotBeatmapSet(BeatmapSet beatmapSet)
         {
+            if (SnapshotSavePath == null)
+            {
+                throw new Exception("Snapshot directory not set up");
+            }
             var creationDate = DateTime.UtcNow;
 
             foreach (var beatmap in beatmapSet.Beatmaps)
@@ -64,8 +78,7 @@ namespace MapsetVerifier.Snapshots
 
                 // ./snapshots/571202/258378/2019-01-26 22-12-49
                 var saveDirectory = Path.Combine(
-                    RelativeDirectory,
-                    "snapshots",
+                    SnapshotSavePath,
                     beatmapSetId,
                     beatmapId
                 );
@@ -85,6 +98,11 @@ namespace MapsetVerifier.Snapshots
 
         private static void SnapshotFiles(BeatmapSet beatmapSet, DateTime creationTime)
         {
+            if (SnapshotSavePath == null)
+            {
+                throw new Exception("Snapshot directory not set up");
+            }
+            
             var beatmapSetId = beatmapSet
                 .Beatmaps?.First()
                 .MetadataSettings.beatmapSetId?.ToString();
@@ -129,8 +147,7 @@ namespace MapsetVerifier.Snapshots
                 return;
 
             var filesSnapshotDirectory = Path.Combine(
-                RelativeDirectory,
-                "snapshots",
+                SnapshotSavePath,
                 beatmapSetId,
                 "files"
             );
@@ -155,13 +172,17 @@ namespace MapsetVerifier.Snapshots
 
         public static IEnumerable<Snapshot> GetSnapshots(string? beatmapSetId, string? beatmapId)
         {
+            if (SnapshotSavePath == null)
+            {
+                throw new Exception("Snapshot directory not set up");
+            }
+
             // If either is null, we can't get snapshots
             if (beatmapSetId == null || beatmapId == null)
                 yield break;
 
             var saveDirectory = Path.Combine(
-                RelativeDirectory,
-                "snapshots",
+                SnapshotSavePath,
                 beatmapSetId,
                 beatmapId
             );
