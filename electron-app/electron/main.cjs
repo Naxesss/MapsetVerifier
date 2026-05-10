@@ -32,15 +32,6 @@ function createWindow() {
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
-
-    globalShortcut.register('CommandOrControl+Shift+I', () =>
-      mainWindow.webContents.toggleDevTools()
-    );
-    globalShortcut.register('F12', () =>
-      mainWindow.webContents.toggleDevTools()
-    );
-    globalShortcut.register('CommandOrControl+R', () => mainWindow.reload());
-    globalShortcut.register('F5', () => mainWindow.reload());
   });
 
   if (isDev) {
