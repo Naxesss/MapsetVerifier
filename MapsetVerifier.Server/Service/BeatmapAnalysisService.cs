@@ -442,9 +442,15 @@ public static class BeatmapAnalysisService
         {
             foreach (var edgeTime in hitObject.GetEdgeTimes())
             {
+                if (hitObject.type == HitObject.Types.Spinner)
+                {
+                    continue;
+                }
+
                 edgeCount++;
 
-                if (beatmap.GetTimingLine<UninheritedLine>(edgeTime) == null)
+                var unsnapIssue = beatmap.GetUnsnapIssue(edgeTime);
+                if (unsnapIssue != null)
                 {
                     unsnappedCount++;
                     continue;
@@ -452,9 +458,9 @@ public static class BeatmapAnalysisService
 
                 var divisor = beatmap.GetLowestDivisor(edgeTime);
                 if (snappingCounts.ContainsKey(divisor))
+                {
                     snappingCounts[divisor]++;
-                else
-                    unsnappedCount++;
+                }
             }
         }
 

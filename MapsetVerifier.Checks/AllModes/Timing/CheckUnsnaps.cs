@@ -83,20 +83,18 @@ namespace MapsetVerifier.Checks.AllModes.Timing
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
         {
             foreach (var hitObject in beatmap.HitObjects)
-            foreach (var edgeTime in hitObject.GetEdgeTimes())
-            foreach (
-                var issue in GetUnsnapIssue(hitObject.GetPartName(edgeTime), edgeTime, beatmap)
-            )
-                yield return issue;
+            {
+                foreach (var edgeTime in hitObject.GetEdgeTimes())
+                {
+                    var issues = GetUnsnapIssue(hitObject.GetPartName(edgeTime), edgeTime, beatmap);
+                    foreach (var issue in issues) yield return issue;
+                }
+            }
         }
 
         /// <summary> Returns issues wherever the given time value is unsnapped. </summary>
         private IEnumerable<Issue> GetUnsnapIssue(string type, double time, Beatmap beatmap)
         {
-            if (type.ToLower().Contains("spinner"))
-                // Spinners do not need to be snapped.
-                yield break;
-
             var unsnapIssue = beatmap.GetUnsnapIssue(time);
             var unsnap = beatmap.GetPracticalUnsnap(time);
 
