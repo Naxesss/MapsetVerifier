@@ -10,6 +10,9 @@ const DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
 const isDev = !!DEV_SERVER_URL;
 
 function createWindow() {
+  // Needed to make sure Linux app images work as expected
+  app.setName("mapsetverifier");
+  
   mainWindow = new BrowserWindow({
     width: 1172,
     height: 700,

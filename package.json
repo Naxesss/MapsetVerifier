@@ -2,7 +2,10 @@
   "name": "mapsetverifier",
   "version": "2.0.0",
   "description": "Mapset Verifier",
-  "author": "Naxess <naxess.w@gmail.com>",
+  "author": {
+    "name": "Greaper",
+    "url": "https://osu.ppy.sh/users/2369776"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/Naxesss/MapsetVerifier.git"
@@ -66,7 +69,11 @@
     "linux": {
       "target": "AppImage",
       "category": "Utility",
-      "icon": "assets/icons"
+      "icon": "assets/icons",
+      "executableName": "mapsetverifier",
+      "desktop": {
+        "StartupWMClass": "mapsetverifier"
+      }
     },
     "mac": {
       "target": "dmg",
