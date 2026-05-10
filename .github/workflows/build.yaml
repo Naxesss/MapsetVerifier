@@ -51,9 +51,6 @@ jobs:
       - name: Install root dependencies
         run: npm ci
 
-      - name: Verify root package
-        run: npm run build
-
       - name: Install frontend dependencies
         working-directory: electron-app
         run: npm ci
@@ -62,8 +59,7 @@ jobs:
         working-directory: electron-app
         run: npm run lint
 
-      - name: Run frontend build
-        working-directory: electron-app
+      - name: Verify root package
         run: npm run build
 
   build-electron:
