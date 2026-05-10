@@ -9,7 +9,7 @@ on:
       - '**'
 
 jobs:
-  build-and-test:
+  build-sidecar:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -32,9 +32,42 @@ jobs:
         with:
           name: test-results
           path: '**/TestResults/*.trx'
+          
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            electron-app/package-lock.json
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Verify root package
+        run: npm run build
+
+      - name: Install frontend dependencies
+        working-directory: electron-app
+        run: npm ci
+
+      - name: Run frontend lint
+        working-directory: electron-app
+        run: npm run lint
+
+      - name: Run frontend build
+        working-directory: electron-app
+        run: npm run build
 
   build-electron:
-    needs: build-and-test
+    needs: [build-sidecar, build-frontend]
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
     strategy:
       fail-fast: false
