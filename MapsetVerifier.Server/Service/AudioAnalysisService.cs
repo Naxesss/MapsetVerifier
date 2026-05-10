@@ -111,16 +111,12 @@ public static class AudioAnalysisService
                 $"Bitrate is within acceptable range ({MinAllowedBitrate}-{maxAllowed} kbps for {formatName})";
         }
 
-        // Generate bitrate over time data (simplified - BASS reports average bitrate)
-        var bitrateOverTime = GenerateBitrateOverTime(duration, bitrate);
-
         return new BitrateAnalysisResult
         {
             AverageBitrate = bitrate,
             IsVbr = false, // BASS doesn't easily expose VBR detection
             MinBitrate = null,
             MaxBitrate = null,
-            BitrateOverTime = bitrateOverTime,
             IsCompliant = isCompliant,
             ComplianceMessage = complianceMessage,
             MaxAllowedBitrate = maxAllowed,

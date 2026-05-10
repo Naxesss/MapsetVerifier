@@ -1,20 +1,27 @@
-﻿import { LineChart } from '@mantine/charts';
-import { Text, Badge, Group, Paper, useMantineTheme, Stack, Box, Tooltip } from '@mantine/core';
+﻿import {
+  Text,
+  Badge,
+  Group,
+  Paper,
+  useMantineTheme,
+  Stack,
+  Tooltip,
+  SimpleGrid,
+} from '@mantine/core';
 import { IconAlertTriangle, IconInfoCircle } from '@tabler/icons-react';
 import { useMemo } from 'react';
 import { BitrateAnalysisResult, BitrateDataPoint } from '../../../Types';
-import { formatChartTime, getAdaptiveTimeInterval } from '../../common/TimeAxis.tsx';
+import { formatChartTime } from '../../common/TimeAxis.tsx';
 
 interface BitrateGraphProps {
   data: BitrateAnalysisResult;
-  durationMs: number;
 }
 
-function BitrateGraph({ data, durationMs }: BitrateGraphProps) {
+function BitrateGraph({ data }: BitrateGraphProps) {
   const theme = useMantineTheme();
 
   // Transform data for Mantine LineChart - sample data for performance
-  const chartData = useMemo(() => {
+  useMemo(() => {
     if (!data.bitrateOverTime?.length) return [];
     const rawData = data.bitrateOverTime;
     // Sample data if too many points for performance
@@ -26,12 +33,6 @@ function BitrateGraph({ data, durationMs }: BitrateGraphProps) {
       bitrate: Math.round(point.bitrate),
     }));
   }, [data.bitrateOverTime]);
-
-  const maxBitrate = useMemo(() => {
-    if (!data.bitrateOverTime?.length) return Math.max(data.maxAllowedBitrate + 50, 320);
-    const maxFromData = Math.max(...data.bitrateOverTime.map((d: BitrateDataPoint) => d.bitrate));
-    return Math.max(data.maxAllowedBitrate + 50, maxFromData, 320);
-  }, [data.bitrateOverTime, data.maxAllowedBitrate]);
 
   // Check for violations in the bitrate data
   const violations = useMemo(() => {
@@ -50,26 +51,14 @@ function BitrateGraph({ data, durationMs }: BitrateGraphProps) {
     };
   }, [data.bitrateOverTime, data.maxAllowedBitrate, data.minAllowedBitrate]);
 
-  // Determine the line color based on compliance
-  const getLineColor = () => {
-    if (data.isCompliant) return 'green.5';
-    if (violations.aboveMax > 0 && violations.belowMin > 0) return 'orange.5';
-    if (violations.aboveMax > 0) return 'red.5';
-    if (violations.belowMin > 0) return 'yellow.5';
-    return 'blue.5';
-  };
-
-  const durationSeconds = durationMs / 1000;
-  const timeInterval = getAdaptiveTimeInterval(durationSeconds);
-
   return (
     <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
       <Stack gap="sm">
         <Group justify="space-between">
           <Group gap="xs">
-            <Text fw={600}>Bitrate Analysis</Text>
+            <Text fw={600}>Bitrate Information</Text>
             <Tooltip
-              label={`For this file type max allowed is ${data.maxAllowedBitrate} kbps. The minimum recommended is ${data.minAllowedBitrate} kbps.`}
+              label="Bitrate represents the amount of data used per second of audio. Higher bitrates generally preserve more detail but result in larger file sizes."
               multiline
               w={250}
             >
@@ -87,58 +76,26 @@ function BitrateGraph({ data, durationMs }: BitrateGraphProps) {
             )}
           </Group>
         </Group>
-        <Group gap="lg">
-          <Text size="sm" c="dimmed">
-            Average:{' '}
-            <Text span fw={500} c={data.isCompliant ? 'green.4' : 'red.4'}>
-              {data.averageBitrate.toFixed(0)} kbps
+        <SimpleGrid cols={3} mb="md" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+          <Stack gap={2}>
+            <Text size="xs" c="dimmed">
+              Average Bitrate
             </Text>
-          </Text>
-          {data.isVbr && data.minBitrate && data.maxBitrate && (
-            <>
-              <Text size="sm" c="dimmed">
-                Min:{' '}
-                <Text
-                  span
-                  fw={500}
-                  c={data.minBitrate < data.minAllowedBitrate ? 'red.4' : 'white'}
-                >
-                  {data.minBitrate.toFixed(0)} kbps
-                </Text>
-              </Text>
-              <Text size="sm" c="dimmed">
-                Max:{' '}
-                <Text
-                  span
-                  fw={500}
-                  c={data.maxBitrate > data.maxAllowedBitrate ? 'red.4' : 'white'}
-                >
-                  {data.maxBitrate.toFixed(0)} kbps
-                </Text>
-              </Text>
-            </>
-          )}
-        </Group>
-        {chartData.length > 0 ? (
-          <Box pos="relative">
-            <LineChart
-              h={200}
-              data={chartData}
-              dataKey="time"
-              series={[{ name: 'bitrate', label: 'Bitrate (kbps)', color: getLineColor() }]}
-              curveType="linear"
-              withDots={false}
-              yAxisProps={{ domain: [0, maxBitrate] }}
-              xAxisProps={{ domain: [0, durationMs], interval: Math.max(0, timeInterval - 1) }}
-              valueFormatter={(value) => `${value} kbps`}
-              gridAxis="xy"
-            />
-          </Box>
-        ) : (
-          <Text c="dimmed" ta="center" py="xl">
-            No bitrate data available
-          </Text>
-        )}
+            <Text fw={500}>{data.averageBitrate}</Text>
+          </Stack>
+          <Stack gap={2}>
+            <Text size="xs" c="dimmed">
+              Min Allowed Bitrate
+            </Text>
+            <Text fw={500}>{data.minAllowedBitrate}</Text>
+          </Stack>
+          <Stack gap={2}>
+            <Text size="xs" c="dimmed">
+              Max Allowed Bitrate
+            </Text>
+            <Text fw={500}>{data.maxAllowedBitrate}</Text>
+          </Stack>
+        </SimpleGrid>
 
         {/* Compliance Status */}
         {violations.hasViolations && (

@@ -26,11 +26,6 @@ public readonly struct BitrateAnalysisResult
     public double? MaxBitrate { get; init; }
 
     /// <summary>
-    /// Bitrate samples over time for visualization (time in ms, bitrate in kbps).
-    /// </summary>
-    public IEnumerable<BitrateDataPoint> BitrateOverTime { get; init; }
-
-    /// <summary>
     /// Whether the bitrate is within the acceptable range (128-208 kbps).
     /// </summary>
     public bool IsCompliant { get; init; }

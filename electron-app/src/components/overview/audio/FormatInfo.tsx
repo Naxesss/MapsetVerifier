@@ -47,7 +47,7 @@ function FormatInfo({ data, audioFilePath }: FormatInfoProps) {
         <Group gap="xs">
           <Text fw={600}>Format Information</Text>
           <Tooltip
-            label="Audio must be MP3 (.mp3) or Ogg Vorbis (.ogg) format with sample rate ≤ 48 kHz"
+            label="Format information describes the technical properties of an audio file that define how it is stored and played back."
             multiline
             w={250}
           >

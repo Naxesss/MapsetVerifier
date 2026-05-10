@@ -1,13 +1,4 @@
-﻿import {
-  Accordion,
-  Badge,
-  Box,
-  Group,
-  Stack,
-  Text,
-  Tooltip,
-  useMantineTheme,
-} from '@mantine/core';
+﻿import { Accordion, Badge, Box, Group, Stack, Text, Tooltip, useMantineTheme } from '@mantine/core';
 import {
   IconPlus,
   IconMinus,
@@ -108,7 +99,7 @@ function DiffLine({ diff }: { diff: ApiSnapshotDiff }) {
   );
 }
 
-function SectionAccordion({ key, section }: { key: string, section: ApiSnapshotSection }) {
+function SectionAccordion({ key, section }: { key: string; section: ApiSnapshotSection }) {
   const [activeDiffFilter, setActiveDiffFilter] = useState<DiffType | null>(null);
   const sortedDiffs = sortDiffsChronologically(section.diffs);
 
@@ -162,11 +153,12 @@ function SectionAccordion({ key, section }: { key: string, section: ApiSnapshotS
       </Accordion.Control>
       <Accordion.Panel>
         <Stack gap="xs">
-          {sortedDiffs.map((diff, index) => (
-            (activeDiffFilter === null || diff.diffType === activeDiffFilter) && (
-              <DiffLine key={`snapshot-${key}-${section.name}-${index}`} diff={diff} />
-            )
-          ))}
+          {sortedDiffs.map(
+            (diff, index) =>
+              (activeDiffFilter === null || diff.diffType === activeDiffFilter) && (
+                <DiffLine key={`snapshot-${key}-${section.name}-${index}`} diff={diff} />
+              )
+          )}
         </Stack>
       </Accordion.Panel>
     </Accordion.Item>
