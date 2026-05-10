@@ -95,9 +95,7 @@ function AudioOverview({ reloadFlag }: AudioOverviewProps) {
             {data.formatAnalysis && (
               <FormatInfo data={data.formatAnalysis} audioFilePath={data.audioFilePath} />
             )}
-            {data.bitrateAnalysis && (
-              <BitrateGraph data={data.bitrateAnalysis} durationMs={durationMs} />
-            )}
+            {data.bitrateAnalysis && <BitrateGraph data={data.bitrateAnalysis} />}
             <Spectrogram folder={folder} songFolder={settings.songFolder ?? ''} />
           </SimpleGrid>
 
