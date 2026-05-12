@@ -589,6 +589,8 @@ export type ObjectsOverviewDifficulty = {
   timelineObjects: ObjectsTimelineObject[];
   timingSegments: ObjectsTimingSegment[];
   snappings: ObjectsSnappingBucket[];
+  /** Populated by server analysis; omit if using an older API. */
+  unsnappedEdgeTimesMs?: number[];
 };
 
 export type ObjectsBreakPeriod = {
@@ -625,4 +627,6 @@ export type ObjectsSnappingBucket = {
   label: string;
   count: number;
   percentage: number;
+  /** Edge timestamps for this snap column; omit if using an older API. */
+  edgeTimesMs?: number[];
 };
