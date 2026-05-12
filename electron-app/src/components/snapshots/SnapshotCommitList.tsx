@@ -9,6 +9,7 @@
   Flex,
   ScrollArea,
   ActionIcon,
+  Tooltip,
 } from '@mantine/core';
 import {
   IconGitCommit,
@@ -141,7 +142,7 @@ function SnapshotCommitList({
         <IconChevronLeft size={20} />
       </ActionIcon>
       <ScrollArea
-        p="sm"
+        p="xs"
         bg={theme.colors.dark[8]}
         style={{ borderRadius: theme.radius.md, flex: 1 }}
         viewportRef={viewportRef}
@@ -163,36 +164,41 @@ function SnapshotCommitList({
                 }}
                 onClick={() => onSelectCommit(commit.id)}
                 style={{
-                  borderTop: `3px solid ${isSelected ? theme.colors.blue[6] : theme.colors.dark[5]}`,
+                  borderTop: `2px solid ${isSelected ? theme.colors.blue[6] : theme.colors.dark[5]}`,
                   backgroundColor: isSelected ? theme.colors.dark[6] : theme.colors.dark[7],
                   transition: 'all 0.15s ease',
                   borderRadius: theme.radius.sm,
-                  minWidth: '175px',
+                  minWidth: '145px',
                   flexShrink: 0,
                 }}
               >
-                <Box p="sm">
-                  <Stack gap="xs">
-                    <Group gap="xs" wrap="nowrap">
-                      <IconGitCommit
-                        size={18}
-                        color={isFirst ? theme.colors.green[5] : theme.colors.dark[3]}
-                        style={{ flexShrink: 0 }}
-                      />
-                      <Text size="sm" fw={500} truncate>
-                        {formatDate(commit.date)}
-                      </Text>
+                <Box px="xs" py={6}>
+                  <Stack gap="sm">
+                    <Group gap={6} wrap="nowrap" align="center">
+                      <Tooltip label="Latest Snapshot" disabled={!isFirst}>
+                        <Box style={{ display: 'flex', flexShrink: 0 }}>
+                          <IconGitCommit
+                            size={15}
+                            color={isFirst ? theme.colors.green[5] : theme.colors.dark[3]}
+                          />
+                        </Box>
+                      </Tooltip>
+                      <Group gap={4} wrap="nowrap" align="baseline" style={{ minWidth: 0, flex: 1 }}>
+                        <Text size="xs" fw={500} lh={1.1} truncate>
+                          {formatDate(commit.date)}
+                        </Text>
+                        <Text c="dimmed" fz="10px" lh={1.1} style={{ flexShrink: 0 }}>
+                          {formatTime(commit.date)}
+                        </Text>
+                      </Group>
                     </Group>
-                    <Text size="xs" c="dimmed">
-                      {formatTime(commit.date)}
-                    </Text>
-                    <Group gap="xs" wrap="nowrap">
+                    <Group gap={4} wrap="nowrap">
                       {commit.additions > 0 && (
                         <Badge
                           size="xs"
                           variant="light"
                           color="green"
-                          leftSection={<IconPlus size={10} />}
+                          leftSection={<IconPlus size={8} />}
                         >
                           {commit.additions}
                         </Badge>
@@ -202,7 +208,7 @@ function SnapshotCommitList({
                           size="xs"
                           variant="light"
                           color="red"
-                          leftSection={<IconMinus size={10} />}
+                          leftSection={<IconMinus size={8} />}
                         >
                           {commit.removals}
                         </Badge>
@@ -212,7 +218,7 @@ function SnapshotCommitList({
                           size="xs"
                           variant="light"
                           color="yellow"
-                          leftSection={<IconArrowsExchange size={10} />}
+                          leftSection={<IconArrowsExchange size={8} />}
                         >
                           {commit.modifications}
                         </Badge>
