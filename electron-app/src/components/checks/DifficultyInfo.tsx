@@ -12,6 +12,23 @@ interface DifficultyInfoProps {
   currentOverrideResult?: ApiCategoryOverrideCheckResult;
 }
 
+const getDifficultyBadgeColor = (difficulty: string) => {
+  switch (difficulty) {
+    case 'Easy':
+      return 'blue';
+    case 'Normal':
+      return 'green';
+    case 'Hard':
+      return 'yellow';
+    case 'Insane':
+      return 'red';
+    case 'Expert':
+      return 'grape';
+    default:
+      return 'grape';
+  }
+};
+
 function DifficultyInfo({
   hoveredDifficulty,
   selectedCategory,
@@ -32,7 +49,13 @@ function DifficultyInfo({
         />
         <Text maw="60%">{hoveredDifficulty.category}</Text>
         {hoveredDifficulty.difficultyLevel && (
-          <Badge size="xs" color="grape" variant="light">
+          <Badge
+            size="xs"
+            color={getDifficultyBadgeColor(
+              currentOverrideResult?.categoryResult.difficultyLevel ?? hoveredDifficulty.difficultyLevel,
+            )}
+            variant="light"
+          >
             {currentOverrideResult ? (
               <DifficultyName
                 difficulty={currentOverrideResult.categoryResult.difficultyLevel}
