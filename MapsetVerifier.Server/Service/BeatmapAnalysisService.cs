@@ -435,7 +435,10 @@ public static class BeatmapAnalysisService
             .ToList();
 
         var snappingCounts = SupportedSnapDivisors.ToDictionary(divisor => divisor, _ => 0);
-        var snappingEdgeTimes = SupportedSnapDivisors.ToDictionary(divisor => divisor, _ => new List<double>());
+        var snappingEdgeTimes = SupportedSnapDivisors.ToDictionary(
+            divisor => divisor,
+            _ => new List<double>()
+        );
         var edgeCount = 0;
         var unsnappedCount = 0;
         var unsnappedEdgeTimes = new List<double>();
