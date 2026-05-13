@@ -38,6 +38,7 @@ public class ObjectsOverviewDifficulty
     public List<ObjectsTimelineObject> TimelineObjects { get; set; } = [];
     public List<ObjectsTimingSegment> TimingSegments { get; set; } = [];
     public List<ObjectsSnappingBucket> Snappings { get; set; } = [];
+    public List<double> UnsnappedEdgeTimesMs { get; set; } = [];
 }
 
 public class ObjectsBreakPeriod
@@ -79,4 +80,5 @@ public class ObjectsSnappingBucket
     public string Label { get; set; } = string.Empty;
     public int Count { get; set; }
     public double Percentage { get; set; }
+    public List<double> EdgeTimesMs { get; set; } = [];
 }

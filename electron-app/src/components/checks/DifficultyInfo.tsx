@@ -1,4 +1,4 @@
-﻿import { Badge, Flex, Text } from '@mantine/core';
+﻿import { Badge, Flex, Text, Tooltip } from '@mantine/core';
 import { ApiCategoryCheckResult, ApiCategoryOverrideCheckResult, Level } from '../../Types';
 import DifficultyName from '../common/DifficultyName';
 import StarRatingBadge from '../common/StarRatingBadge.tsx';
@@ -11,6 +11,23 @@ interface DifficultyInfoProps {
   categoryHighestLevels: Record<string, Level>;
   currentOverrideResult?: ApiCategoryOverrideCheckResult;
 }
+
+const getDifficultyBadgeColor = (difficulty: string) => {
+  switch (difficulty) {
+    case 'Easy':
+      return 'blue';
+    case 'Normal':
+      return 'green';
+    case 'Hard':
+      return 'yellow';
+    case 'Insane':
+      return 'red';
+    case 'Expert':
+      return 'grape';
+    default:
+      return 'grape';
+  }
+};
 
 function DifficultyInfo({
   hoveredDifficulty,
@@ -32,19 +49,27 @@ function DifficultyInfo({
         />
         <Text maw="60%">{hoveredDifficulty.category}</Text>
         {hoveredDifficulty.difficultyLevel && (
-          <Badge size="xs" color="grape" variant="light">
-            {currentOverrideResult ? (
-              <DifficultyName
-                difficulty={currentOverrideResult.categoryResult.difficultyLevel}
-                mode={currentOverrideResult.categoryResult.mode}
-              />
-            ) : (
-              <DifficultyName
-                difficulty={hoveredDifficulty.difficultyLevel}
-                mode={hoveredDifficulty.mode}
-              />
-            )}
-          </Badge>
+          <Tooltip label="Interpreted difficulty level">
+            <Badge
+              size="xs"
+              color={getDifficultyBadgeColor(
+                currentOverrideResult?.categoryResult.difficultyLevel ?? hoveredDifficulty.difficultyLevel,
+              )}
+              variant="light"
+            >
+              {currentOverrideResult ? (
+                <DifficultyName
+                  difficulty={currentOverrideResult.categoryResult.difficultyLevel}
+                  mode={currentOverrideResult.categoryResult.mode}
+                />
+              ) : (
+                <DifficultyName
+                  difficulty={hoveredDifficulty.difficultyLevel}
+                  mode={hoveredDifficulty.mode}
+                />
+              )}
+            </Badge>
+          </Tooltip>
         )}
         {hoveredDifficulty.starRating != null && hoveredDifficulty.starRating > 0 && (
           <StarRatingBadge rating={hoveredDifficulty.starRating} />

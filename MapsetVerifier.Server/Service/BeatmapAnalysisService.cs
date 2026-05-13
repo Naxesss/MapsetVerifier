@@ -435,8 +435,13 @@ public static class BeatmapAnalysisService
             .ToList();
 
         var snappingCounts = SupportedSnapDivisors.ToDictionary(divisor => divisor, _ => 0);
+        var snappingEdgeTimes = SupportedSnapDivisors.ToDictionary(
+            divisor => divisor,
+            _ => new List<double>()
+        );
         var edgeCount = 0;
         var unsnappedCount = 0;
+        var unsnappedEdgeTimes = new List<double>();
 
         foreach (var hitObject in beatmap.HitObjects)
         {
@@ -453,6 +458,7 @@ public static class BeatmapAnalysisService
                 if (unsnapIssue != null)
                 {
                     unsnappedCount++;
+                    unsnappedEdgeTimes.Add(edgeTime);
                     continue;
                 }
 
@@ -460,6 +466,7 @@ public static class BeatmapAnalysisService
                 if (snappingCounts.ContainsKey(divisor))
                 {
                     snappingCounts[divisor]++;
+                    snappingEdgeTimes[divisor].Add(edgeTime);
                 }
             }
         }
@@ -478,6 +485,7 @@ public static class BeatmapAnalysisService
             BreakPeriods = breakPeriods,
             TimelineObjects = timelineObjects,
             TimingSegments = timingSegments,
+            UnsnappedEdgeTimesMs = unsnappedEdgeTimes,
             Snappings = SupportedSnapDivisors
                 .Select(divisor => new ObjectsSnappingBucket
                 {
@@ -486,6 +494,7 @@ public static class BeatmapAnalysisService
                     Count = snappingCounts[divisor],
                     Percentage =
                         edgeCount > 0 ? snappingCounts[divisor] * 100d / totalSnapPoints : 0,
+                    EdgeTimesMs = snappingEdgeTimes[divisor],
                 })
                 .ToList(),
         };
