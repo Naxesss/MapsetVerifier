@@ -22,8 +22,8 @@
 	"scripts": {
 		"postinstall": "install-app-deps",
 		"start": "npm install && electron ./app",
-		"dist": "electron-builder --x64 -w",
-		"dist-all": "electron-builder --ia32 --x64 -wl",
+		"dist": "electron-builder --x64 -w --publish never",
+		"dist-all": "electron-builder --ia32 --x64 -wl --publish never",
 		"release": "build -wl"
 	},
 	"build": {
@@ -67,7 +67,7 @@
 					]
 				}
 			],
-			"icon": "build/icon.ico",
+			"icon": "icon.ico",
 			"files": [
 				"!**/linux-x64/*"
 			]
@@ -80,8 +80,8 @@
 			"allowElevation": true,
 			"allowToChangeInstallationDirectory": true,
 			"artifactName": "${productName} Installer.exe",
-			"installerIcon": "build/icon.ico",
-      			"installerHeaderIcon": "build/icon.ico"
+			"installerIcon": "icon.ico",
+			"installerHeaderIcon": "icon.ico"
 		}
 	}
 }

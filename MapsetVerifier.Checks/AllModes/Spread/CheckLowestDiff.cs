@@ -71,7 +71,7 @@ namespace MapsetVerifier.Checks.AllModes.Spread
 
             switch (mode)
             {
-                case Beatmap.Mode.Osu:
+                case Beatmap.Mode.Standard:
                     hardThreshold = CreateThreshold(3, 30);
                     insaneThreshold = CreateThreshold(4, 15);
                     expertThreshold = CreateThreshold(5, 0);
@@ -89,6 +89,8 @@ namespace MapsetVerifier.Checks.AllModes.Spread
                     insaneThreshold = CreateThreshold(2, 45);
                     expertThreshold = CreateThreshold(3, 30);
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
                 
                 var modeBeatmaps = modeBeatmapGroup.ToList();
