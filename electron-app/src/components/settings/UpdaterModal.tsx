@@ -2,19 +2,16 @@ import {
   Alert,
   Button,
   Divider,
+  Flex,
   Group,
+  Loader,
   Modal,
   Progress,
   ScrollArea,
   Stack,
   Text,
 } from '@mantine/core';
-import {
-  IconAlertCircle,
-  IconCircleCheck,
-  IconCloudDownload,
-  IconLoader2,
-} from '@tabler/icons-react';
+import { IconAlertCircle, IconCircleCheck, IconCloudDownload } from '@tabler/icons-react';
 import React from 'react';
 import { useUpdater } from '../../context/UpdaterContext';
 import MantineMarkdown from '../documentation/MantineMarkdown';
@@ -36,7 +33,6 @@ function formatBytes(value?: number | null) {
 const UpdaterModal: React.FC = () => {
   const {
     opened,
-    currentVersion,
     status,
     availableUpdate,
     errorMessage,
@@ -54,24 +50,31 @@ const UpdaterModal: React.FC = () => {
 
   return (
     <Modal
+      zIndex={400}
       opened={opened}
       onClose={busy ? () => undefined : closeUpdater}
       title="Application updates"
-      yOffset="120px"
-      size="lg"
+      centered
       closeOnClickOutside={!busy}
       closeOnEscape={!busy}
       withCloseButton={!busy}
     >
       <Stack gap="md">
-        <Text size="sm" c="dimmed">
-          Installed version: {currentVersion}
-        </Text>
-
         {status === 'checking' && (
-          <Alert icon={<IconLoader2 />} color="blue">
-            Checking GitHub Releases for a newer version…
-          </Alert>
+          <Flex direction="column" align="center" gap="md">
+            <Loader
+              size="lg"
+              style={{
+                opacity: 0.22,
+                color: 'var(--mantine-color-primary-2)',
+                userSelect: 'none',
+                pointerEvents: 'none',
+              }}
+            />
+            <Text fw={600} mb="sm">
+              Checking GitHub Releases for a newer version…
+            </Text>
+          </Flex>
         )}
 
         {status === 'up-to-date' && (

@@ -83,7 +83,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
 
   return (
     <>
-      <Modal opened={opened} onClose={onClose} title="Settings" yOffset="120px" size="lg">
+      <Modal
+        zIndex={300}
+        opened={opened}
+        onClose={onClose}
+        title="Settings"
+        yOffset="120px"
+        size="lg"
+      >
         <Stack gap="md">
           <Group align="flex-end" gap="sm">
             <TextInput

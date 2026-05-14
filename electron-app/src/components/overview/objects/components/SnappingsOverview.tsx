@@ -10,21 +10,24 @@ import {
   Title,
   UnstyledButton,
   useMantineTheme,
-} from "@mantine/core";
-import { CSSProperties, Fragment, type ReactNode, useMemo } from "react";
-import { formatGameModeLabel, getModeAccentColor } from "../../../../utils/gameMode";
-import AppTable, { DifficultyTableCell, DifficultyTableHeaderCell } from "../../../common/AppTable.tsx";
-import OsuLink from "../../../common/OsuLink.tsx";
-import GameModeIcon from "../../../icons/GameModeIcon.tsx";
-import { formatEditorTimestamp, getSnappingColumns } from "../timelineUtils.ts";
-import type { ObjectsModeGroup } from "../types.ts";
+} from '@mantine/core';
+import { CSSProperties, Fragment, type ReactNode, useMemo } from 'react';
+import { formatGameModeLabel, getModeAccentColor } from '../../../../utils/gameMode';
+import AppTable, {
+  DifficultyTableCell,
+  DifficultyTableHeaderCell,
+} from '../../../common/AppTable.tsx';
+import OsuLink from '../../../common/OsuLink.tsx';
+import GameModeIcon from '../../../icons/GameModeIcon.tsx';
+import { formatEditorTimestamp, getSnappingColumns } from '../timelineUtils.ts';
+import type { ObjectsModeGroup } from '../types.ts';
 
 function buildOsuTimestampLinkText(timesMs: number[]) {
-  if (timesMs.length === 0) return "";
+  if (timesMs.length === 0) return '';
   return [...timesMs]
     .sort((a, b) => a - b)
     .map((ms) => `${formatEditorTimestamp(ms)} -`)
-    .join("\n");
+    .join('\n');
 }
 
 function EdgeTimesPopover({
@@ -53,27 +56,28 @@ function EdgeTimesPopover({
           type="button"
           p={0}
           style={{
-            width: fullWidth ? "100%" : "auto",
-            display: fullWidth ? "block" : "inline-flex",
-            textAlign: "inherit",
-            verticalAlign: "inherit",
+            width: fullWidth ? '100%' : 'auto',
+            display: fullWidth ? 'block' : 'inline-flex',
+            textAlign: 'inherit',
+            verticalAlign: 'inherit',
             borderRadius: fullWidth ? undefined : 12,
-            transition: hoverHighlightColor ? "background-color 120ms" : undefined,
+            transition: hoverHighlightColor ? 'background-color 120ms' : undefined,
           }}
           onMouseEnter={
             hoverHighlightColor
               ? (event) => {
-                event.currentTarget.style.backgroundColor = hoverHighlightColor;
-              }
+                  event.currentTarget.style.backgroundColor = hoverHighlightColor;
+                }
               : undefined
           }
           onMouseLeave={
             hoverHighlightColor
               ? (event) => {
-                event.currentTarget.style.backgroundColor = "";
-              }
+                  event.currentTarget.style.backgroundColor = '';
+                }
               : undefined
-          }>
+          }
+        >
           {children}
         </UnstyledButton>
       </Popover.Target>
@@ -82,7 +86,7 @@ function EdgeTimesPopover({
           {title}
         </Text>
         <ScrollArea.Autosize mah={280} type="auto" offsetScrollbars>
-          <Text size="sm" component="div" style={{ whiteSpace: "pre-wrap" }}>
+          <Text size="sm" component="div" style={{ whiteSpace: 'pre-wrap' }}>
             <OsuLink text={linkText} disableSeparators />
           </Text>
         </ScrollArea.Autosize>
@@ -94,7 +98,7 @@ function EdgeTimesPopover({
 function SnappingTableValue({ count, percentage }: { count: number; percentage: number }) {
   return (
     <Stack gap={0}>
-      <Text size="sm" fw={600} c={count === 0 ? "dimmed" : undefined}>
+      <Text size="sm" fw={600} c={count === 0 ? 'dimmed' : undefined}>
         {count.toLocaleString()}
       </Text>
       <Text size="xs" c="dimmed">
@@ -114,7 +118,7 @@ function SnappingStatusBadge({
   style?: CSSProperties;
 }) {
   return (
-    <Badge color={count > 0 ? "yellow" : "green"} variant="light" style={style}>
+    <Badge color={count > 0 ? 'yellow' : 'green'} variant="light" style={style}>
       {count.toLocaleString()} ({percentage.toFixed(1)}%)
     </Badge>
   );
@@ -133,7 +137,8 @@ export default function SnappingsOverview({
 }: SnappingsOverviewProps) {
   const theme = useMantineTheme();
   const clickableCellHoverColor = theme.colors.dark[4];
-  const totalUnsnappedPercentage = totalEdgeCount > 0 ? (totalUnsnappedCount * 100) / totalEdgeCount : 0;
+  const totalUnsnappedPercentage =
+    totalEdgeCount > 0 ? (totalUnsnappedCount * 100) / totalEdgeCount : 0;
   const difficulties = groupedDifficulties.flatMap((group) => group.difficulties);
   const snappingColumns = getSnappingColumns(difficulties);
 
@@ -147,7 +152,7 @@ export default function SnappingsOverview({
               Click on a cell to see all timestamps for that snapping.
             </Text>
           </Stack>
-          <Badge color={totalUnsnappedCount > 0 ? "yellow" : "green"} variant="light">
+          <Badge color={totalUnsnappedCount > 0 ? 'yellow' : 'green'} variant="light">
             Unsnapped: {totalUnsnappedCount.toLocaleString()} ({totalUnsnappedPercentage.toFixed(1)}
             %)
           </Badge>
@@ -157,14 +162,14 @@ export default function SnappingsOverview({
             <Table.Tr>
               <DifficultyTableHeaderCell>Difficulty</DifficultyTableHeaderCell>
               <Table.Th>Mode</Table.Th>
-              <Table.Th style={{ textAlign: "center" }}>Objects</Table.Th>
-              <Table.Th style={{ textAlign: "center" }}>Edges</Table.Th>
+              <Table.Th style={{ textAlign: 'center' }}>Objects</Table.Th>
+              <Table.Th style={{ textAlign: 'center' }}>Edges</Table.Th>
               {snappingColumns.map((column) => (
-                <Table.Th key={column.label} style={{ textAlign: "center" }}>
+                <Table.Th key={column.label} style={{ textAlign: 'center' }}>
                   {column.label}
                 </Table.Th>
               ))}
-              <Table.Th style={{ textAlign: "center" }}>Unsnapped</Table.Th>
+              <Table.Th style={{ textAlign: 'center' }}>Unsnapped</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -202,7 +207,7 @@ export default function SnappingsOverview({
                     </Table.Td>
                     {snappingColumns.map((column) => {
                       const bucket = difficulty.snappings.find(
-                        (candidate) => candidate.label === column.label,
+                        (candidate) => candidate.label === column.label
                       );
                       const timesMs = bucket?.edgeTimesMs ?? [];
                       const count = bucket?.count ?? 0;
@@ -211,27 +216,29 @@ export default function SnappingsOverview({
                         <Table.Td
                           key={`${difficulty.mode}-${difficulty.version}-${column.label}`}
                           style={{
-                            cursor: isClickable ? "pointer" : undefined,
-                            transition: isClickable ? "background-color 120ms" : undefined,
+                            cursor: isClickable ? 'pointer' : undefined,
+                            transition: isClickable ? 'background-color 120ms' : undefined,
                           }}
                           onMouseEnter={
                             isClickable
                               ? (event) => {
-                                event.currentTarget.style.backgroundColor =
-                                  clickableCellHoverColor;
-                              }
+                                  event.currentTarget.style.backgroundColor =
+                                    clickableCellHoverColor;
+                                }
                               : undefined
                           }
                           onMouseLeave={
                             isClickable
                               ? (event) => {
-                                event.currentTarget.style.backgroundColor = "";
-                              }
+                                  event.currentTarget.style.backgroundColor = '';
+                                }
                               : undefined
-                          }>
+                          }
+                        >
                           <EdgeTimesPopover
                             title={`${column.label} snaps · ${difficulty.version}`}
-                            timesMs={timesMs}>
+                            timesMs={timesMs}
+                          >
                             <SnappingTableValue
                               count={count}
                               percentage={bucket?.percentage ?? 0}
@@ -244,22 +251,24 @@ export default function SnappingsOverview({
                       style={{
                         cursor:
                           (difficulty.unsnappedEdgeTimesMs?.length ?? 0) > 0
-                            ? "pointer"
+                            ? 'pointer'
                             : undefined,
-                      }}>
+                      }}
+                    >
                       <Group justify="center" wrap="nowrap">
                         <EdgeTimesPopover
                           title={`Unsnapped objects · ${difficulty.version}`}
                           timesMs={difficulty.unsnappedEdgeTimesMs ?? []}
                           fullWidth={false}
-                          hoverHighlightColor={clickableCellHoverColor}>
+                          hoverHighlightColor={clickableCellHoverColor}
+                        >
                           <SnappingStatusBadge
                             count={difficulty.unsnappedCount}
                             percentage={difficulty.unsnappedPercentage}
                             style={{
                               cursor:
                                 (difficulty.unsnappedEdgeTimesMs?.length ?? 0) > 0
-                                  ? "pointer"
+                                  ? 'pointer'
                                   : undefined,
                             }}
                           />

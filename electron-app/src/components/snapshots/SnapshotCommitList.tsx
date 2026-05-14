@@ -183,7 +183,12 @@ function SnapshotCommitList({
                           />
                         </Box>
                       </Tooltip>
-                      <Group gap={4} wrap="nowrap" align="baseline" style={{ minWidth: 0, flex: 1 }}>
+                      <Group
+                        gap={4}
+                        wrap="nowrap"
+                        align="baseline"
+                        style={{ minWidth: 0, flex: 1 }}
+                      >
                         <Text size="xs" fw={500} lh={1.1} truncate>
                           {formatDate(commit.date)}
                         </Text>

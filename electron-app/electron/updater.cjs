@@ -54,9 +54,14 @@ function registerUpdater(getMainWindow) {
   autoUpdater.on('error', (err) => send('updater:error', err && err.message ? err.message : String(err)));
 
   if (!app.isPackaged) {
-    // Fake update for testing
+    // In development, simulate the event flow so the renderer state machine works.
     ipcMain.handle('updater:check', async () => {
-      return { version: app.getVersion(), fake: true };
+      console.info('[Updater] Mocking updater');
+      send('updater:checking');
+      setTimeout(() => {
+        send('updater:not-available', null);
+      }, 300);
+      return null;
     });
   } else {
     ipcMain.handle('updater:check', async () => {

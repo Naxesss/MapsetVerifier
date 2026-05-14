@@ -53,7 +53,8 @@ function DifficultyInfo({
             <Badge
               size="xs"
               color={getDifficultyBadgeColor(
-                currentOverrideResult?.categoryResult.difficultyLevel ?? hoveredDifficulty.difficultyLevel,
+                currentOverrideResult?.categoryResult.difficultyLevel ??
+                  hoveredDifficulty.difficultyLevel
               )}
               variant="light"
             >
