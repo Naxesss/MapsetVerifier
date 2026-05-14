@@ -8,6 +8,8 @@
   Alert,
   Divider,
   Text,
+  Badge,
+  Tooltip,
 } from '@mantine/core';
 import { IconAlertTriangle, IconFolder, IconNote, IconRefresh } from '@tabler/icons-react';
 import React, { useEffect, useState } from 'react';
@@ -81,6 +83,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
       .catch(() => setCurrentVersion('unknown'));
   }, []);
 
+  const renderExperimentalLabel = (label: string) => (
+    <Group gap="xs" align="center" wrap="nowrap">
+      <Text size="sm">{label}</Text>
+      <Tooltip label="Experimental" withArrow>
+        <Badge
+          size="xs"
+          radius="xl"
+          variant="light"
+          color="yellow"
+          px={6}
+          aria-label="Experimental setting"
+          leftSection={<IconAlertTriangle size={11} />}
+        />
+      </Tooltip>
+    </Group>
+  );
+
   return (
     <>
       <Modal
@@ -128,7 +147,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
             }}
           />
           <Switch
-            label="Show advanced audio analysis"
+            label={renderExperimentalLabel('Show advanced audio analysis')}
             checked={showAdvancedAudioAnalysis}
             onChange={(e) => {
               const checked = e.currentTarget.checked;
@@ -148,17 +167,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
             }}
           />
           <Switch
-            label={
-              <Group gap="xs" align="center">
-                <IconAlertTriangle size={16} color="var(--mantine-color-yellow-5)" />
-                <Group gap="sm">
-                  <Text size="xs" c="yellow">
-                    experimental
-                  </Text>
-                  <Text size="sm">osu!(lazer) support</Text>
-                </Group>
-              </Group>
-            }
+            label={renderExperimentalLabel('osu!(lazer) support')}
             checked={lazerLookupEnabled}
             onChange={(e) => {
               const checked = e.currentTarget.checked;
