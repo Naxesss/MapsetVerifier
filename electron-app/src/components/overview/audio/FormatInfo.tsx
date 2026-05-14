@@ -12,11 +12,13 @@
   Box,
 } from '@mantine/core';
 import { IconCheck, IconX, IconAlertTriangle, IconInfoCircle } from '@tabler/icons-react';
-import { FormatAnalysisResult } from '../../../Types';
+import BitrateProgressIndicator from './BitrateProgressIndicator.tsx';
+import { BitrateAnalysisResult, FormatAnalysisResult } from '../../../Types';
 
 interface FormatInfoProps {
   data: FormatAnalysisResult;
   audioFilePath: string;
+  bitrateData?: BitrateAnalysisResult | null;
 }
 
 function getBadgeColor(badgeType: string): string {
@@ -32,7 +34,7 @@ function getBadgeColor(badgeType: string): string {
   }
 }
 
-function FormatInfo({ data, audioFilePath }: FormatInfoProps) {
+function FormatInfo({ data, audioFilePath, bitrateData }: FormatInfoProps) {
   const theme = useMantineTheme();
 
   // Check if sample rate exceeds 48 kHz
@@ -121,6 +123,38 @@ function FormatInfo({ data, audioFilePath }: FormatInfoProps) {
           </Text>
         </Stack>
       </SimpleGrid>
+
+      {bitrateData && (
+        <>
+          <Group justify="space-between" mb="xs">
+            <Group gap="xs">
+              <Text fw={600} size="sm">
+                Bitrate
+              </Text>
+              <Tooltip
+                label="Bitrate represents the amount of data used per second of audio. Higher bitrates generally preserve more detail but result in larger file sizes."
+                multiline
+                w={250}
+              >
+                <IconInfoCircle size={14} style={{ color: theme.colors.gray[6], cursor: 'help' }} />
+              </Tooltip>
+            </Group>
+            <Group gap="xs">
+              <Badge color={bitrateData.isCompliant ? 'green' : 'red'} variant="light">
+                {bitrateData.isCompliant ? 'Compliant' : 'Non-Compliant'}
+              </Badge>
+              {bitrateData.isVbr && (
+                <Badge color="blue" variant="light">
+                  VBR
+                </Badge>
+              )}
+            </Group>
+          </Group>
+          <Box p="sm" mb="md" bg={theme.colors.dark[6]} style={{ borderRadius: theme.radius.sm }}>
+            <BitrateProgressIndicator bitrateData={bitrateData} />
+          </Box>
+        </>
+      )}
 
       {/* Format Requirements Summary */}
       <Box p="xs" mb="md" bg={theme.colors.dark[6]} style={{ borderRadius: theme.radius.sm }}>
