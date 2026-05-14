@@ -45,17 +45,19 @@ jobs:
             exit 1
           fi
 
-          TAG_NAME="${GIT_TAG#v}"
+          # strip leading v for display only
+          CLEAN_TAG="${GIT_TAG#v}"
 
-          if [[ "$TAG_NAME" == *-* ]]; then
+          # prerelease detection (robust)
+          if [[ "$CLEAN_TAG" =~ (rc|beta|alpha|pre|preview) ]]; then
             PRERELEASE=true
           else
             PRERELEASE=false
           fi
-
+  
           echo "git_tag=$GIT_TAG" >> "$GITHUB_OUTPUT"
-          echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
-          echo "release_name=Mapset Verifier $TAG_NAME" >> "$GITHUB_OUTPUT"
+          echo "tag_name=$CLEAN_TAG" >> "$GITHUB_OUTPUT"
+          echo "release_name=Mapset Verifier $GIT_TAG" >> "$GITHUB_OUTPUT"
           echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
 
   build-sidecar:
@@ -217,4 +219,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           EP_DRAFT: 'true'
           EP_PRE_RELEASE: ${{ needs.resolve-release.outputs.prerelease }}
-        run: npx electron-builder ${{ matrix.builder_args }}
+        run: npx electron-builder ${{ matrix.builder_args }} --config.extraMetadata.version=${{ needs.resolve-release.outputs.tag_name }}
