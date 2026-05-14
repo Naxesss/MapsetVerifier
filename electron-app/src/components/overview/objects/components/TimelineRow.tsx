@@ -1,11 +1,11 @@
-import { Box, useMantineTheme } from '@mantine/core';
-import { useContext, useMemo, useState } from 'react';
-import TimelineObjectContextMenu from './TimelineObjectContextMenu.tsx';
-import AutoResizeCanvas from '../../../common/AutoResizeCanvas.tsx';
-import { TimelineTileVisibilityContext } from '../context/TimelineTileVisibilityContext.tsx';
-import { drawTimelineRow, getTimelineTimestampAtX } from '../timelineDrawing.ts';
-import { formatEditorTimestamp, getTimelineCanvasTiles, getTimelineX } from '../timelineUtils.ts';
-import type { ObjectsOverviewDifficulty } from '../../../../Types';
+import { Box, useMantineTheme } from "@mantine/core";
+import { useContext, useMemo, useState } from "react";
+import TimelineObjectContextMenu from "./TimelineObjectContextMenu.tsx";
+import AutoResizeCanvas from "../../../common/AutoResizeCanvas.tsx";
+import { TimelineTileVisibilityContext } from "../context/TimelineTileVisibilityContext.tsx";
+import { drawTimelineRow, getTimelineTimestampAtX } from "../timelineDrawing.ts";
+import { formatEditorTimestamp, getTimelineCanvasTiles, getTimelineX } from "../timelineUtils.ts";
+import type { ObjectsOverviewDifficulty } from "../../../../Types";
 
 interface TimelineRowProps {
   difficulty: ObjectsOverviewDifficulty;
@@ -15,13 +15,7 @@ interface TimelineRowProps {
   height: number;
 }
 
-export default function TimelineRow({
-  difficulty,
-  startTimeMs,
-  endTimeMs,
-  width,
-  height,
-}: TimelineRowProps) {
+export default function TimelineRow({ difficulty, startTimeMs, endTimeMs, width, height }: TimelineRowProps) {
   const theme = useMantineTheme();
   const tileVisibility = useContext(TimelineTileVisibilityContext);
   const canvasTiles = useMemo(() => getTimelineCanvasTiles(width), [width]);
@@ -78,30 +72,21 @@ export default function TimelineRow({
   };
 
   const selectedTimestampX = contextMenuState
-    ? getTimelineX(
-        contextMenuState.timestampMs,
-        startTimeMs,
-        Math.max(1, endTimeMs - startTimeMs),
-        width
-      )
+    ? getTimelineX(contextMenuState.timestampMs, startTimeMs, Math.max(1, endTimeMs - startTimeMs), width)
     : undefined;
 
   return (
-    <Box
-      onContextMenu={handleContextMenu}
-      style={{ position: 'relative', width, height, overflow: 'hidden' }}
-    >
+    <Box onContextMenu={handleContextMenu} style={{ position: "relative", width, height, overflow: "hidden" }}>
       {canvasTiles.map((tile, tileIndex) => (
         <Box
           key={tile.startX}
           style={{
-            position: 'absolute',
+            position: "absolute",
             left: tile.startX,
             top: 0,
             width: tile.width,
             height,
-          }}
-        >
+          }}>
           {canvasVisible(tileIndex) ? (
             <AutoResizeCanvas
               fixedWidth={tile.width}
@@ -126,8 +111,8 @@ export default function TimelineRow({
         <>
           <Box
             style={{
-              pointerEvents: 'none',
-              position: 'absolute',
+              pointerEvents: "none",
+              position: "absolute",
               left: selectedTimestampX ?? undefined,
               top: 0,
               bottom: 0,
@@ -139,14 +124,14 @@ export default function TimelineRow({
           />
           <Box
             style={{
-              pointerEvents: 'none',
-              position: 'absolute',
+              pointerEvents: "none",
+              position: "absolute",
               left: selectedTimestampX ?? undefined,
-              top: '50%',
+              top: "50%",
               width: 12,
               height: 12,
-              borderRadius: '50%',
-              transform: 'translate(-50%, -50%)',
+              borderRadius: "50%",
+              transform: "translate(-50%, -50%)",
               border: `2px solid ${theme.colors.blue[1]}`,
               background: theme.colors.blue[6],
               boxShadow: `0 0 0 2px ${theme.colors.blue[8]}, 0 0 14px ${theme.colors.blue[7]}`,
