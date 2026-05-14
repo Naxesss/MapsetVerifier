@@ -1,10 +1,9 @@
 const { ipcMain, app } = require('electron');
 const { autoUpdater } = require('electron-updater');
 
-// Pre-release if current version ends with a non-digit (e.g. 1.1.0-a).
-function isPreRelease() {
-  const v = app.getVersion();
-  return v.length > 0 && !/[0-9]/.test(v.slice(-1));
+function isPreReleaseVersion(version) {
+  if (!version || typeof version !== 'string') return false;
+  return version.split('+', 1)[0].includes('-');
 }
 
 function forwardingEnabled(getMainWindow) {
@@ -23,6 +22,19 @@ function serializeUpdateInfo(info) {
   };
 }
 
+function applyUpdatePreferences(options) {
+  const currentIsPreRelease = isPreReleaseVersion(app.getVersion());
+  const allowPrerelease =
+    options && typeof options.allowPrerelease === 'boolean'
+      ? options.allowPrerelease
+      : currentIsPreRelease;
+
+  autoUpdater.allowPrerelease = allowPrerelease;
+  autoUpdater.allowDowngrade = allowPrerelease || currentIsPreRelease;
+
+  return { allowPrerelease, currentIsPreRelease };
+}
+
 function registerUpdater(getMainWindow) {
   const getWin = forwardingEnabled(getMainWindow);
   
@@ -34,7 +46,7 @@ function registerUpdater(getMainWindow) {
   // Never auto-download; the renderer drives the flow via installUpdate().
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = true;
-  autoUpdater.allowPrerelease = isPreRelease();
+  applyUpdatePreferences();
 
   const send = (channel, payload) => {
     const w = getWin();
@@ -55,7 +67,8 @@ function registerUpdater(getMainWindow) {
 
   if (!app.isPackaged) {
     // In development, simulate the event flow so the renderer state machine works.
-    ipcMain.handle('updater:check', async () => {
+    ipcMain.handle('updater:check', async (_event, options) => {
+      applyUpdatePreferences(options);
       console.info('[Updater] Mocking updater');
       send('updater:checking');
       setTimeout(() => {
@@ -64,10 +77,12 @@ function registerUpdater(getMainWindow) {
       return null;
     });
   } else {
-    ipcMain.handle('updater:check', async () => {
+    ipcMain.handle('updater:check', async (_event, options) => {
       console.info('[Updater] IPC check received');
 
       try {
+        const preferences = applyUpdatePreferences(options);
+        console.info('[Updater] preferences applied', preferences);
         console.info('[Updater] calling checkForUpdates');
         const result = await autoUpdater.checkForUpdates();
         console.info('[Updater] checkForUpdates returned');

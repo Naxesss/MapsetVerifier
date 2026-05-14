@@ -26,7 +26,7 @@ interface SettingsModalProps {
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
   const { settings, setSettings } = useSettings();
-  const { openUpdater } = useUpdater();
+  const { checkForUpdates, openUpdater, currentVersion, currentVersionIsPrerelease } = useUpdater();
   const [songFolder, setSongFolder] = useState(settings.songFolder ?? '');
   const [showMinor, setShowMinor] = useState(settings.showMinor);
   const [showGamemodeDifficultyNames, setShowGamemodeDifficultyNames] = useState(
@@ -36,6 +36,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
     settings.showAdvancedAudioAnalysis
   );
   const [lazerLookupEnabled, setLazerLookupEnabled] = useState(settings.lazerLookupEnabled);
+  const [receivePrereleases, setReceivePrereleases] = useState(settings.receivePrereleases);
   const [gateInDev, setGateInDev] = useState(settings.gateInDev);
   const [lazerWarningOpened, setLazerWarningOpened] = useState(false);
   const [advancedAudioConfirmOpened, setAdvancedAudioConfirmOpened] = useState(false);
@@ -48,6 +49,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
       setShowGamemodeDifficultyNames(settings.showGamemodeDifficultyNames);
       setShowAdvancedAudioAnalysis(settings.showAdvancedAudioAnalysis);
       setLazerLookupEnabled(settings.lazerLookupEnabled);
+      setReceivePrereleases(settings.receivePrereleases);
       setGateInDev(settings.gateInDev);
     }
   }, [
@@ -57,6 +59,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
     settings.showGamemodeDifficultyNames,
     settings.showAdvancedAudioAnalysis,
     settings.lazerLookupEnabled,
+    settings.receivePrereleases,
     settings.gateInDev,
   ]);
 
@@ -75,13 +78,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
   };
 
   const isDev = import.meta.env.DEV;
-  const [currentVersion, setCurrentVersion] = useState<string>('unknown');
-  useEffect(() => {
-    window.electronAPI
-      ?.getVersion()
-      .then(setCurrentVersion)
-      .catch(() => setCurrentVersion('unknown'));
-  }, []);
 
   const renderExperimentalLabel = (label: string) => (
     <Group gap="xs" align="center" wrap="nowrap">
@@ -197,6 +193,27 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
               Check for updates
             </Button>
           </Group>
+          <Switch
+            label="Receive pre-release updates"
+            description={
+              receivePrereleases
+                ? 'Includes release candidates like 2.0.0-RC.1 when available.'
+                : currentVersionIsPrerelease
+                  ? 'Only stable releases will be offered. Use Check for updates to return to stable when one is available.'
+                  : 'Only stable releases will be offered.'
+            }
+            checked={receivePrereleases}
+            onChange={(e) => {
+              const checked = e.currentTarget.checked;
+              setReceivePrereleases(checked);
+              setSettings((prev) => ({ ...prev, receivePrereleases: checked }));
+              void checkForUpdates({
+                silent: false,
+                openModal: true,
+                allowPrereleaseOverride: checked,
+              });
+            }}
+          />
           {isDev && (
             <>
               <Divider my="sm" />

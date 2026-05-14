@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useSettings } from './SettingsContext';
 import type { UpdateInfo } from '../electron-env';
 
 export type UpdaterStatus =
@@ -23,11 +24,14 @@ interface CheckForUpdatesOptions {
   silent?: boolean;
   openModal?: boolean;
   openModalOnAvailable?: boolean;
+  allowPrereleaseOverride?: boolean;
 }
 
 interface UpdaterContextType {
   opened: boolean;
   currentVersion: string;
+  currentVersionIsPrerelease: boolean;
+  receivePrereleases: boolean;
   status: UpdaterStatus;
   availableUpdate: UpdateInfo | null;
   errorMessage: string | null;
@@ -48,7 +52,12 @@ function isElectronRuntime() {
   return typeof window !== 'undefined' && !!window.electronAPI;
 }
 
+function isPreReleaseVersion(version: string) {
+  return version.split('+', 1)[0].includes('-');
+}
+
 export const UpdaterProvider = ({ children }: { children: React.ReactNode }) => {
+  const { settings, loaded } = useSettings();
   const [currentVersion, setCurrentVersion] = useState<string>('unknown');
   const [opened, setOpened] = useState(false);
   const [status, setStatus] = useState<UpdaterStatus>('idle');
@@ -58,6 +67,7 @@ export const UpdaterProvider = ({ children }: { children: React.ReactNode }) => 
   const [totalBytes, setTotalBytes] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
   const [completedVersion, setCompletedVersion] = useState<string | null>(null);
+  const currentVersionIsPrerelease = isPreReleaseVersion(currentVersion);
 
   const pendingCheck = useRef<{
     resolve: (value: UpdateInfo | null) => void;
@@ -154,6 +164,7 @@ export const UpdaterProvider = ({ children }: { children: React.ReactNode }) => 
       silent = false,
       openModal = false,
       openModalOnAvailable = false,
+      allowPrereleaseOverride,
     }: CheckForUpdatesOptions = {}) => {
       if (!isElectronRuntime()) {
         setStatus('idle');
@@ -167,14 +178,18 @@ export const UpdaterProvider = ({ children }: { children: React.ReactNode }) => 
       if (openModal) setOpened(true);
       if (!silent) setStatus('checking');
 
+      const allowPrerelease = allowPrereleaseOverride ?? settings.receivePrereleases;
+
       return new Promise<UpdateInfo | null>((resolve) => {
         pendingCheck.current = { resolve, silent, openModalOnAvailable };
-        window.electronAPI!.updater.check().catch(() => {
-          // Errors are delivered via the 'error' event listener.
-        });
+        window.electronAPI!
+          .updater.check({ allowPrerelease })
+          .catch(() => {
+            // Errors are delivered via the 'error' event listener.
+          });
       });
     },
-    [resetProgress]
+    [resetProgress, settings.receivePrereleases]
   );
 
   const installUpdate = useCallback(async () => {
@@ -201,15 +216,17 @@ export const UpdaterProvider = ({ children }: { children: React.ReactNode }) => 
   }, [checkForUpdates]);
 
   useEffect(() => {
-    if (startupCheckTriggered) return;
+    if (!loaded || startupCheckTriggered) return;
     startupCheckTriggered = true;
     void checkForUpdates({ silent: true, openModalOnAvailable: true });
-  }, [checkForUpdates]);
+  }, [checkForUpdates, loaded]);
 
   const value = useMemo<UpdaterContextType>(
     () => ({
       opened,
       currentVersion,
+      currentVersionIsPrerelease,
+      receivePrereleases: settings.receivePrereleases,
       status,
       availableUpdate,
       errorMessage,
@@ -227,6 +244,8 @@ export const UpdaterProvider = ({ children }: { children: React.ReactNode }) => 
       checkForUpdates,
       closeUpdater,
       completedVersion,
+      currentVersionIsPrerelease,
+      settings.receivePrereleases,
       currentVersion,
       downloadedBytes,
       errorMessage,
