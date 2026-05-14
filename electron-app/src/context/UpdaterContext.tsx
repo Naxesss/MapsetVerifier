@@ -24,6 +24,7 @@ interface CheckForUpdatesOptions {
   silent?: boolean;
   openModal?: boolean;
   openModalOnAvailable?: boolean;
+  allowPrereleaseOverride?: boolean;
 }
 
 interface UpdaterContextType {
@@ -163,6 +164,7 @@ export const UpdaterProvider = ({ children }: { children: React.ReactNode }) => 
       silent = false,
       openModal = false,
       openModalOnAvailable = false,
+      allowPrereleaseOverride,
     }: CheckForUpdatesOptions = {}) => {
       if (!isElectronRuntime()) {
         setStatus('idle');
@@ -176,10 +178,12 @@ export const UpdaterProvider = ({ children }: { children: React.ReactNode }) => 
       if (openModal) setOpened(true);
       if (!silent) setStatus('checking');
 
+      const allowPrerelease = allowPrereleaseOverride ?? settings.receivePrereleases;
+
       return new Promise<UpdateInfo | null>((resolve) => {
         pendingCheck.current = { resolve, silent, openModalOnAvailable };
         window.electronAPI!
-          .updater.check({ allowPrerelease: settings.receivePrereleases })
+          .updater.check({ allowPrerelease })
           .catch(() => {
             // Errors are delivered via the 'error' event listener.
           });

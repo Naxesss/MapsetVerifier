@@ -26,7 +26,7 @@ interface SettingsModalProps {
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
   const { settings, setSettings } = useSettings();
-  const { openUpdater, currentVersion, currentVersionIsPrerelease } = useUpdater();
+  const { checkForUpdates, openUpdater, currentVersion, currentVersionIsPrerelease } = useUpdater();
   const [songFolder, setSongFolder] = useState(settings.songFolder ?? '');
   const [showMinor, setShowMinor] = useState(settings.showMinor);
   const [showGamemodeDifficultyNames, setShowGamemodeDifficultyNames] = useState(
@@ -207,6 +207,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
               const checked = e.currentTarget.checked;
               setReceivePrereleases(checked);
               setSettings((prev) => ({ ...prev, receivePrereleases: checked }));
+              void checkForUpdates({
+                silent: false,
+                openModal: true,
+                allowPrereleaseOverride: checked,
+              });
             }}
           />
           {isDev && (
