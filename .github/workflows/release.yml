@@ -23,23 +23,27 @@ jobs:
   resolve-release:
     runs-on: ubuntu-latest
     outputs:
+      git_tag: ${{ steps.vars.outputs.git_tag }}
       tag_name: ${{ steps.vars.outputs.tag_name }}
       release_name: ${{ steps.vars.outputs.release_name }}
       prerelease: ${{ steps.vars.outputs.prerelease }}
+
     steps:
       - id: vars
         shell: bash
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TAG_NAME="${{ inputs.tag_name }}"
+            GIT_TAG="${{ inputs.tag_name }}"
           else
-            TAG_NAME="${GITHUB_REF_NAME#v}"
+            GIT_TAG="${GITHUB_REF_NAME}"
           fi
 
-          if [ -z "$TAG_NAME" ]; then
+          if [ -z "$GIT_TAG" ]; then
             echo "A tag name is required to publish a release." >&2
             exit 1
           fi
+
+          TAG_NAME="${GIT_TAG#v}"
 
           if [[ "$TAG_NAME" == *-* ]]; then
             PRERELEASE=true
@@ -47,6 +51,7 @@ jobs:
             PRERELEASE=false
           fi
 
+          echo "git_tag=$GIT_TAG" >> "$GITHUB_OUTPUT"
           echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
           echo "release_name=Mapset Verifier $TAG_NAME" >> "$GITHUB_OUTPUT"
           echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
@@ -59,7 +64,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ needs.resolve-release.outputs.tag_name }}
+          ref: ${{ needs.resolve-release.outputs.git_tag }}
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
@@ -96,7 +101,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ needs.resolve-release.outputs.tag_name }}
+          ref: ${{ needs.resolve-release.outputs.git_tag }}
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
