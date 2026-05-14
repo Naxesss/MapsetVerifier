@@ -1,7 +1,6 @@
 ﻿import { Alert, Text, Box, Flex, LoadingOverlay, Stack, SimpleGrid } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle, IconRulerMeasure } from '@tabler/icons-react';
 import { useEffect } from 'react';
-import BitrateGraph from './BitrateGraph';
 import ChannelBalance from './ChannelBalance';
 import DynamicRange from './DynamicRange';
 import FormatInfo from './FormatInfo';
@@ -93,9 +92,12 @@ function AudioOverview({ reloadFlag }: AudioOverviewProps) {
           )}
           <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="md">
             {data.formatAnalysis && (
-              <FormatInfo data={data.formatAnalysis} audioFilePath={data.audioFilePath} />
+              <FormatInfo
+                data={data.formatAnalysis}
+                audioFilePath={data.audioFilePath}
+                bitrateData={data.bitrateAnalysis}
+              />
             )}
-            {data.bitrateAnalysis && <BitrateGraph data={data.bitrateAnalysis} />}
             <Spectrogram folder={folder} songFolder={settings.songFolder ?? ''} />
           </SimpleGrid>
 
