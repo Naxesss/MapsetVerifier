@@ -15,12 +15,16 @@ const WindowBar: React.FC = () => {
   const barHeight = 32;
 
   const [version, setVersion] = useState<string>('unknown');
+  const [isPrerelease, setIsPrerelease] = useState<boolean>(false);
   const isDev = import.meta.env.DEV;
 
   useEffect(() => {
     window.electronAPI
       ?.getVersion()
-      .then(setVersion)
+      .then((version) => {
+        setVersion(version);
+        setIsPrerelease(/-(rc)/i.test(version));
+      })
       .catch(() => setVersion('unknown'));
   }, []);
 
@@ -93,10 +97,21 @@ const WindowBar: React.FC = () => {
               color="red"
               size="xs"
               radius="sm"
-              style={{ marginLeft: 8, verticalAlign: 'middle', opacity: 0.85 }}
               variant="filled"
+              style={{ marginLeft: 8, verticalAlign: 'middle', opacity: 0.85 }}
             >
               DEV
+            </Badge>
+          )}
+          {isPrerelease && (
+            <Badge
+              color="orange"
+              size="xs"
+              radius="sm"
+              variant="filled"
+              style={{ marginLeft: 8, verticalAlign: 'middle', opacity: 0.85 }}
+            >
+              Pre Release
             </Badge>
           )}
         </span>
