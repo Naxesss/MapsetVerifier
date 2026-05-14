@@ -1,14 +1,17 @@
-﻿import { Accordion, Badge, Box, Group, Stack, Text, Tooltip, useMantineTheme } from '@mantine/core';
 import {
-  IconPlus,
-  IconMinus,
-  IconArrowsExchange,
-  IconX,
-  IconInfoCircle,
-} from '@tabler/icons-react';
+  Accordion,
+  Badge,
+  Box,
+  Group,
+  Stack,
+  Text,
+  Tooltip,
+  useMantineTheme,
+} from '@mantine/core';
+import { IconX, IconInfoCircle } from '@tabler/icons-react';
 import { MouseEvent, useEffect, useState } from 'react';
+import SnapshotDiffLine, { getDiffTypeIcon } from './SnapshotDiffLine';
 import { ApiSnapshotCommit, ApiSnapshotSection, ApiSnapshotDiff, DiffType } from '../../Types';
-import OsuLink from '../common/OsuLink.tsx';
 
 interface UnifiedDiffViewerProps {
   commit: ApiSnapshotCommit;
@@ -52,54 +55,7 @@ function sortDiffsChronologically(diffs: ApiSnapshotDiff[]): ApiSnapshotDiff[] {
     .map((entry) => entry.diff);
 }
 
-function getDiffTypeIcon(diffType: DiffType, size: number = 16) {
-  switch (diffType) {
-    case 'Added':
-      return <IconPlus size={size} color="var(--mantine-color-green-6)" />;
-    case 'Removed':
-      return <IconMinus size={size} color="var(--mantine-color-red-6)" />;
-    case 'Changed':
-      return <IconArrowsExchange size={size} color="var(--mantine-color-yellow-6)" />;
-    default:
-      return null;
-  }
-}
-
-function DiffLine({ diff }: { diff: ApiSnapshotDiff }) {
-  const theme = useMantineTheme();
-
-  return (
-    <Box
-      p="xs"
-      style={{
-        borderRadius: theme.radius.sm,
-        backgroundColor: theme.colors.dark[8],
-        fontFamily: 'monospace',
-      }}
-    >
-      <Stack gap="xs">
-        <Group gap="xs" wrap="nowrap">
-          {getDiffTypeIcon(diff.diffType, 14)}
-          <Text size="sm" style={{ flex: 1 }}>
-            <OsuLink text={diff.message} />
-          </Text>
-        </Group>
-
-        {diff.details.length > 0 && (
-          <Stack gap={2} pl="md">
-            {diff.details.map((detail, index) => (
-              <Text key={index} size="xs">
-                <OsuLink text={detail} />
-              </Text>
-            ))}
-          </Stack>
-        )}
-      </Stack>
-    </Box>
-  );
-}
-
-function SectionAccordion({ key, section }: { key: string; section: ApiSnapshotSection }) {
+function SectionAccordion({ section }: { section: ApiSnapshotSection }) {
   const [activeDiffFilter, setActiveDiffFilter] = useState<DiffType | null>(null);
   const sortedDiffs = sortDiffsChronologically(section.diffs);
 
@@ -156,7 +112,7 @@ function SectionAccordion({ key, section }: { key: string; section: ApiSnapshotS
           {sortedDiffs.map(
             (diff, index) =>
               (activeDiffFilter === null || diff.diffType === activeDiffFilter) && (
-                <DiffLine key={`snapshot-${key}-${section.name}-${index}`} diff={diff} />
+                <SnapshotDiffLine key={`snapshot-${section.name}-${index}`} diff={diff} />
               )
           )}
         </Stack>
@@ -190,11 +146,23 @@ function UnifiedDiffViewer({ commit }: UnifiedDiffViewerProps) {
       value={expandedSections}
       onChange={setExpandedSections}
       styles={{
+        root: {
+          backgroundColor: theme.colors.dark[6],
+          border: 0,
+        },
         item: {
           backgroundColor: theme.colors.dark[7],
           borderRadius: theme.radius.md,
-          border: `1px solid ${theme.colors.dark[4]}`,
+          border: 0,
+          boxShadow: 'none',
           overflow: 'hidden',
+          '&[data-active]': {
+            border: 0,
+            boxShadow: 'none',
+          },
+          '&::before': {
+            display: 'none',
+          },
         },
         control: {
           borderRadius: theme.radius.md,

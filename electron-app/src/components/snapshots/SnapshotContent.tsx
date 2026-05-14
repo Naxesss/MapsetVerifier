@@ -68,14 +68,13 @@ function SnapshotContent({ data, selectedDifficulty }: SnapshotContentProps) {
       {/* Diff viewer (full width below) */}
       <Box
         style={{
-          backgroundColor: theme.colors.dark[7],
           borderRadius: theme.radius.md,
           overflow: 'hidden',
           flex: 1,
         }}
       >
-        <Box p="xs">
-          <Text fw={600} size="sm">
+        <Box p="xs" bg={theme.colors.dark[6]}>
+          <Text fw={600} size="sm" mt="xs" ml="xs">
             {selectedCommit
               ? `Changes (${selectedCommit.totalChanges} total)`
               : 'Select a commit to view changes'}
