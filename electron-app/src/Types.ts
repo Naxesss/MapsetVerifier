@@ -575,6 +575,12 @@ export type ObjectsOverviewResult = {
   startTimeMs: number;
   endTimeMs: number;
   difficulties: ObjectsOverviewDifficulty[];
+  /** Audio file from general settings (first beatmap after server sort order). */
+  playbackAudioFileName?: string;
+  /** Version string of difficulty used for playback metadata. */
+  playbackSourceVersion?: string;
+  /** General-setting audio lead-in (ms). */
+  audioLeadInMs?: number;
 };
 
 export type ObjectsOverviewDifficulty = {

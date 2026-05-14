@@ -20,7 +20,7 @@ interface ObjectsOverviewProps {
 }
 
 function ObjectsOverview({ reloadFlag }: ObjectsOverviewProps) {
-  const { selectedFolder: folder } = useBeatmap();
+  const { selectedFolder: folder, beatmapFolderPath } = useBeatmap();
   const { settings } = useSettings();
   const { data, isLoading, isError, error, refetch } = useObjectsAnalysis({
     folder,
@@ -108,12 +108,32 @@ function ObjectsOverview({ reloadFlag }: ObjectsOverviewProps) {
           </SimpleGrid>
 
           <ObjectsTimelineComparison
+            playbackControlsEnabled={settings.experimentalObjectsTimelineAudio}
             startTimeMs={data.startTimeMs}
             endTimeMs={data.endTimeMs}
             groupedDifficulties={groupedDifficulties}
             difficulties={selectedGroup?.difficulties ?? []}
             selectedMode={selectedMode ?? selectedGroup?.mode}
             onModeChange={setSelectedMode}
+            beatmapFolderPath={folder ? beatmapFolderPath : undefined}
+            songFolder={settings.songFolder}
+            playbackAudioFileName={
+              settings.experimentalObjectsTimelineAudio &&
+              typeof data.playbackAudioFileName === 'string'
+                ? data.playbackAudioFileName
+                : ''
+            }
+            playbackTimingSegments={
+              settings.experimentalObjectsTimelineAudio
+                ? (
+                    (data.playbackSourceVersion
+                      ? data.difficulties.find(
+                          (d) => d.version === data.playbackSourceVersion,
+                        )
+                      : data.difficulties[0]) ?? data.difficulties[0]
+                  )?.timingSegments
+                : undefined
+            }
           />
           <SnappingsOverview
             groupedDifficulties={groupedDifficulties}

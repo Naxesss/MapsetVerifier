@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getDifficultyKey } from '../timelineUtils.ts';
 import type { ObjectsOverviewDifficulty } from '../../../../Types';
 import type { ObjectsModeGroup } from '../types.ts';
@@ -26,16 +26,16 @@ export function useDifficultyRowVisibility(groupedDifficulties: ObjectsModeGroup
     });
   }, [groupedDifficulties]);
 
-  const toggleDifficultyVisibility = (difficulty: ObjectsOverviewDifficulty) => {
+  const toggleDifficultyVisibility = useCallback((difficulty: ObjectsOverviewDifficulty) => {
     const difficultyKey = getDifficultyKey(difficulty);
 
     setVisibilityByDifficulty((current) => ({
       ...current,
       [difficultyKey]: current[difficultyKey] === false,
     }));
-  };
+  }, []);
 
-  const setManyVisible = (difficulties: ObjectsOverviewDifficulty[], visible: boolean) => {
+  const setManyVisible = useCallback((difficulties: ObjectsOverviewDifficulty[], visible: boolean) => {
     setVisibilityByDifficulty((current) => {
       const next = { ...current };
       for (const difficulty of difficulties) {
@@ -43,7 +43,7 @@ export function useDifficultyRowVisibility(groupedDifficulties: ObjectsModeGroup
       }
       return next;
     });
-  };
+  }, []);
 
   return { visibilityByDifficulty, toggleDifficultyVisibility, setManyVisible };
 }

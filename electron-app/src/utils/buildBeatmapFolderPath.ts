@@ -34,3 +34,17 @@ export function buildBeatmapImageUrl(
   if (options?.songFolder) params.set('songsFolder', options.songFolder);
   return `${BACKEND_BASE_URL}/beatmap/image?${params.toString()}`;
 }
+
+/** Streaming URL for GET /beatmap/audio (osu General AudioFilename, relative to the mapset folder). */
+export function buildBeatmapAudioUrl(
+  folder: string,
+  file: string,
+  options?: { songFolder?: string }
+): string {
+  const params = new URLSearchParams();
+  params.set('folder', folder);
+  params.set('file', file);
+  if (options?.songFolder) params.set('songsFolder', options.songFolder);
+  return `${BACKEND_BASE_URL}/beatmap/audio?${params.toString()}`;
+}
+

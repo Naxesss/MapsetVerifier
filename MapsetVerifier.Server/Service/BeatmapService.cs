@@ -19,6 +19,8 @@ public static class BeatmapService
     );
     private static readonly string[] SupportedImageExtensions = [".jpg", ".jpeg", ".png", ".gif"];
 
+    private static readonly string[] SupportedAudioExtensions = [".mp3", ".ogg", ".wav", ".oga"];
+
     /// <summary>
     /// Desired thumbnail height
     /// </summary>
@@ -300,6 +302,76 @@ public static class BeatmapService
         {
             return BeatmapImageResult.Error("Failed to resize image: " + ex.Message);
         }
+    }
+
+    /// <summary>
+    /// Resolves audio file relative to the beatmap set folder (osu! General AudioFilename).
+    /// </summary>
+    public static BeatmapAudioResult GetBeatmapAudio(
+        string folder,
+        string audioFile,
+        string? songsFolderOverride = null
+    )
+    {
+        if (string.IsNullOrWhiteSpace(audioFile))
+            return BeatmapAudioResult.Error("Audio file is required.");
+
+        var songsFolder = ResolveSongsFolder(songsFolderOverride);
+        if (string.IsNullOrWhiteSpace(songsFolder))
+            return BeatmapAudioResult.Error("Songs folder could not be detected.");
+
+        var targetFolderPhysical = Path.GetFullPath(Path.Combine(songsFolder, folder));
+        if (!Directory.Exists(targetFolderPhysical))
+            return BeatmapAudioResult.Error("Beatmap folder not found.");
+
+        var trimmed = audioFile
+            .Trim()
+            .TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        var normalizedSep = trimmed.Replace('/', Path.DirectorySeparatorChar);
+
+        if (Path.IsPathRooted(normalizedSep))
+            return BeatmapAudioResult.Error("Invalid audio path.");
+
+        foreach (
+            var part in normalizedSep.Split(
+                Path.DirectorySeparatorChar,
+                StringSplitOptions.RemoveEmptyEntries
+            )
+        )
+        {
+            if (part is "." or "..")
+                return BeatmapAudioResult.Error("Invalid audio path.");
+        }
+
+        var resolved = Path.GetFullPath(Path.Combine(targetFolderPhysical, normalizedSep));
+        var root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(targetFolderPhysical));
+
+        var comparison = OperatingSystem.IsWindows()
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+
+        var isInside =
+            resolved.Equals(root, comparison)
+            || resolved.StartsWith(root + Path.DirectorySeparatorChar, comparison);
+        if (!isInside)
+            return BeatmapAudioResult.Error("Audio file is outside beatmap folder.");
+
+        var extension = Path.GetExtension(resolved).ToLowerInvariant();
+        if (Array.IndexOf(SupportedAudioExtensions, extension) < 0)
+            return BeatmapAudioResult.Error("Unsupported or unrecognized audio format.");
+
+        if (!File.Exists(resolved))
+            return BeatmapAudioResult.Error("Audio file not found.");
+
+        var mime = extension switch
+        {
+            ".mp3" => "audio/mpeg",
+            ".ogg" or ".oga" => "audio/ogg",
+            ".wav" => "audio/wav",
+            _ => "application/octet-stream",
+        };
+
+        return BeatmapAudioResult.ForFile(resolved, mime);
     }
 
     private static string? GetConfiguredBackgroundImagePath(string beatmapSetFolder)

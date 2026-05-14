@@ -106,6 +106,22 @@ public class BeatmapController : ControllerBase
         return File(stream, result.MimeType!);
     }
 
+    [HttpGet("audio")]
+    public ActionResult GetBeatmapAudio(
+        [FromQuery] string folder,
+        [FromQuery] string file,
+        [FromQuery] string? songsFolder = null
+    )
+    {
+        var result = BeatmapService.GetBeatmapAudio(folder, file, songsFolder);
+        if (!result.Success)
+            return NotFound(new ApiError(result.ErrorMessage ?? "Audio not found.", null));
+
+        Response.Headers.CacheControl = "public, max-age=3600";
+        var stream = System.IO.File.OpenRead(result.AudioPath!);
+        return File(stream, result.MimeType!);
+    }
+
     [HttpPost("info")]
     public ActionResult<ApiBeatmapInfo> GetBeatmapInfo([FromBody] RunChecksRequest request)
     {

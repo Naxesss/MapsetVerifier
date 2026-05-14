@@ -1,5 +1,5 @@
 import { arrayMove } from '@dnd-kit/sortable';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { areStringArraysEqual, getDifficultyKey } from '../timelineUtils.ts';
 import type { Mode, ObjectsOverviewDifficulty } from '../../../../Types';
 import type { ObjectsModeGroup } from '../types.ts';
@@ -65,29 +65,32 @@ export function usePerModeDifficultyOrder({
     return [...ordered, ...missing];
   }, [activeMode, difficulties, difficultyOrderByMode]);
 
-  const moveDifficulty = (sourceKey: string, targetKey: string) => {
-    if (!activeMode) return;
+  const moveDifficulty = useCallback(
+    (sourceKey: string, targetKey: string) => {
+      if (!activeMode) return;
 
-    setDifficultyOrderByMode((current) => {
-      const currentOrder = current[activeMode] ?? orderedDifficulties.map(getDifficultyKey);
-      const oldIndex = currentOrder.indexOf(sourceKey);
-      const newIndex = currentOrder.indexOf(targetKey);
-      if (oldIndex === -1 || newIndex === -1) {
-        return current;
-      }
+      setDifficultyOrderByMode((current) => {
+        const currentOrder = current[activeMode] ?? orderedDifficulties.map(getDifficultyKey);
+        const oldIndex = currentOrder.indexOf(sourceKey);
+        const newIndex = currentOrder.indexOf(targetKey);
+        if (oldIndex === -1 || newIndex === -1) {
+          return current;
+        }
 
-      const nextOrder = arrayMove(currentOrder, oldIndex, newIndex);
+        const nextOrder = arrayMove(currentOrder, oldIndex, newIndex);
 
-      if (areStringArraysEqual(currentOrder, nextOrder)) {
-        return current;
-      }
+        if (areStringArraysEqual(currentOrder, nextOrder)) {
+          return current;
+        }
 
-      return {
-        ...current,
-        [activeMode]: nextOrder,
-      };
-    });
-  };
+        return {
+          ...current,
+          [activeMode]: nextOrder,
+        };
+      });
+    },
+    [activeMode, orderedDifficulties],
+  );
 
   return { orderedDifficulties, moveDifficulty };
 }

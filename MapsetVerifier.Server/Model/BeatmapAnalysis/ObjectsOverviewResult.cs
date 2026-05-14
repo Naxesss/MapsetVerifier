@@ -8,13 +8,25 @@ public class ObjectsOverviewResult
     public double EndTimeMs { get; set; }
     public List<ObjectsOverviewDifficulty> Difficulties { get; set; } = [];
 
+    /// <summary>Audio file from general settings (first enumerated beatmap after BeatmapSet sort).</summary>
+    public string PlaybackAudioFileName { get; set; } = string.Empty;
+
+    /// <summary><see cref="MetadataSettings.version"/> of the difficulty used for playback metadata.</summary>
+    public string PlaybackSourceVersion { get; set; } = string.Empty;
+
+    /// <summary>General-setting audio lead-in (ms) from playback source difficulty.</summary>
+    public double AudioLeadInMs { get; set; }
+
     public static ObjectsOverviewResult CreateError(string message) =>
         new() { Success = false, ErrorMessage = message };
 
     public static ObjectsOverviewResult CreateSuccess(
         double startTimeMs,
         double endTimeMs,
-        List<ObjectsOverviewDifficulty> difficulties
+        List<ObjectsOverviewDifficulty> difficulties,
+        string playbackAudioFileName,
+        string playbackSourceVersion,
+        double audioLeadInMs
     ) =>
         new()
         {
@@ -22,6 +34,9 @@ public class ObjectsOverviewResult
             StartTimeMs = startTimeMs,
             EndTimeMs = endTimeMs,
             Difficulties = difficulties,
+            PlaybackAudioFileName = playbackAudioFileName,
+            PlaybackSourceVersion = playbackSourceVersion,
+            AudioLeadInMs = audioLeadInMs,
         };
 }
 

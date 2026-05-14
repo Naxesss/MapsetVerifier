@@ -7,6 +7,8 @@ export type Settings = {
   showMinor: boolean;
   showGamemodeDifficultyNames: boolean;
   showAdvancedAudioAnalysis: boolean;
+  /** Experimental: play map audio / scrub timelines in Objects overview. */
+  experimentalObjectsTimelineAudio: boolean;
   lazerLookupEnabled: boolean;
   receivePrereleases: boolean;
   // DEV-only: whether to gate Backend in development mode
@@ -25,6 +27,7 @@ const defaultSettings: Settings = {
   showMinor: false,
   showGamemodeDifficultyNames: true,
   showAdvancedAudioAnalysis: false,
+  experimentalObjectsTimelineAudio: false,
   lazerLookupEnabled: false,
   receivePrereleases: false,
   gateInDev: false,

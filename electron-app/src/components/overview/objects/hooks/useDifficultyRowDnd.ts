@@ -7,6 +7,13 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
+import { useCallback } from 'react';
+
+const DIFFICULTY_ROW_DND_MEASURING = {
+  droppable: {
+    strategy: MeasuringStrategy.Always,
+  },
+} as const;
 
 export function useDifficultyRowDnd({
   moveDifficulty,
@@ -23,30 +30,31 @@ export function useDifficultyRowDnd({
     })
   );
 
-  const handleDragStart = (_event: DragStartEvent) => {
-    stopPanning();
-  };
+  const handleDragStart = useCallback(
+    (_event: DragStartEvent) => {
+      stopPanning();
+    },
+    [stopPanning]
+  );
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const sourceKey = String(event.active.id);
-    const targetKey = event.over ? String(event.over.id) : null;
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const sourceKey = String(event.active.id);
+      const targetKey = event.over ? String(event.over.id) : null;
 
-    if (targetKey && sourceKey !== targetKey) {
-      moveDifficulty(sourceKey, targetKey);
-    }
-  };
+      if (targetKey && sourceKey !== targetKey) {
+        moveDifficulty(sourceKey, targetKey);
+      }
+    },
+    [moveDifficulty]
+  );
 
-  const handleDragCancel = () => {};
+  const handleDragCancel = useCallback(() => {}, []);
 
   return {
     sensors,
     collisionDetection: closestCorners,
-    autoScroll: false as const,
-    measuring: {
-      droppable: {
-        strategy: MeasuringStrategy.Always,
-      },
-    },
+    measuring: DIFFICULTY_ROW_DND_MEASURING,
     handleDragStart,
     handleDragEnd,
     handleDragCancel,

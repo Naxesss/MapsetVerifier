@@ -58,7 +58,15 @@ public static class BeatmapAnalysisService
                 .Beatmaps.Select(beatmap => GetObjectsOverviewDifficulty(beatmap, endTimeMs))
                 .ToList();
 
-            return ObjectsOverviewResult.CreateSuccess(startTimeMs, endTimeMs, difficulties);
+            var playbackSource = beatmapSet.Beatmaps[0];
+            return ObjectsOverviewResult.CreateSuccess(
+                startTimeMs,
+                endTimeMs,
+                difficulties,
+                playbackSource.GeneralSettings.audioFileName,
+                playbackSource.MetadataSettings.version,
+                playbackSource.GeneralSettings.audioLeadIn
+            );
         }
         catch (Exception ex)
         {

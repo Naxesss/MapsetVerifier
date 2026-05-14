@@ -15,6 +15,7 @@ import { IconAlertTriangle, IconFolder, IconNote, IconRefresh } from '@tabler/ic
 import React, { useEffect, useState } from 'react';
 import AdvancedAudioWarningModal from './AdvancedAudioWarningModal';
 import LazerLookupWarningModal from './LazerLookupWarningModal';
+import ObjectsTimelineAudioWarningModal from './ObjectsTimelineAudioWarningModal';
 import { useSettings } from '../../context/SettingsContext';
 import { useUpdater } from '../../context/UpdaterContext';
 import MinorIcon from '../icons/MinorIcon';
@@ -36,10 +37,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
     settings.showAdvancedAudioAnalysis
   );
   const [lazerLookupEnabled, setLazerLookupEnabled] = useState(settings.lazerLookupEnabled);
+  const [experimentalObjectsTimelineAudio, setExperimentalObjectsTimelineAudio] = useState(
+    settings.experimentalObjectsTimelineAudio,
+  );
   const [receivePrereleases, setReceivePrereleases] = useState(settings.receivePrereleases);
   const [gateInDev, setGateInDev] = useState(settings.gateInDev);
   const [lazerWarningOpened, setLazerWarningOpened] = useState(false);
   const [advancedAudioConfirmOpened, setAdvancedAudioConfirmOpened] = useState(false);
+  const [objectsTimelineAudioConfirmOpened, setObjectsTimelineAudioConfirmOpened] =
+    useState(false);
 
   // Keep local state in sync when modal is opened or settings change asynchronously
   useEffect(() => {
@@ -49,6 +55,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
       setShowGamemodeDifficultyNames(settings.showGamemodeDifficultyNames);
       setShowAdvancedAudioAnalysis(settings.showAdvancedAudioAnalysis);
       setLazerLookupEnabled(settings.lazerLookupEnabled);
+      setExperimentalObjectsTimelineAudio(settings.experimentalObjectsTimelineAudio);
       setReceivePrereleases(settings.receivePrereleases);
       setGateInDev(settings.gateInDev);
     }
@@ -59,6 +66,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
     settings.showGamemodeDifficultyNames,
     settings.showAdvancedAudioAnalysis,
     settings.lazerLookupEnabled,
+    settings.experimentalObjectsTimelineAudio,
     settings.receivePrereleases,
     settings.gateInDev,
   ]);
@@ -159,6 +167,26 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
 
               if (!showAdvancedAudioAnalysis) {
                 setAdvancedAudioConfirmOpened(true);
+              }
+            }}
+          />
+          <Switch
+            label={renderExperimentalLabel('Timeline audio playback in Objects Overview')}
+            checked={experimentalObjectsTimelineAudio}
+            onChange={(e) => {
+              const checked = e.currentTarget.checked;
+              if (checked === experimentalObjectsTimelineAudio) {
+                return;
+              }
+
+              if (!checked) {
+                setExperimentalObjectsTimelineAudio(false);
+                setSettings((prev) => ({ ...prev, experimentalObjectsTimelineAudio: false }));
+                return;
+              }
+
+              if (!experimentalObjectsTimelineAudio) {
+                setObjectsTimelineAudioConfirmOpened(true);
               }
             }}
           />
@@ -269,6 +297,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
           setShowAdvancedAudioAnalysis(true);
           setSettings((prev) => ({ ...prev, showAdvancedAudioAnalysis: true }));
           setAdvancedAudioConfirmOpened(false);
+        }}
+      />
+      <ObjectsTimelineAudioWarningModal
+        opened={objectsTimelineAudioConfirmOpened}
+        onCancel={() => setObjectsTimelineAudioConfirmOpened(false)}
+        onConfirm={() => {
+          setExperimentalObjectsTimelineAudio(true);
+          setSettings((prev) => ({ ...prev, experimentalObjectsTimelineAudio: true }));
+          setObjectsTimelineAudioConfirmOpened(false);
         }}
       />
     </>
