@@ -39,7 +39,7 @@ export default function MantineMarkdown({ children }: MantineMarkdownProps) {
           <Title order={3} mt={hasLeadingContent(node) ? 'md' : 0} mb="sm" {...props} />
         ),
         h3: ({ node, ...props }) => (
-          <Title order={4} mt={hasLeadingContent(node) ? 'sm' : 0} mb="xs" {...props} />
+          <Title order={4} mt={hasLeadingContent(node) ? 'md' : 0} mb="xs" {...props} />
         ),
         p: ({ node: _node, ...props }) => <Text component="p" mb="sm" {...props} />,
         a: ({ node: _node, href, ...props }) => {
