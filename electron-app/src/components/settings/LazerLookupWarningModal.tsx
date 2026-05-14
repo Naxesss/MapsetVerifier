@@ -15,6 +15,7 @@ const LazerLookupWarningModal: React.FC<LazerLookupWarningModalProps> = ({
 }) => {
   return (
     <Modal
+      zIndex={400}
       opened={opened}
       onClose={onCancel}
       title="Enable experimental osu!(lazer) support?"
