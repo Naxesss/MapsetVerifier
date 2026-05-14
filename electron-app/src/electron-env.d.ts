@@ -11,6 +11,10 @@ export interface UpdaterProgress {
   bytesPerSecond: number;
 }
 
+export interface UpdaterCheckOptions {
+  allowPrerelease?: boolean;
+}
+
 export interface BackendStatus {
   running: boolean;
   port: number;
@@ -52,7 +56,7 @@ export interface ElectronAPI {
   };
 
   updater: {
-    check(): Promise<UpdateInfo | null>;
+    check(options?: UpdaterCheckOptions): Promise<UpdateInfo | null>;
     download(): Promise<boolean>;
     quitAndInstall(): Promise<void>;
     onChecking(cb: () => void): Unsubscribe;

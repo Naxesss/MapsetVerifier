@@ -30,10 +30,17 @@ function formatBytes(value?: number | null) {
   return `${size.toFixed(size >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
 }
 
+function isPreReleaseVersion(version?: string | null) {
+  if (!version) return false;
+  return version.split('+', 1)[0].includes('-');
+}
+
 const UpdaterModal: React.FC = () => {
   const {
     opened,
     status,
+    currentVersionIsPrerelease,
+    receivePrereleases,
     availableUpdate,
     errorMessage,
     downloadedBytes,
@@ -47,6 +54,18 @@ const UpdaterModal: React.FC = () => {
   const busy = status === 'checking' || status === 'downloading' || status === 'installing';
 
   const updateNotes = availableUpdate?.body?.trim();
+  const availableUpdateIsPrerelease = isPreReleaseVersion(availableUpdate?.version);
+  const upToDateTitle = !receivePrereleases && currentVersionIsPrerelease
+    ? 'No stable update available'
+    : 'You are up to date';
+  const upToDateMessage = !receivePrereleases && currentVersionIsPrerelease
+    ? 'You are currently on a pre-release build. No stable release is available yet.'
+    : receivePrereleases
+      ? 'No newer release was found for this installation.'
+      : 'No newer stable release was found for this installation.';
+  const availableTitle = availableUpdateIsPrerelease
+    ? `Pre-release ${availableUpdate?.version} is available`
+    : `Update ${availableUpdate?.version} is available`;
 
   return (
     <Modal
@@ -78,8 +97,8 @@ const UpdaterModal: React.FC = () => {
         )}
 
         {status === 'up-to-date' && (
-          <Alert icon={<IconCircleCheck />} color="green" title="You are up to date">
-            No newer release was found for this installation.
+          <Alert icon={<IconCircleCheck />} color="green" title={upToDateTitle}>
+            {upToDateMessage}
           </Alert>
         )}
 
@@ -88,7 +107,7 @@ const UpdaterModal: React.FC = () => {
             <Alert
               icon={<IconCloudDownload />}
               color="blue"
-              title={`Update ${availableUpdate.version} is available`}
+              title={availableTitle}
             >
               {status === 'available'
                 ? 'A new version is available. Would you like to update now?'

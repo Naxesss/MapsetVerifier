@@ -8,6 +8,7 @@ export type Settings = {
   showGamemodeDifficultyNames: boolean;
   showAdvancedAudioAnalysis: boolean;
   lazerLookupEnabled: boolean;
+  receivePrereleases: boolean;
   // DEV-only: whether to gate Backend in development mode
   gateInDev: boolean;
 };
@@ -25,8 +26,26 @@ const defaultSettings: Settings = {
   showGamemodeDifficultyNames: true,
   showAdvancedAudioAnalysis: false,
   lazerLookupEnabled: false,
+  receivePrereleases: false,
   gateInDev: false,
 };
+
+function isPreReleaseVersion(version: string | null | undefined) {
+  if (!version) return false;
+  return version.split('+', 1)[0].includes('-');
+}
+
+async function resolveDefaultReceivePrereleases() {
+  const api = window.electronAPI;
+  if (!api) return defaultSettings.receivePrereleases;
+
+  try {
+    const version = await api.getVersion();
+    return isPreReleaseVersion(version);
+  } catch {
+    return defaultSettings.receivePrereleases;
+  }
+}
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
@@ -36,15 +55,24 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
   async function loadSettings() {
     const api = window.electronAPI;
+    const inferredReceivePrereleases = await resolveDefaultReceivePrereleases();
+
     if (!api) {
-      setSettings(defaultSettings);
+      setSettings({
+        ...defaultSettings,
+        receivePrereleases: inferredReceivePrereleases,
+      });
       setLoaded(true);
       return;
     }
+
     try {
       const text = await api.settings.read();
       if (!text) {
-        setSettings(defaultSettings);
+        setSettings({
+          ...defaultSettings,
+          receivePrereleases: inferredReceivePrereleases,
+        });
       } else {
         const loaded = JSON.parse(text);
 
@@ -55,11 +83,18 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
           loaded.lazerLookupEnabled = loaded.experimentalLazerLookup;
         }
 
+        if (loaded?.receivePrereleases === undefined) {
+          loaded.receivePrereleases = inferredReceivePrereleases;
+        }
+
         setSettings({ ...defaultSettings, ...loaded });
       }
     } catch (e) {
       console.error('[Settings] Error loading settings. Using defaults.', e);
-      setSettings(defaultSettings);
+      setSettings({
+        ...defaultSettings,
+        receivePrereleases: inferredReceivePrereleases,
+      });
     } finally {
       setLoaded(true);
     }
