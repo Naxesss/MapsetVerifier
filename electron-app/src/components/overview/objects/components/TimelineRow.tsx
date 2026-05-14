@@ -1,7 +1,8 @@
 import { Box, useMantineTheme } from '@mantine/core';
-import { useMemo, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import TimelineObjectContextMenu from './TimelineObjectContextMenu.tsx';
 import AutoResizeCanvas from '../../../common/AutoResizeCanvas.tsx';
+import { TimelineTileVisibilityContext } from '../context/TimelineTileVisibilityContext.tsx';
 import { drawTimelineRow, getTimelineTimestampAtX } from '../timelineDrawing.ts';
 import { formatEditorTimestamp, getTimelineCanvasTiles, getTimelineX } from '../timelineUtils.ts';
 import type { ObjectsOverviewDifficulty } from '../../../../Types';
@@ -22,7 +23,15 @@ export default function TimelineRow({
   height,
 }: TimelineRowProps) {
   const theme = useMantineTheme();
+  const tileVisibility = useContext(TimelineTileVisibilityContext);
   const canvasTiles = useMemo(() => getTimelineCanvasTiles(width), [width]);
+
+  const canvasVisible = (tileIndex: number) => {
+    if (tileVisibility == null) return true;
+    const { start, end } = tileVisibility;
+    if (end < start) return true;
+    return tileIndex >= start && tileIndex <= end;
+  };
   const [contextMenuState, setContextMenuState] = useState<{
     localX: number;
     localY: number;
@@ -82,7 +91,7 @@ export default function TimelineRow({
       onContextMenu={handleContextMenu}
       style={{ position: 'relative', width, height, overflow: 'hidden' }}
     >
-      {canvasTiles.map((tile) => (
+      {canvasTiles.map((tile, tileIndex) => (
         <Box
           key={tile.startX}
           style={{
@@ -93,22 +102,24 @@ export default function TimelineRow({
             height,
           }}
         >
-          <AutoResizeCanvas
-            fixedWidth={tile.width}
-            fixedHeight={height}
-            draw={(ctx) => {
-              drawTimelineRow(ctx, {
-                difficulty,
-                startTimeMs,
-                endTimeMs,
-                timelineWidth: width,
-                viewportStartX: tile.startX,
-                viewportWidth: tile.width,
-                height,
-                theme,
-              });
-            }}
-          />
+          {canvasVisible(tileIndex) ? (
+            <AutoResizeCanvas
+              fixedWidth={tile.width}
+              fixedHeight={height}
+              draw={(ctx) => {
+                drawTimelineRow(ctx, {
+                  difficulty,
+                  startTimeMs,
+                  endTimeMs,
+                  timelineWidth: width,
+                  viewportStartX: tile.startX,
+                  viewportWidth: tile.width,
+                  height,
+                  theme,
+                });
+              }}
+            />
+          ) : null}
         </Box>
       ))}
       {contextMenuState && (

@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { LABEL_WIDTH } from '../constants.ts';
+import { useCallback, useEffect, useRef, useState } from "react";
+import { LABEL_WIDTH } from "../constants.ts";
 
 export interface UseTimelineSeekDragArgs {
   scrollRef: React.RefObject<HTMLDivElement | null>;
@@ -13,7 +13,7 @@ export interface UseTimelineSeekDragArgs {
     timeMs: number,
     opts?: {
       adjustScroll?: boolean;
-    }
+    },
   ) => void;
   commitScrub: () => void;
 }
@@ -46,8 +46,7 @@ export function useTimelineSeekDrag({
   dimsRef.current = { timelineWidth, startTimeMs, endTimeMs, playbackMapTimeMs, scrollRef };
 
   const clientXToTimeMs = useCallback((clientX: number) => {
-    const { timelineWidth: tw, startTimeMs: s, endTimeMs: e, scrollRef: ref } =
-      dimsRef.current;
+    const { timelineWidth: tw, startTimeMs: s, endTimeMs: e, scrollRef: ref } = dimsRef.current;
     const el = ref.current;
     if (!el || tw <= 0) return null;
     const rect = el.getBoundingClientRect();
@@ -63,7 +62,7 @@ export function useTimelineSeekDrag({
       if (!enabled || event.button !== 0) return false;
 
       const target = event.target as HTMLElement | null;
-      if (!target?.closest('[data-timeline-seek-zone]')) return false;
+      if (!target?.closest("[data-timeline-seek-zone]")) return false;
 
       if (target.closest('[data-stop-timeline-pan="true"]')) return false;
 
@@ -90,8 +89,8 @@ export function useTimelineSeekDrag({
       };
 
       const detach = () => {
-        document.removeEventListener('mousemove', onMove);
-        document.removeEventListener('mouseup', onUp);
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", onUp);
         docCleanupRef.current = null;
         setIsSeekDragging(false);
       };
@@ -103,15 +102,15 @@ export function useTimelineSeekDrag({
         commitRef.current();
       };
 
-      document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup', onUp);
+      document.addEventListener("mousemove", onMove);
+      document.addEventListener("mouseup", onUp);
       docCleanupRef.current = detach;
 
       event.preventDefault();
       event.stopPropagation();
       return true;
     },
-    [clientXToTimeMs, enabled, pause]
+    [clientXToTimeMs, enabled, pause],
   );
 
   useEffect(() => {

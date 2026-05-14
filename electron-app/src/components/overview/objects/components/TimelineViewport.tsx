@@ -11,6 +11,7 @@ import type {
 import { Box, Paper, Stack, Text } from '@mantine/core';
 import { memo, type MutableRefObject, type MouseEvent as ReactMouseEvent } from 'react';
 import type { ObjectsOverviewDifficulty } from '../../../../Types';
+import { TimelineTileVisibilityBoundary } from '../context/TimelineTileVisibilityContext.tsx';
 import { getDifficultyKey } from '../timelineUtils.ts';
 import SortableTimelineDifficultyRow from './SortableTimelineDifficultyRow.tsx';
 import TimelineAxisRow from './TimelineAxisRow.tsx';
@@ -102,67 +103,69 @@ function TimelineViewportInner({
           userSelect: 'none',
         }}
       >
-        <Stack gap="xs" style={{ width: contentWidth, minWidth: contentWidth }}>
-          <TimelineAxisRow
-            startTimeMs={startTimeMs}
-            endTimeMs={endTimeMs}
-            timelineWidth={timelineWidth}
-            tickIntervalMs={tickIntervalMs}
-            linePosition="bottom"
-          />
-
-          {orderedDifficulties.length === 0 && (
-            <Paper p="md" radius="md" withBorder>
-              <Text size="sm" c="dimmed">
-                No difficulties available for the selected mode.
-              </Text>
-            </Paper>
-          )}
-
-          <DndContext
-            sensors={sensors}
-            collisionDetection={collisionDetection}
-            autoScroll={false}
-            measuring={measuring}
-            onDragStart={onDragStart}
-            onDragEnd={onDragEnd}
-            onDragCancel={onDragCancel}
-          >
-            <SortableContext
-              items={orderedDifficulties.map(getDifficultyKey)}
-              strategy={verticalListSortingStrategy}
-            >
-              {orderedDifficulties.map((difficulty) => {
-                const difficultyKey = getDifficultyKey(difficulty);
-                const isVisible = visibilityByDifficulty[difficultyKey] !== false;
-
-                return (
-                  <SortableTimelineDifficultyRow
-                    key={difficultyKey}
-                    difficulty={difficulty}
-                    difficultyKey={difficultyKey}
-                    isVisible={isVisible}
-                    timelineWidth={timelineWidth}
-                    contentWidth={contentWidth}
-                    startTimeMs={startTimeMs}
-                    endTimeMs={endTimeMs}
-                    onToggleVisibility={onToggleDifficultyVisibility}
-                  />
-                );
-              })}
-            </SortableContext>
-          </DndContext>
-
-          {orderedDifficulties.length > 0 && (
+        <TimelineTileVisibilityBoundary scrollRef={scrollRef} timelineWidth={timelineWidth}>
+          <Stack gap="xs" style={{ width: contentWidth, minWidth: contentWidth, contain: 'paint' }}>
             <TimelineAxisRow
               startTimeMs={startTimeMs}
               endTimeMs={endTimeMs}
               timelineWidth={timelineWidth}
               tickIntervalMs={tickIntervalMs}
-              linePosition="top"
+              linePosition="bottom"
             />
-          )}
-        </Stack>
+
+            {orderedDifficulties.length === 0 && (
+              <Paper p="md" radius="md" withBorder>
+                <Text size="sm" c="dimmed">
+                  No difficulties available for the selected mode.
+                </Text>
+              </Paper>
+            )}
+
+            <DndContext
+              sensors={sensors}
+              collisionDetection={collisionDetection}
+              autoScroll={false}
+              measuring={measuring}
+              onDragStart={onDragStart}
+              onDragEnd={onDragEnd}
+              onDragCancel={onDragCancel}
+            >
+              <SortableContext
+                items={orderedDifficulties.map(getDifficultyKey)}
+                strategy={verticalListSortingStrategy}
+              >
+                {orderedDifficulties.map((difficulty) => {
+                  const difficultyKey = getDifficultyKey(difficulty);
+                  const isVisible = visibilityByDifficulty[difficultyKey] !== false;
+
+                  return (
+                    <SortableTimelineDifficultyRow
+                      key={difficultyKey}
+                      difficulty={difficulty}
+                      difficultyKey={difficultyKey}
+                      isVisible={isVisible}
+                      timelineWidth={timelineWidth}
+                      contentWidth={contentWidth}
+                      startTimeMs={startTimeMs}
+                      endTimeMs={endTimeMs}
+                      onToggleVisibility={onToggleDifficultyVisibility}
+                    />
+                  );
+                })}
+              </SortableContext>
+            </DndContext>
+
+            {orderedDifficulties.length > 0 && (
+              <TimelineAxisRow
+                startTimeMs={startTimeMs}
+                endTimeMs={endTimeMs}
+                timelineWidth={timelineWidth}
+                tickIntervalMs={tickIntervalMs}
+                linePosition="top"
+              />
+            )}
+          </Stack>
+        </TimelineTileVisibilityBoundary>
       </Box>
     </Box>
   );

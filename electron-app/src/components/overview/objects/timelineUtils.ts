@@ -1,7 +1,9 @@
 import {
   CIRCLE_OBJECT_RADIUS,
+  LABEL_WIDTH,
   MAX_AXIS_PRECISION_ZOOM,
   MAX_TIMELINE_CANVAS_TILE_WIDTH,
+  TIMELINE_TILE_OVERSCAN_PX,
   MAX_ZOOM,
   MIN_ZOOM,
   TAIKO_CIRCLE_RADIUS,
@@ -120,6 +122,71 @@ export function getTimelineCanvasTiles(width: number) {
   }
 
   return tiles;
+}
+
+/**
+ * Indices into {@link getTimelineCanvasTiles} (inclusive range) intersecting the
+ * horizontally scrolled viewport, expanded by overscan for smooth motion.
+ */
+export function getVisibleTimelineCanvasTileIndices(
+  scrollLeft: number,
+  clientWidth: number,
+  timelineWidth: number,
+  overscanPx = TIMELINE_TILE_OVERSCAN_PX
+): { start: number; end: number } {
+  const tiles = getTimelineCanvasTiles(timelineWidth);
+  if (tiles.length === 0) {
+    return { start: 0, end: -1 };
+  }
+  if (tiles.length === 1) {
+    return { start: 0, end: 0 };
+  }
+
+  const timelineRight = LABEL_WIDTH + timelineWidth;
+  const viewportRight = scrollLeft + clientWidth;
+  const visibleLeftAbs = Math.max(scrollLeft, LABEL_WIDTH);
+  const visibleRightAbs = Math.min(viewportRight, timelineRight);
+
+  if (visibleRightAbs <= visibleLeftAbs) {
+    return { start: 0, end: tiles.length - 1 };
+  }
+
+  let t0 = visibleLeftAbs - LABEL_WIDTH;
+  let t1 = visibleRightAbs - LABEL_WIDTH;
+  t0 = Math.max(0, t0);
+  t1 = Math.min(timelineWidth, t1);
+
+  const lo = Math.max(0, t0 - overscanPx);
+  const hi = Math.min(timelineWidth, t1 + overscanPx);
+
+  let start = 0;
+  let end = tiles.length - 1;
+
+  let foundFirst = false;
+  for (let i = 0; i < tiles.length; i += 1) {
+    const { startX, width: w } = tiles[i];
+    const tileEnd = startX + w;
+    if (tileEnd > lo && startX < hi) {
+      start = i;
+      foundFirst = true;
+      break;
+    }
+  }
+
+  if (!foundFirst) {
+    return { start: 0, end: tiles.length - 1 };
+  }
+
+  for (let j = tiles.length - 1; j >= start; j -= 1) {
+    const { startX, width: w } = tiles[j];
+    const tileEnd = startX + w;
+    if (tileEnd > lo && startX < hi) {
+      end = j;
+      break;
+    }
+  }
+
+  return { start, end };
 }
 
 export function getTimingTickStyle(sampleIndex: number, meter: number, hasNearbyEdge: boolean) {

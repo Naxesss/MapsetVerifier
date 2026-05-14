@@ -10,6 +10,8 @@ export const TIMING_SAMPLES_PER_BEAT = 48;
 export const MIN_TIMELINE_WIDTH = 1400;
 export const MAX_TIMELINE_WIDTH = 100000;
 export const MAX_TIMELINE_CANVAS_TILE_WIDTH = 4096;
+/** Mount canvas tiles this far beyond each horizontal edge of the visible timeline slab. */
+export const TIMELINE_TILE_OVERSCAN_PX = MAX_TIMELINE_CANVAS_TILE_WIDTH;
 export const CIRCLE_OBJECT_RADIUS = 16.0;
 export const TAIKO_CIRCLE_RADIUS = 12.0;
 export const TAIKO_FINISHER_CIRCLE_RADIUS = 16.0;

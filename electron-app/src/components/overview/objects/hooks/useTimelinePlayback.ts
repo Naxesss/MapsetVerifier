@@ -84,6 +84,8 @@ export function useTimelinePlayback({
   const rafRef = useRef<number | null>(null);
   const lastFrameTsRef = useRef<number | null>(null);
   const lastUiEmitTsRef = useRef<number | null>(null);
+  /** Rounded scroll snap; RAF skips redundant assigns when unchanged. Explicit seeks update this via applyScrollForTime. */
+  const lastSyncedScrollLeftRef = useRef<number | null>(null);
 
   useEffect(() => {
     let t = playbackMapTimeMsRef.current;
@@ -152,7 +154,9 @@ export function useTimelinePlayback({
       const vw = el.clientWidth;
       const desired = timelineXContent - vw * VIEWPORT_PLAYHEAD_X_RATIO;
       const maxScroll = Math.max(0, el.scrollWidth - vw);
-      el.scrollLeft = Math.min(Math.max(0, desired), maxScroll);
+      const nextLeft = Math.min(Math.max(0, desired), maxScroll);
+      el.scrollLeft = nextLeft;
+      lastSyncedScrollLeftRef.current = Math.round(nextLeft);
     },
     [scrollRef]
   );
@@ -304,6 +308,7 @@ export function useTimelinePlayback({
         rafRef.current = null;
       }
       lastFrameTsRef.current = null;
+      lastSyncedScrollLeftRef.current = null;
       return;
     }
 
@@ -358,7 +363,12 @@ export function useTimelinePlayback({
         const vw = el.clientWidth;
         const desired = timelineXContent - vw * VIEWPORT_PLAYHEAD_X_RATIO;
         const maxScroll = Math.max(0, el.scrollWidth - vw);
-        el.scrollLeft = Math.min(Math.max(0, desired), maxScroll);
+        const nextLeft = Math.min(Math.max(0, desired), maxScroll);
+        const nextRounded = Math.round(nextLeft);
+        if (lastSyncedScrollLeftRef.current !== nextRounded) {
+          el.scrollLeft = nextLeft;
+          lastSyncedScrollLeftRef.current = nextRounded;
+        }
       }
 
       const shouldEmitUi =
@@ -377,6 +387,7 @@ export function useTimelinePlayback({
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
       lastFrameTsRef.current = null;
+      lastSyncedScrollLeftRef.current = null;
     };
   }, [isPlaying, scrollRef]);
 

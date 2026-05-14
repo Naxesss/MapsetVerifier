@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useRef } from 'react';
 
 interface AutoResizeCanvasProps {
   draw: (ctx: CanvasRenderingContext2D, width: number, height: number) => void;
@@ -21,6 +21,42 @@ const AutoResizeCanvas: React.FC<AutoResizeCanvasProps> = ({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const resizeTimeoutRef = useRef<number | null>(null);
   const rafRef = useRef<number | null>(null);
+  const drawRef = useRef(draw);
+  drawRef.current = draw;
+
+  const fixedDimsRef = useRef<{ w: number; h: number } | null>(null);
+
+  // Fixed-size: only realloc backing store when fixedWidth/H change repainting whenever draw/size updates.
+  // Avoid assigning canvas.width/height on every `draw` identity change (buffer wipe + realloc cost).
+  useLayoutEffect(() => {
+    if (!fixedWidth || !fixedHeight) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const ratio = window.devicePixelRatio || 1;
+    const prev = fixedDimsRef.current;
+    const needsBufferResize = !prev || prev.w !== fixedWidth || prev.h !== fixedHeight;
+
+    if (needsBufferResize) {
+      fixedDimsRef.current = { w: fixedWidth, h: fixedHeight };
+      canvas.width = fixedWidth * ratio;
+      canvas.height = fixedHeight * ratio;
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
+      ctx.resetTransform?.();
+      ctx.scale(ratio, ratio);
+    }
+
+    try {
+      drawRef.current(ctx, fixedWidth, fixedHeight);
+    } catch (error) {
+      console.error('Error drawing fixed-size canvas:', error);
+    }
+  }, [draw, fixedWidth, fixedHeight]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -31,66 +67,37 @@ const AutoResizeCanvas: React.FC<AutoResizeCanvasProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // If fixed dimensions are provided, use them and scale with CSS
     if (fixedWidth && fixedHeight) {
-      const ratio = window.devicePixelRatio || 1;
-
-      // Set canvas internal resolution to fixed size (high quality)
-      canvas.width = fixedWidth * ratio;
-      canvas.height = fixedHeight * ratio;
-
-      // CSS will scale to fit container
-      canvas.style.width = '100%';
-      canvas.style.height = '100%';
-
-      // Normalize scaling
-      ctx.resetTransform?.();
-      ctx.scale(ratio, ratio);
-
-      // Draw once at fixed resolution
-      try {
-        draw(ctx, fixedWidth, fixedHeight);
-      } catch (error) {
-        console.error('Error drawing fixed-size canvas:', error);
-      }
-
-      // No need for ResizeObserver - canvas scales with CSS
       return;
     }
 
-    // Otherwise, use dynamic resizing (original behavior)
+    fixedDimsRef.current = null;
+
     const resize = () => {
       const rect = container.getBoundingClientRect();
       const { width, height } = rect;
 
-      // Skip if dimensions are invalid
       if (width === 0 || height === 0) return;
 
       const ratio = window.devicePixelRatio || 1;
 
-      // Adjust canvas internal resolution (crisp on retina screens)
       canvas.width = width * ratio;
       canvas.height = height * ratio;
 
-      // CSS size remains normal
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
 
-      // Normalize scaling
-      ctx.resetTransform?.(); // modern API
+      ctx.resetTransform?.();
       ctx.scale(ratio, ratio);
 
-      // Draw callback
       try {
-        draw(ctx, width, height);
+        drawRef.current(ctx, width, height);
       } catch (error) {
         console.error('Error drawing auto-resize canvas:', error);
       }
     };
 
-    // Debounced resize handler to reduce lag during resizing
     const debouncedResize = () => {
-      // Cancel any pending resize
       if (resizeTimeoutRef.current !== null) {
         window.clearTimeout(resizeTimeoutRef.current);
       }
@@ -98,19 +105,16 @@ const AutoResizeCanvas: React.FC<AutoResizeCanvasProps> = ({
         window.cancelAnimationFrame(rafRef.current);
       }
 
-      // Use requestAnimationFrame for immediate visual update
       rafRef.current = window.requestAnimationFrame(() => {
-        // Then debounce the expensive draw operation
         resizeTimeoutRef.current = window.setTimeout(() => {
           resize();
-        }, 100); // 100ms debounce
+        }, 100);
       });
     };
 
     const observer = new ResizeObserver(debouncedResize);
     observer.observe(container);
 
-    // initial call
     resize();
 
     return () => {
@@ -122,7 +126,7 @@ const AutoResizeCanvas: React.FC<AutoResizeCanvasProps> = ({
         window.cancelAnimationFrame(rafRef.current);
       }
     };
-  }, [draw, fixedWidth, fixedHeight]);
+  }, [fixedWidth, fixedHeight]);
 
   return (
     <div
