@@ -20,15 +20,28 @@ interface MantineMarkdownProps {
 export default function MantineMarkdown({ children }: MantineMarkdownProps) {
   const theme = useMantineTheme();
   const { colorScheme } = useMantineColorScheme();
+  const hasLeadingContent = (node: unknown): boolean => {
+    if (!node || typeof node !== 'object') return false;
+    const start = (node as Record<string, unknown>).position as
+      | { start?: { offset?: number } }
+      | undefined;
+    return (start?.start?.offset ?? 0) > 0;
+  };
 
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
       components={{
-        h1: ({ node: _node, ...props }) => <Title order={2} {...props} />,
-        h2: ({ node: _node, ...props }) => <Title order={3} {...props} />,
-        h3: ({ node: _node, ...props }) => <Title order={4} {...props} />,
-        p: ({ node: _node, ...props }) => <Text component="p" {...props} />,
+        h1: ({ node, ...props }) => (
+          <Title order={2} mt={hasLeadingContent(node) ? 'md' : 0} mb="sm" {...props} />
+        ),
+        h2: ({ node, ...props }) => (
+          <Title order={3} mt={hasLeadingContent(node) ? 'md' : 0} mb="sm" {...props} />
+        ),
+        h3: ({ node, ...props }) => (
+          <Title order={4} mt={hasLeadingContent(node) ? 'sm' : 0} mb="xs" {...props} />
+        ),
+        p: ({ node: _node, ...props }) => <Text component="p" mb="sm" {...props} />,
         a: ({ node: _node, href, ...props }) => {
           const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
             e.preventDefault();
