@@ -5,9 +5,8 @@ using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
-
-using static MapsetVerifier.Checks.Utils.TaikoUtils;
 using static MapsetVerifier.Checks.Utils.GeneralUtils;
+using static MapsetVerifier.Checks.Utils.TaikoUtils;
 
 namespace MapsetVerifier.Checks.Taiko.Compose
 {
@@ -43,8 +42,8 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                         "Reasoning",
                         @"
                     Spinners can cause reading issues when being too close to their preceding object due to the visual overlap, especially in lower difficulties."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -55,9 +54,9 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                     new IssueTemplate(
                         Issue.Level.Minor,
                         "{0} Note is too close to spinner",
-                        "timestamp - "
+                        "timestamp -"
                     ).WithCause("The note is too close to the spinner")
-                }
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
@@ -69,19 +68,24 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                 var current = hitObjects[i];
                 var next = hitObjects.SafeGetIndex(i + 1);
 
+                if (next == null)
+                {
+                    continue;
+                }
+
                 var timing = beatmap.GetTimingLine<UninheritedLine>(current.time);
                 if (timing == null)
                 {
                     continue;
                 }
-                
+
                 var normalizedMsPerBeat = timing.GetNormalizedMsPerBeat();
 
                 // for each diff: double minimalGap = ?;
                 var minimalGap = new Dictionary<Beatmap.Difficulty, double>();
                 minimalGap.AddRange(difficulties.Take(3), normalizedMsPerBeat / 2);
                 minimalGap.AddRange(difficulties.Skip(3).Take(3), normalizedMsPerBeat / 4);
-                
+
                 // We only have to check the note before a spinner, not after
                 if (next is not Spinner)
                     continue;

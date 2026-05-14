@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using MapsetVerifier.Parser.Objects;
+﻿using MapsetVerifier.Parser.Objects;
 
 namespace MapsetVerifier.Framework.Objects
 {

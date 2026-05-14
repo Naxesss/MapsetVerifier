@@ -1,0 +1,222 @@
+name: Release Electron app
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+      - 'v*.*.*-*'
+
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: Existing git tag to release
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  resolve-release:
+    runs-on: ubuntu-latest
+
+    outputs:
+      git_tag: ${{ steps.vars.outputs.git_tag }}
+      tag_name: ${{ steps.vars.outputs.tag_name }}
+      release_name: ${{ steps.vars.outputs.release_name }}
+      prerelease: ${{ steps.vars.outputs.prerelease }}
+
+    steps:
+      - id: vars
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            GIT_TAG="${{ inputs.tag_name }}"
+          else
+            GIT_TAG="${GITHUB_REF_NAME}"
+          fi
+
+          if [ -z "$GIT_TAG" ]; then
+            echo "A tag name is required to publish a release." >&2
+            exit 1
+          fi
+
+          # strip leading v for display only
+          CLEAN_TAG="${GIT_TAG#v}"
+
+          # prerelease detection (robust)
+          if [[ "$CLEAN_TAG" =~ (rc|beta|alpha|pre|preview) ]]; then
+            PRERELEASE=true
+          else
+            PRERELEASE=false
+          fi
+  
+          echo "git_tag=$GIT_TAG" >> "$GITHUB_OUTPUT"
+          echo "tag_name=$CLEAN_TAG" >> "$GITHUB_OUTPUT"
+          echo "release_name=Mapset Verifier $GIT_TAG" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
+
+  build-sidecar:
+    needs: resolve-release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.resolve-release.outputs.git_tag }}
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.x'
+
+      - name: Build .NET solution
+        run: dotnet build MapsetVerifier.sln -c Release
+
+      - name: Restore tools
+        run: dotnet tool restore
+
+      - name: Run csharpier
+        run: dotnet csharpier check .
+
+      - name: Run .NET solution tests
+        run: dotnet test MapsetVerifier.sln -c Release --logger "trx;LogFileName=test-results.trx" --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/TestResults/*.trx'
+
+  build-frontend:
+    needs: resolve-release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.resolve-release.outputs.git_tag }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            electron-app/package-lock.json
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install frontend dependencies
+        working-directory: electron-app
+        run: npm ci
+
+      - name: Run frontend lint
+        working-directory: electron-app
+        run: npm run lint
+
+      - name: Verify root package
+        run: npm run build
+
+  build-electron:
+    needs: [resolve-release, build-sidecar, build-frontend]
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        include:
+          - runner: windows-latest
+            sidecar_runtime: win-x64
+            builder_args: --win --x64 --publish always
+
+          - runner: ubuntu-22.04
+            sidecar_runtime: linux-x64
+            builder_args: --linux --x64 --publish always
+
+          - runner: macos-15-intel
+            sidecar_runtime: osx-x64
+            builder_args: --mac --x64 --publish always
+
+          - runner: macos-15
+            sidecar_runtime: osx-arm64
+            builder_args: --mac --arm64 --publish always
+
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.resolve-release.outputs.git_tag }}
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.x'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            electron-app/package-lock.json
+
+      - name: Build sidecar (bash)
+        if: matrix.runner != 'windows-latest'
+        shell: bash
+        run: |
+          chmod +x scripts/build-sidecars.sh
+          RUNTIMES="${{ matrix.sidecar_runtime }}" ./scripts/build-sidecars.sh
+
+      - name: Build sidecar (Windows)
+        if: matrix.runner == 'windows-latest'
+        shell: cmd
+        run: scripts/build-sidecars.bat ${{ matrix.sidecar_runtime }}
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install frontend dependencies
+        working-directory: electron-app
+        run: npm ci
+
+      - name: Install Rollup native binary (Linux)
+        if: matrix.runner == 'ubuntu-22.04'
+        working-directory: electron-app
+        run: npm install @rollup/rollup-linux-x64-gnu --no-save
+
+      - name: Install Rollup native binary (macOS Intel)
+        if: matrix.runner == 'macos-15-intel'
+        working-directory: electron-app
+        run: npm install @rollup/rollup-darwin-x64 --no-save
+
+      - name: Install Rollup native binary (macOS ARM)
+        if: matrix.runner == 'macos-15'
+        working-directory: electron-app
+        run: npm install @rollup/rollup-darwin-arm64 --no-save
+
+      - name: Build frontend
+        working-directory: electron-app
+        run: npm run build
+
+      - name: Run electron-builder
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EP_DRAFT: 'true'
+          EP_PRE_RELEASE: ${{ needs.resolve-release.outputs.prerelease }}
+        run: npx electron-builder ${{ matrix.builder_args }} --config.extraMetadata.version=${{ needs.resolve-release.outputs.tag_name }}

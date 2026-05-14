@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using MapsetVerifier.Framework.Objects.Metadata;
+﻿using MapsetVerifier.Framework.Objects.Metadata;
 
 namespace MapsetVerifier.Framework.Objects
 {

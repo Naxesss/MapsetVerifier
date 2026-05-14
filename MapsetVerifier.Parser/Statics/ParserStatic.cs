@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace MapsetVerifier.Parser.Statics
+﻿namespace MapsetVerifier.Parser.Statics
 {
     public static class ParserStatic
     {
         /// <summary> Yields the result of the given function for each line in this section. </summary>
-        public static IEnumerable<T> ParseSection<T>(string[] lines, string section, Func<string, T> func)
+        public static IEnumerable<T> ParseSection<T>(
+            string[] lines,
+            string section,
+            Func<string, T> func
+        )
         {
             // Find the section, always from a line starting with [ and ending with ]
             // then ending on either end of file or an empty line.
@@ -50,7 +50,8 @@ namespace MapsetVerifier.Parser.Statics
         ///     Returns the first enum which has the same name as the given string,
         ///     or null if none match.
         /// </summary>
-        public static T? GetEnumMatch<T>(string str) where T : struct, Enum
+        public static T? GetEnumMatch<T>(string str)
+            where T : struct, Enum
         {
             foreach (T @enum in Enum.GetValues(typeof(T)))
             {

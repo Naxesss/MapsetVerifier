@@ -4,7 +4,6 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
-
 using static MapsetVerifier.Checks.Utils.GeneralUtils;
 
 namespace MapsetVerifier.Checks.Taiko.Timing
@@ -34,8 +33,8 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         "Reasoning",
                         @"
                     Double barlines are caused by rounding errors. They are visually disruptive and confusing in the representation of a song's downbeat."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -46,7 +45,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                     new IssueTemplate(
                         Issue.Level.Problem,
                         "{0} Double barline",
-                        "timestamp - "
+                        "timestamp -"
                     ).WithCause(
                         "Red line is extremely close to a downbeat from the previous red line"
                     )
@@ -56,7 +55,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                     new IssueTemplate(
                         Issue.Level.Warning,
                         "{0} Potential double barline, doublecheck manually",
-                        "timestamp - "
+                        "timestamp -"
                     ).WithCause(
                         "Red line is extremely close to a downbeat from the previous red line"
                     )
@@ -66,37 +65,34 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                     new IssueTemplate(
                         Issue.Level.Warning,
                         "{0} Potential double barline due to rounding error, doublecheck manually",
-                        "timestamp - "
-                    ).WithCause(
-                        "Rounding error"
-                    )
-                }
+                        "timestamp -"
+                    ).WithCause("Rounding error")
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
         {
             const double threshold = 50;
 
-            var redLines = beatmap.TimingLines
-                .OfType<UninheritedLine>()
-                .ToList();
+            var redLines = beatmap.TimingLines.OfType<UninheritedLine>().ToList();
 
             for (int i = 0; i < redLines.Count; i++)
             {
                 var current = redLines[i];
                 var next = redLines.SafeGetIndex(i + 1);
 
+                if (next == null)
+                {
+                    continue;
+                }
+
                 var barlineGap = current.msPerBeat * current.Meter;
-                var distance = (next?.Offset ?? double.MaxValue) - current.Offset;
+                var distance = next.Offset - current.Offset;
 
                 // if the next line has an omit, double barlines can't happen
                 // if the current line has an omit and lasts only 1 measure, double barlines can't happen either
                 // true for not insanely high bpms, but who cares ^
-                if (
-                    next == null
-                    || next.OmitsBarLine
-                    || (current.OmitsBarLine && distance <= barlineGap)
-                )
+                if (next.OmitsBarLine || (current.OmitsBarLine && distance <= barlineGap))
                     continue;
 
                 var rest = distance % barlineGap;

@@ -7,13 +7,16 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
         public bool isOnSlider;
         public int stackIndex;
 
-        protected Stackable(string[] args, Beatmap beatmap) : base(args, beatmap) { }
+        protected Stackable(string[] args, Beatmap beatmap)
+            : base(args, beatmap) { }
 
         public Vector2 UnstackedPosition => base.Position;
         public override Vector2 Position => GetStackedPosition(base.Position);
 
-        private Vector2 GetStackedPosition(Vector2 position) => new(position.X + GetStackOffset(), position.Y + GetStackOffset());
+        private Vector2 GetStackedPosition(Vector2 position) =>
+            new(position.X + GetStackOffset(), position.Y + GetStackOffset());
 
-        private float GetStackOffset() => stackIndex * (beatmap?.DifficultySettings.GetCircleRadius() ?? 0) * -0.1f;
+        private float GetStackOffset() =>
+            stackIndex * (int)beatmap.DifficultySettings.GetCircleRadius() * -0.1f;
     }
 }

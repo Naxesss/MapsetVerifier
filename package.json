@@ -1,87 +1,94 @@
 {
-	"name": "mapsetverifier",
-	"version": "1.0.0",
-	"author": "Naxess <naxess.w@gmail.com>",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/Naxesss/MapsetVerifier.git"
-	},
-	"main": "./app/main.js",
-	"devDependencies": {
-		"electron": "^5.0.6",
-		"electron-builder": "^22.10.5"
-	},
-	"dependencies": {
-		"@aspnet/signalr": "^1.1.4",
-		"chart.js": "^2.9.4",
-		"electron-localshortcut": "^3.1.0",
-		"electron-updater": "5.0.0",
-		"jquery": "^3.5.1",
-		"winreg": "^1.2.4"
-	},
-	"scripts": {
-		"postinstall": "install-app-deps",
-		"start": "npm install && electron ./app",
-		"dist": "electron-builder --x64 -w",
-		"dist-all": "electron-builder --ia32 --x64 -wl",
-		"release": "build -wl"
-	},
-	"build": {
-		"appId": "mapsetverifier",
-		"productName": "Mapset Verifier",
-		"asar": false,
-		"extraFiles": [
-			{
-				"from": "./app/bass.dll",
-				"to": "."
-			},
-			"bass.dll",
-			{
-				"from": "./app/libbass.so",
-				"to": "."
-			},
-			"libbass.so"
-		],
-		"publish": [
-			{
-				"provider": "github"
-			}
-		],
-		"linux": {
-			"target": "tar.gz",
-			"files": [
-				"!**/win-x86/*"
-			]
-		},
-		"mac": {
-			"target": "dmg",
-			"icon": "build/icon.icns"
-		},
-		"win": {
-			"target": [
-				{
-					"target": "nsis",
-					"arch": [
-						"x64",
-						"ia32"
-					]
-				}
-			],
-			"icon": "build/icon.ico",
-			"files": [
-				"!**/linux-x64/*"
-			]
-		},
-		"nsis": {
-			"uninstallDisplayName": "${productName} Uninstaller.exe",
-			"oneClick": false,
-			"perMachine": true,
-			"runAfterFinish": true,
-			"allowElevation": true,
-			"allowToChangeInstallationDirectory": true,
-			"artifactName": "${productName} Installer.exe",
-			"installerIcon": "build/icon.ico",
-      			"installerHeaderIcon": "build/icon.ico"
-		}
-	}
+  "name": "mapsetverifier",
+  "version": "2.0.0",
+  "description": "Mapset Verifier",
+  "author": {
+    "name": "Greaper",
+    "url": "https://osu.ppy.sh/users/2369776"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Naxesss/MapsetVerifier.git"
+  },
+  "main": "electron-app/electron/main.cjs",
+  "scripts": {
+    "dev:frontend": "npm --prefix electron-app run dev",
+    "dev:electron": "cross-env VITE_DEV_SERVER_URL=http://localhost:1420 electron .",
+    "dev": "concurrently -k -n vite,electron -c cyan,magenta \"npm:dev:frontend\" \"wait-on http://localhost:1420 && npm run dev:electron\"",
+    "build:frontend": "npm --prefix electron-app run build",
+    "build": "npm run build:frontend",
+    "dist": "npm run build && electron-builder --x64 -w",
+    "dist-all": "npm run build && electron-builder -wl",
+    "release": "npm run build && electron-builder --publish always",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "devDependencies": {
+    "concurrently": "9.1.0",
+    "cross-env": "7.0.3",
+    "electron": "41.2.1",
+    "electron-builder": "25.1.8",
+    "wait-on": "8.0.1"
+  },
+  "dependencies": {
+    "electron-updater": "6.8.3"
+  },
+  "overrides": {
+    "rollup": "4.60.2"
+  },
+  "build": {
+    "appId": "mapsetverifier",
+    "productName": "Mapset Verifier",
+    "asar": true,
+    "files": [
+      "electron-app/electron/**/*",
+      "electron-app/dist/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "bin/server/dist",
+        "to": "bin/server/dist"
+      }
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Naxesss",
+        "repo": "MapsetVerifier"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/icons/icon.ico"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Utility",
+      "icon": "assets/icons",
+      "executableName": "mapsetverifier",
+      "desktop": {
+        "StartupWMClass": "mapsetverifier"
+      }
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "assets/icons/icon.icns"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "runAfterFinish": true,
+      "uninstallDisplayName": "${productName} Uninstaller.exe",
+      "artifactName": "${productName} Installer.exe",
+      "installerIcon": "assets/icons/icon.ico",
+      "installerHeaderIcon": "assets/icons/icon.ico"
+    }
+  }
 }

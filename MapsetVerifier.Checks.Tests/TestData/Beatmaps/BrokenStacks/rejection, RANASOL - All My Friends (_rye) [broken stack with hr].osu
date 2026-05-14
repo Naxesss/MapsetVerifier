@@ -1,0 +1,59 @@
+osu file format v14
+
+[General]
+AudioFilename: audio.mp3
+AudioLeadIn: 0
+PreviewTime: 104078
+Countdown: 0
+SampleSet: Soft
+StackLeniency: 0.2
+Mode: 0
+LetterboxInBreaks: 0
+WidescreenStoryboard: 1
+
+[Editor]
+Bookmarks: 103987
+DistanceSpacing: 5
+BeatDivisor: 16
+GridSize: 32
+TimelineZoom: 3.900004
+
+[Metadata]
+Title:All My Friends
+TitleUnicode:All My Friends
+Artist:rejection, RANASOL
+ArtistUnicode:rejection, RANASOL
+Creator:_rye
+Version:broken stack with hr
+Source:
+Tags:keevy mappers' guild mpg fa featured artist ALLMYFRIENDS japanese electronic jersey club drumstep female edm dnb Kalibe BlastTheKidd honne akitoshi corinn -laura- kudou chitose 0ppinosu luruu sweet tea midorijeon
+BeatmapID:0
+BeatmapSetID:2333430
+
+[Difficulty]
+HPDrainRate:6
+CircleSize:3.2
+OverallDifficulty:8
+ApproachRate:9.4
+SliderMultiplier:2.22
+SliderTickRate:1
+
+[Events]
+//Background and Video events
+0,0,"bg.jpg",0,0
+//Break Periods
+//Storyboard Layer 0 (Background)
+//Storyboard Layer 1 (Fail)
+//Storyboard Layer 2 (Pass)
+//Storyboard Layer 3 (Foreground)
+//Storyboard Layer 4 (Overlay)
+//Storyboard Sound Samples
+
+[TimingPoints]
+720,363.636363636364,4,2,1,50,1,0
+25992,-125,4,2,3,50,0,0
+
+[HitObjects]
+418,26,25992,1,2,3:2:0:0:
+418,26,26083,1,0,3:2:0:0:
+418,26,26174,2,0,L|386:56,1,44.4,2|0,3:2|3:2,2:0:0:0:

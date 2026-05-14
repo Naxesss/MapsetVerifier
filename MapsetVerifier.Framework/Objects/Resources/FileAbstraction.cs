@@ -1,5 +1,4 @@
-﻿using System.IO;
-using File = TagLib.File;
+﻿using File = TagLib.File;
 
 namespace MapsetVerifier.Framework.Objects.Resources
 {
@@ -9,15 +8,23 @@ namespace MapsetVerifier.Framework.Objects.Resources
 
         public string Name { get; } = filePath;
 
-        public Stream ReadStream { get; } = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        public Stream ReadStream { get; } =
+            new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
         public Stream WriteStream => ReadStream;
 
         public void CloseStream(Stream stream) => stream.Position = 0;
 
-        public File GetTagFile()
+        public File? GetTagFile()
         {
-            return File.Create(this);
+            try
+            {
+                return File.Create(this);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
     }
 }

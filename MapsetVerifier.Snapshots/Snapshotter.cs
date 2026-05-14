@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
 using MapsetVerifier.Snapshots.Objects;
+using Serilog;
 
 namespace MapsetVerifier.Snapshots
 {
@@ -16,27 +13,45 @@ namespace MapsetVerifier.Snapshots
         {
             Added,
             Removed,
-            Changed
+            Changed,
         }
 
         private const string fileNameFormat = "yyyy-MM-dd HH-mm-ss";
-        public static string RelativeDirectory { get; set; } = "";
+        private const string DirectoryName = "snapshots";
+
+        private static string? SnapshotSavePath { get; set; }
+
+        public static void ConfigurePath(string appDataPath, string externalFolderName)
+        {
+            var path = Path.Combine(appDataPath, externalFolderName, DirectoryName);
+            SnapshotSavePath = path;
+            Log.Information("Snapshotter directory: {Path}", path);
+        }
 
         public static void SnapshotBeatmapSet(BeatmapSet beatmapSet)
         {
+            if (SnapshotSavePath == null)
+            {
+                throw new Exception("Snapshot directory not set up");
+            }
             var creationDate = DateTime.UtcNow;
 
             foreach (var beatmap in beatmapSet.Beatmaps)
             {
                 var beatmapSetId = beatmap.MetadataSettings.beatmapSetId.ToString();
                 var beatmapId = beatmap.MetadataSettings.beatmapId.ToString();
-                
+
                 // If either is null, we can't save snapshots
                 if (beatmapSetId == null || beatmapId == null)
                     continue;
 
                 foreach (var otherBeatmap in beatmapSet.Beatmaps)
-                    if (otherBeatmap.MetadataSettings.beatmapId == beatmap.MetadataSettings.beatmapId && beatmap.MapPath != null && otherBeatmap.MapPath != null)
+                    if (
+                        otherBeatmap.MetadataSettings.beatmapId
+                            == beatmap.MetadataSettings.beatmapId
+                        && beatmap.MapPath != null
+                        && otherBeatmap.MapPath != null
+                    )
                     {
                         var date = File.GetCreationTimeUtc(beatmap.MapPath);
                         var otherDate = File.GetCreationTimeUtc(otherBeatmap.MapPath);
@@ -52,20 +67,26 @@ namespace MapsetVerifier.Snapshots
 
                 // If our snapshot is up to date, saving is redundant.
                 foreach (var snapshot in snapshots)
-                    if (snapshot.creationTime == snapshots.Max(snapshot => snapshot.creationTime) && snapshot.code == beatmap.Code)
+                    if (
+                        snapshot.creationTime == snapshots.Max(snapshot => snapshot.creationTime)
+                        && snapshot.code == beatmap.Code
+                    )
                         shouldSave = false;
 
                 if (!shouldSave)
                     continue;
 
                 // ./snapshots/571202/258378/2019-01-26 22-12-49
-                var saveDirectory = Path.Combine(RelativeDirectory, "snapshots", beatmapSetId, beatmapId);
+                var saveDirectory = Path.Combine(SnapshotSavePath, beatmapSetId, beatmapId);
                 var saveName = creationDate.ToString(fileNameFormat) + ".osu";
 
                 if (!Directory.Exists(saveDirectory))
                     Directory.CreateDirectory(saveDirectory);
 
-                File.WriteAllText(saveDirectory + Path.DirectorySeparatorChar + saveName, beatmap.Code);
+                File.WriteAllText(
+                    saveDirectory + Path.DirectorySeparatorChar + saveName,
+                    beatmap.Code
+                );
             }
 
             SnapshotFiles(beatmapSet, creationDate);
@@ -73,7 +94,14 @@ namespace MapsetVerifier.Snapshots
 
         private static void SnapshotFiles(BeatmapSet beatmapSet, DateTime creationTime)
         {
-            var beatmapSetId = beatmapSet.Beatmaps?.First().MetadataSettings.beatmapSetId?.ToString();
+            if (SnapshotSavePath == null)
+            {
+                throw new Exception("Snapshot directory not set up");
+            }
+
+            var beatmapSetId = beatmapSet
+                .Beatmaps?.First()
+                .MetadataSettings.beatmapSetId?.ToString();
             if (beatmapSetId == null)
                 return;
 
@@ -105,15 +133,22 @@ namespace MapsetVerifier.Snapshots
             var shouldSave = true;
 
             foreach (var snapshot in snapshots)
-                if (snapshot.creationTime == snapshots.Max(snapshot => snapshot.creationTime) && snapshot.code == fileSnapshotString)
+                if (
+                    snapshot.creationTime == snapshots.Max(snapshot => snapshot.creationTime)
+                    && snapshot.code == fileSnapshotString
+                )
                     shouldSave = false;
 
             if (!shouldSave)
                 return;
 
-            var filesSnapshotDirectory = Path.Combine(RelativeDirectory, "snapshots", beatmapSetId, "files");
+            var filesSnapshotDirectory = Path.Combine(SnapshotSavePath, beatmapSetId, "files");
 
-            var filesSnapshotName = filesSnapshotDirectory + Path.DirectorySeparatorChar + creationTime.ToString(fileNameFormat) + ".txt";
+            var filesSnapshotName =
+                filesSnapshotDirectory
+                + Path.DirectorySeparatorChar
+                + creationTime.ToString(fileNameFormat)
+                + ".txt";
 
             if (!Directory.Exists(filesSnapshotDirectory))
                 Directory.CreateDirectory(filesSnapshotDirectory);
@@ -122,17 +157,26 @@ namespace MapsetVerifier.Snapshots
         }
 
         public static IEnumerable<Snapshot> GetSnapshots(Beatmap beatmap) =>
-            GetSnapshots(beatmap.MetadataSettings.beatmapSetId.ToString(), beatmap.MetadataSettings.beatmapId.ToString());
+            GetSnapshots(
+                beatmap.MetadataSettings.beatmapSetId.ToString(),
+                beatmap.MetadataSettings.beatmapId.ToString()
+            );
 
         public static IEnumerable<Snapshot> GetSnapshots(string? beatmapSetId, string? beatmapId)
         {
+            if (SnapshotSavePath == null)
+            {
+                throw new Exception("Snapshot directory not set up");
+            }
+
             // If either is null, we can't get snapshots
             if (beatmapSetId == null || beatmapId == null)
                 yield break;
-            
-            var saveDirectory = Path.Combine(RelativeDirectory, "snapshots", beatmapSetId, beatmapId);
 
-            if (!Directory.Exists(saveDirectory)) yield break;
+            var saveDirectory = Path.Combine(SnapshotSavePath, beatmapSetId, beatmapId);
+
+            if (!Directory.Exists(saveDirectory))
+                yield break;
 
             var filePaths = Directory.GetFiles(saveDirectory);
 
@@ -144,7 +188,11 @@ namespace MapsetVerifier.Snapshots
                 var saveName = path[(Math.Max(forwardSlash, backSlash) + 1)..];
                 var code = File.ReadAllText(path);
 
-                var creationTime = DateTime.ParseExact(saveName.Split('.')[0], fileNameFormat, null);
+                var creationTime = DateTime.ParseExact(
+                    saveName.Split('.')[0],
+                    fileNameFormat,
+                    null
+                );
 
                 yield return new Snapshot(creationTime, beatmapSetId, beatmapId, saveName, code);
             }
@@ -152,71 +200,215 @@ namespace MapsetVerifier.Snapshots
 
         public static IEnumerable<DiffInstance> Compare(Snapshot snapshot, string currentCode)
         {
-            var snapshotLines = snapshot.code.Replace("\r", "").Split('\n');
-            var currentLines = currentCode.Replace("\r", "").Split('\n');
+            // Helper to get section name, stripping brackets if present
+            string GetSectionName(string section) =>
+                section.StartsWith("[") && section.EndsWith("]")
+                    ? section.Substring(1, section.Length - 2)
+                    : section;
 
-            var maxLength = Math.Max(snapshotLines.Length, currentLines.Length);
-            var minLength = Math.Min(snapshotLines.Length, currentLines.Length);
+            // Parse both snapshots into sections
+            var oldSections = ParseIntoSections(snapshot.code);
+            var newSections = ParseIntoSections(currentCode);
 
-            var prevSection = "No Section";
+            // Create dictionaries for quick lookup by section name
+            var oldSectionDict = oldSections.ToDictionary(s => s.Name, s => s);
+            var newSectionDict = newSections.ToDictionary(s => s.Name, s => s);
 
-            var offset = 0;
+            // Get all unique section names from both snapshots
+            var allSectionNames = oldSectionDict.Keys.Union(newSectionDict.Keys).ToHashSet();
 
-            for (var i = 0; i < maxLength; ++i)
+            foreach (var sectionName in allSectionNames)
             {
-                if (i >= maxLength)
-                    break;
+                var hasOldSection = oldSectionDict.TryGetValue(sectionName, out var oldSection);
+                var hasNewSection = newSectionDict.TryGetValue(sectionName, out var newSection);
 
-                if (i >= minLength || i + offset >= currentLines.Length)
+                if (!hasOldSection && hasNewSection)
                 {
-                    if (currentLines.Length - snapshotLines.Length - offset > 0 && i + offset < currentLines.Length)
-                        // A line was added at the end of the file.
-                        yield return new DiffInstance(currentLines[i + offset], prevSection.Substring(1, prevSection.Length - 2), DiffType.Added, new List<string>(), snapshot.creationTime);
-
-                    if (snapshotLines.Length - currentLines.Length > 0)
-                        // A line was removed from the end of the file.
-                        yield return new DiffInstance(snapshotLines[i], prevSection.Substring(1, prevSection.Length - 2), DiffType.Removed, new List<string>(), snapshot.creationTime);
-                }
-                else
-                {
-                    if (snapshotLines[i].StartsWith("[") && snapshotLines[i].EndsWith("]"))
-                        prevSection = snapshotLines[i];
-
-                    if (snapshotLines[i] == currentLines[i + offset])
-                        continue;
-
-                    var originalOffset = offset;
-
-                    for (; offset < minLength - i; ++offset)
-                        if (snapshotLines[i] == currentLines[i + offset])
-                            break;
-
-                    if (offset >= minLength - i)
+                    // Section was added - report all lines as added
+                    foreach (var line in newSection!.Lines)
                     {
-                        // A line was removed.
-                        offset = originalOffset;
-                        --offset;
-
-                        yield return new DiffInstance(snapshotLines[i], prevSection.Substring(1, prevSection.Length - 2), DiffType.Removed, new List<string>(), snapshot.creationTime);
+                        if (!string.IsNullOrWhiteSpace(line))
+                            yield return new DiffInstance(
+                                line,
+                                GetSectionName(sectionName),
+                                DiffType.Added,
+                                new List<string>(),
+                                snapshot.creationTime
+                            );
                     }
-                    else
+                }
+                else if (hasOldSection && !hasNewSection)
+                {
+                    // Section was removed - report all lines as removed
+                    foreach (var line in oldSection!.Lines)
                     {
-                        // A line was added.
-                        for (var j = originalOffset; j < offset; j++)
-                            yield return new DiffInstance(currentLines[i + j], prevSection.Substring(1, prevSection.Length - 2), DiffType.Added, new List<string>(), snapshot.creationTime);
+                        if (!string.IsNullOrWhiteSpace(line))
+                            yield return new DiffInstance(
+                                line,
+                                GetSectionName(sectionName),
+                                DiffType.Removed,
+                                new List<string>(),
+                                snapshot.creationTime
+                            );
+                    }
+                }
+                else if (hasOldSection && hasNewSection)
+                {
+                    // Section exists in both - compare line by line within the section
+                    var oldLines = oldSection!.Lines;
+                    var newLines = newSection!.Lines;
+
+                    var maxLength = Math.Max(oldLines.Count, newLines.Count);
+                    var minLength = Math.Min(oldLines.Count, newLines.Count);
+                    var offset = 0;
+
+                    for (var i = 0; i < maxLength; ++i)
+                    {
+                        if (i >= minLength || i + offset >= newLines.Count)
+                        {
+                            if (
+                                newLines.Count - oldLines.Count - offset > 0
+                                && i + offset < newLines.Count
+                            )
+                            {
+                                // A line was added at the end of the section
+                                var line = newLines[i + offset];
+                                if (!string.IsNullOrWhiteSpace(line))
+                                    yield return new DiffInstance(
+                                        line,
+                                        GetSectionName(sectionName),
+                                        DiffType.Added,
+                                        new List<string>(),
+                                        snapshot.creationTime
+                                    );
+                            }
+
+                            if (oldLines.Count - newLines.Count > 0 && i < oldLines.Count)
+                            {
+                                // A line was removed from the end of the section
+                                var line = oldLines[i];
+                                if (!string.IsNullOrWhiteSpace(line))
+                                    yield return new DiffInstance(
+                                        line,
+                                        GetSectionName(sectionName),
+                                        DiffType.Removed,
+                                        new List<string>(),
+                                        snapshot.creationTime
+                                    );
+                            }
+                        }
+                        else
+                        {
+                            if (oldLines[i] == newLines[i + offset])
+                                continue;
+
+                            var originalOffset = offset;
+
+                            // Try to find the old line in the new lines (looking ahead)
+                            for (; offset < minLength - i; ++offset)
+                                if (oldLines[i] == newLines[i + offset])
+                                    break;
+
+                            if (offset >= minLength - i)
+                            {
+                                // Line was removed
+                                offset = originalOffset;
+                                --offset;
+
+                                var line = oldLines[i];
+                                if (!string.IsNullOrWhiteSpace(line))
+                                    yield return new DiffInstance(
+                                        line,
+                                        GetSectionName(sectionName),
+                                        DiffType.Removed,
+                                        new List<string>(),
+                                        snapshot.creationTime
+                                    );
+                            }
+                            else
+                            {
+                                // Lines were added
+                                for (var j = originalOffset; j < offset; j++)
+                                {
+                                    var line = newLines[i + j];
+                                    if (!string.IsNullOrWhiteSpace(line))
+                                        yield return new DiffInstance(
+                                            line,
+                                            GetSectionName(sectionName),
+                                            DiffType.Added,
+                                            new List<string>(),
+                                            snapshot.creationTime
+                                        );
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
 
-        public static IEnumerable<DiffInstance> TranslateComparison(IEnumerable<DiffInstance> diffs)
+        private static List<Section> ParseIntoSections(string code)
+        {
+            var lines = code.Replace("\r", "").Split('\n');
+            var sections = new List<Section>();
+            var currentSectionName = "No Section";
+            var currentSectionLines = new List<string>();
+
+            foreach (var line in lines)
+            {
+                if (line.StartsWith("[") && line.EndsWith("]"))
+                {
+                    // Save the previous section if it has content
+                    if (currentSectionLines.Count > 0 || currentSectionName != "No Section")
+                    {
+                        sections.Add(new Section(currentSectionName, currentSectionLines));
+                    }
+
+                    // Start a new section
+                    currentSectionName = line;
+                    currentSectionLines = new List<string>();
+                }
+                else
+                {
+                    // Add line to current section (including empty lines for proper comparison)
+                    currentSectionLines.Add(line);
+                }
+            }
+
+            // Add the last section
+            if (currentSectionLines.Count > 0 || currentSectionName != "No Section")
+            {
+                sections.Add(new Section(currentSectionName, currentSectionLines));
+            }
+
+            return sections;
+        }
+
+        private class Section
+        {
+            public string Name { get; }
+            public List<string> Lines { get; }
+
+            public Section(string name, List<string> lines)
+            {
+                Name = name;
+                Lines = lines;
+            }
+        }
+
+        public static IEnumerable<DiffInstance> TranslateComparison(
+            IEnumerable<DiffInstance> diffs,
+            Beatmap beatmap
+        )
         {
             foreach (var diffsBySection in diffs.GroupBy(diff => diff.Section).Distinct())
             {
-                var translator = TranslatorRegistry.GetTranslators().FirstOrDefault(translator => translator.Section == diffsBySection.Key);
+                var translator = TranslatorRegistry
+                    .GetTranslators()
+                    .FirstOrDefault(translator => translator.Section == diffsBySection.Key);
 
                 if (translator != null)
-                    foreach (var diff in translator.Translate(diffsBySection))
+                    foreach (var diff in translator.Translate(diffsBySection, beatmap))
                     {
                         // Since all translators should be able to translate sections, we do that here.
                         diff.Section = translator.TranslatedSection;
@@ -229,20 +421,49 @@ namespace MapsetVerifier.Snapshots
             }
         }
 
-        private static DiffInstance GetTranslatedSettingDiff(string sectionName, Func<string, string> translateFunc, Setting setting, DiffInstance diff, Setting? otherSetting = null, DiffInstance? otherDiff = null)
+        private static DiffInstance GetTranslatedSettingDiff(
+            string sectionName,
+            Func<string, string> translateFunc,
+            Setting setting,
+            DiffInstance diff,
+            Setting? otherSetting = null,
+            DiffInstance? otherDiff = null
+        )
         {
             var key = translateFunc(setting.key);
 
             if (otherSetting != null && otherDiff != null)
-                return new DiffInstance($"{key} was changed from \"{otherSetting.GetValueOrDefault().value}\" to \"{setting.value}\".", sectionName, DiffType.Changed, new List<string>(), diff.SnapshotCreationDate);
+                return new DiffInstance(
+                    $"{key} was changed from \"{otherSetting.GetValueOrDefault().value}\" to \"{setting.value}\".",
+                    sectionName,
+                    DiffType.Changed,
+                    new List<string>(),
+                    diff.SnapshotCreationDate
+                );
 
             if (diff.DiffType == DiffType.Added)
-                return new DiffInstance($"{key} was added and set to \"{setting.value}\".", sectionName, DiffType.Added, new List<string>(), diff.SnapshotCreationDate);
+                return new DiffInstance(
+                    $"{key} was added and set to \"{setting.value}\".",
+                    sectionName,
+                    DiffType.Added,
+                    new List<string>(),
+                    diff.SnapshotCreationDate
+                );
 
-            return new DiffInstance($"{key} was removed and is no longer set to \"{setting.value}\".", sectionName, DiffType.Removed, new List<string>(), diff.SnapshotCreationDate);
+            return new DiffInstance(
+                $"{key} was removed and is no longer set to \"{setting.value}\".",
+                sectionName,
+                DiffType.Removed,
+                new List<string>(),
+                diff.SnapshotCreationDate
+            );
         }
 
-        public static IEnumerable<DiffInstance> TranslateSettings(string sectionName, IEnumerable<DiffInstance> diffs, Func<string, string> translateFunc)
+        public static IEnumerable<DiffInstance> TranslateSettings(
+            string sectionName,
+            IEnumerable<DiffInstance> diffs,
+            Func<string, string> translateFunc
+        )
         {
             diffs = diffs.ToArray();
 
@@ -252,7 +473,9 @@ namespace MapsetVerifier.Snapshots
             foreach (var addition in added)
             {
                 var setting = new Setting(addition.Diff);
-                var removal = removed.FirstOrDefault(diff => new Setting(diff.Diff).key == setting.key);
+                var removal = removed.FirstOrDefault(diff =>
+                    new Setting(diff.Diff).key == setting.key
+                );
 
                 if (removal != null && removal.Diff != null)
                 {
@@ -260,13 +483,23 @@ namespace MapsetVerifier.Snapshots
 
                     removed.Remove(removal);
 
+                    // Skip if the values are actually the same (can happen due to whitespace differences in the raw line)
+                    if (setting.value == removedSetting.value)
+                        continue;
+
                     switch (removedSetting.key)
                     {
                         case "Bookmarks":
                         {
-                            var prevBookmarks = removedSetting.value.Split(',').Select(value => double.Parse(value.Trim())).ToArray();
+                            var prevBookmarks = removedSetting
+                                .value.Split(',')
+                                .Select(value => double.Parse(value.Trim()))
+                                .ToArray();
 
-                            var curBookmarks = setting.value.Split(',').Select(value => double.Parse(value.Trim())).ToArray();
+                            var curBookmarks = setting
+                                .value.Split(',')
+                                .Select(value => double.Parse(value.Trim()))
+                                .ToArray();
 
                             var removedBookmarks = prevBookmarks.Except(curBookmarks).ToArray();
                             var addedBookmarks = curBookmarks.Except(prevBookmarks).ToArray();
@@ -274,20 +507,36 @@ namespace MapsetVerifier.Snapshots
                             var details = new List<string>();
 
                             if (addedBookmarks.Any())
-                                details.Add($"Added {string.Join(", ", addedBookmarks.Select(mark => Timestamp.Get(mark)))}");
+                                details.Add(
+                                    $"Added {string.Join(", ", addedBookmarks.Select(mark => Timestamp.Get(mark)))}"
+                                );
 
                             if (removedBookmarks.Any())
-                                details.Add($"Removed {string.Join(", ", removedBookmarks.Select(mark => Timestamp.Get(mark)))}");
+                                details.Add(
+                                    $"Removed {string.Join(", ", removedBookmarks.Select(mark => Timestamp.Get(mark)))}"
+                                );
 
-                            yield return new DiffInstance($"{translateFunc(setting.key)} were changed.", sectionName, DiffType.Changed, details, addition.SnapshotCreationDate);
+                            yield return new DiffInstance(
+                                $"{translateFunc(setting.key)} were changed.",
+                                sectionName,
+                                DiffType.Changed,
+                                details,
+                                addition.SnapshotCreationDate
+                            );
 
                             break;
                         }
 
                         case "Tags":
                         {
-                            var prevTags = removedSetting.value.Split(' ').Select(value => $"\"{value}\"").ToArray();
-                            var curTags = setting.value.Split(' ').Select(value => $"\"{value}\"").ToArray();
+                            var prevTags = removedSetting
+                                .value.Split(' ')
+                                .Select(value => $"\"{value}\"")
+                                .ToArray();
+                            var curTags = setting
+                                .value.Split(' ')
+                                .Select(value => $"\"{value}\"")
+                                .ToArray();
 
                             var removedTags = prevTags.Except(curTags).ToArray();
                             var addedTags = curTags.Except(prevTags).ToArray();
@@ -300,20 +549,38 @@ namespace MapsetVerifier.Snapshots
                             if (removedTags.Any())
                                 details.Add($"Removed {string.Join(", ", removedTags)}");
 
-                            yield return new DiffInstance($"{translateFunc(setting.key)} were changed.", sectionName, DiffType.Changed, details, addition.SnapshotCreationDate);
+                            yield return new DiffInstance(
+                                $"{translateFunc(setting.key)} were changed.",
+                                sectionName,
+                                DiffType.Changed,
+                                details,
+                                addition.SnapshotCreationDate
+                            );
 
                             break;
                         }
 
                         default:
-                            yield return GetTranslatedSettingDiff(sectionName, translateFunc, setting, addition, removedSetting, removal);
+                            yield return GetTranslatedSettingDiff(
+                                sectionName,
+                                translateFunc,
+                                setting,
+                                addition,
+                                removedSetting,
+                                removal
+                            );
 
                             break;
                     }
                 }
                 else
                 {
-                    yield return GetTranslatedSettingDiff(sectionName, translateFunc, setting, addition);
+                    yield return GetTranslatedSettingDiff(
+                        sectionName,
+                        translateFunc,
+                        setting,
+                        addition
+                    );
                 }
             }
 
@@ -333,7 +600,13 @@ namespace MapsetVerifier.Snapshots
             public readonly string saveName;
             public readonly string code;
 
-            public Snapshot(DateTime creationTime, string beatmapSetId, string beatmapId, string saveName, string code)
+            public Snapshot(
+                DateTime creationTime,
+                string beatmapSetId,
+                string beatmapId,
+                string saveName,
+                string code
+            )
             {
                 this.creationTime = creationTime;
                 this.beatmapSetId = beatmapSetId;
@@ -353,7 +626,8 @@ namespace MapsetVerifier.Snapshots
                 if (code.IndexOf(":", StringComparison.Ordinal) != -1)
                 {
                     key = code[..code.IndexOf(":", StringComparison.Ordinal)].Trim();
-                    value = code[(code.IndexOf(":", StringComparison.Ordinal) + ":".Length)..].Trim();
+                    value = code[(code.IndexOf(":", StringComparison.Ordinal) + ":".Length)..]
+                        .Trim();
                 }
                 else
                 {

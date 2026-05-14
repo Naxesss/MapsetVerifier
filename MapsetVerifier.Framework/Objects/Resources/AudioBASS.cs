@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Concurrent;
 using ManagedBass;
 
 namespace MapsetVerifier.Framework.Objects.Resources
@@ -17,11 +14,18 @@ namespace MapsetVerifier.Framework.Objects.Resources
             {
                 // 0 = No Output Device
                 if (!Bass.Init(0) && Bass.LastError != Errors.Already)
-                    throw new BadImageFormatException($"Could not initialize ManagedBass, error \"{Bass.LastError}\".");
+                    throw new BadImageFormatException(
+                        $"Could not initialize ManagedBass, error \"{Bass.LastError}\"."
+                    );
 
                 isInitialized = true;
             }
         }
+
+        /// <summary>
+        /// Ensures BASS is initialized. Can be called from other classes that need to use BASS directly.
+        /// </summary>
+        public static void EnsureInitialized() => Initialize();
 
         private static int CreateStream(string filePath)
         {
@@ -30,7 +34,9 @@ namespace MapsetVerifier.Framework.Objects.Resources
             var stream = Bass.CreateStream(filePath, 0, 0, BassFlags.Decode);
 
             if (stream == 0)
-                throw new BadImageFormatException($"Could not create stream of \"{filePath.Split('\\', '/').Last()}\", error \"{Bass.LastError}\".");
+                throw new BadImageFormatException(
+                    $"Could not create stream of \"{filePath.Split('\\', '/').Last()}\", error \"{Bass.LastError}\"."
+                );
 
             return stream;
         }
@@ -67,16 +73,28 @@ namespace MapsetVerifier.Framework.Objects.Resources
             }
         }
 
-        /// <summary> Returns the audio duration in ms, given the full path. </summary>
+        /// <summary> Returns the audio duration in ms, given the full path. Returns 0 for empty/invalid files. </summary>
         public static double GetDuration(string filePath)
         {
             lock (locks.GetOrAdd(filePath, new object()))
             {
                 var stream = CreateStream(filePath);
                 var length = Bass.ChannelGetLength(stream);
+
+                // ChannelGetLength returns -1 on error (e.g., empty files)
+                if (length < 0)
+                {
+                    FreeStream(stream);
+                    return 0;
+                }
+
                 var seconds = Bass.ChannelBytes2Seconds(stream, length);
 
                 FreeStream(stream);
+
+                // ChannelBytes2Seconds returns -1 on error
+                if (seconds < 0)
+                    return 0;
 
                 return seconds * 1000;
             }
@@ -126,7 +144,11 @@ namespace MapsetVerifier.Framework.Objects.Resources
                         var error = Bass.LastError;
 
                         if (error != Errors.Ended)
-                            throw new BadImageFormatException($"Could not parse audio peak of \"{filePath.Split('\\', '/').Last()}\" at " + i * 1000 + " ms.");
+                            throw new BadImageFormatException(
+                                $"Could not parse audio peak of \"{filePath.Split('\\', '/').Last()}\" at "
+                                    + i * 1000
+                                    + " ms."
+                            );
 
                         break;
                     }

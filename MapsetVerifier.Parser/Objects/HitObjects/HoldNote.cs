@@ -9,9 +9,10 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
 
         public readonly double endTime;
 
-        public HoldNote(string[] args, Beatmap beatmap) : base(args, beatmap) =>
-            endTime = GetEndTime(args);
+        public HoldNote(string[] args, Beatmap beatmap)
+            : base(args, beatmap) => endTime = GetEndTime(args);
 
-        private double GetEndTime(string[] args) => double.Parse(args[5].Split(':')[0], CultureInfo.InvariantCulture);
+        private double GetEndTime(string[] args) =>
+            double.Parse(args[5].Split(':')[0], CultureInfo.InvariantCulture);
     }
 }

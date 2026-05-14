@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+﻿using System.Globalization;
 using System.Numerics;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
@@ -17,8 +14,9 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             Linear,
             Passthrough,
             Bezier,
-            Catmull
+            Catmull,
         }
+
         // 319,179,1392,6,0,L|389:160,2,62.5,2|0|0,0:0|0:0|0:0,0:0:0:0:
         // x, y, time, typeFlags, hitsound, (sliderPath, edgeAmount, pixelLength, hitsoundEdges, additionEdges,) extras
 
@@ -54,7 +52,8 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
         private double? CachedCurveLength { get; set; }
         private double? CachedSliderSpeed { get; set; }
 
-        public Slider(string[] args, Beatmap beatmap) : base(args, beatmap)
+        public Slider(string[] args, Beatmap beatmap)
+            : base(args, beatmap)
         {
             CurveType = GetSliderType(args);
             NodePositions = GetNodes(args).ToList();
@@ -78,26 +77,16 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             ReverseAdditions = edgeAdditions.Item6.ToList();
 
             // Non-explicit
-            if (beatmap != null)
-            {
-                RedAnchorPositions = GetRedAnchors().ToList();
-                PathPxPositions = GetPathPxPositions();
-                EndTime = GetEndTime();
-                SliderTickTimes = GetSliderTickTimes();
+            RedAnchorPositions = GetRedAnchors().ToList();
+            PathPxPositions = GetPathPxPositions();
+            EndTime = GetEndTime();
+            SliderTickTimes = GetSliderTickTimes();
 
-                UnstackedEndPosition = EdgeAmount % 2 == 1 ? PathPxPositions.Last() : UnstackedPosition;
+            UnstackedEndPosition = EdgeAmount % 2 == 1 ? PathPxPositions.Last() : UnstackedPosition;
 
-                // Difficulty
-                LazyEndPosition = Position;
-                LazyTravelDistance = 0;
-            }
-            else
-            {
-                RedAnchorPositions = [];
-                PathPxPositions = [];
-                EndTime = 0;
-                SliderTickTimes = [];
-            }
+            // Difficulty
+            LazyEndPosition = Position;
+            LazyTravelDistance = 0;
 
             usedHitSamples = GetUsedHitSamples().ToList();
         }
@@ -118,9 +107,10 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
         {
             var type = args[5].Split('|')[0];
 
-            return type == "L" ? Curve.Linear :
-                type == "P" ? Curve.Passthrough :
-                type == "B" ? Curve.Bezier : Curve.Catmull; // Catmull is the default curve type.
+            return type == "L" ? Curve.Linear
+                : type == "P" ? Curve.Passthrough
+                : type == "B" ? Curve.Bezier
+                : Curve.Catmull; // Catmull is the default curve type.
         }
 
         private IEnumerable<Vector2> GetNodes(IReadOnlyList<string> args)
@@ -143,9 +133,12 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
 
         private static int GetEdgeAmount(IReadOnlyList<string> args) => int.Parse(args[6]);
 
-        private static float GetPixelLength(IReadOnlyList<string> args) => float.Parse(args[7], CultureInfo.InvariantCulture);
+        private static float GetPixelLength(IReadOnlyList<string> args) =>
+            float.Parse(args[7], CultureInfo.InvariantCulture);
 
-        private Tuple<HitSounds, HitSounds, List<HitSounds>> GetEdgeHitSounds(IReadOnlyList<string> args)
+        private Tuple<HitSounds, HitSounds, List<HitSounds>> GetEdgeHitSounds(
+            IReadOnlyList<string> args
+        )
         {
             HitSounds edgeStartHitSound = 0;
             HitSounds edgeEndHitSound = 0;
@@ -186,7 +179,14 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             return Tuple.Create(edgeStartHitSound, edgeEndHitSound, edgeReverseHitSounds);
         }
 
-        private Tuple<HitSample.SamplesetType, HitSample.SamplesetType, HitSample.SamplesetType, HitSample.SamplesetType, List<HitSample.SamplesetType>, List<HitSample.SamplesetType>> GetEdgeAdditions(string[] args)
+        private Tuple<
+            HitSample.SamplesetType,
+            HitSample.SamplesetType,
+            HitSample.SamplesetType,
+            HitSample.SamplesetType,
+            List<HitSample.SamplesetType>,
+            List<HitSample.SamplesetType>
+        > GetEdgeAdditions(string[] args)
         {
             HitSample.SamplesetType edgeStartSampleset = 0;
             HitSample.SamplesetType edgeStartAddition = 0;
@@ -205,8 +205,10 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
                 if (edgeAdditions.Contains("|"))
                     for (var i = 0; i < edgeAdditions.Split('|').Length; ++i)
                     {
-                        var edgeSampleset = (HitSample.SamplesetType)int.Parse(edgeAdditions.Split('|')[i].Split(':')[0]);
-                        var edgeAddition = (HitSample.SamplesetType)int.Parse(edgeAdditions.Split('|')[i].Split(':')[1]);
+                        var edgeSampleset = (HitSample.SamplesetType)
+                            int.Parse(edgeAdditions.Split('|')[i].Split(':')[0]);
+                        var edgeAddition = (HitSample.SamplesetType)
+                            int.Parse(edgeAdditions.Split('|')[i].Split(':')[1]);
 
                         if (i == 0)
                         {
@@ -242,7 +244,14 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
                     edgeReverseAdditions.Add(addition);
             }
 
-            return Tuple.Create(edgeStartSampleset, edgeStartAddition, edgeEndSampleset, edgeEndAddition, edgeReverseSamplesets, edgeReverseAdditions);
+            return Tuple.Create(
+                edgeStartSampleset,
+                edgeStartAddition,
+                edgeEndSampleset,
+                edgeEndAddition,
+                edgeReverseSamplesets,
+                edgeReverseAdditions
+            );
         }
 
         /*
@@ -320,7 +329,7 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
                 Curve.Passthrough => GetPassthroughPathPosition(time),
                 Curve.Bezier => GetBezierPathPosition(time),
                 Curve.Catmull => GetCatmullPathPosition(time),
-                _ => new Vector2(0, 0)
+                _ => new Vector2(0, 0),
             };
 
         /// <summary> Returns the speed of any slider starting from the given time in px/ms. Caps SV within range 0.1-10. </summary>
@@ -332,15 +341,18 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             var timingLine = beatmap.GetTimingLine<UninheritedLine>(time);
             if (timingLine == null)
             {
-                throw new Exception($"No uninherited timing line found at time {this.time} for slider starting at {this.time}." );
+                throw new Exception(
+                    $"No uninherited timing line found at time {this.time} for slider starting at {this.time}."
+                );
             }
 
             var sliderStartTimingLine = beatmap.GetTimingLine(this.time);
-            
+
             var msPerBeat = timingLine.msPerBeat;
             double effectiveSVMult = sliderStartTimingLine?.SvMult ?? 1.0;
 
-            CachedSliderSpeed = 100 * effectiveSVMult * beatmap.DifficultySettings.sliderMultiplier / msPerBeat;
+            CachedSliderSpeed =
+                100 * effectiveSVMult * beatmap.DifficultySettings.sliderMultiplier / msPerBeat;
 
             return CachedSliderSpeed.GetValueOrDefault();
         }
@@ -370,17 +382,26 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
         }
 
         /// <summary> Returns the sampleset at a given reverse (starting from 0), optionally prioritizing the addition. </summary>
-        public HitSample.SamplesetType GetReverseSampleset(int reverseIndex, bool additionOverrides = false)
+        public HitSample.SamplesetType GetReverseSampleset(
+            int reverseIndex,
+            bool additionOverrides = false
+        )
         {
-            var theoreticalStart = this.time - beatmap.GetTheoreticalUnsnap(this.time);
-            double time = Timestamp.Round(theoreticalStart + GetCurveDuration() * (reverseIndex + 1));
+            var theoreticalStart = time - beatmap.GetTheoreticalUnsnap(time);
+            double actualTime = Timestamp.Round(
+                theoreticalStart + GetCurveDuration() * (reverseIndex + 1)
+            );
 
             // Reverse additions and samplesets do not exist in file version 7 and below, hence ElementAtOrDefault.
-            if (additionOverrides && ReverseAdditions.ElementAtOrDefault(reverseIndex) != HitSample.SamplesetType.Auto)
+            if (
+                additionOverrides
+                && ReverseAdditions.ElementAtOrDefault(reverseIndex) != HitSample.SamplesetType.Auto
+            )
                 return ReverseAdditions.ElementAt(reverseIndex);
 
             if (ReverseSamplesets.ElementAtOrDefault(reverseIndex) == HitSample.SamplesetType.Auto)
-                return beatmap.GetTimingLine(time, true)?.Sampleset ?? HitSample.SamplesetType.Auto;
+                return beatmap.GetTimingLine(actualTime, true)?.Sampleset
+                    ?? HitSample.SamplesetType.Auto;
 
             return ReverseSamplesets.ElementAt(reverseIndex);
         }
@@ -392,7 +413,8 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
                 return EndAddition;
 
             if (EndSampleset == HitSample.SamplesetType.Auto)
-                return beatmap.GetTimingLine(EndTime, true)?.Sampleset ?? HitSample.SamplesetType.Auto;
+                return beatmap.GetTimingLine(EndTime, true)?.Sampleset
+                    ?? HitSample.SamplesetType.Auto;
 
             return EndSampleset;
         }
@@ -426,9 +448,11 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             var timingLine = beatmap.GetTimingLine<UninheritedLine>(time);
             if (timingLine == null)
             {
-                throw new Exception($"No uninherited timing line found at time for slider starting at {time}." );
+                throw new Exception(
+                    $"No uninherited timing line found at time for slider starting at {time}."
+                );
             }
-            
+
             var tickRate = beatmap.DifficultySettings.sliderTickRate;
             var msPerBeat = timingLine.msPerBeat;
 
@@ -465,7 +489,8 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             while (index > 0)
             {
                 for (var i = 0; i < index; i++)
-                    newPoints[i] = newPoints[i] + (float)fraction * (newPoints[i + 1] - newPoints[i]);
+                    newPoints[i] =
+                        newPoints[i] + (float)fraction * (newPoints[i + 1] - newPoints[i]);
 
                 index--;
             }
@@ -473,7 +498,13 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             return newPoints[0];
         }
 
-        private Vector2 GetCatmullPoint(Vector2 point0, Vector2 point1, Vector2 point2, Vector2 point3, double x)
+        private Vector2 GetCatmullPoint(
+            Vector2 point0,
+            Vector2 point1,
+            Vector2 point2,
+            Vector2 point3,
+            double x
+        )
         {
             // See https://en.wikipedia.org/wiki/Centripetal_Catmull%E2%80%93Rom_spline.
 
@@ -482,15 +513,32 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             var x2 = (float)(x * x);
             var x3 = x2 * (float)x;
 
-            point.X = 0.5f * (2.0f * point1.X + (-point0.X + point2.X) * (float)x + (2.0f * point0.X - 5.0f * point1.X + 4 * point2.X - point3.X) * x2 + (-point0.X + 3.0f * point1.X - 3.0f * point2.X + point3.X) * x3);
+            point.X =
+                0.5f
+                * (
+                    2.0f * point1.X
+                    + (-point0.X + point2.X) * (float)x
+                    + (2.0f * point0.X - 5.0f * point1.X + 4 * point2.X - point3.X) * x2
+                    + (-point0.X + 3.0f * point1.X - 3.0f * point2.X + point3.X) * x3
+                );
 
-            point.Y = 0.5f * (2.0f * point1.Y + (-point0.Y + point2.Y) * (float)x + (2.0f * point0.Y - 5.0f * point1.Y + 4 * point2.Y - point3.Y) * x2 + (-point0.Y + 3.0f * point1.Y - 3.0f * point2.Y + point3.Y) * x3);
+            point.Y =
+                0.5f
+                * (
+                    2.0f * point1.Y
+                    + (-point0.Y + point2.Y) * (float)x
+                    + (2.0f * point0.Y - 5.0f * point1.Y + 4 * point2.Y - point3.Y) * x2
+                    + (-point0.Y + 3.0f * point1.Y - 3.0f * point2.Y + point3.Y) * x3
+                );
 
             return point;
         }
 
         private double GetDistance(Vector2 position, Vector2 otherPosition) =>
-            Math.Sqrt(Math.Pow(position.X - otherPosition.X, 2) + Math.Pow(position.Y - otherPosition.Y, 2));
+            Math.Sqrt(
+                Math.Pow(position.X - otherPosition.X, 2)
+                    + Math.Pow(position.Y - otherPosition.Y, 2)
+            );
 
         /*
          *  Slider Pathing
@@ -515,8 +563,8 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
                     previousPosition = NodePositions.ElementAt(i);
                 }
                 else
-                    // but if it is the last node, then we need to look at the total length
-                    // to see how far it goes in that direction.
+                // but if it is the last node, then we need to look at the total length
+                // to see how far it goes in that direction.
                 {
                     distance = GetCurveLength() - pathLengths.Sum();
                 }
@@ -545,7 +593,11 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             var pointDistance = GetDistance(startPoint, endPoint);
             var microFraction = fractionDistance / pointDistance;
 
-            return startPoint + new Vector2((endPoint - startPoint).X * (float)microFraction, (endPoint - startPoint).Y * (float)microFraction);
+            return startPoint
+                + new Vector2(
+                    (endPoint - startPoint).X * (float)microFraction,
+                    (endPoint - startPoint).Y * (float)microFraction
+                );
         }
 
         private Vector2 GetPassthroughPathPosition(double time)
@@ -562,22 +614,55 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             var thirdPoint = NodePositions.ElementAt(2);
 
             // Center and radius of the circle.
-            double divisor = 2 * (UnstackedPosition.X * (secondPoint.Y - thirdPoint.Y) + secondPoint.X * (thirdPoint.Y - UnstackedPosition.Y) + thirdPoint.X * (UnstackedPosition.Y - secondPoint.Y));
+            double divisor =
+                2
+                * (
+                    UnstackedPosition.X * (secondPoint.Y - thirdPoint.Y)
+                    + secondPoint.X * (thirdPoint.Y - UnstackedPosition.Y)
+                    + thirdPoint.X * (UnstackedPosition.Y - secondPoint.Y)
+                );
 
             if (divisor == 0)
                 // Second point is somewhere straight between the first and third, making our path linear.
                 return GetLinearPathPosition(time);
 
-            var centerX = ((UnstackedPosition.X * UnstackedPosition.X + UnstackedPosition.Y * UnstackedPosition.Y) * (secondPoint.Y - thirdPoint.Y) + (secondPoint.X * secondPoint.X + secondPoint.Y * secondPoint.Y) * (thirdPoint.Y - UnstackedPosition.Y) + (thirdPoint.X * thirdPoint.X + thirdPoint.Y * thirdPoint.Y) * (UnstackedPosition.Y - secondPoint.Y)) / divisor;
+            var centerX =
+                (
+                    (
+                        UnstackedPosition.X * UnstackedPosition.X
+                        + UnstackedPosition.Y * UnstackedPosition.Y
+                    ) * (secondPoint.Y - thirdPoint.Y)
+                    + (secondPoint.X * secondPoint.X + secondPoint.Y * secondPoint.Y)
+                        * (thirdPoint.Y - UnstackedPosition.Y)
+                    + (thirdPoint.X * thirdPoint.X + thirdPoint.Y * thirdPoint.Y)
+                        * (UnstackedPosition.Y - secondPoint.Y)
+                ) / divisor;
 
-            var centerY = ((UnstackedPosition.X * UnstackedPosition.X + UnstackedPosition.Y * UnstackedPosition.Y) * (thirdPoint.X - secondPoint.X) + (secondPoint.X * secondPoint.X + secondPoint.Y * secondPoint.Y) * (UnstackedPosition.X - thirdPoint.X) + (thirdPoint.X * thirdPoint.X + thirdPoint.Y * thirdPoint.Y) * (secondPoint.X - UnstackedPosition.X)) / divisor;
+            var centerY =
+                (
+                    (
+                        UnstackedPosition.X * UnstackedPosition.X
+                        + UnstackedPosition.Y * UnstackedPosition.Y
+                    ) * (thirdPoint.X - secondPoint.X)
+                    + (secondPoint.X * secondPoint.X + secondPoint.Y * secondPoint.Y)
+                        * (UnstackedPosition.X - thirdPoint.X)
+                    + (thirdPoint.X * thirdPoint.X + thirdPoint.Y * thirdPoint.Y)
+                        * (secondPoint.X - UnstackedPosition.X)
+                ) / divisor;
 
-            var radius = Math.Sqrt(Math.Pow(centerX - UnstackedPosition.X, 2) + Math.Pow(centerY - UnstackedPosition.Y, 2));
+            var radius = Math.Sqrt(
+                Math.Pow(centerX - UnstackedPosition.X, 2)
+                    + Math.Pow(centerY - UnstackedPosition.Y, 2)
+            );
 
             var radians = GetCurveLength() / radius;
 
             // Which direction to rotate based on which side the center is on.
-            if ((secondPoint.X - UnstackedPosition.X) * (thirdPoint.Y - UnstackedPosition.Y) - (secondPoint.Y - UnstackedPosition.Y) * (thirdPoint.X - UnstackedPosition.X) < 0)
+            if (
+                (secondPoint.X - UnstackedPosition.X) * (thirdPoint.Y - UnstackedPosition.Y)
+                    - (secondPoint.Y - UnstackedPosition.Y) * (thirdPoint.X - UnstackedPosition.X)
+                < 0
+            )
                 radians *= -1.0f;
 
             // Getting the point on the circumference of the circle.
@@ -586,8 +671,14 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             var radianX = Math.Cos(fraction * radians);
             var radianY = Math.Sin(fraction * radians);
 
-            var x = radianX * (UnstackedPosition.X - centerX) - radianY * (UnstackedPosition.Y - centerY) + centerX;
-            var y = radianY * (UnstackedPosition.X - centerX) + radianX * (UnstackedPosition.Y - centerY) + centerY;
+            var x =
+                radianX * (UnstackedPosition.X - centerX)
+                - radianY * (UnstackedPosition.Y - centerY)
+                + centerX;
+            var y =
+                radianY * (UnstackedPosition.X - centerX)
+                + radianX * (UnstackedPosition.Y - centerY)
+                + centerY;
 
             return new Vector2((float)x, (float)y);
         }
@@ -615,7 +706,10 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
 
                 for (var i = currentIteration; i < sliderPoints.Count; ++i)
                 {
-                    if (i > currentIteration && sliderPoints.ElementAt(i - 1) == sliderPoints.ElementAt(i))
+                    if (
+                        i > currentIteration
+                        && sliderPoints.ElementAt(i - 1) == sliderPoints.ElementAt(i)
+                    )
                         break;
 
                     points.Add(sliderPoints.ElementAt(i));
@@ -661,7 +755,10 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             var integer = (int)Math.Floor(CachedBezierPoints.Count * fraction);
             var @decimal = (float)(CachedBezierPoints.Count * fraction - integer);
 
-            return integer >= CachedBezierPoints.Count - 1 ? CachedBezierPoints[^1] : CachedBezierPoints[integer] + (CachedBezierPoints[integer + 1] - CachedBezierPoints[integer]) * @decimal;
+            return integer >= CachedBezierPoints.Count - 1
+                ? CachedBezierPoints[^1]
+                : CachedBezierPoints[integer]
+                    + (CachedBezierPoints[integer + 1] - CachedBezierPoints[integer]) * @decimal;
         }
 
         private Vector2 GetCatmullPathPosition(double time)
@@ -693,14 +790,35 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
 
                     if (i == 0)
                         // Double the start position.
-                        currentPoint = GetCatmullPoint(points[i], points[i], points[i + 1], points[i + 2], k);
+                        currentPoint = GetCatmullPoint(
+                            points[i],
+                            points[i],
+                            points[i + 1],
+                            points[i + 2],
+                            k
+                        );
                     else if (i < points.Count - 2)
-                        currentPoint = GetCatmullPoint(points[i - 1], points[i], points[i + 1], points[i + 2], k);
+                        currentPoint = GetCatmullPoint(
+                            points[i - 1],
+                            points[i],
+                            points[i + 1],
+                            points[i + 2],
+                            k
+                        );
                     else
                         // Double the end position.
-                        currentPoint = GetCatmullPoint(points[i - 1], points[i], points[i + 1], points[i + 1], k);
+                        currentPoint = GetCatmullPoint(
+                            points[i - 1],
+                            points[i],
+                            points[i + 1],
+                            points[i + 1],
+                            k
+                        );
 
-                    curvePixelLength += Math.Sqrt(Math.Pow(prevCurvePoint.X - currentPoint.X, 2) + Math.Pow(prevCurvePoint.Y - currentPoint.Y, 2));
+                    curvePixelLength += Math.Sqrt(
+                        Math.Pow(prevCurvePoint.X - currentPoint.X, 2)
+                            + Math.Pow(prevCurvePoint.Y - currentPoint.Y, 2)
+                    );
 
                     prevCurvePoint = currentPoint;
                 }
@@ -713,13 +831,34 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
                     Vector2 currentPoint;
 
                     if (i == 0)
-                        currentPoint = GetCatmullPoint(points[i], points[i], points[i + 1], points[i + 2], variable);
+                        currentPoint = GetCatmullPoint(
+                            points[i],
+                            points[i],
+                            points[i + 1],
+                            points[i + 2],
+                            variable
+                        );
                     else if (i < points.Count - 2)
-                        currentPoint = GetCatmullPoint(points[i - 1], points[i], points[i + 1], points[i + 2], variable);
+                        currentPoint = GetCatmullPoint(
+                            points[i - 1],
+                            points[i],
+                            points[i + 1],
+                            points[i + 2],
+                            variable
+                        );
                     else
-                        currentPoint = GetCatmullPoint(points[i - 1], points[i], points[i + 1], points[i + 1], variable);
+                        currentPoint = GetCatmullPoint(
+                            points[i - 1],
+                            points[i],
+                            points[i + 1],
+                            points[i + 1],
+                            variable
+                        );
 
-                    curveLength += Math.Sqrt(Math.Pow(prevPoint.X - currentPoint.X, 2) + Math.Pow(prevPoint.Y - currentPoint.Y, 2));
+                    curveLength += Math.Sqrt(
+                        Math.Pow(prevPoint.X - currentPoint.X, 2)
+                            + Math.Pow(prevPoint.Y - currentPoint.Y, 2)
+                    );
 
                     if (totalLength + curveLength >= desiredLength)
                         return currentPoint;

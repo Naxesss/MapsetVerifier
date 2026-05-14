@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -24,33 +20,29 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
                     {
                         "Purpose",
                         @"
-                    Ensuring that beatmaps can properly be downloaded and updated to their newest version.
-                    <image>
-                        https://i.imgur.com/7Nc9Ejr.png
-                        An example of a song folder where one of the difficulties' file names are incorrect, causing it to be unable to update.
-                    </image>"
+                        Ensuring that beatmaps can properly be downloaded and updated to their newest version.
+                        ![](https://i.imgur.com/7Nc9Ejr.png)
+                        An example of a song folder where one of the difficulties' file names are incorrect, causing it to be unable to update."
                     },
                     {
                         "Reasoning",
                         @"
-                    By being unable to update a beatmap, potentially important fixes can easily be missed out on. This mostly 
-                    affects players who download the map in qualified, as it is more visible to the public while not necessarily 
-                    being in its final version.
-                    <br><br>
-                    The name of the file seems to determine how osu initially checks the map for updates. This is then presumably 
-                    stored in some local database because deleting and re-downloading doesn't seem to affect it. So if you 
-                    already had the map when the file name was correct, it may properly update for you while showing ""not 
-                    submitted"" for others downloading it for the first time.
-                    <br><br>
-                    For Windows 10 users, file paths longer than 260 characters cannot properly be unzipped by the game and 
-                    simply vanish instead. This varies between users based on where on their computer they put osu!, but
-                    for the sake of consistency, we'll simply arbitrarily make 130 characters the limit.
-                    <image>
-                        https://i.imgur.com/PO8eKvZ.png
-                        A file name longer than 130 characters, caused by a combination of a long title and a long difficulty name.
-                    </image>"
-                    }
-                }
+                        By being unable to update a beatmap, potentially important fixes can easily be missed out on. This mostly 
+                        affects players who download the map in qualified, as it is more visible to the public while not necessarily 
+                        being in its final version.
+
+                        The name of the file seems to determine how osu initially checks the map for updates. This is then presumably 
+                        stored in some local database because deleting and re-downloading doesn't seem to affect it. So if you 
+                        already had the map when the file name was correct, it may properly update for you while showing ""not 
+                        submitted"" for others downloading it for the first time.
+
+                        For Windows 10 users, file paths longer than 260 characters cannot properly be unzipped by the game and 
+                        simply vanish instead. This varies between users based on where on their computer they put osu!, but
+                        for the sake of consistency, we'll simply arbitrarily make 130 characters the limit.
+                        ![](https://i.imgur.com/PO8eKvZ.png)
+                        A file name longer than 130 characters, caused by a combination of a long title and a long difficulty name."
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -58,13 +50,26 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
             {
                 {
                     "Wrong Format",
-                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" should be named \"{1}\" to receive updates.", "file name", "artist - title (creator) [version].osu").WithCause("A .osu file is not named after the mentioned format using its respective properties.")
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "\"{0}\" should be named \"{1}\" to receive updates.",
+                        "file name",
+                        "artist - title (creator) [version].osu"
+                    ).WithCause(
+                        "A .osu file is not named after the mentioned format using its respective properties."
+                    )
                 },
-
                 {
                     "Too Long Name",
-                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" has a file name longer than 130 characters ({1}), which causes the .osz to fail " + "to unzip for some users. Consider truncating the artist, title, and/or difficulty name fields " + "where it makes sense to do so.", "path", "length").WithCause("A .osu file has a file name longer than 130 characters.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "\"{0}\" has a file name longer than 130 characters ({1}), which causes the .osz to fail "
+                            + "to unzip for some users. Consider truncating the artist, title, and/or difficulty name fields "
+                            + "where it makes sense to do so.",
+                        "path",
+                        "length"
+                    ).WithCause("A .osu file has a file name longer than 130 characters.")
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
@@ -75,15 +80,27 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
                 var fileName = filePath.Split(new[] { '/', '\\' }).Last();
 
                 if (fileName.Length > 130)
-                    yield return new Issue(GetTemplate("Too Long Name"), null!, filePath, fileName.Length);
+                    yield return new Issue(
+                        GetTemplate("Too Long Name"),
+                        null!,
+                        filePath,
+                        fileName.Length
+                    );
 
                 if (!fileName.EndsWith(".osu"))
                     continue;
 
-                var beatmap = beatmapSet.Beatmaps.First(otherBeatmap => otherBeatmap.MapPath == filePath);
+                var beatmap = beatmapSet.Beatmaps.First(otherBeatmap =>
+                    otherBeatmap.MapPath == filePath
+                );
 
                 if (beatmap.GetOsuFileName().ToLower() != fileName.ToLower())
-                    yield return new Issue(GetTemplate("Wrong Format"), null!, fileName, beatmap.GetOsuFileName());
+                    yield return new Issue(
+                        GetTemplate("Wrong Format"),
+                        null!,
+                        fileName,
+                        beatmap.GetOsuFileName()
+                    );
             }
         }
     }

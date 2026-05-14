@@ -16,7 +16,7 @@ namespace MapsetVerifier.Parser.Objects.Events
             Pass = 2,
             Foreground = 3,
             Overlay = 4,
-            Unknown
+            Unknown,
         }
 
         public enum Origin
@@ -31,7 +31,7 @@ namespace MapsetVerifier.Parser.Objects.Events
             CentreRight = 7,
             BottomLeft = 8,
             BottomRight = 9,
-            Unknown
+            Unknown,
         }
 
         public readonly Layer layer;
@@ -53,13 +53,15 @@ namespace MapsetVerifier.Parser.Objects.Events
         }
 
         /// <summary> Returns the layer which this sprite exists on (e.g. Foreground, Pass, or Overlay). </summary>
-        private Layer GetLayer(string[] args) => ParserStatic.GetEnumMatch<Layer>(args[1]) ?? Layer.Unknown;
+        private Layer GetLayer(string[] args) =>
+            ParserStatic.GetEnumMatch<Layer>(args[1]) ?? Layer.Unknown;
 
         /// <summary>
         ///     Returns the local origin of the sprite, determining around which point it is transformed
         ///     (e.g. TopLeft, Center, or Bottom).
         /// </summary>
-        private Origin GetOrigin(string[] args) => ParserStatic.GetEnumMatch<Origin>(args[2]) ?? Origin.Unknown;
+        private Origin GetOrigin(string[] args) =>
+            ParserStatic.GetEnumMatch<Origin>(args[2]) ?? Origin.Unknown;
 
         /// <summary> Returns the file path which this sprite uses. Retains case sensitivity and extension. </summary>
         private string? GetPath(string[] args) => PathStatic.ParsePath(args[3], retainCase: true);
@@ -71,7 +73,10 @@ namespace MapsetVerifier.Parser.Objects.Events
         private Vector2 GetOffset(string[] args)
         {
             if (args.Length > 4)
-                return new Vector2(float.Parse(args[4], CultureInfo.InvariantCulture), float.Parse(args[5], CultureInfo.InvariantCulture));
+                return new Vector2(
+                    float.Parse(args[4], CultureInfo.InvariantCulture),
+                    float.Parse(args[5], CultureInfo.InvariantCulture)
+                );
 
             // default coordinates
             return new Vector2(320, 240);

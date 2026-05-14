@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Numerics;
 using System.Text.RegularExpressions;
 using MapsetVerifier.Parser.Difficulty;
+using MapsetVerifier.Parser.Exceptions;
 using MapsetVerifier.Parser.Objects.Events;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Objects.HitObjects.Catch;
@@ -24,7 +25,7 @@ namespace MapsetVerifier.Parser.Objects
             Hard,
             Insane,
             Expert,
-            Ultra
+            Ultra,
         }
 
         /// <summary> Which type of game mode the beatmap is for. </summary>
@@ -33,28 +34,46 @@ namespace MapsetVerifier.Parser.Objects
             Standard,
             Taiko,
             Catch,
-            Mania
+            Mania,
         }
 
-        private static readonly int[] divisors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 16];
+        private static readonly int[] Divisors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 16];
 
         /// <summary>
         ///     A list of aliases for difficulty levels. Can't be ambigious with named top diffs, so something
         ///     like "Lunatic", "Another", or "Special" which could be either Insane or top diff is no good.
         ///     See https://osu.ppy.sh/help/wiki/Ranking_Criteria/Difficulty_Naming for reference.
         /// </summary>
-        private static readonly Dictionary<Mode, Dictionary<Difficulty, IEnumerable<string>>> nameDiffPairs = new()
+        private static readonly Dictionary<
+            Mode,
+            Dictionary<Difficulty, IEnumerable<string>>
+        > NameDiffPairs = new()
         {
             {
                 Mode.Standard,
                 new Dictionary<Difficulty, IEnumerable<string>>
                 {
                     //                                       osu!                         Common Variations
-                    { Difficulty.Easy, new List<string> { "Beginner", "Easy", "Novice" } },
-                    { Difficulty.Normal, new List<string> { "Basic", "Normal", "Medium", "Intermediate" } },
-                    { Difficulty.Hard, new List<string> { "Advanced", "Hard" } },
-                    { Difficulty.Insane, new List<string> { "Hyper", "Insane" } },
-                    { Difficulty.Expert, new List<string> { "Expert", "Extra", "Extreme" } }
+                    {
+                        Difficulty.Easy,
+                        new List<string> { "Beginner", "Easy", "Novice" }
+                    },
+                    {
+                        Difficulty.Normal,
+                        new List<string> { "Basic", "Normal", "Medium", "Intermediate" }
+                    },
+                    {
+                        Difficulty.Hard,
+                        new List<string> { "Advanced", "Hard" }
+                    },
+                    {
+                        Difficulty.Insane,
+                        new List<string> { "Hyper", "Insane" }
+                    },
+                    {
+                        Difficulty.Expert,
+                        new List<string> { "Expert", "Extra", "Extreme" }
+                    },
                 }
             },
             {
@@ -62,12 +81,30 @@ namespace MapsetVerifier.Parser.Objects
                 new Dictionary<Difficulty, IEnumerable<string>>
                 {
                     //                                       osu!taiko/Taiko no Tatsujin
-                    { Difficulty.Easy, new List<string> { "Kantan" } },
-                    { Difficulty.Normal, new List<string> { "Futsuu" } },
-                    { Difficulty.Hard, new List<string> { "Muzukashii" } },
-                    { Difficulty.Insane, new List<string> { "Oni" } },
-                    { Difficulty.Expert, new List<string> { "Inner Oni", "Ura Oni" } },
-                    { Difficulty.Ultra, new List<string> { "Hell Oni" } }
+                    {
+                        Difficulty.Easy,
+                        new List<string> { "Kantan" }
+                    },
+                    {
+                        Difficulty.Normal,
+                        new List<string> { "Futsuu" }
+                    },
+                    {
+                        Difficulty.Hard,
+                        new List<string> { "Muzukashii" }
+                    },
+                    {
+                        Difficulty.Insane,
+                        new List<string> { "Oni" }
+                    },
+                    {
+                        Difficulty.Expert,
+                        new List<string> { "Inner Oni", "Ura Oni" }
+                    },
+                    {
+                        Difficulty.Ultra,
+                        new List<string> { "Hell Oni" }
+                    },
                 }
             },
             {
@@ -75,24 +112,67 @@ namespace MapsetVerifier.Parser.Objects
                 new Dictionary<Difficulty, IEnumerable<string>>
                 {
                     //                                       osu!catch
-                    { Difficulty.Easy, new List<string> { "Cup" } },
-                    { Difficulty.Normal, new List<string> { "Salad" } },
-                    { Difficulty.Hard, new List<string> { "Platter" } },
-                    { Difficulty.Insane, new List<string> { "Rain" } },
-                    { Difficulty.Expert, new List<string> { "Overdose", "Deluge" } }
+                    {
+                        Difficulty.Easy,
+                        new List<string> { "Cup" }
+                    },
+                    {
+                        Difficulty.Normal,
+                        new List<string> { "Salad" }
+                    },
+                    {
+                        Difficulty.Hard,
+                        new List<string> { "Platter" }
+                    },
+                    {
+                        Difficulty.Insane,
+                        new List<string> { "Rain" }
+                    },
+                    {
+                        Difficulty.Expert,
+                        new List<string> { "Overdose", "Deluge" }
+                    },
                 }
             },
             {
                 Mode.Mania,
                 new Dictionary<Difficulty, IEnumerable<string>>
                 {
-                    { Difficulty.Easy,   new List<string> { "EZ", "Beginner", "Beginning", "Basic", "Easy"} },
-                    { Difficulty.Normal, new List<string> { "NM", "Normal", "Novice"} },
-                    { Difficulty.Hard,   new List<string> { "HD", "Hard", "Advanced", "Hyper"} },
-                    { Difficulty.Insane, new List<string> { "MX", "SC", "Another", "Exhaust", "Insane", "Lunatic"} },
-                    { Difficulty.Expert, new List<string> { "SHD", "EX", "Black Another",  "Infinite", "Gravity", "Heavenly", "Maximum", "Extra", "White Another", "Vivid", "Exceed" } }
+                    {
+                        Difficulty.Easy,
+                        new List<string> { "EZ", "Beginner", "Beginning", "Basic", "Easy" }
+                    },
+                    {
+                        Difficulty.Normal,
+                        new List<string> { "NM", "Normal", "Novice" }
+                    },
+                    {
+                        Difficulty.Hard,
+                        new List<string> { "HD", "Hard", "Advanced", "Hyper" }
+                    },
+                    {
+                        Difficulty.Insane,
+                        new List<string> { "MX", "SC", "Another", "Exhaust", "Insane", "Lunatic" }
+                    },
+                    {
+                        Difficulty.Expert,
+                        new List<string>
+                        {
+                            "SHD",
+                            "EX",
+                            "Black Another",
+                            "Infinite",
+                            "Gravity",
+                            "Heavenly",
+                            "Maximum",
+                            "Extra",
+                            "White Another",
+                            "Vivid",
+                            "Exceed",
+                        }
+                    },
                 }
-            }
+            },
         };
 
         public string Code { get; }
@@ -102,14 +182,14 @@ namespace MapsetVerifier.Parser.Objects
         // Star Rating
         public double StarRating { get; }
         public DifficultyAttributes? DifficultyAttributes { get; }
-        public Skill[] Skills { get; set; } = null!;
+        public Skill[] Skills { get; set; } = [];
 
         // Settings
         public GeneralSettings GeneralSettings { get; }
         public MetadataSettings MetadataSettings { get; }
         public DifficultySettings DifficultySettings { get; }
         public ColourSettings ColourSettings { get; }
-        
+
         // Events
         public List<Background> Backgrounds { get; }
         public List<Video> Videos { get; }
@@ -130,10 +210,26 @@ namespace MapsetVerifier.Parser.Objects
 
             var lines = code.Split(["\n"], StringSplitOptions.None);
 
-            GeneralSettings = ParserStatic.GetSettings(lines, "General", sectionLines => new GeneralSettings(sectionLines));
-            MetadataSettings = ParserStatic.GetSettings(lines, "Metadata", sectionLines => new MetadataSettings(sectionLines));
-            DifficultySettings = ParserStatic.GetSettings(lines, "Difficulty", sectionLines => new DifficultySettings(sectionLines));
-            ColourSettings = ParserStatic.GetSettings(lines, "Colours", sectionLines => new ColourSettings(sectionLines));
+            GeneralSettings = ParserStatic.GetSettings(
+                lines,
+                "General",
+                sectionLines => new GeneralSettings(sectionLines)
+            );
+            MetadataSettings = ParserStatic.GetSettings(
+                lines,
+                "Metadata",
+                sectionLines => new MetadataSettings(sectionLines)
+            );
+            DifficultySettings = ParserStatic.GetSettings(
+                lines,
+                "Difficulty",
+                sectionLines => new DifficultySettings(sectionLines)
+            );
+            ColourSettings = ParserStatic.GetSettings(
+                lines,
+                "Colours",
+                sectionLines => new ColourSettings(sectionLines)
+            );
 
             // event type 3 seems to be "background colour transformation" https://i.imgur.com/Tqlz3s5.png
 
@@ -155,10 +251,7 @@ namespace MapsetVerifier.Parser.Objects
 
             DifficultyAttributes = attributes;
 
-            if (attributes != null)
-            {
-                StarRating = attributes.StarRating;
-            }
+            StarRating = attributes.StarRating;
         }
 
         public static void ClearCache()
@@ -180,10 +273,7 @@ namespace MapsetVerifier.Parser.Objects
         {
             (string, Type) key = (MapPath, t);
 
-            if (!ThreadSafeCacheHelper<T>.cache.ContainsKey(key))
-                ThreadSafeCacheHelper<T>.cache[key] = func();
-
-            return ThreadSafeCacheHelper<T>.cache[key];
+            return ThreadSafeCacheHelper<T>.cache.GetOrAdd(key, _ => func());
         }
 
         /*
@@ -203,66 +293,68 @@ namespace MapsetVerifier.Parser.Objects
                 var stackableHitObjects = HitObjects.OfType<Stackable>().ToList();
 
                 for (var i = 0; i < stackableHitObjects.Count - 1; ++i)
-                    for (var j = i + 1; j < stackableHitObjects.Count; ++j)
+                for (var j = i + 1; j < stackableHitObjects.Count; ++j)
+                {
+                    var hitObject = stackableHitObjects[i];
+                    var otherHitObject = stackableHitObjects[j];
+
+                    if (!MeetsStackTime(hitObject, otherHitObject))
+                        break;
+
+                    if (hitObject is Circle || otherHitObject is Circle)
                     {
-                        var hitObject = stackableHitObjects[i];
-                        var otherHitObject = stackableHitObjects[j];
-
-                        if (!MeetsStackTime(hitObject, otherHitObject))
-                            break;
-
-                        if (hitObject is Circle || otherHitObject is Circle)
+                        if (ShouldStack(hitObject, otherHitObject))
                         {
-                            if (ShouldStack(hitObject, otherHitObject))
+                            if (otherHitObject is Slider || otherHitObject.isOnSlider)
+                                hitObject.isOnSlider = true;
+
+                            // Sliders are never less than 0 stack index.
+                            // Circles go below 0 when stacked under slider tails.
+                            if (hitObject is { stackIndex: < 0, isOnSlider: false })
                             {
-                                if (otherHitObject is Slider || otherHitObject.isOnSlider)
-                                    hitObject.isOnSlider = true;
-
-                                // Sliders are never less than 0 stack index.
-                                // Circles go below 0 when stacked under slider tails.
-                                if (hitObject.stackIndex < 0 && !hitObject.isOnSlider)
-                                {
-                                    // Objects stacked under slider tails will continue to stack downwards.
-                                    otherHitObject.stackIndex = hitObject.stackIndex - 1;
-                                    wasChanged = true;
-
-                                    break;
-                                }
-
-                                hitObject.stackIndex = otherHitObject.stackIndex + 1;
+                                // Objects stacked under slider tails will continue to stack downwards.
+                                otherHitObject.stackIndex = hitObject.stackIndex - 1;
                                 wasChanged = true;
 
                                 break;
                             }
 
-                            if (IsStacked(hitObject, otherHitObject)) break;
-                        }
-
-                        if (hitObject is not Slider slider)
-                            continue;
-
-                        if (ShouldStackTail(slider, otherHitObject))
-                        {
-                            // Slider tail on circle means the circle moves down,
-                            // whereas slider tail on slider head means the first slider moves up.
-                            // Only sliders later in time can move sliders earlier in time.
-                            if (otherHitObject is Slider || otherHitObject.isOnSlider)
-                            {
-                                slider.isOnSlider = true;
-                                slider.stackIndex = otherHitObject.stackIndex + 1;
-                            }
-                            else
-                            {
-                                otherHitObject.stackIndex = slider.stackIndex - 1;
-                            }
-
+                            hitObject.stackIndex = otherHitObject.stackIndex + 1;
                             wasChanged = true;
 
                             break;
                         }
 
-                        if (IsStackedTail(slider, otherHitObject)) break;
+                        if (IsStacked(hitObject, otherHitObject))
+                            break;
                     }
+
+                    if (hitObject is not Slider slider)
+                        continue;
+
+                    if (ShouldStackTail(slider, otherHitObject))
+                    {
+                        // Slider tail on circle means the circle moves down,
+                        // whereas slider tail on slider head means the first slider moves up.
+                        // Only sliders later in time can move sliders earlier in time.
+                        if (otherHitObject is Slider || otherHitObject.isOnSlider)
+                        {
+                            slider.isOnSlider = true;
+                            slider.stackIndex = otherHitObject.stackIndex + 1;
+                        }
+                        else
+                        {
+                            otherHitObject.stackIndex = slider.stackIndex - 1;
+                        }
+
+                        wasChanged = true;
+
+                        break;
+                    }
+
+                    if (IsStackedTail(slider, otherHitObject))
+                        break;
+                }
             } while (wasChanged);
         }
 
@@ -284,7 +376,8 @@ namespace MapsetVerifier.Parser.Objects
         }
 
         /// <summary> Returns whether two stackable objects should be stacked, but currently are not. </summary>
-        private bool ShouldStack(Stackable stackable, Stackable otherStackable) => CanStack(stackable, otherStackable) && !IsStacked(stackable, otherStackable);
+        private bool ShouldStack(Stackable stackable, Stackable otherStackable) =>
+            CanStack(stackable, otherStackable) && !IsStacked(stackable, otherStackable);
 
         /// <summary>
         ///     Returns whether a stackable following a slider could be stacked under the tail
@@ -292,7 +385,10 @@ namespace MapsetVerifier.Parser.Objects
         /// </summary>
         private bool CanStackTail(Slider slider, Stackable stackable)
         {
-            double distanceSq = Vector2.DistanceSquared(stackable.UnstackedPosition, slider.EdgeAmount % 2 == 0 ? slider.UnstackedPosition : slider.UnstackedEndPosition);
+            double distanceSq = Vector2.DistanceSquared(
+                stackable.UnstackedPosition,
+                slider.EdgeAmount % 2 == 0 ? slider.UnstackedPosition : slider.UnstackedEndPosition
+            );
 
             var isNearInTime = MeetsStackTime(slider, stackable);
             var isNearInSpace = distanceSq < 3 * 3;
@@ -315,19 +411,24 @@ namespace MapsetVerifier.Parser.Objects
         ///     Returns whether a stackable following a slider should be stacked under the slider tail
         ///     (or slider over the head in case of slider and slider), but currently is not.
         /// </summary>
-        private bool ShouldStackTail(Slider slider, Stackable stackable) => CanStackTail(slider, stackable) && !IsStackedTail(slider, stackable);
+        private bool ShouldStackTail(Slider slider, Stackable stackable) =>
+            CanStackTail(slider, stackable) && !IsStackedTail(slider, stackable);
 
         /// <summary>
         ///     Returns whether two stackable objects are close enough in time to be stacked. Measures from start to start
         ///     time.
         /// </summary>
-        private bool MeetsStackTime(Stackable stackable, Stackable otherStackable) => otherStackable.time - stackable.time <= StackTimeThreshold();
+        private bool MeetsStackTime(Stackable stackable, Stackable otherStackable) =>
+            otherStackable.time - stackable.time <= StackTimeThreshold();
 
         /// <summary> Returns whether two stackable objects are close enough in space to be stacked. Measures from head to head. </summary>
-        private static bool MeetsStackDistance(Stackable stackable, Stackable otherStackable) => Vector2.DistanceSquared(stackable.UnstackedPosition, otherStackable.UnstackedPosition) < 3 * 3;
+        private static bool MeetsStackDistance(Stackable stackable, Stackable otherStackable) =>
+            Vector2.DistanceSquared(stackable.UnstackedPosition, otherStackable.UnstackedPosition)
+            < 3 * 3;
 
         /// <summary> Returns how far apart in time two objects can be and still be able to stack. </summary>
-        private double StackTimeThreshold() => DifficultySettings.GetFadeInTime() * GeneralSettings.stackLeniency * 0.1;
+        private double StackTimeThreshold() =>
+            DifficultySettings.GetFadeInTime() * GeneralSettings.stackLeniency * 0.1;
 
         /*
          *  Helper Methods
@@ -341,7 +442,13 @@ namespace MapsetVerifier.Parser.Objects
         ///     Since the list is sorted, we can use the Binary Search algorithm here to get
         ///     O(logn) time complexity, instead of O(n), which we would get from linear searching.
         /// </summary>
-        private static int BinaryTimeSearch<T>(IReadOnlyList<T> sortedList, Func<T, double> Time, double time, int start = 0, int end = int.MaxValue)
+        private static int BinaryTimeSearch<T>(
+            IReadOnlyList<T> sortedList,
+            Func<T, double> timeSelector,
+            double targetTime,
+            int start = 0,
+            int end = int.MaxValue
+        )
         {
             while (true)
             {
@@ -364,13 +471,12 @@ namespace MapsetVerifier.Parser.Objects
                 var cur = sortedList[i];
                 var next = sortedList[i + 1];
 
-                if (time >= Time(cur) && time < Time(next))
+                if (targetTime >= timeSelector(cur) && targetTime < timeSelector(next))
                     return i;
 
-                if (time >= Time(next))
+                if (targetTime >= timeSelector(next))
                     // Element is too far back, move forward.
                     start = i + 1;
-
                 else
                     // Element is too far forward, move back.
                     end = i - 1;
@@ -381,11 +487,19 @@ namespace MapsetVerifier.Parser.Objects
         ///     Returns the timing line currently in effect at the given time, if any, otherwise the first, O(logn).
         ///     Optionally with a 5 ms backward leniency for hit sounding, or 2 ms for slider ticks.
         /// </summary>
-        public TimingLine? GetTimingLine(double time, bool hitSoundLeniency = false, bool isLeniencyForSliderTick = false) =>
-            GetTimingLine<TimingLine>(time, hitSoundLeniency, isLeniencyForSliderTick);
+        public TimingLine? GetTimingLine(
+            double time,
+            bool hitSoundLeniency = false,
+            bool isLeniencyForSliderTick = false
+        ) => GetTimingLine<TimingLine>(time, hitSoundLeniency, isLeniencyForSliderTick);
 
         /// <summary> Same as <see cref="GetTimingLine" /> except only considers objects of a given type. </summary>
-        public T? GetTimingLine<T>(double time, bool hitSoundLeniency = false, bool isLeniencyForSliderTick = false) where T : TimingLine
+        public T? GetTimingLine<T>(
+            double time,
+            bool hitSoundLeniency = false,
+            bool isLeniencyForSliderTick = false
+        )
+            where T : TimingLine
         {
             // Cache the results per generic type; timing line and hit object lists are immutable,
             // meaning we always expect the same result from the same input.
@@ -394,7 +508,19 @@ namespace MapsetVerifier.Parser.Objects
             if (list.Count == 0)
                 return null;
 
-            var index = BinaryTimeSearch(list, line => line.Offset - (hitSoundLeniency ? isLeniencyForSliderTick ? 2 : 5 : 0), time);
+            var index = BinaryTimeSearch(
+                list,
+                line =>
+                    line.Offset
+                    - (
+                        hitSoundLeniency
+                            ? isLeniencyForSliderTick
+                                ? 2
+                                : 5
+                            : 0
+                    ),
+                time
+            );
 
             if (index < 0)
                 // Before any timing line starts, so return first line.
@@ -407,7 +533,8 @@ namespace MapsetVerifier.Parser.Objects
         public TimingLine? GetNextTimingLine(double time) => GetNextTimingLine<TimingLine>(time);
 
         /// <summary> Same as <see cref="GetNextTimingLine" /> except only considers objects of a given type. </summary>
-        public T? GetNextTimingLine<T>(double time) where T : TimingLine
+        public T? GetNextTimingLine<T>(double time)
+            where T : TimingLine
         {
             var list = GetOrAdd(typeof(T), () => TimingLines.OfType<T>().ToList());
 
@@ -431,7 +558,8 @@ namespace MapsetVerifier.Parser.Objects
         public HitObject? GetHitObject(double time) => GetHitObject<HitObject>(time);
 
         /// <summary> Same as <see cref="GetHitObject" /> except only considers objects of a given type. </summary>
-        public T? GetHitObject<T>(double time) where T : HitObject
+        public T? GetHitObject<T>(double time)
+            where T : HitObject
         {
             var list = GetOrAdd(typeof(T), () => HitObjects.OfType<T>().ToList());
 
@@ -451,7 +579,8 @@ namespace MapsetVerifier.Parser.Objects
         public HitObject? GetPrevHitObject(double time) => GetPrevHitObject<HitObject>(time);
 
         /// <summary> Same as <see cref="GetPrevHitObject" /> except only considers objects of a given type. </summary>
-        public T? GetPrevHitObject<T>(double time) where T : HitObject
+        public T? GetPrevHitObject<T>(double time)
+            where T : HitObject
         {
             var list = GetOrAdd(typeof(T), () => HitObjects.OfType<T>().ToList());
 
@@ -464,7 +593,7 @@ namespace MapsetVerifier.Parser.Objects
             if (list[index].GetEndTime() < time)
                 // Object end doesn't overlap specified time, so we can return it.
                 return list[index];
-            
+
             if (index - 1 < 0)
                 // Object end is overlapping given time, and there is no object before that. So there is no prev.
                 return null;
@@ -476,7 +605,8 @@ namespace MapsetVerifier.Parser.Objects
         public HitObject? GetNextHitObject(double time) => GetNextHitObject<HitObject>(time);
 
         /// <summary> Same as <see cref="GetNextHitObject" /> except only considers objects of a given type. </summary>
-        public T? GetNextHitObject<T>(double time) where T : HitObject
+        public T? GetNextHitObject<T>(double time)
+            where T : HitObject
         {
             var list = GetOrAdd(typeof(T), () => HitObjects.OfType<T>().ToList());
 
@@ -551,13 +681,15 @@ namespace MapsetVerifier.Parser.Objects
         ///     Same as <see cref="GetComboColourIndex" />, except accounts for a bug which makes the last registered colour in
         ///     the code the first number in the editor. Basically use for display purposes.
         /// </summary>
-        public int GetDisplayedComboColourIndex(double time) => AsDisplayedComboColourIndex(GetComboColourIndex(time));
+        public int GetDisplayedComboColourIndex(double time) =>
+            AsDisplayedComboColourIndex(GetComboColourIndex(time));
 
         /// <summary>
         ///     Accounts for a bug which makes the last registered colour in
         ///     the code the first number in the editor. Basically use for display purposes.
         /// </summary>
-        public int AsDisplayedComboColourIndex(int zeroBasedIndex) => zeroBasedIndex == 0 ? ColourSettings.combos.Count : zeroBasedIndex;
+        public int AsDisplayedComboColourIndex(int zeroBasedIndex) =>
+            zeroBasedIndex == 0 ? ColourSettings.combos.Count : zeroBasedIndex;
 
         /// <summary> Returns whether a difficulty-specific storyboard is present, does not care about .osb files. </summary>
         public bool HasDifficultySpecificStoryboard()
@@ -574,29 +706,40 @@ namespace MapsetVerifier.Parser.Objects
         /// </summary>
         public Difficulty GetDifficulty()
         {
+            var difficultyFromStarRating = GetDifficultyFromStarRating();
             var difficultyFromName = GetDifficultyFromName();
-            if (difficultyFromName == null && GeneralSettings.mode is Mode.Catch or Mode.Mania)
-            {
-                // Assume custom diff names are always experts for modes we can't calculate star rating for
-                return Difficulty.Expert;
-            }
 
             if (difficultyFromName != null)
             {
-                return (Difficulty) difficultyFromName;
+                var interpretedDifficulty = (Difficulty)difficultyFromName;
+                // Keep existing name-first behavior, except for broad osu!taiko "Oni" labels where SR clearly maps to Expert.
+                if (
+                    GeneralSettings.mode == Mode.Taiko
+                    && interpretedDifficulty == Difficulty.Insane
+                    && difficultyFromStarRating >= Difficulty.Expert
+                )
+                {
+                    return difficultyFromStarRating;
+                }
+
+                return interpretedDifficulty;
             }
-            
+
             // We can't determine the difficulty by name so instead use star rating
-            Difficulty difficulty;
+            return difficultyFromStarRating;
+        }
 
-            if (StarRating < 2.0f) difficulty = Difficulty.Easy;
-            else if (StarRating < 2.7f) difficulty = Difficulty.Normal;
-            else if (StarRating < 4.0f) difficulty = Difficulty.Hard;
-            else if (StarRating < 5.3f) difficulty = Difficulty.Insane;
-            else if (StarRating < 6.5f) difficulty = Difficulty.Expert;
-            else difficulty = Difficulty.Ultra;
-
-            return difficulty;
+        private Difficulty GetDifficultyFromStarRating()
+        {
+            return StarRating switch
+            {
+                < 2.0f => Difficulty.Easy,
+                < 2.7f => Difficulty.Normal,
+                < 4.0f => Difficulty.Hard,
+                < 5.3f => Difficulty.Insane,
+                < 6.5f => Difficulty.Expert,
+                _ => Difficulty.Ultra,
+            };
         }
 
         public Difficulty? GetDifficultyFromName()
@@ -604,12 +747,18 @@ namespace MapsetVerifier.Parser.Objects
             var name = MetadataSettings.version;
 
             // Reverse order allows e.g. "Inner Oni"/"Black Another" to be looked for separately from just "Oni"/"Another".
-            var pairs = nameDiffPairs[GeneralSettings.mode].Reverse();
+            var pairs = NameDiffPairs[GeneralSettings.mode].Reverse();
 
             foreach (var pair in pairs)
                 // Allows difficulty names such as "Normal...!??" and ">{(__HARD;)}" to be detected,
                 // but still prevents "Normality" or similar inclusions.
-                if (pair.Value.Any(value => new Regex(@$"(?i)(^| )[!-@\[-`{{-~]*{value}[!-@\[-`{{-~]*( |$)").IsMatch(name)))
+                if (
+                    pair.Value.Any(value =>
+                        new Regex(@$"(?i)(^| )[!-@\[-`{{-~]*{value}[!-@\[-`{{-~]*( |$)").IsMatch(
+                            name
+                        )
+                    )
+                )
                     return pair.Key;
 
             return null;
@@ -623,12 +772,18 @@ namespace MapsetVerifier.Parser.Objects
         {
             switch (difficulty ?? GetDifficulty())
             {
-                case Difficulty.Easy: return "an Easy";
-                case Difficulty.Normal: return "a Normal";
-                case Difficulty.Hard: return "a Hard";
-                case Difficulty.Insane: return "an Insane";
-                case Difficulty.Expert: return "an Expert";
-                default: return "an Ultra";
+                case Difficulty.Easy:
+                    return "an Easy";
+                case Difficulty.Normal:
+                    return "a Normal";
+                case Difficulty.Hard:
+                    return "a Hard";
+                case Difficulty.Insane:
+                    return "an Insane";
+                case Difficulty.Expert:
+                    return "an Expert";
+                default:
+                    return "an Ultra";
             }
         }
 
@@ -640,7 +795,7 @@ namespace MapsetVerifier.Parser.Objects
             {
                 return 0;
             }
-            
+
             var startTime = HitObjects.First().time;
             double endTime = 0;
             if (gamemode == Mode.Mania)
@@ -663,7 +818,6 @@ namespace MapsetVerifier.Parser.Objects
                 breakReduction += @break.GetDuration(this);
 
             return endTime - startTime - breakReduction;
-
         }
 
         /// <summary>
@@ -690,7 +844,7 @@ namespace MapsetVerifier.Parser.Objects
         public double GetCountdownStartBeat()
         {
             var firstObject = GetHitObject(0);
-            
+
             // If there are no objects, this does not apply.
             if (firstObject == null)
                 return 0;
@@ -709,13 +863,19 @@ namespace MapsetVerifier.Parser.Objects
                 firstBeatTime -= line.msPerBeat;
 
             var firstObjectTime = firstObject.time;
-            var firstObjectBeat = Timestamp.Round((firstObjectTime - firstBeatTime) / line.msPerBeat);
+            var firstObjectBeat = Timestamp.Round(
+                (firstObjectTime - firstBeatTime) / line.msPerBeat
+            );
 
             // Apparently double does not result in the countdown needing half as much time, but rather closer to 0.45 times as much.
-            var countdownMultiplier = GeneralSettings.countdown == GeneralSettings.Countdown.None ? 1 :
-                GeneralSettings.countdown == GeneralSettings.Countdown.Half ? 2 : 0.45;
+            var countdownMultiplier =
+                GeneralSettings.countdown == GeneralSettings.Countdown.None ? 1
+                : GeneralSettings.countdown == GeneralSettings.Countdown.Half ? 2
+                : 0.45;
 
-            return firstObjectBeat - ((firstBeatTime > 5 ? 5 : 6) + GeneralSettings.countdownBeatOffset) * countdownMultiplier;
+            return firstObjectBeat
+                - ((firstBeatTime > 5 ? 5 : 6) + GeneralSettings.countdownBeatOffset)
+                    * countdownMultiplier;
         }
 
         /// <summary> Returns how many ms into a beat the given time is. </summary>
@@ -744,14 +904,15 @@ namespace MapsetVerifier.Parser.Objects
         {
             var line = GetTimingLine<UninheritedLine>(time);
 
-            double GetAbsoluteUnsnap(int divisor) => Math.Abs(GetPracticalUnsnap(time, divisor, line));
+            double GetAbsoluteUnsnap(int divisor) =>
+                Math.Abs(GetPracticalUnsnap(time, divisor, line));
 
-            var minUnsnap = divisors.Min(GetAbsoluteUnsnap);
+            var minUnsnap = Divisors.Min(GetAbsoluteUnsnap);
 
             if (minUnsnap > 2)
                 return 0;
 
-            return divisors.First(divisor => GetAbsoluteUnsnap(divisor).AlmostEqual(minUnsnap));
+            return Divisors.First(divisor => GetAbsoluteUnsnap(divisor).AlmostEqual(minUnsnap));
         }
 
         /// <summary> Returns the unsnap ignoring all of the game's rounding and other approximations. Can be negative. </summary>
@@ -765,7 +926,7 @@ namespace MapsetVerifier.Parser.Objects
                 GetTheoreticalUnsnap(time, 12, line),
                 GetTheoreticalUnsnap(time, 9, line),
                 GetTheoreticalUnsnap(time, 7, line),
-                GetTheoreticalUnsnap(time, 5, line)
+                GetTheoreticalUnsnap(time, 5, line),
             ];
 
             // Assume the closest possible snapping & retain signed values.
@@ -817,8 +978,17 @@ namespace MapsetVerifier.Parser.Objects
                 GetPracticalUnsnap(time, 12, line),
                 GetPracticalUnsnap(time, 9, line),
                 GetPracticalUnsnap(time, 7, line),
-                GetPracticalUnsnap(time, 5, line)
+                GetPracticalUnsnap(time, 5, line),
             ];
+
+            // Check for NaN values - this indicates invalid beatmap data
+            // This can happen when tools like Sliderator are used
+            if (practicalUnsnaps.Any(double.IsNaN))
+            {
+                throw new InvalidBeatmapDataException(
+                    $"Beatmap contains NaN timing values at time {time}. This indicates corrupted or intentionally invalid timing data."
+                );
+            }
 
             // Assume the closest possible snapping & retain signed values.
             var minUnsnap = practicalUnsnaps.Min(Math.Abs);
@@ -830,7 +1000,8 @@ namespace MapsetVerifier.Parser.Objects
         ///     Same as <see cref="GetTheoreticalUnsnap(double, int, UninheritedLine)" />, except accounts for the way
         ///     the game rounds ms times.
         /// </summary>
-        public double GetPracticalUnsnap(double time, int divisor, UninheritedLine? line = null) => time - Timestamp.Round(time - GetTheoreticalUnsnap(time, divisor, line));
+        public double GetPracticalUnsnap(double time, int divisor, UninheritedLine? line = null) =>
+            time - Timestamp.Round(time - GetTheoreticalUnsnap(time, divisor, line));
 
         /// <summary> Returns the combo number (the number you see on the notes), of a given hit object. </summary>
         public int GetCombo(HitObject hitObject)
@@ -843,14 +1014,19 @@ namespace MapsetVerifier.Parser.Objects
             while (true)
             {
                 var prevHitObject = hitObject.Prev();
-                
+
                 // We reached the start of the beatmap
                 if (prevHitObject == null)
                     break;
 
                 // The first object in the beatmap is always a new combo.
                 // Spinners and their following objects are also always new comboed.
-                if (hitObject.type.HasFlag(HitObject.Types.NewCombo) || hitObject is Spinner || prevHitObject is Spinner || hitObject == firstHitObject)
+                if (
+                    hitObject.type.HasFlag(HitObject.Types.NewCombo)
+                    || hitObject is Spinner
+                    || prevHitObject is Spinner
+                    || hitObject == firstHitObject
+                )
                     break;
 
                 hitObject = prevHitObject;
@@ -867,18 +1043,56 @@ namespace MapsetVerifier.Parser.Objects
         /// <summary> Returns the full audio file path the beatmap uses if any such file exists, otherwise null. </summary>
         public string? GetAudioFilePath()
         {
-            if (SongPath != null)
-            {
-                // read the mp3 file tags, if an audio file is specified
-                var audioFileName = GeneralSettings.audioFileName;
-                var mp3Path = SongPath + Path.DirectorySeparatorChar + audioFileName;
+            // read the mp3 file tags, if an audio file is specified
+            var audioFileName = GeneralSettings.audioFileName;
+            var mp3Path = SongPath + Path.DirectorySeparatorChar + audioFileName;
 
-                if (audioFileName.Length > 0 && File.Exists(mp3Path))
-                    return mp3Path;
-            }
+            if (audioFileName.Length > 0 && File.Exists(mp3Path))
+                return mp3Path;
 
             // no audio file
             return null;
+        }
+
+        /// <summary> Returns the full file path of the first configured background that exists, otherwise null. </summary>
+        public string? GetBackgroundFilePath()
+        {
+            foreach (var background in Backgrounds)
+            {
+                var filePath = ResolveReferencedFilePath(background.path, background.strippedPath);
+                if (filePath != null)
+                    return filePath;
+            }
+
+            return null;
+        }
+
+        private string? ResolveReferencedFilePath(string? parsedPath, string? strippedPath)
+        {
+            if (string.IsNullOrWhiteSpace(SongPath))
+                return null;
+
+            if (!string.IsNullOrWhiteSpace(parsedPath))
+            {
+                var directPath = Path.Combine(
+                    SongPath,
+                    parsedPath
+                        .Replace('/', Path.DirectorySeparatorChar)
+                        .Replace('\\', Path.DirectorySeparatorChar)
+                );
+                if (File.Exists(directPath))
+                    return directPath;
+            }
+
+            if (string.IsNullOrWhiteSpace(strippedPath))
+                return null;
+
+            return Directory
+                .EnumerateFiles(SongPath, "*.*", SearchOption.AllDirectories)
+                .LastOrDefault(filePath =>
+                    PathStatic.ParsePath(PathStatic.RelativePath(filePath, SongPath), true)
+                    == strippedPath
+                );
         }
 
         /// <summary> Returns the expected file name of the .osu based on the beatmap's metadata. </summary>
@@ -901,12 +1115,16 @@ namespace MapsetVerifier.Parser.Objects
             // find all lines starting with any of types in the event section
             var foundTypes = new List<T>();
 
-            ParserStatic.ApplySettings(lines, "Events", sectionLines =>
-            {
-                foreach (var line in sectionLines)
-                    if (types.Any(type => line.StartsWith(type + ",")))
-                        foundTypes.Add(func(line.Split(',')));
-            });
+            ParserStatic.ApplySettings(
+                lines,
+                "Events",
+                sectionLines =>
+                {
+                    foreach (var line in sectionLines)
+                        if (types.Any(type => line.StartsWith(type + ",")))
+                            foundTypes.Add(func(line.Split(',')));
+                }
+            );
 
             return foundTypes;
         }
@@ -914,12 +1132,22 @@ namespace MapsetVerifier.Parser.Objects
         private List<TimingLine> GetTimingLines(string[] lines)
         {
             // Find the [TimingPoints] section and parse each timing line.
-            var timingLines = ParserStatic.ParseSection(lines, "TimingPoints", line =>
-            {
-                var args = line.Split(',');
+            var timingLines = ParserStatic
+                .ParseSection(
+                    lines,
+                    "TimingPoints",
+                    line =>
+                    {
+                        var args = line.Split(',');
 
-                return TimingLine.IsUninherited(args) ? new UninheritedLine(args, this) : (TimingLine)new InheritedLine(args, this);
-            }).OrderBy(line => line.Offset).ThenBy(line => line is InheritedLine).ToList();
+                        return TimingLine.IsUninherited(args)
+                            ? new UninheritedLine(args, this)
+                            : (TimingLine)new InheritedLine(args, this);
+                    }
+                )
+                .OrderBy(line => line.Offset)
+                .ThenBy(line => line is InheritedLine)
+                .ToList();
 
             // Initialize internal indicies for O(1) next/prev access.
             for (var i = 0; i < timingLines.Count; ++i)
@@ -934,13 +1162,16 @@ namespace MapsetVerifier.Parser.Objects
         public List<TimingLine> GetSvChanges()
         {
             var svChanges = new List<TimingLine>();
-            
+
             for (var i = 0; i < TimingLines.Count - 1; i++)
             {
                 var firstLine = TimingLines[i];
-                var secondLine = TimingLines[i+1];
+                var secondLine = TimingLines[i + 1];
 
-                if (firstLine.SvMult != secondLine.SvMult && firstLine.Offset != secondLine.Offset)
+                if (
+                    !firstLine.SvMult.AlmostEqual(secondLine.SvMult)
+                    && !firstLine.Offset.AlmostEqual(secondLine.Offset)
+                )
                 {
                     svChanges.Add(secondLine);
                 }
@@ -960,7 +1191,10 @@ namespace MapsetVerifier.Parser.Objects
 
             foreach (var line in TimingLines)
             {
-                if ((previousTimingLine == null && line.Kiai) || (previousTimingLine != null && previousTimingLine.Kiai != line.Kiai))
+                if (
+                    (previousTimingLine == null && line.Kiai)
+                    || (previousTimingLine != null && previousTimingLine.Kiai != line.Kiai)
+                )
                 {
                     kiaiToggles.Add(line);
                 }
@@ -972,27 +1206,38 @@ namespace MapsetVerifier.Parser.Objects
         private List<HitObject> GetHitObjects(string[] lines)
         {
             // find the [HitObjects] section and parse each hitobject until empty line or end of file
-            var hitObjects = ParserStatic.ParseSection(lines, "HitObjects", line =>
-            {
-                var args = line.Split(',');
+            var hitObjects = ParserStatic
+                .ParseSection(
+                    lines,
+                    "HitObjects",
+                    line =>
+                    {
+                        var args = line.Split(',');
 
-                return GeneralSettings.mode switch
-                {
-                    Mode.Catch => HitObject.HasType(args, HitObject.Types.Circle) ? new Fruit(args, this) :
-                        HitObject.HasType(args, HitObject.Types.Slider) ? new JuiceStream(args, this) :
-                        new Bananas(args, this),
-                    _ => HitObject.HasType(args, HitObject.Types.Circle) ? new Circle(args, this) :
-                        HitObject.HasType(args, HitObject.Types.Slider) ? new Slider(args, this) :
-                        HitObject.HasType(args, HitObject.Types.ManiaHoldNote) ? new HoldNote(args, this) :
-                        (HitObject) new Spinner(args, this)
-                };
-            }).OrderBy(hitObject => hitObject.time).ToList();
+                        return GeneralSettings.mode switch
+                        {
+                            Mode.Catch => HitObject.HasType(args, HitObject.Types.Circle)
+                                ? new Fruit(args, this)
+                            : HitObject.HasType(args, HitObject.Types.Slider)
+                                ? new JuiceStream(args, this)
+                            : new Bananas(args, this),
+                            _ => HitObject.HasType(args, HitObject.Types.Circle)
+                                ? new Circle(args, this)
+                            : HitObject.HasType(args, HitObject.Types.Slider)
+                                ? new Slider(args, this)
+                            : HitObject.HasType(args, HitObject.Types.ManiaHoldNote)
+                                ? new HoldNote(args, this)
+                            : (HitObject)new Spinner(args, this),
+                        };
+                    }
+                )
+                .OrderBy(hitObject => hitObject.time)
+                .ToList();
 
             // Catch uses specific game mechanics which are based on distance between objects which are not reflected in the osu file itself
             if (GeneralSettings.mode == Mode.Catch)
             {
-                var catchHitObjects = hitObjects.Cast<ICatchHitObject>()
-                    .ToList();
+                var catchHitObjects = hitObjects.Cast<ICatchHitObject>().ToList();
                 HitObjectDistanceCalculator.CalculateDistances(catchHitObjects, this);
             }
 

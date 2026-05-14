@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -24,24 +23,21 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     {
                         "Purpose",
                         @"
-                    Preventing issues with concurrent lines of the same type, such as them switching order when loading the beatmap.
-                    <image>
-                        https://i.imgur.com/whTV4aV.png
-                        Two inherited lines which were originally the other way around, but swapped places when opening the beatmap again.
-                    </image>"
+                        Preventing issues with concurrent lines of the same type, such as them switching order when loading the beatmap.
+
+                        ![](https://i.imgur.com/whTV4aV.png)
+                        Two inherited lines which were originally the other way around, but swapped places when opening the beatmap again."
                     },
                     {
                         "Reasoning",
                         @"
-                    Depending on how the game loads the lines, they may be loaded in the wrong order causing certain effects to disappear, 
-                    like the editor to not see that kiai is enabled where it is in gameplay. This coupled with the fact that future versions 
-                    of the game may change how these behave make them highly unreliable.
-                    <note>
-                        Two lines of different types, however, work properly as inherited and uninherited lines are handeled seperately, 
-                        where the inherited will always apply its effects last.
-                    </note>"
-                    }
-                }
+                        Depending on how the game loads the lines, they may be loaded in the wrong order causing certain effects to disappear, 
+                        like the editor to not see that kiai is enabled where it is in gameplay. This coupled with the fact that future versions 
+                        of the game may change how these behave make them highly unreliable.
+                        
+                        > Two lines of different types, however, work properly as inherited and uninherited lines are handled separately, where the inherited will always apply its effects last."
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -49,13 +45,28 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             {
                 {
                     "Concurrent",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Concurrent {1} lines.", "timestamp - ", "inherited/uninherited").WithCause("Two inherited or uninherited timing lines exist at the same point in time.")
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "{0} Concurrent {1} lines.",
+                        "timestamp -",
+                        "inherited/uninherited"
+                    ).WithCause(
+                        "Two inherited or uninherited timing lines exist at the same point in time."
+                    )
                 },
-
                 {
                     "Conflicting",
-                    new IssueTemplate(Issue.Level.Minor, "{0} Conflicting line settings. Green: {1}. Red: {2}. {3}.", "timestamp - ", "green setting(s)", "red setting(s)", "precedence").WithCause("An inherited and uninherited timing line exists at the same point in time and have different settings.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Minor,
+                        "{0} Conflicting line settings. Green: {1}. Red: {2}. {3}.",
+                        "timestamp -",
+                        "green setting(s)",
+                        "red setting(s)",
+                        "precedence"
+                    ).WithCause(
+                        "An inherited and uninherited timing line exists at the same point in time and have different settings."
+                    )
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
@@ -68,11 +79,23 @@ namespace MapsetVerifier.Checks.AllModes.Timing
 
                 if (beatmap.TimingLines[i - 1].Uninherited == beatmap.TimingLines[i].Uninherited)
                 {
-                    var inheritance = beatmap.TimingLines[i].Uninherited ? "uninherited" : "inherited";
+                    var inheritance = beatmap.TimingLines[i].Uninherited
+                        ? "uninherited"
+                        : "inherited";
 
-                    yield return new Issue(GetTemplate("Concurrent"), beatmap, Timestamp.Get(beatmap.TimingLines[i].Offset), inheritance);
+                    yield return new Issue(
+                        GetTemplate("Concurrent"),
+                        beatmap,
+                        Timestamp.Get(beatmap.TimingLines[i].Offset),
+                        inheritance
+                    );
                 }
-                else if (beatmap.TimingLines[i - 1].Kiai != beatmap.TimingLines[i].Kiai || !beatmap.TimingLines[i - 1].Volume.AlmostEqual(beatmap.TimingLines[i].Volume) || beatmap.TimingLines[i - 1].Sampleset != beatmap.TimingLines[i].Sampleset || beatmap.TimingLines[i - 1].CustomIndex != beatmap.TimingLines[i].CustomIndex)
+                else if (
+                    beatmap.TimingLines[i - 1].Kiai != beatmap.TimingLines[i].Kiai
+                    || !beatmap.TimingLines[i - 1].Volume.AlmostEqual(beatmap.TimingLines[i].Volume)
+                    || beatmap.TimingLines[i - 1].Sampleset != beatmap.TimingLines[i].Sampleset
+                    || beatmap.TimingLines[i - 1].CustomIndex != beatmap.TimingLines[i].CustomIndex
+                )
                 {
                     // We've guaranteed that one line is inherited and the other is
                     // uninherited, so we can figure out both by checking one.
@@ -82,14 +105,14 @@ namespace MapsetVerifier.Checks.AllModes.Timing
 
                     if (beatmap.TimingLines[i - 1] is InheritedLine)
                     {
-                        greenLine = (InheritedLine) beatmap.TimingLines[i - 1];
-                        redLine = (UninheritedLine) beatmap.TimingLines[i];
+                        greenLine = (InheritedLine)beatmap.TimingLines[i - 1];
+                        redLine = (UninheritedLine)beatmap.TimingLines[i];
                         precedence = "Red overrides green";
                     }
                     else
                     {
-                        greenLine = (InheritedLine) beatmap.TimingLines[i];
-                        redLine = (UninheritedLine) beatmap.TimingLines[i - 1];
+                        greenLine = (InheritedLine)beatmap.TimingLines[i];
+                        redLine = (UninheritedLine)beatmap.TimingLines[i - 1];
                         precedence = "Green overrides red";
                     }
 
@@ -100,33 +123,56 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     // ReSharper disable twice PossibleNullReferenceException
                     if (greenLine.Kiai != redLine.Kiai)
                     {
-                        conflictingGreenSettings += (conflictingGreenSettings.Length > 0 ? ", " : "") + (greenLine.Kiai ? "kiai" : "no kiai");
+                        conflictingGreenSettings +=
+                            (conflictingGreenSettings.Length > 0 ? ", " : "")
+                            + (greenLine.Kiai ? "kiai" : "no kiai");
 
-                        conflictingRedSettings += (conflictingRedSettings.Length > 0 ? ", " : "") + (redLine.Kiai ? "kiai" : "no kiai");
+                        conflictingRedSettings +=
+                            (conflictingRedSettings.Length > 0 ? ", " : "")
+                            + (redLine.Kiai ? "kiai" : "no kiai");
                     }
 
                     if (!greenLine.Volume.AlmostEqual(redLine.Volume))
                     {
-                        conflictingGreenSettings += (conflictingGreenSettings.Length > 0 ? ", " : "") + $"{greenLine.Volume}% volume";
+                        conflictingGreenSettings +=
+                            (conflictingGreenSettings.Length > 0 ? ", " : "")
+                            + $"{greenLine.Volume}% volume";
 
-                        conflictingRedSettings += (conflictingRedSettings.Length > 0 ? ", " : "") + $"{redLine.Volume}% volume";
+                        conflictingRedSettings +=
+                            (conflictingRedSettings.Length > 0 ? ", " : "")
+                            + $"{redLine.Volume}% volume";
                     }
 
                     if (greenLine.Sampleset != redLine.Sampleset)
                     {
-                        conflictingGreenSettings += (conflictingGreenSettings.Length > 0 ? ", " : "") + $"{greenLine.Sampleset} sampleset";
+                        conflictingGreenSettings +=
+                            (conflictingGreenSettings.Length > 0 ? ", " : "")
+                            + $"{greenLine.Sampleset} sampleset";
 
-                        conflictingRedSettings += (conflictingRedSettings.Length > 0 ? ", " : "") + $"{redLine.Sampleset} sampleset";
+                        conflictingRedSettings +=
+                            (conflictingRedSettings.Length > 0 ? ", " : "")
+                            + $"{redLine.Sampleset} sampleset";
                     }
 
                     if (greenLine.CustomIndex != redLine.CustomIndex)
                     {
-                        conflictingGreenSettings += (conflictingGreenSettings.Length > 0 ? ", " : "") + $"custom {greenLine.CustomIndex}";
+                        conflictingGreenSettings +=
+                            (conflictingGreenSettings.Length > 0 ? ", " : "")
+                            + $"custom {greenLine.CustomIndex}";
 
-                        conflictingRedSettings += (conflictingRedSettings.Length > 0 ? ", " : "") + $"custom {redLine.CustomIndex}";
+                        conflictingRedSettings +=
+                            (conflictingRedSettings.Length > 0 ? ", " : "")
+                            + $"custom {redLine.CustomIndex}";
                     }
 
-                    yield return new Issue(GetTemplate("Conflicting"), beatmap, Timestamp.Get(beatmap.TimingLines[i].Offset), conflictingGreenSettings, conflictingRedSettings, precedence);
+                    yield return new Issue(
+                        GetTemplate("Conflicting"),
+                        beatmap,
+                        Timestamp.Get(beatmap.TimingLines[i].Offset),
+                        conflictingGreenSettings,
+                        conflictingRedSettings,
+                        precedence
+                    );
                 }
             }
         }

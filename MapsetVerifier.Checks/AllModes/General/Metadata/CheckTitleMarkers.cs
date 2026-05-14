@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
@@ -20,21 +17,28 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             new(Marker.CUT_VER, new Regex(@"(?i)(?<!& )(cut (size|ver))")),
             new(Marker.SPED_UP_VER, new Regex(@"(?i)(?<!& )(sped|speed) ?up ver")),
             new(Marker.NIGHTCORE_MIX, new Regex(@"(?i)(?<!& )(nightcore|night core) (ver|mix)")),
-            new(Marker.SPED_UP_CUT_VER, new Regex(@"(?i)(sped|speed) ?up (ver)? ?& cut (size|ver)")),
-            new(Marker.NIGHTCORE_CUT_VER, new Regex(@"(?i)(nightcore|night core) (ver|mix)? ?& cut (size|ver)"))
+            new(
+                Marker.SPED_UP_CUT_VER,
+                new Regex(@"(?i)(sped|speed) ?up (ver)? ?& cut (size|ver)")
+            ),
+            new(
+                Marker.NIGHTCORE_CUT_VER,
+                new Regex(@"(?i)(nightcore|night core) (ver|mix)? ?& cut (size|ver)")
+            ),
         ];
 
         private static readonly IEnumerable<TitleType> TitleTypes =
         [
             new("romanized", beatmap => beatmap.MetadataSettings.title),
-            new("unicode", beatmap => beatmap.MetadataSettings.titleUnicode)
+            new("unicode", beatmap => beatmap.MetadataSettings.titleUnicode),
         ];
 
         public override CheckMetadata GetMetadata() =>
             new()
             {
                 Category = "Metadata",
-                Message = "Incorrect format of (TV Size) / (Game Ver.) / (Short Ver.) / (Cut Ver.) / (Sped Up Ver.) / etc in title.",
+                Message =
+                    "Incorrect format of (TV Size) / (Game Ver.) / (Short Ver.) / (Cut Ver.) / (Sped Up Ver.) / etc in title.",
                 Author = "Naxess",
 
                 Documentation = new Dictionary<string, string>
@@ -42,11 +46,10 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     {
                         "Purpose",
                         @"
-                    Standardizing the way metadata is written for ranked content.
-                    <image>
-                        https://i.imgur.com/1ozV71n.png
-                        A song using ""-TV version-"" as its official metadata, which becomes ""(TV Size)"" when standardized.
-                    </image>"
+                        Standardizing the way metadata is written for ranked content.
+
+                        ![](https://i.imgur.com/1ozV71n.png)
+                        A song using ""-TV version-"" as its official metadata, which becomes ""(TV Size)"" when standardized."
                     },
                     {
                         "Reasoning",
@@ -55,8 +58,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     most part eliminated through standardization. Standardization also reduces confusion in case of 
                     multiple correct ways to write certain fields and contributes to making metadata more consistent 
                     across official content."
-                    }
-                }
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -64,25 +67,38 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             {
                 {
                     "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "{0} title field; \"{1}\" incorrect format of \"{2}\".", "Romanized/unicode", "field", "title marker").WithCause(@"The format of a title marker, in either the romanized or unicode title, is incorrect.
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "{0} title field; \"{1}\" incorrect format of \"{2}\".",
+                        "Romanized/unicode",
+                        "field",
+                        "title marker"
+                    ).WithCause(
+                        @"The format of a title marker, in either the romanized or unicode title, is incorrect.
                         The following are detected formats:
-                        <ul>
-                            <li>(TV Size)</li>
-                            <li>(Game Ver.)</li>
-                            <li>(Short Ver.)</li>
-                            <li>(Cut Ver.)</li>
-                            <li>(Sped Up Ver.)</li>
-                            <li>(Nightcore Mix)</li>
-                            <li>(Sped Up & Cut Ver.)</li>
-                            <li>(Nightcore & Cut Ver.)</li>
-                        </ul>
-                        ")
+                        - (TV Size)
+                        - (Game Ver.)
+                        - (Short Ver.)
+                        - (Cut Ver.)
+                        - (Sped Up Ver.)
+                        - (Nightcore Mix)
+                        - (Sped Up & Cut Ver.)
+                        - (Nightcore & Cut Ver.)"
+                    )
                 },
-
                 {
                     "Warning Nightcore",
-                    new IssueTemplate(Issue.Level.Warning, "\"{0}\" in tags, consider \"{1}\" instead of \"{2}\" in {3} title.", "nightcore", "(Nightcore Mix)", "(Sped Up Ver.)", "romanized/unicode").WithCause("The romanized/unicode title contains \"(Sped Up Ver.)\" or equivalent, " + "when the tags contain \"nightcore\".")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "\"{0}\" in tags, consider \"{1}\" instead of \"{2}\" in {3} title.",
+                        "nightcore",
+                        "(Nightcore Mix)",
+                        "(Sped Up Ver.)",
+                        "romanized/unicode"
+                    ).WithCause(
+                        "The romanized/unicode title contains \"(Sped Up Ver.)\" or equivalent, when the tags contain \"nightcore\"."
+                    )
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
@@ -99,9 +115,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
         private IEnumerable<Issue> GetMarkerFormatIssues(Beatmap beatmap)
         {
             foreach (var markerFormat in MarkerFormats)
-                // Matches any string containing some form of the marker but not exactly it.
-                foreach (var issue in GetIssuesFromRegex(beatmap, markerFormat))
-                    yield return issue;
+            // Matches any string containing some form of the marker but not exactly it.
+            foreach (var issue in GetIssuesFromRegex(beatmap, markerFormat))
+                yield return issue;
         }
 
         private static string Capitalize(string str) => str.First().ToString().ToUpper() + str[1..];
@@ -117,8 +133,14 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                 var exactRegex = new Regex(Regex.Escape(correctFormat));
 
                 // Unicode fields do not exist in file version 9, hence null check.
-                if (title != null && approxRegex.IsMatch(title) && !exactRegex.IsMatch(title))
-                    yield return new Issue(GetTemplate("Problem"), null, Capitalize(titleType.type), title, correctFormat);
+                if (approxRegex.IsMatch(title) && !exactRegex.IsMatch(title))
+                    yield return new Issue(
+                        GetTemplate("Problem"),
+                        null,
+                        Capitalize(titleType.type),
+                        title,
+                        correctFormat
+                    );
             }
         }
 
@@ -132,13 +154,20 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             var substitutionPairs = new List<SubstitutionPair>
             {
                 new(Marker.SPED_UP_VER, Marker.NIGHTCORE_MIX),
-                new(Marker.SPED_UP_CUT_VER, Marker.NIGHTCORE_CUT_VER)
+                new(Marker.SPED_UP_CUT_VER, Marker.NIGHTCORE_CUT_VER),
             };
 
             foreach (var pair in substitutionPairs)
-                foreach (var titleType in TitleTypes)
-                    if (titleType.Get(beatmap).Contains(pair.original.Value))
-                        yield return new Issue(GetTemplate("Warning Nightcore"), null, nightcoreTag, pair.substitution.Value, pair.original.Value, titleType.type);
+            foreach (var titleType in TitleTypes)
+                if (titleType.Get(beatmap).Contains(pair.original.Value))
+                    yield return new Issue(
+                        GetTemplate("Warning Nightcore"),
+                        null,
+                        nightcoreTag,
+                        pair.substitution.Value,
+                        pair.original.Value,
+                        titleType.type
+                    );
         }
 
         private class Marker

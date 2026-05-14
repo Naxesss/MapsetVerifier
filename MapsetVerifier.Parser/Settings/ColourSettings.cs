@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+﻿using System.Globalization;
 using System.Numerics;
 
 namespace MapsetVerifier.Parser.Settings
@@ -71,9 +68,18 @@ namespace MapsetVerifier.Parser.Settings
         {
             foreach (var colourString in colourStrings)
             {
-                var r = float.Parse(colourString.Split(',')[0].Trim(), CultureInfo.InvariantCulture);
-                var g = float.Parse(colourString.Split(',')[1].Trim(), CultureInfo.InvariantCulture);
-                var b = float.Parse(colourString.Split(',')[2].Trim(), CultureInfo.InvariantCulture);
+                var r = float.Parse(
+                    colourString.Split(',')[0].Trim(),
+                    CultureInfo.InvariantCulture
+                );
+                var g = float.Parse(
+                    colourString.Split(',')[1].Trim(),
+                    CultureInfo.InvariantCulture
+                );
+                var b = float.Parse(
+                    colourString.Split(',')[2].Trim(),
+                    CultureInfo.InvariantCulture
+                );
 
                 yield return new Vector3(r, g, b);
             }

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.Events;
 using MapsetVerifier.Parser.Statics;
 using MapsetVerifier.Snapshots.Objects;
@@ -21,37 +19,55 @@ namespace MapsetVerifier.Snapshots.Translators
             6 : Animation
         */
 
-        private static List<KeyValuePair<int, DiffInstance>> _mDictionary = null!;
         public override string Section => "Events";
 
-        public override IEnumerable<DiffInstance> Translate(IEnumerable<DiffInstance> diffs)
+        public override IEnumerable<DiffInstance> Translate(
+            IEnumerable<DiffInstance> diffs,
+            Beatmap beatmap
+        )
         {
-            _mDictionary = new List<KeyValuePair<int, DiffInstance>>();
+            List<KeyValuePair<int, DiffInstance>> events = [];
 
             // Assumes all events begin with an id of their type, see block comment above.
             foreach (var diff in diffs)
-                _mDictionary.Add(new KeyValuePair<int, DiffInstance>(diff.Diff[0] - 48, diff));
+                events.Add(new KeyValuePair<int, DiffInstance>(diff.Diff[0] - 48, diff));
 
             // Handles all events with id 2 (i.e. breaks).
-            foreach (var diff in GetBreakTranslation())
+            foreach (var diff in GetBreakTranslation(events))
                 yield return diff;
 
             // Handles all other events.
-            foreach (var diff in _mDictionary.Select(pair => pair.Value))
+            foreach (var diff in events.Select(pair => pair.Value))
                 yield return diff;
         }
 
-        private IEnumerable<DiffInstance> GetBreakTranslation()
+        private IEnumerable<DiffInstance> GetBreakTranslation(
+            List<KeyValuePair<int, DiffInstance>> events
+        )
         {
-            var addedBreaks = _mDictionary.Where(pair => pair.Key == 2 && pair.Value.DiffType == DiffType.Added).Select(pair => new Tuple<Break, DiffInstance>(new Break(pair.Value.Diff.Split(',')), pair.Value)).ToList();
+            var addedBreaks = events
+                .Where(pair => pair.Key == 2 && pair.Value.DiffType == DiffType.Added)
+                .Select(pair => new Tuple<Break, DiffInstance>(
+                    new Break(pair.Value.Diff.Split(',')),
+                    pair.Value
+                ))
+                .ToList();
 
-            var removedBreaks = _mDictionary.Where(pair => pair.Key == 2 && pair.Value.DiffType == DiffType.Removed).Select(pair => new Tuple<Break, DiffInstance>(new Break(pair.Value.Diff.Split(',')), pair.Value)).ToList();
+            var removedBreaks = events
+                .Where(pair => pair.Key == 2 && pair.Value.DiffType == DiffType.Removed)
+                .Select(pair => new Tuple<Break, DiffInstance>(
+                    new Break(pair.Value.Diff.Split(',')),
+                    pair.Value
+                ))
+                .ToList();
 
-            _mDictionary.RemoveAll(pair => pair.Key == 2);
+            events.RemoveAll(pair => pair.Key == 2);
 
             foreach (var (@break, diffInstance) in addedBreaks)
             {
-                var removedStart = removedBreaks.FirstOrDefault(tuple => tuple.Item1.time.AlmostEqual(@break.time));
+                var removedStart = removedBreaks.FirstOrDefault(tuple =>
+                    tuple.Item1.time.AlmostEqual(@break.time)
+                );
 
                 var startStamp = Timestamp.Get(@break.time);
                 var endStamp = Timestamp.Get(@break.endTime);
@@ -61,26 +77,58 @@ namespace MapsetVerifier.Snapshots.Translators
                     var oldStartStamp = Timestamp.Get(removedStart.Item1.time);
                     var oldEndStamp = Timestamp.Get(removedStart.Item1.endTime);
 
-                    yield return new DiffInstance("Break from " + oldStartStamp + " to " + oldEndStamp + " now ends at " + endStamp + " instead.", Section, DiffType.Changed, new List<string>(), diffInstance.SnapshotCreationDate);
+                    yield return new DiffInstance(
+                        "Break from "
+                            + oldStartStamp
+                            + " to "
+                            + oldEndStamp
+                            + " now ends at "
+                            + endStamp
+                            + " instead.",
+                        Section,
+                        DiffType.Changed,
+                        new List<string>(),
+                        diffInstance.SnapshotCreationDate
+                    );
 
                     removedBreaks.Remove(removedStart);
                 }
                 else
                 {
-                    var removedEnd = removedBreaks.FirstOrDefault(tuple => tuple.Item1.endTime.AlmostEqual(@break.endTime));
+                    var removedEnd = removedBreaks.FirstOrDefault(tuple =>
+                        tuple.Item1.endTime.AlmostEqual(@break.endTime)
+                    );
 
                     if (removedEnd != null)
                     {
                         var oldStartStamp = Timestamp.Get(removedEnd.Item1.time);
                         var oldEndStamp = Timestamp.Get(removedEnd.Item1.endTime);
 
-                        yield return new DiffInstance("Break from " + oldStartStamp + " to " + oldEndStamp + " now starts at " + startStamp + " instead.", Section, DiffType.Changed, new List<string>(), diffInstance.SnapshotCreationDate);
+                        yield return new DiffInstance(
+                            "Break from "
+                                + oldStartStamp
+                                + " to "
+                                + oldEndStamp
+                                + " now starts at "
+                                + startStamp
+                                + " instead.",
+                            Section,
+                            DiffType.Changed,
+                            new List<string>(),
+                            diffInstance.SnapshotCreationDate
+                        );
 
                         removedBreaks.Remove(removedEnd);
                     }
                     else
                     {
-                        yield return new DiffInstance("Break from " + startStamp + " to " + endStamp + " added.", Section, DiffType.Added, new List<string>(), diffInstance.SnapshotCreationDate);
+                        yield return new DiffInstance(
+                            "Break from " + startStamp + " to " + endStamp + " added.",
+                            Section,
+                            DiffType.Added,
+                            new List<string>(),
+                            diffInstance.SnapshotCreationDate
+                        );
                     }
                 }
             }
@@ -90,7 +138,13 @@ namespace MapsetVerifier.Snapshots.Translators
                 var startStamp = Timestamp.Get(@break.time);
                 var endStamp = Timestamp.Get(@break.endTime);
 
-                yield return new DiffInstance("Break from " + startStamp + " to " + endStamp + " removed.", Section, DiffType.Removed, new List<string>(), diffInstance.SnapshotCreationDate);
+                yield return new DiffInstance(
+                    "Break from " + startStamp + " to " + endStamp + " removed.",
+                    Section,
+                    DiffType.Removed,
+                    new List<string>(),
+                    diffInstance.SnapshotCreationDate
+                );
             }
         }
     }

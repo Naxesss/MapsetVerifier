@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
+using Serilog;
 
 namespace MapsetVerifier.Framework
 {
@@ -14,11 +13,23 @@ namespace MapsetVerifier.Framework
             if (check == null)
                 return;
 
+            Log.Debug("Registering check {Check}", check.GetType().ToString());
+
             Checks.Add(check);
         }
 
-        /// <summary> Returns all checks which are processed when checking for issues. </summary>
-        public static List<Check> GetChecks() => [..Checks];
+        /// <summary>
+        /// Returns all checks as a dictionary where the key is the index and the value is the check itself.
+        /// </summary>
+        public static Dictionary<int, Check> GetChecksWithId() =>
+            Checks
+                .Select((check, index) => new { check, index })
+                .ToDictionary(x => x.index, x => x.check);
+
+        /// <summary>
+        /// Returns all checks which are processed when checking for issues.
+        /// </summary>
+        public static List<Check> GetChecks() => [.. Checks];
 
         /// <summary>
         ///     Returns checks which are processed beatmap-wise when checking for issues.
@@ -30,7 +41,8 @@ namespace MapsetVerifier.Framework
         ///     Returns checks which are processed beatmapset-wise when checking for issues.
         ///     These are often checks which need to compare between difficulties in a set.
         /// </summary>
-        public static IEnumerable<BeatmapSetCheck> GetBeatmapSetChecks() => Checks.OfType<BeatmapSetCheck>();
+        public static IEnumerable<BeatmapSetCheck> GetBeatmapSetChecks() =>
+            Checks.OfType<BeatmapSetCheck>();
 
         /// <summary>
         ///     Returns checks which are processed beatmapset-wise when checking for issues and stored in a seperate difficulty.

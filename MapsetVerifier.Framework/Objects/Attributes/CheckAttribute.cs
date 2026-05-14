@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MapsetVerifier.Framework.Objects.Attributes
+﻿namespace MapsetVerifier.Framework.Objects.Attributes
 {
     [AttributeUsage(AttributeTargets.Class)]
     public class CheckAttribute : Attribute

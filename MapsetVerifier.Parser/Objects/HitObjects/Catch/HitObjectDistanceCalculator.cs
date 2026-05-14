@@ -27,7 +27,8 @@ public static class HitObjectDistanceCalculator
     /// </summary>
     private static double QuarterFrameGrace => 1000.0 / 60.0 / 4;
 
-    private static float CalculateCatchWidth(float circleSize) => BaseSize * Math.Abs(CalculateScale(circleSize).X) * AllowedCatchRange;
+    private static float CalculateCatchWidth(float circleSize) =>
+        BaseSize * Math.Abs(CalculateScale(circleSize).X) * AllowedCatchRange;
 
     private static float CalculateScaleFromCircleSize(float circleSize)
     {
@@ -40,14 +41,16 @@ public static class HitObjectDistanceCalculator
     /// <summary>
     /// Calculates the scale of the catcher based off the provided beatmap difficulty.
     /// </summary>
-    private static Vector2 CalculateScale(float circleSize) => new(CalculateScaleFromCircleSize(circleSize) * 2);
+    private static Vector2 CalculateScale(float circleSize) =>
+        new(CalculateScaleFromCircleSize(circleSize) * 2);
 
     /// <summary>
     /// Calculates movement metadata (dash/hyper distances, direction, edge movement) between sequential objects.
     /// </summary>
     public static void CalculateDistances(List<ICatchHitObject> allObjects, Beatmap beatmap)
     {
-        if (allObjects.Count < 2) return;
+        if (allObjects.Count < 2)
+            return;
         allObjects.Sort((h1, h2) => h1.Time.CompareTo(h2.Time));
 
         var catcherWidth = CalculateCatchWidth(beatmap.DifficultySettings.circleSize);
@@ -56,7 +59,7 @@ public static class HitObjectDistanceCalculator
 
         var lastDirection = CatchNoteDirection.None;
         double dashRange = halfCatcherWidth;
-        
+
         // We need to consider slider parts as well for movement calculation
         // Add all to a single array so we can iterate through them in order
         var allObjectsPlusParts = new List<ICatchHitObject>();
@@ -95,9 +98,9 @@ public static class HitObjectDistanceCalculator
                 continue;
             }
 
-            var currentX = (int) current.Position.X;
-            var nextX = (int) next.Position.X;
-            
+            var currentX = (int)current.Position.X;
+            var nextX = (int)next.Position.X;
+
             CatchNoteDirection direction;
             if (currentX == nextX)
             {
@@ -116,16 +119,17 @@ public static class HitObjectDistanceCalculator
             var timeToNext = next.Time - current.Time - QuarterFrameGrace;
             var distance = Math.Abs(next.Position.X - current.Position.X);
 
-            var dashDistanceToNext = distance - (lastDirection == direction ? dashRange : halfCatcherWidth);
+            var dashDistanceToNext =
+                distance - (lastDirection == direction ? dashRange : halfCatcherWidth);
             current.DistanceToHyper = (float)(timeToNext * BaseDashSpeed - dashDistanceToNext);
 
-            current.MovementType = current.DistanceToHyper < 0
-                ? CatchMovementType.Hyperdash 
-                : CatchMovementType.Walk;
+            current.MovementType =
+                current.DistanceToHyper < 0 ? CatchMovementType.Hyperdash : CatchMovementType.Walk;
 
-            dashRange = current.MovementType == CatchMovementType.Hyperdash
-                ? halfCatcherWidth
-                : Math.Clamp(current.DistanceToHyper, 0, halfCatcherWidth);
+            dashRange =
+                current.MovementType == CatchMovementType.Hyperdash
+                    ? halfCatcherWidth
+                    : Math.Clamp(current.DistanceToHyper, 0, halfCatcherWidth);
 
             current.NoteDirection = direction;
 

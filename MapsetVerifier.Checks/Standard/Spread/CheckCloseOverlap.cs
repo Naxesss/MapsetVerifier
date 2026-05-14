@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -17,10 +16,7 @@ namespace MapsetVerifier.Checks.Standard.Spread
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
-                Modes =
-                [
-                    Beatmap.Mode.Standard
-                ],
+                Modes = [Beatmap.Mode.Standard],
                 Category = "Spread",
                 Message = "Objects close in time not overlapping.",
                 Author = "Naxess",
@@ -30,21 +26,17 @@ namespace MapsetVerifier.Checks.Standard.Spread
                     {
                         "Purpose",
                         @"
-                    Ensuring that objects close in time are indiciated as such in easy and lowest normal difficulties.
-                    <image>
-                        https://i.imgur.com/rnIi6Pj.png
-                        Right image is harder to distinguish time distance in, despite spacings still clearly being different.
-                    </image>"
+                        Ensuring that objects close in time are indiciated as such in easy and lowest normal difficulties.
+
+                        ![](https://i.imgur.com/rnIi6Pj.png)
+                        Right image is harder to distinguish time distance in, despite spacings still clearly being different."
                     },
                     {
                         "Reasoning",
                         @"
-                    Newer players often have trouble reading how far apart objects are in time, which is why enabling 
-                    distance spacing for lower difficulties is often recommended. However, if two spacings for different 
-                    snappings look similar, it's possible to confuse them. By forcing an overlap between objects close in 
-                    time and discouraging it for objects further apart, the difference in snappings become more apparent."
-                    }
-                }
+                        Newer players often have trouble reading how far apart objects are in time, which is why enabling distance spacing for lower difficulties is often recommended. However, if two spacings for different snappings look similar, it's possible to confuse them. By forcing an overlap between objects close in time and discouraging it for objects further apart, the difference in snappings become more apparent."
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -52,20 +44,37 @@ namespace MapsetVerifier.Checks.Standard.Spread
             {
                 {
                     "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "{0} {1} ms apart, should either be overlapped or at least {2} ms apart.", "timestamp - ", "gap", "threshold").WithCause("Two objects with a time gap less than 125 ms (240 bpm 1/2) are not overlapping.")
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "{0} {1} ms apart, should either be overlapped or at least {2} ms apart.",
+                        "timestamp -",
+                        "gap",
+                        "threshold"
+                    ).WithCause(
+                        "Two objects with a time gap less than 125 ms (240 bpm 1/2) are not overlapping."
+                    )
                 },
-
                 {
                     "Warning",
-                    new IssueTemplate(Issue.Level.Warning, "{0} {1} ms apart.", "timestamp - ", "gap").WithCause("Two objects with a time gap less than 167 ms (180 bpm 1/2) are not overlapping.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "{0} {1} ms apart.",
+                        "timestamp -",
+                        "gap"
+                    ).WithCause(
+                        "Two objects with a time gap less than 167 ms (180 bpm 1/2) are not overlapping."
+                    )
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
+            var standardBeatmaps = beatmapSet
+                .Beatmaps.Where(beatmap => beatmap.GeneralSettings.mode == Beatmap.Mode.Standard)
+                .ToList();
             var skipAfterDifficulty = Beatmap.Difficulty.Normal;
 
-            foreach (var beatmap in beatmapSet.Beatmaps)
+            foreach (var beatmap in standardBeatmaps)
             {
                 // Beatmaps are sorted by interpreted difficulty.
                 if (beatmap.GetDifficulty() > skipAfterDifficulty)
@@ -77,7 +86,7 @@ namespace MapsetVerifier.Checks.Standard.Spread
 
                 foreach (var hitObject in beatmap.HitObjects)
                 {
-                    if (hitObject.Next() is not HitObject nextObject)
+                    if (hitObject.Next() is not { } nextObject)
                         continue;
 
                     // Slider ends do not need to overlap, same with spinners, spinners should be ignored overall.
@@ -96,10 +105,20 @@ namespace MapsetVerifier.Checks.Standard.Spread
                         continue;
 
                     if (nextObject.time - hitObject.time < ProblemThreshold)
-                        yield return new Issue(GetTemplate("Problem"), beatmap, Timestamp.Get(hitObject, nextObject), $"{nextObject.time - hitObject.time:0.##}", ProblemThreshold).ForDifficulties(Beatmap.Difficulty.Easy, Beatmap.Difficulty.Normal);
-
+                        yield return new Issue(
+                            GetTemplate("Problem"),
+                            beatmap,
+                            Timestamp.Get(hitObject, nextObject),
+                            $"{nextObject.time - hitObject.time:0.##}",
+                            ProblemThreshold
+                        ).ForDifficulties(Beatmap.Difficulty.Easy, Beatmap.Difficulty.Normal);
                     else
-                        yield return new Issue(GetTemplate("Warning"), beatmap, Timestamp.Get(hitObject, nextObject), $"{nextObject.time - hitObject.time:0.##}").ForDifficulties(Beatmap.Difficulty.Easy, Beatmap.Difficulty.Normal);
+                        yield return new Issue(
+                            GetTemplate("Warning"),
+                            beatmap,
+                            Timestamp.Get(hitObject, nextObject),
+                            $"{nextObject.time - hitObject.time:0.##}"
+                        ).ForDifficulties(Beatmap.Difficulty.Easy, Beatmap.Difficulty.Normal);
                 }
             }
         }

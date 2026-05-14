@@ -1,0 +1,61 @@
+﻿# Changelog
+
+## [2.0.0] - 2026-05-05
+
+Welcome to MV 2.0!
+
+It’s been almost 5 years since the last release by Naxess, and with the project now handed over to me (Greaper), this update brings a refreshed foundation for the future.
+
+A big thank you to Hivie, Nostril, -kevincela-, and RandomeLoL for their help to make this release possible.
+
+### More checks
+
+All mode-specific checks are now built directly into MV.
+
+This includes:
+
+- [Taiko checks](https://github.com/Hiviexd/MVTaikoChecks) by Hivie
+- [Catch checks](https://github.com/Darius-Wattimena/MapsetChecksCatch) by Greaper
+- [Mania checks](https://github.com/MChecaH/ManiaCheck) by RandomeLoL
+
+You no longer need to install separate plugins for these modes.
+
+### Updated star rating system
+
+Star rating calculations now match osu! lazer directly.
+
+This means:
+
+- Star rating which matches osu!
+- Support for osu!catch and osu!mania which was lacking
+- Easier maintenance and future updates when they make an update in lazer
+
+### Automatic beatmap detection
+
+Mapset Verifier can now automatically detect the beatmap you currently have open in osu! stable.
+
+You’ll see it displayed in the top-left when selecting a beatmapset:
+
+![](changelog/current%20beatmap.png)
+
+Lazer support is also available and can be enabled in the settings. (This feature is still experimental for now.)
+
+### Expanded Overview with Audio
+
+You can now view detailed audio information directly inside MV—no external tools needed.
+
+This includes:
+
+- Audio format details (codec, sample rate, bitrate, etc.)
+- A visual spectrogram to help spot unusual encoding or quality issues
+
+![](changelog/spectrogram.png)
+
+For users who want to go further, there is an optional advanced analysis mode in settings (“Show advanced audio analysis”).
+
+When enabled, MV can also provide:
+
+- Channel balance overview
+- Dynamic range insights
+- Frequency analysis
+- Basic note detection (experimental)

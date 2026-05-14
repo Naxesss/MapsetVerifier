@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -14,10 +13,7 @@ namespace MapsetVerifier.Checks.Standard.Compose
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
-                Modes =
-                [
-                    Beatmap.Mode.Standard
-                ],
+                Modes = [Beatmap.Mode.Standard],
                 Category = "Compose",
                 Message = "Too short spinner.",
                 Author = "Naxess",
@@ -27,17 +23,17 @@ namespace MapsetVerifier.Checks.Standard.Compose
                     {
                         "Purpose",
                         @"
-                    Preventing spinners from being so short that you almost need to memorize them in order to react 
-                    to them before they end."
+                        Preventing spinners from being so short that you almost need to memorize them in order to react 
+                        to them before they end."
                     },
                     {
                         "Reasoning",
                         @"
-                    Players generally react much slower than auto, so if auto can't even acheive 1000 points on the 
-                    spinner, players will likely not get any points at all, much less pass it without losing accuracy. 
-                    In general, these are just not fun to play due to needing to memorize them for a fair experience."
-                    }
-                }
+                        Players generally react much slower than auto, so if auto can't even achieve 1000 points on the 
+                        spinner, players will likely not get any points at all, much less pass it without losing accuracy. 
+                        In general, these are just not fun to play due to needing to memorize them for a fair experience."
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -45,13 +41,24 @@ namespace MapsetVerifier.Checks.Standard.Compose
             {
                 {
                     "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "{0} Spinner is too short, auto cannot achieve 1000 points on this.", "timestamp - ").WithCause("A spinner is predicted to, based on the OD and BPM, not be able to achieve 1000 points on this, and by a " + "margin to account for any inconsistencies.")
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "{0} Spinner is too short, auto cannot achieve 1000 points on this.",
+                        "timestamp -"
+                    ).WithCause(
+                        "A spinner is predicted to, based on the OD and BPM, not be able to achieve 1000 points on this, and by a margin to account for any inconsistencies."
+                    )
                 },
-
                 {
                     "Warning",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Spinner may be too short, ensure auto can achieve 1000 points on this.", "timestamp - ").WithCause("Same as the other check, but without the margin, meaning the threshold is lower.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "{0} Spinner may be too short, ensure auto can achieve 1000 points on this.",
+                        "timestamp -"
+                    ).WithCause(
+                        "Same as the other check, but without the margin, meaning the threshold is lower."
+                    )
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
@@ -69,7 +76,6 @@ namespace MapsetVerifier.Checks.Standard.Compose
 
                 if (problemThreshold > spinner.endTime - spinner.time)
                     yield return new Issue(GetTemplate("Problem"), beatmap, Timestamp.Get(spinner));
-
                 else if (warningThreshold > spinner.endTime - spinner.time)
                     yield return new Issue(GetTemplate("Warning"), beatmap, Timestamp.Get(spinner));
             }

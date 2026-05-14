@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using MapsetVerifier.Snapshots.Objects;
+﻿using MapsetVerifier.Snapshots.Objects;
 using MapsetVerifier.Snapshots.Translators;
 
 namespace MapsetVerifier.Snapshots
@@ -27,7 +26,8 @@ namespace MapsetVerifier.Snapshots
             initialized = true;
         }
 
-        public static void RegisterTranslator(DiffTranslator translator) => translators.Add(translator);
+        public static void RegisterTranslator(DiffTranslator translator) =>
+            translators.Add(translator);
 
         public static IEnumerable<DiffTranslator> GetTranslators()
         {

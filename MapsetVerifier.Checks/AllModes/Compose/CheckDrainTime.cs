@@ -1,9 +1,7 @@
-﻿using System.Collections.Generic;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
-using MapsetVerifier.Parser.Settings;
 using MapsetVerifier.Parser.Statics;
 
 namespace MapsetVerifier.Checks.AllModes.Compose
@@ -11,6 +9,8 @@ namespace MapsetVerifier.Checks.AllModes.Compose
     [Check]
     public class CheckDrainTime : BeatmapCheck
     {
+        private const double ThirtySecondsMs = 30_000;
+
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
@@ -23,19 +23,18 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                     {
                         "Purpose",
                         @"
-                    Prevents beatmaps from being too short, for example 10 seconds long.
-                    <image>
-                        https://i.imgur.com/uNDPeJI.png
-                        A beatmap with a total mp3 length of ~21 seconds.
-                    </image>"
+                        Prevents beatmaps from being too short, for example 10 seconds long.
+                    
+                        ![](https://i.imgur.com/uNDPeJI.png)
+                        A beatmap with a total mp3 length of ~21 seconds."
                     },
                     {
                         "Reasoning",
                         @"
-                    Beatmaps this short do not offer a substantial enough gameplay experience for the standards of 
-                    the ranked section."
-                    }
-                }
+                        Beatmaps this short do not offer a substantial enough gameplay experience for the standards of 
+                        the ranked section."
+                    },
+                },
             };
 
         public override Dictionary<string, IssueTemplate> GetTemplates() =>
@@ -43,18 +42,26 @@ namespace MapsetVerifier.Checks.AllModes.Compose
             {
                 {
                     "Problem",
-                    new IssueTemplate(Issue.Level.Problem, "Less than 30 seconds of drain time, currently {0}.", "drain time").WithCause("The time from the first object to the end of the last object, subtracting any time between two objects " + "where a break exists, is in total less than 30 seconds.")
-                }
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "Less than 30 seconds of drain time, currently {0} seconds.",
+                        "drain time"
+                    ).WithCause(
+                        "The time from the first object to the end of the last object, subtracting any time between two objects where a break exists, is in total less than 30 seconds."
+                    )
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
         {
             var drainTime = beatmap.GetDrainTime(beatmap.GeneralSettings.mode);
-            
-            if (drainTime >= 30 * 1000)
+
+            if (drainTime >= ThirtySecondsMs)
                 yield break;
 
-            yield return new Issue(GetTemplate("Problem"), beatmap, Timestamp.Get(drainTime));
+            var drainTimeSeconds = (int)TimeSpan.FromMilliseconds(drainTime).TotalSeconds;
+
+            yield return new Issue(GetTemplate("Problem"), beatmap, drainTimeSeconds);
         }
     }
 }

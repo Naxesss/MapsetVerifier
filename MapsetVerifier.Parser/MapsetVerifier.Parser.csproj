@@ -1,18 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-    </PropertyGroup>
-
-    <ItemGroup>
-      <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
-      <PackageReference Include="ppy.osu.Game" Version="2025.1107.0" />
-      <PackageReference Include="ppy.osu.Game.Rulesets.Catch" Version="2025.1107.0" />
-      <PackageReference Include="ppy.osu.Game.Rulesets.Mania" Version="2025.1107.0" />
-      <PackageReference Include="ppy.osu.Game.Rulesets.Osu" Version="2025.1107.0" />
-      <PackageReference Include="ppy.osu.Game.Rulesets.Taiko" Version="2025.1107.0" />
-    </ItemGroup>
-
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
+    <PackageReference Include="ppy.osu.Game.Rulesets.Catch" Version="2026.505.0" />
+    <PackageReference Include="ppy.osu.Game.Rulesets.Mania" Version="2026.505.0" />
+    <PackageReference Include="ppy.osu.Game.Rulesets.Osu" Version="2026.505.0" />
+    <PackageReference Include="ppy.osu.Game.Rulesets.Taiko" Version="2026.505.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MapsetVerifier.Logging\MapsetVerifier.Logging.csproj" />
+  </ItemGroup>
 </Project>

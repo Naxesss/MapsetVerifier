@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+﻿using System.Globalization;
 
 namespace MapsetVerifier.Parser.Objects.Events
 {
@@ -16,7 +13,8 @@ namespace MapsetVerifier.Parser.Objects.Events
         public readonly List<string> framePaths;
         public readonly bool loops;
 
-        public Animation(string[] args) : base(args)
+        public Animation(string[] args)
+            : base(args)
         {
             frameCount = GetFrameCount(args);
             frameDelay = GetFrameDelay(args);
@@ -32,7 +30,8 @@ namespace MapsetVerifier.Parser.Objects.Events
         private int GetFrameCount(string[] args) => int.Parse(args[6]);
 
         /// <summary> Returns the delay between each frame of this animation in miliseconds. </summary>
-        private double GetFrameDelay(string[] args) => double.Parse(args[7], CultureInfo.InvariantCulture);
+        private double GetFrameDelay(string[] args) =>
+            double.Parse(args[7], CultureInfo.InvariantCulture);
 
         /// <summary> Returns whether the animation loops, by default true. </summary>
         private bool IsLooping(string[] args) =>
@@ -46,9 +45,12 @@ namespace MapsetVerifier.Parser.Objects.Events
             {
                 yield break;
             }
-            
+
             for (var i = 0; i < frameCount; ++i)
-                yield return path.Insert(path.LastIndexOf(".", StringComparison.Ordinal), i.ToString());
+                yield return path.Insert(
+                    path.LastIndexOf(".", StringComparison.Ordinal),
+                    i.ToString()
+                );
         }
     }
 }

@@ -7,6 +7,7 @@ namespace MapsetVerifier.Parser.Objects.Events
     public class Background
     {
         public readonly Vector2? offset;
+
         // 0,0,"apple is oral.jpg",0,0
         // Background, offset (unused), filename, x offset, y offset
 
@@ -34,7 +35,10 @@ namespace MapsetVerifier.Parser.Objects.Events
         {
             // Does not exist in file version 9.
             if (args.Length > 4)
-                return new Vector2(float.Parse(args[3], CultureInfo.InvariantCulture), float.Parse(args[4], CultureInfo.InvariantCulture));
+                return new Vector2(
+                    float.Parse(args[3], CultureInfo.InvariantCulture),
+                    float.Parse(args[4], CultureInfo.InvariantCulture)
+                );
 
             return null;
         }

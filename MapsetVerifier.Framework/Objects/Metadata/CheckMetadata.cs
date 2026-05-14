@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace MapsetVerifier.Framework.Objects.Metadata
+﻿namespace MapsetVerifier.Framework.Objects.Metadata
 {
     public class CheckMetadata
     {

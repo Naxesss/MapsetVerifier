@@ -1,6 +1,4 @@
-﻿using System;
-using System.Globalization;
-using System.Linq;
+﻿using System.Globalization;
 using MathNet.Numerics;
 
 namespace MapsetVerifier.Parser.Objects
@@ -11,7 +9,7 @@ namespace MapsetVerifier.Parser.Objects
         public enum Types
         {
             Kiai = 1,
-            OmitBarLine = 8
+            OmitBarLine = 8,
         }
 
         public int CustomIndex { get; }
@@ -27,6 +25,7 @@ namespace MapsetVerifier.Parser.Objects
         public bool Uninherited { get; }
 
         public float Volume { get; }
+
         // 440,476.190476190476,4,2,1,40,1,0
         // offset, msPerBeat, meter, sampleset, customIndex, volume, inherited, kiai
 
@@ -58,19 +57,22 @@ namespace MapsetVerifier.Parser.Objects
         }
 
         /// <summary> Returns the offset of the line. </summary>
-        private double GetOffset(string[] args) => double.Parse(args[0], CultureInfo.InvariantCulture);
+        private double GetOffset(string[] args) =>
+            double.Parse(args[0], CultureInfo.InvariantCulture);
 
         /// <summary> Returns the meter (i.e. timing signature) of the line. </summary>
         private int GetMeter(string[] args) => int.Parse(args[2]);
 
         /// <summary> Returns the sampleset which this line applies to any sample set to Auto sampleset. </summary>
-        private HitSample.SamplesetType GetSampleset(string[] args) => (HitSample.SamplesetType)int.Parse(args[3]);
+        private HitSample.SamplesetType GetSampleset(string[] args) =>
+            (HitSample.SamplesetType)int.Parse(args[3]);
 
         /// <summary> Returns the custom sample index of the line. </summary>
         private int GetCustomIndex(string[] args) => int.Parse(args[4]);
 
         /// <summary> Returns the sample volume of the line. </summary>
-        private float GetVolume(string[] args) => float.Parse(args[5], CultureInfo.InvariantCulture);
+        private float GetVolume(string[] args) =>
+            float.Parse(args[5], CultureInfo.InvariantCulture);
 
         /// <summary> Returns whether a line of code representing a timing line is uninherited or inherited. </summary>
         public static bool IsUninherited(string[] args)
@@ -100,8 +102,10 @@ namespace MapsetVerifier.Parser.Objects
                 var svMult = 1 / (float.Parse(args[1], CultureInfo.InvariantCulture) * -0.01f);
 
                 // Min 0.1x, max 10x.
-                if (svMult > 10f) svMult = 10f;
-                if (svMult < 0.1f) svMult = 0.1f;
+                if (svMult > 10f)
+                    svMult = 10f;
+                if (svMult < 0.1f)
+                    svMult = 0.1f;
 
                 return svMult;
             }

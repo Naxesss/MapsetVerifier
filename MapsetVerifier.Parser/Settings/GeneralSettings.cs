@@ -1,6 +1,4 @@
-﻿using System;
-using System.Globalization;
-using System.Linq;
+﻿using System.Globalization;
 using MapsetVerifier.Parser.Objects;
 
 namespace MapsetVerifier.Parser.Settings
@@ -13,8 +11,9 @@ namespace MapsetVerifier.Parser.Settings
             None = 0,
             Normal = 1,
             Half = 2,
-            Double = 3
+            Double = 3,
         }
+
         /*
             AudioFilename: audio.mp3
             AudioLeadIn: 0
@@ -48,12 +47,20 @@ namespace MapsetVerifier.Parser.Settings
         public GeneralSettings(string[] lines)
         {
             audioFileName = GetValue(lines, "AudioFilename") ?? "audio.mp3";
-            audioLeadIn = float.Parse(GetValue(lines, "AudioLeadIn") ?? "0", CultureInfo.InvariantCulture);
-            previewTime = float.Parse(GetValue(lines, "PreviewTime") ?? "-1", CultureInfo.InvariantCulture);
+            audioLeadIn = float.Parse(
+                GetValue(lines, "AudioLeadIn") ?? "0",
+                CultureInfo.InvariantCulture
+            );
+            previewTime = float.Parse(
+                GetValue(lines, "PreviewTime") ?? "-1",
+                CultureInfo.InvariantCulture
+            );
             countdown = (Countdown)int.Parse(GetValue(lines, "Countdown") ?? "0");
 
             // don't exist in file version 5
-            stackLeniency = float.Parse(GetValue(lines, "StackLeniency") ?? "0.7", CultureInfo.InvariantCulture) * 10;
+            stackLeniency =
+                float.Parse(GetValue(lines, "StackLeniency") ?? "0.7", CultureInfo.InvariantCulture)
+                * 10;
             mode = (Beatmap.Mode)int.Parse(GetValue(lines, "Mode") ?? "0");
             letterbox = GetValue(lines, "LetterboxInBreaks") == "1";
             widescreenSupport = GetValue(lines, "WidescreenStoryboard") == "1";

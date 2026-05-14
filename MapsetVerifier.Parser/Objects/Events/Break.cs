@@ -5,6 +5,7 @@ namespace MapsetVerifier.Parser.Objects.Events
     public class Break
     {
         public readonly double endTime;
+
         // 2,66281,71774
         // 2, start, end
 
@@ -28,13 +29,15 @@ namespace MapsetVerifier.Parser.Objects.Events
         ///     Returns the visual start time of the break.
         ///     See <see cref="GetRealStart(Beatmap)" /> for where HP stops draining.
         /// </summary>
-        private double GetTime(string[] args) => double.Parse(args[1], CultureInfo.InvariantCulture);
+        private double GetTime(string[] args) =>
+            double.Parse(args[1], CultureInfo.InvariantCulture);
 
         /// <summary>
         ///     Returns the visual end time of the break.
         ///     See <see cref="GetRealEnd(Beatmap)" /> for where HP starts draining again.
         /// </summary>
-        private double GetEndTime(string[] args) => double.Parse(args[2], CultureInfo.InvariantCulture);
+        private double GetEndTime(string[] args) =>
+            double.Parse(args[2], CultureInfo.InvariantCulture);
 
         /// <summary>
         ///     Returns the duration between the end of the object before the break and the start of the
@@ -43,9 +46,11 @@ namespace MapsetVerifier.Parser.Objects.Events
         public double GetDuration(Beatmap beatmap) => GetRealEnd(beatmap) - GetRealStart(beatmap);
 
         /// <summary> Returns the end time of the object before the break. </summary>
-        public double GetRealStart(Beatmap beatmap) => beatmap.GetPrevHitObject(time)?.GetEndTime() ?? 0;
+        public double GetRealStart(Beatmap beatmap) =>
+            beatmap.GetPrevHitObject(time)?.GetEndTime() ?? 0;
 
         /// <summary> Returns the start time of the object after the break, if any, otherwise the end of the map. </summary>
-        public double GetRealEnd(Beatmap beatmap) => beatmap.GetNextHitObject(endTime)?.time ?? beatmap.GetPlayTime();
+        public double GetRealEnd(Beatmap beatmap) =>
+            beatmap.GetNextHitObject(endTime)?.time ?? beatmap.GetPlayTime();
     }
 }
