@@ -131,8 +131,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                 if (peaks.Count == 0)
                     continue;
 
-                var leftSum = peaks.Sum(peak => (int)peak[0]);
-                var rightSum = peaks.Sum(peak => peak.Length > 1 ? peak[1] : 0);
+                var leftSum = peaks.Sum(peak => peak[0]);
+                var rightSum = peaks.Sum(peak => peak.Length > 1 ? peak[1] : 0f);
 
                 if (leftSum == 0 || rightSum == 0)
                 {
@@ -140,7 +140,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         GetTemplate("Warning Silent"),
                         null,
                         hsFile,
-                        leftSum - rightSum > 0 ? "left" : "right"
+                        leftSum - rightSum < 0 ? "left" : "right"
                     );
 
                     continue;
