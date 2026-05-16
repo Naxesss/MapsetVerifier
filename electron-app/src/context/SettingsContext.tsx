@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { BACKEND_BASE_URL } from '../Constants.ts';
+import { isSemverPreRelease } from '../utils/isSemverPreRelease';
 
 // Type-safe Settings type
 export type Settings = {
@@ -30,18 +31,13 @@ const defaultSettings: Settings = {
   gateInDev: false,
 };
 
-function isPreReleaseVersion(version: string | null | undefined) {
-  if (!version) return false;
-  return version.split('+', 1)[0].includes('-');
-}
-
 async function resolveDefaultReceivePrereleases() {
   const api = window.electronAPI;
   if (!api) return defaultSettings.receivePrereleases;
 
   try {
     const version = await api.getVersion();
-    return isPreReleaseVersion(version);
+    return isSemverPreRelease(version);
   } catch {
     return defaultSettings.receivePrereleases;
   }

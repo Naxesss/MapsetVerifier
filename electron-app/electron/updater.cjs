@@ -1,10 +1,6 @@
 const { ipcMain, app } = require('electron');
 const { autoUpdater } = require('electron-updater');
-
-function isPreReleaseVersion(version) {
-  if (!version || typeof version !== 'string') return false;
-  return version.split('+', 1)[0].includes('-');
-}
+const { isSemverPreRelease } = require('./semverPrerelease.cjs');
 
 function forwardingEnabled(getMainWindow) {
   return () => {
@@ -23,7 +19,7 @@ function serializeUpdateInfo(info) {
 }
 
 function applyUpdatePreferences(options) {
-  const currentIsPreRelease = isPreReleaseVersion(app.getVersion());
+  const currentIsPreRelease = isSemverPreRelease(app.getVersion());
   const allowPrerelease =
     options && typeof options.allowPrerelease === 'boolean'
       ? options.allowPrerelease

@@ -8,6 +8,7 @@ import React, {
   useState,
 } from 'react';
 import { useSettings } from './SettingsContext';
+import { isSemverPreRelease } from '../utils/isSemverPreRelease';
 import type { UpdateInfo } from '../electron-env';
 
 export type UpdaterStatus =
@@ -52,10 +53,6 @@ function isElectronRuntime() {
   return typeof window !== 'undefined' && !!window.electronAPI;
 }
 
-function isPreReleaseVersion(version: string) {
-  return version.split('+', 1)[0].includes('-');
-}
-
 export const UpdaterProvider = ({ children }: { children: React.ReactNode }) => {
   const { settings, loaded } = useSettings();
   const [currentVersion, setCurrentVersion] = useState<string>('unknown');
@@ -67,7 +64,7 @@ export const UpdaterProvider = ({ children }: { children: React.ReactNode }) => 
   const [totalBytes, setTotalBytes] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
   const [completedVersion, setCompletedVersion] = useState<string | null>(null);
-  const currentVersionIsPrerelease = isPreReleaseVersion(currentVersion);
+  const currentVersionIsPrerelease = isSemverPreRelease(currentVersion);
 
   const pendingCheck = useRef<{
     resolve: (value: UpdateInfo | null) => void;

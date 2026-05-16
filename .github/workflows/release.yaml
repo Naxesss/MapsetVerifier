@@ -48,8 +48,9 @@ jobs:
           # strip leading v for display only
           CLEAN_TAG="${GIT_TAG#v}"
 
-          # prerelease detection (robust)
-          if [[ "$CLEAN_TAG" =~ (rc|beta|alpha|pre|preview) ]]; then
+          # SemVer prerelease: hyphen before +build metadata (aligned with Electron runtime)
+          CORE="${CLEAN_TAG%%+*}"
+          if [[ "$CORE" == *-* ]]; then
             PRERELEASE=true
           else
             PRERELEASE=false
@@ -215,8 +216,25 @@ jobs:
         run: npm run build
 
       - name: Run electron-builder
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           EP_DRAFT: 'true'
           EP_PRE_RELEASE: ${{ needs.resolve-release.outputs.prerelease }}
-        run: npx electron-builder ${{ matrix.builder_args }} --config.extraMetadata.version=${{ needs.resolve-release.outputs.tag_name }}
+          IS_PRERELEASE: ${{ needs.resolve-release.outputs.prerelease }}
+          TAG_VERSION: ${{ needs.resolve-release.outputs.tag_name }}
+          BUILDER_ARGS: ${{ matrix.builder_args }}
+        run: |
+          set -e
+          if [ "$IS_PRERELEASE" = "true" ]; then
+            ICON_ARGS=(
+              --config.win.icon=assets/icons/prerelease/icon.ico
+              --config.mac.icon=assets/icons/prerelease/icon.icns
+              --config.linux.icon=assets/icons/prerelease
+              --config.nsis.installerIcon=assets/icons/prerelease/icon.ico
+              --config.nsis.installerHeaderIcon=assets/icons/prerelease/icon.ico
+            )
+          else
+            ICON_ARGS=()
+          fi
+          npx electron-builder $BUILDER_ARGS "${ICON_ARGS[@]}" --config.extraMetadata.version="$TAG_VERSION"

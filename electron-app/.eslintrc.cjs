@@ -63,7 +63,7 @@ module.exports = {
     // Allow unresolved import for markdown raw imports since Vite handles them
     'import/no-unresolved': [
       'error',
-      { ignore: ['\\.md\\?raw$'] }
+      { ignore: ['\\.md\\?raw$'] },
     ],
 
     // General

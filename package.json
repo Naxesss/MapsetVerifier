@@ -18,8 +18,11 @@
     "build:frontend": "npm --prefix electron-app run build",
     "build": "npm run build:frontend",
     "dist": "npm run build && electron-builder --x64 -w",
+    "dist-prerelease": "npm run build && electron-builder --x64 -w --config.win.icon=assets/icons/prerelease/icon.ico --config.mac.icon=assets/icons/prerelease/icon.icns --config.linux.icon=assets/icons/prerelease --config.nsis.installerIcon=assets/icons/prerelease/icon.ico --config.nsis.installerHeaderIcon=assets/icons/prerelease/icon.ico",
     "dist-all": "npm run build && electron-builder -wl",
+    "dist-all-prerelease": "npm run build && electron-builder -wl --config.win.icon=assets/icons/prerelease/icon.ico --config.mac.icon=assets/icons/prerelease/icon.icns --config.linux.icon=assets/icons/prerelease --config.nsis.installerIcon=assets/icons/prerelease/icon.ico --config.nsis.installerHeaderIcon=assets/icons/prerelease/icon.ico",
     "release": "npm run build && electron-builder --publish always",
+    "release-prerelease": "npm run build && electron-builder --publish always --config.win.icon=assets/icons/prerelease/icon.ico --config.mac.icon=assets/icons/prerelease/icon.icns --config.linux.icon=assets/icons/prerelease --config.nsis.installerIcon=assets/icons/prerelease/icon.ico --config.nsis.installerHeaderIcon=assets/icons/prerelease/icon.ico",
     "postinstall": "electron-builder install-app-deps"
   },
   "devDependencies": {
@@ -48,6 +51,10 @@
       {
         "from": "bin/server/dist",
         "to": "bin/server/dist"
+      },
+      {
+        "from": "assets/icons",
+        "to": "icons"
       }
     ],
     "publish": [
@@ -64,12 +71,12 @@
           "arch": ["x64"]
         }
       ],
-      "icon": "assets/icons/icon.ico"
+      "icon": "assets/icons/prod/icon.ico"
     },
     "linux": {
       "target": "AppImage",
       "category": "Utility",
-      "icon": "assets/icons",
+      "icon": "assets/icons/prod",
       "executableName": "mapsetverifier",
       "desktop": {
         "StartupWMClass": "mapsetverifier"
@@ -77,7 +84,7 @@
     },
     "mac": {
       "target": "dmg",
-      "icon": "assets/icons/icon.icns"
+      "icon": "assets/icons/prod/icon.icns"
     },
     "nsis": {
       "oneClick": false,
@@ -87,8 +94,8 @@
       "runAfterFinish": true,
       "uninstallDisplayName": "${productName} Uninstaller.exe",
       "artifactName": "${productName} Installer.exe",
-      "installerIcon": "assets/icons/icon.ico",
-      "installerHeaderIcon": "assets/icons/icon.ico"
+      "installerIcon": "assets/icons/prod/icon.ico",
+      "installerHeaderIcon": "assets/icons/prod/icon.ico"
     }
   }
 }

@@ -1,18 +1,41 @@
+const fs = require('fs');
 const { app, BrowserWindow, globalShortcut } = require('electron');
 const path = require('path');
 const sidecar = require('./sidecar.cjs');
 const { registerIpc } = require('./ipc.cjs');
 const { registerUpdater } = require('./updater.cjs');
+const { isSemverPreRelease } = require('./semverPrerelease.cjs');
 
 let mainWindow = null;
 
 const DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
 const isDev = !!DEV_SERVER_URL;
 
+function iconsRootResolved() {
+  if (app.isPackaged) {
+    return path.join(process.resourcesPath, 'icons');
+  }
+  return path.join(__dirname, '..', '..', 'assets', 'icons');
+}
+
+function windowIconChannel() {
+  if (isDev) return 'dev';
+  if (isSemverPreRelease(app.getVersion())) return 'prerelease';
+  return 'prod';
+}
+
+function resolveWindowIconPngPath() {
+  const root = iconsRootResolved();
+  const channel = windowIconChannel();
+  const preferred = path.join(root, channel, 'icon.png');
+  if (fs.existsSync(preferred)) return preferred;
+  return path.join(root, 'prod', 'icon.png');
+}
+
 function createWindow() {
   // Needed to make sure Linux app images work as expected
-  app.setName("mapsetverifier");
-  
+  app.setName('mapsetverifier');
+
   mainWindow = new BrowserWindow({
     width: 1172,
     height: 700,
@@ -21,7 +44,7 @@ function createWindow() {
     frame: false,
     backgroundColor: '#161d28',
     show: false,
-    icon: path.join(__dirname, '..', '..', 'assets', 'icons', 'icon.png'),
+    icon: resolveWindowIconPngPath(),
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,

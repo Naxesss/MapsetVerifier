@@ -14,6 +14,7 @@ import {
 import { IconAlertCircle, IconCircleCheck, IconCloudDownload } from '@tabler/icons-react';
 import React from 'react';
 import { useUpdater } from '../../context/UpdaterContext';
+import { isSemverPreRelease } from '../../utils/isSemverPreRelease';
 import MantineMarkdown from '../documentation/MantineMarkdown';
 
 function formatBytes(value?: number | null) {
@@ -28,11 +29,6 @@ function formatBytes(value?: number | null) {
   }
 
   return `${size.toFixed(size >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
-}
-
-function isPreReleaseVersion(version?: string | null) {
-  if (!version) return false;
-  return version.split('+', 1)[0].includes('-');
 }
 
 const UpdaterModal: React.FC = () => {
@@ -54,7 +50,7 @@ const UpdaterModal: React.FC = () => {
   const busy = status === 'checking' || status === 'downloading' || status === 'installing';
 
   const updateNotes = availableUpdate?.body?.trim();
-  const availableUpdateIsPrerelease = isPreReleaseVersion(availableUpdate?.version);
+  const availableUpdateIsPrerelease = isSemverPreRelease(availableUpdate?.version);
   const upToDateTitle = !receivePrereleases && currentVersionIsPrerelease
     ? 'No stable update available'
     : 'You are up to date';
