@@ -140,7 +140,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         GetTemplate("Warning Silent"),
                         null,
                         hsFile,
-                        leftSum - rightSum > 0 ? "left" : "right"
+                        leftSum - rightSum < 0 ? "left" : "right"
                     );
 
                     continue;
