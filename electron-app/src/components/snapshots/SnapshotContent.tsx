@@ -76,7 +76,9 @@ function SnapshotContent({ data, selectedDifficulty }: SnapshotContentProps) {
         <Box p="xs" bg={theme.colors.dark[6]}>
           <Text fw={600} size="sm" mt="xs" ml="xs">
             {selectedCommit
-              ? `Changes (${selectedCommit.totalChanges} total)`
+              ? selectedCommit.totalChanges === 0
+                ? 'No changes'
+                : `Changes (${selectedCommit.totalChanges} total)`
               : 'Select a commit to view changes'}
           </Text>
         </Box>

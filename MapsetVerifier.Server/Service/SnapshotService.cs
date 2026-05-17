@@ -55,8 +55,11 @@ public static class SnapshotService
         var refSnapshots = Snapshotter.GetSnapshots(beatmapSetId, "files").ToArray();
         var generalHistory = GetGeneralSnapshotHistory(refSnapshots);
 
-        // Get beatmap snapshot histories
-        var beatmapHistories = beatmapSet.Beatmaps.Select(GetBeatmapSnapshotHistory).ToList();
+        // Unified timeline so difficulties unchanged in an update still get a commit (issue #98).
+        var globalTimeline = BuildGlobalSnapshotTimeline(beatmapSet, beatmapSetId);
+        var beatmapHistories = beatmapSet.Beatmaps
+            .Select(beatmap => GetBeatmapSnapshotHistory(beatmap, globalTimeline))
+            .ToList();
 
         return new ApiSnapshotResult(
             difficulties: difficulties,
@@ -105,57 +108,88 @@ public static class SnapshotService
         return new ApiSnapshotHistory("General", commits);
     }
 
-    private static ApiSnapshotHistory GetBeatmapSnapshotHistory(Beatmap beatmap)
+    /// <summary>
+    /// Snapshot times for the whole mapset (.osu snapshots plus files snapshots) sorted oldest-first.
+    /// Aligns per-difficulty history so an update that only touches other difficulties still appears on every chart.
+    /// </summary>
+    private static DateTime[] BuildGlobalSnapshotTimeline(BeatmapSet beatmapSet, string beatmapSetId)
     {
-        var snapshots = Snapshotter.GetSnapshots(beatmap).ToArray();
+        var times = new HashSet<DateTime>();
+        foreach (var bm in beatmapSet.Beatmaps)
+        {
+            foreach (var s in Snapshotter.GetSnapshots(bm))
+                times.Add(s.creationTime);
+        }
+
+        foreach (var s in Snapshotter.GetSnapshots(beatmapSetId, "files"))
+            times.Add(s.creationTime);
+
+        return times.OrderBy(t => t).ToArray();
+    }
+
+    /// <summary>
+    /// Latest stored snapshot for this beatmap with <see cref="Snapshotter.Snapshot.creationTime"/> &lt;= <paramref name="t"/>.
+    /// </summary>
+    private static Snapshotter.Snapshot? GetLatestSnapshotAtOrBefore(
+        Snapshotter.Snapshot[] sortedOldestFirst,
+        DateTime t
+    )
+    {
+        Snapshotter.Snapshot? best = null;
+        foreach (var s in sortedOldestFirst)
+        {
+            if (s.creationTime <= t)
+                best = s;
+            else
+                break;
+        }
+
+        return best;
+    }
+
+    private static ApiSnapshotHistory GetBeatmapSnapshotHistory(
+        Beatmap beatmap,
+        IReadOnlyList<DateTime> globalTimeline
+    )
+    {
+        var snapshots = Snapshotter.GetSnapshots(beatmap).OrderBy(s => s.creationTime).ToArray();
 
         if (snapshots.Length == 0)
         {
             return new ApiSnapshotHistory(beatmap.MetadataSettings.version, []);
         }
 
-        // Sort snapshots by date (oldest first for comparison)
-        var sortedSnapshots = snapshots.OrderBy(s => s.creationTime).ToArray();
         var commits = new List<ApiSnapshotCommit>();
 
-        // Compare each snapshot to the previous one
-        for (var i = 1; i < sortedSnapshots.Length; i++)
+        for (var i = 1; i < globalTimeline.Count; i++)
         {
-            var previousSnapshot = sortedSnapshots[i - 1];
-            var currentSnapshot = sortedSnapshots[i];
+            var tPrev = globalTimeline[i - 1];
+            var tCurr = globalTimeline[i];
+            var snapPrev = GetLatestSnapshotAtOrBefore(snapshots, tPrev);
+            var snapCurr = GetLatestSnapshotAtOrBefore(snapshots, tCurr);
 
-            var diffs = Snapshotter.Compare(previousSnapshot, currentSnapshot.code).ToList();
-            var translatedDiffs = Snapshotter.TranslateComparison(diffs, beatmap).ToList();
-
-            if (translatedDiffs.Count == 0)
+            // Match legacy behaviour: no commit before this difficulty has any snapshot.
+            if (snapPrev is null || snapCurr is null)
                 continue;
 
-            var commit = CreateCommit(
-                currentSnapshot.creationTime,
-                translatedDiffs,
-                filesOnly: false
-            );
-            commits.Add(commit);
+            var diffs = Snapshotter.Compare(snapPrev.Value, snapCurr.Value.code).ToList();
+            var translatedDiffs = Snapshotter.TranslateComparison(diffs, beatmap).ToList();
+            commits.Add(CreateCommit(tCurr, translatedDiffs, filesOnly: false));
         }
 
         // Also compare the latest snapshot to current code (uncommitted changes)
-        if (sortedSnapshots.Length > 0)
-        {
-            var latestSnapshot = sortedSnapshots.Last();
-            var currentDiffs = Snapshotter.Compare(latestSnapshot, beatmap.Code).ToList();
-            var translatedCurrentDiffs = Snapshotter
-                .TranslateComparison(currentDiffs, beatmap)
-                .ToList();
+        var latestSnapshot = snapshots.Last();
+        var currentDiffs = Snapshotter.Compare(latestSnapshot, beatmap.Code).ToList();
+        var translatedCurrentDiffs = Snapshotter.TranslateComparison(currentDiffs, beatmap).ToList();
 
-            if (translatedCurrentDiffs.Count > 0)
-            {
-                var uncommittedCommit = CreateCommit(
-                    DateTime.UtcNow,
-                    translatedCurrentDiffs,
-                    filesOnly: false
-                );
-                commits.Add(uncommittedCommit);
-            }
+        if (translatedCurrentDiffs.Count > 0)
+        {
+            var uncommittedCommit = CreateCommit(
+                DateTime.UtcNow,
+                translatedCurrentDiffs,
+                filesOnly: false
+            );
+            commits.Add(uncommittedCommit);
         }
 
         // Reverse to show newest first

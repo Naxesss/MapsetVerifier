@@ -118,8 +118,8 @@ function UnifiedDiffViewer({ commit }: UnifiedDiffViewerProps) {
 
   if (commit.sections.length === 0) {
     return (
-      <Text c="dimmed" size="sm" ta="center" py="md">
-        No changes in this commit.
+      <Text c="dimmed" size="sm" py="md">
+        This difficulty did not change while the mapset was snapshotted at this time.
       </Text>
     );
   }
