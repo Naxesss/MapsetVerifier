@@ -19,13 +19,36 @@ import {
   type ComponentProps,
   type ReactNode,
 } from 'react';
+import { ReferenceArea } from 'recharts';
 import { formatChartTime, formatTooltipTimeMs, getAdaptiveTimeInterval } from './TimeAxis.tsx';
 
 type MantineLineChartProps = ComponentProps<typeof LineChart>;
 
 const DEFAULT_VIEWPORT_POINTS = 300;
-const CHART_MARGIN = { top: 6, right: 16, left: 54, bottom: 10 };
 const MIN_DRAG_ZOOM_MS = 600;
+
+function queryCartesianPlotRect(container: HTMLElement): DOMRect | null {
+  const bg = container.querySelector('.recharts-cartesian-grid-bg');
+  if (!(bg instanceof SVGGraphicsElement)) {
+    return null;
+  }
+  const rect = bg.getBoundingClientRect();
+  if (rect.width <= 0 || rect.height <= 0) {
+    return null;
+  }
+  return rect;
+}
+
+function clientXToDomainMs(
+  clientX: number,
+  plotRect: DOMRect,
+  viewMin: number,
+  viewMax: number
+): number {
+  const t = (clientX - plotRect.left) / plotRect.width;
+  const clamped = Math.max(0, Math.min(1, t));
+  return viewMin + clamped * (viewMax - viewMin);
+}
 
 function buildViewportData<T extends Record<string, unknown>>(
   full: T[],
@@ -137,6 +160,7 @@ export function FilterableLineChart({
   const theme = useMantineTheme();
   const wrapRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ startMs: number; endMs: number } | null>(null);
+
   const [isolatedName, setIsolatedName] = useState<string | null>(null);
   const [zoom, setZoom] = useState<{ min: number; max: number } | null>(null);
   const [drag, setDrag] = useState<{ startMs: number; endMs: number } | null>(null);
@@ -145,6 +169,8 @@ export function FilterableLineChart({
     xAxisProps: passthroughXAxis,
     lineChartProps: passthroughLine,
     tooltipProps: passthroughTooltip,
+    gridProps: passthroughGrid,
+    valueFormatter,
     ...lineChartRest
   } = rest;
 
@@ -198,23 +224,19 @@ export function FilterableLineChart({
     ) as typeof data;
   }, [data, dragZoomActive, viewMin, viewMax, timeMsKey, maxViewportPoints]);
 
-  const clientXToMs = useCallback(
+  const resolveMsFromPointer = useCallback(
     (clientX: number): number | null => {
-      const el = wrapRef.current;
-      if (!el || viewMax <= viewMin) {
+      const root = wrapRef.current;
+      if (!root || viewMax <= viewMin) {
         return null;
       }
-      const rect = el.getBoundingClientRect();
-      const margin = { ...CHART_MARGIN, ...passthroughLine?.margin };
-      const plotW = rect.width - margin.left - margin.right;
-      if (plotW <= 0) {
+      const plotRect = queryCartesianPlotRect(root);
+      if (!plotRect) {
         return null;
       }
-      const x = clientX - rect.left - margin.left;
-      const clamped = Math.max(0, Math.min(plotW, x));
-      return viewMin + (clamped / plotW) * (viewMax - viewMin);
+      return clientXToDomainMs(clientX, plotRect, viewMin, viewMax);
     },
-    [viewMin, viewMax, passthroughLine?.margin]
+    [viewMin, viewMax]
   );
 
   const onPointerDown = (e: React.PointerEvent) => {
@@ -225,7 +247,7 @@ export function FilterableLineChart({
     if (target.closest('button,a,input,textarea,[role="slider"]')) {
       return;
     }
-    const ms = clientXToMs(e.clientX);
+    const ms = resolveMsFromPointer(e.clientX);
     if (ms == null) {
       return;
     }
@@ -240,7 +262,7 @@ export function FilterableLineChart({
     if (!dragRef.current) {
       return;
     }
-    const ms = clientXToMs(e.clientX);
+    const ms = resolveMsFromPointer(e.clientX);
     if (ms == null) {
       return;
     }
@@ -272,25 +294,6 @@ export function FilterableLineChart({
     }
   };
 
-  let selectionOverlay: { left: number; width: number; top: number; height: number } | null = null;
-  if (drag && dragZoomActive && wrapRef.current) {
-    const rect = wrapRef.current.getBoundingClientRect();
-    const margin = { ...CHART_MARGIN, ...passthroughLine?.margin };
-    const plotW = rect.width - margin.left - margin.right;
-    const plotH = rect.height - margin.top - margin.bottom;
-    if (plotW > 0 && plotH > 0) {
-      const map = (ms: number) => margin.left + ((ms - viewMin) / (viewMax - viewMin)) * plotW;
-      const px1 = map(Math.min(drag.startMs, drag.endMs));
-      const px2 = map(Math.max(drag.startMs, drag.endMs));
-      selectionOverlay = {
-        left: Math.min(px1, px2),
-        width: Math.max(2, Math.abs(px2 - px1)),
-        top: margin.top,
-        height: plotH,
-      };
-    }
-  }
-
   const ticks = useMemo(() => buildMsTicks(viewMin, viewMax, spanMs), [viewMin, viewMax, spanMs]);
 
   const mergedXAxis = useMemo(
@@ -308,37 +311,68 @@ export function FilterableLineChart({
     [dragZoomActive, passthroughXAxis, spanMs, ticks, viewMax, viewMin]
   );
 
+  const displaySeries =
+    series.length > 1 && isolatedName !== null
+      ? series.filter((s) => s.name === isolatedName)
+      : series;
+
   const mergedTooltip = useMemo(
     () => ({
       ...passthroughTooltip,
-      labelFormatter: (label: any, payload: readonly any[]) => {
-        const row = payload?.[0]?.payload as Record<string, unknown> | undefined;
+      labelFormatter: (label: unknown, payload: readonly unknown[]) => {
+        const first = payload?.[0] as { payload?: Record<string, unknown> } | undefined;
+        const row = first?.payload;
         const ms = row?.[timeMsKey];
         if (typeof ms === 'number') {
           return formatTooltipTimeMs(ms);
         }
         return passthroughTooltip?.labelFormatter
-          ? passthroughTooltip.labelFormatter(label, payload)
+          ? passthroughTooltip.labelFormatter(label, payload as never)
           : String(label);
       },
     }),
     [passthroughTooltip, timeMsKey]
   );
 
-  const mergedLine = useMemo(
+  const mergedGrid = useMemo(
     () => ({
-      ...passthroughLine,
-      margin: { ...CHART_MARGIN, ...passthroughLine?.margin },
+      ...passthroughGrid,
+      ...(dragZoomActive ? { fill: 'rgba(0,0,0,0.02)' } : {}),
     }),
-    [passthroughLine]
+    [dragZoomActive, passthroughGrid]
   );
 
-  const mergedChildren = mergeLineChartChildren(userChildren, null);
+  const mergedLine = useMemo(() => {
+    const margin = {
+      top: 6,
+      right: 16,
+      left: 54,
+      bottom: 10,
+      ...passthroughLine?.margin,
+    };
+    return {
+      ...passthroughLine,
+      margin,
+    };
+  }, [passthroughLine]);
 
-  const displaySeries =
-    series.length > 1 && isolatedName !== null
-      ? series.filter((s) => s.name === isolatedName)
-      : series;
+  const dragSelection =
+    drag && dragZoomActive ? (
+      <ReferenceArea
+        xAxisId={0}
+        yAxisId="left"
+        x1={Math.min(drag.startMs, drag.endMs)}
+        x2={Math.max(drag.startMs, drag.endMs)}
+        strokeOpacity={0}
+        fill="rgba(120, 190, 255, 0.18)"
+        ifOverflow="visible"
+        shape={(shapeProps: Record<string, unknown>) => (
+          <rect {...shapeProps} pointerEvents="none" />
+        )}
+      />
+    ) : null;
+
+  const mergedChildren = mergeLineChartChildren(userChildren, dragSelection);
 
   const chart = (
     <Box
@@ -360,29 +394,14 @@ export function FilterableLineChart({
         data={displayData}
         dataKey={dataKey}
         {...lineChartRest}
+        valueFormatter={valueFormatter}
+        gridProps={mergedGrid}
         xAxisProps={mergedXAxis}
         lineChartProps={mergedLine}
         tooltipProps={mergedTooltip}
       >
         {mergedChildren}
       </LineChart>
-
-      {selectionOverlay && (
-        <Box
-          pos="absolute"
-          left={selectionOverlay.left}
-          top={selectionOverlay.top}
-          w={selectionOverlay.width}
-          h={selectionOverlay.height}
-          style={{
-            pointerEvents: 'none',
-            background: 'rgba(120, 190, 255, 0.18)',
-            border: '1px solid rgba(160, 210, 255, 0.45)',
-            borderRadius: 2,
-            zIndex: 6,
-          }}
-        />
-      )}
 
       {dragZoomActive && zoom && (
         <Button
