@@ -15,6 +15,7 @@ import UpdaterModal from './components/settings/UpdaterModal';
 import WindowBar from './components/window/WindowBar.tsx';
 import { BeatmapProvider, useBeatmap } from './context/BeatmapContext.tsx';
 import { BeatmapReparseProvider } from './context/BeatmapReparseRegistry.tsx';
+import { DocumentationProvider } from './context/DocumentationContext.tsx';
 import { SettingsProvider } from './context/SettingsContext.tsx';
 import { UpdaterProvider } from './context/UpdaterContext';
 import { theme } from './theme/Theme.ts';
@@ -68,6 +69,7 @@ function App() {
         <UpdaterProvider>
           <BeatmapProvider>
             <BackendGate>
+              <DocumentationProvider>
               <AppShell
                 header={{ height: 92 }}
                 navbar={{
@@ -91,6 +93,7 @@ function App() {
                   </ScrollArea>
                 </AppShell.Main>
               </AppShell>
+              </DocumentationProvider>
             </BackendGate>
           </BeatmapProvider>
           <UpdaterModal />

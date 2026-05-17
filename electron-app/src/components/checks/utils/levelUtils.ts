@@ -1,12 +1,17 @@
 ﻿import { ApiCheckResult, Level } from '../../../Types';
+import { pickVisibleCheckResults } from '../checkResultVisibility';
 
 const SEVERITY_ORDER: Level[] = ['Error', 'Problem', 'Warning', 'Minor', 'Info'];
 /** When merging per-category levels (e.g. mode tab), `Check` is all-clear — lowest severity. */
 const AGGREGATE_SEVERITY_ORDER: Level[] = [...SEVERITY_ORDER, 'Check'];
 
-export function getCategoryHighestLevel(checks: ApiCheckResult[], showMinor: boolean): Level {
+export function getCategoryHighestLevel(
+  checks: ApiCheckResult[],
+  showMinor: boolean,
+  hiddenMinorCheckIds: readonly number[]
+): Level {
   if (!Array.isArray(checks) || checks.length === 0) return 'Check';
-  const effective = showMinor ? checks : checks.filter((c) => c.level !== 'Minor');
+  const effective = pickVisibleCheckResults(checks, { showMinor, hiddenMinorCheckIds });
   if (effective.length === 0) return 'Check';
   const normalizedLevels = effective.map((c) =>
     c.level === 'Check' ? 'Info' : c.level

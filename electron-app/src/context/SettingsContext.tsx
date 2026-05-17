@@ -6,6 +6,8 @@ import { isSemverPreRelease } from '../utils/isSemverPreRelease';
 export type Settings = {
   songFolder?: string;
   showMinor: boolean;
+  /** When showMinor is on, Minor results for these check ids are hidden. When showMinor is off, ignored. */
+  hiddenMinorCheckIds: number[];
   showGamemodeDifficultyNames: boolean;
   showAdvancedAudioAnalysis: boolean;
   lazerLookupEnabled: boolean;
@@ -24,6 +26,7 @@ interface SettingsContextType {
 const defaultSettings: Settings = {
   songFolder: undefined,
   showMinor: false,
+  hiddenMinorCheckIds: [],
   showGamemodeDifficultyNames: true,
   showAdvancedAudioAnalysis: false,
   lazerLookupEnabled: false,
@@ -83,7 +86,13 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
           loaded.receivePrereleases = inferredReceivePrereleases;
         }
 
-        setSettings({ ...defaultSettings, ...loaded });
+        setSettings({
+          ...defaultSettings,
+          ...loaded,
+          hiddenMinorCheckIds: Array.isArray(loaded?.hiddenMinorCheckIds)
+            ? loaded.hiddenMinorCheckIds
+            : defaultSettings.hiddenMinorCheckIds,
+        });
       }
     } catch (e) {
       console.error('[Settings] Error loading settings. Using defaults.', e);

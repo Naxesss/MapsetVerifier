@@ -10,11 +10,15 @@
   Text,
   Badge,
   Tooltip,
+  Box,
 } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
 import { IconAlertTriangle, IconFolder, IconNote, IconRefresh } from '@tabler/icons-react';
 import React, { useEffect, useState } from 'react';
 import AdvancedAudioWarningModal from './AdvancedAudioWarningModal';
 import LazerLookupWarningModal from './LazerLookupWarningModal';
+import MinorChecksFilterModal from './MinorChecksFilterModal';
+import { useDocumentation } from '../../context/DocumentationContext.tsx';
 import { useSettings } from '../../context/SettingsContext';
 import { useUpdater } from '../../context/UpdaterContext';
 import MinorIcon from '../icons/MinorIcon';
@@ -40,6 +44,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
   const [gateInDev, setGateInDev] = useState(settings.gateInDev);
   const [lazerWarningOpened, setLazerWarningOpened] = useState(false);
   const [advancedAudioConfirmOpened, setAdvancedAudioConfirmOpened] = useState(false);
+  const [
+    minorFilterOpened,
+    { open: openMinorFilterModal, close: closeMinorFilterModal },
+  ] = useDisclosure(false);
+
+  const { status: docsStatus } = useDocumentation();
 
   // Keep local state in sync when modal is opened or settings change asynchronously
   useEffect(() => {
@@ -119,20 +129,40 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
               Browse
             </Button>
           </Group>
-          <Switch
-            label={
-              <Group gap="xs" align="center">
-                <MinorIcon size={16} />
-                Show minor issues
-              </Group>
-            }
-            checked={showMinor}
-            onChange={(e) => {
-              const checked = e.currentTarget.checked;
-              setShowMinor(checked);
-              setSettings((prev) => ({ ...prev, showMinor: checked }));
-            }}
-          />
+          <Group align="center" gap="sm" justify="space-between" wrap="nowrap">
+            <Switch
+              style={{ flex: 1, minWidth: 0 }}
+              label={
+                <Group gap="xs" align="center" wrap="nowrap">
+                  <MinorIcon size={16} />
+                  Show minor issues
+                </Group>
+              }
+              checked={showMinor}
+              onChange={(e) => {
+                const checked = e.currentTarget.checked;
+                setShowMinor(checked);
+                setSettings((prev) => ({ ...prev, showMinor: checked }));
+              }}
+            />
+            {showMinor && (
+              <Tooltip
+                label="Loading check catalogue…"
+                disabled={docsStatus === 'success'}
+              >
+                <Box style={{ flexShrink: 0 }}>
+                  <Button
+                    size="compact-xs"
+                    variant="light"
+                    disabled={docsStatus !== 'success'}
+                    onClick={openMinorFilterModal}
+                  >
+                    Filter minor checks
+                  </Button>
+                </Box>
+              </Tooltip>
+            )}
+          </Group>
           <Switch
             label="Use difficulty names from corresponding game modes"
             checked={showGamemodeDifficultyNames}
@@ -271,6 +301,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
           setAdvancedAudioConfirmOpened(false);
         }}
       />
+      <MinorChecksFilterModal opened={minorFilterOpened} onClose={closeMinorFilterModal} />
     </>
   );
 };

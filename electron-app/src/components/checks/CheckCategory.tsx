@@ -41,6 +41,7 @@ function getLevelCounts(levels: Level[]): Record<DisplayLevel, number> {
 interface CheckCategoryProps {
   data: ApiBeatmapSetCheckResult;
   showMinor: boolean;
+  hiddenMinorCheckIds: readonly number[];
   selectedCategory?: string;
   overrideResult?: ApiCategoryOverrideCheckResult;
 }
@@ -48,6 +49,7 @@ interface CheckCategoryProps {
 const CheckCategory: React.FC<CheckCategoryProps> = ({
   data,
   showMinor,
+  hiddenMinorCheckIds,
   selectedCategory,
   overrideResult,
 }) => {
@@ -57,7 +59,7 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
   const categoryData = React.useMemo(() => {
     // If we have an override result for the selected category, use it
     if (overrideCategoryResult && overrideCategoryResult.category === selectedCategory) {
-      const groups = groupChecks(overrideCategoryResult.checkResults, showMinor);
+      const groups = groupChecks(overrideCategoryResult.checkResults, showMinor, hiddenMinorCheckIds);
       const allLevels = groups.flatMap((g) => g.items.map((item) => item.level));
       const levelCounts = getLevelCounts(allLevels);
       const totalCount = LEVEL_ORDER.reduce((sum, level) => sum + levelCounts[level], 0);
@@ -99,7 +101,7 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
     ];
 
     const cat = allCategories.find((c) => c.name === selectedCategory) ?? allCategories[0];
-    const groups = groupChecks(cat.checks, showMinor);
+    const groups = groupChecks(cat.checks, showMinor, hiddenMinorCheckIds);
     const allLevels = groups.flatMap((g) => g.items.map((item) => item.level));
     const levelCounts = getLevelCounts(allLevels);
     const totalCount = LEVEL_ORDER.reduce((sum, level) => sum + levelCounts[level], 0);
@@ -119,6 +121,7 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
     data.general.difficultyLevel,
     data.general.starRating,
     showMinor,
+    hiddenMinorCheckIds,
     data.checks,
     selectedCategory,
     overrideResult,

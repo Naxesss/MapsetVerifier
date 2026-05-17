@@ -118,21 +118,30 @@ function Checks() {
   const categoryHighestLevels = useMemo(() => {
     if (!data) return {};
     const levels: Record<string, Level> = {};
-    levels['General'] = getCategoryHighestLevel(data.general.checkResults, settings.showMinor);
+    levels['General'] = getCategoryHighestLevel(
+      data.general.checkResults,
+      settings.showMinor,
+      settings.hiddenMinorCheckIds
+    );
     for (const diff of data.difficulties) {
       // Check if there's an override result for this category
       const overrideResult = overrides[diff.category]?.result;
       if (overrideResult) {
         levels[diff.category] = getCategoryHighestLevel(
           overrideResult.categoryResult.checkResults,
-          settings.showMinor
+          settings.showMinor,
+          settings.hiddenMinorCheckIds
         );
       } else {
-        levels[diff.category] = getCategoryHighestLevel(diff.checkResults, settings.showMinor);
+        levels[diff.category] = getCategoryHighestLevel(
+          diff.checkResults,
+          settings.showMinor,
+          settings.hiddenMinorCheckIds
+        );
       }
     }
     return levels;
-  }, [data, settings.showMinor, overrides]);
+  }, [data, settings.showMinor, settings.hiddenMinorCheckIds, overrides]);
 
   const groupedDifficulties = useMemo(() => {
     if (!data?.difficulties) return [];
@@ -273,6 +282,7 @@ function Checks() {
               isError={isError}
               error={error}
               showMinor={settings.showMinor}
+              hiddenMinorCheckIds={settings.hiddenMinorCheckIds}
               selectedCategory={displayedCategory}
               overrideResult={displayedOverrideResult}
             />
