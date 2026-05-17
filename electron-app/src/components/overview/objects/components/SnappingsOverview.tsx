@@ -1,5 +1,6 @@
 import {
   Badge,
+  Box,
   Group,
   Paper,
   Popover,
@@ -8,10 +9,12 @@ import {
   Table,
   Text,
   Title,
+  Tooltip,
   UnstyledButton,
   useMantineTheme,
 } from '@mantine/core';
-import { CSSProperties, Fragment, type ReactNode, useMemo } from 'react';
+import { IconInfoCircle } from '@tabler/icons-react';
+import { CSSProperties, Fragment, type ReactNode, useMemo, useState } from 'react';
 import { formatGameModeLabel, getModeAccentColor } from '../../../../utils/gameMode';
 import AppTable, {
   DifficultyTableCell,
@@ -19,38 +22,133 @@ import AppTable, {
 } from '../../../common/AppTable.tsx';
 import OsuLink from '../../../common/OsuLink.tsx';
 import GameModeIcon from '../../../icons/GameModeIcon.tsx';
-import { formatEditorTimestamp, getSnappingColumns } from '../timelineUtils.ts';
+import {
+  buildRoundedEdgePartNameMap,
+  formatEditorTimestamp,
+  getSnappingColumns,
+  lookupEdgePartName,
+} from '../timelineUtils.ts';
+import type {
+  Mode,
+  ObjectsOverviewDifficulty,
+  ObjectsSnappingBucket,
+} from '../../../../Types';
 import type { ObjectsModeGroup } from '../types.ts';
 
-function buildOsuTimestampLinkText(timesMs: number[]) {
-  if (timesMs.length === 0) return '';
-  return [...timesMs]
-    .sort((a, b) => a - b)
-    .map((ms) => `${formatEditorTimestamp(ms)} -`)
+const POPOVER_EDGE_LIST_MAX_HEIGHT_PX = 280;
+const POPOVER_EDGE_LIST_APPROX_LINE_HEIGHT_PX = 22;
+const POPOVER_DROPDOWN_MAX_WIDTH_PX = 380;
+
+const BADGE_FILTER_TOOLTIP_LABEL = 'Click badges below to filter edge times by type';
+
+/**
+ * Builds a line `MM:SS:mmm - - edgeLabel` where the first ` -` is consumed by {@link OsuLink}
+ * so the rendered line shows the timestamp link followed by ` - edgeLabel`.
+ */
+function buildOsuTimestampLinkTextWithEdgeTypes(
+  entries: Array<{ timeMs: number; partName: string }>
+) {
+  if (entries.length === 0) return '';
+  return [...entries]
+    .sort((a, b) => a.timeMs - b.timeMs)
+    .map(({ timeMs, partName }) => `${formatEditorTimestamp(timeMs)} - - ${partName}`)
     .join('\n');
 }
 
 function EdgeTimesPopover({
-  title,
+  headingLabel,
+  difficultyVersion,
   timesMs,
+  roundedEdgePartNameMap,
   children,
   fullWidth = true,
   hoverHighlightColor,
 }: {
-  title: string;
+  /** Shown before the difficulty name, e.g. `1/4 snaps` or `Unsnapped objects`. */
+  headingLabel: string;
+  difficultyVersion: string;
   timesMs: number[];
+  /** When omitted, timestamps are shown without edge types (legacy / empty timeline). */
+  roundedEdgePartNameMap?: Map<number, string>;
   children: ReactNode;
   fullWidth?: boolean;
   hoverHighlightColor?: string;
 }) {
-  const linkText = useMemo(() => buildOsuTimestampLinkText(timesMs), [timesMs]);
+  const [edgeTypeFilter, setEdgeTypeFilter] = useState<string | null>(null);
+
+  const sortedEdges = useMemo(() => {
+    if (timesMs.length === 0) {
+      return [];
+    }
+    const sortedTimes = [...timesMs].sort((a, b) => a - b);
+    if (!roundedEdgePartNameMap || roundedEdgePartNameMap.size === 0) {
+      return sortedTimes.map((timeMs) => ({ timeMs, partName: 'Unknown' }));
+    }
+    return sortedTimes.map((timeMs) => ({
+      timeMs,
+      partName: lookupEdgePartName(roundedEdgePartNameMap, timeMs),
+    }));
+  }, [timesMs, roundedEdgePartNameMap]);
+
+  const countsByType = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const { partName } of sortedEdges) {
+      counts.set(partName, (counts.get(partName) ?? 0) + 1);
+    }
+    return counts;
+  }, [sortedEdges]);
+
+  const typeBadges = useMemo(() => {
+    return Array.from(countsByType.entries()).sort((left, right) => {
+      if (right[1] !== left[1]) {
+        return right[1] - left[1];
+      }
+      return left[0].localeCompare(right[0]);
+    });
+  }, [countsByType]);
+
+  const filteredEdges = useMemo(() => {
+    if (!edgeTypeFilter) {
+      return sortedEdges;
+    }
+    return sortedEdges.filter((entry) => entry.partName === edgeTypeFilter);
+  }, [sortedEdges, edgeTypeFilter]);
+
+  const linkText = useMemo(
+    () => buildOsuTimestampLinkTextWithEdgeTypes(filteredEdges),
+    [filteredEdges]
+  );
+
+  const scrollViewportMinHeight = useMemo(() => {
+    const lines = sortedEdges.length;
+    if (lines === 0) return undefined;
+    return Math.min(
+      POPOVER_EDGE_LIST_MAX_HEIGHT_PX,
+      Math.max(
+        POPOVER_EDGE_LIST_APPROX_LINE_HEIGHT_PX,
+        lines * POPOVER_EDGE_LIST_APPROX_LINE_HEIGHT_PX
+      )
+    );
+  }, [sortedEdges.length]);
 
   if (timesMs.length === 0) {
     return <>{children}</>;
   }
 
   return (
-    <Popover position="bottom" withArrow shadow="md" trapFocus={false}>
+    <Popover
+      position="top"
+      withArrow
+      shadow="md"
+      trapFocus={false}
+      styles={{
+        dropdown: {
+          maxWidth: POPOVER_DROPDOWN_MAX_WIDTH_PX,
+          width: 'max-content',
+        },
+      }}
+      onDismiss={() => setEdgeTypeFilter(null)}
+    >
       <Popover.Target>
         <UnstyledButton
           type="button"
@@ -66,15 +164,15 @@ function EdgeTimesPopover({
           onMouseEnter={
             hoverHighlightColor
               ? (event) => {
-                  event.currentTarget.style.backgroundColor = hoverHighlightColor;
-                }
+                event.currentTarget.style.backgroundColor = hoverHighlightColor;
+              }
               : undefined
           }
           onMouseLeave={
             hoverHighlightColor
               ? (event) => {
-                  event.currentTarget.style.backgroundColor = '';
-                }
+                event.currentTarget.style.backgroundColor = '';
+              }
               : undefined
           }
         >
@@ -82,10 +180,59 @@ function EdgeTimesPopover({
         </UnstyledButton>
       </Popover.Target>
       <Popover.Dropdown>
-        <Text size="xs" c="dimmed" fw={600} mb="xs">
-          {title}
-        </Text>
-        <ScrollArea.Autosize mah={280} type="auto" offsetScrollbars>
+        <Group gap={6} mb="xs" wrap="wrap" align="center">
+          <Text size="xs" c="dimmed" fw={600} component="span">
+            {headingLabel} ·{' '}
+          </Text>
+          <Group gap={4} wrap="nowrap" align="center">
+            <Text size="xs" c="dimmed" fw={700} component="span">
+              {difficultyVersion}
+            </Text>
+            <Tooltip label={BADGE_FILTER_TOOLTIP_LABEL}>
+              <Box
+                component="span"
+                style={{ display: 'inline-flex', alignItems: 'center', cursor: 'help' }}
+              >
+                <IconInfoCircle size={14} color="var(--mantine-color-gray-6)" />
+              </Box>
+            </Tooltip>
+          </Group>
+        </Group>
+        {typeBadges.length > 0 ? (
+          <Group gap={6} mb="sm" wrap="wrap" align="flex-start">
+            {typeBadges.map(([partName, count]) => {
+              const isActive = edgeTypeFilter === partName;
+              const canFilterByType = typeBadges.length > 1;
+              return (
+                <Badge
+                  key={partName}
+                  component={canFilterByType ? 'button' : 'span'}
+                  type={canFilterByType ? 'button' : undefined}
+                  variant={isActive ? 'filled' : 'light'}
+                  color={isActive ? 'blue' : 'gray'}
+                  size="sm"
+                  style={{ cursor: canFilterByType ? 'pointer' : undefined }}
+                  onClick={
+                    canFilterByType
+                      ? () =>
+                        setEdgeTypeFilter((current) => (current === partName ? null : partName))
+                      : undefined
+                  }
+                >
+                  {partName}: {count.toLocaleString()}
+                </Badge>
+              );
+            })}
+          </Group>
+        ) : null}
+        <ScrollArea.Autosize
+          mah={POPOVER_EDGE_LIST_MAX_HEIGHT_PX}
+          type="auto"
+          offsetScrollbars
+          styles={{
+            viewport: scrollViewportMinHeight ? { minHeight: scrollViewportMinHeight } : undefined,
+          }}
+        >
           <Text size="sm" component="div" style={{ whiteSpace: 'pre-wrap' }}>
             <OsuLink text={linkText} disableSeparators />
           </Text>
@@ -121,6 +268,111 @@ function SnappingStatusBadge({
     <Badge color={count > 0 ? 'yellow' : 'green'} variant="light" style={style}>
       {count.toLocaleString()} ({percentage.toFixed(1)}%)
     </Badge>
+  );
+}
+
+function SnappingDifficultyTableRow({
+  mode,
+  difficulty,
+  snappingColumns,
+  clickableCellHoverColor,
+}: {
+  mode: Mode;
+  difficulty: ObjectsOverviewDifficulty;
+  snappingColumns: ObjectsSnappingBucket[];
+  clickableCellHoverColor: string;
+}) {
+  const roundedEdgePartNameMap = useMemo(
+    () => buildRoundedEdgePartNameMap(difficulty),
+    [difficulty]
+  );
+
+  return (
+    <Table.Tr>
+      <DifficultyTableCell>
+        <Group gap="xs" wrap="nowrap">
+          <GameModeIcon mode={mode} size={16} starRating={difficulty.starRating} />
+          <Text size="sm" fw={600}>
+            {difficulty.version}
+          </Text>
+        </Group>
+      </DifficultyTableCell>
+      <Table.Td>
+        <Group gap={6} wrap="nowrap" justify="center">
+          <GameModeIcon mode={mode} size={16} color={getModeAccentColor(mode)} />
+          <Text size="sm">{formatGameModeLabel(mode)}</Text>
+        </Group>
+      </Table.Td>
+      <Table.Td>
+        <Text size="sm">{difficulty.objectCount.toLocaleString()}</Text>
+      </Table.Td>
+      <Table.Td>
+        <Text size="sm">{difficulty.edgeCount.toLocaleString()}</Text>
+      </Table.Td>
+      {snappingColumns.map((column) => {
+        const bucket = difficulty.snappings.find((candidate) => candidate.label === column.label);
+        const timesMs = bucket?.edgeTimesMs ?? [];
+        const count = bucket?.count ?? 0;
+        const isClickable = timesMs.length > 0;
+        return (
+          <Table.Td
+            key={`${difficulty.mode}-${difficulty.version}-${column.label}`}
+            style={{
+              cursor: isClickable ? 'pointer' : undefined,
+              transition: isClickable ? 'background-color 120ms' : undefined,
+            }}
+            onMouseEnter={
+              isClickable
+                ? (event) => {
+                  event.currentTarget.style.backgroundColor = clickableCellHoverColor;
+                }
+                : undefined
+            }
+            onMouseLeave={
+              isClickable
+                ? (event) => {
+                  event.currentTarget.style.backgroundColor = '';
+                }
+                : undefined
+            }
+          >
+            <EdgeTimesPopover
+              headingLabel={`${column.label} snaps`}
+              difficultyVersion={difficulty.version}
+              timesMs={timesMs}
+              roundedEdgePartNameMap={roundedEdgePartNameMap}
+            >
+              <SnappingTableValue count={count} percentage={bucket?.percentage ?? 0} />
+            </EdgeTimesPopover>
+          </Table.Td>
+        );
+      })}
+      <Table.Td
+        style={{
+          cursor: (difficulty.unsnappedEdgeTimesMs?.length ?? 0) > 0 ? 'pointer' : undefined,
+        }}
+      >
+        <Group justify="center" wrap="nowrap">
+          <EdgeTimesPopover
+            headingLabel="Unsnapped objects"
+            difficultyVersion={difficulty.version}
+            timesMs={difficulty.unsnappedEdgeTimesMs ?? []}
+            fullWidth={false}
+            hoverHighlightColor={clickableCellHoverColor}
+            roundedEdgePartNameMap={roundedEdgePartNameMap}
+          >
+            <SnappingStatusBadge
+              count={difficulty.unsnappedCount}
+              percentage={difficulty.unsnappedPercentage}
+              style={{
+                cursor:
+                  (difficulty.unsnappedEdgeTimesMs?.length ?? 0) > 0 ? 'pointer' : undefined,
+              }}
+            />
+          </EdgeTimesPopover>
+        </Group>
+      </Table.Td>
+    </Table.Tr>
   );
 }
 
@@ -176,106 +428,13 @@ export default function SnappingsOverview({
             {groupedDifficulties.map((group) => (
               <Fragment key={group.mode}>
                 {group.difficulties.map((difficulty) => (
-                  <Table.Tr key={`${group.mode}-${difficulty.version}`}>
-                    <DifficultyTableCell>
-                      <Group gap="xs" wrap="nowrap">
-                        <GameModeIcon
-                          mode={group.mode}
-                          size={16}
-                          starRating={difficulty.starRating}
-                        />
-                        <Text size="sm" fw={600}>
-                          {difficulty.version}
-                        </Text>
-                      </Group>
-                    </DifficultyTableCell>
-                    <Table.Td>
-                      <Group gap={6} wrap="nowrap" justify="center">
-                        <GameModeIcon
-                          mode={group.mode}
-                          size={16}
-                          color={getModeAccentColor(group.mode)}
-                        />
-                        <Text size="sm">{formatGameModeLabel(group.mode)}</Text>
-                      </Group>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="sm">{difficulty.objectCount.toLocaleString()}</Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="sm">{difficulty.edgeCount.toLocaleString()}</Text>
-                    </Table.Td>
-                    {snappingColumns.map((column) => {
-                      const bucket = difficulty.snappings.find(
-                        (candidate) => candidate.label === column.label
-                      );
-                      const timesMs = bucket?.edgeTimesMs ?? [];
-                      const count = bucket?.count ?? 0;
-                      const isClickable = timesMs.length > 0;
-                      return (
-                        <Table.Td
-                          key={`${difficulty.mode}-${difficulty.version}-${column.label}`}
-                          style={{
-                            cursor: isClickable ? 'pointer' : undefined,
-                            transition: isClickable ? 'background-color 120ms' : undefined,
-                          }}
-                          onMouseEnter={
-                            isClickable
-                              ? (event) => {
-                                  event.currentTarget.style.backgroundColor =
-                                    clickableCellHoverColor;
-                                }
-                              : undefined
-                          }
-                          onMouseLeave={
-                            isClickable
-                              ? (event) => {
-                                  event.currentTarget.style.backgroundColor = '';
-                                }
-                              : undefined
-                          }
-                        >
-                          <EdgeTimesPopover
-                            title={`${column.label} snaps · ${difficulty.version}`}
-                            timesMs={timesMs}
-                          >
-                            <SnappingTableValue
-                              count={count}
-                              percentage={bucket?.percentage ?? 0}
-                            />
-                          </EdgeTimesPopover>
-                        </Table.Td>
-                      );
-                    })}
-                    <Table.Td
-                      style={{
-                        cursor:
-                          (difficulty.unsnappedEdgeTimesMs?.length ?? 0) > 0
-                            ? 'pointer'
-                            : undefined,
-                      }}
-                    >
-                      <Group justify="center" wrap="nowrap">
-                        <EdgeTimesPopover
-                          title={`Unsnapped objects · ${difficulty.version}`}
-                          timesMs={difficulty.unsnappedEdgeTimesMs ?? []}
-                          fullWidth={false}
-                          hoverHighlightColor={clickableCellHoverColor}
-                        >
-                          <SnappingStatusBadge
-                            count={difficulty.unsnappedCount}
-                            percentage={difficulty.unsnappedPercentage}
-                            style={{
-                              cursor:
-                                (difficulty.unsnappedEdgeTimesMs?.length ?? 0) > 0
-                                  ? 'pointer'
-                                  : undefined,
-                            }}
-                          />
-                        </EdgeTimesPopover>
-                      </Group>
-                    </Table.Td>
-                  </Table.Tr>
+                  <SnappingDifficultyTableRow
+                    key={`${group.mode}-${difficulty.version}`}
+                    mode={group.mode}
+                    difficulty={difficulty}
+                    snappingColumns={snappingColumns}
+                    clickableCellHoverColor={clickableCellHoverColor}
+                  />
                 ))}
               </Fragment>
             ))}

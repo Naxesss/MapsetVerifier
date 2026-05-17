@@ -13,6 +13,34 @@ import {
 import { normalizeMode } from '../../../utils/gameMode';
 import type { Mode, ObjectsOverviewDifficulty, ObjectsSnappingBucket } from '../../../Types';
 
+/** Lenience matching server-side `HitObject.IsClose` (±2 ms). */
+const EDGE_TIME_MATCH_EPSILON_MS = 2;
+
+/** Map rounded edge time (ms) → part label from `ObjectsTimelineEdge.partName`. */
+export function buildRoundedEdgePartNameMap(difficulty: ObjectsOverviewDifficulty) {
+  const map = new Map<number, string>();
+  for (const obj of difficulty.timelineObjects) {
+    for (const edge of obj.edges) {
+      map.set(Math.round(edge.timeMs), edge.partName);
+    }
+  }
+  return map;
+}
+
+export function lookupEdgePartName(
+  roundedTimeToPartName: Map<number, string>,
+  timeMs: number
+): string {
+  const rounded = Math.round(timeMs);
+  for (let delta = -EDGE_TIME_MATCH_EPSILON_MS; delta <= EDGE_TIME_MATCH_EPSILON_MS; delta += 1) {
+    const name = roundedTimeToPartName.get(rounded + delta);
+    if (name) {
+      return name;
+    }
+  }
+  return 'Unknown';
+}
+
 export function getTimelineIntervalMs(durationMs: number, zoom: number) {
   const baseIntervalMs = getAdaptiveBaseIntervalMs(durationMs);
   const normalizedZoom = Math.min(zoom, MAX_AXIS_PRECISION_ZOOM);
