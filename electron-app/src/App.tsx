@@ -6,6 +6,7 @@ import {
   ScrollArea,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
+import { Notifications } from '@mantine/notifications';
 import { useLayoutEffect, useRef } from 'react';
 import { Outlet } from 'react-router-dom';
 import BackendGate from './components/backend/BackendGate.tsx';
@@ -13,11 +14,13 @@ import NavBars from './components/navbar/NavBars.tsx';
 import UpdaterModal from './components/settings/UpdaterModal';
 import WindowBar from './components/window/WindowBar.tsx';
 import { BeatmapProvider, useBeatmap } from './context/BeatmapContext.tsx';
+import { BeatmapReparseProvider } from './context/BeatmapReparseRegistry.tsx';
 import { SettingsProvider } from './context/SettingsContext.tsx';
 import { UpdaterProvider } from './context/UpdaterContext';
 import { theme } from './theme/Theme.ts';
 import '@mantine/core/styles.css';
 import '@mantine/charts/styles.css';
+import '@mantine/notifications/styles.css';
 import './theme/global.scss';
 
 export const cssVarResolver: CSSVariablesResolver = () => ({
@@ -59,6 +62,7 @@ function App() {
 
   return (
     <MantineProvider defaultColorScheme="dark" theme={theme} cssVariablesResolver={cssVarResolver}>
+      <Notifications position="top-center" zIndex={2100} />
       <WindowBar />
       <SettingsProvider>
         <UpdaterProvider>
@@ -80,7 +84,9 @@ function App() {
                     h="calc(100vh - var(--app-shell-header-offset, 0rem) + var(--app-shell-padding))"
                   >
                     <Container p="sm" fluid>
-                      <BeatmapKeyedOutlet />
+                      <BeatmapReparseProvider>
+                        <BeatmapKeyedOutlet />
+                      </BeatmapReparseProvider>
                     </Container>
                   </ScrollArea>
                 </AppShell.Main>

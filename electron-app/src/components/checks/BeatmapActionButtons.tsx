@@ -18,7 +18,7 @@ function BeatmapActionButtons({
 
   return (
     <Group p="xs" gap="xs" bg={theme.colors.dark[8]} style={{ borderRadius: theme.radius.md }}>
-      <Tooltip label="Reparse the beatmap">
+      <Tooltip label="Refresh the beatmap (F5)">
         <Button size="xs" variant="default" onClick={onReparse}>
           <IconRefresh />
         </Button>

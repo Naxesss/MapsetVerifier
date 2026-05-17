@@ -159,6 +159,53 @@ const themeOverride = createTheme({
         },
       },
     },
+    Notifications: {
+      classNames: {
+        root: 'mv-notifications-root',
+      },
+    },
+    Notification: {
+      defaultProps: {
+        withBorder: false,
+      },
+      classNames: {
+        root: 'mv-notification',
+      },
+      styles: {
+        body: {
+          flex: '0 1 auto',
+          width: 'auto',
+          minWidth: 0,
+        },
+        icon: {
+          background: 'none',
+          borderRadius: 0,
+          paddingTop: 'var(--mantine-spacing-md)',
+          paddingBottom: 'var(--mantine-spacing-md)',
+          boxShadow: 'none',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          width: '1.125rem',
+          height: '1.125rem',
+          margin: 0,
+          marginRight: 'var(--mantine-spacing-sm)',
+        },
+        loader: {
+          background: 'none',
+          paddingTop: 'var(--mantine-spacing-md)',
+          paddingBottom: 'var(--mantine-spacing-md)',
+          margin: 0,
+          marginRight: 'var(--mantine-spacing-sm)',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          display: 'flex',
+          width: '1.25rem',
+          height: '1.25rem',
+        },
+      },
+    },
   },
 });
 

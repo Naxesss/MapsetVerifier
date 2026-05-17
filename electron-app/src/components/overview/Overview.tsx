@@ -1,11 +1,12 @@
 import { Box, Group, LoadingOverlay, SegmentedControl, useMantineTheme } from '@mantine/core';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import AudioOverview from './audio/AudioOverview.tsx';
 import BeatmapOverview from './beatmap/BeatmapOverview.tsx';
 import DifficultyOverview from './difficulty/DifficultyOverview.tsx';
 import MetadataOverview from './metadata/MetadataOverview.tsx';
 import ObjectsOverview from './objects/ObjectsOverview.tsx';
 import { useBeatmap } from '../../context/BeatmapContext.tsx';
+import { useBeatmapReparse, useRegisterBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
 import { useSettings } from '../../context/SettingsContext.tsx';
 import BeatmapActionButtons from '../checks/BeatmapActionButtons';
 import { useBeatmapBackground } from '../checks/hooks/useBeatmapBackground.ts';
@@ -18,10 +19,18 @@ const TABS: Tab[] = ['Metadata', 'Objects', 'Beatmap', 'Difficulty', 'Audio'];
 function Overview() {
   const theme = useMantineTheme();
   const { selectedFolder, beatmapFolderPath, beatmapInfo, refetchBeatmapInfo } = useBeatmap();
+  const { triggerReparse } = useBeatmapReparse();
   const { settings } = useSettings();
   const { bgUrl, isLoading } = useBeatmapBackground(selectedFolder, settings.songFolder);
   const [activeTab, setActiveTab] = useState<Tab>('Metadata');
   const [reloadFlag, setReloadFlag] = useState(0);
+
+  const reparseOverview = useCallback(async () => {
+    setReloadFlag((f) => f + 1);
+    await refetchBeatmapInfo();
+  }, [refetchBeatmapInfo]);
+
+  useRegisterBeatmapReparse(reparseOverview);
 
   return (
     <Box
@@ -44,10 +53,7 @@ function Overview() {
           <BeatmapActionButtons
             beatmapFolderPath={beatmapFolderPath}
             beatmapSetId={beatmapInfo?.beatmapSetId ?? undefined}
-            onReparse={async () => {
-              setReloadFlag((f) => f + 1);
-              await refetchBeatmapInfo();
-            }}
+            onReparse={triggerReparse}
           />
           <SegmentedControl
             value={activeTab}

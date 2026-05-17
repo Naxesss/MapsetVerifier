@@ -9,7 +9,7 @@ import {
   Collapse,
 } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
-import React, { useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import BeatmapActionButtons from './BeatmapActionButtons';
 import ChecksResults from './ChecksResults';
 import DifficultyInfo from './DifficultyInfo';
@@ -22,6 +22,7 @@ import { useBeatmapChecks } from './hooks/useBeatmapChecks';
 import { useDifficultyOverride } from './hooks/useDifficultyOverride';
 import { getCategoryHighestLevel } from './utils/levelUtils';
 import { useBeatmap } from '../../context/BeatmapContext';
+import { useBeatmapReparse, useRegisterBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
 import { useSettings } from '../../context/SettingsContext';
 import { ApiCategoryCheckResult, Level, Mode } from '../../Types';
 import StackTraceMessage from '../common/StackTraceMessage.tsx';
@@ -29,6 +30,7 @@ import StackTraceMessage from '../common/StackTraceMessage.tsx';
 function Checks() {
   const theme = useMantineTheme();
   const { selectedFolder: folder, beatmapInfo, refetchBeatmapInfo } = useBeatmap();
+  const { triggerReparse } = useBeatmapReparse();
   const { settings } = useSettings();
   const [selectedCategory, setSelectedCategory] = React.useState<string | undefined>('General');
   const [displayedCategory, setDisplayedCategory] = React.useState<string | undefined>('General');
@@ -65,6 +67,14 @@ function Checks() {
     isLoading: isOverrideLoading,
     reset: resetOverrides,
   } = useDifficultyOverride({ beatmapFolderPath });
+
+  const reparseChecks = useCallback(async () => {
+    if (!beatmapFolderPath) return 'skipped';
+    resetOverrides();
+    await Promise.all([refetch(), refetchBeatmapInfo()]);
+  }, [beatmapFolderPath, refetch, refetchBeatmapInfo, resetOverrides]);
+
+  useRegisterBeatmapReparse(reparseChecks);
 
   const selectedDifficulty = data?.difficulties?.find((d) => d.category === selectedCategory);
   const displayedDifficulty = data?.difficulties?.find((d) => d.category === displayedCategory);
@@ -195,11 +205,7 @@ function Checks() {
           <BeatmapActionButtons
             beatmapFolderPath={beatmapFolderPath}
             beatmapSetId={beatmapInfo?.beatmapSetId ?? undefined}
-            onReparse={async () => {
-              if (!beatmapFolderPath) return;
-              resetOverrides();
-              await Promise.all([refetch(), refetchBeatmapInfo()]);
-            }}
+            onReparse={triggerReparse}
           />
           <GameModeSelector
             groupedDifficulties={groupedDifficulties}

@@ -142,6 +142,76 @@
   animation: none;
 }
 
+/* Window bar height — keep in sync with WindowBar `barHeight` */
+:root {
+  --mv-window-bar-height: 32px;
+}
+
+/* Mantine notifications (see https://mantine.dev/x/notifications — full surface color, no left accent) */
+.mv-notifications-root {
+  width: max-content !important;
+  max-width: min(
+    calc(100vw - var(--mantine-spacing-md) * 2),
+    var(--notifications-container-width)
+  );
+}
+
+.mv-notifications-root[data-position='top-center'] {
+  /* Below fixed custom title bar (z-index 2000) */
+  top: calc(var(--mv-window-bar-height) + var(--mantine-spacing-sm));
+}
+
+.mv-notification {
+  width: fit-content !important;
+  max-width: min(
+    calc(100vw - var(--mantine-spacing-md) * 2),
+    var(--notifications-container-width)
+  );
+  align-items: center;
+  /* Tinted glass: muted color + blur what’s behind the toast */
+  background: color-mix(
+    in srgb,
+    var(--notification-color, var(--mantine-primary-color-filled)) 42%,
+    rgba(8, 12, 18, 0.55)
+  ) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.12);
+  backdrop-filter: blur(14px) saturate(1.12);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.28);
+  padding-block: 0.3rem;
+  padding-inline: 0.65rem;
+  font-size: var(--mantine-font-size-xs);
+  line-height: 1.35;
+  color: var(--mantine-color-white);
+
+  /* Default theme uses ::before as colored strip — use full card color instead */
+  &::before {
+    display: none;
+  }
+
+  /* Icon adds visual weight on the start; nudge padding so L/R feel even */
+  &[data-with-icon] {
+    padding-inline: 0.6rem 0.8rem;
+  }
+
+  /* Ensure message/description inherits on tinted backgrounds */
+  &,
+  & * {
+    color: var(--mantine-color-white);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mv-notification {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: color-mix(
+      in srgb,
+      var(--notification-color, var(--mantine-primary-color-filled)) 58%,
+      rgba(8, 12, 18, 0.72)
+    ) !important;
+  }
+}
+
 /* Same-route beatmap switch: outlet remounts when selectedFolder changes */
 .mv-route-outlet-wrap {
   animation: mv-beatmap-content-fade 220ms cubic-bezier(0.4, 0, 0.2, 1);
