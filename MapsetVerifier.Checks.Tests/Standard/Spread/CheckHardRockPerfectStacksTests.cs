@@ -14,7 +14,7 @@ public class CheckHardRockPerfectStacksTests
         var issues = context.RunBeatmapCheck<CheckHardRockPerfectStacks>("broken stack with hr");
 
         var issue = Assert.Single(issues);
-        Assert.Equal(Issue.Level.Warning, issue.level);
+        Assert.Equal(Issue.Level.Minor, issue.level);
         Assert.Contains("perfect stack", issue.message, StringComparison.OrdinalIgnoreCase);
     }
 }
