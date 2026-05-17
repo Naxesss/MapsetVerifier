@@ -48,7 +48,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         @"
                         Standardizing the way metadata is written for ranked content.
 
-                        ![](https://i.imgur.com/1ozV71n.png)
+                        ![](assets/checks/all-modes-general-metadata-title-markers-1.png)
                         A song using ""-TV version-"" as its official metadata, which becomes ""(TV Size)"" when standardized."
                     },
                     {

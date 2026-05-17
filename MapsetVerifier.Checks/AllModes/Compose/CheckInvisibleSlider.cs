@@ -23,7 +23,7 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                         "Purpose",
                         @"
                         Preventing objects from being invisible.
-                        ![](https://i.imgur.com/xJIwdbA.png)
+                        ![](assets/checks/all-modes-compose-invisible-slider-1.png)
                         A slider with no nodes; looks like a circle on the timeline but is invisible on the playfield."
                     },
                     {

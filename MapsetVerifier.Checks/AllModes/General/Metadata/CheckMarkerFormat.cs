@@ -34,7 +34,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         "Purpose",
                         @"
                         Standardizing the way metadata is written for ranked content.
-                        ![](https://i.imgur.com/e5mHEan.png)
+                        ![](assets/checks/all-modes-general-metadata-marker-format-1.png)
                         An example of ""featured by"", which should be replaced by ""feat.""."
                     },
                     {

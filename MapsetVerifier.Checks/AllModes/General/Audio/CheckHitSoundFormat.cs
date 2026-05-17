@@ -27,7 +27,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         "Purpose",
                         @"
                         Discourages potentially detrimental file formats for hit sound files.
-                        ![](https://i.imgur.com/yAF6pEq.png)
+                        ![](assets/checks/all-modes-general-audio-hit-sound-format-1.png)
                         One of the hit sound files using the MP3 extension, which usually means it's also an MP3 format."
                     },
                     {

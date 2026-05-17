@@ -22,7 +22,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                         @"
                         Preventing background quality from being noticeably low or unnoticeable high to save on file size.
 
-                        ![](https://i.imgur.com/VrKRzse.png)
+                        ![](assets/checks/all-modes-general-resources-bg-resolution-1.png)
                         The left side is ~2.25x the resolution of the right side, which is the equivalent of comparing 
                         2560 x 1440 to 1024 x 640."
                     },

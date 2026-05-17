@@ -25,7 +25,7 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                         @"
                         Prevents beatmaps from being too short, for example 10 seconds long.
                     
-                        ![](https://i.imgur.com/uNDPeJI.png)
+                        ![](assets/checks/all-modes-compose-drain-time-1.png)
                         A beatmap with a total mp3 length of ~21 seconds."
                     },
                     {

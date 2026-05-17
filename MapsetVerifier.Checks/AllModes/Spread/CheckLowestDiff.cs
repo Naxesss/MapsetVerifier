@@ -23,7 +23,7 @@ namespace MapsetVerifier.Checks.AllModes.Spread
                         @"
                         Ensuring that newer players still have new content to play at the same time as encouraging mappers to map longer songs.
 
-                        ![](https://i.imgur.com/1PFVl76.png)
+                        ![](assets/checks/all-modes-spread-lowest-diff-1.png)
                         The drain time thresholds determining the highest difficulty level for the lowest difficulty in the set."
                     },
                     {

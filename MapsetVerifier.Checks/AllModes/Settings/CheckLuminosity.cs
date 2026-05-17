@@ -40,19 +40,19 @@ namespace MapsetVerifier.Checks.AllModes.Settings
                         important gameplay indicators or generally messing with them (see check for modified breaks) is not 
                         something beatmaps are expected to do, as they need to be consistent to work properly.
 
-                        ![](https://i.imgur.com/wxoMMQG.png)
+                        ![](assets/checks/all-modes-settings-luminosity-1.png)
                         A slider whose approach circle is only visible on its borders and path, due to the rest blending into the dimmed bg.
 
                         As for bright colours, when outside of kiai they're fine, but while in kiai the game flashes them, 
                         attempting to make them even brighter without caring about them already being really bright, resulting in 
                         pretty strange behaviour for some monitors and generally just unpleasant contrast.
-                        ![](https://i.imgur.com/9cRTvJc.png)
+                        ![](assets/checks/all-modes-settings-luminosity-2.png)
                         An example of a slider with colour 255,255,255 while in the middle of flashing.
 
                         This check uses the [HSP colour system](https://alienryderflex.com/hsp.html) to better approximate 
                         the way humans perceive luminosity in colours, as opposed to the HSL system where green is regarded the same 
                         luminosity as deep blue, see image.
-                        ![](https://i.imgur.com/CjPhf0b.png)
+                        ![](assets/checks/all-modes-settings-luminosity-3.png)
                         The HSP colour system compared to the in-game HSL system."
                     },
                 },

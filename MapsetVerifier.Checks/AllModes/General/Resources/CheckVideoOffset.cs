@@ -22,7 +22,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                         @"
                         Ensuring that the video aligns with the song consistently for all difficulties.
 
-                        ![](https://i.imgur.com/RDRL3qG.png)
+                        ![](assets/checks/all-modes-general-resources-video-offset-1.png)
                         Two difficulties with different video offsets, as shown in the respective .osu files. The second 
                         argument, after ""Video"", is the offset in ms."
                     },

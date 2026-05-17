@@ -25,7 +25,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         @"
                         Preventing issues with concurrent lines of the same type, such as them switching order when loading the beatmap.
 
-                        ![](https://i.imgur.com/whTV4aV.png)
+                        ![](assets/checks/all-modes-timing-concurrent-lines-1.png)
                         Two inherited lines which were originally the other way around, but swapped places when opening the beatmap again."
                     },
                     {

@@ -87,7 +87,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         Web's language/genre fields can be searched for on the web, but not in-game. 
                         They are therefore added to the tags for consistency.
 
-                        ![](https://i.imgur.com/g6zlqhy.png)
+                        ![](assets/checks/all-modes-general-metadata-genre-language-1.png)
                         An example of web genre/language also in the tags."
                     },
                 },

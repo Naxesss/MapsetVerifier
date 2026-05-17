@@ -22,7 +22,7 @@ namespace MapsetVerifier.Checks.AllModes.Settings
                         "Purpose",
                         @"
                         Ensuring that slider ticks align with the song's beat structure.
-                        ![](https://i.imgur.com/2NVm2aB.png)
+                        ![](assets/checks/all-modes-settings-tick-rate-1.png)
                         A 1/1 slider with an asymmetric tick rate (neither a tick in the middle nor two equally distanced from it)."
                     },
                     {

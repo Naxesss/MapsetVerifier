@@ -26,7 +26,7 @@ namespace MapsetVerifier.Checks.Standard.Compose
                         @"
                         Preventing sliders from being excessively difficult, or even impossible, to read in gameplay.
 
-                        ![](https://i.imgur.com/fMa1hWR.png)
+                        ![](assets/checks/standard-compose-burai-1.png)
                         A slider which may be considered readable if it goes right, up, and then down, but would mean going through the same slider path twice for the right and top parts."
                     },
                     {
@@ -38,7 +38,7 @@ namespace MapsetVerifier.Checks.Standard.Compose
 
                         Should a slider go back on itself and end before it creates its own borders, players without slider tails enabled will have a hard time seeing how far back into itself it goes, or even if it goes back on itself at all.
 
-                        ![](https://i.imgur.com/StRTQzZ.png)
+                        ![](assets/checks/standard-compose-burai-2.png)
                         A slider which goes back on itself multiple times and is impossible to read for players with slider tails hidden, which is common in skinning."
                     },
                 },

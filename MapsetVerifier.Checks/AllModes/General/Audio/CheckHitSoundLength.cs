@@ -30,7 +30,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         Hit sounds shorter than ~25 ms (depending on soundcard) can result in no sound being played in-game. 
                         This makes it equivalent to a completely silent hit sound for some, while not for others. Muted hit 
                         sounds are fine having 0 ms duration though, since they don't play audio anyway.
-                        ![](https://i.imgur.com/y9Zmxp3.png)
+                        ![](assets/checks/all-modes-general-audio-hit-sound-length-1.png)
                         The 2.95 ms long hit sound from the example, as shown in Audacity."
                     },
                     {

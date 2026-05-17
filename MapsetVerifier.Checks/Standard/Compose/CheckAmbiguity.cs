@@ -26,7 +26,7 @@ namespace MapsetVerifier.Checks.Standard.Compose
                         @"
                         Preventing sliders from being excessively difficult, or even impossible, to read in gameplay.
 
-                        ![](https://i.imgur.com/Y3TB2m7.png)
+                        ![](assets/checks/standard-compose-ambiguity-1.png)
                         A slider with a 3-way intersection in the middle. Considered readable if and only if the middle section goes up to the left and down on the right."
                     },
                     {
@@ -36,7 +36,7 @@ namespace MapsetVerifier.Checks.Standard.Compose
 
                         Particularly slow sliders, for instance, may move their follow circle slow enough for players to correct themselves if they guessed wrong, whereas fast sliders often do not include as many slider ticks and are as such more lenient. Sliders that do not require that the player move their cursor are also hard to fail from guessing wrong since there it often doesn't matter if they know how to position their cursor.
 
-                        ![](https://i.imgur.com/LPVmy81.png)
+                        ![](assets/checks/standard-compose-ambiguity-2.png)
                         Two sliders which are practically the same in gameplay. The left one has a much higher chance of players guessing wrong on due to the tail not being visible."
                     },
                 },

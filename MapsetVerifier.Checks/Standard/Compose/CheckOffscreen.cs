@@ -35,7 +35,7 @@ namespace MapsetVerifier.Checks.Standard.Compose
 
                         > 4:3 is included in 16:9 and 16:10, the only difference is the width, so you can check for offscreens along the top and bottom in any of these aspect ratios and it will look the same.
 
-                        ![](https://i.imgur.com/zXT4Zwr.png)
+                        ![](assets/checks/standard-compose-offscreen-1.png)
                         A slider end which is partially offscreen along the bottom of the screen."
                     },
                     {

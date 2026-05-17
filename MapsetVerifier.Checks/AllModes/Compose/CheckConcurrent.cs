@@ -41,7 +41,7 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                         fundamental understanding. Because of this, these patterns more often than not cause confusion, even where 
                         otherwise introduced well.
 
-                        ![](https://i.imgur.com/2bTX4aQ.png)
+                        ![](assets/checks/all-modes-compose-concurrent-1.png)
                         A slider with two concurrent circles. Can be hit without breaking combo."
                     },
                 },

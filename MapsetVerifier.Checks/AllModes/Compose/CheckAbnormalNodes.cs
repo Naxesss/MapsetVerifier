@@ -24,7 +24,7 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                         @"
                         Preventing mappers from writing inappropriate or otherwise harmful messages using slider nodes.
 
-                        ![](https://i.imgur.com/rlCoEtZ.png)
+                        ![](assets/checks/all-modes-compose-abnormal-nodes-1.png)
                         An example of text being written with slider nodes in a way which can easily be hidden offscreen."
                     },
                     {
