@@ -97,28 +97,31 @@ namespace MapsetVerifier.Checks.Mania.Timing
                 {
                     if (timingLineList[i].Uninherited == false)
                     {
-                        var correctMultiplier = Math.Round(baseBpm / prevBpm, 2); // Theoretical correct multiplier.
-                        var currentMultiplier = Math.Round(timingLineList[i].SvMult, 2); // Current multiplier being used.
+                        if (prevBpm > 0)
+                        {
+                            var correctMultiplier = Math.Round(baseBpm / prevBpm, 2); // Theoretical correct multiplier.
+                            var currentMultiplier = Math.Round(timingLineList[i].SvMult, 2); // Current multiplier being used.
 
-                        // Check for unnormalized values
-                        if (!almostEquals(currentMultiplier, correctMultiplier, 0.02))
-                            yield return new Issue(
-                                GetTemplate("Unnormal Value Warning"),
-                                beatmap,
-                                Timestamp.Get(timingLineList[i].Offset)
-                            );
-                        // Check for normalizing GreenLines not being right on top of the previous RedLine
-                        else if (
-                            !firstTimingLine
-                            && timingLineList[i].Offset.AlmostEqual(prevOffset)
-                            && !almostEquals(baseBpm, prevBpm, 1)
-                        )
-                            yield return new Issue(
-                                GetTemplate("Normalized Value Moved Problem"),
-                                beatmap,
-                                Timestamp.Get(timingLineList[i].Offset),
-                                prevOffset
-                            );
+                            // Check for unnormalized values
+                            if (!almostEquals(currentMultiplier, correctMultiplier, 0.02))
+                                yield return new Issue(
+                                    GetTemplate("Unnormal Value Warning"),
+                                    beatmap,
+                                    Timestamp.Get(timingLineList[i].Offset)
+                                );
+                            // Check for normalizing GreenLines not being right on top of the previous RedLine
+                            else if (
+                                !firstTimingLine
+                                && !timingLineList[i].Offset.AlmostEqual(prevOffset)
+                                && !almostEquals(baseBpm, prevBpm, 1)
+                            )
+                                yield return new Issue(
+                                    GetTemplate("Normalized Value Moved Problem"),
+                                    beatmap,
+                                    Timestamp.Get(timingLineList[i].Offset),
+                                    prevOffset
+                                );
+                        }
 
                         firstTimingLine = true;
                     }
