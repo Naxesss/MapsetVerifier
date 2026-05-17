@@ -167,7 +167,7 @@ export default function GameModeIcon({
     iconComponents.Standard;
 
   return (
-    <Tooltip label={formatGameModeLabel(mode)}>
+    <Tooltip label={formatGameModeLabel(mode)} zIndex={400}>
       <Box
         component="span"
         className={className}
