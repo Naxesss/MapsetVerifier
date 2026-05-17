@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System.Globalization;
+using System.Security.Cryptography;
 using System.Text;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
@@ -188,10 +189,14 @@ namespace MapsetVerifier.Snapshots
                 var saveName = path[(Math.Max(forwardSlash, backSlash) + 1)..];
                 var code = File.ReadAllText(path);
 
-                var creationTime = DateTime.ParseExact(
-                    saveName.Split('.')[0],
-                    fileNameFormat,
-                    null
+                var creationTime = DateTime.SpecifyKind(
+                    DateTime.ParseExact(
+                        saveName.Split('.')[0],
+                        fileNameFormat,
+                        CultureInfo.InvariantCulture,
+                        DateTimeStyles.None
+                    ),
+                    DateTimeKind.Utc
                 );
 
                 yield return new Snapshot(creationTime, beatmapSetId, beatmapId, saveName, code);
