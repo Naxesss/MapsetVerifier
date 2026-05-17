@@ -153,19 +153,20 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         .Select(inconsistency => inconsistency.respectiveEdgeTime)
                         .FirstOrDefault();
 
-                    if (
-                        beatmap.GetLowestDivisor(respectiveEdgeTime) == 0
-                        || beatmap.GetLowestDivisor(inconsistentEdgeTime) == 0
-                    )
+                    // Each edge belongs to its own difficulty; divisors must come from that beatmap's timing.
+                    var divisorThis = beatmap.GetLowestDivisor(inconsistentEdgeTime);
+                    var divisorOther = respectiveBeatmap.GetLowestDivisor(respectiveEdgeTime);
+
+                    if (divisorThis == 0 || divisorOther == 0)
                         continue;
 
                     yield return new Issue(
                         GetTemplate("Snap Consistency"),
                         beatmap,
-                        Timestamp.Get(respectiveEdgeTime),
-                        beatmap.GetLowestDivisor(respectiveEdgeTime),
                         Timestamp.Get(inconsistentEdgeTime),
-                        beatmap.GetLowestDivisor(inconsistentEdgeTime),
+                        divisorThis,
+                        Timestamp.Get(respectiveEdgeTime),
+                        divisorOther,
                         respectiveBeatmap
                     );
                 }
