@@ -192,7 +192,8 @@ namespace MapsetVerifier.Checks
                             errorTemplate = "Exception";
                         }
 
-                        if (file == null) errorTemplate = "Exception";
+                        if (file == null)
+                            errorTemplate = "Exception";
                     }
                     else
                         errorTemplate = "Missing";
