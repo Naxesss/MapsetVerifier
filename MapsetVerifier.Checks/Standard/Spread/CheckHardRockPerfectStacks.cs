@@ -44,7 +44,7 @@ namespace MapsetVerifier.Checks.Standard.Spread
                 {
                     "Failed Stack",
                     new IssueTemplate(
-                        Issue.Level.Warning,
+                        Issue.Level.Minor,
                         "{0} Failed stack with Hard Rock applied, objects are {1} px apart, which is basically a perfect stack.",
                         "timestamp -",
                         "gap"
@@ -55,7 +55,7 @@ namespace MapsetVerifier.Checks.Standard.Spread
                 {
                     "Warning",
                     new IssueTemplate(
-                        Issue.Level.Warning,
+                        Issue.Level.Minor,
                         "{0} Perfect stack with Hard Rock applied, stack leniency should be at least {1}.",
                         "timestamp -",
                         "stack leniency"
