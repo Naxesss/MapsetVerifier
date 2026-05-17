@@ -10,7 +10,7 @@ import {
   Title,
   Tooltip,
 } from '@mantine/core';
-import { IconAlertCircle, IconPhotoOff, IconRefresh } from '@tabler/icons-react';
+import { IconAlertCircle, IconInfoCircleFilled, IconPhotoOff, IconRefresh } from '@tabler/icons-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useSnapshots } from './hooks/useSnapshots';
 import SnapshotContent from './SnapshotContent';
@@ -23,6 +23,7 @@ import { useBeatmapBackground } from '../checks/hooks/useBeatmapBackground';
 import BeatmapHeader from '../common/BeatmapHeader';
 import NoBeatmapsetDisplay from '../common/NoBeatmapsetDisplay.tsx';
 import StackTraceMessage from '../common/StackTraceMessage.tsx';
+import GameModeIcon from '../icons/GameModeIcon';
 
 interface ModeGroup {
   mode: Mode;
@@ -87,6 +88,11 @@ function Snapshots() {
   const selectedGroup =
     groupedDifficulties.find((g) => g.mode === selectedMode) ?? groupedDifficulties[0];
 
+  const selectedSnapshotDifficulty = useMemo(() => {
+    if (!data || selectedDifficulty === 'General') return undefined;
+    return data.difficulties.find((d) => d.name === selectedDifficulty);
+  }, [data, selectedDifficulty]);
+
   if (!folder) {
     return <NoBeatmapsetDisplay />;
   }
@@ -149,7 +155,18 @@ function Snapshots() {
           style={{ flex: 1, overflow: 'hidden' }}
           bg="dark.6"
         >
-          <Title order={3}>{selectedDifficulty}</Title>
+          <Flex gap="xs" align="center">
+            {selectedSnapshotDifficulty ? (
+              <GameModeIcon
+                mode={selectedSnapshotDifficulty.mode ?? 'Standard'}
+                size={28}
+                starRating={selectedSnapshotDifficulty.starRating}
+              />
+            ) : (
+              <IconInfoCircleFilled size={28} color={theme.colors.primary[3]} />
+            )}
+            <Title order={3}>{selectedDifficulty}</Title>
+          </Flex>
           {data.errorMessage ? (
             <Alert icon={<IconPhotoOff />} color="yellow" title="Snapshots unavailable">
               <Text size="sm">{data.errorMessage}</Text>
