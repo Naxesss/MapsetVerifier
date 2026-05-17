@@ -2,6 +2,7 @@ import { Group, ActionIcon, useMantineTheme, useMantineColorScheme, Badge } from
 import { IconMinus, IconSquare, IconX } from '@tabler/icons-react';
 import React, { useEffect, useState } from 'react';
 import iconUrl from '../../assets/icon.png';
+import { isSemverPreRelease } from '../../utils/isSemverPreRelease';
 
 const dragStyle = { WebkitAppRegion: 'drag' } as React.CSSProperties;
 const noDragStyle = { WebkitAppRegion: 'no-drag' } as React.CSSProperties;
@@ -23,7 +24,7 @@ const WindowBar: React.FC = () => {
       ?.getVersion()
       .then((version) => {
         setVersion(version);
-        setIsPrerelease(/-(rc)/i.test(version));
+        setIsPrerelease(isSemverPreRelease(version));
       })
       .catch(() => setVersion('unknown'));
   }, []);
