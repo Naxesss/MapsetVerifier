@@ -57,8 +57,8 @@ public static class SnapshotService
 
         // Unified timeline so difficulties unchanged in an update still get a commit (issue #98).
         var globalTimeline = BuildGlobalSnapshotTimeline(beatmapSet, beatmapSetId);
-        var beatmapHistories = beatmapSet.Beatmaps
-            .Select(beatmap => GetBeatmapSnapshotHistory(beatmap, globalTimeline))
+        var beatmapHistories = beatmapSet
+            .Beatmaps.Select(beatmap => GetBeatmapSnapshotHistory(beatmap, globalTimeline))
             .ToList();
 
         return new ApiSnapshotResult(
@@ -112,7 +112,10 @@ public static class SnapshotService
     /// Snapshot times for the whole mapset (.osu snapshots plus files snapshots) sorted oldest-first.
     /// Aligns per-difficulty history so an update that only touches other difficulties still appears on every chart.
     /// </summary>
-    private static DateTime[] BuildGlobalSnapshotTimeline(BeatmapSet beatmapSet, string beatmapSetId)
+    private static DateTime[] BuildGlobalSnapshotTimeline(
+        BeatmapSet beatmapSet,
+        string beatmapSetId
+    )
     {
         var times = new HashSet<DateTime>();
         foreach (var bm in beatmapSet.Beatmaps)
@@ -180,7 +183,9 @@ public static class SnapshotService
         // Also compare the latest snapshot to current code (uncommitted changes)
         var latestSnapshot = snapshots.Last();
         var currentDiffs = Snapshotter.Compare(latestSnapshot, beatmap.Code).ToList();
-        var translatedCurrentDiffs = Snapshotter.TranslateComparison(currentDiffs, beatmap).ToList();
+        var translatedCurrentDiffs = Snapshotter
+            .TranslateComparison(currentDiffs, beatmap)
+            .ToList();
 
         if (translatedCurrentDiffs.Count > 0)
         {

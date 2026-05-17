@@ -367,12 +367,14 @@ public static class BeatmapAnalysisService
             if (beatmap.TimingLines.Count == 0 && beatmap.HitObjects.Count == 0)
                 return [];
 
-            var timingMax = beatmap.TimingLines.Count > 0
-                ? beatmap.TimingLines.Max(timingLine => timingLine.Offset)
-                : 0;
-            var objectsMax = beatmap.HitObjects.Count > 0
-                ? beatmap.HitObjects.Max(hitObject => hitObject.GetEndTime())
-                : 0;
+            var timingMax =
+                beatmap.TimingLines.Count > 0
+                    ? beatmap.TimingLines.Max(timingLine => timingLine.Offset)
+                    : 0;
+            var objectsMax =
+                beatmap.HitObjects.Count > 0
+                    ? beatmap.HitObjects.Max(hitObject => hitObject.GetEndTime())
+                    : 0;
             finalTime = Math.Max(timingMax, objectsMax);
         }
 

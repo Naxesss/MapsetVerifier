@@ -724,9 +724,7 @@ namespace MapsetVerifier.Parser.Objects
                     return difficultyFromStarRating;
                 }
 
-                var levelGap = Math.Abs(
-                    (int)interpretedFromName - (int)difficultyFromStarRating
-                );
+                var levelGap = Math.Abs((int)interpretedFromName - (int)difficultyFromStarRating);
                 if (levelGap >= 2)
                     return difficultyFromStarRating;
 

@@ -13,9 +13,9 @@ import {
 } from '@mantine/core';
 import { IconZoomIn } from '@tabler/icons-react';
 import { useCallback, useState } from 'react';
-import { InfoIconTooltip } from '../../common/InfoIconTooltip.tsx';
 import { useSpectrogram } from './hooks/useAudioAnalysis.ts';
 import SpectrogramCanvas, { ColorScheme } from './SpectrogramCanvas.tsx';
+import { InfoIconTooltip } from '../../common/InfoIconTooltip.tsx';
 
 interface SpectrogramProps {
   folder: string;
