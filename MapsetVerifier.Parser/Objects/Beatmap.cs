@@ -703,6 +703,8 @@ namespace MapsetVerifier.Parser.Objects
         /// <summary>
         ///     Returns the interpreted difficulty level based on the star rating of the beatmap
         ///     (may be inaccurate since recent sr reworks were done), can optionally consider diff names.
+        ///     When the name can be parsed, it wins if it disagrees with SR by at most one step on the
+        ///     Easy→Ultra scale; if the gap is two or more steps, SR is used instead.
         /// </summary>
         public Difficulty GetDifficulty()
         {
@@ -711,18 +713,24 @@ namespace MapsetVerifier.Parser.Objects
 
             if (difficultyFromName != null)
             {
-                var interpretedDifficulty = (Difficulty)difficultyFromName;
-                // Keep existing name-first behavior, except for broad osu!taiko "Oni" labels where SR clearly maps to Expert.
+                var interpretedFromName = (Difficulty)difficultyFromName;
+                // Broad osu!taiko "Oni" labels map to Insane by name, but trust SR when it clearly maps to Expert or Ultra.
                 if (
                     GeneralSettings.mode == Mode.Taiko
-                    && interpretedDifficulty == Difficulty.Insane
+                    && interpretedFromName == Difficulty.Insane
                     && difficultyFromStarRating >= Difficulty.Expert
                 )
                 {
                     return difficultyFromStarRating;
                 }
 
-                return interpretedDifficulty;
+                var levelGap = Math.Abs(
+                    (int)interpretedFromName - (int)difficultyFromStarRating
+                );
+                if (levelGap >= 2)
+                    return difficultyFromStarRating;
+
+                return interpretedFromName;
             }
 
             // We can't determine the difficulty by name so instead use star rating
