@@ -112,7 +112,7 @@ const WindowBar: React.FC = () => {
               variant="filled"
               style={{ marginLeft: 8, verticalAlign: 'middle', opacity: 0.85 }}
             >
-              Pre Release
+              Pre-release
             </Badge>
           )}
         </span>

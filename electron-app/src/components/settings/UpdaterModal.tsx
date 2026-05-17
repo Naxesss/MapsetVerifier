@@ -12,10 +12,17 @@ import {
   Text,
 } from '@mantine/core';
 import { IconAlertCircle, IconCircleCheck, IconCloudDownload } from '@tabler/icons-react';
-import React from 'react';
+import React, { useMemo } from 'react';
+import TurndownService from 'turndown';
 import { useUpdater } from '../../context/UpdaterContext';
 import { isSemverPreRelease } from '../../utils/isSemverPreRelease';
 import MantineMarkdown from '../documentation/MantineMarkdown';
+
+const releaseNotesTurndown = new TurndownService({
+  headingStyle: 'atx',
+  bulletListMarker: '-',
+  codeBlockStyle: 'fenced',
+});
 
 function formatBytes(value?: number | null) {
   if (value == null || value <= 0) return '0 B';
@@ -50,6 +57,10 @@ const UpdaterModal: React.FC = () => {
   const busy = status === 'checking' || status === 'downloading' || status === 'installing';
 
   const updateNotes = availableUpdate?.body?.trim();
+  const releaseNotesMarkdown = useMemo(
+    () => (updateNotes ? releaseNotesTurndown.turndown(updateNotes) : ''),
+    [updateNotes],
+  );
   const availableUpdateIsPrerelease = isSemverPreRelease(availableUpdate?.version);
   const upToDateTitle = !receivePrereleases && currentVersionIsPrerelease
     ? 'No stable update available'
@@ -141,7 +152,7 @@ const UpdaterModal: React.FC = () => {
               <>
                 <Divider my="xs" />
                 <ScrollArea mah={220} type="auto" offsetScrollbars>
-                  <MantineMarkdown>{updateNotes}</MantineMarkdown>
+                  <MantineMarkdown>{releaseNotesMarkdown}</MantineMarkdown>
                 </ScrollArea>
               </>
             )}
@@ -173,7 +184,7 @@ const UpdaterModal: React.FC = () => {
           )}
 
           {status === 'available' && availableUpdate && (
-            <Button onClick={() => void installUpdate()}>Update now</Button>
+            <Button variant="light" onClick={() => void installUpdate()}>Update now</Button>
           )}
 
           {!busy && (
