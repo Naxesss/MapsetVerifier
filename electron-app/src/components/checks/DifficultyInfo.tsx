@@ -41,7 +41,7 @@ function DifficultyInfo({
   ) {
     return (
       <Flex gap="xs" align="center">
-        <LevelIcon level={categoryHighestLevels[hoveredDifficulty.category] || 'Info'} size={32} />
+        <LevelIcon level={categoryHighestLevels[hoveredDifficulty.category] ?? 'Check'} size={32} />
         <GameModeIcon
           mode={hoveredDifficulty.mode!}
           size={32}
@@ -81,7 +81,7 @@ function DifficultyInfo({
 
   return (
     <Flex gap="xs" align="center">
-      <LevelIcon level={categoryHighestLevels['General'] || 'Info'} size={32} />
+      <LevelIcon level={categoryHighestLevels['General'] ?? 'Check'} size={32} />
       <Text>General</Text>
     </Flex>
   );

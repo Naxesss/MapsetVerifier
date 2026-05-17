@@ -24,6 +24,7 @@ import { useDocumentationChecks } from './hooks/useDocumentationChecks';
 import { countWord, pluralize } from '../../utils/countWord';
 import { formatGameModeLabel } from '../../utils/gameMode';
 import ErrorIcon from '../icons/ErrorIcon.tsx';
+import InfoLevelIcon from '../icons/InfoLevelIcon.tsx';
 import MinorIcon from '../icons/MinorIcon.tsx';
 import NoIssueIcon from '../icons/NoIssueIcon.tsx';
 import ProblemIcon from '../icons/ProblemIcon.tsx';
@@ -52,7 +53,13 @@ function DocumentationIconsSection() {
           icon={<NoIssueIcon />}
           title="Check"
           category="Checks"
-          description="No issues were found."
+          description="No issues were found (used in the app when a category has no results)."
+        />
+        <DocumentationIconExplanation
+          icon={<InfoLevelIcon />}
+          title="Info"
+          category="Checks"
+          description="Informational notes or non-blocking observations."
         />
         <DocumentationIconExplanation
           icon={<MinorIcon />}

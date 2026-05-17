@@ -50,7 +50,7 @@ function DifficultySelector({
           }
         >
           <Flex gap="xs" align="center">
-            <LevelIcon level={categoryHighestLevels['General'] || 'Info'} size={24} />
+            <LevelIcon level={categoryHighestLevels['General'] ?? 'Check'} size={24} />
             <Text c="white">General</Text>
           </Flex>
         </Button>
@@ -76,7 +76,7 @@ function DifficultySelector({
             }
           >
             <Flex gap="xs" align="center">
-              <LevelIcon level={categoryHighestLevels[diff.category] || 'Info'} size={24} />
+              <LevelIcon level={categoryHighestLevels[diff.category] ?? 'Check'} size={24} />
               <Text
                 c="white"
                 style={{

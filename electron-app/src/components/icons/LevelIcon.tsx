@@ -1,5 +1,6 @@
 ﻿import { Text } from '@mantine/core';
 import ErrorIcon from './ErrorIcon.tsx';
+import InfoLevelIcon from './InfoLevelIcon.tsx';
 import MinorIcon from './MinorIcon.tsx';
 import NoIssueIcon from './NoIssueIcon.tsx';
 import ProblemIcon from './ProblemIcon.tsx';
@@ -20,18 +21,22 @@ function LevelIcon({ level, size = 32 }: { level: Level; size?: number }) {
       {node}
     </div>
   );
-  if (level === 'Info') {
-    return wrap(<NoIssueIcon size={size} />);
-  } else if (level === 'Error') {
-    return wrap(<ErrorIcon size={size} />);
-  } else if (level === 'Problem') {
-    return wrap(<ProblemIcon size={size} />);
-  } else if (level === 'Warning') {
-    return wrap(<WarningIcon size={size} />);
-  } else if (level === 'Minor') {
-    return wrap(<MinorIcon size={size} />);
-  } else {
-    return wrap(<Text size="xs">Missing</Text>);
+
+  switch (level) {
+    case 'Check':
+      return wrap(<NoIssueIcon size={size} />);
+    case 'Info':
+      return wrap(<InfoLevelIcon size={size} />);
+    case 'Error':
+      return wrap(<ErrorIcon size={size} />);
+    case 'Problem':
+      return wrap(<ProblemIcon size={size} />);
+    case 'Warning':
+      return wrap(<WarningIcon size={size} />);
+    case 'Minor':
+      return wrap(<MinorIcon size={size} />);
+    default:
+      return wrap(<Text size="xs">Missing</Text>);
   }
 }
 

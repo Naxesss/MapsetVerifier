@@ -44,6 +44,7 @@ function ChecksResults({
 
       {data && (
         <CheckCategory
+          key={selectedCategory ?? 'General'}
           data={data}
           showMinor={showMinor}
           selectedCategory={selectedCategory}

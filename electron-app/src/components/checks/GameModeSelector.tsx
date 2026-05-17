@@ -29,7 +29,7 @@ function GameModeSelector({
         p="xs"
         data={groupedDifficulties.map((group) => {
           const groupLevels = group.difficulties.map(
-            (d) => categoryHighestLevels[d.category] || 'Info'
+            (d) => categoryHighestLevels[d.category] ?? 'Check'
           );
           const groupHighestLevel = getHighestLevel(groupLevels);
           return {

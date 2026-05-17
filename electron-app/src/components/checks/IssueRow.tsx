@@ -16,7 +16,10 @@ const IssueRow: React.FC<IssueRowProps> = ({ item }) => {
       style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', alignItems: 'start' }}
     >
       <div style={{ alignSelf: 'start' }}>
-        <LevelIcon level={item.level} size={16} />
+        <LevelIcon
+          level={item.level === 'Check' ? 'Info' : item.level}
+          size={16}
+        />
       </div>
       <Text
         size="sm"
