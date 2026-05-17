@@ -1,0 +1,29 @@
+name: Bug Report
+description: Report a problem or unexpected behaviour
+labels:
+  - bug
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: What happened, what did you expect, and how can others reproduce it?
+      placeholder: Be as specific as you can, steps to reproduce help a lot.
+    validations:
+      required: true
+
+  - type: textarea
+    id: mapset-links
+    attributes:
+      label: Mapset link(s)
+      description: osu! beatmap URLs affected by this issue.
+      placeholder: Paste one mapset URL per line, or equivalent links we can open.
+    validations:
+      required: true
+
+  - type: textarea
+    id: media
+    attributes:
+      label: Screenshots or video
+      description: Optional — attach images or paste links (e.g. image host, Streamable, YouTube).
+      placeholder: Drag & drop screenshots here or paste URLs.
