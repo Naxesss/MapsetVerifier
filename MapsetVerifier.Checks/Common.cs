@@ -181,6 +181,7 @@ namespace MapsetVerifier.Checks
                     }
 
                     if (files.Length > 0)
+                    {
                         try
                         {
                             file = new FileAbstraction(files[0]).GetTagFile();
@@ -190,6 +191,9 @@ namespace MapsetVerifier.Checks
                             Log.Error(exception, "Could not find tag file");
                             errorTemplate = "Exception";
                         }
+
+                        if (file == null) errorTemplate = "Exception";
+                    }
                     else
                         errorTemplate = "Missing";
                 }
