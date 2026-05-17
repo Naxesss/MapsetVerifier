@@ -1,10 +1,10 @@
-﻿using MapsetVerifier.Framework.Objects;
+﻿using System.IO;
+using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
 using MathNet.Numerics;
-using static MapsetVerifier.Checks.Utils.ManiaUtils;
 
 namespace MapsetVerifier.Checks.Mania.HitSounds
 {
@@ -66,7 +66,7 @@ namespace MapsetVerifier.Checks.Mania.HitSounds
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
-            var files = beatmapSet.HitSoundFiles.Select(f => f.ToLower()).ToHashSet();
+            var hitSoundFiles = beatmapSet.HitSoundFiles;
 
             var beatmaps = beatmapSet.Beatmaps.ToList();
 
@@ -79,8 +79,6 @@ namespace MapsetVerifier.Checks.Mania.HitSounds
 
                 if (beatmap.GeneralSettings.mode != Beatmap.Mode.Mania)
                     continue;
-
-                var timing = BuildTimingMap(beatmap);
 
                 var hitEvents = new List<HitSoundEvent>();
 
@@ -101,7 +99,7 @@ namespace MapsetVerifier.Checks.Mania.HitSounds
 
                     foreach (var type in EnumerateHitSounds(ho))
                     {
-                        var ev = BuildEvent(ho, type, timing);
+                        var ev = BuildEvent(ho, type);
 
                         if (
                             !usedAtTime.Add(
@@ -123,9 +121,10 @@ namespace MapsetVerifier.Checks.Mania.HitSounds
                         if (
                             ev.Type != HitObject.HitSounds.None
                             && ev.CustomIndex != "0"
-                            && !IsHitNormalInList(
+                            && !SampleBaseNameExists(
                                 $"{ev.SampleSet.ToString().ToLower()}-hit{ev.Type.ToString().ToLower()}{ev.CustomIndex}",
-                                files
+                                hitSoundFiles,
+                                beatmapSet.SongPath
                             )
                         )
                         {
@@ -141,7 +140,7 @@ namespace MapsetVerifier.Checks.Mania.HitSounds
                     if (!sampleUsed.Add((ho.filename, ho.hitSound)))
                         continue;
 
-                    if (ho.filename != null && !files.Contains(ho.filename.ToLower()))
+                    if (ho.filename != null && !HitsoundFileExistsInSet(beatmapSet, ho.filename))
                     {
                         yield return new Issue(
                             GetTemplate("Problem"),
@@ -173,11 +172,7 @@ namespace MapsetVerifier.Checks.Mania.HitSounds
                 yield return HitObject.HitSounds.Finish;
         }
 
-        private static HitSoundEvent BuildEvent(
-            HitObject ho,
-            HitObject.HitSounds type,
-            List<(double, HitSample.SamplesetType, string)> timing
-        )
+        private static HitSoundEvent BuildEvent(HitObject ho, HitObject.HitSounds type)
         {
             return new HitSoundEvent(
                 type == HitObject.HitSounds.None && ho.filename != null
@@ -185,24 +180,37 @@ namespace MapsetVerifier.Checks.Mania.HitSounds
                     : type,
                 ho.time,
                 ho.filename,
-                ResolveSampleSet(ho, timing),
-                ResolveIndex(timing)
+                ResolveSampleSet(ho, type),
+                ResolveIndex(ho)
             );
         }
 
+        /// <summary>
+        ///     Match <see cref="HitObject.GetEdgeSample" /> sampleset selection (addition applies to hitsound additions, not hitnormal).
+        /// </summary>
         private static HitSample.SamplesetType ResolveSampleSet(
             HitObject ho,
-            List<(double, HitSample.SamplesetType, string)> timing
+            HitObject.HitSounds type
         )
         {
-            return ho.addition != HitSample.SamplesetType.Auto ? ho.addition
-                : ho.sampleset != HitSample.SamplesetType.Auto ? ho.sampleset
-                : timing.Last(t => t.Item1 <= ho.time).Item2;
+            if (type is HitObject.HitSounds.Normal or HitObject.HitSounds.None)
+                return ho.GetSampleset(false);
+
+            return ho.GetSampleset(true);
         }
 
-        private static string ResolveIndex(
-            List<(double, HitSample.SamplesetType, string)> timing
-        ) => timing.Last().Item3 == "1" ? "" : timing.Last().Item3;
+        /// <summary>
+        ///     Match <see cref="HitObject.GetEdgeSample" />: custom index comes from
+        ///     <see cref="Beatmap.GetTimingLine" /> with hit sound leniency.
+        /// </summary>
+        private static string ResolveIndex(HitObject ho)
+        {
+            var line = ho.beatmap.GetTimingLine(ho.time, true);
+            if (line == null)
+                return "";
+
+            return line.CustomIndex == 1 ? "" : line.CustomIndex.ToString();
+        }
 
         private IEnumerable<Issue> CompareBeatmaps(
             List<List<HitSoundEvent>> hs,
@@ -258,26 +266,67 @@ namespace MapsetVerifier.Checks.Mania.HitSounds
         private static bool SameTimeDifferentObject(HitSoundEvent a, HitSoundEvent b) =>
             a.Time.AlmostEqual(b.Time) && b.FileName == null && a.SampleSet == b.SampleSet;
 
-        private static List<(
-            double Time,
-            HitSample.SamplesetType SampleSet,
-            string CustomIndex
-        )> BuildTimingMap(Beatmap beatmap)
+        /// <summary>
+        ///     Whether the set lists a hitsound file whose basename (no extension) matches the osu sample basename,
+        ///     or the song folder contains such a file (fallback when indexing missed it).
+        /// </summary>
+        private static bool SampleBaseNameExists(
+            string baseName,
+            IReadOnlyList<string> hitSoundFiles,
+            string songFolder
+        )
         {
-            var map = beatmap
-                .TimingLines.Select(t => (t.Offset, t.Sampleset, t.CustomIndex.ToString()))
-                .OrderBy(t => t.Offset)
-                .ToList();
+            var normalized = PathStatic.ParsePath(baseName, true);
+            if (string.IsNullOrEmpty(normalized))
+                return false;
 
-            // Sentinel ensures safe lookups without bounds checks
-            map.Add((double.MaxValue, HitSample.SamplesetType.Normal, ""));
+            if (
+                hitSoundFiles.Any(hs =>
+                    PathStatic.ParsePath(PathStatic.CutPath(hs), true) == normalized
+                )
+            )
+                return true;
 
-            return map;
+            return FileBasenameExistsOnDisk(normalized, songFolder);
         }
 
-        private static bool IsHitNormalInList(string fileName, HashSet<string> files)
+        /// <summary>
+        ///     Whether <paramref name="filename"/> (as in an .osu hit object) matches a path in
+        ///     <see cref="BeatmapSet.HitSoundFiles" /> or exists on disk under the song folder.
+        /// </summary>
+        private static bool HitsoundFileExistsInSet(BeatmapSet beatmapSet, string filename)
         {
-            return files.Contains(fileName.ToLower());
+            var needle = PathStatic.ParsePath(PathStatic.CutPath(filename));
+            if (
+                beatmapSet.HitSoundFiles.Any(hs =>
+                    PathStatic.ParsePath(PathStatic.CutPath(hs)) == needle
+                )
+            )
+                return true;
+
+            var withoutExt = PathStatic.ParsePath(PathStatic.CutPath(filename), true);
+            return !string.IsNullOrEmpty(withoutExt)
+                && FileBasenameExistsOnDisk(withoutExt, beatmapSet.SongPath);
+        }
+
+        private static bool FileBasenameExistsOnDisk(string normalizedBaseNoExt, string songFolder)
+        {
+            try
+            {
+                if (!Directory.Exists(songFolder))
+                    return false;
+
+                return Directory
+                    .EnumerateFiles(songFolder, "*.*", SearchOption.AllDirectories)
+                    .Any(fullPath =>
+                        PathStatic.ParsePath(PathStatic.CutPath(fullPath), true)
+                        == normalizedBaseNoExt
+                    );
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

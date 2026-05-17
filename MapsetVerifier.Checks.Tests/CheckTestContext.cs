@@ -58,7 +58,14 @@ public sealed class CheckTestContext : IDisposable
         if (extraFiles != null)
         {
             foreach (var file in extraFiles)
-                File.WriteAllText(Path.Combine(tempPath, file), string.Empty);
+            {
+                var dest = Path.Combine(tempPath, file);
+                var dir = Path.GetDirectoryName(dest);
+                if (!string.IsNullOrEmpty(dir))
+                    Directory.CreateDirectory(dir);
+
+                File.WriteAllText(dest, string.Empty);
+            }
         }
 
         return new CheckTestContext(tempPath);
