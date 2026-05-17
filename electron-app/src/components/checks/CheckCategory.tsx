@@ -4,6 +4,7 @@ import CheckGroup from './CheckGroup.tsx';
 import { groupChecks } from './groupChecks';
 import { ApiBeatmapSetCheckResult, ApiCategoryOverrideCheckResult, Level } from '../../Types';
 import { countWord } from '../../utils/countWord';
+import { InfoIconTooltip } from '../common/InfoIconTooltip.tsx';
 
 type DisplayLevel = Exclude<Level, 'Check'>;
 
@@ -14,7 +15,7 @@ const LEVEL_BADGE_COLORS: Record<DisplayLevel, string> = {
   Problem: 'red',
   Warning: 'orange',
   Minor: 'lime',
-  Info: 'green',
+  Info: 'blue',
 };
 
 function normalizeLevel(level: Level): DisplayLevel {
@@ -50,6 +51,8 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
   selectedCategory,
   overrideResult,
 }) => {
+  const [levelFilter, setLevelFilter] = React.useState<DisplayLevel | null>(null);
+
   const overrideCategoryResult = overrideResult?.categoryResult;
   const categoryData = React.useMemo(() => {
     // If we have an override result for the selected category, use it
@@ -121,6 +124,20 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
     overrideResult,
   ]);
 
+  const filteredGroups = React.useMemo(() => {
+    if (!levelFilter) return categoryData.groups;
+    return categoryData.groups
+      .map((g) => ({
+        ...g,
+        items: g.items.filter((item) => normalizeLevel(item.level) === levelFilter),
+      }))
+      .filter((g) => g.items.length > 0);
+  }, [categoryData.groups, levelFilter]);
+
+  const toggleLevelFilter = (level: DisplayLevel) => {
+    setLevelFilter((current) => (current === level ? null : level));
+  };
+
   return (
     <Stack gap="md">
       <Group wrap="wrap" gap="xs" align="center">
@@ -128,28 +145,49 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
           const count = categoryData.levelCounts[level];
           if (count === 0) return null;
 
+          const isSelected = levelFilter === level;
+
           return (
-            <Badge key={level} size="xs" color={LEVEL_BADGE_COLORS[level]} variant="light">
+            <Badge
+              key={level}
+              component="button"
+              type="button"
+              size="xs"
+              color={LEVEL_BADGE_COLORS[level]}
+              variant={isSelected ? 'filled' : 'light'}
+              onClick={() => toggleLevelFilter(level)}
+              style={{ cursor: 'pointer' }}
+              title={isSelected ? 'Show all severities' : `Show only ${level.toLowerCase()}s`}
+            >
               {countWord(count, level.toLowerCase())}
             </Badge>
           );
         })}
+        {categoryData.totalCount > 0 && (
+          <InfoIconTooltip label="Click a badge to filter issues by severity" />
+        )}
       </Group>
       {categoryData.totalCount > 0 ? (
-        <Stack gap="sm">
-          {categoryData.groups.map((g) => (
-            <CheckGroup
-              key={g.id}
-              id={g.id}
-              items={g.items}
-              name={
-                overrideCategoryResult && overrideCategoryResult.category === selectedCategory
-                  ? overrideResult.checks[g.id]?.name
-                  : data.checks[g.id]?.name
-              }
-            />
-          ))}
-        </Stack>
+        filteredGroups.length > 0 ? (
+          <Stack gap="sm">
+            {filteredGroups.map((g) => (
+              <CheckGroup
+                key={g.id}
+                id={g.id}
+                items={g.items}
+                name={
+                  overrideCategoryResult && overrideCategoryResult.category === selectedCategory
+                    ? overrideResult.checks[g.id]?.name
+                    : data.checks[g.id]?.name
+                }
+              />
+            ))}
+          </Stack>
+        ) : (
+          <Text size="sm" c="dimmed">
+            No issues match this severity.
+          </Text>
+        )
       ) : (
         <Text>No issues found.</Text>
       )}
