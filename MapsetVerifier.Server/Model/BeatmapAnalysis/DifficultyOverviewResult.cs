@@ -31,6 +31,7 @@ public class DifficultyOverviewDifficulty
     public double StarRating { get; set; }
     public List<double> StarRatingValues { get; set; } = [];
     public List<double> SliderVelocityValues { get; set; } = [];
+    public List<double> VolumeValues { get; set; } = [];
     public List<DifficultySkillData> Skills { get; set; } = [];
 }
 

@@ -496,6 +496,8 @@ export type DifficultyOverviewDifficulty = {
   starRatingValues: number[];
   /** Present for non-Mania difficulties from current API; may be missing on older payloads. */
   sliderVelocityValues?: number[];
+  /** Sample volume % from effective timing line at each overview grid point; may be missing on older payloads. */
+  volumeValues?: number[];
   skills: DifficultySkillData[];
 };
 

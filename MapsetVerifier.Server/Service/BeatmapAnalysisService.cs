@@ -275,6 +275,7 @@ public static class BeatmapAnalysisService
             StarRating = beatmap.StarRating,
             StarRatingValues = GetStarRatingValues(beatmap),
             SliderVelocityValues = GetSliderVelocityValues(beatmap),
+            VolumeValues = GetVolumeValues(beatmap),
             Skills = beatmap
                 .Skills.OfType<StrainSkill>()
                 .Select(skill => new DifficultySkillData
@@ -342,6 +343,46 @@ public static class BeatmapAnalysisService
         {
             var sampleTime = index * MsPerPeak;
             values.Add(beatmap.GetTimingLine(sampleTime)?.SvMult ?? 1.0);
+        }
+
+        return values;
+    }
+
+    private static List<double> GetVolumeValues(Beatmap beatmap)
+    {
+        var timedAttributes = new LocalDifficultyCalculator().CalculateTimedAttributes(beatmap);
+
+        double finalTime;
+        if (timedAttributes.Count > 0)
+        {
+            finalTime = Math.Max(
+                timedAttributes[^1].Time,
+                beatmap.HitObjects.Count > 0
+                    ? beatmap.HitObjects.Max(hitObject => hitObject.GetEndTime())
+                    : 0
+            );
+        }
+        else
+        {
+            if (beatmap.TimingLines.Count == 0 && beatmap.HitObjects.Count == 0)
+                return [];
+
+            var timingMax = beatmap.TimingLines.Count > 0
+                ? beatmap.TimingLines.Max(timingLine => timingLine.Offset)
+                : 0;
+            var objectsMax = beatmap.HitObjects.Count > 0
+                ? beatmap.HitObjects.Max(hitObject => hitObject.GetEndTime())
+                : 0;
+            finalTime = Math.Max(timingMax, objectsMax);
+        }
+
+        var pointCount = Math.Max(1, (int)Math.Ceiling(finalTime / MsPerPeak) + 1);
+        var values = new List<double>(pointCount);
+
+        for (var index = 0; index < pointCount; index++)
+        {
+            var sampleTime = index * MsPerPeak;
+            values.Add(beatmap.GetTimingLine(sampleTime)?.Volume ?? 100.0);
         }
 
         return values;

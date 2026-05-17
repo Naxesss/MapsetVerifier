@@ -22,6 +22,8 @@ export type DifficultyModeGroup = {
   difficulties: DifficultyOverviewDifficulty[];
 };
 
+export const SAMPLE_VOLUME_CHART_TITLE = 'Sample volume';
+
 export type ChartDefinition = {
   title: string;
   durationMs: number;
@@ -33,6 +35,8 @@ export type ChartDefinition = {
   maxValue: number;
   peakTimeSeconds: number;
   valueSuffix?: string;
+  /** When set, the chart card may hide samples at or below this value (e.g. volume %). */
+  hideLowValuesThreshold?: number;
 };
 
 export function buildCharts(
@@ -58,6 +62,16 @@ export function buildCharts(
 
   if (sliderVelocitySeries.length > 0) {
     chartSeries.push(buildChartDefinition('Slider velocity', sliderVelocitySeries, msPerPeak, '×'));
+  }
+
+  const volumeSeries = difficulties
+    .map((difficulty) => buildVolumeSeries(difficulty, msPerPeak))
+    .filter((series) => series.points.length > 0);
+
+  if (volumeSeries.length > 0) {
+    chartSeries.push(
+      buildChartDefinition(SAMPLE_VOLUME_CHART_TITLE, volumeSeries, msPerPeak, '%', 5)
+    );
   }
 
   const skillSeriesMap = new Map<string, DifficultyChartSeries[]>();
@@ -122,6 +136,26 @@ function buildSliderVelocitySeries(
   };
 }
 
+function buildVolumeSeries(
+  difficulty: DifficultyOverviewDifficulty,
+  msPerPeak: number
+): DifficultyChartSeries {
+  const values = difficulty.volumeValues ?? [];
+  const points: DifficultyChartDataPoint[] = values.map((value, index) => ({
+    timeSeconds: (index * msPerPeak) / 1000,
+    value,
+  }));
+
+  return {
+    skillName: SAMPLE_VOLUME_CHART_TITLE,
+    label: difficulty.label,
+    mode: difficulty.mode,
+    difficultyLevel: difficulty.difficultyLevel,
+    starRating: difficulty.starRating,
+    points,
+  };
+}
+
 function buildSkillSeries(
   difficulty: DifficultyOverviewDifficulty,
   skillName: string,
@@ -145,7 +179,8 @@ function buildChartDefinition(
   title: string,
   series: DifficultyChartSeries[],
   msPerPeak: number,
-  valueSuffix?: string
+  valueSuffix?: string,
+  hideLowValuesThreshold?: number
 ): ChartDefinition {
   const displaySeries = series.map((item, index) => ({
     ...item,
@@ -186,6 +221,7 @@ function buildChartDefinition(
     maxValue: peakPoint?.value ?? 0,
     peakTimeSeconds: peakPoint?.timeSeconds ?? 0,
     valueSuffix,
+    ...(hideLowValuesThreshold !== undefined ? { hideLowValuesThreshold } : {}),
   };
 }
 

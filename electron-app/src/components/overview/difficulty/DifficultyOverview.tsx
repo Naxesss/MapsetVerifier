@@ -16,6 +16,7 @@ import {
   buildCharts,
   MODE_ORDER,
   normalizeMode,
+  SAMPLE_VOLUME_CHART_TITLE,
   type DifficultyModeGroup,
 } from './difficultyChartModel.ts';
 import { DifficultyGameModeSelector } from './DifficultyGameModeSelector.tsx';
@@ -89,8 +90,12 @@ function DifficultyOverview({ reloadFlag }: DifficultyOverviewProps) {
   );
   const starRatingChart = charts.find((c) => c.title === 'Star Rating');
   const sliderVelocityChart = charts.find((c) => c.title === 'Slider velocity');
+  const sampleVolumeChart = charts.find((c) => c.title === SAMPLE_VOLUME_CHART_TITLE);
   const skillCharts = charts.filter(
-    (c) => c.title !== 'Star Rating' && c.title !== 'Slider velocity'
+    (c) =>
+      c.title !== 'Star Rating' &&
+      c.title !== 'Slider velocity' &&
+      c.title !== SAMPLE_VOLUME_CHART_TITLE
   );
   const distinctSkillCount = useMemo(
     () =>
@@ -156,6 +161,7 @@ function DifficultyOverview({ reloadFlag }: DifficultyOverviewProps) {
               <>
                 {starRatingChart && <DifficultyChartCard chart={starRatingChart} />}
                 {sliderVelocityChart && <DifficultyChartCard chart={sliderVelocityChart} />}
+                {sampleVolumeChart && <DifficultyChartCard chart={sampleVolumeChart} />}
                 {skillCharts.length > 0 && (
                   <>
                     <Text fw={600} c={theme.colors.gray[2]}>
