@@ -1,13 +1,4 @@
-import {
-  Box,
-  Button,
-  Group,
-  LoadingOverlay,
-  SegmentedControl,
-  Tooltip,
-  useMantineTheme,
-} from '@mantine/core';
-import { IconRefresh } from '@tabler/icons-react';
+import { Box, Group, LoadingOverlay, SegmentedControl, useMantineTheme } from '@mantine/core';
 import { useState } from 'react';
 import AudioOverview from './audio/AudioOverview.tsx';
 import BeatmapOverview from './beatmap/BeatmapOverview.tsx';
@@ -16,6 +7,7 @@ import MetadataOverview from './metadata/MetadataOverview.tsx';
 import ObjectsOverview from './objects/ObjectsOverview.tsx';
 import { useBeatmap } from '../../context/BeatmapContext.tsx';
 import { useSettings } from '../../context/SettingsContext.tsx';
+import BeatmapActionButtons from '../checks/BeatmapActionButtons';
 import { useBeatmapBackground } from '../checks/hooks/useBeatmapBackground.ts';
 import BeatmapHeader from '../common/BeatmapHeader.tsx';
 
@@ -25,7 +17,7 @@ const TABS: Tab[] = ['Metadata', 'Objects', 'Beatmap', 'Difficulty', 'Audio'];
 
 function Overview() {
   const theme = useMantineTheme();
-  const { selectedFolder } = useBeatmap();
+  const { selectedFolder, beatmapFolderPath, beatmapInfo, refetchBeatmapInfo } = useBeatmap();
   const { settings } = useSettings();
   const { bgUrl, isLoading } = useBeatmapBackground(selectedFolder, settings.songFolder);
   const [activeTab, setActiveTab] = useState<Tab>('Metadata');
@@ -49,20 +41,14 @@ function Overview() {
       <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
       <BeatmapHeader bgUrl={bgUrl}>
         <Group gap="sm" justify="space-between" style={{ width: '100%' }}>
-          <Group gap="sm">
-            <Group
-              p="xs"
-              gap="xs"
-              bg={theme.colors.dark[8]}
-              style={{ borderRadius: theme.radius.md }}
-            >
-              <Tooltip label="Reparse the beatmap">
-                <Button size="xs" variant="default" onClick={() => setReloadFlag((f) => f + 1)}>
-                  <IconRefresh />
-                </Button>
-              </Tooltip>
-            </Group>
-          </Group>
+          <BeatmapActionButtons
+            beatmapFolderPath={beatmapFolderPath}
+            beatmapSetId={beatmapInfo?.beatmapSetId ?? undefined}
+            onReparse={async () => {
+              setReloadFlag((f) => f + 1);
+              await refetchBeatmapInfo();
+            }}
+          />
           <SegmentedControl
             value={activeTab}
             onChange={(value) => setActiveTab(value as Tab)}

@@ -5,12 +5,10 @@ import {
   useMantineTheme,
   Flex,
   LoadingOverlay,
-  Button,
   Group,
   Title,
-  Tooltip,
 } from '@mantine/core';
-import { IconAlertCircle, IconInfoCircleFilled, IconPhotoOff, IconRefresh } from '@tabler/icons-react';
+import { IconAlertCircle, IconInfoCircleFilled, IconPhotoOff } from '@tabler/icons-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useSnapshots } from './hooks/useSnapshots';
 import SnapshotContent from './SnapshotContent';
@@ -19,6 +17,7 @@ import SnapshotGameModeSelector from './SnapshotGameModeSelector';
 import { useBeatmap } from '../../context/BeatmapContext';
 import { useSettings } from '../../context/SettingsContext';
 import { ApiSnapshotDifficulty, Mode } from '../../Types';
+import BeatmapActionButtons from '../checks/BeatmapActionButtons';
 import { useBeatmapBackground } from '../checks/hooks/useBeatmapBackground';
 import BeatmapHeader from '../common/BeatmapHeader';
 import NoBeatmapsetDisplay from '../common/NoBeatmapsetDisplay.tsx';
@@ -32,7 +31,8 @@ interface ModeGroup {
 
 function Snapshots() {
   const theme = useMantineTheme();
-  const { selectedFolder: folder, refetchBeatmapInfo } = useBeatmap();
+  const { selectedFolder: folder, beatmapFolderPath, beatmapInfo, refetchBeatmapInfo } =
+    useBeatmap();
   const { settings } = useSettings();
   const [selectedDifficulty, setSelectedDifficulty] = useState<string | undefined>('General');
   const [selectedMode, setSelectedMode] = useState<Mode | undefined>();
@@ -115,24 +115,13 @@ function Snapshots() {
       <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
       <BeatmapHeader bgUrl={bgUrl}>
         <Group gap="sm">
-          <Group
-            p="xs"
-            gap="xs"
-            bg={theme.colors.dark[8]}
-            style={{ borderRadius: theme.radius.md }}
-          >
-            <Tooltip label="Reparse the beatmap">
-              <Button
-                size="xs"
-                variant="default"
-                onClick={async () => {
-                  await Promise.all([refetch(), refetchBeatmapInfo()]);
-                }}
-              >
-                <IconRefresh />
-              </Button>
-            </Tooltip>
-          </Group>
+          <BeatmapActionButtons
+            beatmapFolderPath={beatmapFolderPath}
+            beatmapSetId={beatmapInfo?.beatmapSetId ?? undefined}
+            onReparse={async () => {
+              await Promise.all([refetch(), refetchBeatmapInfo()]);
+            }}
+          />
           <SnapshotGameModeSelector
             groupedDifficulties={groupedDifficulties}
             selectedMode={selectedMode}
