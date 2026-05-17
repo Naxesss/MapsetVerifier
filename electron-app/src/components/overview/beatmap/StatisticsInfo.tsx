@@ -31,11 +31,9 @@ function SliderCell({ stats }: { stats: DifficultyStatistics }) {
 
   return (
     <Stack gap={4}>
-      {
-        <Text size="sm" fw={500}>
-          {isMania ? 'N/A' : formatCount(value)}
-        </Text>
-      }
+      <Text size="sm" fw={500}>
+        {formatCount(value)}
+      </Text>
     </Stack>
   );
 }
@@ -46,6 +44,8 @@ function StatisticsInfo({ statistics }: StatisticsInfoProps) {
   if (statistics.length === 0) {
     return null;
   }
+
+  const sliderColumnLabel = statistics.every((s) => s.mode === 'Mania') ? 'LNs' : 'Sliders';
 
   return (
     <Paper p="md" radius="md" withBorder>
@@ -64,7 +64,7 @@ function StatisticsInfo({ statistics }: StatisticsInfoProps) {
             </Table.Tr>
             <Table.Tr>
               <Table.Th>Circles</Table.Th>
-              <Table.Th>Sliders</Table.Th>
+              <Table.Th>{sliderColumnLabel}</Table.Th>
               <Table.Th>Spinners</Table.Th>
               <Table.Th>New Combos</Table.Th>
               <Table.Th>Breaks</Table.Th>
