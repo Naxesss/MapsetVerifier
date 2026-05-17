@@ -1,38 +1,9 @@
-﻿import { AppShell, Burger, Group, NavLink, useMantineTheme } from '@mantine/core';
-import { IconBook, IconCamera, IconCheck, IconHome, IconTimeline } from '@tabler/icons-react';
-import { Link, useLocation } from 'react-router-dom';
-import Beatmaps from '../beatmaps/Beatmaps.tsx';
-import SettingsButton from '../settings/SettingsButton';
-
-const navItems = [
-  {
-    to: '/',
-    icon: IconHome,
-    label: 'Home',
-  },
-  {
-    to: '/documentation',
-    icon: IconBook,
-    label: 'Documentation',
-  },
-  {
-    to: '/checks',
-    icon: IconCheck,
-    label: 'Checks',
-  },
-  {
-    to: '/snapshots',
-    icon: IconCamera,
-    label: 'Snapshots',
-    disabled: false,
-  },
-  {
-    to: '/overview',
-    icon: IconTimeline,
-    label: 'Overview',
-    disabled: false,
-  },
-];
+﻿import { AppShell, Burger, Group, useMantineTheme } from "@mantine/core";
+import { useLocation } from "react-router-dom";
+import { MainNavRail } from "./MainNavRail";
+import { getActiveNavRoute } from "./navConfig";
+import Beatmaps from "../beatmaps/Beatmaps.tsx";
+import SettingsButton from "../settings/SettingsButton";
 
 interface NavBarsProps {
   desktopOpened: boolean;
@@ -42,28 +13,7 @@ interface NavBarsProps {
 function NavBars(props: NavBarsProps) {
   const theme = useMantineTheme();
   const location = useLocation();
-  const items = navItems.map((item) => (
-    <NavLink
-      color={theme.colors.primary[2]}
-      w={'unset'}
-      to={item.to}
-      viewTransition
-      key={item.label}
-      component={Link}
-      active={
-        (location.pathname.startsWith(item.to) && item.to !== '/') ||
-        (location.pathname === item.to && item.to === '/')
-      }
-      label={item.label}
-      leftSection={<item.icon />}
-      disabled={item.disabled}
-      styles={{
-        root: {
-          borderRadius: 5,
-        },
-      }}
-    />
-  ));
+  const activeRoute = getActiveNavRoute(location.pathname);
 
   return (
     <>
@@ -73,17 +23,17 @@ function NavBars(props: NavBarsProps) {
           height: 60,
           fontFamily: theme.headings.fontFamily,
           background: theme.colors.dark[8],
-        }}
-      >
+          viewTransitionName: "app-header",
+        }}>
         <Group h={60} px="md" wrap="nowrap">
           <Burger opened={props.desktopOpened} onClick={props.toggleDesktop} size="sm" />
-          <Group gap="xs" style={{ flex: 1 }} wrap="nowrap">
-            {items}
+          <Group gap="xs" justify="space-between" align="center" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
+            <MainNavRail activeRoute={activeRoute} />
             <SettingsButton />
           </Group>
         </Group>
       </AppShell.Header>
-      <AppShell.Navbar>
+      <AppShell.Navbar style={{ viewTransitionName: "app-sidebar" }}>
         <Beatmaps />
       </AppShell.Navbar>
     </>
