@@ -6,15 +6,14 @@
   useMantineTheme,
   Stack,
   SimpleGrid,
-  Tooltip,
   Accordion,
   Box,
   Code,
 } from '@mantine/core';
-import { IconInfoCircle } from '@tabler/icons-react';
 import { DifficultyMetadata } from '../../../Types';
 import { countWord } from '../../../utils/countWord';
 import { getModeAccentColor } from '../../../utils/gameMode.ts';
+import { InfoIconTooltip } from '../../common/InfoIconTooltip.tsx';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
 
 interface MetadataInfoProps {
@@ -43,9 +42,11 @@ function MetadataInfo({ difficulties }: MetadataInfoProps) {
       <Group justify="space-between" mb="md">
         <Group gap="xs">
           <Text fw={600}>Metadata</Text>
-          <Tooltip label="Beatmap metadata information across all difficulties" multiline w={250}>
-            <IconInfoCircle size={16} style={{ color: theme.colors.gray[6], cursor: 'help' }} />
-          </Tooltip>
+          <InfoIconTooltip
+            label="Beatmap metadata information across all difficulties"
+            multiline
+            w={250}
+          />
         </Group>
         <Badge color="blue" variant="light">
           {countWord(difficulties.length, 'difficulty')}

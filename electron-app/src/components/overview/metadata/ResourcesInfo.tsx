@@ -5,14 +5,12 @@
   Paper,
   useMantineTheme,
   Stack,
-  Tooltip,
   Accordion,
   Box,
   Table,
   ThemeIcon,
 } from '@mantine/core';
 import {
-  IconInfoCircle,
   IconPhoto,
   IconVideo,
   IconMusic,
@@ -24,6 +22,7 @@ import {
 import { ResourcesInfo as ResourcesInfoType } from '../../../Types';
 import { countWord } from '../../../utils/countWord';
 import AppTable from '../../common/AppTable.tsx';
+import { InfoIconTooltip } from '../../common/InfoIconTooltip.tsx';
 
 interface ResourcesInfoProps {
   resources: ResourcesInfoType;
@@ -37,9 +36,11 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
       <Group justify="space-between" mb="md">
         <Group gap="xs">
           <Text fw={600}>Resources</Text>
-          <Tooltip label="Files and resources used by the beatmapset" multiline w={250}>
-            <IconInfoCircle size={16} style={{ color: theme.colors.gray[6], cursor: 'help' }} />
-          </Tooltip>
+          <InfoIconTooltip
+            label="Files and resources used by the beatmapset"
+            multiline
+            w={250}
+          />
         </Group>
         <Badge color="blue" variant="light">
           <Group gap={4}>

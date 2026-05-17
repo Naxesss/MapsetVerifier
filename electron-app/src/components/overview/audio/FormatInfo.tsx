@@ -11,9 +11,10 @@
   Tooltip,
   Box,
 } from '@mantine/core';
-import { IconCheck, IconX, IconAlertTriangle, IconInfoCircle } from '@tabler/icons-react';
+import { IconCheck, IconX, IconAlertTriangle } from '@tabler/icons-react';
 import BitrateProgressIndicator from './BitrateProgressIndicator.tsx';
 import { BitrateAnalysisResult, FormatAnalysisResult } from '../../../Types';
+import { InfoIconTooltip } from '../../common/InfoIconTooltip.tsx';
 
 interface FormatInfoProps {
   data: FormatAnalysisResult;
@@ -48,13 +49,11 @@ function FormatInfo({ data, audioFilePath, bitrateData }: FormatInfoProps) {
       <Group justify="space-between" mb="md">
         <Group gap="xs">
           <Text fw={600}>Format Information</Text>
-          <Tooltip
+          <InfoIconTooltip
             label="Format information describes the technical properties of an audio file that define how it is stored and played back."
             multiline
             w={250}
-          >
-            <IconInfoCircle size={16} style={{ color: theme.colors.gray[6], cursor: 'help' }} />
-          </Tooltip>
+          />
         </Group>
         <Group gap="xs">
           <Badge color={getBadgeColor(data.badgeType)} variant="light">
@@ -131,13 +130,12 @@ function FormatInfo({ data, audioFilePath, bitrateData }: FormatInfoProps) {
               <Text fw={600} size="sm">
                 Bitrate
               </Text>
-              <Tooltip
+              <InfoIconTooltip
                 label="Bitrate represents the amount of data used per second of audio. Higher bitrates generally preserve more detail but result in larger file sizes."
                 multiline
                 w={250}
-              >
-                <IconInfoCircle size={14} style={{ color: theme.colors.gray[6], cursor: 'help' }} />
-              </Tooltip>
+                iconSize={14}
+              />
             </Group>
             <Group gap="xs">
               <Badge color={bitrateData.isCompliant ? 'green' : 'red'} variant="light">

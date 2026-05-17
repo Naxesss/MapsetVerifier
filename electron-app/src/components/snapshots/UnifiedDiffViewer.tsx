@@ -1,17 +1,9 @@
-import {
-  Accordion,
-  Badge,
-  Box,
-  Group,
-  Stack,
-  Text,
-  Tooltip,
-  useMantineTheme,
-} from '@mantine/core';
-import { IconX, IconInfoCircle } from '@tabler/icons-react';
+import { Accordion, Badge, Group, Stack, Text, useMantineTheme } from '@mantine/core';
+import { IconX } from '@tabler/icons-react';
 import { MouseEvent, useEffect, useState } from 'react';
 import SnapshotDiffLine, { getDiffTypeIcon } from './SnapshotDiffLine';
 import { ApiSnapshotCommit, ApiSnapshotSection, ApiSnapshotDiff, DiffType } from '../../Types';
+import { InfoIconTooltip } from '../common/InfoIconTooltip.tsx';
 
 interface UnifiedDiffViewerProps {
   commit: ApiSnapshotCommit;
@@ -97,14 +89,7 @@ function SectionAccordion({ section }: { section: ApiSnapshotSection }) {
           {renderFilterBadge(section.additions, 'Added', 'green', 'Added')}
           {renderFilterBadge(section.removals, 'Removed', 'red', 'Removed')}
           {renderFilterBadge(section.modifications, 'Changed', 'yellow', 'Changed')}
-          <Tooltip label="Click badges to filter by diff type">
-            <Box
-              component="span"
-              style={{ display: 'inline-flex', alignItems: 'center', cursor: 'help' }}
-            >
-              <IconInfoCircle size={16} color="var(--mantine-color-gray-6)" />
-            </Box>
-          </Tooltip>
+          <InfoIconTooltip label="Click badges to filter by diff type" />
         </Group>
       </Accordion.Control>
       <Accordion.Panel>

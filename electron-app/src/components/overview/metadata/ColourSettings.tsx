@@ -1,7 +1,8 @@
 ﻿import { Text, Badge, Group, Paper, useMantineTheme, Stack, Tooltip, Box } from '@mantine/core';
-import { IconInfoCircle, IconAlertTriangle } from '@tabler/icons-react';
+import { IconAlertTriangle } from '@tabler/icons-react';
 import { DifficultyColourSettings, ComboColourInfo, ColourInfo } from '../../../Types';
 import { formatGameModeLabel } from '../../../utils/gameMode';
+import { InfoIconTooltip } from '../../common/InfoIconTooltip.tsx';
 
 interface ColourSettingsProps {
   colourSettings: DifficultyColourSettings[];
@@ -205,13 +206,11 @@ function ColourSettings({ colourSettings }: ColourSettingsProps) {
       <Group justify="space-between" mb="md">
         <Group gap="xs">
           <Text fw={600}>Colour Settings</Text>
-          <Tooltip
+          <InfoIconTooltip
             label="Combo colours and slider colours. HSP luminosity < 43 is too dark, > 250 is too bright for kiai."
             multiline
             w={280}
-          >
-            <IconInfoCircle size={16} style={{ color: theme.colors.gray[6], cursor: 'help' }} />
-          </Tooltip>
+          />
         </Group>
         {hasWarnings && (
           <Badge color="yellow" variant="light" leftSection={<IconAlertTriangle size={12} />}>

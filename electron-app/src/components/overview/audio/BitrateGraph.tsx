@@ -5,12 +5,12 @@
   Paper,
   useMantineTheme,
   Stack,
-  Tooltip,
   SimpleGrid,
 } from '@mantine/core';
-import { IconAlertTriangle, IconInfoCircle } from '@tabler/icons-react';
+import { IconAlertTriangle } from '@tabler/icons-react';
 import { useMemo } from 'react';
 import { BitrateAnalysisResult, BitrateDataPoint } from '../../../Types';
+import { InfoIconTooltip } from '../../common/InfoIconTooltip.tsx';
 import { formatChartTime } from '../../common/TimeAxis.tsx';
 
 interface BitrateGraphProps {
@@ -57,13 +57,11 @@ function BitrateGraph({ data }: BitrateGraphProps) {
         <Group justify="space-between">
           <Group gap="xs">
             <Text fw={600}>Bitrate Information</Text>
-            <Tooltip
+            <InfoIconTooltip
               label="Bitrate represents the amount of data used per second of audio. Higher bitrates generally preserve more detail but result in larger file sizes."
               multiline
               w={250}
-            >
-              <IconInfoCircle size={16} style={{ color: theme.colors.gray[6], cursor: 'help' }} />
-            </Tooltip>
+            />
           </Group>
           <Group gap="xs">
             <Badge color={data.isCompliant ? 'green' : 'red'} variant="light">

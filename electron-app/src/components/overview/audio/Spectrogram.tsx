@@ -9,11 +9,11 @@ import {
   Paper,
   Select,
   Text,
-  Tooltip,
   useMantineTheme,
 } from '@mantine/core';
-import { IconInfoCircle, IconZoomIn } from '@tabler/icons-react';
+import { IconZoomIn } from '@tabler/icons-react';
 import { useCallback, useState } from 'react';
+import { InfoIconTooltip } from '../../common/InfoIconTooltip.tsx';
 import { useSpectrogram } from './hooks/useAudioAnalysis.ts';
 import SpectrogramCanvas, { ColorScheme } from './SpectrogramCanvas.tsx';
 
@@ -124,9 +124,7 @@ function Spectrogram({ folder, songFolder }: SpectrogramProps) {
               {formatFreq(peakFreq)}
             </Text>
           </Text>
-          <Tooltip label={`Indicated by the cyan line below`}>
-            <IconInfoCircle size={16} style={{ color: theme.colors.gray[6], cursor: 'help' }} />
-          </Tooltip>
+          <InfoIconTooltip label="Indicated by the cyan line below" />
         </Group>
         <Group>
           <Text size="sm" c="dimmed">
@@ -164,13 +162,11 @@ function Spectrogram({ folder, songFolder }: SpectrogramProps) {
           <Group justify="space-between" align="center">
             <Group gap="xs">
               <Text fw={600}>Spectrogram</Text>
-              <Tooltip
+              <InfoIconTooltip
                 label={`Displays the frequency content of the audio over time. The average peak frequency is based on a magnitude threshold of ${magnitudeThreshold} dB.`}
                 multiline
                 w={250}
-              >
-                <IconInfoCircle size={16} style={{ color: theme.colors.gray[6], cursor: 'help' }} />
-              </Tooltip>
+              />
             </Group>
             <Button
               leftSection={<IconZoomIn size={16} />}

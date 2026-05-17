@@ -1,15 +1,6 @@
-import {
-  Badge,
-  Box,
-  Group,
-  Popover,
-  ScrollArea,
-  Text,
-  Tooltip,
-  UnstyledButton,
-} from '@mantine/core';
-import { IconInfoCircle } from '@tabler/icons-react';
+import { Badge, Group, Popover, ScrollArea, Text, UnstyledButton } from '@mantine/core';
 import { type ReactNode, useMemo, useState } from 'react';
+import { InfoIconTooltip } from '../../../common/InfoIconTooltip.tsx';
 import OsuLink from '../../../common/OsuLink.tsx';
 import { formatEditorTimestamp, lookupEdgePartName } from '../timelineUtils.ts';
 
@@ -166,14 +157,7 @@ export function EdgeTimesPopover({
             <Text size="xs" c="dimmed" fw={700} component="span">
               {difficultyVersion}
             </Text>
-            <Tooltip label={BADGE_FILTER_TOOLTIP_LABEL}>
-              <Box
-                component="span"
-                style={{ display: 'inline-flex', alignItems: 'center', cursor: 'help' }}
-              >
-                <IconInfoCircle size={14} color="var(--mantine-color-gray-6)" />
-              </Box>
-            </Tooltip>
+            <InfoIconTooltip label={BADGE_FILTER_TOOLTIP_LABEL} iconSize={14} />
           </Group>
         </Group>
         {typeBadges.length > 0 ? (
