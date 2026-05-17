@@ -3,7 +3,7 @@ import { MAX_TIMELINE_WIDTH, MIN_TIMELINE_WIDTH } from '../constants.ts';
 import { clampZoom, formatZoom, getTimelineIntervalMs, getZoomStep } from '../timelineUtils.ts';
 
 export function useTimelineZoom(durationMs: number) {
-  const [zoom, setZoom] = useState(8.0);
+  const [zoom, setZoom] = useState(9.0);
 
   const tickIntervalMs = useMemo(() => getTimelineIntervalMs(durationMs, zoom), [durationMs, zoom]);
   const timelineWidth = useMemo(
