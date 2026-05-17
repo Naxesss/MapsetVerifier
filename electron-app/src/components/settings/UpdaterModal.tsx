@@ -78,6 +78,7 @@ const UpdaterModal: React.FC = () => {
   return (
     <Modal
       zIndex={400}
+      size="lg"
       opened={opened}
       onClose={busy ? () => undefined : closeUpdater}
       title="Application updates"
@@ -93,10 +94,10 @@ const UpdaterModal: React.FC = () => {
         },
         body: {
           flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
           minHeight: 0,
           overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
         },
       }}
     >
@@ -104,98 +105,96 @@ const UpdaterModal: React.FC = () => {
         gap="md"
         style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
       >
-        <Box style={{ flex: 1, minHeight: 0, minWidth: 0 }}>
-          <ScrollArea h="100%" type="auto" offsetScrollbars>
-            <Stack gap="md" pr="xs">
-              {status === 'checking' && (
-                <Flex direction="column" align="center" gap="md">
-                  <Loader
-                    size="lg"
-                    style={{
-                      opacity: 0.22,
-                      color: 'var(--mantine-color-primary-2)',
-                      userSelect: 'none',
-                      pointerEvents: 'none',
-                    }}
-                  />
-                  <Text fw={600} mb="sm">
-                    Checking GitHub Releases for a newer version…
-                  </Text>
-                </Flex>
-              )}
+        {status === 'checking' && (
+          <Flex direction="column" align="center" gap="md">
+            <Loader
+              size="lg"
+              style={{
+                opacity: 0.22,
+                color: 'var(--mantine-color-primary-2)',
+                userSelect: 'none',
+                pointerEvents: 'none',
+              }}
+            />
+            <Text fw={600} mb="sm">
+              Checking GitHub Releases for a newer version…
+            </Text>
+          </Flex>
+        )}
 
-              {status === 'up-to-date' && (
-                <Alert icon={<IconCircleCheck />} color="green" title={upToDateTitle}>
-                  {upToDateMessage}
-                </Alert>
-              )}
+        {status === 'up-to-date' && (
+          <Alert icon={<IconCircleCheck />} color="green" title={upToDateTitle}>
+            {upToDateMessage}
+          </Alert>
+        )}
 
-              {(status === 'available' || status === 'downloading' || status === 'installing') &&
-                availableUpdate && (
-                  <Alert
-                    icon={<IconCloudDownload />}
-                    color="blue"
-                    title={availableTitle}
-                  >
-                    {status === 'available'
-                      ? 'A new version is available. Would you like to update now?'
-                      : 'The update package is being downloaded and installed.'}
-                  </Alert>
-                )}
+        {(status === 'available' || status === 'downloading' || status === 'installing') &&
+          availableUpdate && (
+            <Alert icon={<IconCloudDownload />} color="blue" title={availableTitle}>
+              {status === 'available'
+                ? 'A new version is available. Would you like to update now?'
+                : 'The update package is being downloaded and installed.'}
+            </Alert>
+          )}
 
-              {status === 'installed' && (
-                <Alert
-                  icon={<IconCircleCheck />}
-                  color="green"
-                  title={`Update ${completedVersion ?? 'installed'}`}
-                >
-                  The update has been installed. On Windows, the app may close automatically while
-                  the installer finishes.
-                </Alert>
-              )}
+        {status === 'installed' && (
+          <Alert
+            icon={<IconCircleCheck />}
+            color="green"
+            title={`Update ${completedVersion ?? 'installed'}`}
+          >
+            The update has been installed. On Windows, the app may close automatically while the
+            installer finishes.
+          </Alert>
+        )}
 
-              {status === 'error' && errorMessage && (
-                <Alert icon={<IconAlertCircle />} color="red" title="Updater error">
-                  {errorMessage}
-                </Alert>
-              )}
+        {status === 'error' && errorMessage && (
+          <Alert icon={<IconAlertCircle />} color="red" title="Updater error">
+            {errorMessage}
+          </Alert>
+        )}
 
-              {availableUpdate && (
-                <Stack gap="xs">
-                  <Text fw={500}>Release details</Text>
-                  <Text size="sm">Target version: {availableUpdate.version}</Text>
-                  {availableUpdate.date && (
-                    <Text size="sm" c="dimmed">
-                      Published: {new Date(availableUpdate.date).toLocaleString()}
-                    </Text>
-                  )}
-                  {updateNotes && (
-                    <>
-                      <Divider my="xs" />
-                      <MantineMarkdown>{releaseNotesMarkdown}</MantineMarkdown>
-                    </>
-                  )}
-                </Stack>
-              )}
+        {availableUpdate && (
+          <Stack gap="xs" style={{ flexShrink: 0 }}>
+            <Text fw={500}>Release details</Text>
+            <Text size="sm">Target version: {availableUpdate.version}</Text>
+            {availableUpdate.date && (
+              <Text size="sm" c="dimmed">
+                Published: {new Date(availableUpdate.date).toLocaleString()}
+              </Text>
+            )}
+          </Stack>
+        )}
 
-              {(status === 'downloading' || status === 'installing') && (
-                <Stack gap="xs">
-                  <Progress value={progress} animated={status !== 'installing'} />
-                  <Group justify="space-between">
-                    <Text size="sm">
-                      {status === 'installing' ? 'Installing update…' : 'Downloading update…'}
-                    </Text>
-                    <Text size="sm" c="dimmed">
-                      {formatBytes(downloadedBytes)} / {formatBytes(totalBytes)}
-                    </Text>
-                  </Group>
-                </Stack>
-              )}
-            </Stack>
-          </ScrollArea>
-        </Box>
+        {availableUpdate && updateNotes && (
+          <>
+            <Divider my="xs" style={{ flexShrink: 0 }} />
+            <Text size="sm" fw={500} style={{ flexShrink: 0 }}>
+              Changelog
+            </Text>
+            <ScrollArea.Autosize mah={420} offsetScrollbars type="auto" style={{ width: '100%' }}>
+              <Box pr="xs">
+                <MantineMarkdown>{releaseNotesMarkdown}</MantineMarkdown>
+              </Box>
+            </ScrollArea.Autosize>
+          </>
+        )}
 
-        <Group justify="flex-end" style={{ flexShrink: 0 }}>
+        {(status === 'downloading' || status === 'installing') && (
+          <Stack gap="xs">
+            <Progress value={progress} animated={status !== 'installing'} />
+            <Group justify="space-between">
+              <Text size="sm">
+                {status === 'installing' ? 'Installing update…' : 'Downloading update…'}
+              </Text>
+              <Text size="sm" c="dimmed">
+                {formatBytes(downloadedBytes)} / {formatBytes(totalBytes)}
+              </Text>
+            </Group>
+          </Stack>
+        )}
+
+        <Group justify="flex-end" mt="auto" style={{ flexShrink: 0 }}>
           {(status === 'up-to-date' || status === 'error' || status === 'installed') && (
             <Button
               variant="light"
