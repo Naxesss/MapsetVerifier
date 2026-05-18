@@ -1,6 +1,6 @@
 ﻿import { Alert, Box, Flex, LoadingOverlay, SimpleGrid, Text } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import ObjectsTimelineComparison from './components/ObjectsTimelineComparison.tsx';
 import SnappingsOverview from './components/SnappingsOverview.tsx';
 import { useObjectsAnalysis } from './hooks/useObjectsAnalysis.ts';
@@ -15,21 +15,13 @@ import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 import { SummaryCard } from '../difficulty/DifficultySummaryCards.tsx';
 import type { ObjectsModeGroup } from './types.ts';
 
-interface ObjectsOverviewProps {
-  reloadFlag: number;
-}
-
-function ObjectsOverview({ reloadFlag }: ObjectsOverviewProps) {
+function ObjectsOverview() {
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
-  const { data, isLoading, isError, error, refetch } = useObjectsAnalysis({
+  const { data, isLoading, isError, error } = useObjectsAnalysis({
     folder,
     songFolder: settings.songFolder,
   });
-
-  useEffect(() => {
-    refetch();
-  }, [reloadFlag]);
 
   const groupedDifficulties = useMemo<ObjectsModeGroup[]>(() => {
     if (!data?.success) return [];

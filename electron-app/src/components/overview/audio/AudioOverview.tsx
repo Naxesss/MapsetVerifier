@@ -1,6 +1,5 @@
 ﻿import { Alert, Text, Box, Flex, LoadingOverlay, Stack, SimpleGrid } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle, IconRulerMeasure } from '@tabler/icons-react';
-import { useEffect } from 'react';
 import ChannelBalance from './ChannelBalance';
 import DynamicRange from './DynamicRange';
 import FormatInfo from './FormatInfo';
@@ -12,11 +11,7 @@ import { useSettings } from '../../../context/SettingsContext.tsx';
 import NoBeatmapsetDisplay from '../../common/NoBeatmapsetDisplay.tsx';
 import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 
-interface AudioOverviewProps {
-  reloadFlag: number;
-}
-
-function AudioOverview({ reloadFlag }: AudioOverviewProps) {
+function AudioOverview() {
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
 
@@ -25,7 +20,6 @@ function AudioOverview({ reloadFlag }: AudioOverviewProps) {
     isLoading,
     isError,
     error,
-    refetch: audioRefetch,
   } = useAudioAnalysis({
     folder,
     songFolder: settings.songFolder,
@@ -34,16 +28,10 @@ function AudioOverview({ reloadFlag }: AudioOverviewProps) {
   const {
     data: frequencyData,
     isLoading: frequencyLoading,
-    refetch: frequencyRefetch,
   } = useFrequencyAnalysis({
     folder,
     songFolder: settings.songFolder,
   });
-
-  useEffect(() => {
-    audioRefetch();
-    frequencyRefetch();
-  }, [reloadFlag]);
 
   if (!folder) {
     return <NoBeatmapsetDisplay />;

@@ -29,7 +29,7 @@ import StackTraceMessage from '../common/StackTraceMessage.tsx';
 
 function Checks() {
   const theme = useMantineTheme();
-  const { selectedFolder: folder, beatmapInfo, refetchBeatmapInfo } = useBeatmap();
+  const { selectedFolder: folder, beatmapInfo } = useBeatmap();
   const { triggerReparse } = useBeatmapReparse();
   const { settings } = useSettings();
   const [selectedCategory, setSelectedCategory] = React.useState<string | undefined>('General');
@@ -51,7 +51,7 @@ function Checks() {
     }
   }, [folder]);
 
-  const { data, isLoading, isError, error, beatmapFolderPath, refetch } = useBeatmapChecks({
+  const { data, isLoading, isError, error, beatmapFolderPath } = useBeatmapChecks({
     folder,
     songFolder: settings.songFolder,
   });
@@ -68,13 +68,11 @@ function Checks() {
     reset: resetOverrides,
   } = useDifficultyOverride({ beatmapFolderPath });
 
-  const reparseChecks = useCallback(async () => {
-    if (!beatmapFolderPath) return 'skipped';
-    resetOverrides();
-    await Promise.all([refetch(), refetchBeatmapInfo()]);
-  }, [beatmapFolderPath, refetch, refetchBeatmapInfo, resetOverrides]);
-
-  useRegisterBeatmapReparse(reparseChecks);
+  useRegisterBeatmapReparse(
+    useCallback(() => {
+      resetOverrides();
+    }, [resetOverrides]),
+  );
 
   const selectedDifficulty = data?.difficulties?.find((d) => d.category === selectedCategory);
   const displayedDifficulty = data?.difficulties?.find((d) => d.category === displayedCategory);

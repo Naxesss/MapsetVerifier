@@ -1,6 +1,5 @@
 ﻿import { Alert, Text, Box, Flex, LoadingOverlay, SimpleGrid } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
-import { useEffect } from 'react';
 import ColourSettings from './ColourSettings';
 import { useMetadataAnalysis } from './hooks/useMetadataAnalysis';
 import MetadataInfo from './MetadataInfo';
@@ -10,22 +9,14 @@ import { useSettings } from '../../../context/SettingsContext';
 import NoBeatmapsetDisplay from '../../common/NoBeatmapsetDisplay.tsx';
 import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 
-interface MetadataOverviewProps {
-  reloadFlag: number;
-}
-
-function MetadataOverview({ reloadFlag }: MetadataOverviewProps) {
+function MetadataOverview() {
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
 
-  const { data, isLoading, isError, error, refetch } = useMetadataAnalysis({
+  const { data, isLoading, isError, error } = useMetadataAnalysis({
     folder,
     songFolder: settings.songFolder,
   });
-
-  useEffect(() => {
-    refetch();
-  }, [reloadFlag]);
 
   if (!folder) {
     return <NoBeatmapsetDisplay />;

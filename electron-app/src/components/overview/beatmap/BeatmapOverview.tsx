@@ -1,6 +1,5 @@
 ﻿import { Alert, Text, Box, Flex, LoadingOverlay } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
-import { useEffect } from 'react';
 import DifficultySettingsInfo from './DifficultySettingsInfo';
 import GeneralSettingsInfo from './GeneralSettingsInfo';
 import { useBeatmapAnalysis } from './hooks/useBeatmapAnalysis';
@@ -10,22 +9,14 @@ import { useSettings } from '../../../context/SettingsContext';
 import NoBeatmapsetDisplay from '../../common/NoBeatmapsetDisplay.tsx';
 import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 
-interface BeatmapOverviewProps {
-  reloadFlag: number;
-}
-
-function BeatmapOverview({ reloadFlag }: BeatmapOverviewProps) {
+function BeatmapOverview() {
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
 
-  const { data, isLoading, isError, error, refetch } = useBeatmapAnalysis({
+  const { data, isLoading, isError, error } = useBeatmapAnalysis({
     folder,
     songFolder: settings.songFolder,
   });
-
-  useEffect(() => {
-    refetch();
-  }, [reloadFlag]);
 
   if (!folder) {
     return <NoBeatmapsetDisplay />;

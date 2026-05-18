@@ -1,13 +1,15 @@
 import { useHotkeys, type HotkeyItem } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { IconCheck } from '@tabler/icons-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { useBeatmap } from './BeatmapContext.tsx';
 
-type ReparseHandler = () => Promise<void | 'skipped'>;
+/** Runs before all beatmap-scoped queries are invalidated (e.g. clear checks override state). */
+export type BeatmapRefreshSideEffect = () => void | Promise<void>;
 
 interface BeatmapReparseContextValue {
-  registerReparse: (handler: ReparseHandler) => () => void;
+  registerReparse: (handler: BeatmapRefreshSideEffect) => () => void;
   triggerReparse: () => Promise<void>;
 }
 
@@ -15,21 +17,24 @@ const BeatmapReparseContext = createContext<BeatmapReparseContextValue | null>(n
 
 const REPARSE_TOAST_ID = 'beatmap-reparse-result';
 
-export function BeatmapReparseProvider({ children }: { children: ReactNode }) {
-  const { beatmapFolderPath, refetchBeatmapInfo } = useBeatmap();
-  const handlerRef = useRef<ReparseHandler | null>(null);
+function queryKeyMatchesBeatmapFolderPath(queryKey: unknown, beatmapFolderPath: string): boolean {
+  return Array.isArray(queryKey) && queryKey.length >= 2 && queryKey[1] === beatmapFolderPath;
+}
 
-  const registerReparse = useCallback((handler: ReparseHandler) => {
-    handlerRef.current = handler;
+export function BeatmapReparseProvider({ children }: { children: ReactNode }) {
+  const { beatmapFolderPath } = useBeatmap();
+  const queryClient = useQueryClient();
+  const sideEffectHandlersRef = useRef(new Set<BeatmapRefreshSideEffect>());
+
+  const registerReparse = useCallback((handler: BeatmapRefreshSideEffect) => {
+    sideEffectHandlersRef.current.add(handler);
     return () => {
-      if (handlerRef.current === handler) {
-        handlerRef.current = null;
-      }
+      sideEffectHandlersRef.current.delete(handler);
     };
   }, []);
 
   const triggerReparse = useCallback(async () => {
-    if (!handlerRef.current && !beatmapFolderPath) {
+    if (!beatmapFolderPath) {
       return;
     }
 
@@ -44,21 +49,13 @@ export function BeatmapReparseProvider({ children }: { children: ReactNode }) {
     });
 
     try {
-      let didWork = false;
-      if (handlerRef.current) {
-        const result = await handlerRef.current();
-        if (result !== 'skipped') {
-          didWork = true;
-        }
-      } else {
-        await refetchBeatmapInfo();
-        didWork = true;
-      }
+      const sideEffects = [...sideEffectHandlersRef.current];
+      await Promise.all(sideEffects.map((fn) => Promise.resolve(fn())));
 
-      if (!didWork) {
-        notifications.hide(REPARSE_TOAST_ID);
-        return;
-      }
+      await queryClient.invalidateQueries({
+        predicate: (query) => queryKeyMatchesBeatmapFolderPath(query.queryKey, beatmapFolderPath),
+        refetchType: 'all',
+      });
 
       notifications.update({
         id: REPARSE_TOAST_ID,
@@ -81,7 +78,7 @@ export function BeatmapReparseProvider({ children }: { children: ReactNode }) {
         withCloseButton: true,
       });
     }
-  }, [beatmapFolderPath, refetchBeatmapInfo]);
+  }, [beatmapFolderPath, queryClient]);
 
   const f5Hotkeys = useMemo<HotkeyItem[]>(
     () => [['F5', () => void triggerReparse(), { preventDefault: true }]],
@@ -107,7 +104,7 @@ export function useBeatmapReparse() {
   return ctx;
 }
 
-export function useRegisterBeatmapReparse(handler: ReparseHandler) {
+export function useRegisterBeatmapReparse(handler: BeatmapRefreshSideEffect) {
   const { registerReparse } = useBeatmapReparse();
   useEffect(() => registerReparse(handler), [handler, registerReparse]);
 }

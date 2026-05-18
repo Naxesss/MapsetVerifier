@@ -9,13 +9,13 @@ import {
   Title,
 } from '@mantine/core';
 import { IconAlertCircle, IconInfoCircleFilled, IconPhotoOff } from '@tabler/icons-react';
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSnapshots } from './hooks/useSnapshots';
 import SnapshotContent from './SnapshotContent';
 import SnapshotDifficultySelector from './SnapshotDifficultySelector';
 import SnapshotGameModeSelector from './SnapshotGameModeSelector';
 import { useBeatmap } from '../../context/BeatmapContext';
-import { useBeatmapReparse, useRegisterBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
+import { useBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
 import { useSettings } from '../../context/SettingsContext';
 import { ApiSnapshotDifficulty, Mode } from '../../Types';
 import BeatmapActionButtons from '../checks/BeatmapActionButtons';
@@ -32,8 +32,7 @@ interface ModeGroup {
 
 function Snapshots() {
   const theme = useMantineTheme();
-  const { selectedFolder: folder, beatmapFolderPath, beatmapInfo, refetchBeatmapInfo } =
-    useBeatmap();
+  const { selectedFolder: folder, beatmapFolderPath, beatmapInfo } = useBeatmap();
   const { triggerReparse } = useBeatmapReparse();
   const { settings } = useSettings();
   const [selectedDifficulty, setSelectedDifficulty] = useState<string | undefined>('General');
@@ -46,7 +45,7 @@ function Snapshots() {
     }
   }, [folder]);
 
-  const { data, isLoading, isError, error, refetch } = useSnapshots({
+  const { data, isLoading, isError, error } = useSnapshots({
     folder,
     songFolder: settings.songFolder,
   });
@@ -94,12 +93,6 @@ function Snapshots() {
     if (!data || selectedDifficulty === 'General') return undefined;
     return data.difficulties.find((d) => d.name === selectedDifficulty);
   }, [data, selectedDifficulty]);
-
-  const reparseSnapshots = useCallback(async () => {
-    await Promise.all([refetch(), refetchBeatmapInfo()]);
-  }, [refetch, refetchBeatmapInfo]);
-
-  useRegisterBeatmapReparse(reparseSnapshots);
 
   if (!folder) {
     return <NoBeatmapsetDisplay />;

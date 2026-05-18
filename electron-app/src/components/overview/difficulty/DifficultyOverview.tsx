@@ -28,23 +28,15 @@ import NoBeatmapsetDisplay from '../../common/NoBeatmapsetDisplay.tsx';
 import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 import type { DifficultyOverviewDifficulty, Mode } from '../../../Types';
 
-interface DifficultyOverviewProps {
-  reloadFlag: number;
-}
-
-function DifficultyOverview({ reloadFlag }: DifficultyOverviewProps) {
+function DifficultyOverview() {
   const theme = useMantineTheme();
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
   const [selectedMode, setSelectedMode] = useState<Mode | undefined>();
-  const { data, isLoading, isError, error, refetch } = useDifficultyOverview({
+  const { data, isLoading, isError, error } = useDifficultyOverview({
     folder,
     songFolder: settings.songFolder,
   });
-
-  useEffect(() => {
-    refetch();
-  }, [reloadFlag]);
 
   const groupedDifficulties = useMemo<DifficultyModeGroup[]>(() => {
     if (!data?.success) {
