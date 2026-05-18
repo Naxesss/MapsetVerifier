@@ -41,7 +41,10 @@ namespace MapsetVerifier.Parser.Objects
         ///     Resets overrides, assigns one beatmap an interpreted difficulty, and re-sorts <see cref="Beatmaps" />
         ///     so spread / set checks see consistent ordering.
         /// </summary>
-        public void ApplyInterpretedDifficultyOverride(Beatmap beatmap, Beatmap.Difficulty difficulty)
+        public void ApplyInterpretedDifficultyOverride(
+            Beatmap beatmap,
+            Beatmap.Difficulty difficulty
+        )
         {
             ClearInterpretedDifficultyOverrides();
             beatmap.InterpretedDifficultyOverride = difficulty;

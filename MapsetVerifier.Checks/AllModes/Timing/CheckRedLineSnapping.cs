@@ -101,7 +101,8 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             );
         }
 
-        private static double GetLookaheadMs(UninheritedLine line) => Math.Max(50, line.msPerBeat / 8);
+        private static double GetLookaheadMs(UninheritedLine line) =>
+            Math.Max(50, line.msPerBeat / 8);
 
         private static UninheritedLine? GetNextRedLineAfter(Beatmap beatmap, double time)
         {

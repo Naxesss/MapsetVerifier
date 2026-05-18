@@ -52,7 +52,8 @@ public class InterpretedDifficultyOverrideTests
             Assert.NotEmpty(issuesOverridden);
             Assert.Contains(
                 issuesOverridden,
-                i => i.message.Contains("Chords should not have more than", StringComparison.Ordinal)
+                i =>
+                    i.message.Contains("Chords should not have more than", StringComparison.Ordinal)
             );
         }
         finally
@@ -74,19 +75,12 @@ public class InterpretedDifficultyOverrideTests
                     "easy.osu",
                     BuildStandardOsu(
                         version: "Easy",
-                        hitObjects:
-                        [
-                            "100,100,0,1,0,0:0:0:0:",
-                            "250,100,100,1,0,0:0:0:0:",
-                        ]
+                        hitObjects: ["100,100,0,1,0,0:0:0:0:", "250,100,100,1,0,0:0:0:0:"]
                     )
                 ),
                 (
                     "normal.osu",
-                    BuildStandardOsu(
-                        version: "Normal",
-                        hitObjects: ["300,100,0,1,0,0:0:0:0:"]
-                    )
+                    BuildStandardOsu(version: "Normal", hitObjects: ["300,100,0,1,0,0:0:0:0:"])
                 ),
             ],
             extraFiles: ["a.mp3"]

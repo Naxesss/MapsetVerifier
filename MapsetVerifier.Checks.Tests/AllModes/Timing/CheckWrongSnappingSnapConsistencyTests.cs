@@ -19,6 +19,9 @@ public class CheckWrongSnappingSnapConsistencyTests
         bool expectedMinor
     )
     {
-        Assert.Equal(expectedMinor, CheckWrongSnapping.IsMinorSnapInconsistency(divisorThis, divisorOther));
+        Assert.Equal(
+            expectedMinor,
+            CheckWrongSnapping.IsMinorSnapInconsistency(divisorThis, divisorOther)
+        );
     }
 }

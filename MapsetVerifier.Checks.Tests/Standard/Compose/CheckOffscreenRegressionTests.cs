@@ -103,7 +103,10 @@ public class CheckOffscreenRegressionTests
             .Where(issue => issue.level == Issue.Level.Problem)
             .ToList();
 
-        Assert.All(issues, issue => Assert.Contains("00:53:942", issue.message, StringComparison.Ordinal));
+        Assert.All(
+            issues,
+            issue => Assert.Contains("00:53:942", issue.message, StringComparison.Ordinal)
+        );
     }
 
     private static string BuildOsu(IEnumerable<string> hitObjects) =>

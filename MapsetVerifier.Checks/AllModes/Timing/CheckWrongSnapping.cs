@@ -456,7 +456,10 @@ namespace MapsetVerifier.Checks.AllModes.Timing
 
         internal static bool IsMinorSnapInconsistency(int divisorThis, int divisorOther)
         {
-            if (PowerOfTwoSnapGroup.Contains(divisorThis) && PowerOfTwoSnapGroup.Contains(divisorOther))
+            if (
+                PowerOfTwoSnapGroup.Contains(divisorThis)
+                && PowerOfTwoSnapGroup.Contains(divisorOther)
+            )
                 return true;
 
             if (TripleSnapGroup.Contains(divisorThis) && TripleSnapGroup.Contains(divisorOther))

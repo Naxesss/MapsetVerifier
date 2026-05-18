@@ -22,7 +22,10 @@ public class SliderBezierPathRegressionTests
         Assert.True(slider.RedAnchorPositions.Count >= 3);
         Assert.True(slider.PathPxPositions.Count > 10);
         Assert.NotEqual(slider.Position, slider.PathPxPositions[^1]);
-        Assert.NotEqual(slider.Position, slider.GetPathPosition(slider.time + slider.GetCurveDuration() / 2));
+        Assert.NotEqual(
+            slider.Position,
+            slider.GetPathPosition(slider.time + slider.GetCurveDuration() / 2)
+        );
     }
 
     [Fact]
