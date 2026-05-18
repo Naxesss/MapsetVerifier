@@ -10,6 +10,7 @@
   Box,
   Code,
 } from '@mantine/core';
+import TagsDiffDisplay from './TagsDiffDisplay.tsx';
 import { DifficultyMetadata } from '../../../Types';
 import { countWord } from '../../../utils/countWord';
 import { getModeAccentColor } from '../../../utils/gameMode.ts';
@@ -192,20 +193,7 @@ function MetadataInfo({ difficulties }: MetadataInfoProps) {
               {first.tags || '(none)'}
             </Code>
           ) : (
-            <Accordion variant="contained" radius="sm">
-              {difficulties.map((d, idx) => (
-                <Accordion.Item key={idx} value={d.version}>
-                  <Accordion.Control>
-                    <Text size="sm">{d.version}</Text>
-                  </Accordion.Control>
-                  <Accordion.Panel>
-                    <Code block fz="sm" style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
-                      {d.tags || '(none)'}
-                    </Code>
-                  </Accordion.Panel>
-                </Accordion.Item>
-              ))}
-            </Accordion>
+            <TagsDiffDisplay difficulties={difficulties} />
           )}
         </Box>
 
