@@ -5,6 +5,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="MapsetVerifier.Checks.Tests" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\MapsetVerifier.Framework\MapsetVerifier.Framework.csproj" />
     <ProjectReference Include="..\MapsetVerifier.Parser\MapsetVerifier.Parser.csproj" />
     <ProjectReference Include="..\MapsetVerifier.Logging\MapsetVerifier.Logging.csproj" />
