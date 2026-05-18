@@ -894,10 +894,14 @@ namespace MapsetVerifier.Parser.Objects
                     * countdownMultiplier;
         }
 
-        /// <summary> Returns how many ms into a beat the given time is. </summary>
-        public double GetOffsetIntoBeat(double time)
+        /// <summary>
+        ///     Returns how many ms into a beat the given time is. When <paramref name="line" /> is omitted, uses the
+        ///     uninherited line active at <paramref name="time" />.
+        /// </summary>
+        public double GetOffsetIntoBeat(double time, UninheritedLine? line = null)
         {
-            var line = GetTimingLine<UninheritedLine>(time);
+            // Only assigns if line is not already provided
+            line ??= GetTimingLine<UninheritedLine>(time);
             if (line == null)
             {
                 throw new Exception($"No uninherited line found at {time}.");
@@ -965,7 +969,7 @@ namespace MapsetVerifier.Parser.Objects
                 throw new Exception($"No uninherited line found at {time}.");
             }
 
-            var beatOffset = GetOffsetIntoBeat(time);
+            var beatOffset = GetOffsetIntoBeat(time, line);
             var currentFraction = beatOffset / line.msPerBeat;
 
             var desiredFraction = Math.Round(currentFraction * divisor) / divisor;
@@ -973,6 +977,32 @@ namespace MapsetVerifier.Parser.Objects
             var theoreticalUnsnap = differenceFraction * line.msPerBeat;
 
             return theoreticalUnsnap;
+        }
+
+        /// <summary>
+        ///     Returns the unsnap accounting for the way the game rounds, relative to the supplied uninherited line.
+        /// </summary>
+        public double GetPracticalUnsnap(double time, UninheritedLine line)
+        {
+            double[] practicalUnsnaps =
+            [
+                GetPracticalUnsnap(time, 16, line),
+                GetPracticalUnsnap(time, 12, line),
+                GetPracticalUnsnap(time, 9, line),
+                GetPracticalUnsnap(time, 7, line),
+                GetPracticalUnsnap(time, 5, line),
+            ];
+
+            if (practicalUnsnaps.Any(double.IsNaN))
+            {
+                throw new InvalidBeatmapDataException(
+                    $"Beatmap contains NaN timing values at time {time}. This indicates corrupted or intentionally invalid timing data."
+                );
+            }
+
+            var minUnsnap = practicalUnsnaps.Min(Math.Abs);
+
+            return practicalUnsnaps.First(unsnap => Math.Abs(unsnap).AlmostEqual(minUnsnap));
         }
 
         /// <summary>
