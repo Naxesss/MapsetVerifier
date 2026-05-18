@@ -29,6 +29,25 @@ public class SliderBezierPathRegressionTests
     }
 
     [Fact]
+    public void Bezier_EndStopsAtPixelLengthNotLastControlPoint()
+    {
+        var beatmap = ParseBeatmap(
+            circleSize: 5,
+            sliderMultiplier: 2,
+            timingPoints: ["476,405.405405405405,4,2,1,35,1,0"],
+            hitObjects:
+            [
+                "405,347,133854,6,0,B|433:311|371:274|292:289|281:429,1,200,2|0,3:2|0:0,0:0:0:0:",
+            ]
+        );
+        var slider = Assert.IsType<Slider>(beatmap.HitObjects[0]);
+
+        Assert.Equal(200, slider.PixelLength, precision: 0);
+        Assert.NotEqual(slider.NodePositions[^1], slider.EndPosition);
+        Assert.True(slider.EndPosition.Y < slider.NodePositions[^1].Y);
+    }
+
+    [Fact]
     public void SimpleBezier_SamplesAlongCurve()
     {
         var beatmap = ParseBeatmap(
@@ -53,7 +72,12 @@ public class SliderBezierPathRegressionTests
         Assert.Equal(slider.EndPosition, slider.PathPxPositions[^1]);
     }
 
-    private static Beatmap ParseBeatmap(IEnumerable<string> hitObjects)
+    private static Beatmap ParseBeatmap(
+        IEnumerable<string> hitObjects,
+        float circleSize = 4,
+        double sliderMultiplier = 1.4,
+        IEnumerable<string>? timingPoints = null
+    )
     {
         var rootPath = Path.Combine(
             Path.GetTempPath(),
@@ -78,15 +102,15 @@ public class SliderBezierPathRegressionTests
                     "Creator:Tests",
                     "Version:Test",
                     "[Difficulty]",
-                    "CircleSize:4",
+                    $"CircleSize:{circleSize.ToString(System.Globalization.CultureInfo.InvariantCulture)}",
                     "HPDrainRate:5",
                     "OverallDifficulty:5",
                     "ApproachRate:5",
-                    "SliderMultiplier:1.4",
+                    $"SliderMultiplier:{sliderMultiplier.ToString(System.Globalization.CultureInfo.InvariantCulture)}",
                     "SliderTickRate:1",
                     "[Events]",
                     "[TimingPoints]",
-                    "0,500,4,2,0,100,1,0",
+                    string.Join('\n', timingPoints ?? ["0,500,4,2,0,100,1,0"]),
                     "[HitObjects]",
                     string.Join('\n', hitObjects)
                 )

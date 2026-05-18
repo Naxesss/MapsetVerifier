@@ -754,10 +754,14 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
                 }
 
                 if (totalLength <= fullLength)
+                {
                     totalLength += curvePixelLength;
 
-                // Always record segment endpoints so micro-segments still form a complete path.
-                AddBezierPointIfDistinct(tempBezierPoints, segmentEnd);
+                    // Record the segment end only while still within the declared pixel length.
+                    // Multi-point segments can extend past the playable end; their last control point
+                    // must not be forced onto the path (avoids false tails on long beziers).
+                    AddBezierPointIfDistinct(tempBezierPoints, segmentEnd);
+                }
             }
 
             return tempBezierPoints;

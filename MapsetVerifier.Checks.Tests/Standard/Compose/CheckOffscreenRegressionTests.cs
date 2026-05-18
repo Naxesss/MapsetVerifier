@@ -73,6 +73,36 @@ public class CheckOffscreenRegressionTests
     }
 
     [Fact]
+    public void DoesNotFlagBezierWhenPlayableEndIsBeforeLastControlPoint()
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles([
+            (
+                "test.osu",
+                BuildOsu(
+                    circleSize: 5,
+                    sliderMultiplier: 2,
+                    timingPoints: ["476,405.405405405405,4,2,1,35,1,0"],
+                    hitObjects:
+                    [
+                        "405,347,133854,6,0,B|433:311|371:274|292:289|281:429,1,200,2|0,3:2|0:0,0:0:0:0:",
+                    ]
+                )
+            ),
+        ]);
+
+        var slider = Assert.IsType<Slider>(context.GetBeatmap("Test").HitObjects[0]);
+
+        Assert.True(slider.EndPosition.Y < 396);
+
+        var issues = context
+            .RunBeatmapCheck<CheckOffscreen>("Test")
+            .Where(issue => issue.level == Issue.Level.Problem)
+            .ToList();
+
+        Assert.Empty(issues);
+    }
+
+    [Fact]
     public void DenseBezierFixture_StillFlagsIssue26Case()
     {
         using var context = CheckTestContext.Create("OffscreenDenseBezier");
@@ -109,7 +139,12 @@ public class CheckOffscreenRegressionTests
         );
     }
 
-    private static string BuildOsu(IEnumerable<string> hitObjects) =>
+    private static string BuildOsu(
+        IEnumerable<string> hitObjects,
+        float circleSize = 4,
+        double sliderMultiplier = 1.4,
+        IEnumerable<string>? timingPoints = null
+    ) =>
         string.Join(
             "\n",
             "osu file format v14",
@@ -122,15 +157,15 @@ public class CheckOffscreenRegressionTests
             "Creator:Tests",
             "Version:Test",
             "[Difficulty]",
-            "CircleSize:4",
+            $"CircleSize:{circleSize.ToString(System.Globalization.CultureInfo.InvariantCulture)}",
             "HPDrainRate:5",
             "OverallDifficulty:5",
             "ApproachRate:5",
-            "SliderMultiplier:1.4",
+            $"SliderMultiplier:{sliderMultiplier.ToString(System.Globalization.CultureInfo.InvariantCulture)}",
             "SliderTickRate:1",
             "[Events]",
             "[TimingPoints]",
-            "0,500,4,2,0,100,1,0",
+            string.Join('\n', timingPoints ?? ["0,500,4,2,0,100,1,0"]),
             "[HitObjects]",
             string.Join('\n', hitObjects)
         );
