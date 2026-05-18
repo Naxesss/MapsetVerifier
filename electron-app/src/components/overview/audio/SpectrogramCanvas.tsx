@@ -110,6 +110,25 @@ const getColor = (
   return COLOR_LUTS[colorScheme].get(roundedMag) || { r: 0, g: 0, b: 0 };
 };
 
+/** putImageData ignores the context transform; drawImage respects devicePixelRatio scaling. */
+const blitImageData = (
+  ctx: CanvasRenderingContext2D,
+  imageData: ImageData,
+  width: number,
+  height: number
+) => {
+  const bitmap = document.createElement('canvas');
+  bitmap.width = width;
+  bitmap.height = height;
+  const bitmapCtx = bitmap.getContext('2d');
+  if (!bitmapCtx) {
+    ctx.putImageData(imageData, 0, 0);
+    return;
+  }
+  bitmapCtx.putImageData(imageData, 0, 0);
+  ctx.drawImage(bitmap, 0, 0, width, height);
+};
+
 const SpectrogramCanvas: FunctionComponent<SpectrogramCanvasProps> = (props) => {
   const theme = useMantineTheme();
   const colorScheme = props.colorScheme || 'inferno';
@@ -156,8 +175,7 @@ const SpectrogramCanvas: FunctionComponent<SpectrogramCanvasProps> = (props) => 
         });
       });
 
-      // Single draw call - much faster than thousands of fillRect calls
-      ctx.putImageData(imageData, 0, 0);
+      blitImageData(ctx, imageData, width, height);
 
       // Convert average frequency (from props) to y position using actual frequency bins
       let avgFrequencyY = -1;
@@ -231,7 +249,7 @@ const SpectrogramCanvas: FunctionComponent<SpectrogramCanvasProps> = (props) => 
         }
       }
 
-      ctx.putImageData(imageData, 0, 0);
+      blitImageData(ctx, imageData, width, height);
 
       // Draw border around the color scale
       ctx.strokeStyle = '#888';
