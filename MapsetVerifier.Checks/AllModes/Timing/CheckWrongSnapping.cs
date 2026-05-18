@@ -69,7 +69,8 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "difficulty"
                     ).WithCause(
                         @"Two hit objects in separate difficulties do not have any object in the other difficulty at the same time, and are close enough in time to be mistaken for one another.
-                                    > Ignores cases where the divisor on the lower difficulty is less than on the higher difficulty, since this is usually natural."
+                                    > Ignores cases where the divisor on the lower difficulty is less than on the higher difficulty, since this is usually natural.
+                                    > Cross-family snaps (e.g. 1/4 vs 1/6) and exotic divisors (e.g. 1/16) are more severe than mismatches within the 1/2–1/4–1/8 or 1/3–1/6 families."
                     )
                 },
                 {
@@ -95,6 +96,21 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     )
                 },
                 // minors
+                {
+                    "Minor Snap Consistency",
+                    new IssueTemplate(
+                        Issue.Level.Minor,
+                        "{0} (1/{1}) Different snapping, {2} (1/{3}), is used in {4}.",
+                        "timestamp -",
+                        "X",
+                        "timestamp -",
+                        "X",
+                        "difficulty"
+                    ).WithCause(
+                        @"Two hit objects in separate difficulties do not have any object in the other difficulty at the same time, and are close enough in time to be mistaken for one another, but both use divisors from the same common family (1/2–1/4–1/8 or 1/3–1/6).
+                                    > Ignores cases where the divisor on the lower difficulty is less than on the higher difficulty, since this is usually natural."
+                    )
+                },
                 {
                     "Minor Snap Count",
                     new IssueTemplate(
@@ -160,8 +176,12 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     if (divisorThis == 0 || divisorOther == 0)
                         continue;
 
+                    var templateKey = IsMinorSnapInconsistency(divisorThis, divisorOther)
+                        ? "Minor Snap Consistency"
+                        : "Snap Consistency";
+
                     yield return new Issue(
-                        GetTemplate("Snap Consistency"),
+                        GetTemplate(templateKey),
                         beatmap,
                         Timestamp.Get(inconsistentEdgeTime),
                         divisorThis,
@@ -429,6 +449,20 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                 );
 
             return 2;
+        }
+
+        private static readonly HashSet<int> PowerOfTwoSnapGroup = [2, 4, 8];
+        private static readonly HashSet<int> TripleSnapGroup = [3, 6];
+
+        internal static bool IsMinorSnapInconsistency(int divisorThis, int divisorOther)
+        {
+            if (PowerOfTwoSnapGroup.Contains(divisorThis) && PowerOfTwoSnapGroup.Contains(divisorOther))
+                return true;
+
+            if (TripleSnapGroup.Contains(divisorThis) && TripleSnapGroup.Contains(divisorOther))
+                return true;
+
+            return false;
         }
 
         private readonly struct Inconsistency
