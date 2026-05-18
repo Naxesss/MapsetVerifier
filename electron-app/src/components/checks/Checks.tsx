@@ -14,9 +14,9 @@ import BeatmapActionButtons from './BeatmapActionButtons';
 import ChecksResults from './ChecksResults';
 import DifficultyInfo from './DifficultyInfo';
 import DifficultyLevelOverride from './DifficultyLevelOverride';
-import DifficultySelector from './DifficultySelector';
 import GameModeSelector from './GameModeSelector';
 import BeatmapHeader from '../common/BeatmapHeader';
+import DifficultyTabSelector, { GENERAL_TAB_ID } from '../common/DifficultyTabSelector';
 import { useBeatmapBackground } from './hooks/useBeatmapBackground';
 import { useBeatmapChecks } from './hooks/useBeatmapChecks';
 import { useDifficultyOverride } from './hooks/useDifficultyOverride';
@@ -222,14 +222,28 @@ function Checks() {
           />
         </Group>
         {data?.difficulties && selectedGroup && (
-          <DifficultySelector
-            difficulties={selectedGroup.difficulties}
-            selectedCategory={selectedCategory}
-            hoveredDifficulty={hoveredDifficulty}
-            categoryHighestLevels={categoryHighestLevels}
-            onSelectCategory={setSelectedCategory}
-            onHoverDifficulty={setHoveredDifficulty}
-            selectedDifficulty={selectedDifficulty}
+          <DifficultyTabSelector
+            tabs={selectedGroup.difficulties.map((diff) => ({
+              id: diff.category,
+              label: diff.category,
+              starRating: diff.starRating,
+              level: categoryHighestLevels[diff.category] ?? 'Check',
+            }))}
+            selectedId={selectedCategory}
+            onSelect={setSelectedCategory}
+            activeOnHover
+            hoveredId={hoveredDifficulty?.category}
+            onHover={(id) =>
+              setHoveredDifficulty(
+                id && id !== GENERAL_TAB_ID
+                  ? selectedGroup.difficulties.find((d) => d.category === id)
+                  : undefined
+              )
+            }
+            hoverRestoreId={selectedDifficulty?.category}
+            highlightGeneralWhenIdle
+            generalLevel={categoryHighestLevels[GENERAL_TAB_ID] ?? 'Check'}
+            showLevelIcons
           />
         )}
       </BeatmapHeader>

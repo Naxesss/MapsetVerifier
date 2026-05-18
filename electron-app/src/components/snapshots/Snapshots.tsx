@@ -12,7 +12,6 @@ import { IconAlertCircle, IconInfoCircleFilled, IconPhotoOff } from '@tabler/ico
 import { useState, useEffect, useMemo } from 'react';
 import { useSnapshots } from './hooks/useSnapshots';
 import SnapshotContent from './SnapshotContent';
-import SnapshotDifficultySelector from './SnapshotDifficultySelector';
 import SnapshotGameModeSelector from './SnapshotGameModeSelector';
 import { useBeatmap } from '../../context/BeatmapContext';
 import { useBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
@@ -21,6 +20,7 @@ import { ApiSnapshotDifficulty, Mode } from '../../Types';
 import BeatmapActionButtons from '../checks/BeatmapActionButtons';
 import { useBeatmapBackground } from '../checks/hooks/useBeatmapBackground';
 import BeatmapHeader from '../common/BeatmapHeader';
+import DifficultyTabSelector from '../common/DifficultyTabSelector';
 import NoBeatmapsetDisplay from '../common/NoBeatmapsetDisplay.tsx';
 import StackTraceMessage from '../common/StackTraceMessage.tsx';
 import GameModeIcon from '../icons/GameModeIcon';
@@ -128,10 +128,15 @@ function Snapshots() {
           />
         </Group>
         {data?.difficulties && selectedGroup && (
-          <SnapshotDifficultySelector
-            difficulties={selectedGroup.difficulties}
-            selectedDifficulty={selectedDifficulty}
-            onSelectDifficulty={setSelectedDifficulty}
+          <DifficultyTabSelector
+            tabs={selectedGroup.difficulties.map((diff) => ({
+              id: diff.name,
+              label: diff.name,
+              starRating: diff.starRating,
+            }))}
+            selectedId={selectedDifficulty}
+            onSelect={setSelectedDifficulty}
+            sortByStarRating
           />
         )}
       </BeatmapHeader>
