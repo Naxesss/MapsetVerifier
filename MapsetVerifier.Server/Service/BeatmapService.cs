@@ -334,6 +334,7 @@ public static class BeatmapService
     public static ApiBeatmapSetCheckResult RunBeatmapSetChecks(string beatmapSetFolder)
     {
         var beatmapSet = new BeatmapSet(beatmapSetFolder);
+        beatmapSet.ClearInterpretedDifficultyOverrides();
         var issues = Checker.GetBeatmapSetIssues(beatmapSet);
         var checksById = CheckerRegistry.GetChecksWithId();
 
@@ -445,7 +446,7 @@ public static class BeatmapService
         if (beatmap == null)
             return null;
 
-        // TODO improve so we run checks only for the overridden difficulty, not the whole set
+        beatmapSet.ApplyInterpretedDifficultyOverride(beatmap, overrideDifficulty);
         var issues = Checker.GetBeatmapSetIssues(beatmapSet);
         var checksById = CheckerRegistry.GetChecksWithId();
 

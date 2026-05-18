@@ -25,12 +25,39 @@ namespace MapsetVerifier.Parser.Objects
             Initalize(beatmapSetPath);
 
             HitSoundFiles = GetUsedHitSoundFiles().ToList();
-            Beatmaps = Beatmaps
+            SortBeatmapsByInterpretedOrder();
+        }
+
+        /// <summary>
+        ///     Clears <see cref="Beatmap.InterpretedDifficultyOverride" /> on every beatmap in this set.
+        /// </summary>
+        public void ClearInterpretedDifficultyOverrides()
+        {
+            foreach (var beatmap in Beatmaps)
+                beatmap.InterpretedDifficultyOverride = null;
+        }
+
+        /// <summary>
+        ///     Resets overrides, assigns one beatmap an interpreted difficulty, and re-sorts <see cref="Beatmaps" />
+        ///     so spread / set checks see consistent ordering.
+        /// </summary>
+        public void ApplyInterpretedDifficultyOverride(Beatmap beatmap, Beatmap.Difficulty difficulty)
+        {
+            ClearInterpretedDifficultyOverrides();
+            beatmap.InterpretedDifficultyOverride = difficulty;
+            SortBeatmapsByInterpretedOrder();
+        }
+
+        private void SortBeatmapsByInterpretedOrder()
+        {
+            var sorted = Beatmaps
                 .OrderBy(beatmap => beatmap.GeneralSettings.mode)
                 .ThenBy(beatmap => beatmap.GetDifficulty())
                 .ThenBy(beatmap => beatmap.StarRating)
                 .ThenBy(beatmap => beatmap.GetObjectDensity())
                 .ToList();
+            Beatmaps.Clear();
+            Beatmaps.AddRange(sorted);
         }
 
         private void Initalize(string beatmapSetPath)

@@ -179,6 +179,12 @@ namespace MapsetVerifier.Parser.Objects
         public string SongPath { get; }
         public string MapPath { get; }
 
+        /// <summary>
+        ///     When set, <see cref="GetDifficulty" /> returns this value instead of inferring from star rating and name.
+        ///     Used for difficulty interpretation override in check runs; leave clear for normal full-set analysis.
+        /// </summary>
+        public Difficulty? InterpretedDifficultyOverride { get; set; }
+
         // Star Rating
         public double StarRating { get; }
         public DifficultyAttributes? DifficultyAttributes { get; }
@@ -708,6 +714,10 @@ namespace MapsetVerifier.Parser.Objects
         /// </summary>
         public Difficulty GetDifficulty()
         {
+            // Prioritize the interpreted difficulty override if it exists
+            if (InterpretedDifficultyOverride is { } overridden)
+                return overridden;
+
             var difficultyFromStarRating = GetDifficultyFromStarRating();
             var difficultyFromName = GetDifficultyFromName();
 
