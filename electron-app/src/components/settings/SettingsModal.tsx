@@ -224,10 +224,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
             </Button>
           </Group>
           <Switch
-            label="Receive pre-release updates"
+            label="Receive beta updates"
             description={
               receivePrereleases
-                ? 'Includes release candidates like 2.0.0-RC.1 when available.'
+                ? 'Includes beta releases like 2.0.0-beta.1 when available.'
                 : currentVersionIsPrerelease
                   ? 'Only stable releases will be offered. Use Check for updates to return to stable when one is available.'
                   : 'Only stable releases will be offered.'

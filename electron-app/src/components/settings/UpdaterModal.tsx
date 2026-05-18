@@ -69,12 +69,12 @@ const UpdaterModal: React.FC = () => {
       : 'You are up to date';
   const upToDateMessage =
     !receivePrereleases && currentVersionIsPrerelease
-      ? 'You are currently on a pre-release build. No stable release is available yet.'
+      ? 'You are currently on a beta build. No stable release is available yet.'
       : receivePrereleases
         ? 'No newer release was found for this installation.'
         : 'No newer stable release was found for this installation.';
   const availableTitle = availableUpdateIsPrerelease
-    ? `Pre-release ${availableUpdate?.version} is available`
+    ? `Beta ${availableUpdate?.version} is available`
     : `Update ${availableUpdate?.version} is available`;
 
   const dismissLabel =
