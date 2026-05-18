@@ -1,0 +1,37 @@
+name: Feature / Check Request
+description: Suggest a new feature or a mapset check
+body:
+  - type: dropdown
+    id: request-type
+    attributes:
+      label: Request type
+      description: Choose whether you are requesting a new app feature or a new/upgraded mapset check.
+      options:
+        - Feature
+        - Check
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: |
+        For **Feature** requests: describe the feature, why it would be useful, and how you imagine it working.
+        For **Check** requests: describe what should be detected or validated, including any rule references if applicable.
+        You can include screenshots/videos whenever relevant.
+      placeholder: Be as specific as you can — the more detail, the easier it is to implement.
+    validations:
+      required: true
+
+  - type: upload
+    id: example-maps
+    attributes:
+      label: Example maps (Check requests only)
+      description: |
+        If this is a **Check** request, upload a `.zip` containing example `.osz` beatmaps that help with implementation or detection.
+        GitHub does not accept raw `.osz` uploads, so please zip the files first.
+        Leave empty for Feature requests.
+    validations:
+      required: false
+      accept: ".zip"
