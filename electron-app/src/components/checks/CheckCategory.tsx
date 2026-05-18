@@ -160,9 +160,9 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
               variant={isSelected ? 'filled' : 'light'}
               onClick={() => toggleLevelFilter(level)}
               style={{ cursor: 'pointer' }}
-              title={isSelected ? 'Show all severities' : `Show only ${level.toLowerCase()}s`}
+              title={isSelected ? 'Show all severities' : `Filter by this type`}
             >
-              {countWord(count, level.toLowerCase())}
+              {level.toLowerCase() === "minor" ? `${count} Negligible` : countWord(count, level.toLowerCase())}
             </Badge>
           );
         })}
