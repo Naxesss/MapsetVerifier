@@ -319,6 +319,10 @@ export function FilterableLineChart({
   const mergedTooltip = useMemo(
     () => ({
       ...passthroughTooltip,
+      wrapperStyle: {
+        zIndex: 1,
+        ...passthroughTooltip?.wrapperStyle,
+      },
       labelFormatter: (label: unknown, payload: readonly unknown[]) => {
         const first = payload?.[0] as { payload?: Record<string, unknown> } | undefined;
         const row = first?.payload;
