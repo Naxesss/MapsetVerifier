@@ -7,7 +7,7 @@ export default function MinorIcon({ size = 32 }: { size?: number }) {
   const overlaySize = Math.round(size / 2);
   return (
     <span style={{ position: 'relative', display: 'inline-block', width: size, height: size }}>
-      <IconCircleCheckFilled color={theme.colors.green[5]} size={size} />
+      <IconCircleCheckFilled color={theme.colors.green[6]} size={size} />
       <span
         style={{
           position: 'absolute',
@@ -34,7 +34,7 @@ export default function MinorIcon({ size = 32 }: { size?: number }) {
           }}
         />
         <IconExclamationCircleFilled
-          color={theme.colors.orange[5]}
+          color={theme.colors.orange[6]}
           size={overlaySize}
           style={{ position: 'absolute', inset: 0 }}
         />

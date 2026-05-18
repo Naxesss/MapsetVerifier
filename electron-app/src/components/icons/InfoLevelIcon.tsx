@@ -3,5 +3,5 @@ import { IconInfoCircleFilled } from '@tabler/icons-react';
 
 export default function InfoLevelIcon({ size = 32 }: { size?: number }) {
   const theme = useMantineTheme();
-  return <IconInfoCircleFilled color={theme.colors.blue[5]} size={size} />;
+  return <IconInfoCircleFilled color={theme.colors.blue[6]} size={size} />;
 }

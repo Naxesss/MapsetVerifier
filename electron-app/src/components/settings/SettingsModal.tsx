@@ -269,10 +269,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
                     </Text>
                     <Text size="sm">
                       This does need the sidecar to be built beforehand and available in the
-                      following folder <code>/bin/server/dist/&lt;rid&gt;/</code>.
+                      following folder: <code>/bin/server/dist/&lt;rid&gt;/</code>
                     </Text>
                     <Text size="sm">
-                      Changing this settings may require restarting the application to take
+                      Changing this settings may require restarting the application to take effect.
                     </Text>
                   </Group>
                 </Alert>

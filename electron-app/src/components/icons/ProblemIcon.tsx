@@ -3,5 +3,5 @@ import { IconCircleXFilled } from '@tabler/icons-react';
 
 export default function ProblemIcon({ size = 32 }: { size?: number }) {
   const theme = useMantineTheme();
-  return <IconCircleXFilled color={theme.colors.red[5]} size={size} />;
+  return <IconCircleXFilled color={theme.colors.red[6]} size={size} />;
 }
