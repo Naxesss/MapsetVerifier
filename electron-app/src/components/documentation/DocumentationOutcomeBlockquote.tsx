@@ -8,7 +8,7 @@ const BLOCKQUOTE_COLOR_BY_LEVEL: Record<Level, string> = {
   Warning: 'orange.6',
   Minor: 'green.6',
   Error: 'gray.6',
-  Info: 'blue.6',
+  Info: 'teal.6',
   Check: 'green.6',
 };
 

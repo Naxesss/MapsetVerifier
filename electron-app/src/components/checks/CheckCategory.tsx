@@ -15,7 +15,7 @@ const LEVEL_BADGE_COLORS: Record<DisplayLevel, string> = {
   Problem: 'red',
   Warning: 'orange',
   Minor: 'lime',
-  Info: 'blue',
+  Info: 'teal',
 };
 
 function normalizeLevel(level: Level): DisplayLevel {
