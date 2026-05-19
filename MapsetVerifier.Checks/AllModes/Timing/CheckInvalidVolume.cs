@@ -48,9 +48,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "{0} Invalid timing line volume of {1}%.",
                         "timestamp -",
                         "volume"
-                    ).WithCause(
-                        "A timing line has a sample volume below 5% or above 100%."
-                    )
+                    ).WithCause("A timing line has a sample volume below 5% or above 100%.")
                 },
             };
 

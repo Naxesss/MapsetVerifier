@@ -16,7 +16,15 @@ public class CheckInvalidVolumeTests
     public void FlagsVolumeOutsideEditorRange(float volume)
     {
         using var context = CheckTestContext.CreateFromOsuFiles([
-            ("test.osu", BuildOsu(timingPoints: [$"0,500,4,2,0,{volume.ToString(System.Globalization.CultureInfo.InvariantCulture)},1,0"])),
+            (
+                "test.osu",
+                BuildOsu(
+                    timingPoints:
+                    [
+                        $"0,500,4,2,0,{volume.ToString(System.Globalization.CultureInfo.InvariantCulture)},1,0",
+                    ]
+                )
+            ),
         ]);
 
         var issues = context.RunBeatmapCheck<CheckInvalidVolume>("Test");
@@ -36,7 +44,15 @@ public class CheckInvalidVolumeTests
     public void DoesNotFlagValidVolume(float volume)
     {
         using var context = CheckTestContext.CreateFromOsuFiles([
-            ("test.osu", BuildOsu(timingPoints: [$"0,500,4,2,0,{volume.ToString(System.Globalization.CultureInfo.InvariantCulture)},1,0"])),
+            (
+                "test.osu",
+                BuildOsu(
+                    timingPoints:
+                    [
+                        $"0,500,4,2,0,{volume.ToString(System.Globalization.CultureInfo.InvariantCulture)},1,0",
+                    ]
+                )
+            ),
         ]);
 
         var issues = context.RunBeatmapCheck<CheckInvalidVolume>("Test");
