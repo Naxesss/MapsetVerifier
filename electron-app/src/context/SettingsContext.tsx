@@ -52,7 +52,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [loaded, setLoaded] = useState(false);
   const [settings, setSettings] = useState<Settings>(defaultSettings);
 
-  async function loadSettings() {
+  async function loadSettings(): Promise<string | undefined> {
     const api = window.electronAPI;
     const inferredReceivePrereleases = await resolveDefaultReceivePrereleases();
 
@@ -62,7 +62,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         receivePrereleases: inferredReceivePrereleases,
       });
       setLoaded(true);
-      return;
+      return undefined;
     }
 
     try {
@@ -72,34 +72,40 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
           ...defaultSettings,
           receivePrereleases: inferredReceivePrereleases,
         });
-      } else {
-        const loaded = JSON.parse(text);
-
-        if (
-          loaded?.lazerLookupEnabled === undefined &&
-          loaded?.experimentalLazerLookup !== undefined
-        ) {
-          loaded.lazerLookupEnabled = loaded.experimentalLazerLookup;
-        }
-
-        if (loaded?.receivePrereleases === undefined) {
-          loaded.receivePrereleases = inferredReceivePrereleases;
-        }
-
-        setSettings({
-          ...defaultSettings,
-          ...loaded,
-          hiddenMinorCheckIds: Array.isArray(loaded?.hiddenMinorCheckIds)
-            ? loaded.hiddenMinorCheckIds
-            : defaultSettings.hiddenMinorCheckIds,
-        });
+        return undefined;
       }
+
+      const loaded = JSON.parse(text);
+
+      if (
+        loaded?.lazerLookupEnabled === undefined &&
+        loaded?.experimentalLazerLookup !== undefined
+      ) {
+        loaded.lazerLookupEnabled = loaded.experimentalLazerLookup;
+      }
+
+      if (loaded?.receivePrereleases === undefined) {
+        loaded.receivePrereleases = inferredReceivePrereleases;
+      }
+
+      setSettings({
+        ...defaultSettings,
+        ...loaded,
+        hiddenMinorCheckIds: Array.isArray(loaded?.hiddenMinorCheckIds)
+          ? loaded.hiddenMinorCheckIds
+          : defaultSettings.hiddenMinorCheckIds,
+      });
+
+      const savedSongFolder =
+        typeof loaded?.songFolder === 'string' ? loaded.songFolder.trim() : undefined;
+      return savedSongFolder || undefined;
     } catch (e) {
       console.error('[Settings] Error loading settings. Using defaults.', e);
       setSettings({
         ...defaultSettings,
         receivePrereleases: inferredReceivePrereleases,
       });
+      return undefined;
     } finally {
       setLoaded(true);
     }
@@ -115,7 +121,11 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
-  async function findOsuLocationAndSet() {
+  async function findOsuLocationAndSet(savedSongFolder?: string) {
+    if (savedSongFolder) {
+      return;
+    }
+
     try {
       const res = await fetch(`${BACKEND_BASE_URL}/beatmap/songsFolder`);
 
@@ -131,8 +141,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   }
 
   useEffect(() => {
-    loadSettings().then(() => {
-      findOsuLocationAndSet();
+    loadSettings().then((savedSongFolder) => {
+      findOsuLocationAndSet(savedSongFolder);
     });
   }, []);
 
