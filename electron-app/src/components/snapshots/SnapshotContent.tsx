@@ -1,36 +1,25 @@
 ﻿import { Box, Stack, Text, useMantineTheme } from '@mantine/core';
-import { useState, useEffect } from 'react';
 import SnapshotCommitList from './SnapshotCommitList';
+import { getSnapshotHistory } from './snapshotHistory';
 import UnifiedDiffViewer from './UnifiedDiffViewer';
-import { ApiSnapshotResult, ApiSnapshotHistory, ApiSnapshotCommit } from '../../Types';
+import { ApiSnapshotResult } from '../../Types';
 import { countWord } from '../../utils/countWord';
 
 interface SnapshotContentProps {
   data: ApiSnapshotResult;
   selectedDifficulty?: string;
+  selectedCommitId?: string;
+  onSelectCommitId: (commitId: string) => void;
 }
 
-function SnapshotContent({ data, selectedDifficulty }: SnapshotContentProps) {
+function SnapshotContent({
+  data,
+  selectedDifficulty,
+  selectedCommitId,
+  onSelectCommitId,
+}: SnapshotContentProps) {
   const theme = useMantineTheme();
-  const [selectedCommitId, setSelectedCommitId] = useState<string | undefined>();
-
-  // Find the selected history
-  let history: ApiSnapshotHistory | null = null;
-
-  if (selectedDifficulty === 'General' && data.general) {
-    history = data.general;
-  } else {
-    history = data.beatmapHistories.find((h) => h.difficultyName === selectedDifficulty) ?? null;
-  }
-
-  // Auto-select first commit when history changes
-  useEffect(() => {
-    if (history && history.commits.length > 0) {
-      setSelectedCommitId(history.commits[0].id);
-    } else {
-      setSelectedCommitId(undefined);
-    }
-  }, [history]);
+  const history = getSnapshotHistory(data, selectedDifficulty);
 
   if (!history) {
     return <Text c="dimmed">No snapshot data available for this difficulty.</Text>;
@@ -40,13 +29,10 @@ function SnapshotContent({ data, selectedDifficulty }: SnapshotContentProps) {
     return <Text c="dimmed">No changes detected in snapshots.</Text>;
   }
 
-  const selectedCommit: ApiSnapshotCommit | undefined = history.commits.find(
-    (c) => c.id === selectedCommitId
-  );
+  const selectedCommit = history.commits.find((c) => c.id === selectedCommitId);
 
   return (
     <Stack gap="md">
-      {/* Commit list (horizontal) */}
       <Box
         style={{
           borderRadius: theme.radius.md,
@@ -61,11 +47,10 @@ function SnapshotContent({ data, selectedDifficulty }: SnapshotContentProps) {
         <SnapshotCommitList
           commits={history.commits}
           selectedCommitId={selectedCommitId}
-          onSelectCommit={setSelectedCommitId}
+          onSelectCommit={onSelectCommitId}
         />
       </Box>
 
-      {/* Diff viewer (full width below) */}
       <Box
         style={{
           borderRadius: theme.radius.md,

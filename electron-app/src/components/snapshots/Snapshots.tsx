@@ -13,10 +13,15 @@ import { useState, useEffect, useMemo } from 'react';
 import { useSnapshots } from './hooks/useSnapshots';
 import SnapshotContent from './SnapshotContent';
 import SnapshotGameModeSelector from './SnapshotGameModeSelector';
+import {
+  difficultyHasChangesAtCommit,
+  generalHasChangesAtCommit,
+  getSnapshotHistory,
+} from './snapshotHistory';
 import { useBeatmap } from '../../context/BeatmapContext';
 import { useBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
 import { useSettings } from '../../context/SettingsContext';
-import { ApiSnapshotDifficulty, ApiSnapshotResult, Mode } from '../../Types';
+import { ApiSnapshotDifficulty, Mode } from '../../Types';
 import BeatmapActionButtons from '../checks/BeatmapActionButtons';
 import { useBeatmapBackground } from '../checks/hooks/useBeatmapBackground';
 import BeatmapHeader from '../common/BeatmapHeader';
@@ -31,11 +36,6 @@ interface ModeGroup {
   difficulties: ApiSnapshotDifficulty[];
 }
 
-function difficultyHasSnapshotChanges(data: ApiSnapshotResult, difficultyName: string) {
-  const history = data.beatmapHistories.find((h) => h.difficultyName === difficultyName);
-  return history?.commits.some((commit) => commit.totalChanges > 0) ?? false;
-}
-
 function Snapshots() {
   const theme = useMantineTheme();
   const { selectedFolder: folder, beatmapFolderPath, beatmapInfo } = useBeatmap();
@@ -43,11 +43,13 @@ function Snapshots() {
   const { settings } = useSettings();
   const [selectedDifficulty, setSelectedDifficulty] = useState<string | undefined>('General');
   const [selectedMode, setSelectedMode] = useState<Mode | undefined>();
+  const [selectedCommitId, setSelectedCommitId] = useState<string | undefined>();
 
   useEffect(() => {
     // Reset selected difficulty when changing beatmap
     if (folder) {
       setSelectedDifficulty('General');
+      setSelectedCommitId(undefined);
     }
   }, [folder]);
 
@@ -100,6 +102,24 @@ function Snapshots() {
     return data.difficulties.find((d) => d.name === selectedDifficulty);
   }, [data, selectedDifficulty]);
 
+  const activeSnapshotHistory = useMemo(
+    () => (data ? getSnapshotHistory(data, selectedDifficulty) : null),
+    [data, selectedDifficulty],
+  );
+
+  useEffect(() => {
+    if (!activeSnapshotHistory?.commits.length) {
+      setSelectedCommitId(undefined);
+      return;
+    }
+    setSelectedCommitId((current) => {
+      if (current && activeSnapshotHistory.commits.some((c) => c.id === current)) {
+        return current;
+      }
+      return activeSnapshotHistory.commits[0].id;
+    });
+  }, [activeSnapshotHistory]);
+
   if (!folder) {
     return <NoBeatmapsetDisplay />;
   }
@@ -135,13 +155,19 @@ function Snapshots() {
         </Group>
         {data?.difficulties && selectedGroup && (
           <DifficultyTabSelector
+            generalLeading={
+              <SnapshotDifficultyChangesIcon
+                hasChanges={generalHasChangesAtCommit(data, selectedCommitId)}
+                size={24}
+              />
+            }
             tabs={selectedGroup.difficulties.map((diff) => ({
               id: diff.name,
               label: diff.name,
               starRating: diff.starRating,
               leading: (
                 <SnapshotDifficultyChangesIcon
-                  hasChanges={difficultyHasSnapshotChanges(data, diff.name)}
+                  hasChanges={difficultyHasChangesAtCommit(data, diff.name, selectedCommitId)}
                   size={24}
                 />
               ),
@@ -178,7 +204,12 @@ function Snapshots() {
             </Alert>
           ) : (
             <>
-              <SnapshotContent data={data} selectedDifficulty={selectedDifficulty} />
+              <SnapshotContent
+                data={data}
+                selectedDifficulty={selectedDifficulty}
+                selectedCommitId={selectedCommitId}
+                onSelectCommitId={setSelectedCommitId}
+              />
             </>
           )}
         </Flex>

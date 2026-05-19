@@ -27,6 +27,7 @@ export interface DifficultyTabSelectorProps {
   /** When true, General shows active border while no difficulty tab is hovered. */
   highlightGeneralWhenIdle?: boolean;
   generalLevel?: Level;
+  generalLeading?: ReactNode;
   showLevelIcons?: boolean;
 }
 
@@ -48,6 +49,7 @@ function DifficultyTabSelector({
   hoverRestoreId,
   highlightGeneralWhenIdle = false,
   generalLevel,
+  generalLeading,
   showLevelIcons = false,
 }: DifficultyTabSelectorProps) {
   const theme = useMantineTheme();
@@ -102,6 +104,7 @@ function DifficultyTabSelector({
             {showLevelIcons && generalLevel != null && (
               <LevelIcon level={generalLevel} size={24} />
             )}
+            {generalLeading}
             <Text c="white">General</Text>
           </Flex>
         </Button>
