@@ -28,6 +28,8 @@ import InfoLevelIcon from '../icons/InfoLevelIcon.tsx';
 import MinorIcon from '../icons/MinorIcon.tsx';
 import NoIssueIcon from '../icons/NoIssueIcon.tsx';
 import ProblemIcon from '../icons/ProblemIcon.tsx';
+import SnapshotHasChangesIcon from '../icons/SnapshotHasChangesIcon.tsx';
+import SnapshotNoChangesIcon from '../icons/SnapshotNoChangesIcon.tsx';
 import WarningIcon from '../icons/WarningIcon.tsx';
 import type { ApiDocumentationCheck, Mode } from '../../Types';
 
@@ -53,19 +55,19 @@ function DocumentationIconsSection() {
           icon={<NoIssueIcon />}
           title="Check"
           category="Checks"
-          description="No issues were found (used in the app when a category has no results)."
-        />
-        <DocumentationIconExplanation
-          icon={<InfoLevelIcon />}
-          title="Info"
-          category="Checks"
-          description="Informational notes or non-blocking observations."
+          description="No issues were found."
         />
         <DocumentationIconExplanation
           icon={<MinorIcon />}
           title="Minor"
           category="Checks"
           description="One or more negligible issues were found."
+        />
+        <DocumentationIconExplanation
+          icon={<InfoLevelIcon />}
+          title="Info"
+          category="Checks"
+          description="Informational notes or non-blocking observations."
         />
         <DocumentationIconExplanation
           icon={<WarningIcon />}
@@ -77,13 +79,25 @@ function DocumentationIconsSection() {
           icon={<ProblemIcon />}
           title="Problem"
           category="Checks"
-          description="One or more rule breaking issues were found."
+          description="One or more rule-breaking issues were found."
         />
         <DocumentationIconExplanation
           icon={<ErrorIcon />}
           title="Error"
           category="Checks"
           description="An error occurred preventing a complete check."
+        />
+        <DocumentationIconExplanation
+          icon={<SnapshotHasChangesIcon />}
+          title="Changes"
+          category="Snapshots"
+          description="This difficulty has at least one snapshot commit with changes."
+        />
+        <DocumentationIconExplanation
+          icon={<SnapshotNoChangesIcon />}
+          title="Unchanged"
+          category="Snapshots"
+          description="This difficulty has no recorded changes in snapshot history."
         />
       </SimpleGrid>
     </Alert>
@@ -244,7 +258,7 @@ function DocumentationIconExplanation(props: InfoIconExplanationProp) {
       {props.icon}
       <Flex direction="column">
         <Text fw="bold">{props.title}</Text>
-        <Text fs="italic">{props.category}</Text>
+        <Text fs="italic" size="xs">{props.category}</Text>
       </Flex>
       <Text>{props.description}</Text>
     </>

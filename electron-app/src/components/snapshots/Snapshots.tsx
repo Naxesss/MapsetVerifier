@@ -16,7 +16,7 @@ import SnapshotGameModeSelector from './SnapshotGameModeSelector';
 import { useBeatmap } from '../../context/BeatmapContext';
 import { useBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
 import { useSettings } from '../../context/SettingsContext';
-import { ApiSnapshotDifficulty, Mode } from '../../Types';
+import { ApiSnapshotDifficulty, ApiSnapshotResult, Mode } from '../../Types';
 import BeatmapActionButtons from '../checks/BeatmapActionButtons';
 import { useBeatmapBackground } from '../checks/hooks/useBeatmapBackground';
 import BeatmapHeader from '../common/BeatmapHeader';
@@ -24,10 +24,16 @@ import DifficultyTabSelector from '../common/DifficultyTabSelector';
 import NoBeatmapsetDisplay from '../common/NoBeatmapsetDisplay.tsx';
 import StackTraceMessage from '../common/StackTraceMessage.tsx';
 import GameModeIcon from '../icons/GameModeIcon';
+import SnapshotDifficultyChangesIcon from '../icons/SnapshotDifficultyChangesIcon';
 
 interface ModeGroup {
   mode: Mode;
   difficulties: ApiSnapshotDifficulty[];
+}
+
+function difficultyHasSnapshotChanges(data: ApiSnapshotResult, difficultyName: string) {
+  const history = data.beatmapHistories.find((h) => h.difficultyName === difficultyName);
+  return history?.commits.some((commit) => commit.totalChanges > 0) ?? false;
 }
 
 function Snapshots() {
@@ -133,6 +139,12 @@ function Snapshots() {
               id: diff.name,
               label: diff.name,
               starRating: diff.starRating,
+              leading: (
+                <SnapshotDifficultyChangesIcon
+                  hasChanges={difficultyHasSnapshotChanges(data, diff.name)}
+                  size={24}
+                />
+              ),
             }))}
             selectedId={selectedDifficulty}
             onSelect={setSelectedDifficulty}

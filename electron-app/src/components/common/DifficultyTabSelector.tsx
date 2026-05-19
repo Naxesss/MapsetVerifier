@@ -1,8 +1,9 @@
 import { alpha, Button, Flex, Group, Text, useMantineTheme } from '@mantine/core';
-import type { Level } from '../../Types';
 import { getDifficultyColor } from './DifficultyColor';
 import DifficultyColorPill from './DifficultyColorPill';
 import LevelIcon from '../icons/LevelIcon';
+import type { Level } from '../../Types';
+import type { ReactNode } from 'react';
 
 export const GENERAL_TAB_ID = 'General';
 
@@ -11,6 +12,7 @@ export type DifficultyTab = {
   label: string;
   starRating?: number | null;
   level?: Level;
+  leading?: ReactNode;
 };
 
 export interface DifficultyTabSelectorProps {
@@ -128,6 +130,7 @@ function DifficultyTabSelector({
                 {showLevelIcons && tab.level != null && (
                   <LevelIcon level={tab.level} size={24} />
                 )}
+                {tab.leading}
                 <DifficultyColorPill color={srColor} />
                 <Text c="white" style={labelStyle}>
                   {tab.label}
