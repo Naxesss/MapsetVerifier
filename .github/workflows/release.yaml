@@ -86,6 +86,11 @@ jobs:
       - name: Run csharpier
         run: dotnet csharpier check .
 
+      - name: Build sidecar (linux-x64)
+        run: |
+          chmod +x scripts/build-sidecars.sh
+          RUNTIMES=linux-x64 ./scripts/build-sidecars.sh
+
       - name: Run .NET solution tests
         run: dotnet test MapsetVerifier.sln -c Release --logger "trx;LogFileName=test-results.trx" --results-directory TestResults
 

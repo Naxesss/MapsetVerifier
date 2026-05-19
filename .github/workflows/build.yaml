@@ -3,10 +3,8 @@ name: Build
 on:
   push:
     branches:
-      - '**'
+      - main
   pull_request:
-    branches:
-      - '**'
 
 jobs:
   build-sidecar:
@@ -14,25 +12,36 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.x'
+
       - name: Build .NET solution
         run: dotnet build MapsetVerifier.sln -c Release
+
       - name: Restore tools
         run: dotnet tool restore
+
       - name: Run csharpier
         run: dotnet csharpier check .
+
+      - name: Build sidecar (linux-x64)
+        run: |
+          chmod +x scripts/build-sidecars.sh
+          RUNTIMES=linux-x64 ./scripts/build-sidecars.sh
+
       - name: Run .NET solution tests
         run: dotnet test MapsetVerifier.sln -c Release --logger "trx;LogFileName=test-results.trx" --results-directory TestResults
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: '**/TestResults/*.trx'
-          
+
   build-frontend:
     runs-on: ubuntu-latest
     steps:
@@ -61,107 +70,3 @@ jobs:
 
       - name: Verify root package
         run: npm run build
-
-  build-electron:
-    needs: [build-sidecar, build-frontend]
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - runner: windows-latest
-            sidecar_runtime: win-x64
-            artifact_name: mapset-verifier-windows
-            builder_args: --win --x64
-            artifact_files: |
-              dist/*.exe
-              dist/latest.yml
-          - runner: ubuntu-22.04
-            sidecar_runtime: linux-x64
-            artifact_name: mapset-verifier-linux
-            builder_args: --linux --x64
-            artifact_files: |
-              dist/*.AppImage
-              dist/latest-linux.yml
-          - runner: macos-15-intel
-            sidecar_runtime: osx-x64
-            artifact_name: mapset-verifier-macos-x64
-            builder_args: --mac --x64
-            artifact_files: |
-              dist/*.dmg
-              dist/latest-mac.yml
-          - runner: macos-15
-            sidecar_runtime: osx-arm64
-            artifact_name: mapset-verifier-macos-arm64
-            builder_args: --mac --arm64
-            artifact_files: |
-              dist/*.dmg
-              dist/latest-mac.yml
-    runs-on: ${{ matrix.runner }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup .NET Core
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '9.x'
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-          cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            electron-app/package-lock.json
-
-      - name: Build sidecar (bash)
-        if: matrix.runner != 'windows-latest'
-        shell: bash
-        run: |
-          chmod +x scripts/build-sidecars.sh
-          RUNTIMES="${{ matrix.sidecar_runtime }}" ./scripts/build-sidecars.sh
-
-      - name: Build sidecar (Windows)
-        if: matrix.runner == 'windows-latest'
-        shell: cmd
-        run: scripts/build-sidecars.bat ${{ matrix.sidecar_runtime }}
-
-      - name: Install root dependencies
-        run: npm ci
-
-      - name: Install frontend dependencies
-        working-directory: electron-app
-        run: npm ci
-
-      - name: Install Rollup native binary (Linux)
-        if: matrix.runner == 'ubuntu-22.04'
-        working-directory: electron-app
-        run: npm install @rollup/rollup-linux-x64-gnu --no-save
-
-      - name: Install Rollup native binary (macOS Intel)
-        if: matrix.runner == 'macos-15-intel'
-        working-directory: electron-app
-        run: npm install @rollup/rollup-darwin-x64 --no-save
-
-      - name: Install Rollup native binary (macOS ARM)
-        if: matrix.runner == 'macos-15'
-        working-directory: electron-app
-        run: npm install @rollup/rollup-darwin-arm64 --no-save
-
-      - name: Build frontend
-        working-directory: electron-app
-        run: npm run build
-
-      - name: Run electron-builder (no publish)
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx electron-builder ${{ matrix.builder_args }} --publish never
-
-      - name: Upload native artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.artifact_name }}
-          path: ${{ matrix.artifact_files }}
-          if-no-files-found: error
