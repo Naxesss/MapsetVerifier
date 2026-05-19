@@ -688,7 +688,8 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             // Include the first point in the total slider points.
             var sliderPoints = NodePositions.ToList();
 
-            var tempBezierPoints = new List<Vector2> { Position };
+            var currentPoint = Position;
+            var tempBezierPoints = new List<Vector2> { currentPoint };
 
             // For each anchor, calculate the curve, until we find where we need to be.
             var tteration = 0;
@@ -696,7 +697,6 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             var pixelsPerMs = GetSliderSpeed(time);
             double totalLength = 0;
             var fullLength = GetCurveDuration() * pixelsPerMs;
-            var subsampleThreshold = Math.Min(pixelsPerMs * 2, 1.0);
 
             while (tteration < sliderPoints.Count)
             {
@@ -716,61 +716,34 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
                     ++tteration;
                 }
 
-                if (points.Count == 0)
-                    continue;
-
-                var segmentEnd = points[^1];
-
-                // Two-point segments are linear; avoid thousands of De Casteljau iterations.
-                if (points.Count == 2)
-                {
-                    if (totalLength <= fullLength)
-                        totalLength += GetDistance(points[0], segmentEnd);
-
-                    AddBezierPointIfDistinct(tempBezierPoints, segmentEnd);
-                    continue;
-                }
-
                 // Calculate how long this curve (not the whole thing, just from anchor to anchor) will be.
                 var prevPoint = points.First();
                 double curvePixelLength = 0;
-                var currentPoint = prevPoint;
 
                 for (double k = 0.0f; k < 1.0f + STEP_LENGTH; k += STEP_LENGTH)
-                {
-                    if (totalLength > fullLength)
-                        break;
-
-                    currentPoint = GetBezierPoint(points, k);
-                    curvePixelLength += GetDistance(prevPoint, currentPoint);
-                    prevPoint = currentPoint;
-
-                    if (curvePixelLength >= subsampleThreshold)
+                    if (totalLength <= fullLength)
                     {
-                        totalLength += curvePixelLength;
-                        curvePixelLength = 0;
-                        AddBezierPointIfDistinct(tempBezierPoints, currentPoint);
+                        currentPoint = GetBezierPoint(points, k);
+                        curvePixelLength += GetDistance(prevPoint, currentPoint);
+                        prevPoint = currentPoint;
+
+                        if (curvePixelLength >= pixelsPerMs * 2)
+                        {
+                            totalLength += curvePixelLength;
+                            curvePixelLength = 0;
+                            tempBezierPoints.Add(currentPoint);
+                        }
                     }
-                }
 
-                if (totalLength <= fullLength)
-                {
+                // As long as we haven't reached the last path between anchors, keep track of the length of the path.
+                // Ensures that we can switch from one anchor path to another.
+                if (tteration <= sliderPoints.Count)
                     totalLength += curvePixelLength;
-
-                    // Record the segment end only while still within the declared pixel length.
-                    // Multi-point segments can extend past the playable end; their last control point
-                    // must not be forced onto the path (avoids false tails on long beziers).
-                    AddBezierPointIfDistinct(tempBezierPoints, segmentEnd);
-                }
+                else
+                    tempBezierPoints.Add(currentPoint);
             }
 
             return tempBezierPoints;
-        }
-
-        private static void AddBezierPointIfDistinct(List<Vector2> points, Vector2 point)
-        {
-            if (points[^1] != point)
-                points.Add(point);
         }
 
         private Vector2 GetBezierPathPosition(double time)
