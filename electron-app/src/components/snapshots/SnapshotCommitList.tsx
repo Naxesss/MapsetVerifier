@@ -180,6 +180,7 @@ function SnapshotCommitList({
                           <IconGitCommit
                             size={15}
                             color={isFirst ? theme.colors.green[5] : theme.colors.dark[3]}
+                            stroke={isFirst ? 3 : 2}
                           />
                         </Box>
                       </Tooltip>
