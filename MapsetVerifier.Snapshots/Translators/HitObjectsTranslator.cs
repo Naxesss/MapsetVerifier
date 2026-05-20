@@ -363,16 +363,16 @@ namespace MapsetVerifier.Snapshots.Translators
                     )
                     {
                         if (
-                            addedSlider.HasHitSound(hitSound)
-                            && !removedSlider.HasHitSound(hitSound)
+                            addedSlider.EndHitSound.HasFlag(hitSound)
+                            && !removedSlider.EndHitSound.HasFlag(hitSound)
                         )
                             yield return "Added "
                                 + Enum.GetName(typeof(HitObject.HitSounds), hitSound)?.ToLower()
                                 + " to tail.";
 
                         if (
-                            !addedSlider.HasHitSound(hitSound)
-                            && removedSlider.HasHitSound(hitSound)
+                            !addedSlider.EndHitSound.HasFlag(hitSound)
+                            && removedSlider.EndHitSound.HasFlag(hitSound)
                         )
                             yield return "Removed "
                                 + Enum.GetName(typeof(HitObject.HitSounds), hitSound)?.ToLower()
