@@ -9,7 +9,11 @@ namespace MapsetVerifier.Server.Service.OsuRuntime;
 public static class CurrentBeatmapLookupService
 {
     private static readonly Regex OsuEditorWindowRegex = new(
-        @"^\s*osu!\s*-\s*(?<metadata>.+?\.osu)\s*$",
+        @"^\s*osu!(?:cuttingedge|stable|beta)?\s*(?:b\d+)?\s*-\s*(?<metadata>.+?\.osu)\s*$",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase
+    );
+    private static readonly Regex OsuBuildTitlePrefixRegex = new(
+        @"^osu!(?:cuttingedge|stable|beta)?\s*(?:b\d+)?\s*-\s*",
         RegexOptions.Compiled | RegexOptions.IgnoreCase
     );
     private static readonly Regex AnyOsuFilenameRegex = new(
@@ -287,6 +291,8 @@ public static class CurrentBeatmapLookupService
             || !Directory.Exists(songsFolder)
         )
             return null;
+
+        metadata = SanitizeExtractedMetadata(metadata) ?? metadata;
 
         var matches = new List<string>();
         try
@@ -621,7 +627,7 @@ public static class CurrentBeatmapLookupService
         var trimmed = windowTitle.Trim();
         var strictMatch = OsuEditorWindowRegex.Match(trimmed);
         if (strictMatch.Success)
-            return strictMatch.Groups["metadata"].Value.Trim();
+            return SanitizeExtractedMetadata(strictMatch.Groups["metadata"].Value.Trim());
 
         var looseMatches = AnyOsuFilenameRegex.Matches(trimmed);
         if (looseMatches.Count == 0)
@@ -629,7 +635,17 @@ public static class CurrentBeatmapLookupService
 
         // Prefer the right-most occurrence when titles include prefixes/suffixes.
         var loose = looseMatches[^1].Groups["metadata"].Value.Trim();
-        return string.IsNullOrWhiteSpace(loose) ? null : loose;
+        return SanitizeExtractedMetadata(loose);
+    }
+
+    private static string? SanitizeExtractedMetadata(string? metadata)
+    {
+        if (string.IsNullOrWhiteSpace(metadata))
+            return null;
+
+        var trimmed = metadata.Trim();
+        trimmed = OsuBuildTitlePrefixRegex.Replace(trimmed, string.Empty).Trim();
+        return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
     }
 
     private static string? ResolveStickyMetadata(OsuClientKind clientKind, string? liveMetadata)
