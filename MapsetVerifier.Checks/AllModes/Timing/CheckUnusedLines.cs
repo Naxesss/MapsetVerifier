@@ -340,6 +340,5 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             // Taiko and mania affect approach rate through SV.
             beatmap.GeneralSettings.mode == Beatmap.Mode.Taiko
             || beatmap.GeneralSettings.mode == Beatmap.Mode.Mania;
-
     }
 }

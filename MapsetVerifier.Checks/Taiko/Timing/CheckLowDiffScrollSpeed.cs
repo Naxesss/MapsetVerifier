@@ -81,12 +81,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
 
             foreach (var segment in segments)
             {
-                if (
-                    EffectiveScrollAlmostEqual(
-                        segment.EffectiveScroll,
-                        dominantScroll.Value
-                    )
-                )
+                if (EffectiveScrollAlmostEqual(segment.EffectiveScroll, dominantScroll.Value))
                     continue;
 
                 if (segment.Line is not InheritedLine)
@@ -105,9 +100,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
             }
         }
 
-        private static double? GetDominantEffectiveScroll(
-            List<EffectiveScrollSegment> segments
-        )
+        private static double? GetDominantEffectiveScroll(List<EffectiveScrollSegment> segments)
         {
             var durationByScroll = new Dictionary<double, double>();
 
