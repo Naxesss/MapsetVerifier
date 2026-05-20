@@ -63,7 +63,9 @@ git push origin v2.0.0-beta.2
 
 ### 2. Wait for CI
 
-The workflow runs **lint/build checks**, then **four** `electron-builder` jobs (Windows, Linux, macOS Intel, macOS ARM), each with **`--publish always`**.
+The workflow runs **lint/build checks**, then **three** `electron-builder` jobs (Windows, Linux, macOS x64+arm64 in a single publish), each with **`--publish always`**.
+
+macOS builds both Intel and Apple Silicon in one job so updater metadata (`latest-mac.yml` and `latest-mac-arm64.yml`) is not overwritten, and ZIP artifacts are published for in-app updates (DMG remains for manual installs).
 
 Environment flags used during publish:
 

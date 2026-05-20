@@ -151,13 +151,9 @@ jobs:
             sidecar_runtime: linux-x64
             builder_args: --linux --x64 --publish always
 
-          - runner: macos-15-intel
-            sidecar_runtime: osx-x64
-            builder_args: --mac --x64 --publish always
-
           - runner: macos-15
-            sidecar_runtime: osx-arm64
-            builder_args: --mac --arm64 --publish always
+            sidecar_runtime: osx-x64 osx-arm64
+            builder_args: --mac --x64 --arm64 --publish always
 
     runs-on: ${{ matrix.runner }}
 
@@ -206,12 +202,7 @@ jobs:
         working-directory: electron-app
         run: npm install @rollup/rollup-linux-x64-gnu --no-save
 
-      - name: Install Rollup native binary (macOS Intel)
-        if: matrix.runner == 'macos-15-intel'
-        working-directory: electron-app
-        run: npm install @rollup/rollup-darwin-x64 --no-save
-
-      - name: Install Rollup native binary (macOS ARM)
+      - name: Install Rollup native binary (macOS)
         if: matrix.runner == 'macos-15'
         working-directory: electron-app
         run: npm install @rollup/rollup-darwin-arm64 --no-save
