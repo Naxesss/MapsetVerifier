@@ -8,7 +8,7 @@ import {
   Group,
   Title,
 } from '@mantine/core';
-import { IconAlertCircle, IconInfoCircleFilled, IconPhotoOff } from '@tabler/icons-react';
+import { IconAlertCircle, IconPhotoOff } from '@tabler/icons-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useSnapshots } from './hooks/useSnapshots';
 import SnapshotContent from './SnapshotContent';
@@ -187,14 +187,20 @@ function Snapshots() {
           bg="dark.6"
         >
           <Flex gap="xs" align="center">
-            {selectedSnapshotDifficulty ? (
+            <SnapshotDifficultyChangesIcon
+              hasChanges={
+                selectedDifficulty === 'General'
+                  ? generalHasChangesAtCommit(data, selectedCommitId)
+                  : difficultyHasChangesAtCommit(data, selectedDifficulty!, selectedCommitId)
+              }
+              size={30}
+            />
+            {selectedSnapshotDifficulty && (
               <GameModeIcon
                 mode={selectedSnapshotDifficulty.mode ?? 'Standard'}
                 size={28}
                 starRating={selectedSnapshotDifficulty.starRating}
               />
-            ) : (
-              <IconInfoCircleFilled size={28} color={theme.colors.primary[3]} />
             )}
             <Title order={3}>{selectedDifficulty}</Title>
           </Flex>
