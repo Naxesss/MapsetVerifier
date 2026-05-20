@@ -1,6 +1,7 @@
 ﻿using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects.Taiko;
 using MapsetVerifier.Parser.Objects.TimingLines;
+using MathNet.Numerics;
 using static MapsetVerifier.Checks.Utils.GeneralUtils;
 
 namespace MapsetVerifier.Checks.Utils;
@@ -115,6 +116,65 @@ public static class TaikoUtils
             GetOffsetFromPrevBarlineMs(beatmap, time),
             GetOffsetFromNextBarlineMs(beatmap, time)
         );
+    }
+
+    /// <summary>
+    ///     Returns the milliseconds until the next barline strictly after <paramref name="time" />.
+    /// </summary>
+    public static double GetMsUntilNextBarline(Beatmap beatmap, double time)
+    {
+        var timing = beatmap.GetTimingLine<UninheritedLine>(time);
+        if (timing == null)
+            return 0;
+
+        var barlineGap = timing.msPerBeat * timing.Meter;
+        var fromPrev = GetOffsetFromPrevBarlineMs(beatmap, time);
+
+        if (fromPrev <= Common.ROUNDING_ERROR_MARGIN)
+            return barlineGap;
+
+        return barlineGap - fromPrev;
+    }
+
+    /// <summary>
+    ///     Returns whether <paramref name="time" /> lies on a barline (within editor snap tolerance).
+    ///     Matches downbeats at the start of a measure and just before the next (phase wrap).
+    /// </summary>
+    public static bool IsOnBarline(Beatmap beatmap, double time)
+    {
+        var timing = beatmap.GetTimingLine<UninheritedLine>(time);
+        if (timing == null)
+            return false;
+
+        var barlineGap = timing.msPerBeat * timing.Meter;
+        var fromPrev = GetOffsetFromPrevBarlineMs(beatmap, time);
+        var fromNext = barlineGap - fromPrev;
+
+        return fromPrev <= Common.MS_EPSILON || fromNext <= Common.MS_EPSILON;
+    }
+
+    /// <summary>
+    ///     Returns whether a barline at <paramref name="barlineTime" /> is rendered (not hidden by omit).
+    /// </summary>
+    public static bool IsBarlineVisible(Beatmap beatmap, double barlineTime)
+    {
+        if (!IsOnBarline(beatmap, barlineTime))
+            return false;
+
+        foreach (var line in beatmap.TimingLines.OfType<UninheritedLine>())
+        {
+            if (!line.OmitsBarLine)
+                continue;
+
+            var firstBarlineAfter = IsOnBarline(beatmap, line.Offset)
+                ? line.Offset
+                : line.Offset + GetMsUntilNextBarline(beatmap, line.Offset);
+
+            if (barlineTime.AlmostEqual(firstBarlineAfter))
+                return false;
+        }
+
+        return true;
     }
 
     /// <summary>
