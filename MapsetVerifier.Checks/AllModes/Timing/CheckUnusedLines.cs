@@ -1,3 +1,4 @@
+using MapsetVerifier.Checks.Utils;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
@@ -6,6 +7,7 @@ using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
 using MathNet.Numerics;
+using static MapsetVerifier.Checks.Utils.TimingUtils;
 
 namespace MapsetVerifier.Checks.AllModes.Timing
 {
@@ -339,25 +341,5 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             beatmap.GeneralSettings.mode == Beatmap.Mode.Taiko
             || beatmap.GeneralSettings.mode == Beatmap.Mode.Mania;
 
-        /// <summary>
-        ///     Returns whether this section contains the respective hit object type.
-        ///     Only counts the start of objects.
-        /// </summary>
-        private static bool SectionContainsObject<T>(Beatmap beatmap, TimingLine line)
-            where T : HitObject
-        {
-            var nextLine = line.Next(true);
-
-            // If this is the final timing section
-            if (nextLine == null)
-            {
-                return beatmap.GetNextHitObject<T>(line.Offset) != null;
-            }
-
-            var nextSectionEnd = nextLine.Offset;
-            var objectTimeBeforeEnd = beatmap.GetPrevHitObject<T>(nextSectionEnd)?.time ?? 0;
-
-            return objectTimeBeforeEnd >= line.Offset;
-        }
     }
 }
