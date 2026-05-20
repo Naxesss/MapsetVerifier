@@ -61,7 +61,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     "Snap Consistency",
                     new IssueTemplate(
                         Issue.Level.Warning,
-                        "{0} (1/{1}) Different snapping, {2} (1/{3}), is used in {4}.",
+                        "{0} (1/{1}) Different snapping, {2} (1/{3}), is used in {4}. Ensure this makes sense.",
                         "timestamp -",
                         "X",
                         "timestamp -",
@@ -100,7 +100,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     "Minor Snap Consistency",
                     new IssueTemplate(
                         Issue.Level.Minor,
-                        "{0} (1/{1}) Different snapping, {2} (1/{3}), is used in {4}.",
+                        "{0} (1/{1}) Different snapping, {2} (1/{3}), is used in {4}. Ensure this makes sense.",
                         "timestamp -",
                         "X",
                         "timestamp -",
