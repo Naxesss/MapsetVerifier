@@ -31,11 +31,9 @@ export default function DocumentationOutcomeBlockquote({
       <Stack gap="xs">
         <MantineMarkdown>{outcome.description}</MantineMarkdown>
         {outcome.cause && (
-          <>
-            <Text size="xs" c="dimmed" mt="xs">
-              Cause: {outcome.cause}
-            </Text>
-          </>
+          <Text size="sm" c="dimmed">
+            Cause: {outcome.cause}
+          </Text>
         )}
       </Stack>
     </Blockquote>
