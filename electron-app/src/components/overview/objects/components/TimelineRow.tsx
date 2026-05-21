@@ -152,6 +152,7 @@ export default function TimelineRow({
         onGoToTimestamp={goToObject}
         onCopyTimestamp={copyEditorTimestamp}
         goToLabel="Go to object"
+        timestampLabel={formatEditorTimestamp(contextMenuState?.timestampMs ?? 0)}
       />
     </Box>
   );
