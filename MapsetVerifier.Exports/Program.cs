@@ -111,7 +111,10 @@ internal static class Program
             ["message"] = meta.Message,
             ["author"] = meta.Author,
             ["applicableModes"] = meta.GetMode(),
-            ["documentation"] = meta.Documentation,
+            ["documentation"] = meta.Documentation.ToDictionary(
+                kv => kv.Key,
+                kv => CleanDocumentationText(kv.Value)
+            ),
             ["templates"] = check
                 .GetTemplates()
                 .ToDictionary(
@@ -136,5 +139,43 @@ internal static class Program
         }
 
         return item;
+    }
+
+    /// <summary>
+    /// Normalizes check documentation copied from indented C# verbatim strings so markdown
+    /// exports without leading blank lines or source-code indentation.
+    /// </summary>
+    private static string CleanDocumentationText(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return string.Empty;
+
+        var normalized = value.Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n');
+        var lines = normalized.Split('\n');
+
+        var minIndent = lines
+            .Where(line => !string.IsNullOrWhiteSpace(line))
+            .Select(line => line.TakeWhile(char.IsWhiteSpace).Count())
+            .DefaultIfEmpty(0)
+            .Min();
+
+        var dedented = lines
+            .Select(line =>
+            {
+                if (string.IsNullOrWhiteSpace(line))
+                    return string.Empty;
+
+                var content = line.Length > minIndent ? line[minIndent..] : line.TrimStart();
+                return content.TrimEnd();
+            })
+            .ToList();
+
+        while (dedented.Count > 0 && dedented[0].Length == 0)
+            dedented.RemoveAt(0);
+
+        while (dedented.Count > 0 && dedented[^1].Length == 0)
+            dedented.RemoveAt(dedented.Count - 1);
+
+        return string.Join('\n', dedented);
     }
 }
