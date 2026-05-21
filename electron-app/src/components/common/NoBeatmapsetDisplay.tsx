@@ -22,10 +22,10 @@ function NoBeatmapsetDisplay() {
         }}
       />
       <Text fw={700} size="lg">
-        No beatmapset selected
+        No mapset selected...
       </Text>
       <Text size="sm" c="dimmed">
-        Please select a beatmapset on the left side menu
+        Please select a mapset on the left side menu
       </Text>
     </Stack>
   );

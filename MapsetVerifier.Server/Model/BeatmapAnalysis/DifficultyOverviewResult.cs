@@ -29,14 +29,22 @@ public class DifficultyOverviewDifficulty
     public string Mode { get; set; } = string.Empty;
     public string DifficultyLevel { get; set; } = string.Empty;
     public double StarRating { get; set; }
-    public List<double> StarRatingValues { get; set; } = [];
-    public List<double> SliderVelocityValues { get; set; } = [];
-    public List<double> VolumeValues { get; set; } = [];
+    public List<DifficultySamplePoint> StarRatingSamples { get; set; } = [];
+    public List<DifficultySamplePoint> SliderVelocitySamples { get; set; } = [];
+    public List<DifficultySamplePoint> VolumeSamples { get; set; } = [];
     public List<DifficultySkillData> Skills { get; set; } = [];
+}
+
+public class DifficultySamplePoint
+{
+    /// <summary>SR/strain: 400 ms grid time. SV/volume: inherited timing line offset (ms).</summary>
+    public double TimeMs { get; set; }
+
+    public double Value { get; set; }
 }
 
 public class DifficultySkillData
 {
     public string SkillName { get; set; } = string.Empty;
-    public List<double> StrainPeaks { get; set; } = [];
+    public List<DifficultySamplePoint> StrainSamples { get; set; } = [];
 }

@@ -487,26 +487,30 @@ export type DifficultyOverviewResult = {
   difficulties: DifficultyOverviewDifficulty[];
 };
 
+export type DifficultySamplePoint = {
+  timeMs: number;
+  value: number;
+};
+
 export type DifficultyOverviewDifficulty = {
   label: string;
   version: string;
   mode: Mode;
   difficultyLevel: DifficultyLevel;
   starRating: number;
-  starRatingValues: number[];
-  /** Present for non-Mania difficulties from current API; may be missing on older payloads. */
-  sliderVelocityValues?: number[];
-  /** Sample volume % from effective timing line at each overview grid point; may be missing on older payloads. */
-  volumeValues?: number[];
+  starRatingSamples: DifficultySamplePoint[];
+  sliderVelocitySamples: DifficultySamplePoint[];
+  volumeSamples: DifficultySamplePoint[];
   skills: DifficultySkillData[];
 };
 
 export type DifficultySkillData = {
   skillName: string;
-  strainPeaks: number[];
+  strainSamples: DifficultySamplePoint[];
 };
 
 export type DifficultyChartDataPoint = {
+  timeMs: number;
   timeSeconds: number;
   value: number;
 };
