@@ -2,6 +2,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { ActionIcon, Box, Flex, Group, Stack, Text, useMantineTheme } from '@mantine/core';
 import { IconEye, IconEyeOff, IconGripVertical } from '@tabler/icons-react';
+import TimelineRow from './TimelineRow.tsx';
 import { withAlpha } from '../../../../utils/color.ts';
 import { formatGameModeLabel, getModeAccentColor, normalizeMode } from '../../../../utils/gameMode';
 import GameModeIcon from '../../../icons/GameModeIcon.tsx';
@@ -11,8 +12,8 @@ import {
   LABEL_WIDTH,
   ROW_HEIGHT,
 } from '../constants.ts';
-import TimelineRow from './TimelineRow.tsx';
 import type { ObjectsOverviewDifficulty } from '../../../../Types';
+import type { TimelineThemeVariant } from '../timelineTheme/types.ts';
 
 interface SortableTimelineDifficultyRowProps {
   difficulty: ObjectsOverviewDifficulty;
@@ -22,6 +23,7 @@ interface SortableTimelineDifficultyRowProps {
   contentWidth: number;
   startTimeMs: number;
   endTimeMs: number;
+  visualThemeVariant: TimelineThemeVariant;
   onToggleVisibility: (difficulty: ObjectsOverviewDifficulty) => void;
 }
 
@@ -33,6 +35,7 @@ export default function SortableTimelineDifficultyRow({
   contentWidth,
   startTimeMs,
   endTimeMs,
+  visualThemeVariant,
   onToggleVisibility,
 }: SortableTimelineDifficultyRowProps) {
   const theme = useMantineTheme();
@@ -171,6 +174,7 @@ export default function SortableTimelineDifficultyRow({
             endTimeMs={endTimeMs}
             width={timelineWidth}
             height={ROW_HEIGHT}
+            visualThemeVariant={visualThemeVariant}
           />
         ) : (
           <Flex

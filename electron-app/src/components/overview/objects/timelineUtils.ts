@@ -1,17 +1,13 @@
 import {
-  CIRCLE_OBJECT_RADIUS,
   MAX_AXIS_PRECISION_ZOOM,
   MAX_TIMELINE_CANVAS_TILE_WIDTH,
   MAX_ZOOM,
   MIN_ZOOM,
-  TAIKO_CIRCLE_RADIUS,
-  TAIKO_FINISHER_CIRCLE_RADIUS,
-  TAIKO_SPINNER_RADIUS,
   TIMING_SAMPLES_PER_BEAT,
   TIMELINE_INTERVAL_STEPS_MS,
 } from './constants.ts';
 import { normalizeMode } from '../../../utils/gameMode';
-import type { Mode, ObjectsOverviewDifficulty, ObjectsSnappingBucket } from '../../../Types';
+import type { ObjectsOverviewDifficulty, ObjectsSnappingBucket } from '../../../Types';
 
 /** Lenience matching server-side `HitObject.IsClose` (±2 ms). */
 const EDGE_TIME_MATCH_EPSILON_MS = 2;
@@ -295,21 +291,3 @@ export function formatEditorTimestamp(timeMs: number) {
     .padStart(2, '0')}:${milliseconds.toString().padStart(3, '0')}`;
 }
 
-export function getTimelineObjectCircleRadius(
-  difficultyMode: Mode,
-  timelineObject: { hasFinishHitSound: boolean }
-) {
-  if (difficultyMode === 'Taiko' && timelineObject.hasFinishHitSound) {
-    return TAIKO_FINISHER_CIRCLE_RADIUS;
-  }
-
-  return TAIKO_CIRCLE_RADIUS;
-}
-
-export function getSpinnerMarkerRadius(difficultyMode: Mode) {
-  if (difficultyMode === 'Taiko') {
-    return TAIKO_SPINNER_RADIUS;
-  }
-
-  return CIRCLE_OBJECT_RADIUS - 1.5;
-}

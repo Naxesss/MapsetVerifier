@@ -1,17 +1,24 @@
-import { REVERSE_ARROW_ICON_SIZE, TAIKO_DRUMROLL_COLOR, TAIKO_SPINNER_COLOR } from './constants.ts';
+import { REVERSE_ARROW_ICON_SIZE } from './constants.ts';
+import {
+  drawThemedCircle,
+  drawThemedHoldNote,
+  drawThemedLineBody,
+  drawThemedObjectMarkerEdge,
+  drawThemedReverseArrow,
+  drawThemedSpinnerMarker,
+  drawThemedTailSquare,
+} from './timelineTheme/apply.ts';
+import { resolveTimelineVisualTheme } from './timelineTheme/selection.ts';
 import {
   getAlignedTimelineLineX,
   getObjectBodyWidth,
-  getSpinnerMarkerRadius,
-  getTimelineObjectCircleRadius,
   getTimelineX,
   getTimingTickStyle,
   hasNearbyRoundedEdge,
 } from './timelineUtils.ts';
 import { withAlpha } from '../../../utils/color.ts';
-import { normalizeMode } from '../../../utils/gameMode';
+import type { TimelineThemeVariant , TimelineVisualTheme } from './timelineTheme/types.ts';
 import type {
-  Mode,
   ObjectsBreakPeriod,
   ObjectsOverviewDifficulty,
   ObjectsTimelineObject,
@@ -30,6 +37,7 @@ export function drawTimelineRow(
     viewportWidth,
     height,
     theme,
+    visualThemeVariant,
   }: {
     difficulty: ObjectsOverviewDifficulty;
     startTimeMs: number;
@@ -39,11 +47,13 @@ export function drawTimelineRow(
     viewportWidth: number;
     height: number;
     theme: MantineTheme;
+    visualThemeVariant: TimelineThemeVariant;
   }
 ) {
   const durationMs = Math.max(1, endTimeMs - startTimeMs);
   const centerY = height / 2;
   const viewportEndX = viewportStartX + viewportWidth;
+  const visualTheme = resolveTimelineVisualTheme(difficulty.mode, visualThemeVariant);
 
   ctx.clearRect(0, 0, viewportWidth, height);
   ctx.save();
@@ -85,13 +95,11 @@ export function drawTimelineRow(
   ctx.lineTo(viewportEndX, centerY);
   ctx.stroke();
 
-  const difficultyMode = normalizeMode(difficulty.mode);
-
   for (const timelineObject of difficulty.timelineObjects) {
     drawTimelineObject(
       ctx,
       timelineObject,
-      difficultyMode,
+      visualTheme,
       startTimeMs,
       durationMs,
       timelineWidth,
@@ -116,7 +124,7 @@ export function drawTimelineRow(
       if (drawnMarkers.has(markerKey)) continue;
 
       drawnMarkers.add(markerKey);
-      drawObjectMarker(ctx, timelineObject, difficultyMode, edge.partName, x, centerY);
+      drawObjectMarker(ctx, timelineObject, visualTheme, edge.partName, x, centerY);
     }
   }
 
@@ -129,15 +137,17 @@ export function getTimelineTimestampAtX({
   endTimeMs,
   timelineWidth,
   x,
+  visualThemeVariant,
 }: {
   difficulty: ObjectsOverviewDifficulty;
   startTimeMs: number;
   endTimeMs: number;
   timelineWidth: number;
   x: number;
+  visualThemeVariant: TimelineThemeVariant;
 }): number | null {
   const durationMs = Math.max(1, endTimeMs - startTimeMs);
-  const difficultyMode = normalizeMode(difficulty.mode);
+  const visualTheme = resolveTimelineVisualTheme(difficulty.mode, visualThemeVariant);
   let bestTimeMs: number | null = null;
   let bestDistance = Number.POSITIVE_INFINITY;
 
@@ -157,7 +167,7 @@ export function getTimelineTimestampAtX({
         durationMs,
         timelineWidth
       );
-      const radius = getTimelineObjectCircleRadius(difficultyMode, timelineObject);
+      const radius = visualTheme.circleRadius(timelineObject);
       consider(timelineObject.startTimeMs, Math.abs(x - centerX), radius + 4);
       continue;
     }
@@ -331,7 +341,7 @@ function drawTimingGrid(
 function drawTimelineObject(
   ctx: CanvasRenderingContext2D,
   timelineObject: ObjectsTimelineObject,
-  difficultyMode: Mode,
+  visualTheme: TimelineVisualTheme,
   startTimeMs: number,
   durationMs: number,
   width: number,
@@ -339,8 +349,8 @@ function drawTimelineObject(
   visibleStartX: number,
   visibleEndX: number
 ) {
-  const color = getTimelineObjectColor(difficultyMode, timelineObject);
-  const circleRadius = getTimelineObjectCircleRadius(difficultyMode, timelineObject);
+  const color = visualTheme.resolveObjectColor(timelineObject);
+  const circleRadius = visualTheme.circleRadius(timelineObject);
 
   if (timelineObject.objectType === 'Circle') {
     const x = getTimelineX(timelineObject.startTimeMs, startTimeMs, durationMs, width);
@@ -348,14 +358,14 @@ function drawTimelineObject(
       return;
     }
 
-    drawCircleObject(ctx, x, centerY, color, circleRadius);
+    drawThemedCircle(ctx, x, centerY, circleRadius, color, visualTheme.circle);
     return;
   }
 
   drawObjectBody(
     ctx,
     timelineObject,
-    difficultyMode,
+    visualTheme,
     startTimeMs,
     durationMs,
     width,
@@ -368,7 +378,7 @@ function drawTimelineObject(
 function drawObjectBody(
   ctx: CanvasRenderingContext2D,
   timelineObject: ObjectsTimelineObject,
-  difficultyMode: Mode,
+  visualTheme: TimelineVisualTheme,
   startTimeMs: number,
   durationMs: number,
   width: number,
@@ -389,177 +399,91 @@ function drawObjectBody(
   );
   if (!bodyBounds) return;
 
-  const color = getTimelineObjectColor(difficultyMode, timelineObject);
+  const color = visualTheme.resolveObjectColor(timelineObject);
 
   if (timelineObject.objectType === 'Spinner') {
-    ctx.strokeStyle = withAlpha(color, 0.18);
-    ctx.lineWidth = 32;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(bodyBounds.startX, centerY);
-    ctx.lineTo(bodyBounds.endX, centerY);
-    ctx.stroke();
-
-    ctx.strokeStyle = withAlpha(color, 0.45);
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(bodyBounds.startX, centerY);
-    ctx.lineTo(bodyBounds.endX, centerY);
-    ctx.stroke();
+    drawThemedLineBody(
+      ctx,
+      bodyBounds.startX,
+      bodyBounds.endX,
+      centerY,
+      color,
+      visualTheme.spinnerBody
+    );
     return;
   }
 
   if (timelineObject.objectType === 'Hold note') {
-    ctx.fillStyle = withAlpha(color, 0.42);
-    ctx.fillRect(bodyBounds.startX, centerY - 5, bodyBounds.endX - bodyBounds.startX, 10);
-    ctx.strokeStyle = withAlpha(color, 0.85);
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(bodyBounds.startX, centerY - 5, bodyBounds.endX - bodyBounds.startX, 10);
+    drawThemedHoldNote(
+      ctx,
+      bodyBounds.startX,
+      bodyBounds.endX,
+      centerY,
+      color,
+      visualTheme.holdNote
+    );
     return;
   }
 
-  ctx.strokeStyle = withAlpha(color, 0.4);
-  ctx.lineWidth = 32;
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.moveTo(bodyBounds.startX, centerY);
-  ctx.lineTo(bodyBounds.endX, centerY);
-  ctx.stroke();
-
-  ctx.strokeStyle = withAlpha(color, 0.95);
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(bodyBounds.startX, centerY);
-  ctx.lineTo(bodyBounds.endX, centerY);
-  ctx.stroke();
+  drawThemedLineBody(
+    ctx,
+    bodyBounds.startX,
+    bodyBounds.endX,
+    centerY,
+    color,
+    visualTheme.sliderBody
+  );
 }
 
 function drawObjectMarker(
   ctx: CanvasRenderingContext2D,
   timelineObject: ObjectsTimelineObject,
-  difficultyMode: Mode,
+  visualTheme: TimelineVisualTheme,
   partName: string,
   x: number,
   centerY: number
 ) {
   const lowerPart = partName.toLowerCase();
-  const color = getTimelineObjectColor(difficultyMode, timelineObject);
+  const color = visualTheme.resolveObjectColor(timelineObject);
   const isSlider = timelineObject.objectType === 'Slider';
-  const circleRadius = getTimelineObjectCircleRadius(difficultyMode, timelineObject);
+  const circleRadius = visualTheme.circleRadius(timelineObject);
 
   if (timelineObject.objectType === 'Spinner') {
-    drawSpinnerIcon(ctx, x, centerY, color, getSpinnerMarkerRadius(difficultyMode));
+    drawThemedSpinnerMarker(
+      ctx,
+      x,
+      centerY,
+      color,
+      visualTheme.spinnerMarkerRadius,
+      visualTheme.spinnerMarker
+    );
     return;
   }
 
-  ctx.strokeStyle = withAlpha(color, 0.95);
-  ctx.fillStyle = withAlpha(color, 0.95);
-  ctx.lineWidth = 1.5;
-
   if (lowerPart.includes('reverse')) {
-    drawCircleObject(ctx, x, centerY, color, circleRadius);
-    drawReverseArrowIcon(ctx, x, centerY);
+    drawThemedCircle(ctx, x, centerY, circleRadius, color, visualTheme.circle);
+    drawThemedReverseArrow(
+      ctx,
+      x,
+      centerY,
+      REVERSE_ARROW_ICON_SIZE,
+      visualTheme.reverseArrow
+    );
     return;
   }
 
   if (lowerPart.includes('tail') || lowerPart.includes('end')) {
     if (isSlider) {
-      drawCircleObject(ctx, x, centerY, color, circleRadius);
+      drawThemedCircle(ctx, x, centerY, circleRadius, color, visualTheme.circle);
       return;
     }
 
-    ctx.fillRect(x - 3, centerY - 3, 6, 6);
+    drawThemedObjectMarkerEdge(ctx, color, visualTheme.objectMarker);
+    drawThemedTailSquare(ctx, x, centerY, visualTheme.objectMarker);
     return;
   }
 
-  drawCircleObject(ctx, x, centerY, color, circleRadius);
-}
-
-function drawCircleObject(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  centerY: number,
-  color: string,
-  radius: number
-) {
-  ctx.beginPath();
-  ctx.fillStyle = withAlpha(color, 0.55);
-  ctx.strokeStyle = withAlpha(color, 0.98);
-  ctx.lineWidth = 1.75;
-  ctx.arc(x, centerY, radius, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
-}
-
-function drawReverseArrowIcon(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  centerY: number,
-  size = REVERSE_ARROW_ICON_SIZE
-) {
-  const leftX = x - size;
-  const middleX = x - size * 0.17;
-  const rightX = x + size * 0.67;
-  const yOffset = size * 0.89;
-
-  ctx.save();
-  ctx.strokeStyle = 'rgba(255,255,255,0.95)';
-  ctx.lineWidth = Math.max(1.4, size * 0.36);
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-
-  ctx.beginPath();
-  ctx.moveTo(leftX, centerY - yOffset);
-  ctx.lineTo(middleX, centerY);
-  ctx.lineTo(leftX, centerY + yOffset);
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.moveTo(middleX, centerY - yOffset);
-  ctx.lineTo(rightX, centerY);
-  ctx.lineTo(middleX, centerY + yOffset);
-  ctx.stroke();
-
-  ctx.restore();
-}
-
-function drawSpinnerIcon(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  centerY: number,
-  color: string,
-  radius: number
-) {
-  const ringRadius = Math.max(radius * 0.72, radius - 4);
-  const accentX = x + ringRadius * 0.55;
-  const accentY = centerY - ringRadius * 0.6;
-
-  ctx.save();
-  ctx.beginPath();
-  ctx.fillStyle = withAlpha(color, 0.22);
-  ctx.strokeStyle = withAlpha(color, 0.9);
-  ctx.lineWidth = Math.max(1.25, radius * 0.1);
-  ctx.arc(x, centerY, radius, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.strokeStyle = 'rgba(255,255,255,0.95)';
-  ctx.lineWidth = Math.max(1.75, radius * 0.16);
-  ctx.lineCap = 'round';
-  ctx.arc(x, centerY, ringRadius, -Math.PI * 0.35, Math.PI * 1.15);
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.fillStyle = 'rgba(255,255,255,0.95)';
-  ctx.arc(accentX, accentY, Math.max(1.4, radius * 0.12), 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.fillStyle = withAlpha(color, 0.92);
-  ctx.arc(x, centerY, Math.max(1.6, radius * 0.15), 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
+  drawThemedCircle(ctx, x, centerY, circleRadius, color, visualTheme.circle);
 }
 
 function drawBreakPauseIcon(
@@ -573,18 +497,4 @@ function drawBreakPauseIcon(
   ctx.fillRect(x - 4, centerY - 5, 2.5, 10);
   ctx.fillRect(x + 1.5, centerY - 5, 2.5, 10);
   ctx.restore();
-}
-
-function getTimelineObjectColor(difficultyMode: Mode, timelineObject: ObjectsTimelineObject) {
-  if (difficultyMode === 'Taiko') {
-    if (timelineObject.objectType === 'Spinner') {
-      return TAIKO_SPINNER_COLOR;
-    }
-
-    if (timelineObject.objectType === 'Slider') {
-      return TAIKO_DRUMROLL_COLOR;
-    }
-  }
-
-  return timelineObject.comboColourHex ?? '#ced4da';
 }

@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { parseTimelineThemeVariant } from '../components/overview/objects/timelineTheme/selection.ts';
 import { BACKEND_BASE_URL } from '../Constants.ts';
 import { DEFAULT_UI_FONT_FAMILY, parseUiFontFamily, type UiFontFamily } from '../theme/fonts';
 import { isSemverPreRelease } from '../utils/isSemverPreRelease';
+import type { TimelineThemeVariant } from '../components/overview/objects/timelineTheme/types.ts';
 
 // Type-safe Settings type
 export type Settings = {
@@ -14,6 +16,8 @@ export type Settings = {
   lazerLookupEnabled: boolean;
   receivePrereleases: boolean;
   uiFontFamily: UiFontFamily;
+  /** Objects overview timeline circle style (synced across game modes). */
+  timelineThemeVariant: TimelineThemeVariant;
   // DEV-only: whether to gate Backend in development mode
   gateInDev: boolean;
 };
@@ -34,6 +38,7 @@ const defaultSettings: Settings = {
   lazerLookupEnabled: false,
   receivePrereleases: false,
   uiFontFamily: DEFAULT_UI_FONT_FAMILY,
+  timelineThemeVariant: 'default',
   gateInDev: false,
 };
 
@@ -98,6 +103,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
           ? loaded.hiddenMinorCheckIds
           : defaultSettings.hiddenMinorCheckIds,
         uiFontFamily: parseUiFontFamily(loaded?.uiFontFamily),
+        timelineThemeVariant: parseTimelineThemeVariant(loaded?.timelineThemeVariant ?? null),
       });
 
       const savedSongFolder =

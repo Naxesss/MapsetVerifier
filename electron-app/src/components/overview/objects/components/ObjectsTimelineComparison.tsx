@@ -1,16 +1,21 @@
 import { DndContext } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { ActionIcon, Box, Button, Group, Paper, Slider, Stack, Text, Title } from '@mantine/core';
+import { ActionIcon, Box, Button, Group, Paper, Select, Slider, Stack, Text, Title } from '@mantine/core';
 import { IconEye, IconEyeOff, IconMinus, IconPlus } from '@tabler/icons-react';
 import { LABEL_WIDTH } from '../constants.ts';
 import ObjectsGameModeSelector from './ObjectsGameModeSelector.tsx';
 import SortableTimelineDifficultyRow from './SortableTimelineDifficultyRow.tsx';
 import TimelineAxisRow from './TimelineAxisRow.tsx';
+import { useSettings } from '../../../../context/SettingsContext.tsx';
 import { useDifficultyRowDnd } from '../hooks/useDifficultyRowDnd.ts';
 import { useDifficultyRowVisibility } from '../hooks/useDifficultyRowVisibility.ts';
 import { useHorizontalScrollPan } from '../hooks/useHorizontalScrollPan.ts';
 import { usePerModeDifficultyOrder } from '../hooks/usePerModeDifficultyOrder.ts';
 import { useTimelineZoom } from '../hooks/useTimelineZoom.ts';
+import {
+  parseTimelineThemeVariant,
+  TIMELINE_THEME_VARIANT_OPTIONS,
+} from '../timelineTheme/selection.ts';
 import { getDifficultyKey } from '../timelineUtils.ts';
 import type { Mode, ObjectsOverviewDifficulty } from '../../../../Types';
 import type { ObjectsModeGroup } from '../types.ts';
@@ -41,6 +46,8 @@ export default function ObjectsTimelineComparison({
     useDifficultyRowVisibility(groupedDifficulties);
   const contentWidth = timelineWidth + LABEL_WIDTH;
   const activeMode = selectedMode ?? groupedDifficulties[0]?.mode;
+  const { settings, setSettings } = useSettings();
+  const timelineThemeVariant = settings.timelineThemeVariant;
   const { orderedDifficulties, moveDifficulty } = usePerModeDifficultyOrder({
     groupedDifficulties,
     activeMode,
@@ -106,6 +113,22 @@ export default function ObjectsTimelineComparison({
               </Button>
             </Group>
             <Group gap="xs" align="center" wrap="nowrap">
+              <Select
+                aria-label="Timeline object style"
+                title="Timeline object style"
+                size="xs"
+                w={108}
+                data={TIMELINE_THEME_VARIANT_OPTIONS}
+                value={timelineThemeVariant}
+                allowDeselect={false}
+                comboboxProps={{ withinPortal: true }}
+                onChange={(value) =>
+                  setSettings((prev) => ({
+                    ...prev,
+                    timelineThemeVariant: parseTimelineThemeVariant(value),
+                  }))
+                }
+              />
               <ActionIcon variant="default" onClick={() => adjustZoom(-1)}>
                 <IconMinus size={16} />
               </ActionIcon>
@@ -182,6 +205,7 @@ export default function ObjectsTimelineComparison({
                       contentWidth={contentWidth}
                       startTimeMs={startTimeMs}
                       endTimeMs={endTimeMs}
+                      visualThemeVariant={timelineThemeVariant}
                       onToggleVisibility={toggleDifficultyVisibility}
                     />
                   );

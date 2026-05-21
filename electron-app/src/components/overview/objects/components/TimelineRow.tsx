@@ -5,6 +5,7 @@ import AutoResizeCanvas from '../../../common/AutoResizeCanvas.tsx';
 import { drawTimelineRow, getTimelineTimestampAtX } from '../timelineDrawing.ts';
 import { formatEditorTimestamp, getTimelineCanvasTiles, getTimelineX } from '../timelineUtils.ts';
 import type { ObjectsOverviewDifficulty } from '../../../../Types';
+import type { TimelineThemeVariant } from '../timelineTheme/types.ts';
 
 interface TimelineRowProps {
   difficulty: ObjectsOverviewDifficulty;
@@ -12,6 +13,7 @@ interface TimelineRowProps {
   endTimeMs: number;
   width: number;
   height: number;
+  visualThemeVariant: TimelineThemeVariant;
 }
 
 export default function TimelineRow({
@@ -20,6 +22,7 @@ export default function TimelineRow({
   endTimeMs,
   width,
   height,
+  visualThemeVariant,
 }: TimelineRowProps) {
   const theme = useMantineTheme();
   const canvasTiles = useMemo(() => getTimelineCanvasTiles(width), [width]);
@@ -38,6 +41,7 @@ export default function TimelineRow({
       endTimeMs,
       timelineWidth: width,
       x: localX,
+      visualThemeVariant,
     });
 
     if (timestampMs === null) {
@@ -106,6 +110,7 @@ export default function TimelineRow({
                 viewportWidth: tile.width,
                 height,
                 theme,
+                visualThemeVariant,
               });
             }}
           />
