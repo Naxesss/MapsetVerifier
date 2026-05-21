@@ -23,7 +23,7 @@ import type {
 
 const MARGIN = { top: 8, right: 16, bottom: 32, left: 52 };
 const MAX_FULL_RES_RENDER_ROWS = 1000;
-const MAX_PEAK_DOTS = 350;
+const MAX_PEAK_DOTS = 100;
 
 type TimeSeriesChartProps = {
   data: TimeSeriesRow[];
@@ -36,7 +36,7 @@ type TimeSeriesChartProps = {
   visibleSeriesIds: Set<string>;
   valueFormatter: (value: number) => string;
   interpolation?: ChartInterpolation;
-  /** Draw circles at each sample (full-res viewport rows, capped at MAX_PEAK_DOTS). */
+  /** Draw circles at each sample when the viewport has at most MAX_PEAK_DOTS rows. */
   showDataPoints?: boolean;
   hover: PeakHoverState | null;
   onHover: (payload: ChartHoverPayload | null) => void;
