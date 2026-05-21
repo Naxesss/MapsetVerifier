@@ -22,8 +22,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         @"
                         Keeping metadata consistent between all difficulties of a beatmapset.
 
-                        ![](assets/checks/all-modes-general-metadata-inconsistent-metadata-1.png)
-                        Comparing two difficulties with different titles in a beatmapset."
+                        ![](assets/checks/all-modes-general-metadata-inconsistent-metadata-1.png ""Comparing two difficulties with different titles in a beatmapset."")
+                        "
                     },
                     {
                         "Reasoning",

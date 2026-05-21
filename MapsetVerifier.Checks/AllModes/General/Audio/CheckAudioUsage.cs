@@ -23,8 +23,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         "Purpose",
                         @"
                         Preventing audio files from being much longer than the beatmaps they are used for.
-                        ![](assets/checks/all-modes-general-audio-usage-1.png)
-                        A beatmap which has left a large portion of the song unmapped."
+                        
+                        ![](assets/checks/all-modes-general-audio-usage-1.png ""A beatmap which has left a large portion of the song unmapped."")
+                        "
                     },
                     {
                         "Reasoning",

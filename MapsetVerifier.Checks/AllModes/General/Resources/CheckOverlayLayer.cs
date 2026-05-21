@@ -23,8 +23,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                         @"
                         Preventing storyboard elements from blocking the view of objects to the point where they become unnecessarily 
                         difficult, or even impossible, to read.
-                        ![](assets/checks/all-modes-general-resources-overlay-layer-1.png)
-                        A storyboard element appearing over a slider."
+                        
+                        ![](assets/checks/all-modes-general-resources-overlay-layer-1.png ""A storyboard element appearing over a slider."")
+                        "
                     },
                     {
                         "Reasoning",

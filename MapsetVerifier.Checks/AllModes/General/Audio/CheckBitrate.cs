@@ -26,8 +26,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         @"
                         Preventing audio quality from being noticably low or unnoticably high to save on file size.
                         
-                        ![](assets/checks/all-modes-general-audio-bitrate-1.png)
-                        Audio bitrate as shown in the properties of a file. For some files this is not visible."
+                        ![](assets/checks/all-modes-general-audio-bitrate-1.png ""Audio bitrate as shown in the properties of a file. For some files this is not visible."")
+                        "
                     },
                     {
                         "Reasoning",

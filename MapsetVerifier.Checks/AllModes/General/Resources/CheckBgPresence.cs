@@ -22,8 +22,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                         @"
                         Ensuring that each beatmap in a beatmapset has a background image present.
 
-                        ![](assets/checks/all-modes-general-resources-bg-presence-1.jpg)
-                        An example of a default non-seasonal background as shown in the editor."
+                        ![](assets/checks/all-modes-general-resources-bg-presence-1.jpg ""An example of a default non-seasonal background as shown in the editor."")
+                        "
                     },
                     {
                         "Reasoning",

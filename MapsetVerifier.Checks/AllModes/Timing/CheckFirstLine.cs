@@ -28,15 +28,14 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         @"
                         If you toggle kiai on the first line, then when the player starts the beatmap, kiai will instantly trigger and apply 
                         from the beginning until the next line. 
-                        ![](assets/checks/all-modes-timing-first-line-1.png)
-                        The game preventing you from enabling kiai on the first timing line.
+                        ![](assets/checks/all-modes-timing-first-line-1.png ""The game preventing you from enabling kiai on the first timing line."")
 
                         If you place an inherited line before the first uninherited line, then the game will 
                         think the whole section isn't timed, causing the default bpm to be used and the inherited line to malfunction since 
                         it has nothing to inherit.
 
-                        ![](assets/checks/all-modes-timing-first-line-2.png)
-                        The first line being inherited, as seen from the timing view."
+                        ![](assets/checks/all-modes-timing-first-line-2.png ""The first line being inherited, as seen from the timing view."")
+                        "
                     },
                 },
             };

@@ -41,8 +41,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
                         `scorebar-ki`, `scorebar-kidanger`, and `scorebar-kidanger2`, act strangely when `scorebar-marker` is missing.
                         The latter can simply be a blank file as it does not show up in-game for osu-stable regardless.
                         
-                        ![](assets/checks/all-modes-general-files-unused-files-1.png)
-                        Spreadsheet over which scorebar elements are used. Only consistent regardless of user settings when both marker and ki elements exist."
+                        ![](assets/checks/all-modes-general-files-unused-files-1.png ""Spreadsheet over which scorebar elements are used. Only consistent regardless of user settings when both marker and ki elements exist."")
+                        "
                     },
                 },
             };

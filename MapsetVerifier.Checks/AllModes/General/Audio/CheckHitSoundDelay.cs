@@ -26,9 +26,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         "Purpose",
                         @"
                         Ensuring hit sounds which are used on active hit objects provide proper feedback for how early or late the player clicked.
-                        ![](assets/checks/all-modes-general-audio-hit-sound-delay-1.png)
-                        A hit sound which is delayed by ~10 ms, as shown in Audacity. Note that audacity shows its 
-                        timeline in seconds, so 0.005 means 5 ms."
+
+                        ![](assets/checks/all-modes-general-audio-hit-sound-delay-1.png ""A hit sound which is delayed by ~10 ms, as shown in Audacity. Note that audacity shows its timeline in seconds, so 0.005 means 5 ms."")
+                        "
                     },
                     {
                         "Reasoning",
@@ -40,16 +40,14 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                     {
                         "Exceptions",
                         @"
-                        Cymbals/bell-like sounds (often finish/whistle respectively) usually have a small wind-up before their peak. 
-                        This is often acceptable to keep, as it would sound wrong without.
-                        ![](assets/checks/all-modes-general-audio-hit-sound-delay-2.png)
-                        A bell hit sound whose peak is delayed by ~21 ms, which was considered fine 
-                        due to the nature of the sound requiring a wind-up.
+                        Cymbals/bell-like sounds (often finish/whistle respectively) usually have a small wind-up before their peak. This is often acceptable to keep, as it would sound wrong without.
+                        
+                        ![](assets/checks/all-modes-general-audio-hit-sound-delay-2.png ""A bell hit sound whose peak is delayed by ~21 ms, which was considered fine due to the nature of the sound requiring a wind-up."")
 
-                        The default `normal-hitfinish.wav` has a delay of ~6 ms, but is used by the game itself,
-                        so copying this and using as a custom sample is acceptable.
-                        ![](assets/checks/all-modes-general-audio-hit-sound-delay-3.png)
-                        A spectrogram of the default `normal-hitfinish.wav`."
+                        The default `normal-hitfinish.wav` has a delay of ~6 ms, but is used by the game itself, so copying this and using as a custom sample is acceptable.
+                        
+                        ![](assets/checks/all-modes-general-audio-hit-sound-delay-3.png ""A spectrogram of the default `normal-hitfinish.wav`."")
+                        "
                     },
                 },
             };

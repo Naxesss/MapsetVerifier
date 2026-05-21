@@ -99,8 +99,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         @"
                         Standardizing title version markers for ranked content per the markers ranking criteria.
 
-                        ![](assets/checks/all-modes-general-metadata-title-markers-1.png)
-                        A song using ""-TV version-"" as its official metadata, which becomes ""(TV Size)"" when standardized."
+                        ![](assets/checks/all-modes-general-metadata-title-markers-1.png ""A song using ""-TV version-"" as its official metadata, which becomes ""(TV Size)"" when standardized."")
+                        "
                     },
                     {
                         "Reasoning",

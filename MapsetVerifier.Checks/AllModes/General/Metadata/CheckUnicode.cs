@@ -23,8 +23,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         Ensuring that all characters in the romanized metadata fields can be displayed and communicated properly across 
                         multiple operating systems, devices and internet protocols.
 
-                        ![](assets/checks/all-modes-general-metadata-unicode-1.png)
-                        A beatmap with its unicode title manually edited into its romanized title field."
+                        ![](assets/checks/all-modes-general-metadata-unicode-1.png ""A beatmap with its unicode title manually edited into its romanized title field."")
+                        "
                     },
                     {
                         "Reasoning",

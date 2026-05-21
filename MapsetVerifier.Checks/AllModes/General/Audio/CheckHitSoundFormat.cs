@@ -27,14 +27,16 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         "Purpose",
                         @"
                         Discourages potentially detrimental file formats for hit sound files.
-                        ![](assets/checks/all-modes-general-audio-hit-sound-format-1.png)
-                        One of the hit sound files using the MP3 extension, which usually means it's also an MP3 format."
+
+                        ![](assets/checks/all-modes-general-audio-hit-sound-format-1.png ""One of the hit sound files using the MP3 extension, which usually means it's also an MP3 format."")
+                        "
                     },
                     {
                         "Reasoning",
                         @"
                         The MP3 format often includes inherent delays. As such, the Wave or OGG format is preferred for 
                         any hit sound file.
+                        
                         > Passive objects such as slider tails are not clicked and as such do not need accurate feedback and may use the mp3 format because of this.
 
                         > Note that extension is not the same thing as format. If you take an MP3 file and change its extension to "".wav"", for example, it will still be an MP3 file. To change the format of a file you need to re-encode it."

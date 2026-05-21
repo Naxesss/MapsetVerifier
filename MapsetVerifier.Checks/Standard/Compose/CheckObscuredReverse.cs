@@ -32,8 +32,8 @@ namespace MapsetVerifier.Checks.Standard.Compose
                         @"
                         Preventing slider reverses from being covered up by other objects or combo bursts before players can react to them.
 
-                        ![](assets/checks/standard-compose-obscured-reverse-1.png)
-                        Although many skins remove combo bursts, these can hide reverses under them in the same way other objects can in gameplay, so only looking at the editor is a bit misleading."
+                        ![](assets/checks/standard-compose-obscured-reverse-1.png ""An object before a reverse arrow ends over where it appears close in time."")
+                        "
                     },
                     {
                         "Reasoning",

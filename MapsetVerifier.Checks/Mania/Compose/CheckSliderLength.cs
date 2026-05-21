@@ -25,9 +25,9 @@ namespace MapsetVerifier.Checks.Mania.Compose
                         @"
                     Prevent abnormally short long notes from being used. 
                     Displays a Problem for long notes held for less than 20ms, and a Warning for long notes held less than 30ms.
-                    ![](assets/checks/mania-compose-slider-length-1.png)
 
-                    Examples of extremely short LNs, both beyond the Warning and Problem thresholds."
+                    ![](assets/checks/mania-compose-slider-length-1.png ""Examples of extremely short LNs, both beyond the Warning and Problem thresholds."")
+                    "
                     },
                     {
                         "Reasoning",

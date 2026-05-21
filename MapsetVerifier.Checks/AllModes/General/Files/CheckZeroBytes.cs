@@ -32,8 +32,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
                         of any data which makes it 0-byte. Instead, use [this 44-byte file](https://up.ppy.sh/files/blank.wav)
                         which osu provides to mute hit sound files.
 
-                        ![](assets/checks/all-modes-general-files-zero-bytes-1.png)
-                        A 0-byte slidertick hit sound file."
+                        ![](assets/checks/all-modes-general-files-zero-bytes-1.png ""A 0-byte slidertick hit sound file."")
+                        "
                     },
                 },
             };

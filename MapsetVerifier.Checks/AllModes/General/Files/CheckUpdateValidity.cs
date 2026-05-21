@@ -21,8 +21,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
                         "Purpose",
                         @"
                         Ensuring that beatmaps can properly be downloaded and updated to their newest version.
-                        ![](assets/checks/all-modes-general-files-update-validity-1.png)
-                        An example of a song folder where one of the difficulties' file names are incorrect, causing it to be unable to update."
+
+                        ![](assets/checks/all-modes-general-files-update-validity-1.png ""An example of a song folder where one of the difficulties' file names are incorrect, causing it to be unable to update."")
+                        "
                     },
                     {
                         "Reasoning",
@@ -39,8 +40,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
                         For Windows 10 users, file paths longer than 260 characters cannot properly be unzipped by the game and 
                         simply vanish instead. This varies between users based on where on their computer they put osu!, but
                         for the sake of consistency, we'll simply arbitrarily make 130 characters the limit.
-                        ![](assets/checks/all-modes-general-files-update-validity-2.png)
-                        A file name longer than 130 characters, caused by a combination of a long title and a long difficulty name."
+
+                        ![](assets/checks/all-modes-general-files-update-validity-2.png ""A file name longer than 130 characters, caused by a combination of a long title and a long difficulty name."")
+                        "
                     },
                 },
             };

@@ -29,8 +29,8 @@ namespace MapsetVerifier.Checks.AllModes.Settings
                         @"
                         Preventing the combo colours chosen without additional input from blending into the background.
 
-                        ![](assets/checks/all-modes-settings-default-colours-1.png)
-                        The combo colour section in song setup without custom colours ticked."
+                        ![](assets/checks/all-modes-settings-default-colours-1.png ""The combo colour section in song setup without custom colours ticked."")
+                        "
                     },
                     {
                         "Reasoning",

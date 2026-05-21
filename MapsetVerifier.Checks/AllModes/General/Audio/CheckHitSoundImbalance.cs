@@ -22,10 +22,10 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                     {
                         "Purpose",
                         @"
-                        Preventing the audio channels of hit sounds from being noticeably imbalanced, for example the left 
-                        channel being twice as loud as the right.
-                        ![](assets/checks/all-modes-general-audio-hit-sound-imbalance-1.png)
-                        A hit sound which is much louder in the left channel compared to the right, as shown in Audacity."
+                        Preventing the audio channels of hit sounds from being noticeably imbalanced, for example the left channel being twice as loud as the right.
+
+                        ![](assets/checks/all-modes-general-audio-hit-sound-imbalance-1.png ""A hit sound which is much louder in the left channel compared to the right, as shown in Audacity."")
+                        "
                     },
                     {
                         "Reasoning",

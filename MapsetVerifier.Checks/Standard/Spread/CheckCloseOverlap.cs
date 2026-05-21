@@ -28,8 +28,8 @@ namespace MapsetVerifier.Checks.Standard.Spread
                         @"
                         Ensuring that objects close in time are indiciated as such in easy and lowest normal difficulties.
 
-                        ![](assets/checks/standard-spread-close-overlap-1.png)
-                        Right image is harder to distinguish time distance in, despite spacings still clearly being different."
+                        ![](assets/checks/standard-spread-close-overlap-1.png ""Right image is harder to distinguish time distance in, despite spacings still clearly being different."")
+                        "
                     },
                     {
                         "Reasoning",

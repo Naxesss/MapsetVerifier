@@ -31,8 +31,8 @@ namespace MapsetVerifier.Checks.AllModes.Events
                         side of the screen and the background undimming while in the middle of gameplay, which only serves to 
                         make the player confused. Saving the beatmap again will fix the break times automatically.
 
-                        ![](assets/checks/all-modes-events-breaks-1.png)
-                        An example of break effects happening in the middle of gameplay."
+                        ![](assets/checks/all-modes-events-breaks-1.png ""An example of break effects happening in the middle of gameplay."")
+                        "
                     },
                 },
             };

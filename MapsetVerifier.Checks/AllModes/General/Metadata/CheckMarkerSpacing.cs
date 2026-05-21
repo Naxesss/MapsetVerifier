@@ -23,9 +23,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         @"
                         Standardizing the way metadata is written for ranked content.
 
-                        ![](assets/checks/all-modes-general-metadata-marker-spacing-1.png)
-                        The romanized artist field is missing a whitespace before and after ""(CV:"". 
-                        The unicode artist field is fine, though, since the characters are full-width."
+                        ![](assets/checks/all-modes-general-metadata-marker-spacing-1.png ""The romanized artist field is missing a whitespace before and after ""(CV:"". The unicode artist field is fine, though, since the characters are full-width."")
+                        "
                     },
                     {
                         "Reasoning",
