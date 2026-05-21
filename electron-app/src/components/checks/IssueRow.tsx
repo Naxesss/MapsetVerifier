@@ -15,19 +15,19 @@ const IssueRow: React.FC<IssueRowProps> = ({ item }) => {
       align="center"
       style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', alignItems: 'start' }}
     >
-      <div style={{ alignSelf: 'start' }}>
+      <div style={{ alignSelf: 'start', userSelect: 'none' }}>
         <LevelIcon
           level={item.level === 'Check' ? 'Info' : item.level}
           size={16}
         />
       </div>
       <Text
+        component="span"
         size="sm"
         style={{
           whiteSpace: 'normal',
           overflowWrap: 'anywhere',
           wordBreak: 'break-word',
-          display: 'block',
           minWidth: 0,
           width: '100%',
         }}
