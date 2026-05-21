@@ -1227,6 +1227,30 @@ namespace MapsetVerifier.Parser.Objects
         }
 
         /// <summary>
+        ///     Returns a list of timing lines where sample volume changes occur.
+        /// </summary>
+        public List<TimingLine> GetVolumeChanges()
+        {
+            var volumeChanges = new List<TimingLine>();
+
+            for (var i = 0; i < TimingLines.Count - 1; i++)
+            {
+                var firstLine = TimingLines[i];
+                var secondLine = TimingLines[i + 1];
+
+                if (
+                    !firstLine.Volume.AlmostEqual(secondLine.Volume)
+                    && !firstLine.Offset.AlmostEqual(secondLine.Offset)
+                )
+                {
+                    volumeChanges.Add(secondLine);
+                }
+            }
+
+            return volumeChanges;
+        }
+
+        /// <summary>
         ///     Returns a list of timing lines where kiai state changes occur.
         /// </summary>
         public List<TimingLine> GetKiaiToggles()

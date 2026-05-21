@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using MapsetVerifier.Parser.Difficulty;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
@@ -6,6 +6,7 @@ using MapsetVerifier.Parser.Objects.HitObjects.Mania;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
 using MapsetVerifier.Server.Model.BeatmapAnalysis;
+using MathNet.Numerics;
 using osu.Game.Rulesets.Difficulty.Skills;
 using Serilog;
 
@@ -266,6 +267,9 @@ public static class BeatmapAnalysisService
 
     private static DifficultyOverviewDifficulty GetDifficultyOverviewDifficulty(Beatmap beatmap)
     {
+        var timedAttributes = new LocalDifficultyCalculator().CalculateTimedAttributes(beatmap);
+        var pointCount = GetSamplePointCount(beatmap, timedAttributes);
+
         return new DifficultyOverviewDifficulty
         {
             Label = beatmap.MetadataSettings.version,
@@ -273,33 +277,91 @@ public static class BeatmapAnalysisService
             Mode = beatmap.GeneralSettings.mode.ToString(),
             DifficultyLevel = beatmap.GetDifficulty().ToString(),
             StarRating = beatmap.StarRating,
-            StarRatingValues = GetStarRatingValues(beatmap),
-            SliderVelocityValues = GetSliderVelocityValues(beatmap),
-            VolumeValues = GetVolumeValues(beatmap),
-            Skills = beatmap
-                .Skills.OfType<StrainSkill>()
-                .Select(skill => new DifficultySkillData
-                {
-                    SkillName = GetSkillName(skill, beatmap),
-                    StrainPeaks = skill.GetCurrentStrainPeaks().Select(peak => peak).ToList(),
-                })
-                .ToList(),
+            StarRatingSamples = GetStarRatingSamples(beatmap, timedAttributes, pointCount),
+            SliderVelocitySamples = GetSliderVelocitySamples(beatmap),
+            VolumeSamples = GetVolumeSamples(beatmap),
+            Skills = GetSkillSamples(beatmap, pointCount),
         };
     }
 
-    private static List<double> GetStarRatingValues(Beatmap beatmap)
+    private static int GetSamplePointCount(
+        Beatmap beatmap,
+        List<osu.Game.Rulesets.Difficulty.TimedDifficultyAttributes> timedAttributes
+    )
     {
-        var timedAttributes = new LocalDifficultyCalculator().CalculateTimedAttributes(beatmap);
-
         if (timedAttributes.Count == 0)
+            return 0;
+
+        var finalTime = GetFinalSampleTimeMs(beatmap, timedAttributes);
+        return Math.Max(1, (int)Math.Ceiling(finalTime / MsPerPeak) + 1);
+    }
+
+    private static double GetMapEndTimeMs(Beatmap beatmap)
+    {
+        if (beatmap.TimingLines.Count == 0 && beatmap.HitObjects.Count == 0)
+            return 0;
+
+        var timingMax =
+            beatmap.TimingLines.Count > 0
+                ? beatmap.TimingLines.Max(timingLine => timingLine.Offset)
+                : 0;
+        var objectsMax =
+            beatmap.HitObjects.Count > 0
+                ? beatmap.HitObjects.Max(hitObject => hitObject.GetEndTime())
+                : 0;
+
+        return Math.Max(timingMax, objectsMax);
+    }
+
+    private static double GetFinalSampleTimeMs(
+        Beatmap beatmap,
+        List<osu.Game.Rulesets.Difficulty.TimedDifficultyAttributes> timedAttributes
+    )
+    {
+        if (timedAttributes.Count > 0)
+        {
+            return Math.Max(
+                timedAttributes[^1].Time,
+                beatmap.HitObjects.Count > 0
+                    ? beatmap.HitObjects.Max(hitObject => hitObject.GetEndTime())
+                    : 0
+            );
+        }
+
+        if (beatmap.TimingLines.Count == 0 && beatmap.HitObjects.Count == 0)
+            return 0;
+
+        var timingMax =
+            beatmap.TimingLines.Count > 0
+                ? beatmap.TimingLines.Max(timingLine => timingLine.Offset)
+                : 0;
+        var objectsMax =
+            beatmap.HitObjects.Count > 0
+                ? beatmap.HitObjects.Max(hitObject => hitObject.GetEndTime())
+                : 0;
+
+        return Math.Max(timingMax, objectsMax);
+    }
+
+    private static double GetFirstStrainSectionEndMs(Beatmap beatmap)
+    {
+        if (beatmap.HitObjects.Count == 0)
+            return MsPerPeak;
+
+        var firstObjectTime = beatmap.HitObjects.Min(hitObject => hitObject.time);
+        return Math.Ceiling(firstObjectTime / MsPerPeak) * MsPerPeak;
+    }
+
+    private static List<DifficultySamplePoint> GetStarRatingSamples(
+        Beatmap beatmap,
+        List<osu.Game.Rulesets.Difficulty.TimedDifficultyAttributes> timedAttributes,
+        int pointCount
+    )
+    {
+        if (timedAttributes.Count == 0 || pointCount == 0)
             return [];
 
-        var finalTime = Math.Max(
-            timedAttributes[^1].Time,
-            beatmap.HitObjects.Max(hitObject => hitObject.GetEndTime())
-        );
-        var pointCount = Math.Max(1, (int)Math.Ceiling(finalTime / MsPerPeak) + 1);
-        var values = new List<double>(pointCount);
+        var samples = new List<DifficultySamplePoint>(pointCount);
 
         var timedIndex = 0;
         var currentStarRating = 0d;
@@ -316,78 +378,133 @@ public static class BeatmapAnalysisService
                 timedIndex++;
             }
 
-            values.Add(currentStarRating);
+            samples.Add(
+                new DifficultySamplePoint { TimeMs = sampleTime, Value = currentStarRating }
+            );
         }
 
-        return values;
+        return samples;
     }
 
-    private static List<double> GetSliderVelocityValues(Beatmap beatmap)
+    private static List<DifficultySamplePoint> GetSliderVelocitySamples(Beatmap beatmap)
     {
         if (beatmap.GeneralSettings.mode == Beatmap.Mode.Mania)
             return [];
 
-        var timedAttributes = new LocalDifficultyCalculator().CalculateTimedAttributes(beatmap);
-
-        if (timedAttributes.Count == 0)
+        if (beatmap.TimingLines.Count == 0)
             return [];
 
-        var finalTime = Math.Max(
-            timedAttributes[^1].Time,
-            beatmap.HitObjects.Max(hitObject => hitObject.GetEndTime())
+        return BuildTimingLineChangeSamples(
+            beatmap,
+            beatmap.GetSvChanges(),
+            timeMs => beatmap.GetTimingLine(timeMs)?.SvMult ?? 1.0
         );
-        var pointCount = Math.Max(1, (int)Math.Ceiling(finalTime / MsPerPeak) + 1);
-        var values = new List<double>(pointCount);
-
-        for (var index = 0; index < pointCount; index++)
-        {
-            var sampleTime = index * MsPerPeak;
-            values.Add(beatmap.GetTimingLine(sampleTime)?.SvMult ?? 1.0);
-        }
-
-        return values;
     }
 
-    private static List<double> GetVolumeValues(Beatmap beatmap)
+    private static List<DifficultySamplePoint> GetVolumeSamples(Beatmap beatmap)
     {
-        var timedAttributes = new LocalDifficultyCalculator().CalculateTimedAttributes(beatmap);
+        if (beatmap.TimingLines.Count == 0)
+            return [];
 
-        double finalTime;
-        if (timedAttributes.Count > 0)
+        return BuildTimingLineChangeSamples(
+            beatmap,
+            beatmap.GetVolumeChanges(),
+            timeMs => beatmap.GetTimingLine(timeMs)?.Volume ?? 100.0
+        );
+    }
+
+    private static List<DifficultySamplePoint> BuildTimingLineChangeSamples(
+        Beatmap beatmap,
+        List<TimingLine> changes,
+        Func<double, double> getValueAt
+    )
+    {
+        var endTimeMs = GetMapEndTimeMs(beatmap);
+        if (endTimeMs <= 0)
+            return [];
+
+        var samples = new List<DifficultySamplePoint>
         {
-            finalTime = Math.Max(
-                timedAttributes[^1].Time,
-                beatmap.HitObjects.Count > 0
-                    ? beatmap.HitObjects.Max(hitObject => hitObject.GetEndTime())
-                    : 0
-            );
+            new() { TimeMs = 0, Value = getValueAt(0) },
+        };
+
+        foreach (var line in changes)
+        {
+            if (samples.Count > 0 && samples[^1].TimeMs.AlmostEqual(line.Offset))
+            {
+                samples[^1] = new DifficultySamplePoint
+                {
+                    TimeMs = line.Offset,
+                    Value = getValueAt(line.Offset),
+                };
+            }
+            else
+            {
+                samples.Add(
+                    new DifficultySamplePoint
+                    {
+                        TimeMs = line.Offset,
+                        Value = getValueAt(line.Offset),
+                    }
+                );
+            }
+        }
+
+        var lastValue = getValueAt(endTimeMs);
+        if (!samples[^1].TimeMs.AlmostEqual(endTimeMs))
+        {
+            samples.Add(new DifficultySamplePoint { TimeMs = endTimeMs, Value = lastValue });
         }
         else
         {
-            if (beatmap.TimingLines.Count == 0 && beatmap.HitObjects.Count == 0)
-                return [];
-
-            var timingMax =
-                beatmap.TimingLines.Count > 0
-                    ? beatmap.TimingLines.Max(timingLine => timingLine.Offset)
-                    : 0;
-            var objectsMax =
-                beatmap.HitObjects.Count > 0
-                    ? beatmap.HitObjects.Max(hitObject => hitObject.GetEndTime())
-                    : 0;
-            finalTime = Math.Max(timingMax, objectsMax);
+            samples[^1] = new DifficultySamplePoint { TimeMs = endTimeMs, Value = lastValue };
         }
 
-        var pointCount = Math.Max(1, (int)Math.Ceiling(finalTime / MsPerPeak) + 1);
-        var values = new List<double>(pointCount);
+        return samples;
+    }
+
+    private static List<DifficultySkillData> GetSkillSamples(Beatmap beatmap, int pointCount)
+    {
+        if (pointCount == 0)
+            return [];
+
+        return beatmap
+            .Skills.OfType<StrainSkill>()
+            .Select(skill => new DifficultySkillData
+            {
+                SkillName = GetSkillName(skill, beatmap),
+                StrainSamples = GetStrainSkillSamples(skill, beatmap, pointCount),
+            })
+            .ToList();
+    }
+
+    private static List<DifficultySamplePoint> GetStrainSkillSamples(
+        StrainSkill skill,
+        Beatmap beatmap,
+        int pointCount
+    )
+    {
+        var peaks = skill.GetCurrentStrainPeaks().ToList();
+        var firstSectionEnd = GetFirstStrainSectionEndMs(beatmap);
+        var samples = new List<DifficultySamplePoint>(pointCount);
+
+        var peakIndex = 0;
+        var currentPeak = 0d;
 
         for (var index = 0; index < pointCount; index++)
         {
-            var sampleTime = index * MsPerPeak;
-            values.Add(beatmap.GetTimingLine(sampleTime)?.Volume ?? 100.0);
+            var sampleTime = firstSectionEnd + index * MsPerPeak;
+
+            while (peakIndex < peaks.Count && firstSectionEnd + peakIndex * MsPerPeak <= sampleTime)
+            {
+                currentPeak = peaks[peakIndex];
+                peakIndex++;
+            }
+
+            samples.Add(new DifficultySamplePoint { TimeMs = sampleTime, Value = currentPeak });
         }
 
-        return values;
+        return samples;
     }
 
     private static string GetSkillName(Skill skill, Beatmap beatmap) =>

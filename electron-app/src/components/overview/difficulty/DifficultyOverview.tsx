@@ -21,6 +21,7 @@ import {
 } from './difficultyChartModel.ts';
 import { DifficultyGameModeSelector } from './DifficultyGameModeSelector.tsx';
 import { SummaryCard } from './DifficultySummaryCards.tsx';
+import { useDifficultyChartState } from './hooks/useDifficultyChartState.ts';
 import { useDifficultyOverview } from './hooks/useDifficultyOverview.ts';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
 import { useSettings } from '../../../context/SettingsContext.tsx';
@@ -80,6 +81,16 @@ function DifficultyOverview() {
     () => buildCharts(selectedDifficulties, data?.msPerPeak),
     [data?.msPerPeak, selectedDifficulties]
   );
+
+  const durationMs = charts[0]?.durationMs ?? data?.msPerPeak ?? 0;
+  const chartResetKey = useMemo(
+    () =>
+      `${folder ?? ''}:${selectedGroup?.mode ?? ''}:${selectedDifficulties.map((d) => d.label).join('|')}`,
+    [folder, selectedDifficulties, selectedGroup?.mode]
+  );
+
+  const chartState = useDifficultyChartState(durationMs, selectedDifficulties, chartResetKey);
+
   const starRatingChart = charts.find((c) => c.title === 'Star Rating');
   const sliderVelocityChart = charts.find((c) => c.title === 'Slider velocity');
   const sampleVolumeChart = charts.find((c) => c.title === SAMPLE_VOLUME_CHART_TITLE);
@@ -151,9 +162,15 @@ function DifficultyOverview() {
           <Stack gap="md">
             {charts.length > 0 ? (
               <>
-                {starRatingChart && <DifficultyChartCard chart={starRatingChart} />}
-                {sliderVelocityChart && <DifficultyChartCard chart={sliderVelocityChart} />}
-                {sampleVolumeChart && <DifficultyChartCard chart={sampleVolumeChart} />}
+                {starRatingChart && (
+                  <DifficultyChartCard chart={starRatingChart} chartState={chartState} />
+                )}
+                {sliderVelocityChart && (
+                  <DifficultyChartCard chart={sliderVelocityChart} chartState={chartState} />
+                )}
+                {sampleVolumeChart && (
+                  <DifficultyChartCard chart={sampleVolumeChart} chartState={chartState} />
+                )}
                 {skillCharts.length > 0 && (
                   <>
                     <Text fw={600} c={theme.colors.gray[2]}>
@@ -161,7 +178,7 @@ function DifficultyOverview() {
                     </Text>
                     <SimpleGrid cols={{ base: 1, lg: 2, xl: 3 }} spacing="md">
                       {skillCharts.map((chart) => (
-                        <DifficultyChartCard key={chart.title} chart={chart} />
+                        <DifficultyChartCard key={chart.title} chart={chart} chartState={chartState} />
                       ))}
                     </SimpleGrid>
                   </>

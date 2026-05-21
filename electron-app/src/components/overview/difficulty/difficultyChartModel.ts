@@ -1,5 +1,5 @@
 import { clampColor, hexToRgb } from '../../../utils/color.ts';
-export { MODE_ORDER, normalizeMode } from '../../../utils/gameMode.ts';
+import { MODE_ORDER, normalizeMode } from '../../../utils/gameMode.ts';
 import { getDifficultyLevelColor } from '../../common/DifficultyColor.ts';
 import { formatChartTime } from '../../common/TimeAxis.tsx';
 import type {
@@ -7,15 +7,21 @@ import type {
   DifficultyChartSeries,
   DifficultyLevel,
   DifficultyOverviewDifficulty,
+  DifficultySamplePoint,
   Mode,
 } from '../../../Types';
+import type { ChartInterpolation } from '../../charts/timeSeries/types.ts';
 
 export type ChartRow = {
   time: string;
   timeMs: number;
   [seriesKey: string]: number | string | null;
 };
-export type ChartDisplaySeries = DifficultyChartSeries & { key: string; color: string };
+export type ChartDisplaySeries = DifficultyChartSeries & { id: string; key: string; color: string };
+
+export function getDifficultySeriesId(mode: string, label: string): string {
+  return `${normalizeMode(mode)}::${label}`;
+}
 
 export type DifficultyModeGroup = {
   mode: Mode;
@@ -27,17 +33,26 @@ export const SAMPLE_VOLUME_CHART_TITLE = 'Sample volume';
 export type ChartDefinition = {
   title: string;
   durationMs: number;
-  /** Time between strain peaks in ms (same as overview `msPerPeak`) */
   msPerPeak: number;
-  /** Full-resolution rows (400ms peaks); downsampled for display when zoomed out */
   data: ChartRow[];
   series: ChartDisplaySeries[];
   maxValue: number;
   peakTimeSeconds: number;
   valueSuffix?: string;
-  /** When set, the chart card may hide samples at or below this value (e.g. volume %). */
   hideLowValuesThreshold?: number;
+  interpolation?: ChartInterpolation;
+  showDataPoints?: boolean;
+  /** Show grid sampling resolution in the card stats (SR/strain only). */
+  showResolution?: boolean;
 };
+
+function toChartPoints(samples: DifficultySamplePoint[]): DifficultyChartDataPoint[] {
+  return samples.map((sample) => ({
+    timeMs: sample.timeMs,
+    timeSeconds: sample.timeMs / 1000,
+    value: sample.value,
+  }));
+}
 
 export function buildCharts(
   difficulties: DifficultyOverviewDifficulty[],
@@ -49,7 +64,7 @@ export function buildCharts(
 
   const chartSeries: ChartDefinition[] = [];
   const starRatingSeries = difficulties
-    .map((difficulty) => buildStarRatingSeries(difficulty, msPerPeak))
+    .map((difficulty) => buildStarRatingSeries(difficulty))
     .filter((series) => series.points.length > 0);
 
   if (starRatingSeries.length > 0) {
@@ -57,20 +72,22 @@ export function buildCharts(
   }
 
   const sliderVelocitySeries = difficulties
-    .map((difficulty) => buildSliderVelocitySeries(difficulty, msPerPeak))
+    .map((difficulty) => buildSliderVelocitySeries(difficulty))
     .filter((series) => series.points.length > 0);
 
   if (sliderVelocitySeries.length > 0) {
-    chartSeries.push(buildChartDefinition('Slider velocity', sliderVelocitySeries, msPerPeak, '×'));
+    chartSeries.push(
+      buildChartDefinition('Slider velocity', sliderVelocitySeries, msPerPeak, '×', undefined, 'step', true, false)
+    );
   }
 
   const volumeSeries = difficulties
-    .map((difficulty) => buildVolumeSeries(difficulty, msPerPeak))
+    .map((difficulty) => buildVolumeSeries(difficulty))
     .filter((series) => series.points.length > 0);
 
   if (volumeSeries.length > 0) {
     chartSeries.push(
-      buildChartDefinition(SAMPLE_VOLUME_CHART_TITLE, volumeSeries, msPerPeak, '%', 5)
+      buildChartDefinition(SAMPLE_VOLUME_CHART_TITLE, volumeSeries, msPerPeak, '%', 5, 'step', true, false)
     );
   }
 
@@ -78,7 +95,7 @@ export function buildCharts(
 
   for (const difficulty of difficulties) {
     for (const skill of difficulty.skills) {
-      const series = buildSkillSeries(difficulty, skill.skillName, skill.strainPeaks, msPerPeak);
+      const series = buildSkillSeries(difficulty, skill.skillName, skill.strainSamples);
       if (series.points.length === 0) continue;
 
       const existing = skillSeriesMap.get(skill.skillName);
@@ -97,70 +114,45 @@ export function buildCharts(
   return chartSeries;
 }
 
-function buildStarRatingSeries(
-  difficulty: DifficultyOverviewDifficulty,
-  msPerPeak: number
-): DifficultyChartSeries {
-  const points: DifficultyChartDataPoint[] = difficulty.starRatingValues.map((value, index) => ({
-    timeSeconds: (index * msPerPeak) / 1000,
-    value,
-  }));
-
+function buildStarRatingSeries(difficulty: DifficultyOverviewDifficulty): DifficultyChartSeries {
   return {
     skillName: 'Star Rating',
     label: difficulty.label,
     mode: difficulty.mode,
     difficultyLevel: difficulty.difficultyLevel,
     starRating: difficulty.starRating,
-    points,
+    points: toChartPoints(difficulty.starRatingSamples),
   };
 }
 
 function buildSliderVelocitySeries(
-  difficulty: DifficultyOverviewDifficulty,
-  msPerPeak: number
+  difficulty: DifficultyOverviewDifficulty
 ): DifficultyChartSeries {
-  const values = difficulty.sliderVelocityValues ?? [];
-  const points: DifficultyChartDataPoint[] = values.map((value, index) => ({
-    timeSeconds: (index * msPerPeak) / 1000,
-    value,
-  }));
-
   return {
     skillName: 'Slider velocity',
     label: difficulty.label,
     mode: difficulty.mode,
     difficultyLevel: difficulty.difficultyLevel,
     starRating: difficulty.starRating,
-    points,
+    points: toChartPoints(difficulty.sliderVelocitySamples),
   };
 }
 
-function buildVolumeSeries(
-  difficulty: DifficultyOverviewDifficulty,
-  msPerPeak: number
-): DifficultyChartSeries {
-  const values = difficulty.volumeValues ?? [];
-  const points: DifficultyChartDataPoint[] = values.map((value, index) => ({
-    timeSeconds: (index * msPerPeak) / 1000,
-    value,
-  }));
-
+function buildVolumeSeries(difficulty: DifficultyOverviewDifficulty): DifficultyChartSeries {
   return {
     skillName: SAMPLE_VOLUME_CHART_TITLE,
     label: difficulty.label,
     mode: difficulty.mode,
     difficultyLevel: difficulty.difficultyLevel,
     starRating: difficulty.starRating,
-    points,
+    points: toChartPoints(difficulty.volumeSamples),
   };
 }
 
 function buildSkillSeries(
   difficulty: DifficultyOverviewDifficulty,
   skillName: string,
-  strainPeaks: number[],
-  msPerPeak: number
+  strainSamples: DifficultySamplePoint[]
 ): DifficultyChartSeries {
   return {
     skillName,
@@ -168,10 +160,7 @@ function buildSkillSeries(
     mode: difficulty.mode,
     difficultyLevel: difficulty.difficultyLevel,
     starRating: difficulty.starRating,
-    points: strainPeaks.map((peak, index) => ({
-      timeSeconds: (index * msPerPeak) / 1000,
-      value: peak,
-    })),
+    points: toChartPoints(strainSamples),
   };
 }
 
@@ -180,13 +169,20 @@ function buildChartDefinition(
   series: DifficultyChartSeries[],
   msPerPeak: number,
   valueSuffix?: string,
-  hideLowValuesThreshold?: number
+  hideLowValuesThreshold?: number,
+  interpolation: ChartInterpolation = 'line',
+  showDataPoints = false,
+  showResolution = true
 ): ChartDefinition {
-  const displaySeries = series.map((item, index) => ({
-    ...item,
-    key: `series-${index}`,
-    color: getGraphColor(item, series.slice(0, index)),
-  }));
+  const displaySeries = series.map((item, index) => {
+    const id = getDifficultySeriesId(item.mode, item.label);
+    return {
+      ...item,
+      id,
+      key: id,
+      color: getGraphColor(item, series.slice(0, index)),
+    };
+  });
 
   const allPoints = displaySeries.flatMap((item) => item.points);
   const peakPoint = allPoints.reduce<DifficultyChartDataPoint | null>((currentMax, point) => {
@@ -197,30 +193,48 @@ function buildChartDefinition(
     return currentMax;
   }, null);
 
-  const maxPointCount = displaySeries.reduce((max, item) => Math.max(max, item.points.length), 0);
-  const rawRows: ChartRow[] = Array.from({ length: maxPointCount }, (_, index) => {
-    const timeMs = index * msPerPeak;
+  const timeMsList = [
+    ...new Set(displaySeries.flatMap((item) => item.points.map((point) => point.timeMs))),
+  ].sort((a, b) => a - b);
+
+  const lastValueByKey: Record<string, number | null> = {};
+  for (const item of displaySeries) {
+    lastValueByKey[item.key] = null;
+  }
+
+  const rawRows: ChartRow[] = timeMsList.map((timeMs) => {
     const row: ChartRow = {
       time: formatChartTime(timeMs / 1000),
       timeMs,
     };
 
     for (const item of displaySeries) {
-      row[item.key] = item.points[index]?.value ?? null;
+      const point = item.points.find((p) => p.timeMs === timeMs);
+      if (point) {
+        lastValueByKey[item.key] = point.value;
+      }
+      row[item.key] =
+        interpolation === 'step' ? (lastValueByKey[item.key] ?? null) : (point?.value ?? null);
     }
 
     return row;
   });
 
+  const durationMs =
+    timeMsList.length > 0 ? Math.max(msPerPeak, timeMsList[timeMsList.length - 1]) : msPerPeak;
+
   return {
     title,
-    durationMs: Math.max(msPerPeak, maxPointCount * msPerPeak),
+    durationMs,
     msPerPeak,
     data: rawRows,
     series: displaySeries,
     maxValue: peakPoint?.value ?? 0,
     peakTimeSeconds: peakPoint?.timeSeconds ?? 0,
     valueSuffix,
+    interpolation,
+    showDataPoints,
+    showResolution,
     ...(hideLowValuesThreshold !== undefined ? { hideLowValuesThreshold } : {}),
   };
 }
@@ -268,3 +282,5 @@ function getGraphColor(
 function normalizeDifficultyLevel(level: DifficultyLevel): DifficultyLevel {
   return level === 'Ultra' ? 'Expert' : level;
 }
+
+export { MODE_ORDER, normalizeMode };

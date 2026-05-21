@@ -149,8 +149,9 @@ export default function TimelineRow({
         anchorX={contextMenuState?.localX ?? null}
         anchorY={contextMenuState?.localY ?? null}
         onClose={() => setContextMenuState(null)}
-        onGoToObject={goToObject}
+        onGoToTimestamp={goToObject}
         onCopyTimestamp={copyEditorTimestamp}
+        goToLabel="Go to object"
       />
     </Box>
   );
