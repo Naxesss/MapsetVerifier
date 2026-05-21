@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { BACKEND_BASE_URL } from '../Constants.ts';
+import { DEFAULT_UI_FONT_FAMILY, parseUiFontFamily, type UiFontFamily } from '../theme/fonts';
 import { isSemverPreRelease } from '../utils/isSemverPreRelease';
 
 // Type-safe Settings type
@@ -12,6 +13,7 @@ export type Settings = {
   showAdvancedAudioAnalysis: boolean;
   lazerLookupEnabled: boolean;
   receivePrereleases: boolean;
+  uiFontFamily: UiFontFamily;
   // DEV-only: whether to gate Backend in development mode
   gateInDev: boolean;
 };
@@ -31,6 +33,7 @@ const defaultSettings: Settings = {
   showAdvancedAudioAnalysis: false,
   lazerLookupEnabled: false,
   receivePrereleases: false,
+  uiFontFamily: DEFAULT_UI_FONT_FAMILY,
   gateInDev: false,
 };
 
@@ -94,6 +97,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         hiddenMinorCheckIds: Array.isArray(loaded?.hiddenMinorCheckIds)
           ? loaded.hiddenMinorCheckIds
           : defaultSettings.hiddenMinorCheckIds,
+        uiFontFamily: parseUiFontFamily(loaded?.uiFontFamily),
       });
 
       const savedSongFolder =

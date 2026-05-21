@@ -65,11 +65,12 @@ const primary: MantineColorsTuple = [
   '#0068b6',
 ] as const;
 
-const themeOverride = createTheme({
-  fontFamily: 'Nunito, sans-serif',
-  headings: {
-    fontFamily: 'Nunito, sans-serif',
-  },
+export function createAppTheme(fontFamily: string) {
+  const themeOverride = createTheme({
+    fontFamily,
+    headings: {
+      fontFamily,
+    },
   defaultRadius: 5,
   spacing: {
     xs: '0.25em',
@@ -126,14 +127,14 @@ const themeOverride = createTheme({
     Modal: {
       styles: {
         title: {
-          fontFamily: 'Nunito, sans-serif',
+          fontFamily,
         },
       },
     },
     Title: {
       styles: {
         root: {
-          fontFamily: 'Nunito, sans-serif',
+          fontFamily,
         },
       },
     },
@@ -207,6 +208,7 @@ const themeOverride = createTheme({
       },
     },
   },
-});
+  });
 
-export const theme = mergeMantineTheme(DEFAULT_THEME, themeOverride);
+  return mergeMantineTheme(DEFAULT_THEME, themeOverride);
+}

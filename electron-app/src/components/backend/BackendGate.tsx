@@ -17,7 +17,7 @@ import React, { useEffect, useState, useRef, useCallback, ReactNode } from 'reac
 import { cssVarResolver } from '../../App';
 import { BACKEND_BASE_URL } from '../../Constants.ts';
 import { useSettings } from '../../context/SettingsContext';
-import { theme } from '../../theme/Theme';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 interface BackendGateProps {
   children: ReactNode;
@@ -78,6 +78,7 @@ const BackendGate: React.FC<BackendGateProps> = ({
   probeIntervalMs = 500,
 }) => {
   const { settings, loaded } = useSettings();
+  const theme = useAppTheme();
 
   const [status, setStatus] = useState<Status>('idle');
   const [stage, setStage] = useState<Stage>('init');

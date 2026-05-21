@@ -3,6 +3,7 @@
   Button,
   TextInput,
   Switch,
+  Select,
   Group,
   Stack,
   Alert,
@@ -21,6 +22,12 @@ import MinorChecksFilterModal from './MinorChecksFilterModal';
 import { useDocumentation } from '../../context/DocumentationContext.tsx';
 import { useSettings } from '../../context/SettingsContext';
 import { useUpdater } from '../../context/UpdaterContext';
+import {
+  DEFAULT_UI_FONT_FAMILY,
+  UI_FONT_FAMILY_OPTIONS,
+  parseUiFontFamily,
+  type UiFontFamily,
+} from '../../theme/fonts';
 import MinorIcon from '../icons/MinorIcon';
 
 interface SettingsModalProps {
@@ -42,6 +49,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
   const [lazerLookupEnabled, setLazerLookupEnabled] = useState(settings.lazerLookupEnabled);
   const [receivePrereleases, setReceivePrereleases] = useState(settings.receivePrereleases);
   const [gateInDev, setGateInDev] = useState(settings.gateInDev);
+  const [uiFontFamily, setUiFontFamily] = useState<UiFontFamily>(
+    parseUiFontFamily(settings.uiFontFamily)
+  );
   const [lazerWarningOpened, setLazerWarningOpened] = useState(false);
   const [advancedAudioConfirmOpened, setAdvancedAudioConfirmOpened] = useState(false);
   const [
@@ -61,6 +71,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
       setLazerLookupEnabled(settings.lazerLookupEnabled);
       setReceivePrereleases(settings.receivePrereleases);
       setGateInDev(settings.gateInDev);
+      setUiFontFamily(parseUiFontFamily(settings.uiFontFamily));
     }
   }, [
     opened,
@@ -71,6 +82,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
     settings.lazerLookupEnabled,
     settings.receivePrereleases,
     settings.gateInDev,
+    settings.uiFontFamily,
   ]);
 
   const pickFolder = async () => {
@@ -129,6 +141,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
               Browse
             </Button>
           </Group>
+          <Select
+            label="Font"
+            data={UI_FONT_FAMILY_OPTIONS}
+            value={uiFontFamily}
+            allowDeselect={false}
+            onChange={(value) => {
+              const font = parseUiFontFamily(value ?? DEFAULT_UI_FONT_FAMILY);
+              setUiFontFamily(font);
+              setSettings((prev) => ({ ...prev, uiFontFamily: font }));
+            }}
+          />
           <Group align="center" gap="sm" justify="space-between" wrap="nowrap">
             <Switch
               style={{ flex: 1, minWidth: 0 }}

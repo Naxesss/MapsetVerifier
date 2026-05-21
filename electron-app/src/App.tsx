@@ -16,9 +16,8 @@ import WindowBar from './components/window/WindowBar.tsx';
 import { BeatmapProvider, useBeatmap } from './context/BeatmapContext.tsx';
 import { BeatmapReparseProvider } from './context/BeatmapReparseRegistry.tsx';
 import { DocumentationProvider } from './context/DocumentationContext.tsx';
-import { SettingsProvider } from './context/SettingsContext.tsx';
 import { UpdaterProvider } from './context/UpdaterContext';
-import { theme } from './theme/Theme.ts';
+import { useAppTheme } from './theme/useAppTheme.ts';
 import '@mantine/core/styles.css';
 import '@mantine/charts/styles.css';
 import '@mantine/notifications/styles.css';
@@ -59,17 +58,17 @@ function BeatmapKeyedOutlet() {
 }
 
 function App() {
+  const theme = useAppTheme();
   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
 
   return (
     <MantineProvider defaultColorScheme="dark" theme={theme} cssVariablesResolver={cssVarResolver}>
       <Notifications position="top-center" zIndex={2100} />
       <WindowBar />
-      <SettingsProvider>
-        <UpdaterProvider>
-          <BeatmapProvider>
-            <BackendGate>
-              <DocumentationProvider>
+      <UpdaterProvider>
+        <BeatmapProvider>
+          <BackendGate>
+            <DocumentationProvider>
               <AppShell
                 header={{ height: 92 }}
                 navbar={{
@@ -93,12 +92,11 @@ function App() {
                   </ScrollArea>
                 </AppShell.Main>
               </AppShell>
-              </DocumentationProvider>
-            </BackendGate>
-          </BeatmapProvider>
-          <UpdaterModal />
-        </UpdaterProvider>
-      </SettingsProvider>
+            </DocumentationProvider>
+          </BackendGate>
+        </BeatmapProvider>
+        <UpdaterModal />
+      </UpdaterProvider>
     </MantineProvider>
   );
 }
