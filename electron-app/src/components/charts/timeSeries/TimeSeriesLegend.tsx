@@ -26,12 +26,12 @@ function TimeSeriesLegend({
   return (
     <Stack gap="xs" w="100%">
       <Group gap="xs" wrap="wrap">
-        <Button type="button" variant="subtle" color="gray" size="compact-xs" onClick={onSelectAll}>
+        <Button type="button" variant="light" color="gray" size="compact-xs" onClick={onSelectAll}>
           Select all
         </Button>
         <Button
           type="button"
-          variant="subtle"
+          variant="light"
           color="gray"
           size="compact-xs"
           onClick={onUnselectAll}
