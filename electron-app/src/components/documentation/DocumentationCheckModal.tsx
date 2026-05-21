@@ -1,4 +1,4 @@
-﻿import { Modal, Text, Loader, Flex, Alert, Group, Stack, Divider, Badge } from '@mantine/core';
+import { Modal, Text, Loader, Flex, Alert, Group, Stack, Badge, Title } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import DocumentationOutcomeBlockquote from './DocumentationOutcomeBlockquote';
@@ -62,13 +62,13 @@ export default function DocumentationCheckModal({
         {data && (
           <>
             <Stack gap="md">
+              <MantineMarkdown notesForBlockquotes>{data.description}</MantineMarkdown>
+            </Stack>
+            <Title order={2}>Outcomes</Title>
+            <Stack gap="md">
               {data.outcomes.map((checkDetails, i) => (
                 <DocumentationOutcomeBlockquote key={i} outcome={checkDetails} />
               ))}
-            </Stack>
-            <Divider />
-            <Stack gap="md">
-              <MantineMarkdown>{data.description}</MantineMarkdown>
             </Stack>
           </>
         )}

@@ -329,3 +329,50 @@
 .recharts-responsive-container .mantine-focus-auto:focus-visible {
   outline: none;
 }
+
+.markdown-text {
+  img {
+    display: block;
+    max-width: 75%;
+    max-height: 500px;
+    height: auto;
+    margin: 1rem auto;
+  }
+
+  .markdown-text-figure {
+    display: block;
+    max-width: 75%;
+    margin: 1rem auto;
+    text-align: center;
+
+    img {
+      max-width: 100%;
+      margin: 0 auto;
+    }
+
+    figcaption {
+      margin-top: var(--mantine-spacing-xs);
+      font-size: var(--mantine-font-size-xs);
+      line-height: 1.4;
+      color: var(--mantine-color-dimmed);
+    }
+  }
+
+  p:has(> img:only-child),
+  p:has(> .markdown-text-figure:only-child) {
+    text-align: center;
+  }
+
+  .markdown-text-blockquote {
+    border: 1px solid var(--mantine-color-blue-6);
+  }
+
+  .markdown-text-table {
+    width: 100%;
+    margin-block: var(--mantine-spacing-md);
+
+    &.markdown-text-table-first {
+      margin-top: 0;
+    }
+  }
+}
