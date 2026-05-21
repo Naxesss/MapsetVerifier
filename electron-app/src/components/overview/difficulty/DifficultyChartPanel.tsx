@@ -182,6 +182,7 @@ export function DifficultyChartPanel({
           onGoToTimestamp={goToTimestamp}
           onCopyTimestamp={copyTimestamp}
           goToLabel="Go to timestamp"
+          withinPortal={false}
         />
       </Box>
       {showZoomHint && !isZoomed ? (

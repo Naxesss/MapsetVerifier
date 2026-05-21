@@ -10,6 +10,8 @@ interface TimestampContextMenuProps {
   onGoToTimestamp: () => void;
   onCopyTimestamp: () => void;
   goToLabel?: string;
+  /** Render in a portal so the menu escapes overflow/stacking (default). Charts pass false. */
+  withinPortal?: boolean;
 }
 
 export function TimestampContextMenu({
@@ -21,12 +23,13 @@ export function TimestampContextMenu({
   onGoToTimestamp,
   onCopyTimestamp,
   goToLabel = 'Go to timestamp',
+  withinPortal = true,
 }: TimestampContextMenuProps) {
   return (
     <Menu
       opened={opened}
       onClose={onClose}
-      withinPortal={false}
+      withinPortal={withinPortal}
       closeOnItemClick
       closeOnClickOutside
       clickOutsideEvents={['mousedown', 'touchstart', 'keydown', 'pointerdown']}
