@@ -130,6 +130,9 @@ function FrequencyAnalysis({ data, isLoading }: FrequencyAnalysisProps) {
           h={200}
           data={chartData}
           dataKey="freq"
+          // Recharts 3 focuses the plot SVG on click; these charts are read-only.
+          areaChartProps={{ accessibilityLayer: false }}
+          onMouseDownCapture={(e) => e.preventDefault()}
           series={[{ name: 'magnitude', label: 'Magnitude', color: 'cyan.5' }]}
           curveType="monotone"
           withDots={false}

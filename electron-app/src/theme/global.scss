@@ -318,3 +318,14 @@
     animation: none;
   }
 }
+
+/* Recharts 3 sets tabIndex on the plot SVG for keyboard navigation; hide focus ring on click */
+.recharts-responsive-container .recharts-surface,
+.recharts-responsive-container .recharts-surface:focus,
+.recharts-responsive-container .recharts-surface:focus-visible,
+.recharts-tooltip-wrapper:focus,
+.recharts-tooltip-wrapper:focus-visible,
+.recharts-responsive-container .mantine-focus-auto:focus,
+.recharts-responsive-container .mantine-focus-auto:focus-visible {
+  outline: none;
+}

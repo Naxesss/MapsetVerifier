@@ -95,6 +95,9 @@ function DynamicRange({ data }: DynamicRangeProps) {
           h={180}
           data={chartData}
           dataKey="time"
+          // Recharts 3 focuses the plot SVG on click; these charts are read-only.
+          areaChartProps={{ accessibilityLayer: false }}
+          onMouseDownCapture={(e) => e.preventDefault()}
           series={[
             { name: 'rms', label: 'RMS Level', color: 'blue.6' },
             { name: 'peak', label: 'Peak Level', color: 'orange.5' },

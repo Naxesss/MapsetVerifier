@@ -104,6 +104,9 @@ function ChannelBalance({ data }: ChannelBalanceProps) {
           h={180}
           data={chartData}
           dataKey="time"
+          // Recharts 3 focuses the plot SVG on click; these charts are read-only.
+          areaChartProps={{ accessibilityLayer: false }}
+          onMouseDownCapture={(e) => e.preventDefault()}
           series={[
             { name: 'left', label: 'Left Channel', color: 'blue.6' },
             { name: 'right', label: 'Right Channel', color: 'pink.6' },
