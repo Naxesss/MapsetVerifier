@@ -1,10 +1,10 @@
 import { Box, Button, useMantineTheme } from '@mantine/core';
+import { useResizeObserver } from '@mantine/hooks';
 import { IconZoomReset } from '@tabler/icons-react';
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import { curveStepAfter } from '@visx/curve';
 import { GridColumns, GridRows } from '@visx/grid';
 import { Group } from '@visx/group';
-import { ParentSize } from '@visx/responsive';
 import { scaleLinear } from '@visx/scale';
 import { LinePath } from '@visx/shape';
 import { memo, useCallback, useMemo, useRef, useState, type PointerEvent } from 'react';
@@ -348,7 +348,7 @@ function TimeSeriesChartInner({
           height={innerHeight}
           fill={plotBg}
         />
-        <Group left={MARGIN.left} top={MARGIN.top} style={{ pointerEvents: 'none' }}>
+        <Group left={MARGIN.left} top={MARGIN.top} pointerEvents="none">
           <GridRows
             scale={yScale}
             width={innerWidth}
@@ -447,12 +447,13 @@ function TimeSeriesChartInner({
 }
 
 function TimeSeriesChart(props: TimeSeriesChartProps) {
+  const [containerRef, rect] = useResizeObserver<HTMLDivElement>();
+  const width = rect.width ?? 0;
+
   return (
-    <ParentSize debounceTime={10}>
-      {({ width }) =>
-        width > 0 ? <TimeSeriesChartInner {...props} width={width} /> : null
-      }
-    </ParentSize>
+    <Box ref={containerRef} w="100%" h={props.plotHeight}>
+      {width > 0 ? <TimeSeriesChartInner {...props} width={width} /> : null}
+    </Box>
   );
 }
 
