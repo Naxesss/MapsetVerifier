@@ -86,6 +86,9 @@ public sealed class CheckTestContext : IDisposable
     public List<Issue> RunBeatmapSetCheck<TCheck>()
         where TCheck : BeatmapSetCheck, new() => new TCheck().GetIssues(BeatmapSet).ToList();
 
+    public List<Issue> RunGeneralCheck<TCheck>()
+        where TCheck : GeneralCheck, new() => new TCheck().GetIssues(BeatmapSet).ToList();
+
     public void Dispose()
     {
         try
