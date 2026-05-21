@@ -113,11 +113,20 @@ export default function Changelog() {
             padding="lg"
             radius="md"
             shadow="sm"
-            onClick={() => toggleEntry(entry.version)}
-            style={{ cursor: 'pointer' }}
           >
             <Stack gap="sm">
-              <div style={{ width: '100%', textAlign: 'left' }}>
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => toggleEntry(entry.version)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    toggleEntry(entry.version);
+                  }
+                }}
+                style={{ width: '100%', textAlign: 'left', cursor: 'pointer' }}
+              >
                 <Group justify="space-between" align="center">
                   <Group gap="xs" align="center">
                     <Text component="h3" fw={700} fz="1.6rem" lh={1.15} m={0}>
@@ -144,11 +153,9 @@ export default function Changelog() {
                 ) : null}
               </div>
 
-              <div onClick={(event) => event.stopPropagation()}>
-                <Collapse in={isExpanded}>
-                  {entry.body ? <MantineMarkdown>{entry.body}</MantineMarkdown> : null}
-                </Collapse>
-              </div>
+              <Collapse in={isExpanded}>
+                {entry.body ? <MantineMarkdown>{entry.body}</MantineMarkdown> : null}
+              </Collapse>
             </Stack>
           </Card>
         );
