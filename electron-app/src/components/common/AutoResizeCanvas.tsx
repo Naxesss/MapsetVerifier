@@ -8,6 +8,8 @@ interface AutoResizeCanvasProps {
   fixedWidth?: number;
   fixedHeight?: number;
   minHeight?: number | string;
+  /** When provided, redraw only when these values change instead of when `draw` identity changes. */
+  redrawDeps?: readonly unknown[];
 }
 
 const AutoResizeCanvas: React.FC<AutoResizeCanvasProps> = ({
@@ -16,11 +18,14 @@ const AutoResizeCanvas: React.FC<AutoResizeCanvasProps> = ({
   style,
   fixedWidth,
   fixedHeight,
+  redrawDeps,
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const resizeTimeoutRef = useRef<number | null>(null);
   const rafRef = useRef<number | null>(null);
+  const drawRef = useRef(draw);
+  drawRef.current = draw;
 
   useEffect(() => {
     const container = containerRef.current;
@@ -30,6 +35,14 @@ const AutoResizeCanvas: React.FC<AutoResizeCanvasProps> = ({
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    const paint = (width: number, height: number) => {
+      try {
+        drawRef.current(ctx, width, height);
+      } catch (error) {
+        console.error('Error drawing canvas:', error);
+      }
+    };
 
     // If fixed dimensions are provided, use them and scale with CSS
     if (fixedWidth && fixedHeight) {
@@ -47,12 +60,7 @@ const AutoResizeCanvas: React.FC<AutoResizeCanvasProps> = ({
       ctx.resetTransform?.();
       ctx.scale(ratio, ratio);
 
-      // Draw once at fixed resolution
-      try {
-        draw(ctx, fixedWidth, fixedHeight);
-      } catch (error) {
-        console.error('Error drawing fixed-size canvas:', error);
-      }
+      paint(fixedWidth, fixedHeight);
 
       // No need for ResizeObserver - canvas scales with CSS
       return;
@@ -80,12 +88,7 @@ const AutoResizeCanvas: React.FC<AutoResizeCanvasProps> = ({
       ctx.resetTransform?.(); // modern API
       ctx.scale(ratio, ratio);
 
-      // Draw callback
-      try {
-        draw(ctx, width, height);
-      } catch (error) {
-        console.error('Error drawing auto-resize canvas:', error);
-      }
+      paint(width, height);
     };
 
     // Debounced resize handler to reduce lag during resizing
@@ -122,7 +125,7 @@ const AutoResizeCanvas: React.FC<AutoResizeCanvasProps> = ({
         window.cancelAnimationFrame(rafRef.current);
       }
     };
-  }, [draw, fixedWidth, fixedHeight]);
+  }, [fixedWidth, fixedHeight, ...(redrawDeps ?? [draw])]);
 
   return (
     <div

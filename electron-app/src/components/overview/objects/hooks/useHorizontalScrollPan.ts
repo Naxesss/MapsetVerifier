@@ -1,9 +1,14 @@
-import { useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
 
 export function useHorizontalScrollPan() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const dragState = useRef({ isDragging: false, startX: 0, scrollLeft: 0 });
   const [isPanningTimeline, setIsPanningTimeline] = useState(false);
+
+  const stopDragging = useCallback(() => {
+    dragState.current.isDragging = false;
+    setIsPanningTimeline(false);
+  }, []);
 
   const handleMouseDown = (event: ReactMouseEvent<HTMLDivElement>) => {
     const container = scrollRef.current;
@@ -30,10 +35,20 @@ export function useHorizontalScrollPan() {
     container.scrollLeft = dragState.current.scrollLeft - deltaX;
   };
 
-  const stopDragging = () => {
-    dragState.current.isDragging = false;
-    setIsPanningTimeline(false);
-  };
+  useEffect(() => {
+    if (!isPanningTimeline) {
+      return;
+    }
+
+    const handleWindowMouseUp = () => {
+      stopDragging();
+    };
+
+    window.addEventListener('mouseup', handleWindowMouseUp);
+    return () => {
+      window.removeEventListener('mouseup', handleWindowMouseUp);
+    };
+  }, [isPanningTimeline, stopDragging]);
 
   return { scrollRef, isPanningTimeline, handleMouseDown, handleMouseMove, stopDragging };
 }

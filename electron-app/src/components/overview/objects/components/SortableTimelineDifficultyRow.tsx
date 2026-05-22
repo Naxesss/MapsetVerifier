@@ -2,6 +2,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { ActionIcon, Box, Flex, Group, Stack, Text, useMantineTheme } from '@mantine/core';
 import { IconEye, IconEyeOff, IconGripVertical } from '@tabler/icons-react';
+import { memo } from 'react';
 import TimelineRow from './TimelineRow.tsx';
 import { withAlpha } from '../../../../utils/color.ts';
 import { formatGameModeLabel, getModeAccentColor, normalizeMode } from '../../../../utils/gameMode';
@@ -10,9 +11,9 @@ import {
   HIDDEN_ROW_HEIGHT,
   HIDDEN_ROW_VERTICAL_PADDING,
   LABEL_WIDTH,
-  ROW_HEIGHT,
 } from '../constants.ts';
 import type { ObjectsOverviewDifficulty } from '../../../../Types';
+import type { HitsoundLayerVisibility, TimelineViewMode } from '../hitsoundUtils.ts';
 import type { TimelineThemeVariant } from '../timelineTheme/types.ts';
 
 interface SortableTimelineDifficultyRowProps {
@@ -24,10 +25,13 @@ interface SortableTimelineDifficultyRowProps {
   startTimeMs: number;
   endTimeMs: number;
   visualThemeVariant: TimelineThemeVariant;
+  rowHeight: number;
+  viewMode?: TimelineViewMode;
+  hitsoundLayers?: HitsoundLayerVisibility;
   onToggleVisibility: (difficulty: ObjectsOverviewDifficulty) => void;
 }
 
-export default function SortableTimelineDifficultyRow({
+function SortableTimelineDifficultyRow({
   difficulty,
   difficultyKey,
   isVisible,
@@ -36,10 +40,13 @@ export default function SortableTimelineDifficultyRow({
   startTimeMs,
   endTimeMs,
   visualThemeVariant,
+  rowHeight,
+  viewMode = 'structure',
+  hitsoundLayers,
   onToggleVisibility,
 }: SortableTimelineDifficultyRowProps) {
   const theme = useMantineTheme();
-  const rowHeight = isVisible ? ROW_HEIGHT : HIDDEN_ROW_HEIGHT;
+  const visibleRowHeight = isVisible ? rowHeight : HIDDEN_ROW_HEIGHT;
   const dropIndicatorColor = theme.colors.blue[4];
   const {
     attributes,
@@ -67,7 +74,7 @@ export default function SortableTimelineDifficultyRow({
         alignItems: 'stretch',
         width: contentWidth,
         minWidth: contentWidth,
-        height: rowHeight,
+        height: visibleRowHeight,
         borderRadius: theme.radius.sm,
         background: isOver ? withAlpha(dropIndicatorColor, 0.08) : undefined,
         opacity: isDragging ? 0.78 : 1,
@@ -84,7 +91,7 @@ export default function SortableTimelineDifficultyRow({
           display: 'flex',
           alignItems: 'center',
           flex: `0 0 ${LABEL_WIDTH}px`,
-          height: rowHeight,
+          height: visibleRowHeight,
           paddingInline: theme.spacing.xs,
           background: isVisible ? theme.colors.dark[8] : theme.colors.dark[7],
           borderRight: `1px solid ${theme.colors.dark[4]}`,
@@ -155,7 +162,7 @@ export default function SortableTimelineDifficultyRow({
         </Flex>
       </Box>
       <Box
-        h={rowHeight}
+        h={visibleRowHeight}
         style={{
           flex: `0 0 ${timelineWidth}px`,
           minWidth: timelineWidth,
@@ -173,8 +180,10 @@ export default function SortableTimelineDifficultyRow({
             startTimeMs={startTimeMs}
             endTimeMs={endTimeMs}
             width={timelineWidth}
-            height={ROW_HEIGHT}
+            height={visibleRowHeight}
             visualThemeVariant={visualThemeVariant}
+            viewMode={viewMode}
+            hitsoundLayers={hitsoundLayers}
           />
         ) : (
           <Flex
@@ -193,3 +202,5 @@ export default function SortableTimelineDifficultyRow({
     </Box>
   );
 }
+
+export default memo(SortableTimelineDifficultyRow);

@@ -1,11 +1,13 @@
 import { Box, useMantineTheme } from '@mantine/core';
-import { useMemo, useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import TimelineObjectContextMenu from './TimelineObjectContextMenu.tsx';
 import AutoResizeCanvas from '../../../common/AutoResizeCanvas.tsx';
 import { drawTimelineRow, getTimelineTimestampAtX } from '../timelineDrawing.ts';
 import { formatEditorTimestamp, getTimelineCanvasTiles, getTimelineX } from '../timelineUtils.ts';
 import type { ObjectsOverviewDifficulty } from '../../../../Types';
+import type { HitsoundLayerVisibility, TimelineViewMode } from '../hitsoundUtils.ts';
 import type { TimelineThemeVariant } from '../timelineTheme/types.ts';
+import type { MantineTheme } from '@mantine/core';
 
 interface TimelineRowProps {
   difficulty: ObjectsOverviewDifficulty;
@@ -14,15 +16,125 @@ interface TimelineRowProps {
   width: number;
   height: number;
   visualThemeVariant: TimelineThemeVariant;
+  viewMode?: TimelineViewMode;
+  hitsoundLayers?: HitsoundLayerVisibility;
 }
 
-export default function TimelineRow({
+type TimelineCanvasTileProps = {
+  tile: { startX: number; width: number };
+  difficulty: ObjectsOverviewDifficulty;
+  startTimeMs: number;
+  endTimeMs: number;
+  width: number;
+  height: number;
+  theme: MantineTheme;
+  visualThemeVariant: TimelineThemeVariant;
+  viewMode: TimelineViewMode;
+  hitsoundLayers?: HitsoundLayerVisibility;
+};
+
+const TimelineCanvasTile = memo(function TimelineCanvasTile({
+  tile,
+  difficulty,
+  startTimeMs,
+  endTimeMs,
+  width,
+  height,
+  theme,
+  visualThemeVariant,
+  viewMode,
+  hitsoundLayers,
+}: TimelineCanvasTileProps) {
+  const draw = useCallback(
+    (ctx: CanvasRenderingContext2D) => {
+      drawTimelineRow(ctx, {
+        difficulty,
+        startTimeMs,
+        endTimeMs,
+        timelineWidth: width,
+        viewportStartX: tile.startX,
+        viewportWidth: tile.width,
+        height,
+        theme,
+        visualThemeVariant,
+        viewMode,
+        hitsoundLayers,
+      });
+    },
+    [
+      difficulty,
+      endTimeMs,
+      height,
+      hitsoundLayers,
+      startTimeMs,
+      theme,
+      tile.startX,
+      tile.width,
+      viewMode,
+      visualThemeVariant,
+      width,
+    ]
+  );
+
+  const redrawDeps = useMemo(
+    () =>
+      [
+        difficulty,
+        endTimeMs,
+        height,
+        hitsoundLayers,
+        startTimeMs,
+        theme,
+        tile.startX,
+        tile.width,
+        viewMode,
+        visualThemeVariant,
+        width,
+      ] as const,
+    [
+      difficulty,
+      endTimeMs,
+      height,
+      hitsoundLayers,
+      startTimeMs,
+      theme,
+      tile.startX,
+      tile.width,
+      viewMode,
+      visualThemeVariant,
+      width,
+    ]
+  );
+
+  return (
+    <Box
+      style={{
+        position: 'absolute',
+        left: tile.startX,
+        top: 0,
+        width: tile.width,
+        height,
+      }}
+    >
+      <AutoResizeCanvas
+        fixedWidth={tile.width}
+        fixedHeight={height}
+        draw={draw}
+        redrawDeps={redrawDeps}
+      />
+    </Box>
+  );
+});
+
+function TimelineRow({
   difficulty,
   startTimeMs,
   endTimeMs,
   width,
   height,
   visualThemeVariant,
+  viewMode = 'structure',
+  hitsoundLayers,
 }: TimelineRowProps) {
   const theme = useMantineTheme();
   const canvasTiles = useMemo(() => getTimelineCanvasTiles(width), [width]);
@@ -87,34 +199,19 @@ export default function TimelineRow({
       style={{ position: 'relative', width, height, overflow: 'hidden' }}
     >
       {canvasTiles.map((tile) => (
-        <Box
+        <TimelineCanvasTile
           key={tile.startX}
-          style={{
-            position: 'absolute',
-            left: tile.startX,
-            top: 0,
-            width: tile.width,
-            height,
-          }}
-        >
-          <AutoResizeCanvas
-            fixedWidth={tile.width}
-            fixedHeight={height}
-            draw={(ctx) => {
-              drawTimelineRow(ctx, {
-                difficulty,
-                startTimeMs,
-                endTimeMs,
-                timelineWidth: width,
-                viewportStartX: tile.startX,
-                viewportWidth: tile.width,
-                height,
-                theme,
-                visualThemeVariant,
-              });
-            }}
-          />
-        </Box>
+          tile={tile}
+          difficulty={difficulty}
+          startTimeMs={startTimeMs}
+          endTimeMs={endTimeMs}
+          width={width}
+          height={height}
+          theme={theme}
+          visualThemeVariant={visualThemeVariant}
+          viewMode={viewMode}
+          hitsoundLayers={hitsoundLayers}
+        />
       ))}
       {contextMenuState && (
         <>
@@ -162,3 +259,5 @@ export default function TimelineRow({
     </Box>
   );
 }
+
+export default memo(TimelineRow);

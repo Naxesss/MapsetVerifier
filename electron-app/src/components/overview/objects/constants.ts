@@ -1,5 +1,6 @@
 export const LABEL_WIDTH = 208;
 export const ROW_HEIGHT = 44;
+export const HITSOUND_ROW_HEIGHT = 92;
 export const HIDDEN_ROW_HEIGHT = 36;
 export const HIDDEN_ROW_VERTICAL_PADDING = 6;
 export const AXIS_HEIGHT = 30;

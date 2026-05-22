@@ -1,22 +1,17 @@
-import { DndContext } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { ActionIcon, Box, Button, Group, Paper, Select, Slider, Stack, Text, Title } from '@mantine/core';
-import { IconEye, IconEyeOff, IconMinus, IconPlus } from '@tabler/icons-react';
-import { LABEL_WIDTH } from '../constants.ts';
-import ObjectsGameModeSelector from './ObjectsGameModeSelector.tsx';
-import SortableTimelineDifficultyRow from './SortableTimelineDifficultyRow.tsx';
-import TimelineAxisRow from './TimelineAxisRow.tsx';
+import { Button, Group, Paper, Stack, Text, Title } from '@mantine/core';
+import { IconArrowsMaximize } from '@tabler/icons-react';
+import { useLayoutEffect, useRef, useState } from 'react';
+import ObjectsTimelineComparisonContent from './ObjectsTimelineComparisonContent.tsx';
+import ObjectsTimelineFullViewModal from './ObjectsTimelineFullViewModal.tsx';
+import ObjectsTimelineHelpButton from './ObjectsTimelineHelpButton.tsx';
 import { useSettings } from '../../../../context/SettingsContext.tsx';
+import { ROW_HEIGHT } from '../constants.ts';
+import { isHitsoundViewAvailable } from '../hitsoundUtils.ts';
 import { useDifficultyRowDnd } from '../hooks/useDifficultyRowDnd.ts';
 import { useDifficultyRowVisibility } from '../hooks/useDifficultyRowVisibility.ts';
 import { useHorizontalScrollPan } from '../hooks/useHorizontalScrollPan.ts';
 import { usePerModeDifficultyOrder } from '../hooks/usePerModeDifficultyOrder.ts';
 import { useTimelineZoom } from '../hooks/useTimelineZoom.ts';
-import {
-  parseTimelineThemeVariant,
-  TIMELINE_THEME_VARIANT_OPTIONS,
-} from '../timelineTheme/selection.ts';
-import { getDifficultyKey } from '../timelineUtils.ts';
 import type { Mode, ObjectsOverviewDifficulty } from '../../../../Types';
 import type { ObjectsModeGroup } from '../types.ts';
 
@@ -37,14 +32,15 @@ export default function ObjectsTimelineComparison({
   selectedMode,
   onModeChange,
 }: ObjectsTimelineComparisonProps) {
+  const [modalOpened, setModalOpened] = useState(false);
+  const savedScrollLeftRef = useRef(0);
   const durationMs = Math.max(1, endTimeMs - startTimeMs);
   const { zoom, setZoom, tickIntervalMs, timelineWidth, adjustZoom, formatZoomLabel } =
     useTimelineZoom(durationMs);
-  const { scrollRef, isPanningTimeline, handleMouseDown, handleMouseMove, stopDragging } =
-    useHorizontalScrollPan();
+  const inlinePan = useHorizontalScrollPan();
+  const modalPan = useHorizontalScrollPan();
   const { visibilityByDifficulty, toggleDifficultyVisibility, setManyVisible } =
     useDifficultyRowVisibility(groupedDifficulties);
-  const contentWidth = timelineWidth + LABEL_WIDTH;
   const activeMode = selectedMode ?? groupedDifficulties[0]?.mode;
   const { settings, setSettings } = useSettings();
   const timelineThemeVariant = settings.timelineThemeVariant;
@@ -63,168 +59,144 @@ export default function ObjectsTimelineComparison({
     handleDragCancel,
   } = useDifficultyRowDnd({
     moveDifficulty,
-    stopPanning: stopDragging,
+    stopPanning: () => {
+      inlinePan.stopDragging();
+      modalPan.stopDragging();
+    },
   });
 
-  const visibleCount = orderedDifficulties.filter(
-    (difficulty) => visibilityByDifficulty[getDifficultyKey(difficulty)] !== false
-  ).length;
-  const allVisible = orderedDifficulties.length > 0 && visibleCount === orderedDifficulties.length;
-  const allHidden = orderedDifficulties.length > 0 && visibleCount === 0;
+  const handleOpenModal = () => {
+    savedScrollLeftRef.current = inlinePan.scrollRef.current?.scrollLeft ?? 0;
+    inlinePan.stopDragging();
+    setModalOpened(true);
+  };
 
-  const setSelectedDifficultyVisibility = (visible: boolean) => {
-    setManyVisible(orderedDifficulties, visible);
+  const handleCloseModal = () => {
+    savedScrollLeftRef.current = modalPan.scrollRef.current?.scrollLeft ?? savedScrollLeftRef.current;
+    modalPan.stopDragging();
+    inlinePan.stopDragging();
+    setModalOpened(false);
+  };
+
+  useLayoutEffect(() => {
+    if (modalOpened) {
+      const applyModalScroll = () => {
+        const modalScroll = modalPan.scrollRef.current;
+        if (modalScroll) {
+          modalScroll.scrollLeft = savedScrollLeftRef.current;
+        }
+      };
+
+      applyModalScroll();
+      requestAnimationFrame(applyModalScroll);
+      return;
+    }
+
+    const inlineScroll = inlinePan.scrollRef.current;
+    if (inlineScroll) {
+      inlineScroll.scrollLeft = savedScrollLeftRef.current;
+    }
+  }, [modalOpened, inlinePan.scrollRef, modalPan.scrollRef]);
+
+  const sharedTimelineProps = {
+    startTimeMs,
+    endTimeMs,
+    groupedDifficulties,
+    selectedMode,
+    onModeChange,
+    orderedDifficulties,
+    visibilityByDifficulty,
+    toggleDifficultyVisibility,
+    setManyVisible,
+    timelineWidth,
+    tickIntervalMs,
+    zoom,
+    setZoom,
+    adjustZoom,
+    formatZoomLabel,
+    timelineThemeVariant,
+    onTimelineThemeVariantChange: (variant: typeof timelineThemeVariant) =>
+      setSettings((prev) => ({ ...prev, timelineThemeVariant: variant })),
+    dndContextProps: {
+      sensors,
+      collisionDetection,
+      autoScroll,
+      measuring,
+      onDragStart: handleDragStart,
+      onDragEnd: handleDragEnd,
+      onDragCancel: handleDragCancel,
+    },
+  };
+
+  const inlineContentProps = {
+    ...sharedTimelineProps,
+    scrollRef: inlinePan.scrollRef,
+    isPanningTimeline: inlinePan.isPanningTimeline,
+    handleMouseDown: inlinePan.handleMouseDown,
+    handleMouseMove: inlinePan.handleMouseMove,
+    stopDragging: inlinePan.stopDragging,
+  };
+
+  const modalContentProps = {
+    ...sharedTimelineProps,
+    scrollRef: modalPan.scrollRef,
+    isPanningTimeline: modalPan.isPanningTimeline,
+    handleMouseDown: modalPan.handleMouseDown,
+    handleMouseMove: modalPan.handleMouseMove,
+    stopDragging: modalPan.stopDragging,
   };
 
   return (
-    <Paper p="md" radius="md" withBorder>
-      <Stack gap="md">
-        <Group justify="space-between" align="flex-start">
-          <Stack gap={2}>
-            <Title order={4}>Timeline comparison</Title>
-            <Text size="sm" c="dimmed">
-              Drag the grip to reorder rows. Drag horizontally in the timeline to pan.
-            </Text>
-          </Stack>
-          <Group gap="sm" align="center" wrap="wrap" justify="flex-end">
-            <ObjectsGameModeSelector
-              groupedDifficulties={groupedDifficulties}
-              selectedMode={selectedMode}
-              onModeChange={onModeChange}
-            />
-            <Group gap="xs" align="center" wrap="nowrap">
-              <Button
-                variant="default"
-                size="xs"
-                leftSection={<IconEye size={14} />}
-                disabled={orderedDifficulties.length === 0 || allVisible}
-                onClick={() => setSelectedDifficultyVisibility(true)}
-              >
-                Show all
-              </Button>
-              <Button
-                variant="default"
-                size="xs"
-                leftSection={<IconEyeOff size={14} />}
-                disabled={orderedDifficulties.length === 0 || allHidden}
-                onClick={() => setSelectedDifficultyVisibility(false)}
-              >
-                Hide all
-              </Button>
-            </Group>
-            <Group gap="xs" align="center" wrap="nowrap">
-              <Select
-                aria-label="Timeline object style"
-                title="Timeline object style"
-                size="xs"
-                w={108}
-                data={TIMELINE_THEME_VARIANT_OPTIONS}
-                value={timelineThemeVariant}
-                allowDeselect={false}
-                comboboxProps={{ withinPortal: true }}
-                onChange={(value) =>
-                  setSettings((prev) => ({
-                    ...prev,
-                    timelineThemeVariant: parseTimelineThemeVariant(value),
-                  }))
-                }
-              />
-              <ActionIcon variant="default" onClick={() => adjustZoom(-1)}>
-                <IconMinus size={16} />
-              </ActionIcon>
-              <Box miw={220}>
-                <Slider
-                  value={zoom}
-                  min={1}
-                  max={24}
-                  step={1.0}
-                  onChange={setZoom}
-                  label={(value) => `${formatZoomLabel(value)}x`}
-                />
-              </Box>
-              <ActionIcon variant="default" onClick={() => adjustZoom(1)}>
-                <IconPlus size={16} />
-              </ActionIcon>
-            </Group>
-          </Group>
-        </Group>
-        <Box
-          ref={scrollRef}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={stopDragging}
-          onMouseLeave={stopDragging}
-          style={{
-            overflowX: 'auto',
-            overflowY: 'hidden',
-            cursor: isPanningTimeline ? 'grabbing' : 'grab',
-            userSelect: 'none',
-          }}
-        >
-          <Stack gap="xs" style={{ width: contentWidth, minWidth: contentWidth }}>
-            <TimelineAxisRow
-              startTimeMs={startTimeMs}
-              endTimeMs={endTimeMs}
-              timelineWidth={timelineWidth}
-              tickIntervalMs={tickIntervalMs}
-              linePosition="bottom"
-            />
-
-            {orderedDifficulties.length === 0 && (
-              <Paper p="md" radius="md" withBorder>
-                <Text size="sm" c="dimmed">
-                  No difficulties available for the selected mode.
-                </Text>
-              </Paper>
-            )}
-
-            <DndContext
-              sensors={sensors}
-              collisionDetection={collisionDetection}
-              autoScroll={autoScroll}
-              measuring={measuring}
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-              onDragCancel={handleDragCancel}
-            >
-              <SortableContext
-                items={orderedDifficulties.map(getDifficultyKey)}
-                strategy={verticalListSortingStrategy}
-              >
-                {orderedDifficulties.map((difficulty) => {
-                  const difficultyKey = getDifficultyKey(difficulty);
-                  const isVisible = visibilityByDifficulty[difficultyKey] !== false;
-
-                  return (
-                    <SortableTimelineDifficultyRow
-                      key={difficultyKey}
-                      difficulty={difficulty}
-                      difficultyKey={difficultyKey}
-                      isVisible={isVisible}
-                      timelineWidth={timelineWidth}
-                      contentWidth={contentWidth}
-                      startTimeMs={startTimeMs}
-                      endTimeMs={endTimeMs}
-                      visualThemeVariant={timelineThemeVariant}
-                      onToggleVisibility={toggleDifficultyVisibility}
-                    />
-                  );
-                })}
-              </SortableContext>
-            </DndContext>
-
+    <>
+      <Paper p="md" radius="md" withBorder>
+        <Stack gap="md">
+          <Group justify="space-between" align="flex-start">
+            <Stack gap={2}>
+              <Title order={4}>Timeline comparison</Title>
+              <Text size="sm" c="dimmed">
+                Drag the grip to reorder rows. Drag horizontally in the timeline to pan.
+              </Text>
+            </Stack>
             {orderedDifficulties.length > 0 && (
-              <TimelineAxisRow
-                startTimeMs={startTimeMs}
-                endTimeMs={endTimeMs}
-                timelineWidth={timelineWidth}
-                tickIntervalMs={tickIntervalMs}
-                linePosition="top"
-              />
+              <Group gap="xs" wrap="nowrap">
+                <ObjectsTimelineHelpButton
+                  showHitsoundSection={isHitsoundViewAvailable(activeMode)}
+                />
+                <Button
+                  leftSection={<IconArrowsMaximize size={16} />}
+                  variant="light"
+                  size="sm"
+                  onClick={handleOpenModal}
+                >
+                  Full view
+                </Button>
+              </Group>
             )}
-          </Stack>
-        </Box>
-      </Stack>
-    </Paper>
+          </Group>
+
+          {modalOpened ? (
+            <Text size="sm" c="dimmed" ta="center" py="md">
+              Timeline open in full view
+            </Text>
+          ) : (
+            <ObjectsTimelineComparisonContent
+              {...inlineContentProps}
+              rowHeight={ROW_HEIGHT}
+              showModeSelector
+              showVisibilityControls
+              showThemeControls
+              showZoomControls
+            />
+          )}
+        </Stack>
+      </Paper>
+
+      <ObjectsTimelineFullViewModal
+        opened={modalOpened}
+        onClose={handleCloseModal}
+        activeMode={activeMode}
+        contentProps={modalContentProps}
+      />
+    </>
   );
 }
