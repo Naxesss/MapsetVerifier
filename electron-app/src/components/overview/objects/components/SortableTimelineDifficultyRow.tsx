@@ -12,40 +12,30 @@ import {
   HIDDEN_ROW_VERTICAL_PADDING,
   LABEL_WIDTH,
 } from '../constants.ts';
+import {
+  useTimelineDisplay,
+  useTimelineScale,
+  useTimelineVisibility,
+} from '../context/ObjectsTimelineContext.tsx';
 import type { ObjectsOverviewDifficulty } from '../../../../Types';
-import type { HitsoundLayerVisibility, TimelineViewMode } from '../hitsoundUtils.ts';
-import type { TimelineThemeVariant } from '../timelineTheme/types.ts';
 
 interface SortableTimelineDifficultyRowProps {
   difficulty: ObjectsOverviewDifficulty;
   difficultyKey: string;
   isVisible: boolean;
-  timelineWidth: number;
   contentWidth: number;
-  startTimeMs: number;
-  endTimeMs: number;
-  visualThemeVariant: TimelineThemeVariant;
-  rowHeight: number;
-  viewMode?: TimelineViewMode;
-  hitsoundLayers?: HitsoundLayerVisibility;
-  onToggleVisibility: (difficulty: ObjectsOverviewDifficulty) => void;
 }
 
 function SortableTimelineDifficultyRow({
   difficulty,
   difficultyKey,
   isVisible,
-  timelineWidth,
   contentWidth,
-  startTimeMs,
-  endTimeMs,
-  visualThemeVariant,
-  rowHeight,
-  viewMode = 'structure',
-  hitsoundLayers,
-  onToggleVisibility,
 }: SortableTimelineDifficultyRowProps) {
   const theme = useMantineTheme();
+  const { timelineWidth } = useTimelineScale();
+  const { rowHeight } = useTimelineDisplay();
+  const { toggleDifficultyVisibility } = useTimelineVisibility();
   const visibleRowHeight = isVisible ? rowHeight : HIDDEN_ROW_HEIGHT;
   const dropIndicatorColor = theme.colors.blue[4];
   const {
@@ -154,7 +144,7 @@ function SortableTimelineDifficultyRow({
             aria-label={isVisible ? `Hide ${difficulty.version}` : `Show ${difficulty.version}`}
             data-stop-timeline-pan="true"
             onMouseDown={(event) => event.stopPropagation()}
-            onClick={() => onToggleVisibility(difficulty)}
+            onClick={() => toggleDifficultyVisibility(difficulty)}
             style={{ flex: '0 0 auto' }}
           >
             {isVisible ? <IconEye size={16} /> : <IconEyeOff size={16} />}
@@ -175,16 +165,7 @@ function SortableTimelineDifficultyRow({
         }}
       >
         {isVisible ? (
-          <TimelineRow
-            difficulty={difficulty}
-            startTimeMs={startTimeMs}
-            endTimeMs={endTimeMs}
-            width={timelineWidth}
-            height={visibleRowHeight}
-            visualThemeVariant={visualThemeVariant}
-            viewMode={viewMode}
-            hitsoundLayers={hitsoundLayers}
-          />
+          <TimelineRow difficulty={difficulty} height={visibleRowHeight} />
         ) : (
           <Flex
             h="100%"

@@ -4,14 +4,13 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import ObjectsTimelineComparisonContent from './ObjectsTimelineComparisonContent.tsx';
 import ObjectsTimelineFullViewModal from './ObjectsTimelineFullViewModal.tsx';
 import ObjectsTimelineHelpButton from './ObjectsTimelineHelpButton.tsx';
-import { useSettings } from '../../../../context/SettingsContext.tsx';
-import { ROW_HEIGHT } from '../constants.ts';
+import {
+  TimelineControllerProvider,
+  TimelinePanProvider,
+} from '../context/ObjectsTimelineContext.tsx';
 import { isHitsoundViewAvailable } from '../hitsoundUtils.ts';
-import { useDifficultyRowDnd } from '../hooks/useDifficultyRowDnd.ts';
-import { useDifficultyRowVisibility } from '../hooks/useDifficultyRowVisibility.ts';
 import { useHorizontalScrollPan } from '../hooks/useHorizontalScrollPan.ts';
-import { usePerModeDifficultyOrder } from '../hooks/usePerModeDifficultyOrder.ts';
-import { useTimelineZoom } from '../hooks/useTimelineZoom.ts';
+import { useObjectsTimelineController } from '../hooks/useObjectsTimelineController.ts';
 import type { Mode, ObjectsOverviewDifficulty } from '../../../../Types';
 import type { ObjectsModeGroup } from '../types.ts';
 
@@ -34,36 +33,24 @@ export default function ObjectsTimelineComparison({
 }: ObjectsTimelineComparisonProps) {
   const [modalOpened, setModalOpened] = useState(false);
   const savedScrollLeftRef = useRef(0);
-  const durationMs = Math.max(1, endTimeMs - startTimeMs);
-  const { zoom, setZoom, tickIntervalMs, timelineWidth, adjustZoom, formatZoomLabel } =
-    useTimelineZoom(durationMs);
   const inlinePan = useHorizontalScrollPan();
   const modalPan = useHorizontalScrollPan();
-  const { visibilityByDifficulty, toggleDifficultyVisibility, setManyVisible } =
-    useDifficultyRowVisibility(groupedDifficulties);
-  const activeMode = selectedMode ?? groupedDifficulties[0]?.mode;
-  const { settings, setSettings } = useSettings();
-  const timelineThemeVariant = settings.timelineThemeVariant;
-  const { orderedDifficulties, moveDifficulty } = usePerModeDifficultyOrder({
+
+  const controller = useObjectsTimelineController({
+    startTimeMs,
+    endTimeMs,
     groupedDifficulties,
-    activeMode,
     difficulties,
-  });
-  const {
-    sensors,
-    collisionDetection,
-    autoScroll,
-    measuring,
-    handleDragStart,
-    handleDragEnd,
-    handleDragCancel,
-  } = useDifficultyRowDnd({
-    moveDifficulty,
+    selectedMode,
+    onModeChange,
     stopPanning: () => {
       inlinePan.stopDragging();
       modalPan.stopDragging();
     },
   });
+
+  const { orderedDifficulties } = controller.rows;
+  const { activeMode } = controller.mode;
 
   const handleOpenModal = () => {
     savedScrollLeftRef.current = inlinePan.scrollRef.current?.scrollLeft ?? 0;
@@ -98,56 +85,8 @@ export default function ObjectsTimelineComparison({
     }
   }, [modalOpened, inlinePan.scrollRef, modalPan.scrollRef]);
 
-  const sharedTimelineProps = {
-    startTimeMs,
-    endTimeMs,
-    groupedDifficulties,
-    selectedMode,
-    onModeChange,
-    orderedDifficulties,
-    visibilityByDifficulty,
-    toggleDifficultyVisibility,
-    setManyVisible,
-    timelineWidth,
-    tickIntervalMs,
-    zoom,
-    setZoom,
-    adjustZoom,
-    formatZoomLabel,
-    timelineThemeVariant,
-    onTimelineThemeVariantChange: (variant: typeof timelineThemeVariant) =>
-      setSettings((prev) => ({ ...prev, timelineThemeVariant: variant })),
-    dndContextProps: {
-      sensors,
-      collisionDetection,
-      autoScroll,
-      measuring,
-      onDragStart: handleDragStart,
-      onDragEnd: handleDragEnd,
-      onDragCancel: handleDragCancel,
-    },
-  };
-
-  const inlineContentProps = {
-    ...sharedTimelineProps,
-    scrollRef: inlinePan.scrollRef,
-    isPanningTimeline: inlinePan.isPanningTimeline,
-    handleMouseDown: inlinePan.handleMouseDown,
-    handleMouseMove: inlinePan.handleMouseMove,
-    stopDragging: inlinePan.stopDragging,
-  };
-
-  const modalContentProps = {
-    ...sharedTimelineProps,
-    scrollRef: modalPan.scrollRef,
-    isPanningTimeline: modalPan.isPanningTimeline,
-    handleMouseDown: modalPan.handleMouseDown,
-    handleMouseMove: modalPan.handleMouseMove,
-    stopDragging: modalPan.stopDragging,
-  };
-
   return (
-    <>
+    <TimelineControllerProvider value={controller}>
       <Paper p="md" radius="md" withBorder>
         <Stack gap="md">
           <Group justify="space-between" align="flex-start">
@@ -179,14 +118,14 @@ export default function ObjectsTimelineComparison({
               Timeline open in full view
             </Text>
           ) : (
-            <ObjectsTimelineComparisonContent
-              {...inlineContentProps}
-              rowHeight={ROW_HEIGHT}
-              showModeSelector
-              showVisibilityControls
-              showThemeControls
-              showZoomControls
-            />
+            <TimelinePanProvider value={inlinePan}>
+              <ObjectsTimelineComparisonContent
+                showModeSelector
+                showVisibilityControls
+                showThemeControls
+                showZoomControls
+              />
+            </TimelinePanProvider>
           )}
         </Stack>
       </Paper>
@@ -194,9 +133,8 @@ export default function ObjectsTimelineComparison({
       <ObjectsTimelineFullViewModal
         opened={modalOpened}
         onClose={handleCloseModal}
-        activeMode={activeMode}
-        contentProps={modalContentProps}
+        pan={modalPan}
       />
-    </>
+    </TimelineControllerProvider>
   );
 }

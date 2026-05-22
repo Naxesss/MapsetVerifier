@@ -2,6 +2,7 @@ import { Box, useMantineTheme } from '@mantine/core';
 import { memo, useCallback, useMemo, useState } from 'react';
 import TimelineObjectContextMenu from './TimelineObjectContextMenu.tsx';
 import AutoResizeCanvas from '../../../common/AutoResizeCanvas.tsx';
+import { useTimelineDisplay, useTimelineScale } from '../context/ObjectsTimelineContext.tsx';
 import { drawTimelineRow, getTimelineTimestampAtX } from '../timelineDrawing.ts';
 import { formatEditorTimestamp, getTimelineCanvasTiles, getTimelineX } from '../timelineUtils.ts';
 import type { ObjectsOverviewDifficulty } from '../../../../Types';
@@ -11,13 +12,7 @@ import type { MantineTheme } from '@mantine/core';
 
 interface TimelineRowProps {
   difficulty: ObjectsOverviewDifficulty;
-  startTimeMs: number;
-  endTimeMs: number;
-  width: number;
   height: number;
-  visualThemeVariant: TimelineThemeVariant;
-  viewMode?: TimelineViewMode;
-  hitsoundLayers?: HitsoundLayerVisibility;
 }
 
 type TimelineCanvasTileProps = {
@@ -126,18 +121,11 @@ const TimelineCanvasTile = memo(function TimelineCanvasTile({
   );
 });
 
-function TimelineRow({
-  difficulty,
-  startTimeMs,
-  endTimeMs,
-  width,
-  height,
-  visualThemeVariant,
-  viewMode = 'structure',
-  hitsoundLayers,
-}: TimelineRowProps) {
+function TimelineRow({ difficulty, height }: TimelineRowProps) {
   const theme = useMantineTheme();
-  const canvasTiles = useMemo(() => getTimelineCanvasTiles(width), [width]);
+  const { startTimeMs, endTimeMs, timelineWidth } = useTimelineScale();
+  const { timelineThemeVariant, viewMode, hitsoundLayers } = useTimelineDisplay();
+  const canvasTiles = useMemo(() => getTimelineCanvasTiles(timelineWidth), [timelineWidth]);
   const [contextMenuState, setContextMenuState] = useState<{
     localX: number;
     localY: number;
@@ -151,9 +139,9 @@ function TimelineRow({
       difficulty,
       startTimeMs,
       endTimeMs,
-      timelineWidth: width,
+      timelineWidth,
       x: localX,
-      visualThemeVariant,
+      visualThemeVariant: timelineThemeVariant,
     });
 
     if (timestampMs === null) {
@@ -189,14 +177,14 @@ function TimelineRow({
         contextMenuState.timestampMs,
         startTimeMs,
         Math.max(1, endTimeMs - startTimeMs),
-        width
+        timelineWidth
       )
     : undefined;
 
   return (
     <Box
       onContextMenu={handleContextMenu}
-      style={{ position: 'relative', width, height, overflow: 'hidden' }}
+      style={{ position: 'relative', width: timelineWidth, height, overflow: 'hidden' }}
     >
       {canvasTiles.map((tile) => (
         <TimelineCanvasTile
@@ -205,10 +193,10 @@ function TimelineRow({
           difficulty={difficulty}
           startTimeMs={startTimeMs}
           endTimeMs={endTimeMs}
-          width={width}
+          width={timelineWidth}
           height={height}
           theme={theme}
-          visualThemeVariant={visualThemeVariant}
+          visualThemeVariant={timelineThemeVariant}
           viewMode={viewMode}
           hitsoundLayers={hitsoundLayers}
         />

@@ -1,23 +1,15 @@
 import { Box, useMantineTheme } from '@mantine/core';
 import { AXIS_HEIGHT, LABEL_WIDTH } from '../constants.ts';
 import TimelineAxis from './TimelineAxis.tsx';
+import { useTimelineScale } from '../context/ObjectsTimelineContext.tsx';
 
 interface TimelineAxisRowProps {
-  startTimeMs: number;
-  endTimeMs: number;
-  timelineWidth: number;
-  tickIntervalMs: number;
   linePosition: 'top' | 'bottom';
 }
 
-export default function TimelineAxisRow({
-  startTimeMs,
-  endTimeMs,
-  timelineWidth,
-  tickIntervalMs,
-  linePosition,
-}: TimelineAxisRowProps) {
+export default function TimelineAxisRow({ linePosition }: TimelineAxisRowProps) {
   const theme = useMantineTheme();
+  const { startTimeMs, endTimeMs, timelineWidth, tickIntervalMs } = useTimelineScale();
 
   return (
     <Box

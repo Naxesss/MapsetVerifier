@@ -1,11 +1,4 @@
-import {
-  Box,
-  Group,
-  Modal,
-  SegmentedControl,
-  Switch,
-  Tooltip,
-} from '@mantine/core';
+import { Box, Group, Modal, SegmentedControl, Switch, Tooltip } from '@mantine/core';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import HitsoundStripLegend from './HitsoundStripLegend.tsx';
 import ObjectsTimelineComparisonContent from './ObjectsTimelineComparisonContent.tsx';
@@ -15,6 +8,11 @@ import {
   type TimelineCrosshairState,
 } from './TimelineCrosshairPanel.tsx';
 import { HITSOUND_ROW_HEIGHT, LABEL_WIDTH, ROW_HEIGHT } from '../constants.ts';
+import {
+  TimelineFullViewProvider,
+  TimelinePanProvider,
+  useTimelineController,
+} from '../context/ObjectsTimelineContext.tsx';
 import {
   DEFAULT_HITSOUND_LAYERS,
   isHitsoundViewAvailable,
@@ -27,33 +25,41 @@ import {
   getPlayheadViewportX,
   getTimestampAtPlayhead,
 } from '../timelineUtils.ts';
-import type { ObjectsTimelineComparisonContentProps } from './ObjectsTimelineComparisonContent.tsx';
-import type { Mode } from '../../../../Types';
+import type { TimelinePanValue } from '../context/types.ts';
 
 type ObjectsTimelineFullViewModalProps = {
   opened: boolean;
   onClose: () => void;
-  activeMode: Mode | undefined;
-  contentProps: Omit<
-    ObjectsTimelineComparisonContentProps,
-    | 'rowHeight'
-    | 'viewMode'
-    | 'hitsoundLayers'
-    | 'showModeSelector'
-    | 'showVisibilityControls'
-    | 'showThemeControls'
-    | 'showZoomControls'
-    | 'headerExtra'
-    | 'playheadViewportX'
-  >;
+  pan: TimelinePanValue;
 };
 
 export default function ObjectsTimelineFullViewModal({
   opened,
   onClose,
-  activeMode,
-  contentProps,
+  pan,
 }: ObjectsTimelineFullViewModalProps) {
+  return (
+    <Modal opened={opened} onClose={onClose} title="Timeline comparison" size="100%" centered>
+      {opened && <ObjectsTimelineFullViewModalBody onClose={onClose} pan={pan} />}
+    </Modal>
+  );
+}
+
+function ObjectsTimelineFullViewModalBody({
+  pan,
+}: {
+  onClose: () => void;
+  pan: TimelinePanValue;
+}) {
+  const controller = useTimelineController();
+  const {
+    scale: { startTimeMs, endTimeMs },
+    zoom: { timelineWidth },
+    mode: { activeMode },
+    rows: { orderedDifficulties },
+    visibility: { visibilityByDifficulty },
+  } = controller;
+
   const hitsoundAvailable = isHitsoundViewAvailable(activeMode);
   const [viewMode, setViewMode] = useState<TimelineViewMode>('structure');
   const [hitsoundLayers, setHitsoundLayers] =
@@ -67,25 +73,22 @@ export default function ObjectsTimelineFullViewModal({
     }
 
     const firstNoteTimeMs =
-      getFirstNoteTimeMs(
-        contentProps.orderedDifficulties,
-        contentProps.visibilityByDifficulty,
-        getDifficultyKey
-      ) ?? contentProps.startTimeMs;
+      getFirstNoteTimeMs(orderedDifficulties, visibilityByDifficulty, getDifficultyKey) ??
+      startTimeMs;
 
     return getPlayheadViewportX(
       firstNoteTimeMs,
-      contentProps.startTimeMs,
-      contentProps.endTimeMs,
-      contentProps.timelineWidth,
+      startTimeMs,
+      endTimeMs,
+      timelineWidth,
       LABEL_WIDTH
     );
   }, [
-    contentProps.endTimeMs,
-    contentProps.orderedDifficulties,
-    contentProps.startTimeMs,
-    contentProps.timelineWidth,
-    contentProps.visibilityByDifficulty,
+    endTimeMs,
+    orderedDifficulties,
+    startTimeMs,
+    timelineWidth,
+    visibilityByDifficulty,
     viewMode,
   ]);
 
@@ -94,7 +97,7 @@ export default function ObjectsTimelineFullViewModal({
       return;
     }
 
-    const scrollElement = contentProps.scrollRef.current;
+    const scrollElement = pan.scrollRef.current;
     if (!scrollElement) {
       return;
     }
@@ -103,28 +106,19 @@ export default function ObjectsTimelineFullViewModal({
       scrollElement.scrollLeft,
       playheadViewportX,
       LABEL_WIDTH,
-      contentProps.timelineWidth,
-      contentProps.startTimeMs,
-      contentProps.endTimeMs
+      timelineWidth,
+      startTimeMs,
+      endTimeMs
     );
 
     setCrosshair({ timestampMs });
-  }, [
-    contentProps.endTimeMs,
-    contentProps.scrollRef,
-    contentProps.startTimeMs,
-    contentProps.timelineWidth,
-    playheadViewportX,
-  ]);
+  }, [endTimeMs, pan.scrollRef, playheadViewportX, startTimeMs, timelineWidth]);
 
   useEffect(() => {
-    if (!opened) {
-      setViewMode('structure');
-      setHitsoundLayers(DEFAULT_HITSOUND_LAYERS);
-      setCrosshair(null);
-      contentProps.stopDragging();
-    }
-  }, [contentProps.stopDragging, opened]);
+    return () => {
+      pan.stopDragging();
+    };
+  }, [pan.stopDragging]);
 
   useEffect(() => {
     if (!hitsoundAvailable && viewMode === 'hitsounding') {
@@ -138,25 +132,20 @@ export default function ObjectsTimelineFullViewModal({
       return;
     }
 
-    const scrollElement = contentProps.scrollRef.current;
+    const scrollElement = pan.scrollRef.current;
     if (scrollElement) {
       scrollElement.scrollLeft = 0;
     }
 
     updateCrosshairFromScroll();
-  }, [
-    contentProps.scrollRef,
-    playheadViewportX,
-    updateCrosshairFromScroll,
-    viewMode,
-  ]);
+  }, [pan.scrollRef, playheadViewportX, updateCrosshairFromScroll, viewMode]);
 
   useEffect(() => {
     if (viewMode !== 'hitsounding' || playheadViewportX === null) {
       return;
     }
 
-    const scrollElement = contentProps.scrollRef.current;
+    const scrollElement = pan.scrollRef.current;
     if (!scrollElement) {
       return;
     }
@@ -169,12 +158,7 @@ export default function ObjectsTimelineFullViewModal({
     return () => {
       scrollElement.removeEventListener('scroll', handleScroll);
     };
-  }, [
-    contentProps.scrollRef,
-    playheadViewportX,
-    updateCrosshairFromScroll,
-    viewMode,
-  ]);
+  }, [pan.scrollRef, playheadViewportX, updateCrosshairFromScroll, viewMode]);
 
   useEffect(() => {
     if (viewMode !== 'hitsounding' || playheadViewportX === null) {
@@ -182,7 +166,7 @@ export default function ObjectsTimelineFullViewModal({
     }
 
     updateCrosshairFromScroll();
-  }, [contentProps.timelineWidth, playheadViewportX, updateCrosshairFromScroll, viewMode]);
+  }, [playheadViewportX, timelineWidth, updateCrosshairFromScroll, viewMode]);
 
   const rowHeight = viewMode === 'hitsounding' ? HITSOUND_ROW_HEIGHT : ROW_HEIGHT;
 
@@ -235,37 +219,40 @@ export default function ObjectsTimelineFullViewModal({
     [hitsoundAvailable, hitsoundLayers, viewMode]
   );
 
-  const panelResetKey = `${opened}:${viewMode}:${contentProps.timelineWidth}:${contentProps.orderedDifficulties.length}`;
+  const panelResetKey = `${viewMode}:${timelineWidth}:${orderedDifficulties.length}`;
+
+  const fullViewValue = useMemo(
+    () => ({
+      viewMode,
+      setViewMode,
+      hitsoundLayers,
+      setHitsoundLayers,
+      playheadViewportX,
+      crosshair,
+      setCrosshair,
+      rowHeight,
+    }),
+    [viewMode, hitsoundLayers, playheadViewportX, crosshair, rowHeight]
+  );
 
   return (
-    <Modal opened={opened} onClose={onClose} title="Timeline comparison" size="100%" centered>
-      <Box ref={modalBodyRef} pos="relative">
-        <ObjectsTimelineComparisonContent
-          {...contentProps}
-          rowHeight={rowHeight}
-          viewMode={viewMode}
-          hitsoundLayers={hitsoundLayers}
-          playheadViewportX={playheadViewportX}
-          showModeSelector={false}
-          showVisibilityControls
-          showThemeControls
-          showZoomControls
-          headerExtra={headerExtra}
-          aboveTimelineExtra={viewMode === 'hitsounding' ? <HitsoundStripLegend /> : undefined}
-        />
+    <Box ref={modalBodyRef} pos="relative">
+      <TimelineFullViewProvider value={fullViewValue}>
+        <TimelinePanProvider value={pan}>
+          <ObjectsTimelineComparisonContent
+            showModeSelector={false}
+            showVisibilityControls
+            showThemeControls
+            showZoomControls
+            headerExtra={headerExtra}
+            aboveTimelineExtra={viewMode === 'hitsounding' ? <HitsoundStripLegend /> : undefined}
+          />
+        </TimelinePanProvider>
 
         {viewMode === 'hitsounding' && (
-          <TimelineCrosshairFloatingPanel
-            boundsRef={modalBodyRef}
-            crosshair={crosshair}
-            orderedDifficulties={contentProps.orderedDifficulties}
-            visibilityByDifficulty={contentProps.visibilityByDifficulty}
-            getDifficultyKey={getDifficultyKey}
-            hitsoundLayers={hitsoundLayers}
-            resetKey={panelResetKey}
-          />
+          <TimelineCrosshairFloatingPanel boundsRef={modalBodyRef} resetKey={panelResetKey} />
         )}
-      </Box>
-    </Modal>
+      </TimelineFullViewProvider>
+    </Box>
   );
 }

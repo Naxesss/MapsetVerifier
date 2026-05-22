@@ -13,11 +13,15 @@ import {
 import { getDifficultyColor } from "../../../common/DifficultyColor.ts";
 import DifficultyColorPill from "../../../common/DifficultyColorPill.tsx";
 import {
+  useTimelineController,
+  useTimelineFullView,
+  useTimelineVisibility,
+} from "../context/ObjectsTimelineContext.tsx";
+import {
   findNearestSample,
   formatSampleBankLine,
   getHitsoundTypesFromFlags,
   HITSOUND_FLAG_NORMAL,
-  type HitsoundLayerVisibility,
   type HitsoundTypeDisplay,
 } from "../hitsoundUtils.ts";
 import { filterSamplesForHover } from "../timelineHitsoundDrawing.ts";
@@ -26,8 +30,8 @@ import {
   findNearestTimelineEdge,
   formatEditorTimestamp,
   getEdgeHitSoundFlags,
-} from "../timelineUtils.ts";
-import type { ObjectsOverviewDifficulty, ObjectsTimelineSample } from "../../../../Types";
+ getDifficultyKey } from "../timelineUtils.ts";
+import type { ObjectsTimelineSample } from "../../../../Types";
 
 export type TimelineCrosshairState = {
   timestampMs: number;
@@ -47,11 +51,6 @@ type DragState = {
 
 type TimelineCrosshairFloatingPanelProps = {
   boundsRef: RefObject<HTMLElement | null>;
-  crosshair: TimelineCrosshairState | null;
-  orderedDifficulties: ObjectsOverviewDifficulty[];
-  visibilityByDifficulty: Record<string, boolean | undefined>;
-  getDifficultyKey: (difficulty: ObjectsOverviewDifficulty) => string;
-  hitsoundLayers: HitsoundLayerVisibility;
   resetKey?: string;
 };
 
@@ -150,13 +149,12 @@ function HitsoundSampleDetail({
   );
 }
 
-function TimelineCrosshairPanelBody({
-  crosshair,
-  orderedDifficulties,
-  visibilityByDifficulty,
-  getDifficultyKey,
-  hitsoundLayers,
-}: Omit<TimelineCrosshairFloatingPanelProps, "boundsRef" | "resetKey">) {
+function TimelineCrosshairPanelBody() {
+  const { crosshair, hitsoundLayers } = useTimelineFullView();
+  const {
+    rows: { orderedDifficulties },
+  } = useTimelineController();
+  const { visibilityByDifficulty } = useTimelineVisibility();
   const rows = useMemo(() => {
     if (!crosshair) return [];
 
@@ -216,13 +214,12 @@ function TimelineCrosshairPanelBody({
 
 export function TimelineCrosshairFloatingPanel({
   boundsRef,
-  crosshair,
-  orderedDifficulties,
-  visibilityByDifficulty,
-  getDifficultyKey,
-  hitsoundLayers,
   resetKey,
 }: TimelineCrosshairFloatingPanelProps) {
+  const { crosshair } = useTimelineFullView();
+  const {
+    rows: { orderedDifficulties },
+  } = useTimelineController();
   const panelRef = useRef<HTMLDivElement>(null);
   const posRef = useRef<Point>(DEFAULT_POSITION);
   const dragRef = useRef<DragState | null>(null);
@@ -374,13 +371,7 @@ export function TimelineCrosshairFloatingPanel({
 
           <ScrollArea.Autosize mah={PANEL_BODY_MAX_HEIGHT} offsetScrollbars type="scroll">
             <Box p="xs" mx="sm" pt={8}>
-              <TimelineCrosshairPanelBody
-                crosshair={crosshair}
-                orderedDifficulties={orderedDifficulties}
-                visibilityByDifficulty={visibilityByDifficulty}
-                getDifficultyKey={getDifficultyKey}
-                hitsoundLayers={hitsoundLayers}
-              />
+              <TimelineCrosshairPanelBody />
             </Box>
           </ScrollArea.Autosize>
         </Paper>
