@@ -4,6 +4,18 @@ on:
   release:
     types: [published]
 
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to sync (e.g. v2.0.0-beta.10)
+        required: true
+        type: string
+      prerelease:
+        description: Treat as prerelease for mv-web content selection
+        required: true
+        type: boolean
+        default: true
+
 permissions:
   contents: read
 
@@ -12,14 +24,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Resolve dispatch payload
+        id: payload
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+            echo "prerelease=${{ inputs.prerelease }}" >> "$GITHUB_OUTPUT"
+            echo "trigger=manual" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+            echo "prerelease=${{ github.event.release.prerelease }}" >> "$GITHUB_OUTPUT"
+            echo "trigger=release.published" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Log dispatch payload
+        run: |
+          echo "trigger=${{ steps.payload.outputs.trigger }}"
+          echo "tag=${{ steps.payload.outputs.tag }}"
+          echo "prerelease=${{ steps.payload.outputs.prerelease }}"
+
       - name: Trigger website content sync
         env:
           GH_TOKEN: ${{ secrets.MV_WEB_UPDATE_TOKEN }}
         run: |
           set -euo pipefail
           jq -n \
-            --arg tag "${{ github.event.release.tag_name }}" \
-            --argjson prerelease ${{ github.event.release.prerelease }} \
+            --arg tag "${{ steps.payload.outputs.tag }}" \
+            --argjson prerelease ${{ steps.payload.outputs.prerelease }} \
             --arg source_run_url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             '{
               event_type: "mapsetverifier-release",
