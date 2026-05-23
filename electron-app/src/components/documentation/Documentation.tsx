@@ -1,17 +1,19 @@
 ﻿import {
   Alert,
+  Box,
   CloseButton,
-  Flex,
   Group,
   Loader,
   SimpleGrid,
   Space,
+  Stack,
   Tabs,
   Text,
   TextInput,
+  useMantineTheme,
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
-import { IconAlertCircle, IconLayoutGrid, IconSearch } from '@tabler/icons-react';
+import { IconAlertCircle, IconSearch } from '@tabler/icons-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import BeatmapChecks from './BeatmapChecks.tsx';
 import DocumentationCheck from './DocumentationCheck';
@@ -40,67 +42,102 @@ const BEATMAP_TAB_TO_MODE: Record<string, Mode> = {
   mania: 'Mania',
 };
 
+interface InfoIconExplanationProp {
+  icon: React.ReactNode;
+  title: string;
+  category: string;
+  description: string;
+}
+
+function DocumentationIconExplanation(props: InfoIconExplanationProp) {
+  const theme = useMantineTheme();
+  const background = theme.variantColorResolver({ variant: 'light', theme, color: 'gray' }).background;
+
+  return (
+    <Group
+      wrap="nowrap"
+      align="center"
+      gap="md"
+      p="sm"
+      w="100%"
+      style={{ background, borderRadius: theme.defaultRadius, minWidth: 0, height: '100%' }}
+    >
+      <Box style={{ flexShrink: 0, lineHeight: 0 }}>{props.icon}</Box>
+      <Stack gap={0} style={{ flexShrink: 0 }}>
+        <Text fw="bold">{props.title}</Text>
+        <Text fs="italic" size="xs" c="dimmed">
+          {props.category}
+        </Text>
+      </Stack>
+      <Text style={{ flex: 1, minWidth: 0 }}>{props.description}</Text>
+    </Group>
+  );
+}
+
+const DOCUMENTATION_ICON_EXPLANATIONS: InfoIconExplanationProp[] = [
+  {
+    icon: <NoIssueIcon />,
+    title: 'Check',
+    category: 'Checks',
+    description: 'No issues were found.',
+  },
+  {
+    icon: <MinorIcon />,
+    title: 'Minor',
+    category: 'Checks',
+    description: 'One or more negligible issues were found.',
+  },
+  {
+    icon: <InfoLevelIcon />,
+    title: 'Info',
+    category: 'Checks',
+    description: 'Informational notes or non-blocking observations.',
+  },
+  {
+    icon: <WarningIcon />,
+    title: 'Warning',
+    category: 'Checks',
+    description: 'One or more guideline breaking issues were found.',
+  },
+  {
+    icon: <ProblemIcon />,
+    title: 'Problem',
+    category: 'Checks',
+    description: 'One or more rule-breaking issues were found.',
+  },
+  {
+    icon: <ErrorIcon />,
+    title: 'Error',
+    category: 'Checks',
+    description: 'An error occurred preventing a complete check.',
+  },
+  {
+    icon: <SnapshotHasChangesIcon />,
+    title: 'Changes',
+    category: 'Snapshots',
+    description: 'This difficulty has at least one snapshot commit with changes.',
+  },
+  {
+    icon: <SnapshotNoChangesIcon />,
+    title: 'Unchanged',
+    category: 'Snapshots',
+    description: 'This difficulty has no recorded changes in snapshot history.',
+  },
+];
+
 /** Static header: not a child of search state, so it does not re-render on every keystroke. */
 function DocumentationIconsSection() {
   return (
-    <Alert icon={<IconLayoutGrid />} variant="light" color="gray" radius="md" title="Icons">
-      <SimpleGrid
-        cols={3}
-        style={{
-          gridTemplateColumns: '32px min-content auto',
-          alignItems: 'center',
-        }}
-      >
-        <DocumentationIconExplanation
-          icon={<NoIssueIcon />}
-          title="Check"
-          category="Checks"
-          description="No issues were found."
-        />
-        <DocumentationIconExplanation
-          icon={<MinorIcon />}
-          title="Minor"
-          category="Checks"
-          description="One or more negligible issues were found."
-        />
-        <DocumentationIconExplanation
-          icon={<InfoLevelIcon />}
-          title="Info"
-          category="Checks"
-          description="Informational notes or non-blocking observations."
-        />
-        <DocumentationIconExplanation
-          icon={<WarningIcon />}
-          title="Warning"
-          category="Checks"
-          description="One or more guideline breaking issues were found."
-        />
-        <DocumentationIconExplanation
-          icon={<ProblemIcon />}
-          title="Problem"
-          category="Checks"
-          description="One or more rule-breaking issues were found."
-        />
-        <DocumentationIconExplanation
-          icon={<ErrorIcon />}
-          title="Error"
-          category="Checks"
-          description="An error occurred preventing a complete check."
-        />
-        <DocumentationIconExplanation
-          icon={<SnapshotHasChangesIcon />}
-          title="Changes"
-          category="Snapshots"
-          description="This difficulty has at least one snapshot commit with changes."
-        />
-        <DocumentationIconExplanation
-          icon={<SnapshotNoChangesIcon />}
-          title="Unchanged"
-          category="Snapshots"
-          description="This difficulty has no recorded changes in snapshot history."
-        />
+    <Stack gap="xs">
+      <Text fw={700} size="md">
+        Icons
+      </Text>
+      <SimpleGrid cols={2} spacing="xs">
+        {DOCUMENTATION_ICON_EXPLANATIONS.map((item) => (
+          <DocumentationIconExplanation key={`${item.category}-${item.title}`} {...item} />
+        ))}
       </SimpleGrid>
-    </Alert>
+    </Stack>
   );
 }
 
@@ -241,26 +278,6 @@ function Documentation() {
       <DocumentationIconsSection />
       <Space h="md" />
       <DocumentationChecksBrowser />
-    </>
-  );
-}
-
-interface InfoIconExplanationProp {
-  icon: React.ReactNode;
-  title: string;
-  category: string;
-  description: string;
-}
-
-function DocumentationIconExplanation(props: InfoIconExplanationProp) {
-  return (
-    <>
-      {props.icon}
-      <Flex direction="column">
-        <Text fw="bold">{props.title}</Text>
-        <Text fs="italic" size="xs">{props.category}</Text>
-      </Flex>
-      <Text>{props.description}</Text>
     </>
   );
 }
