@@ -1,4 +1,6 @@
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.Parser.Objects.TimingLines;
+using MathNet.Numerics;
 
 namespace MapsetVerifier.Checks.Utils;
 
@@ -24,5 +26,29 @@ public static class TimingUtils
         var objectTimeBeforeEnd = beatmap.GetPrevHitObject<T>(nextSectionEnd)?.time ?? 0;
 
         return objectTimeBeforeEnd >= line.Offset;
+    }
+
+    /// <summary>
+    ///     Returns whether two uninherited lines share the same BPM, meter, and downbeat alignment.
+    /// </summary>
+    public static bool AreDownbeatsAligned(UninheritedLine line, UninheritedLine otherLine)
+    {
+        var negligibleDownbeatOffset = GetBeatOffset(otherLine, line, otherLine.Meter) <= 1;
+
+        return otherLine.bpm.AlmostEqual(line.bpm)
+            && otherLine.Meter == line.Meter
+            && negligibleDownbeatOffset;
+    }
+
+    private static double GetBeatOffset(
+        UninheritedLine line,
+        UninheritedLine nextLine,
+        double beatModulo
+    )
+    {
+        var beatsIn = (nextLine.Offset - line.Offset) / line.msPerBeat;
+        var offset = beatsIn % beatModulo;
+
+        return Math.Min(Math.Abs(offset), Math.Abs(offset - beatModulo)) * line.msPerBeat;
     }
 }

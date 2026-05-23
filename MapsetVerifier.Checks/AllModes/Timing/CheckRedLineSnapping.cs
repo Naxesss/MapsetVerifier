@@ -1,10 +1,10 @@
+using MapsetVerifier.Checks.Utils;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
-using MathNet.Numerics;
 
 namespace MapsetVerifier.Checks.AllModes.Timing
 {
@@ -82,7 +82,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             if (nextLine.Offset - time > lookaheadMs)
                 return null;
 
-            if (DownbeatsAlign(currentLine, nextLine))
+            if (TimingUtils.AreDownbeatsAligned(currentLine, nextLine))
                 return null;
 
             var unsnapCurrent = Math.Abs(beatmap.GetPracticalUnsnap(time));
@@ -114,25 +114,5 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             return nextLine;
         }
 
-        private static bool DownbeatsAlign(UninheritedLine line, UninheritedLine otherLine)
-        {
-            var negligibleDownbeatOffset = GetBeatOffset(otherLine, line, otherLine.Meter) <= 1;
-
-            return otherLine.bpm.AlmostEqual(line.bpm)
-                && otherLine.Meter == line.Meter
-                && negligibleDownbeatOffset;
-        }
-
-        private static double GetBeatOffset(
-            UninheritedLine line,
-            UninheritedLine nextLine,
-            double beatModulo
-        )
-        {
-            var beatsIn = (nextLine.Offset - line.Offset) / line.msPerBeat;
-            var offset = beatsIn % beatModulo;
-
-            return Math.Min(Math.Abs(offset), Math.Abs(offset - beatModulo)) * line.msPerBeat;
-        }
     }
 }

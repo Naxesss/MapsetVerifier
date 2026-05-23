@@ -1,7 +1,9 @@
-﻿using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Checks.Utils;
+using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
 
 namespace MapsetVerifier.Checks.AllModes.Timing
@@ -9,6 +11,8 @@ namespace MapsetVerifier.Checks.AllModes.Timing
     [Check]
     public class CheckUnsnaps : BeatmapCheck
     {
+        private const double UnsnapThresholdMs = 2;
+
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
@@ -96,6 +100,9 @@ namespace MapsetVerifier.Checks.AllModes.Timing
         /// <summary> Returns issues wherever the given time value is unsnapped. </summary>
         private IEnumerable<Issue> GetUnsnapIssue(string type, double time, Beatmap beatmap)
         {
+            if (type == "Slider tail" && IsSliderTailSnappedToUpcomingRedLine(time, beatmap))
+                yield break;
+
             var unsnapIssue = beatmap.GetUnsnapIssue(time);
             var unsnap = beatmap.GetPracticalUnsnap(time);
 
@@ -128,6 +135,24 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     $"{unsnap:0.###}"
                 );
             }
+        }
+
+        /// <summary>
+        ///     Slider tails snapped to an upcoming misaligned red line can fall fractionally before it
+        ///     due to pixel-length math while still using the next line's grid in the editor.
+        /// </summary>
+        private static bool IsSliderTailSnappedToUpcomingRedLine(double time, Beatmap beatmap)
+        {
+            var currentLine = beatmap.GetTimingLine<UninheritedLine>(time);
+            var nextLine = beatmap.GetNextTimingLine<UninheritedLine>(time);
+
+            if (currentLine == null || nextLine == null || nextLine.Offset <= time)
+                return false;
+
+            if (nextLine.Offset - time > UnsnapThresholdMs)
+                return false;
+
+            return !TimingUtils.AreDownbeatsAligned(currentLine, nextLine);
         }
     }
 }
