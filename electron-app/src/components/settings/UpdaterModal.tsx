@@ -188,46 +188,47 @@ const UpdaterModal: React.FC = () => {
               </>
             )}
 
-            {(status === 'downloading' || status === 'installing') && (
-              <Stack gap="xs">
-                <Progress value={progress} animated={status !== 'installing'} />
-                <Group justify="space-between">
-                  <Text size="sm">
-                    {status === 'installing' ? 'Installing update…' : 'Downloading update…'}
-                  </Text>
-                  <Text size="sm" c="dimmed">
-                    {formatBytes(downloadedBytes)} / {formatBytes(totalBytes)}
-                  </Text>
-                </Group>
-              </Stack>
-            )}
           </Stack>
         </Modal.Body>
 
         <Box px="md" pb="md" style={{ flexShrink: 0 }}>
-          {status !== 'checking' &&<Divider mb="md" />}
-          <Group justify="flex-end">
-            {(status === 'up-to-date' || status === 'error' || status === 'installed') && (
-              <Button
-                variant="light"
-                onClick={() => void checkForUpdates({ silent: false, openModal: true })}
-              >
-                Check again
-              </Button>
-            )}
+          {status !== 'checking' && <Divider mb="md" />}
+          {(status === 'downloading' || status === 'installing') ? (
+            <Stack gap="xs">
+              <Progress value={progress} animated={status !== 'installing'} />
+              <Group justify="space-between">
+                <Text size="sm">
+                  {status === 'installing' ? 'Installing update…' : 'Downloading update…'}
+                </Text>
+                <Text size="sm" c="dimmed">
+                  {formatBytes(downloadedBytes)} / {formatBytes(totalBytes)}
+                </Text>
+              </Group>
+            </Stack>
+          ) : (
+            <Group justify="flex-end">
+              {(status === 'up-to-date' || status === 'error' || status === 'installed') && (
+                <Button
+                  variant="light"
+                  onClick={() => void checkForUpdates({ silent: false, openModal: true })}
+                >
+                  Check again
+                </Button>
+              )}
 
-            {status === 'available' && availableUpdate && (
-              <Button variant="light" onClick={() => void installUpdate()}>
-                Update now
-              </Button>
-            )}
+              {status === 'available' && availableUpdate && (
+                <Button variant="light" onClick={() => void installUpdate()}>
+                  Update now
+                </Button>
+              )}
 
-            {!busy && (
-              <Button variant="default" onClick={closeUpdater}>
-                {dismissLabel}
-              </Button>
-            )}
-          </Group>
+              {!busy && (
+                <Button variant="default" onClick={closeUpdater}>
+                  {dismissLabel}
+                </Button>
+              )}
+            </Group>
+          )}
         </Box>
       </Modal.Content>
     </Modal.Root>
