@@ -252,7 +252,7 @@ function ObjectsTimelineFullViewModalBody({
       <TimelineFullViewProvider value={fullViewValue}>
         <TimelinePanProvider value={pan}>
           <ObjectsTimelineComparisonContent
-            showModeSelector={false}
+            showModeSelector
             showVisibilityControls
             showThemeControls
             showZoomControls
