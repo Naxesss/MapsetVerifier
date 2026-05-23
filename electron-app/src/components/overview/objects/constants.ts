@@ -1,4 +1,5 @@
 export const LABEL_WIDTH = 208;
+export const PLAYHEAD_VIEWPORT_OFFSET = 120;
 export const ROW_HEIGHT = 44;
 export const HITSOUND_ROW_HEIGHT = 92;
 export const HIDDEN_ROW_HEIGHT = 36;

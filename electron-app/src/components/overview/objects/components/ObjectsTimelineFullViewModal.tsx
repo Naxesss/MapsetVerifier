@@ -1,5 +1,5 @@
 import { Box, Group, Modal, SegmentedControl, Switch, Tooltip } from '@mantine/core';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import HitsoundStripLegend from './HitsoundStripLegend.tsx';
 import ObjectsTimelineComparisonContent from './ObjectsTimelineComparisonContent.tsx';
 import ObjectsTimelineHelpButton from './ObjectsTimelineHelpButton.tsx';
@@ -7,7 +7,7 @@ import {
   TimelineCrosshairFloatingPanel,
   type TimelineCrosshairState,
 } from './TimelineCrosshairPanel.tsx';
-import { HITSOUND_ROW_HEIGHT, LABEL_WIDTH, ROW_HEIGHT } from '../constants.ts';
+import { HITSOUND_ROW_HEIGHT, LABEL_WIDTH, PLAYHEAD_VIEWPORT_OFFSET, ROW_HEIGHT } from '../constants.ts';
 import {
   TimelineFullViewProvider,
   TimelinePanProvider,
@@ -22,7 +22,7 @@ import {
 import {
   getDifficultyKey,
   getFirstNoteTimeMs,
-  getPlayheadViewportX,
+  getScrollLeftForTimestamp,
   getTimestampAtPlayhead,
 } from '../timelineUtils.ts';
 import type { TimelinePanValue } from '../context/types.ts';
@@ -66,31 +66,22 @@ function ObjectsTimelineFullViewModalBody({
     useState<HitsoundLayerVisibility>(DEFAULT_HITSOUND_LAYERS);
   const [crosshair, setCrosshair] = useState<TimelineCrosshairState | null>(null);
   const modalBodyRef = useRef<HTMLDivElement>(null);
+  const prevViewModeRef = useRef<TimelineViewMode>('structure');
 
   const playheadViewportX = useMemo(() => {
     if (viewMode !== 'hitsounding') {
       return null;
     }
 
-    const firstNoteTimeMs =
-      getFirstNoteTimeMs(orderedDifficulties, visibilityByDifficulty, getDifficultyKey) ??
-      startTimeMs;
+    return LABEL_WIDTH + PLAYHEAD_VIEWPORT_OFFSET;
+  }, [viewMode]);
 
-    return getPlayheadViewportX(
-      firstNoteTimeMs,
+  const firstNoteTimeMs = useMemo(
+    () =>
+      getFirstNoteTimeMs(orderedDifficulties, visibilityByDifficulty, getDifficultyKey) ??
       startTimeMs,
-      endTimeMs,
-      timelineWidth,
-      LABEL_WIDTH
-    );
-  }, [
-    endTimeMs,
-    orderedDifficulties,
-    startTimeMs,
-    timelineWidth,
-    visibilityByDifficulty,
-    viewMode,
-  ]);
+    [orderedDifficulties, startTimeMs, visibilityByDifficulty]
+  );
 
   const updateCrosshairFromScroll = useCallback(() => {
     if (playheadViewportX === null) {
@@ -125,6 +116,40 @@ function ObjectsTimelineFullViewModalBody({
       setViewMode('structure');
     }
   }, [hitsoundAvailable, viewMode]);
+
+  useLayoutEffect(() => {
+    const enteredHitsounding =
+      viewMode === 'hitsounding' && prevViewModeRef.current !== 'hitsounding';
+    prevViewModeRef.current = viewMode;
+
+    if (!enteredHitsounding || playheadViewportX === null) {
+      return;
+    }
+
+    const scrollElement = pan.scrollRef.current;
+    if (!scrollElement) {
+      return;
+    }
+
+    const scrollLeft = getScrollLeftForTimestamp(
+      firstNoteTimeMs,
+      playheadViewportX,
+      LABEL_WIDTH,
+      timelineWidth,
+      startTimeMs,
+      endTimeMs
+    );
+    const maxScrollLeft = Math.max(0, scrollElement.scrollWidth - scrollElement.clientWidth);
+    scrollElement.scrollLeft = Math.max(0, Math.min(maxScrollLeft, scrollLeft));
+  }, [
+    endTimeMs,
+    firstNoteTimeMs,
+    pan.scrollRef,
+    playheadViewportX,
+    startTimeMs,
+    timelineWidth,
+    viewMode,
+  ]);
 
   useEffect(() => {
     if (viewMode !== 'hitsounding' || playheadViewportX === null) {
