@@ -1,6 +1,10 @@
 import { useLayoutEffect, useRef, type RefObject } from 'react';
 import { LABEL_WIDTH } from '../constants.ts';
-import { getScrollLeftForTimestamp, getTimestampAtPlayhead } from '../timelineUtils.ts';
+import {
+  getPlayheadScrollPadding,
+  getScrollLeftForTimestamp,
+  getTimestampAtPlayhead,
+} from '../timelineUtils.ts';
 
 type UsePreserveTimelineScrollOnZoomOptions = {
   scrollRef: RefObject<HTMLDivElement | null>;
@@ -40,6 +44,14 @@ export function usePreserveTimelineScrollOnZoom({
       anchorViewportX ??
       prevAnchorViewportX ??
       container.clientWidth / 2;
+    const readPadding =
+      prevAnchorViewportX != null
+        ? getPlayheadScrollPadding(prevAnchorViewportX, LABEL_WIDTH, container.clientWidth)
+        : undefined;
+    const writePadding =
+      anchorViewportX != null
+        ? getPlayheadScrollPadding(anchorViewportX, LABEL_WIDTH, container.clientWidth)
+        : undefined;
 
     const timestampMs = getTimestampAtPlayhead(
       container.scrollLeft,
@@ -47,7 +59,8 @@ export function usePreserveTimelineScrollOnZoom({
       LABEL_WIDTH,
       prevTimelineWidth,
       startTimeMs,
-      endTimeMs
+      endTimeMs,
+      readPadding
     );
 
     const nextScrollLeft = getScrollLeftForTimestamp(
@@ -56,7 +69,8 @@ export function usePreserveTimelineScrollOnZoom({
       LABEL_WIDTH,
       timelineWidth,
       startTimeMs,
-      endTimeMs
+      endTimeMs,
+      writePadding
     );
 
     const maxScrollLeft = Math.max(0, container.scrollWidth - container.clientWidth);

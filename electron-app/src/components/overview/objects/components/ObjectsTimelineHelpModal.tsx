@@ -69,8 +69,8 @@ export default function ObjectsTimelineHelpModal({
                 <List.Item>
                   Object circle colours show only <strong>hitsound additions</strong> (Normal,
                   Whistle, Clap, Finish). Priority is Finish → Clap → Whistle → Normal: the highest
-                  priority addition fills the circle; when stacked, the next one appears as an outer
-                  ring.
+                  priority addition fills the circle; when stacked, additional ones appear as outer
+                  rings.
                 </List.Item>
                 <List.Item>
                   Slider bodies stay neutral grey in this view — edge hitsounds are shown on

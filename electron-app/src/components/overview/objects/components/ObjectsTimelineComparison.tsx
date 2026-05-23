@@ -86,7 +86,7 @@ export default function ObjectsTimelineComparison({
   }, [modalOpened, inlinePan.scrollRef, modalPan.scrollRef]);
 
   return (
-    <TimelineControllerProvider value={controller}>
+    <>
       <Paper p="md" radius="md" withBorder>
         <Stack gap="md">
           <Group justify="space-between" align="flex-start">
@@ -118,14 +118,16 @@ export default function ObjectsTimelineComparison({
               Timeline open in full view
             </Text>
           ) : (
-            <TimelinePanProvider value={inlinePan}>
-              <ObjectsTimelineComparisonContent
-                showModeSelector
-                showVisibilityControls
-                showThemeControls
-                showZoomControls
-              />
-            </TimelinePanProvider>
+            <TimelineControllerProvider value={controller}>
+              <TimelinePanProvider value={inlinePan}>
+                <ObjectsTimelineComparisonContent
+                  showModeSelector
+                  showVisibilityControls
+                  showThemeControls
+                  showZoomControls
+                />
+              </TimelinePanProvider>
+            </TimelineControllerProvider>
           )}
         </Stack>
       </Paper>
@@ -134,7 +136,8 @@ export default function ObjectsTimelineComparison({
         opened={modalOpened}
         onClose={handleCloseModal}
         pan={modalPan}
+        controller={controller}
       />
-    </TimelineControllerProvider>
+    </>
   );
 }

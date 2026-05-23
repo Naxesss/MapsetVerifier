@@ -9,9 +9,9 @@ import {
 } from './TimelineCrosshairPanel.tsx';
 import { HITSOUND_ROW_HEIGHT, LABEL_WIDTH, PLAYHEAD_VIEWPORT_OFFSET, ROW_HEIGHT } from '../constants.ts';
 import {
+  TimelineControllerProvider,
   TimelineFullViewProvider,
   TimelinePanProvider,
-  useTimelineController,
 } from '../context/ObjectsTimelineContext.tsx';
 import {
   DEFAULT_HITSOUND_LAYERS,
@@ -22,36 +22,43 @@ import {
 import {
   getDifficultyKey,
   getFirstNoteTimeMs,
+  getPlayheadScrollPadding,
   getScrollLeftForTimestamp,
   getTimestampAtPlayhead,
 } from '../timelineUtils.ts';
-import type { TimelinePanValue } from '../context/types.ts';
+import type { TimelineControllerValue, TimelinePanValue } from '../context/types.ts';
 
 type ObjectsTimelineFullViewModalProps = {
   opened: boolean;
   onClose: () => void;
   pan: TimelinePanValue;
+  controller: TimelineControllerValue;
 };
 
 export default function ObjectsTimelineFullViewModal({
   opened,
   onClose,
   pan,
+  controller,
 }: ObjectsTimelineFullViewModalProps) {
   return (
     <Modal opened={opened} onClose={onClose} title="Timeline comparison" size="100%" centered>
-      {opened && <ObjectsTimelineFullViewModalBody onClose={onClose} pan={pan} />}
+      {opened && (
+        <TimelineControllerProvider value={controller}>
+          <ObjectsTimelineFullViewModalBody pan={pan} controller={controller} />
+        </TimelineControllerProvider>
+      )}
     </Modal>
   );
 }
 
 function ObjectsTimelineFullViewModalBody({
   pan,
+  controller,
 }: {
-  onClose: () => void;
   pan: TimelinePanValue;
+  controller: TimelineControllerValue;
 }) {
-  const controller = useTimelineController();
   const {
     scale: { startTimeMs, endTimeMs },
     zoom: { timelineWidth },
@@ -67,6 +74,7 @@ function ObjectsTimelineFullViewModalBody({
   const [crosshair, setCrosshair] = useState<TimelineCrosshairState | null>(null);
   const modalBodyRef = useRef<HTMLDivElement>(null);
   const prevViewModeRef = useRef<TimelineViewMode>('structure');
+  const pendingFirstNoteScrollRef = useRef(false);
 
   const playheadViewportX = useMemo(() => {
     if (viewMode !== 'hitsounding') {
@@ -93,13 +101,19 @@ function ObjectsTimelineFullViewModalBody({
       return;
     }
 
+    const padding =
+      scrollElement.clientWidth > 0
+        ? getPlayheadScrollPadding(playheadViewportX, LABEL_WIDTH, scrollElement.clientWidth)
+        : undefined;
+
     const timestampMs = getTimestampAtPlayhead(
       scrollElement.scrollLeft,
       playheadViewportX,
       LABEL_WIDTH,
       timelineWidth,
       startTimeMs,
-      endTimeMs
+      endTimeMs,
+      padding
     );
 
     setCrosshair({ timestampMs });
@@ -122,7 +136,16 @@ function ObjectsTimelineFullViewModalBody({
       viewMode === 'hitsounding' && prevViewModeRef.current !== 'hitsounding';
     prevViewModeRef.current = viewMode;
 
-    if (!enteredHitsounding || playheadViewportX === null) {
+    if (viewMode !== 'hitsounding') {
+      pendingFirstNoteScrollRef.current = false;
+      return;
+    }
+
+    if (enteredHitsounding) {
+      pendingFirstNoteScrollRef.current = true;
+    }
+
+    if (!pendingFirstNoteScrollRef.current || playheadViewportX === null) {
       return;
     }
 
@@ -131,16 +154,39 @@ function ObjectsTimelineFullViewModalBody({
       return;
     }
 
-    const scrollLeft = getScrollLeftForTimestamp(
-      firstNoteTimeMs,
-      playheadViewportX,
-      LABEL_WIDTH,
-      timelineWidth,
-      startTimeMs,
-      endTimeMs
-    );
-    const maxScrollLeft = Math.max(0, scrollElement.scrollWidth - scrollElement.clientWidth);
-    scrollElement.scrollLeft = Math.max(0, Math.min(maxScrollLeft, scrollLeft));
+    const scrollToFirstNote = () => {
+      if (!pendingFirstNoteScrollRef.current || scrollElement.clientWidth <= 0) {
+        return;
+      }
+
+      const padding = getPlayheadScrollPadding(
+        playheadViewportX,
+        LABEL_WIDTH,
+        scrollElement.clientWidth
+      );
+      const scrollLeft = getScrollLeftForTimestamp(
+        firstNoteTimeMs,
+        playheadViewportX,
+        LABEL_WIDTH,
+        timelineWidth,
+        startTimeMs,
+        endTimeMs,
+        padding
+      );
+      const maxScrollLeft = Math.max(0, scrollElement.scrollWidth - scrollElement.clientWidth);
+      scrollElement.scrollLeft = Math.max(0, Math.min(maxScrollLeft, scrollLeft));
+      pendingFirstNoteScrollRef.current = false;
+      updateCrosshairFromScroll();
+    };
+
+    scrollToFirstNote();
+
+    const observer = new ResizeObserver(scrollToFirstNote);
+    observer.observe(scrollElement);
+
+    return () => {
+      observer.disconnect();
+    };
   }, [
     endTimeMs,
     firstNoteTimeMs,
@@ -148,6 +194,7 @@ function ObjectsTimelineFullViewModalBody({
     playheadViewportX,
     startTimeMs,
     timelineWidth,
+    updateCrosshairFromScroll,
     viewMode,
   ]);
 

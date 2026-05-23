@@ -1,7 +1,9 @@
 import { REVERSE_ARROW_ICON_SIZE } from './constants.ts';
 import {
   getDominantHitsoundColor,
-  getSecondaryHitsoundColor,
+  getHitsoundCircleLayout,
+  getHitsoundCircleOuterRadius,
+  getSecondaryHitsoundColors,
   type HitsoundLayerVisibility,
   type TimelineViewMode,
 } from './hitsoundUtils.ts';
@@ -422,24 +424,31 @@ function drawHitsoundCircle(
   hitSoundFlags: number
 ) {
   const fillColor = getDominantHitsoundColor(hitSoundFlags);
-  const secondaryColor = getSecondaryHitsoundColor(hitSoundFlags);
+  const secondaryColors = getSecondaryHitsoundColors(hitSoundFlags);
+  const layout = getHitsoundCircleLayout(radius, hitSoundFlags);
 
   ctx.save();
   ctx.beginPath();
   ctx.fillStyle = withAlpha(fillColor, 0.85);
   ctx.strokeStyle = withAlpha('#ffffff', 0.35);
   ctx.lineWidth = 1;
-  ctx.arc(x, centerY, radius, 0, Math.PI * 2);
+  ctx.arc(x, centerY, layout.fillRadius, 0, Math.PI * 2);
   ctx.fill();
   ctx.stroke();
 
-  if (secondaryColor) {
+  secondaryColors.forEach((secondaryColor, index) => {
     ctx.beginPath();
     ctx.strokeStyle = withAlpha(secondaryColor, 0.95);
-    ctx.lineWidth = 2;
-    ctx.arc(x, centerY, radius + 1.5, 0, Math.PI * 2);
+    ctx.lineWidth = layout.ringLineWidth;
+    ctx.arc(
+      x,
+      centerY,
+      layout.fillRadius + layout.ringBaseOffset + index * layout.ringStep,
+      0,
+      Math.PI * 2
+    );
     ctx.stroke();
-  }
+  });
 
   ctx.restore();
 }
@@ -464,7 +473,10 @@ function drawTimelineObject(
 
   if (timelineObject.objectType === 'Circle') {
     const x = getTimelineX(timelineObject.startTimeMs, startTimeMs, durationMs, width);
-    if (x < visibleStartX - (circleRadius + 2) || x > visibleEndX + circleRadius + 2) {
+    const outerRadius = isHitsoundView
+      ? getHitsoundCircleOuterRadius(circleRadius, timelineObject.hitSoundFlags ?? 0)
+      : circleRadius + 2;
+    if (x < visibleStartX - outerRadius || x > visibleEndX + outerRadius) {
       return;
     }
 

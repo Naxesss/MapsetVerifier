@@ -12,6 +12,7 @@ import {
   useTimelinePan,
   useTimelineScale,
 } from '../context/ObjectsTimelineContext.tsx';
+import { usePlayheadScrollPadding } from '../hooks/usePlayheadScrollPadding.ts';
 import { usePreserveTimelineScrollOnZoom } from '../hooks/usePreserveTimelineScrollOnZoom.ts';
 import { parseTimelineThemeVariant, TIMELINE_THEME_VARIANT_OPTIONS } from '../timelineTheme/selection.ts';
 import { getDifficultyKey } from '../timelineUtils.ts';
@@ -38,6 +39,11 @@ export default function ObjectsTimelineComparisonContent({
     useTimelinePan();
   const { startTimeMs, endTimeMs, timelineWidth } = useTimelineScale();
   const { viewMode, playheadViewportX } = useTimelineDisplay();
+  const playheadScrollPadding = usePlayheadScrollPadding(scrollRef, playheadViewportX, {
+    timelineWidth,
+    startTimeMs,
+    endTimeMs,
+  });
 
   usePreserveTimelineScrollOnZoom({
     scrollRef,
@@ -57,6 +63,8 @@ export default function ObjectsTimelineComparisonContent({
   } = controller;
 
   const contentWidth = timelineWidth + LABEL_WIDTH;
+  const scrollContentWidth =
+    contentWidth + playheadScrollPadding.padLeft + playheadScrollPadding.padRight;
 
   const visibleCount = orderedDifficulties.filter(
     (difficulty) => visibilityByDifficulty[getDifficultyKey(difficulty)] !== false
@@ -171,7 +179,22 @@ export default function ObjectsTimelineComparisonContent({
             userSelect: 'none',
           }}
         >
-          <Stack gap="xs" style={{ width: contentWidth, minWidth: contentWidth }}>
+          <Box
+            style={{
+              display: 'flex',
+              width: scrollContentWidth,
+              minWidth: scrollContentWidth,
+            }}
+          >
+            {playheadScrollPadding.padLeft > 0 && (
+              <Box
+                style={{
+                  flex: `0 0 ${playheadScrollPadding.padLeft}px`,
+                  width: playheadScrollPadding.padLeft,
+                }}
+              />
+            )}
+            <Stack gap="xs" style={{ width: contentWidth, minWidth: contentWidth, flex: '0 0 auto' }}>
             <TimelineAxisRow linePosition="bottom" />
 
             {orderedDifficulties.length === 0 && (
@@ -213,7 +236,16 @@ export default function ObjectsTimelineComparisonContent({
             </DndContext>
 
             {orderedDifficulties.length > 0 && <TimelineAxisRow linePosition="top" />}
-          </Stack>
+            </Stack>
+            {playheadScrollPadding.padRight > 0 && (
+              <Box
+                style={{
+                  flex: `0 0 ${playheadScrollPadding.padRight}px`,
+                  width: playheadScrollPadding.padRight,
+                }}
+              />
+            )}
+          </Box>
         </Box>
       </Box>
     </Stack>

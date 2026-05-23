@@ -135,16 +135,38 @@ export function getPlayheadViewportX(
   return labelWidth + getTimelineX(anchorTimeMs, startTimeMs, durationMs, timelineWidth);
 }
 
+export type TimelinePlayheadScrollPadding = {
+  padLeft: number;
+  padRight: number;
+};
+
+export const EMPTY_PLAYHEAD_SCROLL_PADDING: TimelinePlayheadScrollPadding = {
+  padLeft: 0,
+  padRight: 0,
+};
+
+export function getPlayheadScrollPadding(
+  playheadViewportX: number,
+  labelWidth: number,
+  viewportWidth: number
+): TimelinePlayheadScrollPadding {
+  return {
+    padLeft: playheadViewportX - labelWidth,
+    padRight: Math.max(0, viewportWidth - playheadViewportX),
+  };
+}
+
 export function getTimestampAtPlayhead(
   scrollLeft: number,
   playheadViewportX: number,
   labelWidth: number,
   timelineWidth: number,
   startTimeMs: number,
-  endTimeMs: number
+  endTimeMs: number,
+  padding: TimelinePlayheadScrollPadding = EMPTY_PLAYHEAD_SCROLL_PADDING
 ) {
   const durationMs = Math.max(1, endTimeMs - startTimeMs);
-  const timelineLocalX = scrollLeft + playheadViewportX - labelWidth;
+  const timelineLocalX = scrollLeft + playheadViewportX - padding.padLeft - labelWidth;
   const clampedX = Math.max(0, Math.min(timelineWidth, timelineLocalX));
   const timestampMs = getTimelineTimeFromX(clampedX, startTimeMs, durationMs, timelineWidth);
   return Math.max(startTimeMs, Math.min(endTimeMs, timestampMs));
@@ -156,12 +178,13 @@ export function getScrollLeftForTimestamp(
   labelWidth: number,
   timelineWidth: number,
   startTimeMs: number,
-  endTimeMs: number
+  endTimeMs: number,
+  padding: TimelinePlayheadScrollPadding = EMPTY_PLAYHEAD_SCROLL_PADDING
 ) {
   const durationMs = Math.max(1, endTimeMs - startTimeMs);
   const clampedTimestamp = Math.max(startTimeMs, Math.min(endTimeMs, timestampMs));
   const timelineLocalX = getTimelineX(clampedTimestamp, startTimeMs, durationMs, timelineWidth);
-  return timelineLocalX + labelWidth - anchorViewportX;
+  return timelineLocalX + padding.padLeft + labelWidth - anchorViewportX;
 }
 
 export function findNearestTimelineEdge(

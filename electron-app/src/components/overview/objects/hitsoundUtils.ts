@@ -40,29 +40,78 @@ export const DEFAULT_HITSOUND_LAYERS: HitsoundLayerVisibility = {
 
 export type TimelineViewMode = 'structure' | 'hitsounding';
 
-export function getDominantHitsoundColor(flags: number): string {
-  if (flags & HITSOUND_FLAG_FINISH) return HITSOUND_COLORS.finish;
-  if (flags & HITSOUND_FLAG_CLAP) return HITSOUND_COLORS.clap;
-  if (flags & HITSOUND_FLAG_WHISTLE) return HITSOUND_COLORS.whistle;
-  if (flags & HITSOUND_FLAG_NORMAL) return HITSOUND_COLORS.normal;
-  return HITSOUND_COLORS.normal;
+export type HitsoundTypeDisplay = {
+  label: string;
+  color: string;
+  role: 'fill' | 'ring';
+};
+
+const HITSOUND_TYPE_ORDER = [
+  { flag: HITSOUND_FLAG_FINISH, label: 'Finish', color: HITSOUND_COLORS.finish },
+  { flag: HITSOUND_FLAG_CLAP, label: 'Clap', color: HITSOUND_COLORS.clap },
+  { flag: HITSOUND_FLAG_WHISTLE, label: 'Whistle', color: HITSOUND_COLORS.whistle },
+  { flag: HITSOUND_FLAG_NORMAL, label: 'Normal', color: HITSOUND_COLORS.normal },
+] as const;
+
+export const HITSOUND_RING_BASE_OFFSET = 1.5;
+export const HITSOUND_RING_STEP = 2;
+
+export type HitsoundCircleLayout = {
+  fillRadius: number;
+  ringLineWidth: number;
+  ringBaseOffset: number;
+  ringStep: number;
+  outerRadius: number;
+};
+
+function getOrderedActiveHitsoundTypes(flags: number) {
+  let active = HITSOUND_TYPE_ORDER.filter((type) => flags & type.flag);
+  if (active.length === 0) {
+    return [HITSOUND_TYPE_ORDER[HITSOUND_TYPE_ORDER.length - 1]];
+  }
+
+  const hasNonNormalAddition = active.some((type) => type.flag !== HITSOUND_FLAG_NORMAL);
+  if (hasNonNormalAddition) {
+    active = active.filter((type) => type.flag !== HITSOUND_FLAG_NORMAL);
+  }
+
+  return active;
 }
 
-export function getSecondaryHitsoundColor(flags: number): string | null {
-  const primary =
-    flags & HITSOUND_FLAG_FINISH
-      ? HITSOUND_FLAG_FINISH
-      : flags & HITSOUND_FLAG_CLAP
-        ? HITSOUND_FLAG_CLAP
-        : flags & HITSOUND_FLAG_WHISTLE
-          ? HITSOUND_FLAG_WHISTLE
-          : flags & HITSOUND_FLAG_NORMAL
-            ? HITSOUND_FLAG_NORMAL
-            : 0;
+export function getDominantHitsoundColor(flags: number): string {
+  return getOrderedActiveHitsoundTypes(flags)[0].color;
+}
 
-  const remaining = flags & ~primary;
-  if (remaining === 0) return null;
-  return getDominantHitsoundColor(remaining);
+export function getSecondaryHitsoundColors(flags: number): string[] {
+  return getOrderedActiveHitsoundTypes(flags)
+    .slice(1)
+    .map((type) => type.color);
+}
+
+export function getHitsoundCircleLayout(baseRadius: number, flags: number): HitsoundCircleLayout {
+  const ringCount = getSecondaryHitsoundColors(flags).length;
+  const multiRing = ringCount >= 2;
+
+  const fillRadius = baseRadius - (multiRing ? 1.5 : ringCount === 1 ? 0.5 : 0);
+  const ringLineWidth = multiRing ? 2.5 : 2;
+  const ringBaseOffset = multiRing ? 1.25 : HITSOUND_RING_BASE_OFFSET;
+  const ringStep = multiRing ? 2.5 : HITSOUND_RING_STEP;
+  const outerRadius =
+    ringCount === 0
+      ? baseRadius + 2
+      : fillRadius + ringBaseOffset + (ringCount - 1) * ringStep + ringLineWidth;
+
+  return {
+    fillRadius,
+    ringLineWidth,
+    ringBaseOffset,
+    ringStep,
+    outerRadius,
+  };
+}
+
+export function getHitsoundCircleOuterRadius(baseRadius: number, flags: number): number {
+  return getHitsoundCircleLayout(baseRadius, flags).outerRadius;
 }
 
 export function getSampleColor(hitSound: string | null, source?: string): string {
@@ -95,26 +144,8 @@ export function parseHitSoundFlags(hitSound: string): number {
   return flags;
 }
 
-export type HitsoundTypeDisplay = {
-  label: string;
-  color: string;
-  role: 'fill' | 'ring';
-};
-
-const HITSOUND_TYPE_ORDER = [
-  { flag: HITSOUND_FLAG_FINISH, label: 'Finish', color: HITSOUND_COLORS.finish },
-  { flag: HITSOUND_FLAG_CLAP, label: 'Clap', color: HITSOUND_COLORS.clap },
-  { flag: HITSOUND_FLAG_WHISTLE, label: 'Whistle', color: HITSOUND_COLORS.whistle },
-  { flag: HITSOUND_FLAG_NORMAL, label: 'Normal', color: HITSOUND_COLORS.normal },
-] as const;
-
 export function getHitsoundTypesFromFlags(flags: number): HitsoundTypeDisplay[] {
-  const active = HITSOUND_TYPE_ORDER.filter((type) => flags & type.flag);
-  if (active.length === 0) {
-    return [{ label: 'Normal', color: HITSOUND_COLORS.normal, role: 'fill' }];
-  }
-
-  return active.map((type, index) => ({
+  return getOrderedActiveHitsoundTypes(flags).map((type, index) => ({
     label: type.label,
     color: type.color,
     role: index === 0 ? 'fill' : 'ring',
