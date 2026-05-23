@@ -8,13 +8,21 @@ namespace MapsetVerifier.Checks.Tests.AllModes.Timing;
 public class CheckUnsnapsTests
 {
     [Fact]
-    public void DoesNotFlagHavfrueTestDifficultyFile()
+    public void DoesNotFlagSliderTailSnappedToUpcomingMisalignedRedLine()
     {
+        // Regression for chouchou merged syrups. - Havfrue (pearto) [test]: slider tails snapped to an
+        // upcoming misaligned red line can land fractionally before it due to pixel-length math.
         using var context = CheckTestContext.CreateFromOsuFiles([
-            ("havfrue-test.osu", File.ReadAllText(GetHavfrueTestOsuPath())),
+            (
+                "test.osu",
+                BuildOsu(
+                    timingPoints: ["0,500,4,2,0,100,1,0", "175,500,4,2,0,100,1,0"],
+                    hitObjects: ["256,192,0,6,0,L|300:192,1,59.16,2|2,0:0:0:0:"]
+                )
+            ),
         ]);
 
-        var issues = context.RunBeatmapCheck<CheckUnsnaps>("test");
+        var issues = context.RunBeatmapCheck<CheckUnsnaps>("Test");
 
         Assert.Empty(issues);
     }
@@ -54,18 +62,6 @@ public class CheckUnsnapsTests
 
         Assert.Contains(issues, issue => issue.message.Contains("Slider tail"));
     }
-
-    private static string GetHavfrueTestOsuPath() =>
-        Path.GetFullPath(
-            Path.Combine(
-                AppContext.BaseDirectory,
-                "..",
-                "..",
-                "..",
-                "..",
-                "chouchou merged syrups. - Havfrue (pearto) [test].osu"
-            )
-        );
 
     private static string BuildOsu(
         IEnumerable<string>? timingPoints = null,
