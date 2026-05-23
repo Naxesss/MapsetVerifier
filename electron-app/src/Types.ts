@@ -553,6 +553,7 @@ export type DifficultyGeneralSettings = {
   audioLeadIn: number;
   stackLeniency: string | null;
   hasCountdown: boolean;
+  countdownInsufficientTime: boolean;
   countdownSpeed: string | null;
   countdownOffset: number | null;
   letterboxInBreaks: boolean;

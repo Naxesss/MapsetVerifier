@@ -185,10 +185,11 @@ public static class BeatmapAnalysisService
                     beatmap.HasDifficultySpecificStoryboard()
                     || (beatmapSet.Osb?.IsUsed() ?? false);
                 var hasVideoOrStoryboard = beatmap.Videos.Any() || hasStoryboard;
+                var countdownSetting = beatmap.GeneralSettings.countdown;
+                var countdownSettingEnabled =
+                    countdownSetting != Parser.Settings.GeneralSettings.Countdown.None;
                 var hasCountdown =
-                    beatmap.GetCountdownStartBeat() >= 0
-                    && beatmap.GeneralSettings.countdown
-                        != Parser.Settings.GeneralSettings.Countdown.None;
+                    countdownSettingEnabled && beatmap.GetCountdownStartBeat() >= 0;
 
                 return new DifficultyGeneralSettings
                 {
@@ -203,10 +204,9 @@ public static class BeatmapAnalysisService
                             )
                             : null,
                     HasCountdown = hasCountdown,
-                    CountdownSpeed = hasCountdown
-                        ? beatmap.GeneralSettings.countdown.ToString()
-                        : null,
-                    CountdownOffset = hasCountdown
+                    CountdownInsufficientTime = countdownSettingEnabled && !hasCountdown,
+                    CountdownSpeed = countdownSettingEnabled ? countdownSetting.ToString() : null,
+                    CountdownOffset = countdownSettingEnabled
                         ? beatmap.GeneralSettings.countdownBeatOffset
                         : null,
                     LetterboxInBreaks = beatmap.GeneralSettings.letterbox,

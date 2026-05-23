@@ -66,8 +66,9 @@ public class DifficultyGeneralSettings
 
     // Countdown
     public bool HasCountdown { get; set; }
-    public string? CountdownSpeed { get; set; } // None/Normal/Half/Double, null if no countdown
-    public int? CountdownOffset { get; set; } // null if no countdown
+    public bool CountdownInsufficientTime { get; set; }
+    public string? CountdownSpeed { get; set; } // Normal/Half/Double when enabled in settings; null if disabled
+    public int? CountdownOffset { get; set; } // null if countdown disabled in settings
 
     public bool LetterboxInBreaks { get; set; }
     public bool WidescreenStoryboard { get; set; }

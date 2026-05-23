@@ -1,16 +1,23 @@
 ﻿import { Group, Paper, Stack, Table, Text, useMantineTheme } from '@mantine/core';
+import { useGroupCellStyle } from './utils/useGroupCellStyle';
 import { formatNullable } from '../../../utils/formatters';
 import { formatGameModeLabel, getModeAccentColor } from '../../../utils/gameMode';
+import { itemKey } from '../../../utils/inconsistencies';
 import AppTable, {
   DifficultyTableCell,
   DifficultyTableHeaderCell,
 } from '../../common/AppTable.tsx';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
 import type { DifficultyDifficultySettings } from '../../../Types';
+import type { InconsistencyField } from '../../../utils/inconsistencies';
 
 interface DifficultySettingsInfoProps {
   difficultySettings: DifficultyDifficultySettings[];
 }
+
+const CONSISTENCY_FIELDS: InconsistencyField<DifficultyDifficultySettings>[] = [
+  { id: 'sliderTickRate', getValue: (settings) => settings.sliderTickRate },
+];
 
 function formatDifficultyValue(value: number) {
   return value.toFixed(1);
@@ -37,6 +44,7 @@ function CircleSizeCell({ settings }: { settings: DifficultyDifficultySettings }
 
 function DifficultySettingsInfo({ difficultySettings }: DifficultySettingsInfoProps) {
   const theme = useMantineTheme();
+  const groupCell = useGroupCellStyle(difficultySettings, CONSISTENCY_FIELDS);
 
   if (difficultySettings.length === 0) {
     return null;
@@ -65,7 +73,7 @@ function DifficultySettingsInfo({ difficultySettings }: DifficultySettingsInfoPr
               const isMania = settings.mode === 'Mania';
 
               return (
-                <Table.Tr key={`${settings.mode}-${settings.version}`}>
+                <Table.Tr key={itemKey(settings)}>
                   <DifficultyTableCell>
                     <Text size="sm" fw={600} style={{ whiteSpace: 'nowrap' }}>
                       {settings.version}
@@ -86,7 +94,7 @@ function DifficultySettingsInfo({ difficultySettings }: DifficultySettingsInfoPr
                   <Table.Td>
                     <Text size="sm">{isMania ? 'N/A' : formatNullable(settings.approachRate)}</Text>
                   </Table.Td>
-                  <Table.Td>
+                  <Table.Td style={groupCell(settings, 'sliderTickRate')}>
                     <Text size="sm">
                       {isMania ? 'N/A' : formatNullable(settings.sliderTickRate)}
                     </Text>

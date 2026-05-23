@@ -1,5 +1,7 @@
 ﻿import { Group, Paper, Stack, Table, Text, useMantineTheme } from '@mantine/core';
+import { useGroupCellStyle } from './utils/useGroupCellStyle';
 import { formatGameModeLabel, getModeAccentColor } from '../../../utils/gameMode';
+import { itemKey, type InconsistencyField } from '../../../utils/inconsistencies';
 import { trimTimestamp } from '../../../utils/timestamps';
 import AppTable, {
   DifficultyTableCell,
@@ -12,6 +14,14 @@ import type { DifficultyStatistics } from '../../../Types';
 interface StatisticsInfoProps {
   statistics: DifficultyStatistics[];
 }
+
+const CONSISTENCY_FIELDS: InconsistencyField<DifficultyStatistics>[] = [
+  { id: 'breakCount', getValue: (stats) => stats.breakCount },
+  { id: 'uninheritedLineCount', getValue: (stats) => stats.uninheritedLineCount },
+  { id: 'kiaiTimeMs', getValue: (stats) => stats.kiaiTimeMs },
+  { id: 'drainTimeMs', getValue: (stats) => stats.drainTimeMs },
+  { id: 'playTimeMs', getValue: (stats) => stats.playTimeMs },
+];
 
 function formatCount(value: number | null) {
   return value === null ? 'N/A' : value.toLocaleString();
@@ -41,6 +51,7 @@ function SliderCell({ stats }: { stats: DifficultyStatistics }) {
 
 function StatisticsInfo({ statistics }: StatisticsInfoProps) {
   const theme = useMantineTheme();
+  const groupCell = useGroupCellStyle(statistics, CONSISTENCY_FIELDS);
 
   if (statistics.length === 0) {
     return null;
@@ -78,7 +89,7 @@ function StatisticsInfo({ statistics }: StatisticsInfoProps) {
           </Table.Thead>
           <Table.Tbody>
             {statistics.map((stats) => (
-              <Table.Tr key={`${stats.mode}-${stats.version}`}>
+              <Table.Tr key={itemKey(stats)}>
                 <DifficultyTableCell>
                   <Text size="sm" fw={600} style={{ whiteSpace: 'nowrap' }}>
                     {stats.version}
@@ -102,22 +113,22 @@ function StatisticsInfo({ statistics }: StatisticsInfoProps) {
                 <Table.Td>
                   <Text size="sm">{stats.newComboCount.toLocaleString()}</Text>
                 </Table.Td>
-                <Table.Td>
+                <Table.Td style={groupCell(stats, 'breakCount')}>
                   <Text size="sm">{stats.breakCount.toLocaleString()}</Text>
                 </Table.Td>
-                <Table.Td>
+                <Table.Td style={groupCell(stats, 'uninheritedLineCount')}>
                   <Text size="sm">{stats.uninheritedLineCount.toLocaleString()}</Text>
                 </Table.Td>
                 <Table.Td>
                   <Text size="sm">{stats.inheritedLineCount.toLocaleString()}</Text>
                 </Table.Td>
-                <Table.Td>
+                <Table.Td style={groupCell(stats, 'kiaiTimeMs')}>
                   <Text size="sm">{trimTimestamp(stats.kiaiTimeFormatted)}</Text>
                 </Table.Td>
-                <Table.Td>
+                <Table.Td style={groupCell(stats, 'drainTimeMs')}>
                   <Text size="sm">{trimTimestamp(stats.drainTimeFormatted)}</Text>
                 </Table.Td>
-                <Table.Td>
+                <Table.Td style={groupCell(stats, 'playTimeMs')}>
                   <Text size="sm">{trimTimestamp(stats.playTimeFormatted)}</Text>
                 </Table.Td>
               </Table.Tr>

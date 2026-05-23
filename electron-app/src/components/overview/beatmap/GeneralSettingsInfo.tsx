@@ -1,6 +1,10 @@
-﻿import { Badge, Group, Paper, Stack, Table, Text, useMantineTheme } from '@mantine/core';
+﻿import { Badge, Group, Paper, Stack, Table, Text, Tooltip, useMantineTheme } from '@mantine/core';
+import { IconAlertTriangle } from '@tabler/icons-react';
+import { useGroupCellStyle } from './utils/useGroupCellStyle';
+import { countWord } from '../../../utils/countWord.ts';
 import { formatNullable } from '../../../utils/formatters';
 import { formatGameModeLabel, getModeAccentColor } from '../../../utils/gameMode';
+import { itemKey } from '../../../utils/inconsistencies';
 import AppTable, {
   DifficultyTableCell,
   DifficultyTableHeaderCell,
@@ -8,10 +12,15 @@ import AppTable, {
 import OsuLink from '../../common/OsuLink.tsx';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
 import type { DifficultyGeneralSettings } from '../../../Types';
+import type { InconsistencyField } from '../../../utils/inconsistencies';
 
 interface GeneralSettingsInfoProps {
   generalSettings: DifficultyGeneralSettings[];
 }
+
+const CONSISTENCY_FIELDS: InconsistencyField<DifficultyGeneralSettings>[] = [
+  { id: 'previewTime', getValue: (settings) => settings.previewTime },
+];
 
 function ModeCell({ mode }: { mode: string }) {
   return (
@@ -31,7 +40,7 @@ function StatusBadge({ value }: { value: boolean }) {
 }
 
 function CountdownCell({ settings }: { settings: DifficultyGeneralSettings }) {
-  if (!settings.hasCountdown) {
+  if (!settings.countdownSpeed) {
     return (
       <Badge color="gray" variant="outline">
         No
@@ -39,15 +48,26 @@ function CountdownCell({ settings }: { settings: DifficultyGeneralSettings }) {
     );
   }
 
+  if (settings.countdownInsufficientTime) {
+    return (
+      <Tooltip multiline w={260} label="Countdown is enabled, but there is insufficient time before the first object for it to work">
+        <Badge color="yellow" variant="light" leftSection={<IconAlertTriangle size={12} />}>
+          {settings.countdownSpeed}
+        </Badge>
+      </Tooltip>
+    );
+  }
+
   return (
-    <Badge color="blue" variant="light">
-      {formatNullable(settings.countdownSpeed, 'Enabled')}
+    <Badge color="green" variant="light">
+      {settings.countdownSpeed}
     </Badge>
   );
 }
 
 function GeneralSettingsInfo({ generalSettings }: GeneralSettingsInfoProps) {
   const theme = useMantineTheme();
+  const groupCell = useGroupCellStyle(generalSettings, CONSISTENCY_FIELDS);
 
   if (generalSettings.length === 0) {
     return null;
@@ -78,7 +98,7 @@ function GeneralSettingsInfo({ generalSettings }: GeneralSettingsInfoProps) {
           </Table.Thead>
           <Table.Tbody>
             {generalSettings.map((settings) => (
-              <Table.Tr key={`${settings.mode}-${settings.version}`}>
+              <Table.Tr key={itemKey(settings)}>
                 <DifficultyTableCell>
                   <Text size="sm" fw={600}>
                     {settings.version}
@@ -93,7 +113,7 @@ function GeneralSettingsInfo({ generalSettings }: GeneralSettingsInfoProps) {
                 <Table.Td>
                   <Text size="sm">{settings.audioLeadIn.toLocaleString()} ms</Text>
                 </Table.Td>
-                <Table.Td>
+                <Table.Td style={groupCell(settings, 'previewTime')}>
                   <Text size="sm">
                     <OsuLink text={settings.previewTimeFormatted} disableSeparators />
                   </Text>
@@ -106,8 +126,8 @@ function GeneralSettingsInfo({ generalSettings }: GeneralSettingsInfoProps) {
                 </Table.Td>
                 <Table.Td>
                   <Text size="sm">
-                    {settings.hasCountdown && settings.countdownOffset !== null
-                      ? settings.countdownOffset.toLocaleString()
+                    {settings.countdownSpeed !== null && settings.countdownOffset !== null
+                      ? countWord(settings.countdownOffset, "beat")
                       : 'N/A'}
                   </Text>
                 </Table.Td>
