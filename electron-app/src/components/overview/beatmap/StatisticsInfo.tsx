@@ -1,5 +1,6 @@
 ﻿import { Group, Paper, Stack, Table, Text, useMantineTheme } from '@mantine/core';
 import { formatGameModeLabel, getModeAccentColor } from '../../../utils/gameMode';
+import { trimTimestamp } from '../../../utils/timestamps';
 import AppTable, {
   DifficultyTableCell,
   DifficultyTableHeaderCell,
@@ -60,7 +61,7 @@ function StatisticsInfo({ statistics }: StatisticsInfoProps) {
               <Table.Th colSpan={3}>Objects</Table.Th>
               <Table.Th colSpan={2}>Misc</Table.Th>
               <Table.Th colSpan={2}>Timing</Table.Th>
-              <Table.Th colSpan={2}>Duration</Table.Th>
+              <Table.Th colSpan={3}>Duration</Table.Th>
             </Table.Tr>
             <Table.Tr>
               <Table.Th>Circles</Table.Th>
@@ -70,6 +71,7 @@ function StatisticsInfo({ statistics }: StatisticsInfoProps) {
               <Table.Th>Breaks</Table.Th>
               <Table.Th>Uninherited</Table.Th>
               <Table.Th>Inherited</Table.Th>
+              <Table.Th>Kiai Time</Table.Th>
               <Table.Th>Drain Time</Table.Th>
               <Table.Th>Play Time</Table.Th>
             </Table.Tr>
@@ -110,10 +112,13 @@ function StatisticsInfo({ statistics }: StatisticsInfoProps) {
                   <Text size="sm">{stats.inheritedLineCount.toLocaleString()}</Text>
                 </Table.Td>
                 <Table.Td>
-                  <Text size="sm">{stats.drainTimeFormatted}</Text>
+                  <Text size="sm">{trimTimestamp(stats.kiaiTimeFormatted)}</Text>
                 </Table.Td>
                 <Table.Td>
-                  <Text size="sm">{stats.playTimeFormatted}</Text>
+                  <Text size="sm">{trimTimestamp(stats.drainTimeFormatted)}</Text>
+                </Table.Td>
+                <Table.Td>
+                  <Text size="sm">{trimTimestamp(stats.playTimeFormatted)}</Text>
                 </Table.Td>
               </Table.Tr>
             ))}
