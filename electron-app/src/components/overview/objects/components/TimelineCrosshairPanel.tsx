@@ -37,7 +37,7 @@ export type TimelineCrosshairState = {
   timestampMs: number;
 };
 
-const DEFAULT_POSITION = { x: 16, y: 16 };
+const DEFAULT_VERTICAL_OFFSET = 50;
 const PANEL_MAX_WIDTH = 360;
 const PANEL_BODY_MAX_HEIGHT = 320;
 
@@ -68,6 +68,21 @@ function clampPosition(
     x: Math.min(Math.max(0, point.x), maxX),
     y: Math.min(Math.max(0, point.y), maxY),
   };
+}
+
+function getDefaultPosition(
+  containerWidth: number,
+  containerHeight: number,
+  panelWidth: number,
+  panelHeight: number,
+): Point {
+  return clampPosition(
+    { x: containerWidth - panelWidth, y: DEFAULT_VERTICAL_OFFSET },
+    containerWidth,
+    containerHeight,
+    panelWidth,
+    panelHeight,
+  );
 }
 
 function DifficultyName({ version, starRating }: { version: string; starRating: number | null }) {
@@ -221,10 +236,22 @@ export function TimelineCrosshairFloatingPanel({
     rows: { orderedDifficulties },
   } = useTimelineController();
   const panelRef = useRef<HTMLDivElement>(null);
-  const posRef = useRef<Point>(DEFAULT_POSITION);
+  const posRef = useRef<Point>({ x: 0, y: DEFAULT_VERTICAL_OFFSET });
   const dragRef = useRef<DragState | null>(null);
-  const [position, setPosition] = useState(DEFAULT_POSITION);
+  const [position, setPosition] = useState<Point>({ x: 0, y: DEFAULT_VERTICAL_OFFSET });
   const [isDragging, setIsDragging] = useState(false);
+
+  const getDefaultPositionFromRefs = useCallback(() => {
+    const container = boundsRef.current;
+    const panel = panelRef.current;
+
+    if (!container || !panel) {
+      return { x: 0, y: DEFAULT_VERTICAL_OFFSET };
+    }
+
+    const { width, height } = container.getBoundingClientRect();
+    return getDefaultPosition(width, height, panel.offsetWidth, panel.offsetHeight);
+  }, [boundsRef]);
 
   const clampToContainer = useCallback(
     (point: Point) => {
@@ -298,13 +325,13 @@ export function TimelineCrosshairFloatingPanel({
     }
   }, []);
 
-  useEffect(() => {
-    applyPosition(DEFAULT_POSITION);
-  }, [applyPosition, resetKey]);
+  useLayoutEffect(() => {
+    applyPosition(getDefaultPositionFromRefs());
+  }, [applyPosition, getDefaultPositionFromRefs, resetKey]);
 
   useLayoutEffect(() => {
     applyPosition(posRef.current);
-  }, [applyPosition, orderedDifficulties.length, resetKey]);
+  }, [applyPosition, orderedDifficulties.length]);
 
   useEffect(() => {
     const container = boundsRef.current;
