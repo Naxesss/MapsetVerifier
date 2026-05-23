@@ -1,4 +1,5 @@
-﻿using MapsetVerifier.Framework.Objects;
+﻿using System.Globalization;
+using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -46,9 +47,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     "Missing",
                     new IssueTemplate(
                         Issue.Level.Problem,
-                        "{0} Missing uninherited line, see {1}.",
+                        "{0} Missing uninherited line, see {1} ({2}, {3}).",
                         "timestamp -",
-                        "difficulty"
+                        "difficulty",
+                        "bpm",
+                        "meter"
                     ).WithCause(
                         "A beatmap does not have an uninherited line which the reference beatmap does, or visa versa."
                     )
@@ -57,9 +60,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     "Missing Minor",
                     new IssueTemplate(
                         Issue.Level.Minor,
-                        "{0} Has a decimally different offset to the one in {1}.",
+                        "{0} Has a decimally different offset ({1}), see {2} ({3}).",
                         "timestamp -",
-                        "difficulty"
+                        "offset",
+                        "difficulty",
+                        "reference offset"
                     ).WithCause(
                         "Same as the first check, except includes issues caused by decimal unsnaps of uninherited lines."
                     )
@@ -68,9 +73,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     "Inconsistent Meter",
                     new IssueTemplate(
                         Issue.Level.Problem,
-                        "{0} Inconsistent meter signature, see {1}.",
+                        "{0} Inconsistent meter signature ({1}), see {2} ({3}).",
                         "timestamp -",
-                        "difficulty"
+                        "meter",
+                        "difficulty",
+                        "reference meter"
                     ).WithCause(
                         "The meter signature of an uninherited timing line is different from the reference beatmap."
                     )
@@ -79,9 +86,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     "Inconsistent BPM",
                     new IssueTemplate(
                         Issue.Level.Problem,
-                        "{0} Inconsistent BPM, see {1}.",
+                        "{0} Inconsistent BPM ({1}), see {2} ({3}).",
                         "timestamp -",
-                        "difficulty"
+                        "bpm",
+                        "difficulty",
+                        "reference bpm"
                     ).WithCause("Same as the meter check, except checks BPM instead.")
                 },
             };
@@ -108,7 +117,9 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                             GetTemplate("Missing"),
                             beatmap,
                             Timestamp.Get(offset),
-                            refBeatmap
+                            refBeatmap,
+                            FormatBpm(line.bpm),
+                            FormatMeter(line.Meter)
                         );
                     }
                     else
@@ -118,7 +129,9 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                                 GetTemplate("Inconsistent Meter"),
                                 beatmap,
                                 Timestamp.Get(offset),
-                                refBeatmap
+                                FormatMeter(respectiveLine.Meter),
+                                refBeatmap,
+                                FormatMeter(line.Meter)
                             );
 
                         if (!line.msPerBeat.AlmostEqual(respectiveLine.msPerBeat))
@@ -126,7 +139,9 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                                 GetTemplate("Inconsistent BPM"),
                                 beatmap,
                                 Timestamp.Get(offset),
-                                refBeatmap
+                                FormatBpm(respectiveLine.bpm),
+                                refBeatmap,
+                                FormatBpm(line.bpm)
                             );
 
                         // Including decimal unsnaps
@@ -139,7 +154,9 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                                 GetTemplate("Missing Minor"),
                                 beatmap,
                                 Timestamp.Get(offset),
-                                refBeatmap
+                                FormatOffset(respectiveLine.Offset),
+                                refBeatmap,
+                                FormatOffset(line.Offset)
                             );
                     }
                 }
@@ -161,7 +178,9 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                             GetTemplate("Missing"),
                             refBeatmap,
                             Timestamp.Get(offset),
-                            beatmap
+                            beatmap,
+                            FormatBpm(line.bpm),
+                            FormatMeter(line.Meter)
                         );
                     }
                     else
@@ -176,11 +195,21 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                                 GetTemplate("Missing Minor"),
                                 refBeatmap,
                                 Timestamp.Get(offset),
-                                beatmap
+                                FormatOffset(respectiveLine.Offset),
+                                beatmap,
+                                FormatOffset(line.Offset)
                             );
                     }
                 }
             }
         }
+
+        private static string FormatBpm(double bpm) =>
+            bpm.ToString(CultureInfo.InvariantCulture);
+
+        private static string FormatMeter(int meter) => meter + "/4";
+
+        private static string FormatOffset(double offset) =>
+            offset.ToString(CultureInfo.InvariantCulture);
     }
 }
