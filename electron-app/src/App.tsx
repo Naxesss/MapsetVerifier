@@ -10,6 +10,8 @@ import { Notifications } from '@mantine/notifications';
 import { useLayoutEffect, useRef } from 'react';
 import { Outlet } from 'react-router-dom';
 import BackendGate from './components/backend/BackendGate.tsx';
+import ErrorBoundary from './components/common/ErrorBoundary.tsx';
+import RouteErrorBoundary from './components/common/RouteErrorBoundary.tsx';
 import NavBars from './components/navbar/NavBars.tsx';
 import UpdaterModal from './components/settings/UpdaterModal';
 import WindowBar from './components/window/WindowBar.tsx';
@@ -64,39 +66,43 @@ function App() {
   return (
     <MantineProvider defaultColorScheme="dark" theme={theme} cssVariablesResolver={cssVarResolver}>
       <Notifications position="top-center" zIndex={2100} />
-      <WindowBar />
-      <UpdaterProvider>
-        <BeatmapProvider>
-          <BackendGate>
-            <DocumentationProvider>
-              <AppShell
-                header={{ height: 92 }}
-                navbar={{
-                  width: '256',
-                  breakpoint: 'xs',
-                  collapsed: { desktop: !desktopOpened },
-                }}
-              >
-                <NavBars desktopOpened={desktopOpened} toggleDesktop={toggleDesktop} />
-                <AppShell.Main>
-                  <ScrollArea
-                    offsetScrollbars
-                    type="always"
-                    h="calc(100vh - var(--app-shell-header-offset, 0rem) + var(--app-shell-padding))"
-                  >
-                    <Container p="sm" fluid>
-                      <BeatmapReparseProvider>
-                        <BeatmapKeyedOutlet />
-                      </BeatmapReparseProvider>
-                    </Container>
-                  </ScrollArea>
-                </AppShell.Main>
-              </AppShell>
-            </DocumentationProvider>
-          </BackendGate>
-        </BeatmapProvider>
-        <UpdaterModal />
-      </UpdaterProvider>
+      <ErrorBoundary title="The app encountered an error">
+        <WindowBar />
+        <UpdaterProvider>
+          <BeatmapProvider>
+            <BackendGate>
+              <DocumentationProvider>
+                <AppShell
+                  header={{ height: 92 }}
+                  navbar={{
+                    width: '256',
+                    breakpoint: 'xs',
+                    collapsed: { desktop: !desktopOpened },
+                  }}
+                >
+                  <NavBars desktopOpened={desktopOpened} toggleDesktop={toggleDesktop} />
+                  <AppShell.Main>
+                    <ScrollArea
+                      offsetScrollbars
+                      type="always"
+                      h="calc(100vh - var(--app-shell-header-offset, 0rem) + var(--app-shell-padding))"
+                    >
+                      <Container p="sm" fluid>
+                        <BeatmapReparseProvider>
+                          <RouteErrorBoundary>
+                            <BeatmapKeyedOutlet />
+                          </RouteErrorBoundary>
+                        </BeatmapReparseProvider>
+                      </Container>
+                    </ScrollArea>
+                  </AppShell.Main>
+                </AppShell>
+              </DocumentationProvider>
+            </BackendGate>
+          </BeatmapProvider>
+          <UpdaterModal />
+        </UpdaterProvider>
+      </ErrorBoundary>
     </MantineProvider>
   );
 }
