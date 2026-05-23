@@ -150,6 +150,20 @@ export function getTimestampAtPlayhead(
   return Math.max(startTimeMs, Math.min(endTimeMs, timestampMs));
 }
 
+export function getScrollLeftForTimestamp(
+  timestampMs: number,
+  anchorViewportX: number,
+  labelWidth: number,
+  timelineWidth: number,
+  startTimeMs: number,
+  endTimeMs: number
+) {
+  const durationMs = Math.max(1, endTimeMs - startTimeMs);
+  const clampedTimestamp = Math.max(startTimeMs, Math.min(endTimeMs, timestampMs));
+  const timelineLocalX = getTimelineX(clampedTimestamp, startTimeMs, durationMs, timelineWidth);
+  return timelineLocalX + labelWidth - anchorViewportX;
+}
+
 export function findNearestTimelineEdge(
   objects: ObjectsTimelineObject[],
   timestampMs: number,

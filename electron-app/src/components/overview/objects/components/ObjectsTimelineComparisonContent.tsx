@@ -12,6 +12,7 @@ import {
   useTimelinePan,
   useTimelineScale,
 } from '../context/ObjectsTimelineContext.tsx';
+import { usePreserveTimelineScrollOnZoom } from '../hooks/usePreserveTimelineScrollOnZoom.ts';
 import { parseTimelineThemeVariant, TIMELINE_THEME_VARIANT_OPTIONS } from '../timelineTheme/selection.ts';
 import { getDifficultyKey } from '../timelineUtils.ts';
 
@@ -35,8 +36,16 @@ export default function ObjectsTimelineComparisonContent({
   const controller = useTimelineController();
   const { scrollRef, isPanningTimeline, handleMouseDown, handleMouseMove, stopDragging } =
     useTimelinePan();
-  const { timelineWidth } = useTimelineScale();
+  const { startTimeMs, endTimeMs, timelineWidth } = useTimelineScale();
   const { viewMode, playheadViewportX } = useTimelineDisplay();
+
+  usePreserveTimelineScrollOnZoom({
+    scrollRef,
+    timelineWidth,
+    startTimeMs,
+    endTimeMs,
+    anchorViewportX: playheadViewportX,
+  });
 
   const {
     mode: { groupedDifficulties, selectedMode, onModeChange },

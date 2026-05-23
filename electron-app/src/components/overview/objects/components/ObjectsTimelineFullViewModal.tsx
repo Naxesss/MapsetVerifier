@@ -132,13 +132,8 @@ function ObjectsTimelineFullViewModalBody({
       return;
     }
 
-    const scrollElement = pan.scrollRef.current;
-    if (scrollElement) {
-      scrollElement.scrollLeft = 0;
-    }
-
     updateCrosshairFromScroll();
-  }, [pan.scrollRef, playheadViewportX, updateCrosshairFromScroll, viewMode]);
+  }, [playheadViewportX, timelineWidth, updateCrosshairFromScroll, viewMode]);
 
   useEffect(() => {
     if (viewMode !== 'hitsounding' || playheadViewportX === null) {
@@ -159,14 +154,6 @@ function ObjectsTimelineFullViewModalBody({
       scrollElement.removeEventListener('scroll', handleScroll);
     };
   }, [pan.scrollRef, playheadViewportX, updateCrosshairFromScroll, viewMode]);
-
-  useEffect(() => {
-    if (viewMode !== 'hitsounding' || playheadViewportX === null) {
-      return;
-    }
-
-    updateCrosshairFromScroll();
-  }, [playheadViewportX, timelineWidth, updateCrosshairFromScroll, viewMode]);
 
   const rowHeight = viewMode === 'hitsounding' ? HITSOUND_ROW_HEIGHT : ROW_HEIGHT;
 
