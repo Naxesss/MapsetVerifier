@@ -554,6 +554,7 @@ public static class BeatmapAnalysisService
                 EndTimeMs = hitObject.GetEndTime(),
                 ObjectType = hitObject.GetObjectType(),
                 HasFinishHitSound = hitObject.HasHitSound(HitObject.HitSounds.Finish),
+                HitSoundFlags = GetObjectHitSoundFlags(hitObject),
                 ComboColourIndex = GetObjectComboColourIndex(beatmap, hitObject),
                 ComboColourHex = GetObjectComboColourHex(beatmap, hitObject),
                 Edges = hitObject
@@ -562,10 +563,18 @@ public static class BeatmapAnalysisService
                     {
                         TimeMs = edgeTime,
                         PartName = hitObject.GetPartName(edgeTime),
+                        HitSoundFlags = GetEdgeHitSoundFlags(hitObject, edgeTime),
                     })
                     .ToList(),
             })
             .ToList();
+
+        var timelineSamples = beatmap
+            .HitObjects.SelectMany(hitObject => BuildTimelineSamples(hitObject))
+            .OrderBy(sample => sample.TimeMs)
+            .ToList();
+
+        var hitsoundGapPeriods = BuildHitsoundGapPeriods(beatmap);
 
         var timingSegments = beatmap
             .TimingLines.OfType<UninheritedLine>()
@@ -581,6 +590,8 @@ public static class BeatmapAnalysisService
                 MsPerBeat = line.msPerBeat,
                 Bpm = line.bpm,
                 Meter = line.Meter,
+                Sampleset = line.Sampleset.ToString(),
+                CustomIndex = line.CustomIndex,
             })
             .Where(segment => segment.EndTimeMs > segment.StartTimeMs && segment.MsPerBeat > 0)
             .ToList();
@@ -646,6 +657,8 @@ public static class BeatmapAnalysisService
             TimelineObjects = timelineObjects,
             TimingSegments = timingSegments,
             UnsnappedEdgeTimesMs = unsnappedEdgeTimes,
+            TimelineSamples = timelineSamples,
+            HitsoundGapPeriods = hitsoundGapPeriods,
             Snappings = SupportedSnapDivisors
                 .Select(divisor => new ObjectsSnappingBucket
                 {
@@ -695,5 +708,191 @@ public static class BeatmapAnalysisService
         }
 
         return "#7D7D7D";
+    }
+
+    private static int GetObjectHitSoundFlags(HitObject hitObject)
+    {
+        if (hitObject is Slider slider)
+            return (int)slider.StartHitSound;
+
+        return (int)hitObject.hitSound;
+    }
+
+    private static int GetEdgeHitSoundFlags(HitObject hitObject, double edgeTime)
+    {
+        if (hitObject is Slider slider)
+        {
+            if (IsClose(hitObject.time, edgeTime))
+                return (int)slider.StartHitSound;
+
+            if (IsClose(slider.EndTime, edgeTime))
+                return (int)slider.EndHitSound;
+
+            var curveDuration = slider.GetCurveDuration();
+            for (var i = 0; i < slider.ReverseHitSounds.Count; i++)
+            {
+                var reverseTime = hitObject.time + curveDuration * (i + 1);
+                if (IsClose(reverseTime, edgeTime))
+                    return (int)slider.ReverseHitSounds[i];
+            }
+
+            return 0;
+        }
+
+        if (hitObject is Spinner spinner && IsClose(spinner.endTime, edgeTime))
+            return (int)hitObject.hitSound;
+
+        return (int)hitObject.hitSound;
+    }
+
+    private static bool IsClose(double left, double right) =>
+        left <= right + 2 && left >= right - 2;
+
+    private static IEnumerable<ObjectsTimelineSample> BuildTimelineSamples(HitObject hitObject)
+    {
+        var objectType = hitObject.GetObjectType();
+        var edgeTimes = hitObject.GetEdgeTimes().ToList();
+
+        foreach (var sample in hitObject.usedHitSamples)
+        {
+            string? partName = null;
+            if (sample.HitSource == HitSample.HitSourceType.Edge)
+            {
+                var matchedEdge = edgeTimes.FirstOrDefault(edgeTime =>
+                    IsClose(edgeTime, sample.Time)
+                );
+                if (edgeTimes.Any(edgeTime => IsClose(edgeTime, sample.Time)))
+                    partName = hitObject.GetPartName(matchedEdge);
+            }
+
+            yield return new ObjectsTimelineSample
+            {
+                TimeMs = sample.Time,
+                Source = sample.HitSource.ToString(),
+                HitSound = FormatHitSound(sample.HitSound),
+                Sampleset = sample.Sampleset?.ToString() ?? "Normal",
+                CustomIndex = sample.CustomIndex,
+                PartName = partName,
+                ObjectType = objectType,
+            };
+        }
+    }
+
+    private static string? FormatHitSound(HitObject.HitSounds? hitSound)
+    {
+        if (hitSound is null or HitObject.HitSounds.None)
+            return null;
+
+        return hitSound.ToString();
+    }
+
+    private static List<ObjectsHitsoundGapPeriod> BuildHitsoundGapPeriods(Beatmap beatmap)
+    {
+        const int warningTotal = 10000;
+        const int warningTime = 8 * 1500;
+        const int warningObject = 2 * 200;
+
+        var gaps = new List<ObjectsHitsoundGapPeriod>();
+        if (beatmap.HitObjects.Count == 0)
+            return gaps;
+
+        var gapStart = beatmap.HitObjects.First().time;
+        var objectsPassed = 0;
+        HitSample.SamplesetType? prevSample = null;
+
+        void ApplyFeedbackUpdate(
+            HitObject.HitSounds hitSound,
+            HitSample.SamplesetType sampleset,
+            double time
+        )
+        {
+            prevSample ??= sampleset;
+
+            if (hitSound > 0 || sampleset != prevSample)
+            {
+                TryRecordGap(
+                    gapStart,
+                    time,
+                    objectsPassed,
+                    warningTotal,
+                    warningTime,
+                    warningObject,
+                    gaps
+                );
+                gapStart = time;
+                objectsPassed = 0;
+                prevSample = sampleset;
+            }
+            else
+            {
+                objectsPassed++;
+            }
+        }
+
+        foreach (var hitObject in beatmap.HitObjects)
+        {
+            switch (hitObject)
+            {
+                case Circle:
+                    ApplyFeedbackUpdate(
+                        hitObject.hitSound,
+                        hitObject.GetSampleset(),
+                        hitObject.time
+                    );
+                    break;
+
+                case Slider slider:
+                    ApplyFeedbackUpdate(
+                        slider.StartHitSound,
+                        slider.GetStartSampleset(),
+                        slider.time
+                    );
+
+                    for (var reverseIndex = 0; reverseIndex < slider.EdgeAmount - 1; reverseIndex++)
+                    {
+                        ApplyFeedbackUpdate(
+                            slider.ReverseHitSounds.ElementAt(reverseIndex),
+                            slider.GetReverseSampleset(reverseIndex),
+                            Math.Floor(slider.time + slider.GetCurveDuration() * (reverseIndex + 1))
+                        );
+                    }
+
+                    ApplyFeedbackUpdate(
+                        slider.EndHitSound,
+                        slider.GetEndSampleset(),
+                        slider.EndTime
+                    );
+                    break;
+            }
+        }
+
+        return gaps;
+    }
+
+    private static void TryRecordGap(
+        double gapStart,
+        double gapEnd,
+        int objectsPassed,
+        int warningTotal,
+        int warningTime,
+        int warningObject,
+        List<ObjectsHitsoundGapPeriod> gaps
+    )
+    {
+        var timeDifference = gapEnd - gapStart;
+        if (timeDifference <= 0)
+            return;
+
+        var timeScore = timeDifference;
+        var objectScore = objectsPassed * 200.0;
+
+        if (
+            timeScore + objectScore > warningTotal
+            && timeScore > warningTime
+            && objectScore > warningObject
+        )
+        {
+            gaps.Add(new ObjectsHitsoundGapPeriod { StartTimeMs = gapStart, EndTimeMs = gapEnd });
+        }
     }
 }

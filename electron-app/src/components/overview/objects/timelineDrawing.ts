@@ -1,5 +1,18 @@
 import { REVERSE_ARROW_ICON_SIZE } from './constants.ts';
 import {
+  getDominantHitsoundColor,
+  getHitsoundCircleLayout,
+  getHitsoundCircleOuterRadius,
+  getSecondaryHitsoundColors,
+  type HitsoundLayerVisibility,
+  type TimelineViewMode,
+} from './hitsoundUtils.ts';
+import {
+  drawHitsoundGapOverlay,
+  drawSamplesetRegions,
+  drawSoundStrip,
+} from './timelineHitsoundDrawing.ts';
+import {
   drawThemedCircle,
   drawThemedHoldNote,
   drawThemedLineBody,
@@ -26,6 +39,20 @@ import type {
 } from '../../../Types';
 import type { MantineTheme } from '@mantine/core';
 
+export type DrawTimelineRowOptions = {
+  difficulty: ObjectsOverviewDifficulty;
+  startTimeMs: number;
+  endTimeMs: number;
+  timelineWidth: number;
+  viewportStartX: number;
+  viewportWidth: number;
+  height: number;
+  theme: MantineTheme;
+  visualThemeVariant: TimelineThemeVariant;
+  viewMode?: TimelineViewMode;
+  hitsoundLayers?: HitsoundLayerVisibility;
+};
+
 export function drawTimelineRow(
   ctx: CanvasRenderingContext2D,
   {
@@ -38,22 +65,22 @@ export function drawTimelineRow(
     height,
     theme,
     visualThemeVariant,
-  }: {
-    difficulty: ObjectsOverviewDifficulty;
-    startTimeMs: number;
-    endTimeMs: number;
-    timelineWidth: number;
-    viewportStartX: number;
-    viewportWidth: number;
-    height: number;
-    theme: MantineTheme;
-    visualThemeVariant: TimelineThemeVariant;
-  }
+    viewMode = 'structure',
+    hitsoundLayers,
+  }: DrawTimelineRowOptions
 ) {
   const durationMs = Math.max(1, endTimeMs - startTimeMs);
   const centerY = height / 2;
   const viewportEndX = viewportStartX + viewportWidth;
   const visualTheme = resolveTimelineVisualTheme(difficulty.mode, visualThemeVariant);
+  const isHitsoundView = viewMode === 'hitsounding';
+  const layers = hitsoundLayers ?? {
+    body: true,
+    ticks: true,
+    sampleset: true,
+    gaps: true,
+  };
+  const neutralBodyColor = theme.colors.dark[4];
 
   ctx.clearRect(0, 0, viewportWidth, height);
   ctx.save();
@@ -64,6 +91,32 @@ export function drawTimelineRow(
 
   ctx.fillStyle = theme.colors.dark[7];
   ctx.fillRect(viewportStartX, 0, viewportWidth, height);
+
+  if (isHitsoundView && layers.gaps) {
+    drawHitsoundGapOverlay(ctx, {
+      gapPeriods: difficulty.hitsoundGapPeriods ?? [],
+      startTimeMs,
+      durationMs,
+      width: timelineWidth,
+      visibleStartX: viewportStartX,
+      visibleEndX: viewportEndX,
+      height,
+      theme,
+    });
+  }
+
+  if (isHitsoundView && layers.sampleset) {
+    drawSamplesetRegions(ctx, {
+      timingSegments: difficulty.timingSegments,
+      startTimeMs,
+      endTimeMs,
+      durationMs,
+      width: timelineWidth,
+      visibleStartX: viewportStartX,
+      visibleEndX: viewportEndX,
+      height,
+    });
+  }
 
   drawBreakPeriods(ctx, {
     breakPeriods: difficulty.breakPeriods,
@@ -105,7 +158,9 @@ export function drawTimelineRow(
       timelineWidth,
       centerY,
       viewportStartX,
-      viewportEndX
+      viewportEndX,
+      isHitsoundView,
+      neutralBodyColor
     );
   }
 
@@ -124,8 +179,31 @@ export function drawTimelineRow(
       if (drawnMarkers.has(markerKey)) continue;
 
       drawnMarkers.add(markerKey);
-      drawObjectMarker(ctx, timelineObject, visualTheme, edge.partName, x, centerY);
+      drawObjectMarker(
+        ctx,
+        timelineObject,
+        visualTheme,
+        edge.partName,
+        x,
+        centerY,
+        isHitsoundView,
+        edge.hitSoundFlags ?? 0,
+        neutralBodyColor
+      );
     }
+  }
+
+  if (isHitsoundView) {
+    drawSoundStrip(ctx, {
+      difficulty,
+      layers,
+      startTimeMs,
+      durationMs,
+      width: timelineWidth,
+      visibleStartX: viewportStartX,
+      visibleEndX: viewportEndX,
+      height,
+    });
   }
 
   ctx.restore();
@@ -338,6 +416,43 @@ function drawTimingGrid(
   }
 }
 
+function drawHitsoundCircle(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  centerY: number,
+  radius: number,
+  hitSoundFlags: number
+) {
+  const fillColor = getDominantHitsoundColor(hitSoundFlags);
+  const secondaryColors = getSecondaryHitsoundColors(hitSoundFlags);
+  const layout = getHitsoundCircleLayout(radius, hitSoundFlags);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.fillStyle = withAlpha(fillColor, 0.85);
+  ctx.strokeStyle = withAlpha('#ffffff', 0.35);
+  ctx.lineWidth = 1;
+  ctx.arc(x, centerY, layout.fillRadius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  secondaryColors.forEach((secondaryColor, index) => {
+    ctx.beginPath();
+    ctx.strokeStyle = withAlpha(secondaryColor, 0.95);
+    ctx.lineWidth = layout.ringLineWidth;
+    ctx.arc(
+      x,
+      centerY,
+      layout.fillRadius + layout.ringBaseOffset + index * layout.ringStep,
+      0,
+      Math.PI * 2
+    );
+    ctx.stroke();
+  });
+
+  ctx.restore();
+}
+
 function drawTimelineObject(
   ctx: CanvasRenderingContext2D,
   timelineObject: ObjectsTimelineObject,
@@ -347,14 +462,32 @@ function drawTimelineObject(
   width: number,
   centerY: number,
   visibleStartX: number,
-  visibleEndX: number
+  visibleEndX: number,
+  isHitsoundView: boolean,
+  neutralBodyColor: string
 ) {
-  const color = visualTheme.resolveObjectColor(timelineObject);
+  const color = isHitsoundView
+    ? neutralBodyColor
+    : visualTheme.resolveObjectColor(timelineObject);
   const circleRadius = visualTheme.circleRadius(timelineObject);
 
   if (timelineObject.objectType === 'Circle') {
     const x = getTimelineX(timelineObject.startTimeMs, startTimeMs, durationMs, width);
-    if (x < visibleStartX - (circleRadius + 2) || x > visibleEndX + circleRadius + 2) {
+    const outerRadius = isHitsoundView
+      ? getHitsoundCircleOuterRadius(circleRadius, timelineObject.hitSoundFlags ?? 0)
+      : circleRadius + 2;
+    if (x < visibleStartX - outerRadius || x > visibleEndX + outerRadius) {
+      return;
+    }
+
+    if (isHitsoundView) {
+      drawHitsoundCircle(
+        ctx,
+        x,
+        centerY,
+        circleRadius,
+        timelineObject.hitSoundFlags ?? 0
+      );
       return;
     }
 
@@ -371,7 +504,9 @@ function drawTimelineObject(
     width,
     centerY,
     visibleStartX,
-    visibleEndX
+    visibleEndX,
+    isHitsoundView,
+    neutralBodyColor
   );
 }
 
@@ -384,7 +519,9 @@ function drawObjectBody(
   width: number,
   centerY: number,
   visibleStartX: number,
-  visibleEndX: number
+  visibleEndX: number,
+  isHitsoundView: boolean,
+  neutralBodyColor: string
 ) {
   if (timelineObject.endTimeMs <= timelineObject.startTimeMs) return;
 
@@ -399,7 +536,9 @@ function drawObjectBody(
   );
   if (!bodyBounds) return;
 
-  const color = visualTheme.resolveObjectColor(timelineObject);
+  const color = isHitsoundView
+    ? neutralBodyColor
+    : visualTheme.resolveObjectColor(timelineObject);
 
   if (timelineObject.objectType === 'Spinner') {
     drawThemedLineBody(
@@ -441,14 +580,24 @@ function drawObjectMarker(
   visualTheme: TimelineVisualTheme,
   partName: string,
   x: number,
-  centerY: number
+  centerY: number,
+  isHitsoundView: boolean,
+  edgeHitSoundFlags: number,
+  neutralBodyColor: string
 ) {
   const lowerPart = partName.toLowerCase();
-  const color = visualTheme.resolveObjectColor(timelineObject);
+  const color = isHitsoundView
+    ? neutralBodyColor
+    : visualTheme.resolveObjectColor(timelineObject);
   const isSlider = timelineObject.objectType === 'Slider';
   const circleRadius = visualTheme.circleRadius(timelineObject);
 
   if (timelineObject.objectType === 'Spinner') {
+    if (isHitsoundView) {
+      drawHitsoundCircle(ctx, x, centerY, visualTheme.spinnerMarkerRadius, edgeHitSoundFlags);
+      return;
+    }
+
     drawThemedSpinnerMarker(
       ctx,
       x,
@@ -461,6 +610,18 @@ function drawObjectMarker(
   }
 
   if (lowerPart.includes('reverse')) {
+    if (isHitsoundView) {
+      drawHitsoundCircle(ctx, x, centerY, circleRadius, edgeHitSoundFlags);
+      drawThemedReverseArrow(
+        ctx,
+        x,
+        centerY,
+        REVERSE_ARROW_ICON_SIZE,
+        visualTheme.reverseArrow
+      );
+      return;
+    }
+
     drawThemedCircle(ctx, x, centerY, circleRadius, color, visualTheme.circle);
     drawThemedReverseArrow(
       ctx,
@@ -474,12 +635,22 @@ function drawObjectMarker(
 
   if (lowerPart.includes('tail') || lowerPart.includes('end')) {
     if (isSlider) {
+      if (isHitsoundView) {
+        drawHitsoundCircle(ctx, x, centerY, circleRadius, edgeHitSoundFlags);
+        return;
+      }
+
       drawThemedCircle(ctx, x, centerY, circleRadius, color, visualTheme.circle);
       return;
     }
 
     drawThemedObjectMarkerEdge(ctx, color, visualTheme.objectMarker);
     drawThemedTailSquare(ctx, x, centerY, visualTheme.objectMarker);
+    return;
+  }
+
+  if (isHitsoundView) {
+    drawHitsoundCircle(ctx, x, centerY, circleRadius, edgeHitSoundFlags);
     return;
   }
 

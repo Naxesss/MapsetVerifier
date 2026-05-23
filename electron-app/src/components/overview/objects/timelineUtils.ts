@@ -7,7 +7,7 @@ import {
   TIMELINE_INTERVAL_STEPS_MS,
 } from './constants.ts';
 import { normalizeMode } from '../../../utils/gameMode';
-import type { ObjectsOverviewDifficulty, ObjectsSnappingBucket } from '../../../Types';
+import type { ObjectsOverviewDifficulty, ObjectsSnappingBucket, ObjectsTimelineEdge, ObjectsTimelineObject, ObjectsTimelineSample } from '../../../Types';
 
 /** Lenience matching server-side `HitObject.IsClose` (±2 ms). */
 const EDGE_TIME_MATCH_EPSILON_MS = 2;
@@ -80,6 +80,15 @@ export function getTimelineX(
   return ((timeMs - startTimeMs) / durationMs) * width;
 }
 
+export function getTimelineTimeFromX(
+  x: number,
+  startTimeMs: number,
+  durationMs: number,
+  width: number
+) {
+  return startTimeMs + (x / width) * durationMs;
+}
+
 export function getAlignedTimelineLineX(
   timeMs: number,
   startTimeMs: number,
@@ -91,6 +100,161 @@ export function getAlignedTimelineLineX(
 
 export function getDifficultyKey(difficulty: ObjectsOverviewDifficulty) {
   return `${normalizeMode(difficulty.mode)}::${difficulty.version}`;
+}
+
+export function getFirstNoteTimeMs(
+  difficulties: ObjectsOverviewDifficulty[],
+  visibilityByDifficulty: Record<string, boolean | undefined>,
+  getDifficultyKey: (difficulty: ObjectsOverviewDifficulty) => string
+): number | null {
+  let earliest: number | null = null;
+
+  for (const difficulty of difficulties) {
+    if (visibilityByDifficulty[getDifficultyKey(difficulty)] === false) {
+      continue;
+    }
+
+    for (const timelineObject of difficulty.timelineObjects) {
+      if (earliest === null || timelineObject.startTimeMs < earliest) {
+        earliest = timelineObject.startTimeMs;
+      }
+    }
+  }
+
+  return earliest;
+}
+
+export function getPlayheadViewportX(
+  anchorTimeMs: number,
+  startTimeMs: number,
+  endTimeMs: number,
+  timelineWidth: number,
+  labelWidth: number
+) {
+  const durationMs = Math.max(1, endTimeMs - startTimeMs);
+  return labelWidth + getTimelineX(anchorTimeMs, startTimeMs, durationMs, timelineWidth);
+}
+
+export type TimelinePlayheadScrollPadding = {
+  padLeft: number;
+  padRight: number;
+};
+
+export const EMPTY_PLAYHEAD_SCROLL_PADDING: TimelinePlayheadScrollPadding = {
+  padLeft: 0,
+  padRight: 0,
+};
+
+export function getPlayheadScrollPadding(
+  playheadViewportX: number,
+  labelWidth: number,
+  viewportWidth: number
+): TimelinePlayheadScrollPadding {
+  return {
+    padLeft: playheadViewportX - labelWidth,
+    padRight: Math.max(0, viewportWidth - playheadViewportX),
+  };
+}
+
+export function getTimestampAtPlayhead(
+  scrollLeft: number,
+  playheadViewportX: number,
+  labelWidth: number,
+  timelineWidth: number,
+  startTimeMs: number,
+  endTimeMs: number,
+  padding: TimelinePlayheadScrollPadding = EMPTY_PLAYHEAD_SCROLL_PADDING
+) {
+  const durationMs = Math.max(1, endTimeMs - startTimeMs);
+  const timelineLocalX = scrollLeft + playheadViewportX - padding.padLeft - labelWidth;
+  const clampedX = Math.max(0, Math.min(timelineWidth, timelineLocalX));
+  const timestampMs = getTimelineTimeFromX(clampedX, startTimeMs, durationMs, timelineWidth);
+  return Math.max(startTimeMs, Math.min(endTimeMs, timestampMs));
+}
+
+export function getScrollLeftForTimestamp(
+  timestampMs: number,
+  anchorViewportX: number,
+  labelWidth: number,
+  timelineWidth: number,
+  startTimeMs: number,
+  endTimeMs: number,
+  padding: TimelinePlayheadScrollPadding = EMPTY_PLAYHEAD_SCROLL_PADDING
+) {
+  const durationMs = Math.max(1, endTimeMs - startTimeMs);
+  const clampedTimestamp = Math.max(startTimeMs, Math.min(endTimeMs, timestampMs));
+  const timelineLocalX = getTimelineX(clampedTimestamp, startTimeMs, durationMs, timelineWidth);
+  return timelineLocalX + padding.padLeft + labelWidth - anchorViewportX;
+}
+
+export function findNearestTimelineEdge(
+  objects: ObjectsTimelineObject[],
+  timestampMs: number,
+  toleranceMs = 15
+): { edge: ObjectsTimelineEdge; object: ObjectsTimelineObject } | null {
+  let best: { edge: ObjectsTimelineEdge; object: ObjectsTimelineObject } | null = null;
+  let bestDistance = Number.POSITIVE_INFINITY;
+
+  for (const object of objects) {
+    for (const edge of object.edges) {
+      const distance = Math.abs(edge.timeMs - timestampMs);
+      if (distance > toleranceMs) {
+        continue;
+      }
+
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = { edge, object };
+      }
+    }
+  }
+
+  return best;
+}
+
+export function findEdgeSampleAtTime(
+  samples: ObjectsTimelineSample[],
+  edgeTimeMs: number,
+  toleranceMs = 2
+): ObjectsTimelineSample | null {
+  let best: ObjectsTimelineSample | null = null;
+  let bestDistance = Number.POSITIVE_INFINITY;
+
+  for (const sample of samples) {
+    if (sample.source !== 'Edge') {
+      continue;
+    }
+
+    const distance = Math.abs(sample.timeMs - edgeTimeMs);
+    if (distance > toleranceMs) {
+      continue;
+    }
+
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = sample;
+    }
+  }
+
+  return best;
+}
+
+export function getEdgeHitSoundFlags(
+  match: { edge: ObjectsTimelineEdge; object: ObjectsTimelineObject } | null
+): number {
+  if (!match) {
+    return 0;
+  }
+
+  if (match.edge.hitSoundFlags != null && match.edge.hitSoundFlags > 0) {
+    return match.edge.hitSoundFlags;
+  }
+
+  if (match.object.objectType === 'Circle') {
+    return match.object.hitSoundFlags ?? 0;
+  }
+
+  return 0;
 }
 
 export function areStringArraysEqual(left: string[], right: string[]) {

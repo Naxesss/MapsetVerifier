@@ -597,6 +597,10 @@ export type ObjectsOverviewDifficulty = {
   snappings: ObjectsSnappingBucket[];
   /** Populated by server analysis; omit if using an older API. */
   unsnappedEdgeTimesMs?: number[];
+  /** Populated by server analysis; omit if using an older API. */
+  timelineSamples?: ObjectsTimelineSample[];
+  /** Populated by server analysis; omit if using an older API. */
+  hitsoundGapPeriods?: ObjectsHitsoundGapPeriod[];
 };
 
 export type ObjectsBreakPeriod = {
@@ -609,6 +613,8 @@ export type ObjectsTimelineObject = {
   endTimeMs: number;
   objectType: string;
   hasFinishHitSound: boolean;
+  /** Bitfield: Normal=1, Whistle=2, Finish=4, Clap=8 */
+  hitSoundFlags?: number;
   comboColourIndex: number | null;
   comboColourHex: string | null;
   edges: ObjectsTimelineEdge[];
@@ -617,6 +623,23 @@ export type ObjectsTimelineObject = {
 export type ObjectsTimelineEdge = {
   timeMs: number;
   partName: string;
+  /** Bitfield: Normal=1, Whistle=2, Finish=4, Clap=8 */
+  hitSoundFlags?: number;
+};
+
+export type ObjectsTimelineSample = {
+  timeMs: number;
+  source: 'Edge' | 'Body' | 'Tick' | string;
+  hitSound: string | null;
+  sampleset: string;
+  customIndex: number;
+  partName: string | null;
+  objectType: string | null;
+};
+
+export type ObjectsHitsoundGapPeriod = {
+  startTimeMs: number;
+  endTimeMs: number;
 };
 
 export type ObjectsTimingSegment = {
@@ -626,6 +649,10 @@ export type ObjectsTimingSegment = {
   msPerBeat: number;
   bpm: number;
   meter: number;
+  /** Populated by server analysis; omit if using an older API. */
+  sampleset?: string;
+  /** Populated by server analysis; omit if using an older API. */
+  customIndex?: number;
 };
 
 export type ObjectsSnappingBucket = {

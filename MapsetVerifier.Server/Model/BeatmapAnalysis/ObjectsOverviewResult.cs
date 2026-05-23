@@ -39,6 +39,8 @@ public class ObjectsOverviewDifficulty
     public List<ObjectsTimingSegment> TimingSegments { get; set; } = [];
     public List<ObjectsSnappingBucket> Snappings { get; set; } = [];
     public List<double> UnsnappedEdgeTimesMs { get; set; } = [];
+    public List<ObjectsTimelineSample> TimelineSamples { get; set; } = [];
+    public List<ObjectsHitsoundGapPeriod> HitsoundGapPeriods { get; set; } = [];
 }
 
 public class ObjectsBreakPeriod
@@ -53,6 +55,7 @@ public class ObjectsTimelineObject
     public double EndTimeMs { get; set; }
     public string ObjectType { get; set; } = string.Empty;
     public bool HasFinishHitSound { get; set; }
+    public int HitSoundFlags { get; set; }
     public int? ComboColourIndex { get; set; }
     public string? ComboColourHex { get; set; }
     public List<ObjectsTimelineEdge> Edges { get; set; } = [];
@@ -62,6 +65,24 @@ public class ObjectsTimelineEdge
 {
     public double TimeMs { get; set; }
     public string PartName { get; set; } = string.Empty;
+    public int HitSoundFlags { get; set; }
+}
+
+public class ObjectsTimelineSample
+{
+    public double TimeMs { get; set; }
+    public string Source { get; set; } = string.Empty;
+    public string? HitSound { get; set; }
+    public string Sampleset { get; set; } = string.Empty;
+    public int CustomIndex { get; set; }
+    public string? PartName { get; set; }
+    public string? ObjectType { get; set; }
+}
+
+public class ObjectsHitsoundGapPeriod
+{
+    public double StartTimeMs { get; set; }
+    public double EndTimeMs { get; set; }
 }
 
 public class ObjectsTimingSegment
@@ -72,6 +93,8 @@ public class ObjectsTimingSegment
     public double MsPerBeat { get; set; }
     public double Bpm { get; set; }
     public int Meter { get; set; }
+    public string Sampleset { get; set; } = string.Empty;
+    public int CustomIndex { get; set; }
 }
 
 public class ObjectsSnappingBucket
