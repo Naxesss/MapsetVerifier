@@ -810,7 +810,15 @@ public static class BeatmapAnalysisService
 
             if (hitSound > 0 || sampleset != prevSample)
             {
-                TryRecordGap(gapStart, time, objectsPassed, warningTotal, warningTime, warningObject, gaps);
+                TryRecordGap(
+                    gapStart,
+                    time,
+                    objectsPassed,
+                    warningTotal,
+                    warningTime,
+                    warningObject,
+                    gaps
+                );
                 gapStart = time;
                 objectsPassed = 0;
                 prevSample = sampleset;
@@ -884,9 +892,7 @@ public static class BeatmapAnalysisService
             && objectScore > warningObject
         )
         {
-            gaps.Add(
-                new ObjectsHitsoundGapPeriod { StartTimeMs = gapStart, EndTimeMs = gapEnd }
-            );
+            gaps.Add(new ObjectsHitsoundGapPeriod { StartTimeMs = gapStart, EndTimeMs = gapEnd });
         }
     }
 }
