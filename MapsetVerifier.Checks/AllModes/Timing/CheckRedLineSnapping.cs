@@ -113,6 +113,5 @@ namespace MapsetVerifier.Checks.AllModes.Timing
 
             return nextLine;
         }
-
     }
 }

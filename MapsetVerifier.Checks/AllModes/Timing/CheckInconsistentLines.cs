@@ -204,8 +204,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             }
         }
 
-        private static string FormatBpm(double bpm) =>
-            bpm.ToString(CultureInfo.InvariantCulture);
+        private static string FormatBpm(double bpm) => bpm.ToString(CultureInfo.InvariantCulture);
 
         private static string FormatMeter(int meter) => meter + "/4";
 

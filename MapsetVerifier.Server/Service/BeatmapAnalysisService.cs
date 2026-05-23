@@ -188,8 +188,7 @@ public static class BeatmapAnalysisService
                 var countdownSetting = beatmap.GeneralSettings.countdown;
                 var countdownSettingEnabled =
                     countdownSetting != Parser.Settings.GeneralSettings.Countdown.None;
-                var hasCountdown =
-                    countdownSettingEnabled && beatmap.GetCountdownStartBeat() >= 0;
+                var hasCountdown = countdownSettingEnabled && beatmap.GetCountdownStartBeat() >= 0;
 
                 return new DifficultyGeneralSettings
                 {
