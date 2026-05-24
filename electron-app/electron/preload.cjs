@@ -14,6 +14,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   app: {
     getAppFolderPath: () => ipcRenderer.invoke('app:getAppFolderPath'),
     getExternalsFolderPath: () => ipcRenderer.invoke('app:getExternalsFolderPath'),
+    getSnapshotFolderPath: (beatmapSetId, subfolder) =>
+      ipcRenderer.invoke('app:getSnapshotFolderPath', beatmapSetId, subfolder),
   },
 
   window: {

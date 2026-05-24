@@ -106,6 +106,12 @@ function registerIpc(getMainWindow) {
     await fs.mkdir(dir, { recursive: true });
     return dir;
   });
+  ipcMain.handle('app:getSnapshotFolderPath', async (_e, beatmapSetId, subfolder) => {
+    if (beatmapSetId == null || beatmapSetId === '') return null;
+    const base = path.join(externalsFolderPath(), 'snapshots', String(beatmapSetId));
+    if (subfolder == null || subfolder === '') return base;
+    return path.join(base, String(subfolder));
+  });
 
   sidecar.onLog((line) => {
     const win = getMainWindow();
