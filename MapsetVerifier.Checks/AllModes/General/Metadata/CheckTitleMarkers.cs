@@ -434,10 +434,50 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             return true;
         }
 
-        private static string SuggestGuidelineVerMarker(string inner) =>
-            inner.Equals("extended", StringComparison.OrdinalIgnoreCase)
-                ? "(Extended Ver.)"
-                : $"({ToTitleCaseWords(inner)} Ver.)";
+        private static string SuggestGuidelineVerMarker(string inner)
+        {
+            if (inner.Equals("extended", StringComparison.OrdinalIgnoreCase))
+                return "(Extended Ver.)";
+
+            if (TrySplitCompoundVerInner(inner, out var prefix, out var descriptor))
+                return $"({prefix}{ToTitleCaseWords(descriptor)} Ver.)";
+
+            return $"({ToTitleCaseWords(inner)} Ver.)";
+        }
+
+        /// <summary>
+        /// Parentheticals like ("XETTABYTE" Long Ver.) pair stylised title text with a separate descriptor.
+        /// Only the trailing descriptor should be title-cased for the guideline marker.
+        /// </summary>
+        private static bool TrySplitCompoundVerInner(
+            string inner,
+            out string prefix,
+            out string descriptor
+        )
+        {
+            prefix = "";
+            descriptor = inner;
+
+            var lastSpace = inner.LastIndexOf(' ');
+            if (lastSpace <= 0)
+                return false;
+
+            var beforeDescriptor = inner[..lastSpace];
+            if (!ContainsQuotedSegment(beforeDescriptor))
+                return false;
+
+            prefix = beforeDescriptor + " ";
+            descriptor = inner[(lastSpace + 1)..];
+            return true;
+        }
+
+        private static bool ContainsQuotedSegment(string text) =>
+            text.Contains('"')
+            || text.Contains('\u201C')
+            || text.Contains('\u201D')
+            || text.Contains('\'')
+            || text.Contains('\u2018')
+            || text.Contains('\u2019');
 
         private Issue CreateGuidelineVerIssue(string titleType, string title, string suggested) =>
             new(

@@ -186,6 +186,21 @@ public class CheckTitleMarkersTests
         );
     }
 
+    [Theory]
+    [InlineData("TERABYTE (\"XETTABYTE\" Long Ver.)")]
+    [InlineData("TERABƔTE (\"X∑TTABƔTE\" Long Ver.)")]
+    public void DoesNotFlagLongVerWithQuotedStylisedPrefix(string title)
+    {
+        using var context = CreateContext(title);
+
+        var issues = context.RunGeneralCheck<CheckTitleMarkers>();
+
+        Assert.DoesNotContain(
+            issues,
+            issue => issue.message.Contains("should use guideline format")
+        );
+    }
+
     [Fact]
     public void SkipsStylisedLongParenthetical()
     {
