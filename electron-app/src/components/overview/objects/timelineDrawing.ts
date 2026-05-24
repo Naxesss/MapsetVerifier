@@ -34,6 +34,7 @@ import type { TimelineThemeVariant , TimelineVisualTheme } from './timelineTheme
 import type {
   ObjectsBreakPeriod,
   ObjectsOverviewDifficulty,
+  ObjectsTimelineEdge,
   ObjectsTimelineObject,
   ObjectsTimingSegment,
 } from '../../../Types';
@@ -275,6 +276,114 @@ export function getTimelineTimestampAtX({
   }
 
   return Math.max(startTimeMs, Math.min(endTimeMs, bestTimeMs));
+}
+
+export type TimelineObjectHeadHit = {
+  object: ObjectsTimelineObject;
+  edge: ObjectsTimelineEdge | null;
+  timeMs: number;
+  anchorX: number;
+  partLabel: string;
+};
+
+function isHoverableTimelineEdge(objectType: string, partName: string) {
+  const lower = partName.toLowerCase();
+
+  if (lower.includes('head')) {
+    return true;
+  }
+
+  if (objectType === 'Slider') {
+    return lower.includes('reverse') || lower.includes('tail') || lower.includes('end');
+  }
+
+  if (objectType === 'Spinner') {
+    return lower.includes('tail') || lower.includes('end');
+  }
+
+  return false;
+}
+
+function getTimelineMarkerHitThreshold(
+  timelineObject: ObjectsTimelineObject,
+  visualTheme: ReturnType<typeof resolveTimelineVisualTheme>
+) {
+  if (timelineObject.objectType === 'Spinner') {
+    return visualTheme.spinnerMarkerRadius + 4;
+  }
+
+  return visualTheme.circleRadius(timelineObject) + 4;
+}
+
+export function findTimelineObjectHeadAtX({
+  difficulty,
+  startTimeMs,
+  endTimeMs,
+  timelineWidth,
+  x,
+  visualThemeVariant,
+}: {
+  difficulty: ObjectsOverviewDifficulty;
+  startTimeMs: number;
+  endTimeMs: number;
+  timelineWidth: number;
+  x: number;
+  visualThemeVariant: TimelineThemeVariant;
+}): TimelineObjectHeadHit | null {
+  const durationMs = Math.max(1, endTimeMs - startTimeMs);
+  const visualTheme = resolveTimelineVisualTheme(difficulty.mode, visualThemeVariant);
+  let bestHit: TimelineObjectHeadHit | null = null;
+  let bestDistance = Number.POSITIVE_INFINITY;
+
+  const consider = (
+    object: ObjectsTimelineObject,
+    edge: ObjectsTimelineEdge | null,
+    timeMs: number,
+    centerX: number,
+    threshold: number,
+    partLabel: string
+  ) => {
+    const distance = Math.abs(x - centerX);
+    if (distance > threshold || distance >= bestDistance) {
+      return;
+    }
+
+    bestDistance = distance;
+    bestHit = { object, edge, timeMs, anchorX: centerX, partLabel };
+  };
+
+  for (const timelineObject of difficulty.timelineObjects) {
+    if (timelineObject.objectType === 'Circle') {
+      const centerX = getTimelineX(
+        timelineObject.startTimeMs,
+        startTimeMs,
+        durationMs,
+        timelineWidth
+      );
+      const radius = visualTheme.circleRadius(timelineObject);
+      consider(
+        timelineObject,
+        null,
+        timelineObject.startTimeMs,
+        centerX,
+        radius + 4,
+        'Circle'
+      );
+      continue;
+    }
+
+    for (const edge of timelineObject.edges) {
+      if (!isHoverableTimelineEdge(timelineObject.objectType, edge.partName)) {
+        continue;
+      }
+
+      const centerX = getTimelineX(edge.timeMs, startTimeMs, durationMs, timelineWidth);
+      const threshold = getTimelineMarkerHitThreshold(timelineObject, visualTheme);
+      consider(timelineObject, edge, edge.timeMs, centerX, threshold, edge.partName);
+    }
+  }
+
+  return bestHit;
 }
 
 function drawBreakPeriods(

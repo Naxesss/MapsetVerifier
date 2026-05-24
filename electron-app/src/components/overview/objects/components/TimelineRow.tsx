@@ -1,9 +1,19 @@
 import { Box, useMantineTheme } from '@mantine/core';
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useMemo, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import TimelineObjectContextMenu from './TimelineObjectContextMenu.tsx';
+import TimelineObjectHeadHovercard from './TimelineObjectHeadHovercard.tsx';
 import AutoResizeCanvas from '../../../common/AutoResizeCanvas.tsx';
-import { useTimelineDisplay, useTimelineScale } from '../context/ObjectsTimelineContext.tsx';
-import { drawTimelineRow, getTimelineTimestampAtX } from '../timelineDrawing.ts';
+import {
+  useTimelineDisplay,
+  useTimelinePan,
+  useTimelineScale,
+} from '../context/ObjectsTimelineContext.tsx';
+import {
+  drawTimelineRow,
+  findTimelineObjectHeadAtX,
+  getTimelineTimestampAtX,
+  type TimelineObjectHeadHit,
+} from '../timelineDrawing.ts';
 import { formatEditorTimestamp, getTimelineCanvasTiles, getTimelineX } from '../timelineUtils.ts';
 import type { ObjectsOverviewDifficulty } from '../../../../Types';
 import type { HitsoundLayerVisibility, TimelineViewMode } from '../hitsoundUtils.ts';
@@ -124,6 +134,7 @@ const TimelineCanvasTile = memo(function TimelineCanvasTile({
 function TimelineRow({ difficulty, height }: TimelineRowProps) {
   const theme = useMantineTheme();
   const { startTimeMs, endTimeMs, timelineWidth } = useTimelineScale();
+  const { isPanningTimeline } = useTimelinePan();
   const { timelineThemeVariant, viewMode, hitsoundLayers } = useTimelineDisplay();
   const canvasTiles = useMemo(() => getTimelineCanvasTiles(timelineWidth), [timelineWidth]);
   const [contextMenuState, setContextMenuState] = useState<{
@@ -131,6 +142,41 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
     localY: number;
     timestampMs: number;
   } | null>(null);
+  const [headHover, setHeadHover] = useState<TimelineObjectHeadHit | null>(null);
+
+  const updateHeadHover = useCallback(
+    (event: ReactMouseEvent<HTMLDivElement>) => {
+      if (isPanningTimeline || contextMenuState) {
+        setHeadHover(null);
+        return;
+      }
+
+      const bounds = event.currentTarget.getBoundingClientRect();
+      const localX = event.clientX - bounds.left;
+      const hit = findTimelineObjectHeadAtX({
+        difficulty,
+        startTimeMs,
+        endTimeMs,
+        timelineWidth,
+        x: localX,
+        visualThemeVariant: timelineThemeVariant,
+      });
+      setHeadHover(hit);
+    },
+    [
+      contextMenuState,
+      difficulty,
+      endTimeMs,
+      isPanningTimeline,
+      startTimeMs,
+      timelineThemeVariant,
+      timelineWidth,
+    ]
+  );
+
+  const clearHeadHover = useCallback(() => {
+    setHeadHover(null);
+  }, []);
 
   const handleContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
     const bounds = event.currentTarget.getBoundingClientRect();
@@ -184,6 +230,8 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
   return (
     <Box
       onContextMenu={handleContextMenu}
+      onMouseMove={updateHeadHover}
+      onMouseLeave={clearHeadHover}
       style={{ position: 'relative', width: timelineWidth, height, overflow: 'hidden' }}
     >
       {canvasTiles.map((tile) => (
@@ -243,6 +291,12 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
         onCopyTimestamp={copyEditorTimestamp}
         goToLabel="Go to object"
         timestampLabel={formatEditorTimestamp(contextMenuState?.timestampMs ?? 0)}
+      />
+      <TimelineObjectHeadHovercard
+        difficulty={difficulty}
+        hover={headHover}
+        opened={headHover !== null && !isPanningTimeline && contextMenuState === null}
+        anchorY={height / 2}
       />
     </Box>
   );

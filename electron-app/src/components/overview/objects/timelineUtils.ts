@@ -310,6 +310,36 @@ export function getTimelineCanvasTiles(width: number) {
   return tiles;
 }
 
+/** Beat snap colors aligned with osu! editor / timeline tick grid. */
+export const SNAP_DIVISOR_COLORS: Partial<Record<number, string>> = {
+  1: 'rgb(255,255,255)',
+  2: 'rgb(255,120,100)',
+  3: 'rgb(255,100,225)',
+  4: 'rgb(120,175,255)',
+  6: 'rgb(200,150,255)',
+  8: 'rgb(255,225,100)',
+  12: 'rgb(125,135,150)',
+  16: 'rgb(125,135,150)',
+};
+
+export function getSnapLabelColor(snapLabel: string) {
+  if (snapLabel === 'Unsnapped') {
+    return 'var(--mantine-color-orange-4)';
+  }
+
+  if (snapLabel === 'Unknown') {
+    return 'var(--mantine-color-dimmed)';
+  }
+
+  const match = /^1\/(\d+)$/.exec(snapLabel);
+  if (!match) {
+    return 'var(--mantine-color-dimmed)';
+  }
+
+  const divisor = Number(match[1]);
+  return SNAP_DIVISOR_COLORS[divisor] ?? 'rgb(125,135,150)';
+}
+
 export function getTimingTickStyle(sampleIndex: number, meter: number, hasNearbyEdge: boolean) {
   const shouldShowTick =
     sampleIndex % (TIMING_SAMPLES_PER_BEAT / 4) === 0 ||
@@ -325,38 +355,38 @@ export function getTimingTickStyle(sampleIndex: number, meter: number, hasNearby
   const baseHeight = hasNearbyEdge ? 6 : 3;
 
   if (sampleIndex % (TIMING_SAMPLES_PER_BEAT * safeMeter) === 0) {
-    return { color: 'rgb(255,255,255)', height: 12, alpha: 0.5, priority: 8 };
+    return { color: SNAP_DIVISOR_COLORS[1]!, height: 12, alpha: 0.5, priority: 8 };
   }
 
   if (sampleIndex % TIMING_SAMPLES_PER_BEAT === 0) {
-    return { color: 'rgb(255,255,255)', height: 6, alpha: 0.5, priority: 7 };
+    return { color: SNAP_DIVISOR_COLORS[1]!, height: 6, alpha: 0.5, priority: 7 };
   }
 
   if (sampleIndex % (TIMING_SAMPLES_PER_BEAT / 2) === 0) {
-    return { color: 'rgb(255,120,100)', height: baseHeight, alpha: 0.5, priority: 6 };
+    return { color: SNAP_DIVISOR_COLORS[2]!, height: baseHeight, alpha: 0.5, priority: 6 };
   }
 
   if (sampleIndex % (TIMING_SAMPLES_PER_BEAT / 3) === 0) {
-    return { color: 'rgb(255,100,225)', height: baseHeight, alpha: 0.5, priority: 5 };
+    return { color: SNAP_DIVISOR_COLORS[3]!, height: baseHeight, alpha: 0.5, priority: 5 };
   }
 
   if (sampleIndex % (TIMING_SAMPLES_PER_BEAT / 4) === 0) {
-    return { color: 'rgb(120,175,255)', height: baseHeight, alpha: 0.5, priority: 4 };
+    return { color: SNAP_DIVISOR_COLORS[4]!, height: baseHeight, alpha: 0.5, priority: 4 };
   }
 
   if (sampleIndex % (TIMING_SAMPLES_PER_BEAT / 6) === 0) {
-    return { color: 'rgb(200,150,255)', height: baseHeight, alpha: 0.5, priority: 3 };
+    return { color: SNAP_DIVISOR_COLORS[6]!, height: baseHeight, alpha: 0.5, priority: 3 };
   }
 
   if (sampleIndex % (TIMING_SAMPLES_PER_BEAT / 8) === 0) {
-    return { color: 'rgb(255,225,100)', height: baseHeight, alpha: 0.5, priority: 2 };
+    return { color: SNAP_DIVISOR_COLORS[8]!, height: baseHeight, alpha: 0.5, priority: 2 };
   }
 
   if (
     sampleIndex % (TIMING_SAMPLES_PER_BEAT / 12) === 0 ||
     sampleIndex % (TIMING_SAMPLES_PER_BEAT / 16) === 0
   ) {
-    return { color: 'rgb(125,135,150)', height: baseHeight, alpha: 0.5, priority: 1 };
+    return { color: SNAP_DIVISOR_COLORS[12]!, height: baseHeight, alpha: 0.5, priority: 1 };
   }
 
   return { color: 'rgb(255,0,0)', height: 12, alpha: 0.5, priority: 0 };
@@ -453,5 +483,27 @@ export function formatEditorTimestamp(timeMs: number) {
   return `${minutes.toString().padStart(2, '0')}:${seconds
     .toString()
     .padStart(2, '0')}:${milliseconds.toString().padStart(3, '0')}`;
+}
+
+function isEdgeTimeMatch(leftMs: number, rightMs: number) {
+  return Math.abs(leftMs - rightMs) <= EDGE_TIME_MATCH_EPSILON_MS;
+}
+
+/** Returns the snap label (e.g. `1/4`) or `Unsnapped` for an edge timestamp. */
+export function lookupEdgeSnapLabel(
+  difficulty: ObjectsOverviewDifficulty,
+  timeMs: number
+): string {
+  if (difficulty.unsnappedEdgeTimesMs?.some((candidate) => isEdgeTimeMatch(candidate, timeMs))) {
+    return 'Unsnapped';
+  }
+
+  for (const bucket of difficulty.snappings) {
+    if (bucket.edgeTimesMs?.some((candidate) => isEdgeTimeMatch(candidate, timeMs))) {
+      return bucket.label;
+    }
+  }
+
+  return 'Unknown';
 }
 
