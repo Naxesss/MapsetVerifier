@@ -9,7 +9,8 @@ public class LocalDifficultyCalculator
 {
     // osu! replaces a non-cancelable token with its own 10s timeout inside Calculate/CalculateTimed.
     // Pass a cancelable token we never fire so long maps can finish.
-    private static readonly CancellationToken UncancelledToken = new CancellationTokenSource().Token;
+    private static readonly CancellationToken UncancelledToken =
+        new CancellationTokenSource().Token;
 
     public DifficultyAttributes CalculateAttributes(Beatmap mvBeatmap) =>
         CreateCalculator(mvBeatmap).Calculate(Array.Empty<Mod>(), UncancelledToken);
