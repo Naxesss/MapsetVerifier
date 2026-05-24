@@ -1,4 +1,4 @@
-import { Alert, Box, Progress, Stack, Text } from "@mantine/core";
+﻿import { Alert, Box, Progress, Stack, Text } from "@mantine/core";
 import { IconAlertCircle, IconEyeOff } from "@tabler/icons-react";
 import { useMemo } from "react";
 import CheckCategory from "./CheckCategory.tsx";
@@ -49,7 +49,17 @@ function ChecksResults({
       ? Math.min(100, Math.round((progress.completed / progress.total) * 100))
       : 0;
 
-  const statusLabel = progress?.label ?? "Starting checks…";
+  const statusLabel = (() => {
+    if (!progress) return "Starting checks…";
+
+    const { activeLabels, completed, total } = progress;
+    if (activeLabels.length === 0) {
+      return completed >= total && total > 0 ? "Finishing…" : "Starting checks…";
+    }
+    if (activeLabels.length === 1) return activeLabels[0];
+    if (activeLabels.length <= 3) return activeLabels.join(", ");
+    return `${activeLabels.slice(0, 2).join(", ")} and ${activeLabels.length - 2} others`;
+  })();
 
   return (
     <Box>

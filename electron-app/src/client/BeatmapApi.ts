@@ -131,7 +131,6 @@ const BeatmapApi = {
     const decoder = new TextDecoder();
     let buffer = '';
     let result: ApiBeatmapSetCheckResult | undefined;
-    let lastLabel: string | null = null;
 
     try {
       for (;;) {
@@ -150,14 +149,7 @@ const BeatmapApi = {
           if (message.event === 'structure') {
             options?.onStructure?.(JSON.parse(message.data) as ApiBeatmapStructure);
           } else if (message.event === 'progress') {
-            const progress = JSON.parse(message.data) as CheckProgress;
-            if (progress.label) {
-              lastLabel = progress.label;
-            }
-            options?.onProgress?.({
-              ...progress,
-              label: progress.label ?? lastLabel,
-            });
+            options?.onProgress?.(JSON.parse(message.data) as CheckProgress);
           } else if (message.event === 'complete') {
             result = JSON.parse(message.data) as ApiBeatmapSetCheckResult;
           } else if (message.event === 'error') {

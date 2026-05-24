@@ -34,7 +34,7 @@ namespace MapsetVerifier.Framework
             if (progress != null)
             {
                 tracker = new CheckProgressTracker(total, progress);
-                progress.Report(new CheckProgress(0, total, "Starting checks…"));
+                progress.Report(new CheckProgress(0, total, []));
             }
 
             TryGetIssuesParallel(
@@ -143,7 +143,7 @@ namespace MapsetVerifier.Framework
                 check =>
                 {
                     var label = getLabel?.Invoke(check) ?? check.GetMetadata().Message;
-                    tracker?.ReportStarted(label);
+                    var taskId = tracker?.ReportStarted(label);
 
                     try
                     {
@@ -157,7 +157,8 @@ namespace MapsetVerifier.Framework
                     }
                     finally
                     {
-                        tracker?.ReportCompleted();
+                        if (taskId.HasValue)
+                            tracker?.ReportCompleted(taskId.Value);
                     }
                 }
             );

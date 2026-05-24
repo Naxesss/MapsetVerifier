@@ -81,7 +81,7 @@ export type ApiBeatmapStructure = {
 export type CheckProgress = {
   completed: number;
   total: number;
-  label: string | null;
+  activeLabels: string[];
 };
 
 export type ApiCategoryOverrideCheckResult = {
