@@ -12,18 +12,21 @@ namespace MapsetVerifier.Checks.AllModes.Timing
     [Check]
     public class CheckWrongSnapping : BeatmapSetCheck
     {
+        // How close two edges must be to count as the same object across difficulties.
+        private const double EdgeMatchToleranceMs = 3;
+
         private readonly int[] divisors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 16];
-        private List<int> countMinorDivisors = [];
+        private HashSet<int> countMinorDivisors = [];
         private List<Tuple<int, string>> countMinorStamps = [];
 
-        private List<int> countWarningDivisors = [];
+        private HashSet<int> countWarningDivisors = [];
 
         private List<Tuple<int, string>> countWarningStamps = [];
 
         private ConcurrentBag<Inconsistency> inconsistencies = [];
-        private List<int> percentMinorDivisors = [];
+        private HashSet<int> percentMinorDivisors = [];
         private List<Tuple<int, string>> percentMinorStamps = [];
-        private List<int> percentWarningDivisors = [];
+        private HashSet<int> percentWarningDivisors = [];
         private List<Tuple<int, string>> percentWarningStamps = [];
 
         public override CheckMetadata GetMetadata() =>
@@ -31,7 +34,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             {
                 Category = "Timing",
                 Message = "Wrongly or inconsistently snapped hit objects.",
-                Author = "Naxess",
+                Author = "Naxess, Hivie",
 
                 Documentation = new Dictionary<string, string>
                 {
@@ -137,6 +140,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             {
                 inconsistencies = [];
 
+                // Phase 1: compare this diff against higher-SR diffs for mismatched snapping nearby in time.
                 // Essentially if our `otherBeatmaps` simplify rhythms from our `beatmap`, then that's an issue.
                 // So the reason `otherBeatmaps` is all higher difficulties is because lower difficulties are expected to simplify rhythms.
                 var otherBeatmaps = beatmapSet.Beatmaps.Where(otherBeatmap =>
@@ -191,8 +195,8 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     );
                 }
 
-                PrepareRareDivisors(beatmap);
-                PopulateRareDivisors(beatmap);
+                // Phase 2: within this diff alone, flag snap divisors that appear rarely (count or % thresholds).
+                AnalyzeRareDivisors(beatmap);
 
                 foreach (var issue in GetDivisorIssues(beatmap, countWarningStamps, "Snap Count"))
                     yield return issue;
@@ -214,11 +218,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             }
         }
 
-        /// <summary> Finds which divisors are rare in the beatmap so that they can be looked for in other functions. </summary>
-        private void PrepareRareDivisors(Beatmap beatmap)
+        /// <summary>
+        ///     Single pass over all object edges: tally divisor usage, then stamp times for rare ones.
+        /// </summary>
+        private void AnalyzeRareDivisors(Beatmap beatmap)
         {
-            // rather than calculating every single snapping, this instead just looks for potentially weird snappings
-            // this makes it both more convenient, due to constraining unimportant options, and more optimized
             const int countWarning = 3;
             const int countMinor = 7;
             const double percentWarning = 0.005;
@@ -228,45 +232,63 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             countMinorDivisors = [];
             percentWarningDivisors = [];
             percentMinorDivisors = [];
-
-            var divisorGroups = beatmap
-                .HitObjects.SelectMany(hitObject =>
-                    hitObject.GetEdgeTimes().Select(beatmap.GetLowestDivisor)
-                )
-                .Where(divisor => divisor != 0)
-                .GroupBy(divisor => divisor)
-                .Select(group => new { divisor = group.Key, count = group.Count() })
-                .ToList();
-
-            var divisorsTotal = divisorGroups.Sum(divisorGroup => divisorGroup.count);
-
-            foreach (var divisorGroup in divisorGroups)
-            {
-                var precentage = divisorGroup.count / (double)divisorsTotal;
-
-                if (divisorGroup.count <= countWarning)
-                    countWarningDivisors.Add(divisorGroup.divisor);
-                else if (divisorGroup.count <= countMinor)
-                    countMinorDivisors.Add(divisorGroup.divisor);
-
-                if (precentage < percentWarning)
-                    percentWarningDivisors.Add(divisorGroup.divisor);
-                else if (precentage < percentMinor)
-                    percentMinorDivisors.Add(divisorGroup.divisor);
-            }
-        }
-
-        /// <summary> Populates the warnings and minor issues for rare divisors in the given beatmap. </summary>
-        private void PopulateRareDivisors(Beatmap beatmap)
-        {
             countWarningStamps = [];
             countMinorStamps = [];
             percentWarningStamps = [];
             percentMinorStamps = [];
 
+            var divisorCounts = new Dictionary<int, int>();
+            var edgeEntries = new List<(double edgeTime, int divisor, bool isUnsnapped)>();
+
+            // Cache divisor/unsnap per edge so we don't re-query timing for the stamp pass below.
             foreach (var hitObject in beatmap.HitObjects)
             foreach (var edgeTime in hitObject.GetEdgeTimes())
-                TryAddDivisorIssue(edgeTime, beatmap);
+            {
+                var isUnsnapped = beatmap.GetUnsnapIssue(edgeTime) != null;
+                var divisor = beatmap.GetLowestDivisor(edgeTime);
+                edgeEntries.Add((edgeTime, divisor, isUnsnapped));
+
+                if (divisor != 0)
+                    divisorCounts[divisor] = divisorCounts.GetValueOrDefault(divisor) + 1;
+            }
+
+            var divisorsTotal = divisorCounts.Values.Sum();
+
+            foreach (var (divisor, count) in divisorCounts)
+            {
+                var precentage = count / (double)divisorsTotal;
+
+                if (count <= countWarning)
+                    countWarningDivisors.Add(divisor);
+                else if (count <= countMinor)
+                    countMinorDivisors.Add(divisor);
+
+                if (precentage < percentWarning)
+                    percentWarningDivisors.Add(divisor);
+                else if (precentage < percentMinor)
+                    percentMinorDivisors.Add(divisor);
+            }
+
+            foreach (var (edgeTime, divisor, isUnsnapped) in edgeEntries)
+            {
+                if (isUnsnapped || divisor == 0)
+                    continue;
+
+                if (countWarningDivisors.Contains(divisor))
+                    countWarningStamps.Add(
+                        new Tuple<int, string>(divisor, Timestamp.Get(edgeTime))
+                    );
+                else if (percentWarningDivisors.Contains(divisor))
+                    percentWarningStamps.Add(
+                        new Tuple<int, string>(divisor, Timestamp.Get(edgeTime))
+                    );
+                else if (countMinorDivisors.Contains(divisor))
+                    countMinorStamps.Add(new Tuple<int, string>(divisor, Timestamp.Get(edgeTime)));
+                else if (percentMinorDivisors.Contains(divisor))
+                    percentMinorStamps.Add(
+                        new Tuple<int, string>(divisor, Timestamp.Get(edgeTime))
+                    );
+            }
 
             countWarningStamps = countWarningStamps.Distinct().ToList();
             countMinorStamps = countMinorStamps.Distinct().ToList();
@@ -303,36 +325,6 @@ namespace MapsetVerifier.Checks.AllModes.Timing
         }
 
         /// <summary>
-        ///     Adds the given time value as a divisor issue if its divisor is really rare in the beatmap, and it isn't
-        ///     unsnapped.
-        /// </summary>
-        private void TryAddDivisorIssue(double time, Beatmap beatmap)
-        {
-            // no need to double error, unsnap check will take care of this
-            if (beatmap.GetUnsnapIssue(time) != null)
-                return;
-
-            var divisor = beatmap.GetLowestDivisor(time);
-
-            if (
-                !countWarningDivisors.Contains(divisor)
-                && !percentWarningDivisors.Contains(divisor)
-                && !countMinorDivisors.Contains(divisor)
-                && !percentMinorDivisors.Contains(divisor)
-            )
-                return;
-
-            if (countWarningDivisors.Contains(divisor))
-                countWarningStamps.Add(new Tuple<int, string>(divisor, Timestamp.Get(time)));
-            else if (percentWarningDivisors.Contains(divisor))
-                percentWarningStamps.Add(new Tuple<int, string>(divisor, Timestamp.Get(time)));
-            else if (countMinorDivisors.Contains(divisor))
-                countMinorStamps.Add(new Tuple<int, string>(divisor, Timestamp.Get(time)));
-            else if (percentMinorDivisors.Contains(divisor))
-                percentMinorStamps.Add(new Tuple<int, string>(divisor, Timestamp.Get(time)));
-        }
-
-        /// <summary>
         ///     Populates the inconsistent places list, which keeps track of any
         ///     time values in either beatmap that has no corresponding value in the other.
         /// </summary>
@@ -342,38 +334,100 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                 inconsistencies.Add(inconsistency);
         }
 
-        /// <summary>
-        ///     Returns any time value from the first beatmap that has no corresponding
-        ///     object within 3 ms in the other beatmap.
-        /// </summary>
-        private static IEnumerable<double> GetMissingEdgeTimes(
-            Beatmap beatmap,
-            Beatmap otherBeatmap
-        )
+        internal static List<double> CollectEdgeTimes(Beatmap beatmap)
         {
             var edgeTimes = new List<double>();
 
             foreach (var hitObject in beatmap.HitObjects)
                 edgeTimes.AddRange(hitObject.GetEdgeTimes());
 
-            var otherEdgeTimes = new List<double>();
+            return edgeTimes;
+        }
 
-            foreach (var otherHitObject in otherBeatmap.HitObjects)
-                otherEdgeTimes.AddRange(otherHitObject.GetEdgeTimes());
+        internal static bool HasMatchingEdgeWithin(
+            IReadOnlyList<double> sortedOtherEdgeTimes,
+            double edgeTime
+        )
+        {
+            // `sortedOtherEdgeTimes` must be sorted; we only scan the narrow ±3 ms window around `edgeTime`.
+            var lowerBound = edgeTime - EdgeMatchToleranceMs;
+            var upperBound = edgeTime + EdgeMatchToleranceMs;
+
+            var start = LowerBound(sortedOtherEdgeTimes, lowerBound);
+
+            for (var index = start; index < sortedOtherEdgeTimes.Count; index++)
+            {
+                var otherEdgeTime = sortedOtherEdgeTimes[index];
+                if (otherEdgeTime >= upperBound)
+                    break;
+
+                if (Math.Abs(otherEdgeTime - edgeTime) < EdgeMatchToleranceMs)
+                    return true;
+            }
+
+            for (var index = start - 1; index >= 0; index--)
+            {
+                var otherEdgeTime = sortedOtherEdgeTimes[index];
+                if (otherEdgeTime <= lowerBound)
+                    break;
+
+                if (Math.Abs(otherEdgeTime - edgeTime) < EdgeMatchToleranceMs)
+                    return true;
+            }
+
+            return false;
+        }
+
+        internal static List<double> GetMissingEdgeTimes(
+            IReadOnlyList<double> edgeTimes,
+            IReadOnlyList<double> sortedOtherEdgeTimes
+        )
+        {
+            var missingEdgeTimes = new List<double>();
 
             foreach (var edgeTime in edgeTimes)
-                if (!otherEdgeTimes.Exists(time => Math.Abs(time - edgeTime) < 3))
-                    yield return edgeTime;
+                if (!HasMatchingEdgeWithin(sortedOtherEdgeTimes, edgeTime))
+                    missingEdgeTimes.Add(edgeTime);
+
+            return missingEdgeTimes;
+        }
+
+        private static int LowerBound(IReadOnlyList<double> values, double target)
+        {
+            var low = 0;
+            var high = values.Count;
+
+            while (low < high)
+            {
+                var mid = low + (high - low) / 2;
+
+                if (values[mid] < target)
+                    low = mid + 1;
+                else
+                    high = mid;
+            }
+
+            return low;
         }
 
         private IEnumerable<Inconsistency> GetInconsistencies(Beatmap beatmap, Beatmap otherBeatmap)
         {
-            foreach (var missingEdgeTime in GetMissingEdgeTimes(beatmap, otherBeatmap))
-            foreach (var otherMissingEdgeTime in GetMissingEdgeTimes(otherBeatmap, beatmap))
+            var edgeTimes = CollectEdgeTimes(beatmap);
+            var otherEdgeTimes = CollectEdgeTimes(otherBeatmap);
+            var sortedOtherEdgeTimes = otherEdgeTimes.OrderBy(time => time).ToList();
+            var sortedEdgeTimes = edgeTimes.OrderBy(time => time).ToList();
+
+            // Edges with no counterpart within 3 ms in the other diff — computed once per direction.
+            var missingEdgeTimes = GetMissingEdgeTimes(edgeTimes, sortedOtherEdgeTimes);
+            var otherMissingEdgeTimes = GetMissingEdgeTimes(otherEdgeTimes, sortedEdgeTimes);
+
+            // Pair up nearby missing edges that could be mistaken for each other (see GetConsistencyRange).
+            foreach (var missingEdgeTime in missingEdgeTimes)
+            foreach (var otherMissingEdgeTime in otherMissingEdgeTimes)
             {
                 var timeDifference = Math.Abs(missingEdgeTime - otherMissingEdgeTime);
 
-                if (timeDifference <= 3)
+                if (timeDifference <= EdgeMatchToleranceMs)
                     // If both maps somehow claim they have an object the other does not at the same time, we skip that case.
                     continue;
 
