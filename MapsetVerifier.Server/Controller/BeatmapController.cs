@@ -1,3 +1,6 @@
+using System.Threading.Channels;
+using MapsetVerifier.Framework;
+using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Server.Model;
 using MapsetVerifier.Server.Service;
 using Microsoft.AspNetCore.Mvc;
@@ -144,6 +147,91 @@ public class BeatmapController : ControllerBase
                 500,
                 ApiErrorFactory.FromException(ex, "An error occurred while running beatmap checks.")
             );
+        }
+    }
+
+    [HttpPost("runChecks/stream")]
+    public async Task RunBeatmapSetChecksStream(
+        [FromBody] RunChecksRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        Response.ContentType = "text/event-stream";
+        Response.Headers.CacheControl = "no-cache";
+        await Response.StartAsync(cancellationToken);
+
+        BeatmapSet beatmapSet;
+        try
+        {
+            var parsed = BeatmapService.ParseBeatmapSet(request.Folder);
+            beatmapSet = parsed.BeatmapSet;
+            await SseWriter.WriteEventAsync(
+                Response,
+                "structure",
+                parsed.Structure,
+                cancellationToken
+            );
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to parse beatmap set for {Folder}", request.Folder);
+            await SseWriter.WriteEventAsync(
+                Response,
+                "error",
+                ApiErrorFactory.FromException(
+                    ex,
+                    "An error occurred while parsing the beatmap set."
+                ),
+                cancellationToken
+            );
+            return;
+        }
+
+        var channel = Channel.CreateUnbounded<(string EventType, object Data)>();
+
+        var progress = new Progress<CheckProgress>(update =>
+            channel.Writer.TryWrite(("progress", update))
+        );
+
+        var runTask = Task.Run(
+            () =>
+            {
+                try
+                {
+                    var result = BeatmapService.RunBeatmapSetChecks(beatmapSet, progress);
+                    channel.Writer.TryWrite(("complete", result));
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Failed to run beatmap checks for {Folder}", request.Folder);
+                    channel.Writer.TryWrite(
+                        (
+                            "error",
+                            ApiErrorFactory.FromException(
+                                ex,
+                                "An error occurred while running beatmap checks."
+                            )
+                        )
+                    );
+                }
+                finally
+                {
+                    channel.Writer.Complete();
+                }
+            },
+            cancellationToken
+        );
+
+        try
+        {
+            await foreach (var (eventType, data) in channel.Reader.ReadAllAsync(cancellationToken))
+            {
+                await SseWriter.WriteEventAsync(Response, eventType, data, cancellationToken);
+            }
+        }
+        finally
+        {
+            await runTask;
         }
     }
 

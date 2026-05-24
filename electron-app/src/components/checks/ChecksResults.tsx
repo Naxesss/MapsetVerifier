@@ -1,10 +1,10 @@
-﻿import { Alert, Box, Group, Loader, Stack, Text } from "@mantine/core";
+import { Alert, Box, Progress, Stack, Text } from "@mantine/core";
 import { IconAlertCircle, IconEyeOff } from "@tabler/icons-react";
 import { useMemo } from "react";
 import CheckCategory from "./CheckCategory.tsx";
 import { getRawCheckResultsForSelectedCategory, hasMinorResultsHiddenByUserFilter } from "./checkResultVisibility";
 import { FetchError } from "../../client/ApiHelper";
-import { ApiBeatmapSetCheckResult, ApiCategoryOverrideCheckResult } from "../../Types";
+import { ApiBeatmapSetCheckResult, ApiCategoryOverrideCheckResult, CheckProgress } from "../../Types";
 import StackTraceMessage from "../common/StackTraceMessage.tsx";
 
 interface ChecksResultsProps {
@@ -12,6 +12,7 @@ interface ChecksResultsProps {
   isLoading: boolean;
   isError: boolean;
   error?: FetchError | null;
+  progress?: CheckProgress | null;
   showMinor: boolean;
   hiddenMinorCheckIds: readonly number[];
   selectedCategory?: string;
@@ -23,6 +24,7 @@ function ChecksResults({
   isLoading,
   isError,
   error,
+  progress,
   showMinor,
   hiddenMinorCheckIds,
   selectedCategory,
@@ -42,13 +44,30 @@ function ChecksResults({
     [rawForCategory, showMinor, hiddenMinorCheckIds],
   );
 
+  const progressPercent =
+    progress && progress.total > 0
+      ? Math.min(100, Math.round((progress.completed / progress.total) * 100))
+      : 0;
+
+  const statusLabel = progress?.label ?? "Starting checks…";
+
   return (
     <Box>
       {isLoading && (
-        <Group gap="sm">
-          <Loader size="sm" />
-          <Text>Running checks...</Text>
-        </Group>
+        <Stack gap="xs" py="sm">
+          <Text size="sm" c="dimmed">
+            Checking for{" "}
+            <Text span fw={600} c="gray.3" inherit>
+              {statusLabel}
+            </Text>
+          </Text>
+          <Progress value={progressPercent} animated size="lg" radius="xl" />
+          {progress && progress.total > 0 ? (
+            <Text size="xs" c="dimmed">
+              {progress.completed} / {progress.total} checks
+            </Text>
+          ) : null}
+        </Stack>
       )}
 
       {isError && (

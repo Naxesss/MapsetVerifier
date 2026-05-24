@@ -67,6 +67,23 @@ export type ApiBeatmapSetCheckResult = {
   checks: Record<number, ApiCheckDefinition>;
 };
 
+export type ApiBeatmapStructureDifficulty = {
+  category: string;
+  beatmapId?: number | null;
+  mode: Mode;
+  starRating?: number | null;
+};
+
+export type ApiBeatmapStructure = {
+  difficulties: ApiBeatmapStructureDifficulty[];
+};
+
+export type CheckProgress = {
+  completed: number;
+  total: number;
+  label: string | null;
+};
+
 export type ApiCategoryOverrideCheckResult = {
   categoryResult: ApiCategoryCheckResult;
   checks: Record<number, ApiCheckDefinition>;

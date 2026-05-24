@@ -5,7 +5,6 @@ import {
   useMantineTheme,
   Group,
   Flex,
-  LoadingOverlay,
   Collapse,
 } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
@@ -40,6 +39,7 @@ function Checks() {
   >(undefined);
   const [selectedMode, setSelectedMode] = React.useState<Mode | undefined>();
   const difficultyTransitionDurationMs = 220;
+  const checkResultsTransitionDurationMs = 320;
 
   useEffect(() => {
     // Reset selected category when changing beatmap
@@ -51,10 +51,13 @@ function Checks() {
     }
   }, [folder]);
 
-  const { data, isLoading, isError, error, beatmapFolderPath } = useBeatmapChecks({
-    folder,
-    songFolder: settings.songFolder,
-  });
+  const { data, isLoading, isError, error, beatmapFolderPath, progress, structure } =
+    useBeatmapChecks({
+      folder,
+      songFolder: settings.songFolder,
+    });
+  const areCheckResultsExpanded = !!data && !isLoading;
+  const levelIconsLoading = isLoading;
 
   const { bgUrl } = useBeatmapBackground(folder, settings.songFolder);
 
@@ -74,7 +77,20 @@ function Checks() {
     }, [resetOverrides]),
   );
 
-  const selectedDifficulty = data?.difficulties?.find((d) => d.category === selectedCategory);
+  const difficultiesForTabs = useMemo((): ApiCategoryCheckResult[] => {
+    if (data?.difficulties) return data.difficulties;
+    if (!structure?.difficulties) return [];
+
+    return structure.difficulties.map((difficulty) => ({
+      category: difficulty.category,
+      beatmapId: difficulty.beatmapId ?? undefined,
+      checkResults: [],
+      mode: difficulty.mode,
+      starRating: difficulty.starRating ?? null,
+    }));
+  }, [data?.difficulties, structure?.difficulties]);
+
+  const selectedDifficulty = difficultiesForTabs.find((d) => d.category === selectedCategory);
   const displayedDifficulty = data?.difficulties?.find((d) => d.category === displayedCategory);
   const selectedOverrideResult = selectedCategory ? getOverrideResult(selectedCategory) : undefined;
   const displayedOverrideResult = displayedCategory
@@ -83,12 +99,12 @@ function Checks() {
   const currentOverrideLevel = displayedCategory ? getOverrideLevel(displayedCategory) : undefined;
 
   useEffect(() => {
-    if (!data) return;
+    if (difficultiesForTabs.length === 0) return;
 
     const nextCategory = selectedCategory ?? 'General';
     const categoryExists =
       nextCategory === 'General' ||
-      data.difficulties.some((difficulty) => difficulty.category === nextCategory);
+      difficultiesForTabs.some((difficulty) => difficulty.category === nextCategory);
 
     if (!categoryExists) {
       setSelectedCategory('General');
@@ -97,13 +113,15 @@ function Checks() {
       return;
     }
 
+    if (!data) return;
+
     if (displayedCategory === nextCategory) {
       setIsDifficultyContentVisible(true);
       return;
     }
 
     setIsDifficultyContentVisible(false);
-  }, [data, selectedCategory, displayedCategory]);
+  }, [data, difficultiesForTabs, selectedCategory, displayedCategory]);
 
   const handleDifficultyContentTransitionEnd = React.useCallback(() => {
     if (isDifficultyContentVisible) return;
@@ -142,7 +160,7 @@ function Checks() {
   }, [data, settings.showMinor, settings.hiddenMinorCheckIds, overrides]);
 
   const groupedDifficulties = useMemo(() => {
-    if (!data?.difficulties) return [];
+    if (difficultiesForTabs.length === 0) return [];
 
     // Group difficulties by mode
     const modeGroups: Record<Mode, ApiCategoryCheckResult[]> = {
@@ -152,7 +170,7 @@ function Checks() {
       Mania: [],
     };
 
-    for (const diff of data.difficulties) {
+    for (const diff of difficultiesForTabs) {
       const mode = diff.mode ?? 'Standard';
       modeGroups[mode].push(diff);
     }
@@ -174,7 +192,7 @@ function Checks() {
     setSelectedMode(result[0].mode);
 
     return result;
-  }, [data?.difficulties]);
+  }, [difficultiesForTabs]);
   const selectedGroup =
     groupedDifficulties.find((g) => g.mode === selectedMode) ?? groupedDifficulties[0];
 
@@ -206,7 +224,6 @@ function Checks() {
         justifyContent: 'flex-start',
       }}
     >
-      <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
       <BeatmapHeader bgUrl={bgUrl}>
         <Group gap="sm">
           <BeatmapActionButtons
@@ -214,20 +231,24 @@ function Checks() {
             beatmapSetId={beatmapInfo?.beatmapSetId ?? undefined}
             onReparse={triggerReparse}
           />
-          <GameModeSelector
-            groupedDifficulties={groupedDifficulties}
-            selectedMode={selectedMode}
-            onModeChange={setSelectedMode}
-            categoryHighestLevels={categoryHighestLevels}
-          />
+          {groupedDifficulties.length > 0 && (
+            <GameModeSelector
+              groupedDifficulties={groupedDifficulties}
+              selectedMode={selectedMode}
+              onModeChange={setSelectedMode}
+              categoryHighestLevels={categoryHighestLevels}
+              levelLoading={levelIconsLoading}
+            />
+          )}
         </Group>
-        {data?.difficulties && selectedGroup && (
+        {selectedGroup && (
           <DifficultyTabSelector
             tabs={selectedGroup.difficulties.map((diff) => ({
               id: diff.category,
               label: diff.category,
               starRating: diff.starRating,
               level: categoryHighestLevels[diff.category] ?? 'Check',
+              levelLoading: levelIconsLoading,
             }))}
             selectedId={selectedCategory}
             onSelect={setSelectedCategory}
@@ -243,12 +264,13 @@ function Checks() {
             hoverRestoreId={selectedDifficulty?.category}
             highlightGeneralWhenIdle
             generalLevel={categoryHighestLevels[GENERAL_TAB_ID] ?? 'Check'}
+            levelLoading={levelIconsLoading}
             showLevelIcons
           />
         )}
       </BeatmapHeader>
       {isError && (
-        <Alert icon={<IconAlertCircle />} color="red" title="Error loading checks">
+        <Alert icon={<IconAlertCircle />} color="red" title="Error loading checks" m="md">
           <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
             {error?.message}
           </Text>
@@ -260,44 +282,65 @@ function Checks() {
           {error?.stackTrace && <StackTraceMessage stackTrace={error.stackTrace} />}
         </Alert>
       )}
-      {data && (
+      {(isLoading || data) && (
         <Flex gap="sm" p="md" direction="column" bg="dark.6">
-          <DifficultyInfo
-            hoveredDifficulty={hoveredDifficulty}
-            selectedCategory={selectedCategory}
-            categoryHighestLevels={categoryHighestLevels}
-            currentOverrideResult={selectedOverrideResult}
-          />
-          <Collapse
-            in={isDifficultyContentVisible}
-            transitionDuration={difficultyTransitionDurationMs}
-            animateOpacity={false}
-            onTransitionEnd={handleDifficultyContentTransitionEnd}
-          >
-            {displayedDifficulty && (
-              <DifficultyLevelOverride
-                selectedDifficulty={displayedDifficulty}
-                currentOverrideLevel={currentOverrideLevel}
-                isLoading={isOverrideLoading}
-                onOverrideChange={(category, level) => {
-                  if (level === null) {
-                    clearOverride(category);
-                  } else {
-                    applyOverride(category, level);
-                  }
-                }}
-              />
-            )}
+          {isLoading && (
             <ChecksResults
-              data={data}
-              isLoading={isLoading}
-              isError={isError}
-              error={error}
+              isLoading
+              isError={false}
+              progress={progress}
               showMinor={settings.showMinor}
               hiddenMinorCheckIds={settings.hiddenMinorCheckIds}
               selectedCategory={displayedCategory}
-              overrideResult={displayedOverrideResult}
             />
+          )}
+
+          <Collapse
+            in={areCheckResultsExpanded}
+            transitionDuration={checkResultsTransitionDurationMs}
+            animateOpacity
+          >
+            {data && (
+              <>
+                <DifficultyInfo
+                  hoveredDifficulty={hoveredDifficulty}
+                  selectedCategory={selectedCategory}
+                  categoryHighestLevels={categoryHighestLevels}
+                  currentOverrideResult={selectedOverrideResult}
+                />
+                <Collapse
+                  in={isDifficultyContentVisible}
+                  transitionDuration={difficultyTransitionDurationMs}
+                  animateOpacity={false}
+                  onTransitionEnd={handleDifficultyContentTransitionEnd}
+                >
+                  {displayedDifficulty && (
+                    <DifficultyLevelOverride
+                      selectedDifficulty={displayedDifficulty}
+                      currentOverrideLevel={currentOverrideLevel}
+                      isLoading={isOverrideLoading}
+                      onOverrideChange={(category, level) => {
+                        if (level === null) {
+                          clearOverride(category);
+                        } else {
+                          applyOverride(category, level);
+                        }
+                      }}
+                    />
+                  )}
+                  <ChecksResults
+                    data={data}
+                    isLoading={false}
+                    isError={isError}
+                    error={error}
+                    showMinor={settings.showMinor}
+                    hiddenMinorCheckIds={settings.hiddenMinorCheckIds}
+                    selectedCategory={displayedCategory}
+                    overrideResult={displayedOverrideResult}
+                  />
+                </Collapse>
+              </>
+            )}
           </Collapse>
         </Flex>
       )}

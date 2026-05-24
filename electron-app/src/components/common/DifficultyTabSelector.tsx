@@ -12,6 +12,7 @@ export type DifficultyTab = {
   label: string;
   starRating?: number | null;
   level?: Level;
+  levelLoading?: boolean;
   leading?: ReactNode;
 };
 
@@ -29,6 +30,7 @@ export interface DifficultyTabSelectorProps {
   generalLevel?: Level;
   generalLeading?: ReactNode;
   showLevelIcons?: boolean;
+  levelLoading?: boolean;
 }
 
 const labelStyle = {
@@ -51,6 +53,7 @@ function DifficultyTabSelector({
   generalLevel,
   generalLeading,
   showLevelIcons = false,
+  levelLoading = false,
 }: DifficultyTabSelectorProps) {
   const theme = useMantineTheme();
   const diffButtonBg = alpha(theme.colors.dark[5], 0.55);
@@ -101,8 +104,12 @@ function DifficultyTabSelector({
           }
         >
           <Flex gap="xs" align="center">
-            {showLevelIcons && generalLevel != null && (
-              <LevelIcon level={generalLevel} size={24} />
+            {showLevelIcons && (generalLevel != null || levelLoading) && (
+              <LevelIcon
+                level={generalLevel ?? 'Check'}
+                size={24}
+                loading={levelLoading}
+              />
             )}
             {generalLeading}
             <Text c="white">General</Text>
@@ -130,8 +137,12 @@ function DifficultyTabSelector({
               bd={isActive ? `1px solid ${srColor}` : '1px solid transparent'}
             >
               <Flex gap="xs" align="center">
-                {showLevelIcons && tab.level != null && (
-                  <LevelIcon level={tab.level} size={24} />
+                {showLevelIcons && (tab.level != null || tab.levelLoading) && (
+                  <LevelIcon
+                    level={tab.level ?? 'Check'}
+                    size={24}
+                    loading={tab.levelLoading}
+                  />
                 )}
                 {tab.leading}
                 <DifficultyColorPill color={srColor} />

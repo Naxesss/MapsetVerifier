@@ -331,11 +331,62 @@ public static class BeatmapService
     private static bool IsSupportedImageFile(string filePath) =>
         SupportedImageExtensions.Contains(Path.GetExtension(filePath).ToLowerInvariant());
 
-    public static ApiBeatmapSetCheckResult RunBeatmapSetChecks(string beatmapSetFolder)
+    public static ApiBeatmapStructure GetBeatmapSetStructure(string beatmapSetFolder)
+    {
+        var beatmapSet = CreateBeatmapSet(beatmapSetFolder);
+        return BuildBeatmapStructure(beatmapSet);
+    }
+
+    public static (BeatmapSet BeatmapSet, ApiBeatmapStructure Structure) ParseBeatmapSet(
+        string beatmapSetFolder
+    )
+    {
+        var beatmapSet = CreateBeatmapSet(beatmapSetFolder);
+        return (beatmapSet, BuildBeatmapStructure(beatmapSet));
+    }
+
+    public static ApiBeatmapSetCheckResult RunBeatmapSetChecks(
+        string beatmapSetFolder,
+        IProgress<CheckProgress>? progress = null
+    )
+    {
+        var (beatmapSet, _) = ParseBeatmapSet(beatmapSetFolder);
+        return RunBeatmapSetChecks(beatmapSet, progress);
+    }
+
+    public static ApiBeatmapSetCheckResult RunBeatmapSetChecks(
+        BeatmapSet beatmapSet,
+        IProgress<CheckProgress>? progress = null
+    )
+    {
+        var issues = Checker.GetBeatmapSetIssues(beatmapSet, progress);
+        return BuildBeatmapSetCheckResult(beatmapSet, issues);
+    }
+
+    private static BeatmapSet CreateBeatmapSet(string beatmapSetFolder)
     {
         var beatmapSet = new BeatmapSet(beatmapSetFolder);
         beatmapSet.ClearInterpretedDifficultyOverrides();
-        var issues = Checker.GetBeatmapSetIssues(beatmapSet);
+        return beatmapSet;
+    }
+
+    private static ApiBeatmapStructure BuildBeatmapStructure(BeatmapSet beatmapSet) =>
+        new(
+            beatmapSet
+                .Beatmaps.Select(beatmap => new ApiBeatmapStructureDifficulty(
+                    category: beatmap.MetadataSettings.version,
+                    beatmapId: beatmap.MetadataSettings.beatmapId,
+                    mode: beatmap.GeneralSettings.mode,
+                    starRating: beatmap.StarRating
+                ))
+                .ToList()
+        );
+
+    private static ApiBeatmapSetCheckResult BuildBeatmapSetCheckResult(
+        BeatmapSet beatmapSet,
+        List<Issue> issues
+    )
+    {
         var checksById = CheckerRegistry.GetChecksWithId();
 
         var generalIssues = issues.Where(issue => issue.CheckOrigin is GeneralCheck).ToArray();

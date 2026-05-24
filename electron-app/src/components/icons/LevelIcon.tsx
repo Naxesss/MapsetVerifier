@@ -1,4 +1,4 @@
-﻿import { Text } from '@mantine/core';
+﻿import { Loader, Text } from '@mantine/core';
 import ErrorIcon from './ErrorIcon.tsx';
 import InfoLevelIcon from './InfoLevelIcon.tsx';
 import MinorIcon from './MinorIcon.tsx';
@@ -7,7 +7,15 @@ import ProblemIcon from './ProblemIcon.tsx';
 import WarningIcon from './WarningIcon.tsx';
 import { Level } from '../../Types.ts';
 
-function LevelIcon({ level, size = 32 }: { level: Level; size?: number }) {
+function LevelIcon({
+  level,
+  size = 32,
+  loading = false,
+}: {
+  level: Level;
+  size?: number;
+  loading?: boolean;
+}) {
   const wrap = (node: React.ReactNode) => (
     <div
       style={{
@@ -21,6 +29,10 @@ function LevelIcon({ level, size = 32 }: { level: Level; size?: number }) {
       {node}
     </div>
   );
+
+  if (loading) {
+    return wrap(<Loader size="xs" color="blue" />);
+  }
 
   switch (level) {
     case 'Check':

@@ -22,9 +22,20 @@ namespace MapsetVerifier.Framework
         }
 
         /// <summary> Returns a list of issues sorted by level, in the given beatmap set. </summary>
-        public static List<Issue> GetBeatmapSetIssues(BeatmapSet beatmapSet)
+        public static List<Issue> GetBeatmapSetIssues(
+            BeatmapSet beatmapSet,
+            IProgress<CheckProgress>? progress = null
+        )
         {
             var issueBag = new ConcurrentBag<Issue>();
+            var total = CountCheckTasks(beatmapSet);
+            CheckProgressTracker? tracker = null;
+
+            if (progress != null)
+            {
+                tracker = new CheckProgressTracker(total, progress);
+                progress.Report(new CheckProgress(0, total, "Starting checks…"));
+            }
 
             TryGetIssuesParallel(
                 CheckerRegistry.GetGeneralChecks(),
@@ -37,24 +48,21 @@ namespace MapsetVerifier.Framework
                             .Reverse()
                     )
                         issueBag.Add(issue.WithOrigin(generalCheck));
-                }
+                },
+                tracker,
+                check => check.GetMetadata().Message
             );
 
             Parallel.ForEach(
                 beatmapSet.Beatmaps,
                 beatmap =>
                 {
+                    var applicableChecks = GetApplicableBeatmapChecks(beatmap);
+
                     TryGetIssuesParallel(
-                        CheckerRegistry.GetBeatmapChecks(),
+                        applicableChecks,
                         beatmapCheck =>
                         {
-                            var modesToCheck = (
-                                (BeatmapCheckMetadata)beatmapCheck.GetMetadata()
-                            ).Modes;
-
-                            if (!modesToCheck.Contains(beatmap.GeneralSettings.mode))
-                                return;
-
                             foreach (
                                 var issue in beatmapCheck
                                     .GetIssues(beatmap)
@@ -62,24 +70,18 @@ namespace MapsetVerifier.Framework
                                     .Reverse()
                             )
                                 issueBag.Add(issue.WithOrigin(beatmapCheck));
-                        }
+                        },
+                        tracker,
+                        check =>
+                            $"{check.GetMetadata().Message} [{beatmap.MetadataSettings.version}]"
                     );
                 }
             );
 
             TryGetIssuesParallel(
-                CheckerRegistry.GetBeatmapSetChecks(),
+                GetApplicableBeatmapSetChecks(beatmapSet),
                 beatmapSetCheck =>
                 {
-                    var modesToCheck = ((BeatmapCheckMetadata)beatmapSetCheck.GetMetadata()).Modes;
-
-                    if (
-                        !beatmapSet.Beatmaps.Any(beatmap =>
-                            modesToCheck.Contains(beatmap.GeneralSettings.mode)
-                        )
-                    )
-                        return;
-
                     foreach (
                         var issue in beatmapSetCheck
                             .GetIssues(beatmapSet)
@@ -87,18 +89,62 @@ namespace MapsetVerifier.Framework
                             .Reverse()
                     )
                         issueBag.Add(issue.WithOrigin(beatmapSetCheck));
-                }
+                },
+                tracker,
+                check => check.GetMetadata().Message
             );
 
             return issueBag.OrderByDescending(issue => issue.level).ToList();
         }
 
-        private static void TryGetIssuesParallel<T>(IEnumerable<T> checks, Action<T> action)
+        private static int CountCheckTasks(BeatmapSet beatmapSet)
+        {
+            var total = CheckerRegistry.GetGeneralChecks().Count();
+
+            foreach (var beatmap in beatmapSet.Beatmaps)
+                total += GetApplicableBeatmapChecks(beatmap).Count();
+
+            total += GetApplicableBeatmapSetChecks(beatmapSet).Count();
+
+            return total;
+        }
+
+        private static IEnumerable<BeatmapCheck> GetApplicableBeatmapChecks(Beatmap beatmap) =>
+            CheckerRegistry
+                .GetBeatmapChecks()
+                .Where(beatmapCheck =>
+                {
+                    var modesToCheck = ((BeatmapCheckMetadata)beatmapCheck.GetMetadata()).Modes;
+                    return modesToCheck.Contains(beatmap.GeneralSettings.mode);
+                });
+
+        private static IEnumerable<BeatmapSetCheck> GetApplicableBeatmapSetChecks(
+            BeatmapSet beatmapSet
+        ) =>
+            CheckerRegistry
+                .GetBeatmapSetChecks()
+                .Where(beatmapSetCheck =>
+                {
+                    var modesToCheck = ((BeatmapCheckMetadata)beatmapSetCheck.GetMetadata()).Modes;
+                    return beatmapSet.Beatmaps.Any(beatmap =>
+                        modesToCheck.Contains(beatmap.GeneralSettings.mode)
+                    );
+                });
+
+        private static void TryGetIssuesParallel<T>(
+            IEnumerable<T> checks,
+            Action<T> action,
+            CheckProgressTracker? tracker,
+            Func<T, string>? getLabel = null
+        )
             where T : Check =>
             Parallel.ForEach(
                 checks,
                 check =>
                 {
+                    var label = getLabel?.Invoke(check) ?? check.GetMetadata().Message;
+                    tracker?.ReportStarted(label);
+
                     try
                     {
                         action(check);
@@ -108,6 +154,10 @@ namespace MapsetVerifier.Framework
                         exception.Data.Add("Check", check);
 
                         throw;
+                    }
+                    finally
+                    {
+                        tracker?.ReportCompleted();
                     }
                 }
             );
