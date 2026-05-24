@@ -26,6 +26,11 @@ export interface ElectronAPI {
   platform: NodeJS.Platform;
   getVersion(): Promise<string>;
 
+  app: {
+    getAppFolderPath(): Promise<string>;
+    getExternalsFolderPath(): Promise<string>;
+  };
+
   window: {
     minimize(): Promise<void>;
     maximize(): Promise<void>;

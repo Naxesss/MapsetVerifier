@@ -14,14 +14,16 @@
   Box,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconAlertTriangle, IconFolder, IconNote, IconRefresh } from '@tabler/icons-react';
+import { IconAlertTriangle, IconBrandGithub, IconFolder, IconNote, IconRefresh, IconWorld } from '@tabler/icons-react';
 import React, { useEffect, useState } from 'react';
 import AdvancedAudioWarningModal from './AdvancedAudioWarningModal';
 import LazerLookupWarningModal from './LazerLookupWarningModal';
 import MinorChecksFilterModal from './MinorChecksFilterModal';
+import { SOURCE_CODE_URL, WEBSITE_URL } from '../../Constants.ts';
 import { useDocumentation } from '../../context/DocumentationContext.tsx';
 import { useSettings } from '../../context/SettingsContext';
 import { useUpdater } from '../../context/UpdaterContext';
+import { useOpenExternal } from '../../hooks/useOpenExternal';
 import {
   DEFAULT_UI_FONT_FAMILY,
   UI_FONT_FAMILY_OPTIONS,
@@ -38,6 +40,7 @@ interface SettingsModalProps {
 const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
   const { settings, setSettings } = useSettings();
   const { checkForUpdates, openUpdater, currentVersion, currentVersionIsPrerelease } = useUpdater();
+  const openExternal = useOpenExternal();
   const [songFolder, setSongFolder] = useState(settings.songFolder ?? '');
   const [showMinor, setShowMinor] = useState(settings.showMinor);
   const [showGamemodeDifficultyNames, setShowGamemodeDifficultyNames] = useState(
@@ -98,6 +101,26 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
       alert('Folder picker failed: ' + msg);
     }
   };
+
+  const openFolder = async (getPath: () => Promise<string | undefined>) => {
+    try {
+      const folderPath = await getPath();
+      if (!folderPath) return;
+      const err = await window.electronAPI?.shell.openPath(folderPath);
+      if (err) throw new Error(err);
+    } catch (e) {
+      console.error('[SettingsModal] Failed to open folder:', e);
+      alert('Failed to open folder. See console for details.');
+    }
+  };
+
+  const openAppFolder = () =>
+    openFolder(() => window.electronAPI?.app.getAppFolderPath() ?? Promise.resolve(undefined));
+
+  const openExternalsFolder = () =>
+    openFolder(
+      () => window.electronAPI?.app.getExternalsFolderPath() ?? Promise.resolve(undefined)
+    );
 
   const isDev = import.meta.env.DEV;
 
@@ -267,6 +290,43 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
               });
             }}
           />
+          <Divider my="xs" />
+          <Button.Group w="100%">
+            <Button
+              variant="default"
+              flex={1}
+              leftSection={<IconFolder size={18} />}
+              onClick={() => void openAppFolder()}
+            >
+              Open app folder
+            </Button>
+            <Button
+              variant="default"
+              flex={1}
+              leftSection={<IconFolder size={18} />}
+              onClick={() => void openExternalsFolder()}
+            >
+              Open externals folder
+            </Button>
+          </Button.Group>
+          <Button.Group w="100%">
+            <Button
+              variant="default"
+              flex={1}
+              leftSection={<IconBrandGithub size={18} />}
+              onClick={() => void openExternal(SOURCE_CODE_URL)}
+            >
+              Source code
+            </Button>
+            <Button
+              variant="default"
+              flex={1}
+              leftSection={<IconWorld size={18} />}
+              onClick={() => void openExternal(WEBSITE_URL)}
+            >
+              Website
+            </Button>
+          </Button.Group>
           {isDev && (
             <>
               <Divider my="sm" />
