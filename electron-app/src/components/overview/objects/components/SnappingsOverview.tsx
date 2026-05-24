@@ -1,12 +1,12 @@
 import { Badge, Group, Paper, Stack, Table, Text, Title, useMantineTheme } from '@mantine/core';
 import { CSSProperties, useMemo } from 'react';
 import { EdgeTimesPopover } from './EdgeTimesPopover.tsx';
+import ObjectsGameModeSelector from './ObjectsGameModeSelector.tsx';
 import AppTable, {
   DifficultyTableCell,
   DifficultyTableHeaderCell,
 } from '../../../common/AppTable.tsx';
 import GameModeIcon from '../../../icons/GameModeIcon.tsx';
-import ObjectsGameModeSelector from './ObjectsGameModeSelector.tsx';
 import { buildRoundedEdgePartNameMap, getSnappingColumns } from '../timelineUtils.ts';
 import type { Mode, ObjectsOverviewDifficulty, ObjectsSnappingBucket } from '../../../../Types';
 import type { ObjectsModeGroup } from '../types.ts';
