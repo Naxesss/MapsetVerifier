@@ -2,6 +2,7 @@ import {
   Alert,
   Box,
   Flex,
+  Grid,
   LoadingOverlay,
   Paper,
   SimpleGrid,
@@ -176,11 +177,13 @@ function DifficultyOverview() {
                     <Text fw={600} c={theme.colors.gray[2]}>
                       Skill Strain Analysis
                     </Text>
-                    <SimpleGrid cols={{ base: 1, lg: 2, xl: 3 }} spacing="md">
+                    <Grid grow gutter="md">
                       {skillCharts.map((chart) => (
-                        <DifficultyChartCard key={chart.title} chart={chart} chartState={chartState} />
+                        <Grid.Col key={chart.title} span={{ base: 12, lg: 6, xl: 4 }}>
+                          <DifficultyChartCard chart={chart} chartState={chartState} />
+                        </Grid.Col>
                       ))}
-                    </SimpleGrid>
+                    </Grid>
                   </>
                 )}
               </>
