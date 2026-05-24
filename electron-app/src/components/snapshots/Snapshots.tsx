@@ -22,7 +22,9 @@ import { useBeatmap } from '../../context/BeatmapContext';
 import { useBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
 import { useSettings } from '../../context/SettingsContext';
 import { ApiSnapshotDifficulty, Mode } from '../../Types';
-import BeatmapActionButtons from '../checks/BeatmapActionButtons';
+import BeatmapActionButtons, {
+  SnapshotFolderTarget,
+} from '../checks/BeatmapActionButtons';
 import { useBeatmapBackground } from '../checks/hooks/useBeatmapBackground';
 import BeatmapHeader from '../common/BeatmapHeader';
 import DifficultyTabSelector from '../common/DifficultyTabSelector';
@@ -107,6 +109,21 @@ function Snapshots() {
     [data, selectedDifficulty],
   );
 
+  const snapshotFolder = useMemo((): SnapshotFolderTarget | null => {
+    const beatmapSetId = beatmapInfo?.beatmapSetId;
+    if (!beatmapSetId || beatmapSetId < 0) return null;
+    if (isLoading || !data || data.errorMessage) return null;
+
+    if (selectedDifficulty === 'General') {
+      return { beatmapSetId, subfolder: 'files' };
+    }
+
+    const beatmapId = selectedSnapshotDifficulty?.beatmapId;
+    if (!beatmapId) return null;
+
+    return { beatmapSetId, subfolder: String(beatmapId) };
+  }, [beatmapInfo?.beatmapSetId, data, isLoading, selectedDifficulty, selectedSnapshotDifficulty]);
+
   useEffect(() => {
     if (!activeSnapshotHistory?.commits.length) {
       setSelectedCommitId(undefined);
@@ -146,6 +163,7 @@ function Snapshots() {
             beatmapFolderPath={beatmapFolderPath}
             beatmapSetId={beatmapInfo?.beatmapSetId ?? undefined}
             onReparse={triggerReparse}
+            snapshotFolder={snapshotFolder}
           />
           <SnapshotGameModeSelector
             groupedDifficulties={groupedDifficulties}

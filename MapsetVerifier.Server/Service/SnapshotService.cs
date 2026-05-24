@@ -22,7 +22,8 @@ public static class SnapshotService
                 beatmap.MetadataSettings.version,
                 isGeneral: false,
                 starRating: beatmap.StarRating,
-                mode: beatmap.GeneralSettings.mode
+                mode: beatmap.GeneralSettings.mode,
+                beatmapId: beatmap.MetadataSettings.beatmapId
             ))
         );
 

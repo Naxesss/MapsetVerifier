@@ -129,6 +129,7 @@ export type ApiSnapshotDifficulty = {
   isGeneral: boolean;
   starRating: number | null;
   mode: Mode | null;
+  beatmapId: number | null;
 };
 
 export type ApiSnapshotHistory = {

@@ -42,7 +42,8 @@ public readonly struct ApiSnapshotDifficulty(
     string name,
     bool isGeneral,
     double? starRating = null,
-    Beatmap.Mode? mode = null
+    Beatmap.Mode? mode = null,
+    ulong? beatmapId = null
 )
 {
     /// <summary>
@@ -64,6 +65,11 @@ public readonly struct ApiSnapshotDifficulty(
     /// The game mode of the difficulty (null for General).
     /// </summary>
     public Beatmap.Mode? Mode { get; } = mode;
+
+    /// <summary>
+    /// The beatmap ID for this difficulty (null for General).
+    /// </summary>
+    public ulong? BeatmapId { get; } = beatmapId;
 }
 
 /// <summary>

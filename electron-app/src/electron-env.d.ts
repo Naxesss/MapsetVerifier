@@ -29,6 +29,10 @@ export interface ElectronAPI {
   app: {
     getAppFolderPath(): Promise<string>;
     getExternalsFolderPath(): Promise<string>;
+    getSnapshotFolderPath(
+      beatmapSetId: number | string,
+      subfolder?: string | null
+    ): Promise<string | null>;
   };
 
   window: {
