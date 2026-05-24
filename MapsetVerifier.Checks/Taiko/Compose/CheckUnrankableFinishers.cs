@@ -185,7 +185,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                         yield return new Issue(
                             GetTemplate(Problem),
                             beatmap,
-                            Timestamp.Get(current.time)
+                            Timestamp.Get(current)
                         ).ForDifficulties(diff);
                         continue;
                     }
@@ -226,7 +226,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                         yield return new Issue(
                             GetTemplate(Warning),
                             beatmap,
-                            Timestamp.Get(current.time)
+                            Timestamp.Get(current)
                         ).ForDifficulties(diff);
                     }
                 }
