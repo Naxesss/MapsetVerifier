@@ -425,10 +425,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             if (IsStylisedMarkerException(inner, matchedText))
                 return false;
 
-            if (
-                ContainsQuotedSegment(inner)
-                && HasCanonicalVerSuffix(matchedText)
-            )
+            if (ContainsQuotedSegment(inner) && HasCanonicalVerSuffix(matchedText))
                 return false;
 
             if (IsHandledByStandardMarker(inner) || IsHandledByStandardMarker(matchedText))
