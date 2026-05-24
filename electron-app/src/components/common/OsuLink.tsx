@@ -4,6 +4,10 @@ import React from 'react';
 // Matches patterns like 00:04:714 -, 00:04:714 (1,2) -, or -12.5 -
 const TIMESTAMP_REGEX = /((\d{2}:\d{2}:\d{3})(?: \([^)]+\))?|(-\d+(?:\.\d+)?)) -/g;
 
+function buildOsuEditHref(timestamp: string) {
+  return `osu://edit/${timestamp.replace(/ /g, '%20')}`;
+}
+
 interface OsuLinkProps {
   text: string;
   /** When true, omit the ` -` printed after each timestamp link (issue copy keeps it; table cells often don’t). */
@@ -22,9 +26,8 @@ const OsuLink: React.FC<OsuLinkProps> = ({ text, disableSeparators = false }) =>
 
   while ((match = TIMESTAMP_REGEX.exec(text)) !== null) {
     const fullMatch = match[0];
+    const displayTimestamp = match[1];
     const positiveTimestamp = match[2];
-    const negativeTimestamp = match[3];
-    const timestampLabel = positiveTimestamp ?? negativeTimestamp;
     const isClickableTimestamp = Boolean(positiveTimestamp);
     const start = match.index;
 
@@ -34,9 +37,9 @@ const OsuLink: React.FC<OsuLinkProps> = ({ text, disableSeparators = false }) =>
       <React.Fragment key={`osu-link-${start}`}>
         {isClickableTimestamp ? (
           <Anchor
-            href={`osu://edit/${timestampLabel}`}
+            href={buildOsuEditHref(displayTimestamp)}
             underline="never"
-            aria-label={`Edit at ${timestampLabel}`}
+            aria-label={`Edit at ${displayTimestamp}`}
             style={{
               fontFamily: theme.fontFamilyMonospace,
               padding: `0 ${theme.spacing.xs}`,
@@ -60,7 +63,7 @@ const OsuLink: React.FC<OsuLinkProps> = ({ text, disableSeparators = false }) =>
               e.currentTarget.style.boxShadow = 'none';
             }}
           >
-            {timestampLabel}
+            {displayTimestamp}
           </Anchor>
         ) : (
           <Text
@@ -72,7 +75,7 @@ const OsuLink: React.FC<OsuLinkProps> = ({ text, disableSeparators = false }) =>
               backgroundColor: baseBg,
             }}
           >
-            {timestampLabel}
+            {displayTimestamp}
           </Text>
         )}
         {!disableSeparators ? ' -' : null}
