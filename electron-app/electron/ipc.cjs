@@ -4,6 +4,18 @@ const path = require('path');
 const sidecar = require('./sidecar.cjs');
 
 const SETTINGS_FILE = 'settings.json';
+const EXTERNALS_FOLDER_NAME = 'Mapset Verifier Externals';
+
+function resolveBackendAppDataRoot() {
+  if (process.platform === 'linux') {
+    return process.env.XDG_DATA_HOME || path.join(app.getPath('home'), '.local', 'share');
+  }
+  return app.getPath('appData');
+}
+
+function externalsFolderPath() {
+  return path.join(resolveBackendAppDataRoot(), EXTERNALS_FOLDER_NAME);
+}
 
 function settingsPath() {
   return path.join(app.getPath('userData'), SETTINGS_FILE);
@@ -84,6 +96,16 @@ function registerIpc(getMainWindow) {
 
   ipcMain.handle('app:version', () => app.getVersion());
   ipcMain.handle('app:platform', () => process.platform);
+  ipcMain.handle('app:getAppFolderPath', async () => {
+    const dir = app.getPath('userData');
+    await fs.mkdir(dir, { recursive: true });
+    return dir;
+  });
+  ipcMain.handle('app:getExternalsFolderPath', async () => {
+    const dir = externalsFolderPath();
+    await fs.mkdir(dir, { recursive: true });
+    return dir;
+  });
 
   sidecar.onLog((line) => {
     const win = getMainWindow();

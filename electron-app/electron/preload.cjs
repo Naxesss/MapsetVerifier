@@ -11,6 +11,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   getVersion: () => ipcRenderer.invoke('app:version'),
 
+  app: {
+    getAppFolderPath: () => ipcRenderer.invoke('app:getAppFolderPath'),
+    getExternalsFolderPath: () => ipcRenderer.invoke('app:getExternalsFolderPath'),
+  },
+
   window: {
     minimize: () => ipcRenderer.invoke('window:minimize'),
     maximize: () => ipcRenderer.invoke('window:maximize'),
