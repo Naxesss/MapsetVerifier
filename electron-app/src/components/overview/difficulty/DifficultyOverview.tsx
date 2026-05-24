@@ -156,7 +156,7 @@ function DifficultyOverview() {
             <SummaryCard
               label="Peak interval"
               value={`${(data.msPerPeak / 1000).toFixed(1)}s`}
-              subValue="400ms strain windows"
+              subValue={`${data.msPerPeak}ms strain windows`}
             />
           </SimpleGrid>
 

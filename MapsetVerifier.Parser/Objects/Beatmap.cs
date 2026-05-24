@@ -185,9 +185,33 @@ namespace MapsetVerifier.Parser.Objects
         /// </summary>
         public Difficulty? InterpretedDifficultyOverride { get; set; }
 
-        // Star Rating
-        public double StarRating { get; }
-        public DifficultyAttributes? DifficultyAttributes { get; }
+        // Difficulty is expensive; defer until StarRating/Skills are needed, or until overview calls EnsureTimedAttributesCalculated.
+        private readonly object _difficultyLock = new();
+        private DifficultyAttributes? _difficultyAttributes;
+        private List<TimedDifficultyAttributes>? _timedAttributes;
+        private double _starRating;
+        private bool _attributesCalculated;
+        private bool _timedCalculated;
+
+        // Star Rating: calculated lazily on first access (see EnsureAttributesCalculated).
+        public double StarRating
+        {
+            get
+            {
+                EnsureAttributesCalculated();
+                return _starRating;
+            }
+        }
+
+        public DifficultyAttributes? DifficultyAttributes
+        {
+            get
+            {
+                EnsureAttributesCalculated();
+                return _difficultyAttributes;
+            }
+        }
+
         public Skill[] Skills { get; set; } = [];
 
         // Settings
@@ -253,11 +277,51 @@ namespace MapsetVerifier.Parser.Objects
                 // Stacking is standard-only.
                 ApplyStacking();
 
-            var attributes = new LocalDifficultyCalculator().CalculateAttributes(this);
+            // Parse-only ctor: difficulty calc runs lazily (see Ensure* methods below).
+        }
 
-            DifficultyAttributes = attributes;
+        /// <summary>
+        ///     Runs the standard difficulty calculation if it has not already been performed
+        ///     (including by <see cref="EnsureTimedAttributesCalculated" />).
+        /// </summary>
+        private void EnsureAttributesCalculated()
+        {
+            lock (_difficultyLock)
+            {
+                if (_attributesCalculated)
+                    return;
 
-            StarRating = attributes.StarRating;
+                var attributes = new LocalDifficultyCalculator().CalculateAttributes(this);
+                _difficultyAttributes = attributes;
+                _starRating = attributes.StarRating;
+                _attributesCalculated = true;
+            }
+        }
+
+        /// <summary>
+        ///     Runs the timed difficulty calculation once and caches the result for overview charts.
+        ///     Also populates <see cref="Skills" /> and final star rating without a separate attributes pass.
+        /// </summary>
+        public IReadOnlyList<TimedDifficultyAttributes> EnsureTimedAttributesCalculated()
+        {
+            lock (_difficultyLock)
+            {
+                if (_timedCalculated)
+                    return _timedAttributes!;
+
+                _timedAttributes = new LocalDifficultyCalculator().CalculateTimedAttributes(this);
+                _timedCalculated = true;
+
+                // Timed calc already produces final attributes/skills; skip a separate Calculate() pass.
+                if (_timedAttributes.Count > 0)
+                {
+                    _difficultyAttributes = _timedAttributes[^1].Attributes;
+                    _starRating = _difficultyAttributes.StarRating;
+                    _attributesCalculated = true;
+                }
+
+                return _timedAttributes;
+            }
         }
 
         public static void ClearCache()

@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Globalization;
 using MapsetVerifier.Parser.Difficulty;
 using MapsetVerifier.Parser.Objects;
@@ -17,6 +18,7 @@ public static class BeatmapAnalysisService
     private static readonly int[] SupportedSnapDivisors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 16];
     private const double TimelineMarginMs = 2000;
     private const int MsPerPeak = 400;
+    private const int MaxSamplePoints = 1500; // Widen the grid on long maps instead of sending thousands of chart points.
 
     public static BeatmapAnalysisResult Analyze(string beatmapSetFolder)
     {
@@ -79,8 +81,29 @@ public static class BeatmapAnalysisService
             if (beatmapSet.Beatmaps.Count == 0)
                 return DifficultyOverviewResult.CreateError("No beatmaps found in folder.");
 
-            var difficulties = beatmapSet.Beatmaps.Select(GetDifficultyOverviewDifficulty).ToList();
-            return DifficultyOverviewResult.CreateSuccess(MsPerPeak, difficulties);
+            var msPerPeak = ResolveMsPerPeak(beatmapSet.Beatmaps);
+            var difficulties = new ConcurrentBag<DifficultyOverviewDifficulty>();
+
+            // Each diff runs one timed calc. Safe to parallelize across beatmaps.
+            Parallel.ForEach(
+                beatmapSet.Beatmaps,
+                beatmap => difficulties.Add(GetDifficultyOverviewDifficulty(beatmap, msPerPeak))
+            );
+
+            // Parallel.ForEach loses set order; restore the BeatmapSet ordering.
+            var difficultiesByVersion = difficulties.ToDictionary(difficulty => difficulty.Version);
+            var orderedDifficulties = beatmapSet
+                .Beatmaps.Select(beatmap => difficultiesByVersion[beatmap.MetadataSettings.version])
+                .ToList();
+
+            return DifficultyOverviewResult.CreateSuccess(msPerPeak, orderedDifficulties);
+        }
+        catch (Exception ex) when (IsOperationCanceled(ex))
+        {
+            Log.Warning(ex, "Difficulty overview canceled for {Folder}", beatmapSetFolder);
+            return DifficultyOverviewResult.CreateError(
+                "Difficulty overview was canceled before it completed."
+            );
         }
         catch (Exception ex)
         {
@@ -89,6 +112,20 @@ public static class BeatmapAnalysisService
                 $"Difficulty overview analysis failed: {ex.Message}"
             );
         }
+    }
+
+    // Parallel.ForEach wraps per-diff cancel exceptions in AggregateException.
+    private static bool IsOperationCanceled(Exception exception)
+    {
+        if (exception is OperationCanceledException)
+            return true;
+
+        if (exception is AggregateException aggregateException)
+            return aggregateException
+                .Flatten()
+                .InnerExceptions.Any(inner => inner is OperationCanceledException);
+
+        return exception.InnerException != null && IsOperationCanceled(exception.InnerException);
     }
 
     private static List<DifficultyStatistics> GetStatistics(BeatmapSet beatmapSet)
@@ -264,10 +301,14 @@ public static class BeatmapAnalysisService
             .ToList();
     }
 
-    private static DifficultyOverviewDifficulty GetDifficultyOverviewDifficulty(Beatmap beatmap)
+    private static DifficultyOverviewDifficulty GetDifficultyOverviewDifficulty(
+        Beatmap beatmap,
+        int msPerPeak
+    )
     {
-        var timedAttributes = new LocalDifficultyCalculator().CalculateTimedAttributes(beatmap);
-        var pointCount = GetSamplePointCount(beatmap, timedAttributes);
+        // Single timed pass per diff (cached on the beatmap); used for SR curve + skill strain charts.
+        var timedAttributes = beatmap.EnsureTimedAttributesCalculated().ToList();
+        var pointCount = GetSamplePointCount(beatmap, timedAttributes, msPerPeak);
 
         return new DifficultyOverviewDifficulty
         {
@@ -276,23 +317,46 @@ public static class BeatmapAnalysisService
             Mode = beatmap.GeneralSettings.mode.ToString(),
             DifficultyLevel = beatmap.GetDifficulty().ToString(),
             StarRating = beatmap.StarRating,
-            StarRatingSamples = GetStarRatingSamples(beatmap, timedAttributes, pointCount),
+            StarRatingSamples = GetStarRatingSamples(
+                beatmap,
+                timedAttributes,
+                pointCount,
+                msPerPeak
+            ),
             SliderVelocitySamples = GetSliderVelocitySamples(beatmap),
             VolumeSamples = GetVolumeSamples(beatmap),
-            Skills = GetSkillSamples(beatmap, pointCount),
+            Skills = GetSkillSamples(beatmap, pointCount, msPerPeak),
         };
+    }
+
+    /// <summary>
+    ///     Keeps chart payloads bounded on marathon maps while staying at 400 ms on shorter ones.
+    /// </summary>
+    private static int ResolveMsPerPeak(IEnumerable<Beatmap> beatmaps)
+    {
+        var maxEndTimeMs = beatmaps.Select(GetMapEndTimeMs).DefaultIfEmpty(0).Max();
+        if (maxEndTimeMs <= 0)
+            return MsPerPeak;
+
+        var pointsAtBaseInterval = (int)Math.Ceiling(maxEndTimeMs / MsPerPeak) + 1;
+        if (pointsAtBaseInterval <= MaxSamplePoints)
+            return MsPerPeak;
+
+        var msPerPeak = (int)Math.Ceiling(maxEndTimeMs / (MaxSamplePoints - 1));
+        return Math.Max(MsPerPeak, (int)Math.Ceiling(msPerPeak / 50.0) * 50);
     }
 
     private static int GetSamplePointCount(
         Beatmap beatmap,
-        List<osu.Game.Rulesets.Difficulty.TimedDifficultyAttributes> timedAttributes
+        List<osu.Game.Rulesets.Difficulty.TimedDifficultyAttributes> timedAttributes,
+        int msPerPeak
     )
     {
         if (timedAttributes.Count == 0)
             return 0;
 
         var finalTime = GetFinalSampleTimeMs(beatmap, timedAttributes);
-        return Math.Max(1, (int)Math.Ceiling(finalTime / MsPerPeak) + 1);
+        return Math.Max(1, (int)Math.Ceiling(finalTime / msPerPeak) + 1);
     }
 
     private static double GetMapEndTimeMs(Beatmap beatmap)
@@ -342,19 +406,20 @@ public static class BeatmapAnalysisService
         return Math.Max(timingMax, objectsMax);
     }
 
-    private static double GetFirstStrainSectionEndMs(Beatmap beatmap)
+    private static double GetFirstStrainSectionEndMs(Beatmap beatmap, int msPerPeak)
     {
         if (beatmap.HitObjects.Count == 0)
-            return MsPerPeak;
+            return msPerPeak;
 
         var firstObjectTime = beatmap.HitObjects.Min(hitObject => hitObject.time);
-        return Math.Ceiling(firstObjectTime / MsPerPeak) * MsPerPeak;
+        return Math.Ceiling(firstObjectTime / msPerPeak) * msPerPeak;
     }
 
     private static List<DifficultySamplePoint> GetStarRatingSamples(
         Beatmap beatmap,
         List<osu.Game.Rulesets.Difficulty.TimedDifficultyAttributes> timedAttributes,
-        int pointCount
+        int pointCount,
+        int msPerPeak
     )
     {
         if (timedAttributes.Count == 0 || pointCount == 0)
@@ -367,7 +432,7 @@ public static class BeatmapAnalysisService
 
         for (var index = 0; index < pointCount; index++)
         {
-            var sampleTime = index * MsPerPeak;
+            var sampleTime = index * msPerPeak;
 
             while (
                 timedIndex < timedAttributes.Count && timedAttributes[timedIndex].Time <= sampleTime
@@ -462,7 +527,11 @@ public static class BeatmapAnalysisService
         return samples;
     }
 
-    private static List<DifficultySkillData> GetSkillSamples(Beatmap beatmap, int pointCount)
+    private static List<DifficultySkillData> GetSkillSamples(
+        Beatmap beatmap,
+        int pointCount,
+        int msPerPeak
+    )
     {
         if (pointCount == 0)
             return [];
@@ -472,7 +541,7 @@ public static class BeatmapAnalysisService
             .Select(skill => new DifficultySkillData
             {
                 SkillName = GetSkillName(skill, beatmap),
-                StrainSamples = GetStrainSkillSamples(skill, beatmap, pointCount),
+                StrainSamples = GetStrainSkillSamples(skill, beatmap, pointCount, msPerPeak),
             })
             .ToList();
     }
@@ -480,11 +549,12 @@ public static class BeatmapAnalysisService
     private static List<DifficultySamplePoint> GetStrainSkillSamples(
         StrainSkill skill,
         Beatmap beatmap,
-        int pointCount
+        int pointCount,
+        int msPerPeak
     )
     {
         var peaks = skill.GetCurrentStrainPeaks().ToList();
-        var firstSectionEnd = GetFirstStrainSectionEndMs(beatmap);
+        var firstSectionEnd = GetFirstStrainSectionEndMs(beatmap, msPerPeak);
         var samples = new List<DifficultySamplePoint>(pointCount);
 
         var peakIndex = 0;
@@ -492,9 +562,9 @@ public static class BeatmapAnalysisService
 
         for (var index = 0; index < pointCount; index++)
         {
-            var sampleTime = firstSectionEnd + index * MsPerPeak;
+            var sampleTime = firstSectionEnd + index * msPerPeak;
 
-            while (peakIndex < peaks.Count && firstSectionEnd + peakIndex * MsPerPeak <= sampleTime)
+            while (peakIndex < peaks.Count && firstSectionEnd + peakIndex * msPerPeak <= sampleTime)
             {
                 currentPeak = peaks[peakIndex];
                 peakIndex++;
