@@ -425,6 +425,12 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             if (IsStylisedMarkerException(inner, matchedText))
                 return false;
 
+            if (
+                ContainsQuotedSegment(inner)
+                && HasCanonicalVerSuffix(matchedText)
+            )
+                return false;
+
             if (IsHandledByStandardMarker(inner) || IsHandledByStandardMarker(matchedText))
                 return false;
 
@@ -478,6 +484,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             || text.Contains('\'')
             || text.Contains('\u2018')
             || text.Contains('\u2019');
+
+        private static bool HasCanonicalVerSuffix(string matchedText) =>
+            matchedText.Contains(" Ver.", StringComparison.Ordinal);
 
         private Issue CreateGuidelineVerIssue(string titleType, string title, string suggested) =>
             new(

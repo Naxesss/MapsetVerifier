@@ -189,7 +189,8 @@ public class CheckTitleMarkersTests
     [Theory]
     [InlineData("TERABYTE (\"XETTABYTE\" Long Ver.)")]
     [InlineData("TERABƔTE (\"X∑TTABƔTE\" Long Ver.)")]
-    public void DoesNotFlagLongVerWithQuotedStylisedPrefix(string title)
+    [InlineData("#1f1e33 (Another long \"#ant1p01e\" Ver.)")]
+    public void DoesNotFlagQuotedStylisedVerMarkersWithCanonicalSuffix(string title)
     {
         using var context = CreateContext(title);
 
@@ -198,6 +199,22 @@ public class CheckTitleMarkersTests
         Assert.DoesNotContain(
             issues,
             issue => issue.message.Contains("should use guideline format")
+        );
+    }
+
+    [Fact]
+    public void FlagsQuotedStylisedVerMarkersWithNonCanonicalSuffix()
+    {
+        using var context = CreateContext("Song (feat. \"artist\" arrange ver.)");
+
+        var issues = context.RunGeneralCheck<CheckTitleMarkers>();
+
+        Assert.Contains(
+            issues,
+            issue =>
+                issue.level == Issue.Level.Warning
+                && issue.message.Contains("should use guideline format")
+                && issue.message.Contains("Arrange Ver.)")
         );
     }
 
