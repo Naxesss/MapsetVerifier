@@ -38,6 +38,7 @@ public class ObjectsOverviewDifficulty
     public List<ObjectsTimelineObject> TimelineObjects { get; set; } = [];
     public List<ObjectsTimingSegment> TimingSegments { get; set; } = [];
     public List<ObjectsSnappingBucket> Snappings { get; set; } = [];
+    public List<ObjectsTypeBucket> ObjectTypes { get; set; } = [];
     public List<double> UnsnappedEdgeTimesMs { get; set; } = [];
     public List<ObjectsTimelineSample> TimelineSamples { get; set; } = [];
     public List<ObjectsHitsoundGapPeriod> HitsoundGapPeriods { get; set; } = [];
@@ -104,4 +105,18 @@ public class ObjectsSnappingBucket
     public int Count { get; set; }
     public double Percentage { get; set; }
     public List<double> EdgeTimesMs { get; set; } = [];
+}
+
+public class ObjectsTypeBucket
+{
+    public string Label { get; set; } = string.Empty;
+    public int Count { get; set; }
+    public double Percentage { get; set; }
+    public List<ObjectsTypeEntry> Entries { get; set; } = [];
+}
+
+public class ObjectsTypeEntry
+{
+    public double TimeMs { get; set; }
+    public string Detail { get; set; } = string.Empty;
 }

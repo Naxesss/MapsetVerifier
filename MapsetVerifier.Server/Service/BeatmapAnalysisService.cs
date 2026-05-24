@@ -3,7 +3,9 @@ using System.Globalization;
 using MapsetVerifier.Parser.Difficulty;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
+using MapsetVerifier.Parser.Objects.HitObjects.Catch;
 using MapsetVerifier.Parser.Objects.HitObjects.Mania;
+using MapsetVerifier.Parser.Objects.HitObjects.Taiko;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
 using MapsetVerifier.Server.Model.BeatmapAnalysis;
@@ -712,6 +714,7 @@ public static class BeatmapAnalysisService
         }
 
         var totalSnapPoints = Math.Max(1, edgeCount);
+        var objectTypes = BuildObjectTypeBreakdown(beatmap);
 
         return new ObjectsOverviewDifficulty
         {
@@ -739,7 +742,140 @@ public static class BeatmapAnalysisService
                     EdgeTimesMs = snappingEdgeTimes[divisor],
                 })
                 .ToList(),
+            ObjectTypes = objectTypes,
         };
+    }
+
+    private static List<ObjectsTypeBucket> BuildObjectTypeBreakdown(Beatmap beatmap)
+    {
+        var counts = new Dictionary<string, int>(StringComparer.Ordinal);
+        var entriesByLabel = new Dictionary<string, List<ObjectsTypeEntry>>(StringComparer.Ordinal);
+
+        void Add(string label, double timeMs, string detail)
+        {
+            counts[label] = counts.GetValueOrDefault(label) + 1;
+
+            if (!entriesByLabel.TryGetValue(label, out var entries))
+            {
+                entries = [];
+                entriesByLabel[label] = entries;
+            }
+
+            entries.Add(new ObjectsTypeEntry { TimeMs = timeMs, Detail = detail });
+        }
+
+        switch (beatmap.GeneralSettings.mode)
+        {
+            case Beatmap.Mode.Standard:
+                foreach (var hitObject in beatmap.HitObjects)
+                {
+                    switch (hitObject.GetObjectType())
+                    {
+                        case "Circle":
+                            Add("Circles", hitObject.time, "Circle");
+                            break;
+                        case "Slider":
+                            Add("Sliders", hitObject.time, "Slider");
+                            break;
+                        case "Spinner":
+                            Add("Spinners", hitObject.time, "Spinner");
+                            break;
+                    }
+                }
+                break;
+
+            case Beatmap.Mode.Taiko:
+                foreach (var hitObject in beatmap.HitObjects)
+                {
+                    switch (hitObject)
+                    {
+                        case Spinner:
+                            Add("Spinners", hitObject.time, "Spinner");
+                            break;
+                        case Slider:
+                            Add("Sliders", hitObject.time, "Slider");
+                            break;
+                        case Circle:
+                            var isKat =
+                                hitObject.HasHitSound(HitObject.HitSounds.Clap)
+                                || hitObject.HasHitSound(HitObject.HitSounds.Whistle);
+                            var isBig = hitObject.IsFinisher();
+                            var detail = isBig
+                                ? isKat
+                                    ? "Big Kat"
+                                    : "Big Don"
+                                : isKat
+                                    ? "Kat"
+                                    : "Don";
+                            var label = isBig
+                                ? isKat
+                                    ? "Big Kats"
+                                    : "Big Dons"
+                                : isKat
+                                    ? "Kats"
+                                    : "Dons";
+
+                            Add(label, hitObject.time, detail);
+                            break;
+                    }
+                }
+                break;
+
+            case Beatmap.Mode.Catch:
+                foreach (var hitObject in beatmap.HitObjects)
+                {
+                    switch (hitObject)
+                    {
+                        case Fruit:
+                            Add("Fruits", hitObject.time, "Fruit");
+                            break;
+                        case Bananas:
+                            Add("Spinners", hitObject.time, "Spinner");
+                            break;
+                        case JuiceStream juiceStream:
+                            Add("Slider heads", juiceStream.time, "Slider head");
+                            foreach (var part in juiceStream.Parts)
+                            {
+                                var partLabel = part.Kind switch
+                                {
+                                    JuiceStream.JuiceStreamPart.PartKind.Repeat => "Slider repeats",
+                                    JuiceStream.JuiceStreamPart.PartKind.Tail => "Slider tails",
+                                    JuiceStream.JuiceStreamPart.PartKind.Droplet => "Droplets",
+                                    _ => part.GetNoteTypeName(),
+                                };
+                                Add(partLabel, part.time, part.GetNoteTypeName());
+                            }
+                            break;
+                    }
+                }
+                break;
+
+            case Beatmap.Mode.Mania:
+                foreach (var hitObject in beatmap.HitObjects)
+                {
+                    if (hitObject is HoldNote)
+                        Add("Hold Notes", hitObject.time, "Hold Note");
+                    else
+                        Add("Notes", hitObject.time, "Note");
+                }
+                break;
+        }
+
+        var total = Math.Max(1, counts.Values.Sum());
+        return counts
+            .Select(entry => new ObjectsTypeBucket
+            {
+                Label = entry.Key,
+                Count = entry.Value,
+                Percentage = entry.Value * 100d / total,
+                Entries = entriesByLabel[entry.Key]
+                    .OrderBy(typeEntry => typeEntry.TimeMs)
+                    .ThenBy(typeEntry => typeEntry.Detail, StringComparer.Ordinal)
+                    .ToList(),
+            })
+            .OrderByDescending(bucket => bucket.Count)
+            .ThenBy(bucket => bucket.Label, StringComparer.Ordinal)
+            .ToList();
     }
 
     private static int? GetObjectComboColourIndex(Beatmap beatmap, HitObject hitObject)

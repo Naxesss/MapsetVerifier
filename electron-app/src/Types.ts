@@ -619,6 +619,21 @@ export type ObjectsOverviewDifficulty = {
   timelineSamples?: ObjectsTimelineSample[];
   /** Populated by server analysis; omit if using an older API. */
   hitsoundGapPeriods?: ObjectsHitsoundGapPeriod[];
+  /** Populated by server analysis; omit if using an older API. */
+  objectTypes?: ObjectsTypeBucket[];
+};
+
+export type ObjectsTypeBucket = {
+  label: string;
+  count: number;
+  percentage: number;
+  /** Populated by server analysis; omit if using an older API. */
+  entries?: ObjectsTypeEntry[];
+};
+
+export type ObjectsTypeEntry = {
+  timeMs: number;
+  detail: string;
 };
 
 export type ObjectsBreakPeriod = {

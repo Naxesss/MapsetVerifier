@@ -1,6 +1,7 @@
 ﻿import { Alert, Box, Flex, LoadingOverlay, SimpleGrid, Text } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
 import { useMemo } from 'react';
+import ObjectPercentagesOverview from './components/ObjectPercentagesOverview.tsx';
 import ObjectsTimelineComparison from './components/ObjectsTimelineComparison.tsx';
 import SnappingsOverview from './components/SnappingsOverview.tsx';
 import { useObjectsAnalysis } from './hooks/useObjectsAnalysis.ts';
@@ -109,8 +110,15 @@ function ObjectsOverview() {
           />
           <SnappingsOverview
             groupedDifficulties={groupedDifficulties}
-            totalUnsnappedCount={summary.unsnappedCount}
-            totalEdgeCount={summary.edgeCount}
+            selectedMode={selectedMode ?? selectedGroup?.mode}
+            onModeChange={setSelectedMode}
+            difficulties={selectedGroup?.difficulties ?? []}
+          />
+          <ObjectPercentagesOverview
+            groupedDifficulties={groupedDifficulties}
+            selectedMode={selectedMode ?? selectedGroup?.mode}
+            onModeChange={setSelectedMode}
+            difficulties={selectedGroup?.difficulties ?? []}
           />
         </Flex>
       )}
