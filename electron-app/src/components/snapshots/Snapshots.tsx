@@ -14,12 +14,9 @@ import { useSnapshots } from './hooks/useSnapshots';
 import SnapshotContent from './SnapshotContent';
 import SnapshotGameModeSelector from './SnapshotGameModeSelector';
 import {
-  difficultyHasAnyChanges,
   difficultyHasChangesAtCommit,
-  generalHasAnyChanges,
   generalHasChangesAtCommit,
   getSnapshotHistory,
-  resolveSnapshotCommitId,
 } from './snapshotHistory';
 import { useBeatmap } from '../../context/BeatmapContext';
 import { useBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
@@ -111,13 +108,17 @@ function Snapshots() {
   );
 
   useEffect(() => {
-    if (!data) {
+    if (!activeSnapshotHistory?.commits.length) {
+      setSelectedCommitId(undefined);
       return;
     }
-    setSelectedCommitId((current) =>
-      resolveSnapshotCommitId(data, activeSnapshotHistory, current),
-    );
-  }, [data, activeSnapshotHistory]);
+    setSelectedCommitId((current) => {
+      if (current && activeSnapshotHistory.commits.some((c) => c.id === current)) {
+        return current;
+      }
+      return activeSnapshotHistory.commits[0].id;
+    });
+  }, [activeSnapshotHistory]);
 
   if (!folder) {
     return <NoBeatmapsetDisplay />;
@@ -156,7 +157,7 @@ function Snapshots() {
           <DifficultyTabSelector
             generalLeading={
               <SnapshotDifficultyChangesIcon
-                hasChanges={generalHasAnyChanges(data)}
+                hasChanges={generalHasChangesAtCommit(data, selectedCommitId)}
                 size={24}
               />
             }
@@ -166,7 +167,7 @@ function Snapshots() {
               starRating: diff.starRating,
               leading: (
                 <SnapshotDifficultyChangesIcon
-                  hasChanges={difficultyHasAnyChanges(data, diff.name)}
+                  hasChanges={difficultyHasChangesAtCommit(data, diff.name, selectedCommitId)}
                   size={24}
                 />
               ),
