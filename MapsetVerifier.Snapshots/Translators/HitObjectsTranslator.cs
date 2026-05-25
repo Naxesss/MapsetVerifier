@@ -46,16 +46,18 @@ namespace MapsetVerifier.Snapshots.Translators
             {
                 Beatmap.Mode.Catch => HitObject.HasType(args, HitObject.Types.Circle)
                     ? new Fruit(args, beatmap)
-                : HitObject.HasType(args, HitObject.Types.Slider)
+                : HitObject.HasType(args, HitObject.Types.Slider) && args.Length >= 8
                     ? new JuiceStream(args, beatmap)
                 : new Bananas(args, beatmap),
                 _ => HitObject.HasType(args, HitObject.Types.Circle)
                     ? new Circle(args, beatmap)
-                : HitObject.HasType(args, HitObject.Types.Slider)
+                : HitObject.HasType(args, HitObject.Types.Slider) && args.Length >= 8
                     ? new Slider(args, beatmap)
-                : HitObject.HasType(args, HitObject.Types.ManiaHoldNote)
+                : HitObject.HasType(args, HitObject.Types.ManiaHoldNote) && args.Length >= 6 && args[5].Contains(":")
                     ? new HoldNote(args, beatmap)
-                : (HitObject)new Spinner(args, beatmap),
+                : HitObject.HasType(args, HitObject.Types.Spinner) && args.Length >= 6 && !args[5].Contains(":")
+                    ? new Spinner(args, beatmap)
+                : new HitObject(args, beatmap),
             };
         }
 
@@ -839,13 +841,8 @@ namespace MapsetVerifier.Snapshots.Translators
                     + (addedObject.volume?.ToString() ?? "inherited")
                     + ".";
 
-            var type = addedObject.GetObjectType();
-
-            if (type == "Slider")
+            if (addedObject is Slider addedSlider && removedObject is Slider removedSlider)
             {
-                var addedSlider = new Slider(addedObject.code.Split(','), beatmap);
-                var removedSlider = new Slider(removedObject.code.Split(','), beatmap);
-
                 if (addedSlider.CurveType != removedSlider.CurveType)
                     yield return "Curve type changed from "
                         + removedSlider.CurveType
@@ -1048,12 +1045,8 @@ namespace MapsetVerifier.Snapshots.Translators
                         + addedSlider.StartAddition.ToString().ToLower()
                         + ".";
             }
-
-            if (type == "Spinner")
+            else if (addedObject is Spinner addedSpinner && removedObject is Spinner removedSpinner)
             {
-                var addedSpinner = new Spinner(addedObject.code.Split(','), beatmap);
-                var removedSpinner = new Spinner(removedObject.code.Split(','), beatmap);
-
                 double addedDuration = addedSpinner.endTime - addedSpinner.time;
                 double removedDuration = removedSpinner.endTime - removedSpinner.time;
                 if (!addedDuration.AlmostEqual(removedDuration))
@@ -1063,12 +1056,8 @@ namespace MapsetVerifier.Snapshots.Translators
                         + addedSpinner.endTime
                         + ".";
             }
-
-            if (type == "Hold note")
+            else if (addedObject is HoldNote addedNote && removedObject is HoldNote removedNote)
             {
-                var addedNote = new HoldNote(addedObject.code.Split(','), beatmap);
-                var removedNote = new HoldNote(removedObject.code.Split(','), beatmap);
-
                 double addedDuration = addedNote.endTime - addedNote.time;
                 double removedDuration = removedNote.endTime - removedNote.time;
                 if (!addedDuration.AlmostEqual(removedDuration))
