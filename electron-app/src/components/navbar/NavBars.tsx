@@ -2,8 +2,8 @@
 import { useLocation } from "react-router-dom";
 import { MainNavRail } from "./MainNavRail";
 import { getActiveNavRoute } from "./navConfig";
-import Beatmaps from "../beatmaps/Beatmaps.tsx";
 import PageHintsButton from "./PageHintsButton.tsx";
+import Beatmaps from "../beatmaps/Beatmaps.tsx";
 import SettingsButton from "../settings/SettingsButton";
 
 interface NavBarsProps {
