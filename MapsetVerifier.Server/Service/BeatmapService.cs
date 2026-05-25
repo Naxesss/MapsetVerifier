@@ -389,7 +389,14 @@ public static class BeatmapService
     {
         var checksById = CheckerRegistry.GetChecksWithId();
 
-        var generalIssues = issues.Where(issue => issue.CheckOrigin is GeneralCheck).ToArray();
+        var setWideBeatmapSetIssues = issues
+            .Where(issue => issue.CheckOrigin is BeatmapSetCheck && issue.beatmap == null)
+            .ToArray();
+
+        var generalIssues = issues
+            .Where(issue => issue.CheckOrigin is GeneralCheck)
+            .Concat(setWideBeatmapSetIssues)
+            .ToArray();
 
         var apiBeatmapCheckResults = beatmapSet
             .Beatmaps.Select(beatmap =>
