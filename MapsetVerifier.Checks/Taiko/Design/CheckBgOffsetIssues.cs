@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
@@ -7,28 +7,31 @@ using MapsetVerifier.Parser.Objects;
 namespace MapsetVerifier.Checks.Taiko.Design
 {
     [Check]
-    public class CheckBgOffsetConsistency : BeatmapSetCheck
+    public class CheckBgOffsetIssues : BeatmapSetCheck
     {
-        private const string Minor = nameof(Issue.Level.Minor);
+        private const string Inconsistent = nameof(Inconsistent);
+        private const string XOffset = nameof(XOffset);
 
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata()
             {
-                Author = "Nostril",
+                Author = "Nostril, Hivie",
                 Category = "Design",
                 Modes = [Beatmap.Mode.Taiko],
-                Message = "Background offset inconsistencies",
+                Message = "Background offset issues",
                 Documentation = new Dictionary<string, string>()
                 {
                     {
                         "Purpose",
                         @"
-                    Pointing out background offset inconsistencies between osu!taikodifficulties."
+                    Pointing out background offset issues between osu!taiko difficulties."
                     },
                     {
                         "Reasoning",
                         @"
-                    Background offset should generally be consistent across osu!taiko difficulties that share the same background."
+                    Background offset should generally be consistent across osu!taiko difficulties that share the same background.
+                    
+                    In addition, horizontal (X axis) offset is very rare and often leaves black gaps in the playfield, so it should be double-checked when present."
                     },
                 },
             };
@@ -37,15 +40,26 @@ namespace MapsetVerifier.Checks.Taiko.Design
             new()
             {
                 {
-                    Minor,
+                    Inconsistent,
                     new IssueTemplate(
-                        Issue.Level.Minor,
+                        Issue.Level.Warning,
                         "\"{0}\" {1}: ({2})",
                         "Filename",
                         "Offset Coordinates",
                         "List of Difficulties"
                     ).WithCause(
                         "Background offset is inconsistent across difficulties. Make sure this is intentional."
+                    )
+                },
+                {
+                    XOffset,
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "\"{0}\" uses an X offset of {1}. Ensure this is intentional.",
+                        "Filename",
+                        "X offset"
+                    ).WithCause(
+                        "Horizontal background offset is rare in osu!taiko and often leaves black gaps in the playfield."
                     )
                 },
             };
@@ -67,20 +81,24 @@ namespace MapsetVerifier.Checks.Taiko.Design
                     var path = beatmapBg.path;
 
                     if (path == null)
-                    {
                         continue;
+
+                    var offset = beatmapBg.offset;
+                    if (offset == null)
+                        continue;
+
+                    var castOffset = (Vector2)offset;
+
+                    if (castOffset.X != 0)
+                    {
+                        yield return new Issue(GetTemplate(XOffset), beatmap, path, castOffset.X);
                     }
 
                     files.TryAdd(path, new Dictionary<Vector2, HashSet<string>>());
                     var file = files[path];
-                    var offset = beatmapBg.offset;
-                    if (offset == null)
-                        continue;
-                    var castOffset = (Vector2)offset;
                     file.TryAdd(castOffset, []);
 
-                    var diffNames = file[castOffset];
-                    diffNames.Add(beatmap.MetadataSettings.version);
+                    file[castOffset].Add(beatmap.MetadataSettings.version);
                 }
             }
 
@@ -92,16 +110,14 @@ namespace MapsetVerifier.Checks.Taiko.Design
 
                 // If the file only has a single recorded offset, there is no inconsistency
                 if (offsets.Count <= 1)
-                {
                     continue;
-                }
 
                 foreach (var offset in offsets)
                 {
                     var offsetCoords = offset.Key;
                     var diffNames = string.Join(", ", offset.Value);
                     yield return new Issue(
-                        GetTemplate(Minor),
+                        GetTemplate(Inconsistent),
                         null,
                         fileName,
                         offsetCoords,
