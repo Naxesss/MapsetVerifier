@@ -9,7 +9,6 @@ const SettingsButton: React.FC = () => {
   return (
     <>
       <NavLink
-        ml={'auto'}
         w={'unset'}
         label={<IconSettings />}
         onClick={() => setOpened(true)}

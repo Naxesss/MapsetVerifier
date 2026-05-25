@@ -1,13 +1,15 @@
 ﻿import { Alert, Box, Flex, LoadingOverlay, SimpleGrid, Text } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import ObjectPercentagesOverview from './components/ObjectPercentagesOverview.tsx';
 import ObjectsTimelineComparison from './components/ObjectsTimelineComparison.tsx';
 import SnappingsOverview from './components/SnappingsOverview.tsx';
+import { isHitsoundViewAvailable } from './hitsoundUtils.ts';
 import { useObjectsAnalysis } from './hooks/useObjectsAnalysis.ts';
 import { useObjectsOverviewModeSelection } from './hooks/useObjectsOverviewModeSelection.ts';
 import { formatDuration, formatTime } from './timelineUtils.ts';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
+import { usePageHints } from '../../../context/PageHintsContext.tsx';
 import { useSettings } from '../../../context/SettingsContext.tsx';
 import { type Mode, type ObjectsOverviewDifficulty } from '../../../Types';
 import { MODE_ORDER, normalizeMode } from '../../../utils/gameMode';
@@ -18,6 +20,7 @@ import type { ObjectsModeGroup } from './types.ts';
 
 function ObjectsOverview() {
   const { selectedFolder: folder } = useBeatmap();
+  const { setObjectsHasHitsoundModes } = usePageHints();
   const { settings } = useSettings();
   const { data, isLoading, isError, error } = useObjectsAnalysis({
     folder,
@@ -44,6 +47,16 @@ function ObjectsOverview() {
       difficulties: grouped.get(mode) ?? [],
     }));
   }, [data]);
+
+  const hasHitsoundModes = useMemo(
+    () => groupedDifficulties.some((group) => isHitsoundViewAvailable(group.mode)),
+    [groupedDifficulties]
+  );
+
+  useEffect(() => {
+    setObjectsHasHitsoundModes(hasHitsoundModes);
+    return () => setObjectsHasHitsoundModes(false);
+  }, [hasHitsoundModes, setObjectsHasHitsoundModes]);
 
   const { selectedMode, setSelectedMode, selectedGroup } =
     useObjectsOverviewModeSelection(groupedDifficulties);

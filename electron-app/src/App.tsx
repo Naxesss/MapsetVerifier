@@ -18,6 +18,7 @@ import WindowBar from './components/window/WindowBar.tsx';
 import { BeatmapProvider, useBeatmap } from './context/BeatmapContext.tsx';
 import { BeatmapReparseProvider } from './context/BeatmapReparseRegistry.tsx';
 import { DocumentationProvider } from './context/DocumentationContext.tsx';
+import { PageHintsProvider } from './context/PageHintsContext.tsx';
 import { UpdaterProvider } from './context/UpdaterContext';
 import { useAppTheme } from './theme/useAppTheme.ts';
 import '@mantine/core/styles.css';
@@ -70,8 +71,9 @@ function App() {
         <WindowBar />
         <UpdaterProvider>
           <BeatmapProvider>
-            <BackendGate>
-              <DocumentationProvider>
+            <PageHintsProvider>
+              <BackendGate>
+                <DocumentationProvider>
                 <AppShell
                   header={{ height: 92 }}
                   navbar={{
@@ -99,6 +101,7 @@ function App() {
                 </AppShell>
               </DocumentationProvider>
             </BackendGate>
+            </PageHintsProvider>
           </BeatmapProvider>
           <UpdaterModal />
         </UpdaterProvider>

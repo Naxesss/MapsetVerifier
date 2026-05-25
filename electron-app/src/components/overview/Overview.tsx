@@ -1,5 +1,5 @@
 import { Box, Group, LoadingOverlay, SegmentedControl, useMantineTheme } from '@mantine/core';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AudioOverview from './audio/AudioOverview.tsx';
 import BeatmapOverview from './beatmap/BeatmapOverview.tsx';
 import DifficultyOverview from './difficulty/DifficultyOverview.tsx';
@@ -7,22 +7,28 @@ import MetadataOverview from './metadata/MetadataOverview.tsx';
 import ObjectsOverview from './objects/ObjectsOverview.tsx';
 import { useBeatmap } from '../../context/BeatmapContext.tsx';
 import { useBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
+import { usePageHints } from '../../context/PageHintsContext.tsx';
 import { useSettings } from '../../context/SettingsContext.tsx';
 import BeatmapActionButtons from '../checks/BeatmapActionButtons';
 import { useBeatmapBackground } from '../checks/hooks/useBeatmapBackground.ts';
 import BeatmapHeader from '../common/BeatmapHeader.tsx';
+import type { OverviewTab } from '../navbar/pageHints.tsx';
 
-type Tab = 'Metadata' | 'Beatmap' | 'Difficulty' | 'Audio' | 'Objects';
-
-const TABS: Tab[] = ['Metadata', 'Objects', 'Beatmap', 'Difficulty', 'Audio'];
+const TABS: OverviewTab[] = ['Metadata', 'Objects', 'Beatmap', 'Difficulty', 'Audio'];
 
 function Overview() {
   const theme = useMantineTheme();
   const { selectedFolder, beatmapFolderPath, beatmapInfo } = useBeatmap();
   const { triggerReparse } = useBeatmapReparse();
   const { settings } = useSettings();
+  const { setOverviewTab } = usePageHints();
   const { bgUrl, isLoading } = useBeatmapBackground(selectedFolder, settings.songFolder);
-  const [activeTab, setActiveTab] = useState<Tab>('Metadata');
+  const [activeTab, setActiveTab] = useState<OverviewTab>('Metadata');
+
+  useEffect(() => {
+    setOverviewTab(activeTab);
+    return () => setOverviewTab(null);
+  }, [activeTab, setOverviewTab]);
 
   return (
     <Box
@@ -49,7 +55,7 @@ function Overview() {
           />
           <SegmentedControl
             value={activeTab}
-            onChange={(value) => setActiveTab(value as Tab)}
+            onChange={(value) => setActiveTab(value as OverviewTab)}
             data={TABS}
             size="xs"
           />

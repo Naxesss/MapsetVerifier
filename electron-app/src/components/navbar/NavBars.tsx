@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { MainNavRail } from "./MainNavRail";
 import { getActiveNavRoute } from "./navConfig";
 import Beatmaps from "../beatmaps/Beatmaps.tsx";
+import PageHintsButton from "./PageHintsButton.tsx";
 import SettingsButton from "../settings/SettingsButton";
 
 interface NavBarsProps {
@@ -29,7 +30,10 @@ function NavBars(props: NavBarsProps) {
           <Burger opened={props.desktopOpened} onClick={props.toggleDesktop} size="sm" />
           <Group gap="xs" justify="space-between" align="center" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
             <MainNavRail activeRoute={activeRoute} />
-            <SettingsButton />
+            <Group gap={4} ml="auto" wrap="nowrap">
+              <PageHintsButton />
+              <SettingsButton />
+            </Group>
           </Group>
         </Group>
       </AppShell.Header>
