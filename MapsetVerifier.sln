@@ -1,4 +1,4 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
+Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapsetVerifier", "src\MapsetVerifier.csproj", "{2AE6F8E7-1D59-481D-A4E8-6D0145CB22A4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapsetVerifier.Framework", "MapsetVerifier.Framework\MapsetVerifier.Framework.csproj", "{E9EC73E5-C508-463B-957B-484601EAEBC5}"
@@ -18,6 +18,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapsetVerifier.Logging", "MapsetVerifier.Logging\MapsetVerifier.Logging.csproj", "{0886BE26-F4C3-4919-968D-7D569DF5B1B7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapsetVerifier.Exports", "MapsetVerifier.Exports\MapsetVerifier.Exports.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapsetVerifier.Snapshots.Tests", "MapsetVerifier.Snapshots.Tests\MapsetVerifier.Snapshots.Tests.csproj", "{68D15CB9-89A9-4CC3-8F2C-39ED15273B62}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -65,5 +67,9 @@ Global
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68D15CB9-89A9-4CC3-8F2C-39ED15273B62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68D15CB9-89A9-4CC3-8F2C-39ED15273B62}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68D15CB9-89A9-4CC3-8F2C-39ED15273B62}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68D15CB9-89A9-4CC3-8F2C-39ED15273B62}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
