@@ -341,13 +341,13 @@ namespace MapsetVerifier.Snapshots.Translators
                     var removedDiff = removedTuple.Item1;
                     var removedLine = removedTuple.Item2;
 
-                    // Fallback path (no DTW); pass 0 shift so the entry still carries
-                    // the "(originally ...)" marker the main path uses.
-                    var stamp = BuildRemovedStamp(removedLine.Offset, 0);
+                    // Fallback path (no DTW); pass 0 shift — produces a plain timestamp
+                    // and empty suffix, matching the main path's no-shift formatting.
+                    var (prefix, suffix) = BuildRemovedStamp(removedLine.Offset, 0);
                     var type = removedLine.Uninherited ? "Uninherited line" : "Inherited line";
 
                     yield return new DiffInstance(
-                        stamp + type + " removed.",
+                        prefix + type + " removed" + suffix + ".",
                         Section,
                         DiffType.Removed,
                         new List<string>(),
@@ -393,7 +393,7 @@ namespace MapsetVerifier.Snapshots.Translators
             // Detect the dominant shift via RANSAC voting across all matched pairs.
             // Independent of any hit-object shift: timing can shift without objects shifting
             // (e.g. mp3 offset adjustment on a sparse map) and vice versa.
-            var sections = BuildShiftSections(steps);
+            var sections = BuildShiftSections(steps, globalShiftHint);
 
             // Yield diffs for each section
             foreach (var section in sections)
@@ -428,11 +428,11 @@ namespace MapsetVerifier.Snapshots.Translators
                     {
                         // Display orphan removals at the dominant-shifted time so they
                         // appear next to surviving objects in the new timeline, with the
-                        // original pre-shift timestamp in parentheses for cross-reference
-                        // against the old beatmap.
-                        var stampObj = BuildRemovedStamp(s.OldLine.Offset, globalShiftHint);
+                        // original pre-shift timestamp appended in parentheses for cross-
+                        // reference against the old beatmap.
+                        var (prefix, suffix) = BuildRemovedStamp(s.OldLine.Offset, globalShiftHint);
                         yield return new DiffInstance(
-                            stampObj + typeObj + " removed.",
+                            prefix + typeObj + " removed" + suffix + ".",
                             Section,
                             DiffType.Removed,
                             new List<string>(),
@@ -510,16 +510,16 @@ namespace MapsetVerifier.Snapshots.Translators
             return uninherited.msPerBeat / 32.0;
         }
 
-        // Build a "<shifted> (originally <old>) - " prefix for orphan-removed entries
-        // when a non-zero global shift was detected. Falls back to a plain timestamp when
-        // no shift exists — the parenthetical would just repeat the primary stamp.
-        private static string BuildRemovedStamp(double oldTime, double shift)
+        // Returns (prefix, suffix) for an orphan-removed entry. Prefix carries the
+        // (shifted, if any) timestamp; suffix carries the "(originally <old>)"
+        // cross-reference appended after the message body.
+        // No shift -> suffix is empty (would just repeat the primary stamp).
+        private static (string prefix, string suffix) BuildRemovedStamp(double oldTime, double shift)
         {
             if (Math.Abs(shift) < 1.0)
-                return Timestamp.Get(oldTime);
+                return (Timestamp.Get(oldTime), "");
             string oldTrim = Timestamp.Get(oldTime).TrimEnd(' ', '-');
-            string shiftedTrim = Timestamp.Get(oldTime + shift).TrimEnd(' ', '-');
-            return $"{shiftedTrim} (originally {oldTrim}) - ";
+            return (Timestamp.Get(oldTime + shift), $" (originally {oldTrim})");
         }
 
         // Cluster every matched step's shift greedily within +/-ShiftTolerance. Any cluster
@@ -527,7 +527,7 @@ namespace MapsetVerifier.Snapshots.Translators
         // by -15ms collapse into a single "Section shifted by -15 ms" entry). Singleton
         // shifts, unmatched steps (add/remove), and the zero-shift "matched-but-unchanged"
         // group become per-step sections that the residual loop handles individually.
-        private static List<ShiftSection> BuildShiftSections(List<UnifiedStep> steps)
+        private static List<ShiftSection> BuildShiftSections(List<UnifiedStep> steps, double globalShiftHint)
         {
             var clusters = new List<List<UnifiedStep>>();
             var unmatched = new List<UnifiedStep>();
@@ -587,11 +587,17 @@ namespace MapsetVerifier.Snapshots.Translators
 
             foreach (var step in unmatched)
             {
+                // Sort by displayed time, not raw step time, so orphan removed entries
+                // (rendered at OldLine.Offset + globalShiftHint) interleave correctly with
+                // orphan added entries (rendered at NewLine.Offset).
+                double displayTime = step.NewLine != null
+                    ? step.NewLine.Offset
+                    : step.OldLine!.Offset + globalShiftHint;
                 var sec = new ShiftSection
                 {
                     Shift = 0.0,
-                    StartTime = GetStepTime(step),
-                    EndTime = GetStepTime(step),
+                    StartTime = displayTime,
+                    EndTime = displayTime,
                 };
                 sec.Steps.Add(step);
                 sections.Add(sec);

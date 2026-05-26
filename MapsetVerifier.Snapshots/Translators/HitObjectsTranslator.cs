@@ -430,13 +430,13 @@ namespace MapsetVerifier.Snapshots.Translators
                     var removedObject = removedTuple.Item2;
 
                     // No DTW available on the fallback path so shift is unknown; pass 0
-                    // through BuildRemovedStamp to keep the same "(originally ...)" format
-                    // as the main path for visual consistency.
-                    var stamp = BuildRemovedStamp(removedObject.time, 0);
+                    // through BuildRemovedStamp — produces a plain timestamp and an empty
+                    // suffix, identical formatting to the main path's no-shift case.
+                    var (prefix, suffix) = BuildRemovedStamp(removedObject.time, 0);
                     var type = removedObject.GetObjectType();
 
                     yield return new DiffInstance(
-                        stamp + type + " removed.",
+                        prefix + type + " removed" + suffix + ".",
                         Section,
                         DiffType.Removed,
                         new List<string>(),
@@ -490,11 +490,10 @@ namespace MapsetVerifier.Snapshots.Translators
                     {
                         // Render at the shifted time so removals appear in the same place
                         // as surviving / replacement objects in the new timeline; keep the
-                        // pre-shift time in parentheses so the user can still find it in
-                        // the old beatmap.
-                        var stampObj = BuildRemovedStamp(s.OldObj.time, globalShiftHint);
+                        // pre-shift time as a trailing parenthetical for cross-reference.
+                        var (prefix, suffix) = BuildRemovedStamp(s.OldObj.time, globalShiftHint);
                         yield return new DiffInstance(
-                            stampObj + typeObj + " removed.",
+                            prefix + typeObj + " removed" + suffix + ".",
                             Section,
                             DiffType.Removed,
                             new List<string>(),
@@ -606,17 +605,18 @@ namespace MapsetVerifier.Snapshots.Translators
             return uninherited.msPerBeat / 32.0;
         }
 
-        // Build a "<shifted> (originally <old>) - " prefix for orphan-removed entries
-        // when a non-zero global shift was detected (so the user can cross-reference the
-        // pre-shift time in the old beatmap). Falls back to a plain timestamp when no
-        // shift exists — the parenthetical would just repeat the primary stamp.
-        private static string BuildRemovedStamp(double oldTime, double shift)
+        // Returns (prefix, suffix) for an orphan-removed entry. Prefix carries the
+        // (shifted, if any) timestamp; suffix carries the "(originally <old>)" cross-
+        // reference and goes after the message body, e.g.
+        //   "01:34:480 - Circle removed (originally 01:34:471)."
+        // When no global shift exists, suffix is empty since it would just repeat the
+        // primary stamp.
+        private static (string prefix, string suffix) BuildRemovedStamp(double oldTime, double shift)
         {
             if (Math.Abs(shift) < 1.0)
-                return Timestamp.Get(oldTime);
+                return (Timestamp.Get(oldTime), "");
             string oldTrim = Timestamp.Get(oldTime).TrimEnd(' ', '-');
-            string shiftedTrim = Timestamp.Get(oldTime + shift).TrimEnd(' ', '-');
-            return $"{shiftedTrim} (originally {oldTrim}) - ";
+            return (Timestamp.Get(oldTime + shift), $" (originally {oldTrim})");
         }
 
         // "On-snap" means the object's time aligns with a common beat divisor within ~2ms.
@@ -760,11 +760,18 @@ namespace MapsetVerifier.Snapshots.Translators
 
             foreach (var step in unmatched)
             {
+                // Use the *displayed* time as the section's StartTime so the final sort
+                // mixes orphan removed and orphan added entries in the user-visible order.
+                // Orphan removed entries render at OldObj.time + globalShiftHint; orphan
+                // adds render at NewObj.time (already post-shift).
+                double displayTime = step.NewObj != null
+                    ? step.NewObj.time
+                    : step.OldObj!.time + globalShiftHint;
                 var sec = new ShiftSection
                 {
                     Shift = 0.0,
-                    StartTime = GetStepTime(step),
-                    EndTime = GetStepTime(step),
+                    StartTime = displayTime,
+                    EndTime = displayTime,
                     IsSectionShift = false,
                 };
                 sec.Steps.Add(step);
