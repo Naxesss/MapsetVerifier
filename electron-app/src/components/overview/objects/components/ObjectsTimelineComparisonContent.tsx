@@ -2,10 +2,12 @@ import { DndContext } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { ActionIcon, Box, Group, Paper, Select, Stack, Text } from "@mantine/core";
 import { IconEye, IconEyeOff } from "@tabler/icons-react";
+import { useMemo } from "react";
 import { LABEL_WIDTH } from "../constants.ts";
 import ObjectsGameModeSelector from "./ObjectsGameModeSelector.tsx";
 import SortableTimelineDifficultyRow from "./SortableTimelineDifficultyRow.tsx";
 import TimelineAxisRow from "./TimelineAxisRow.tsx";
+import TimelineShiftSeekModeBadge from "./TimelineShiftSeekModeBadge.tsx";
 import TimelineZoomControls from "./TimelineZoomControls.tsx";
 import {
     useTimelineController,
@@ -15,8 +17,10 @@ import {
 } from "../context/ObjectsTimelineContext.tsx";
 import { usePlayheadScrollPadding } from "../hooks/usePlayheadScrollPadding.ts";
 import { usePreserveTimelineScrollOnZoom } from "../hooks/usePreserveTimelineScrollOnZoom.ts";
+import { useShiftKeyHeld } from "../hooks/useShiftKeyHeld.ts";
+import { useTimelineWheelSeek } from "../hooks/useTimelineWheelSeek.ts";
 import { parseTimelineThemeVariant, TIMELINE_THEME_VARIANT_OPTIONS } from "../timelineTheme/selection.ts";
-import { getDifficultyKey } from "../timelineUtils.ts";
+import { buildTimelineSnapTicks, getDifficultyKey } from "../timelineUtils.ts";
 
 export type ObjectsTimelineComparisonContentProps = {
     showModeSelector?: boolean;
@@ -39,10 +43,40 @@ export default function ObjectsTimelineComparisonContent({
     const { scrollRef, isPanningTimeline, handleMouseDown, handleMouseMove, stopDragging } = useTimelinePan();
     const { startTimeMs, endTimeMs, timelineWidth } = useTimelineScale();
     const { viewMode, playheadViewportX } = useTimelineDisplay();
+
+    const {
+        mode: { groupedDifficulties, selectedMode, onModeChange },
+        rows: { orderedDifficulties },
+        visibility: { visibilityByDifficulty, setManyVisible },
+        display: { timelineThemeVariant, setTimelineThemeVariant },
+        dnd,
+    } = controller;
+
     const playheadScrollPadding = usePlayheadScrollPadding(scrollRef, playheadViewportX, {
         timelineWidth,
         startTimeMs,
         endTimeMs,
+    });
+
+    const snapTicks = useMemo(
+        () =>
+            buildTimelineSnapTicks(
+                orderedDifficulties.filter(
+                    (difficulty) => visibilityByDifficulty[getDifficultyKey(difficulty)] !== false,
+                ),
+                startTimeMs,
+                endTimeMs,
+            ),
+        [endTimeMs, orderedDifficulties, startTimeMs, visibilityByDifficulty],
+    );
+
+    useTimelineWheelSeek({
+        scrollRef,
+        playheadViewportX,
+        timelineWidth,
+        startTimeMs,
+        endTimeMs,
+        snapTicks,
     });
 
     usePreserveTimelineScrollOnZoom({
@@ -52,14 +86,6 @@ export default function ObjectsTimelineComparisonContent({
         endTimeMs,
         anchorViewportX: playheadViewportX,
     });
-
-    const {
-        mode: { groupedDifficulties, selectedMode, onModeChange },
-        rows: { orderedDifficulties },
-        visibility: { visibilityByDifficulty, setManyVisible },
-        display: { timelineThemeVariant, setTimelineThemeVariant },
-        dnd,
-    } = controller;
 
     const contentWidth = timelineWidth + LABEL_WIDTH;
     const scrollContentWidth = contentWidth + playheadScrollPadding.padLeft + playheadScrollPadding.padRight;
@@ -73,6 +99,8 @@ export default function ObjectsTimelineComparisonContent({
     const setSelectedDifficultyVisibility = (visible: boolean) => {
         setManyVisible(orderedDifficulties, visible);
     };
+
+    const shiftHeld = useShiftKeyHeld();
 
     return (
         <Stack gap="md">
@@ -124,6 +152,7 @@ export default function ObjectsTimelineComparisonContent({
             {aboveTimelineExtra}
 
             <Box pos="relative">
+                <TimelineShiftSeekModeBadge visible={shiftHeld} />
                 {playheadViewportX !== null && (
                     <Box
                         style={{

@@ -1,4 +1,4 @@
-import { List, Modal, Stack, Text, Title } from '@mantine/core';
+import { Kbd, List, Modal, Stack, Text, Title } from '@mantine/core';
 import HitsoundLegendContent from './HitsoundLegendContent.tsx';
 
 type ObjectsTimelineHelpModalProps = {
@@ -19,6 +19,13 @@ export default function ObjectsTimelineHelpModal({
           <Title order={5}>Navigation</Title>
           <List size="sm" spacing={4}>
             <List.Item>Drag horizontally in the timeline area to pan.</List.Item>
+            <List.Item>
+              Hold <Kbd size="xs">Shift</Kbd> over the timeline to enter{' '}
+              <strong>timeline scroll mode</strong>. While <Kbd size="xs">Shift</Kbd> is held,
+              scroll the wheel to step one timing snap tick forward (scroll down) or
+              backward (scroll up). Horizontal trackpad scrolling over the timeline also steps snap
+              ticks.
+            </List.Item>
             <List.Item>Use the zoom slider to stretch or compress time.</List.Item>
             <List.Item>Drag the grip on a row to reorder difficulties.</List.Item>
             <List.Item>Use the eye icons to show or hide individual rows.</List.Item>

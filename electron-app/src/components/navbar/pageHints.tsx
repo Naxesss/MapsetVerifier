@@ -97,6 +97,15 @@ export function getPageHints(
       const hints = [
         ...commonHints(isMac),
         contextClickHint('timeline-rclick', isMac, 'an object in the timeline to copy its timestamp.'),
+        {
+          id: 'timeline-scroll-mode',
+          content: (
+            <>
+              Hold <Kbd size="xs">Shift</Kbd> over the timeline for{' '}
+              <strong>timeline scroll mode</strong>. While <Kbd size="xs">Shift</Kbd> is held, the wheel steps timing snap ticks.
+            </>
+          ),
+        },
         ...(objectsHasHitsoundModes
           ? [
               {

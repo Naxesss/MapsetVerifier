@@ -40,19 +40,34 @@ export default function ObjectsTimelineFullViewModal({
   pan,
 }: ObjectsTimelineFullViewModalProps) {
   return (
-    <Modal
-      opened={opened}
-      onClose={onClose}
-      title="Timeline comparison"
-      size="100%"
-      centered
-      styles={{
-        content: { overflow: 'visible' },
-        body: { overflow: 'auto' },
-      }}
-    >
-      {opened && <ObjectsTimelineFullViewModalBody pan={pan} />}
-    </Modal>
+    <Modal.Root opened={opened} onClose={onClose} size="100%" centered>
+      <Modal.Overlay />
+      <Modal.Content
+        styles={{
+          content: {
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+          },
+        }}
+      >
+        <Modal.Header>
+          <Modal.Title>Timeline comparison</Modal.Title>
+          <Modal.CloseButton />
+        </Modal.Header>
+        <Modal.Body
+          styles={{
+            body: {
+              flex: 1,
+              minHeight: 0,
+              overflow: 'auto',
+            },
+          }}
+        >
+          {opened && <ObjectsTimelineFullViewModalBody pan={pan} />}
+        </Modal.Body>
+      </Modal.Content>
+    </Modal.Root>
   );
 }
 

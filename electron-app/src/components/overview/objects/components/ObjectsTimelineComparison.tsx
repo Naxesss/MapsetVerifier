@@ -94,7 +94,7 @@ export default function ObjectsTimelineComparison({
               <Stack gap={2}>
                 <Title order={4}>Timeline comparison</Title>
                 <Text size="sm" c="dimmed">
-                  Drag the grip to reorder rows. Drag horizontally in the timeline to pan.
+                  Drag the grip to reorder rows. Drag horizontally or shift + scroll to pan.
                   Hover or right click on objects for more info.
                 </Text>
               </Stack>

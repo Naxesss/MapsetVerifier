@@ -425,7 +425,12 @@ export function TimelineCrosshairFloatingPanel({
             </Text>
           </Group>
 
-          <ScrollArea.Autosize mah={PANEL_BODY_MAX_HEIGHT} offsetScrollbars type="scroll">
+          <ScrollArea.Autosize
+            mah={PANEL_BODY_MAX_HEIGHT}
+            offsetScrollbars
+            type="scroll"
+            data-timeline-wheel-ignore="true"
+          >
             <Box p="xs" mx="sm" pt={8}>
               <TimelineCrosshairPanelBody />
             </Box>

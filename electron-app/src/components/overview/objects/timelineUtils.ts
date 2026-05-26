@@ -99,6 +99,51 @@ export function getAlignedTimelineLineX(
   return Math.round(getTimelineX(timeMs, startTimeMs, durationMs, width)) + 0.5;
 }
 
+/** Next axis tick strictly after `timestampMs` (or the following grid line when already on a tick). */
+/** Next axis tick strictly after `timestampMs` (or the following grid line when already on a tick). */
+export function getNextTimelineTick(
+  timestampMs: number,
+  tickIntervalMs: number,
+  endTimeMs: number
+): number {
+  let nextTick = Math.ceil(timestampMs / tickIntervalMs) * tickIntervalMs;
+
+  if (nextTick <= timestampMs) {
+    nextTick += tickIntervalMs;
+  }
+
+  return Math.min(endTimeMs, nextTick);
+}
+
+/** Previous axis tick strictly before `timestampMs` (or the prior grid line when already on a tick). */
+export function getPreviousTimelineTick(
+  timestampMs: number,
+  tickIntervalMs: number,
+  startTimeMs: number
+): number {
+  let previousTick = Math.floor(timestampMs / tickIntervalMs) * tickIntervalMs;
+
+  if (previousTick >= timestampMs) {
+    previousTick -= tickIntervalMs;
+  }
+
+  return Math.max(startTimeMs, previousTick);
+}
+
+export function stepTimelineSeekTimestamp(
+  timestampMs: number,
+  direction: 1 | -1,
+  startTimeMs: number,
+  endTimeMs: number,
+  tickIntervalMs: number
+): number {
+  if (direction === 1) {
+    return getNextTimelineTick(timestampMs, tickIntervalMs, endTimeMs);
+  }
+
+  return getPreviousTimelineTick(timestampMs, tickIntervalMs, startTimeMs);
+}
+
 export function getDifficultyKey(difficulty: ObjectsOverviewDifficulty) {
   return `${normalizeMode(difficulty.mode)}::${difficulty.version}`;
 }
@@ -320,6 +365,81 @@ export function buildTimelineRowDrawCache(
       ? buildHitsoundDrawCache(timelineObjects, samples ?? [])
       : undefined,
   };
+}
+
+/** Visible timing-grid snap ticks (same rules as `drawTimingGrid`). */
+export function buildTimelineSnapTicks(
+  difficulties: ObjectsOverviewDifficulty[],
+  startTimeMs: number,
+  endTimeMs: number
+): number[] {
+  const roundedEdgeTimes = new Set<number>();
+  const tickTimes = new Set<number>();
+
+  for (const difficulty of difficulties) {
+    for (const edgeTimeMs of buildRoundedEdgeTimes(difficulty.timelineObjects)) {
+      roundedEdgeTimes.add(edgeTimeMs);
+    }
+
+    for (const segment of difficulty.timingSegments) {
+      const sampleStepMs = segment.msPerBeat / TIMING_SAMPLES_PER_BEAT;
+      if (sampleStepMs <= 0) {
+        continue;
+      }
+
+      const visibleStartMs = Math.max(startTimeMs, segment.startTimeMs);
+      const visibleEndMs = Math.min(endTimeMs, segment.endTimeMs);
+      if (visibleEndMs <= visibleStartMs) {
+        continue;
+      }
+
+      const startSampleIndex = Math.max(
+        0,
+        Math.ceil((visibleStartMs - segment.offsetMs) / sampleStepMs)
+      );
+      const endSampleIndex = Math.floor((visibleEndMs - segment.offsetMs) / sampleStepMs);
+
+      for (let sampleIndex = startSampleIndex; sampleIndex <= endSampleIndex; sampleIndex += 1) {
+        const timeMs = segment.offsetMs + sampleIndex * sampleStepMs;
+        const hasNearbyEdge = hasNearbyRoundedEdge(roundedEdgeTimes, timeMs);
+        if (getTimingTickStyle(sampleIndex, segment.meter, hasNearbyEdge)) {
+          tickTimes.add(timeMs);
+        }
+      }
+    }
+  }
+
+  return Array.from(tickTimes).sort((left, right) => left - right);
+}
+
+export function getAdjacentTimingSnapTick(
+  sortedTicks: number[],
+  timestampMs: number,
+  direction: 1 | -1,
+  startTimeMs: number,
+  endTimeMs: number
+): number {
+  if (sortedTicks.length === 0) {
+    return Math.max(startTimeMs, Math.min(endTimeMs, timestampMs));
+  }
+
+  if (direction === 1) {
+    for (const tick of sortedTicks) {
+      if (tick > timestampMs + 1e-6) {
+        return Math.min(endTimeMs, tick);
+      }
+    }
+
+    return endTimeMs;
+  }
+
+  for (let index = sortedTicks.length - 1; index >= 0; index -= 1) {
+    if (sortedTicks[index] < timestampMs - 1e-6) {
+      return Math.max(startTimeMs, sortedTicks[index]);
+    }
+  }
+
+  return startTimeMs;
 }
 
 /** Beat snap colors aligned with osu! editor / timeline tick grid. */
