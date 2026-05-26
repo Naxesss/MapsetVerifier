@@ -6,6 +6,7 @@ import {
   getHitsoundCircleOuterRadius,
   getSamplesetColor,
   getSecondaryHitsoundColors,
+  hasSliderBodyAddition,
   SAMPLESET_BODY_ALPHA,
   type HitsoundLayerVisibility,
   type TimelineViewMode,
@@ -700,6 +701,24 @@ function drawObjectBody(
     color,
     visualTheme.sliderBody
   );
+
+  if (
+    isHitsoundView &&
+    timelineObject.objectType === 'Slider' &&
+    hasSliderBodyAddition(timelineObject.hitSoundFlags ?? 0)
+  ) {
+    ctx.save();
+    ctx.strokeStyle = withAlpha(
+      getDominantHitsoundColor(timelineObject.hitSoundFlags ?? 0),
+      0.85
+    );
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(bodyBounds.startX, centerY);
+    ctx.lineTo(bodyBounds.endX, centerY);
+    ctx.stroke();
+    ctx.restore();
+  }
 }
 
 function drawObjectMarker(

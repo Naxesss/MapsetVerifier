@@ -26,7 +26,11 @@ import {
 import {
   formatSampleBankLine,
   getHitsoundTypesFromFlags,
+  HITSOUND_FLAG_CLAP,
+  HITSOUND_FLAG_FINISH,
   HITSOUND_FLAG_NORMAL,
+  HITSOUND_FLAG_WHISTLE,
+  parseHitSoundFlags,
   type HitsoundTypeDisplay,
 } from "../hitsoundUtils.ts";
 import { formatEditorTimestamp, getDifficultyKey } from "../timelineUtils.ts";
@@ -121,14 +125,25 @@ function HitsoundTypeSwatch({ type }: { type: HitsoundTypeDisplay }) {
   );
 }
 
-function formatHitsoundPartLabel(partName: string, sampleSource: string | null): string {
+function formatHitsoundPartLabel(
+  partName: string,
+  sampleSource: string | null,
+  sample: ObjectsTimelineSample | null
+): string {
   if (sampleSource === "Body") {
+    if (sample?.hitSound && sample.hitSound !== "Normal") {
+      return `Slider body (${sample.hitSound.toLowerCase()})`;
+    }
     return "Slider body";
   }
   if (sampleSource === "Tick") {
     return "Slider tick";
   }
   return partName;
+}
+
+function hasBodyAdditionFlags(flags: number): boolean {
+  return (flags & (HITSOUND_FLAG_WHISTLE | HITSOUND_FLAG_FINISH | HITSOUND_FLAG_CLAP)) !== 0;
 }
 
 function HitsoundSampleDetail({
@@ -142,13 +157,20 @@ function HitsoundSampleDetail({
   sample: ObjectsTimelineSample | null;
   sampleSource: string | null;
 }) {
-  const hitsoundTypes = getHitsoundTypesFromFlags(hitSoundFlags || HITSOUND_FLAG_NORMAL);
-  const showAdditions = sampleSource === "Edge";
+  const bodyFlags =
+    sampleSource === "Body" && sample?.hitSound
+      ? parseHitSoundFlags(sample.hitSound)
+      : hitSoundFlags;
+  const resolvedFlags = bodyFlags || HITSOUND_FLAG_NORMAL;
+  const hitsoundTypes = getHitsoundTypesFromFlags(resolvedFlags);
+  const showAdditions =
+    sampleSource === "Edge" ||
+    (sampleSource === "Body" && hasBodyAdditionFlags(resolvedFlags));
 
   return (
     <Stack gap={4}>
       <Text size="sm" fw={500}>
-        {formatHitsoundPartLabel(partName, sampleSource)}
+        {formatHitsoundPartLabel(partName, sampleSource, sample)}
       </Text>
       {showAdditions && (
         <Group gap={6} wrap="wrap" align="center">
@@ -167,7 +189,7 @@ function HitsoundSampleDetail({
         </Text>
       ) : (
         <Text size="xs" c="dimmed">
-          No sample bank at this edge
+          No sample bank at this point
         </Text>
       )}
     </Stack>

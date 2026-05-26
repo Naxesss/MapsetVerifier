@@ -34,28 +34,47 @@ function EdgeMarkerPreview({ color }: { color: string }) {
   );
 }
 
-function BodyMarkerPreview({ color }: { color: string }) {
+function BodyMarkerPreview({
+  color,
+  additionColor,
+  scale = 1,
+}: {
+  color: string;
+  additionColor?: string;
+  scale?: number;
+}) {
+  const width = BODY_MARKER_WIDTH * scale;
+  const height = BODY_MARKER_HEIGHT * scale;
+  const borderWidth = scale >= 2 ? 2 : 1.5;
+
   return (
     <Box
       style={{
-        width: BODY_MARKER_WIDTH,
-        height: BODY_MARKER_HEIGHT,
+        width,
+        height,
         background: color,
+        boxSizing: 'border-box',
+        border: additionColor ? `${borderWidth}px solid ${additionColor}` : undefined,
+        flexShrink: 0,
       }}
     />
   );
 }
 
-function TickMarkerPreview({ color }: { color: string }) {
+function TickMarkerPreview({ color, scale = 1 }: { color: string; scale?: number }) {
+  const radius = TICK_MARKER_RADIUS * scale;
+  const size = radius * 2;
+
   return (
     <Box
       style={{
-        width: TICK_MARKER_RADIUS * 2,
-        height: TICK_MARKER_RADIUS * 2,
+        width: size,
+        height: size,
         borderRadius: '50%',
         background: color,
-        border: '1px solid rgba(255, 255, 255, 0.25)',
+        border: `${Math.max(1, scale)}px solid rgba(255, 255, 255, 0.25)`,
         boxSizing: 'border-box',
+        flexShrink: 0,
       }}
     />
   );
@@ -203,7 +222,8 @@ export default function HitsoundLegendContent() {
         </LanePreview>
 
         <LanePreview label="Additions" height={SOUND_STRIP_EDGE_LANE_HEIGHT}>
-          <HitsoundAdditionPreview color={HITSOUND_COLORS.normal} label="Normal / Whistle" />
+          <HitsoundAdditionPreview color={HITSOUND_COLORS.normal} label="Normal" />
+          <HitsoundAdditionPreview color={HITSOUND_COLORS.whistle} label="Whistle" />
           <HitsoundAdditionPreview color={HITSOUND_COLORS.finish} label="Finish" />
           <HitsoundAdditionPreview color={HITSOUND_COLORS.clap} label="Clap" />
         </LanePreview>
@@ -236,20 +256,29 @@ export default function HitsoundLegendContent() {
           label="Slider sounds"
           height={SOUND_STRIP_PASSIVE_LANE_HEIGHT + SOUND_STRIP_LANE_GAP}
         >
-          <Group gap={6} wrap="nowrap">
+          <Group gap={8} wrap="nowrap" align="center">
             <BodyMarkerPreview color={EDITOR_SAMPLE_BANK_COLORS.Soft} />
             <Text size="xs" c="dimmed">
-              Body
+              Body slide
             </Text>
           </Group>
-          <Group gap={6} wrap="nowrap">
+          <Group gap={8} wrap="nowrap" align="center">
+            <BodyMarkerPreview
+              color={EDITOR_SAMPLE_BANK_COLORS.Soft}
+              additionColor={HITSOUND_COLORS.whistle}
+            />
+            <Text size="xs" c="dimmed">
+              Body whistle
+            </Text>
+          </Group>
+          <Group gap={8} wrap="nowrap" align="center">
             <TickMarkerPreview color={EDITOR_SAMPLE_BANK_COLORS.Drum} />
             <Text size="xs" c="dimmed">
               Tick
             </Text>
           </Group>
           <Text size="xs" c="dimmed">
-            Coloured by sample bank
+            Fill is sample bank; outline is body addition
           </Text>
         </LanePreview>
 

@@ -1,5 +1,9 @@
 import {
+  dedupePassiveBodySamples,
+  getDominantHitsoundColor,
   getSamplesetColor,
+  isBodyAdditionSample,
+  parseHitSoundFlags,
   HITSOUND_GAP_OVERLAY_ALPHA,
   HITSOUND_GAP_OVERLAY_COLOR,
   SAMPLESET_ACCENT_ALPHA,
@@ -18,12 +22,12 @@ import type {
 
 export const SOUND_STRIP_TOP_OFFSET = 6;
 export const SOUND_STRIP_EDGE_LANE_HEIGHT = 16;
-export const SOUND_STRIP_PASSIVE_LANE_HEIGHT = 10;
+export const SOUND_STRIP_PASSIVE_LANE_HEIGHT = 11;
 export const SOUND_STRIP_LANE_GAP = 2;
 export const EDGE_MARKER_WIDTH = 4;
-export const BODY_MARKER_WIDTH = 6;
-export const BODY_MARKER_HEIGHT = 4;
-export const TICK_MARKER_RADIUS = 2.5;
+export const BODY_MARKER_WIDTH = 8;
+export const BODY_MARKER_HEIGHT = 5;
+export const TICK_MARKER_RADIUS = 3;
 
 export type SoundStripBounds = {
   top: number;
@@ -174,7 +178,8 @@ function drawBodyMarker(
   ctx: CanvasRenderingContext2D,
   x: number,
   bounds: SoundStripBounds,
-  color: string
+  color: string,
+  additionColor?: string
 ) {
   const markerLeft = x - BODY_MARKER_WIDTH / 2;
   const markerTop =
@@ -182,6 +187,17 @@ function drawBodyMarker(
 
   ctx.fillStyle = color;
   ctx.fillRect(markerLeft, markerTop, BODY_MARKER_WIDTH, BODY_MARKER_HEIGHT);
+
+  if (additionColor) {
+    ctx.strokeStyle = withAlpha(additionColor, 0.95);
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(
+      markerLeft + 0.75,
+      markerTop + 0.75,
+      BODY_MARKER_WIDTH - 1.5,
+      BODY_MARKER_HEIGHT - 1.5
+    );
+  }
 }
 
 function drawTickMarker(
@@ -200,6 +216,12 @@ function drawTickMarker(
   ctx.strokeStyle = withAlpha('#ffffff', 0.25);
   ctx.lineWidth = 1;
   ctx.stroke();
+}
+
+const PASSIVE_MARKER_CULL_PADDING = 2;
+
+function getPassiveMarkerCullMargin(): number {
+  return Math.max(BODY_MARKER_WIDTH, TICK_MARKER_RADIUS * 2) / 2 + PASSIVE_MARKER_CULL_PADDING;
 }
 
 export function drawSoundStrip(
@@ -226,7 +248,7 @@ export function drawSoundStrip(
     primaryEdgeMarkers: PrimaryEdgeMarker[];
   }
 ) {
-  const samples = difficulty.timelineSamples ?? [];
+  const samples = dedupePassiveBodySamples(difficulty.timelineSamples ?? []);
   const bounds = getSoundStripBounds(height);
 
   drawLaneDivider(ctx, bounds, visibleStartX, visibleEndX);
@@ -243,13 +265,17 @@ export function drawSoundStrip(
     }
 
     const x = getTimelineX(sample.timeMs, startTimeMs, durationMs, width);
-    if (x < visibleStartX - 4 || x > visibleEndX + 4) continue;
+    const cullMargin = getPassiveMarkerCullMargin();
+    if (x < visibleStartX - cullMargin || x > visibleEndX + cullMargin) continue;
 
     const color = withAlpha(getSamplesetColor(sample.sampleset), 0.9);
     if (sample.source === 'Tick') {
       drawTickMarker(ctx, x, bounds, color);
     } else {
-      drawBodyMarker(ctx, x, bounds, color);
+      const additionColor = isBodyAdditionSample(sample)
+        ? getDominantHitsoundColor(parseHitSoundFlags(sample.hitSound ?? ''))
+        : undefined;
+      drawBodyMarker(ctx, x, bounds, color, additionColor);
     }
   }
 
@@ -265,10 +291,12 @@ export function filterSamplesForHover(
   samples: ObjectsTimelineSample[],
   layers: HitsoundLayerVisibility
 ): ObjectsTimelineSample[] {
-  return samples.filter((sample) => {
+  const filtered = samples.filter((sample) => {
     if (sample.source === 'Edge') return true;
     if (sample.source === 'Body') return layers.body;
     if (sample.source === 'Tick') return layers.ticks;
     return false;
   });
+
+  return dedupePassiveBodySamples(filtered);
 }

@@ -5,21 +5,18 @@ export const HITSOUND_FLAG_WHISTLE = 2;
 export const HITSOUND_FLAG_FINISH = 4;
 export const HITSOUND_FLAG_CLAP = 8;
 
-/** Editor-aligned sample bank colours (Normal / Soft / Drum). */
+/** Sample bank colours (Normal / Soft / Drum). Normal is explicit and rare in modern maps. */
 export const EDITOR_SAMPLE_BANK_COLORS = {
-  Normal: '#6b7280',
+  Normal: '#a78bfa',
   Soft: '#fbbf24',
   Drum: '#38bdf8',
-  Auto: '#6b7280',
+  Auto: '#a78bfa',
 } as const;
 
-/**
- * Hitsound addition colours follow the osu! editor pairing:
- * Whistle = Normal, Finish = Soft, Clap = Drum.
- */
+/** Hitsound addition colours. Finish/Clap follow Soft/Drum; Whistle uses green. */
 export const HITSOUND_COLORS = {
   normal: EDITOR_SAMPLE_BANK_COLORS.Normal,
-  whistle: EDITOR_SAMPLE_BANK_COLORS.Normal,
+  whistle: '#34d399',
   finish: EDITOR_SAMPLE_BANK_COLORS.Soft,
   clap: EDITOR_SAMPLE_BANK_COLORS.Drum,
   body: '#52525b',
@@ -107,18 +104,71 @@ export function findObjectBodySample(
     return null;
   }
 
-  return (
-    samples.find(
-      (sample) =>
-        sample.source === 'Body' &&
-        sample.timeMs >= timelineObject.startTimeMs - 1 &&
-        sample.timeMs <= timelineObject.endTimeMs + 1
-    ) ?? null
+  const bodySamples = samples.filter((sample) => sample.source === 'Body');
+  return findPrimaryBodySampleInRange(
+    bodySamples,
+    timelineObject.startTimeMs,
+    timelineObject.endTimeMs
   );
 }
 
 export function isBaseEdgeSample(sample: ObjectsTimelineSample): boolean {
   return !sample.hitSound || sample.hitSound === 'Normal';
+}
+
+export function isBaseBodySample(sample: ObjectsTimelineSample): boolean {
+  return sample.source === 'Body' && isBaseEdgeSample(sample);
+}
+
+export function isBodyAdditionSample(sample: ObjectsTimelineSample): boolean {
+  return sample.source === 'Body' && !isBaseEdgeSample(sample);
+}
+
+/** Drop redundant sliderslide markers when a body addition sample exists at the same time. */
+export function dedupePassiveBodySamples(samples: ObjectsTimelineSample[]): ObjectsTimelineSample[] {
+  const additionTimes = new Set<number>();
+
+  for (const sample of samples) {
+    if (isBodyAdditionSample(sample)) {
+      additionTimes.add(sample.timeMs);
+    }
+  }
+
+  if (additionTimes.size === 0) {
+    return samples;
+  }
+
+  return samples.filter(
+    (sample) => !(isBaseBodySample(sample) && additionTimes.has(sample.timeMs))
+  );
+}
+
+export function hasSliderBodyAddition(flags: number): boolean {
+  return (
+    (flags & (HITSOUND_FLAG_WHISTLE | HITSOUND_FLAG_FINISH | HITSOUND_FLAG_CLAP)) !== 0
+  );
+}
+
+function findPrimaryBodySampleInRange(
+  bodySamples: ObjectsTimelineSample[],
+  startTimeMs: number,
+  endTimeMs: number
+): ObjectsTimelineSample | null {
+  let fallback: ObjectsTimelineSample | null = null;
+
+  for (const sample of bodySamples) {
+    if (sample.timeMs < startTimeMs - 1 || sample.timeMs > endTimeMs + 1) {
+      continue;
+    }
+
+    if (isBaseBodySample(sample)) {
+      return sample;
+    }
+
+    fallback ??= sample;
+  }
+
+  return fallback;
 }
 
 /** Prefer the base hitnormal sample; osu! emits separate samples per addition at the same edge. */
@@ -207,18 +257,10 @@ export function buildHitsoundDrawCache(
       continue;
     }
 
-    let match: ObjectsTimelineSample | null = null;
-    for (const sample of bodySamples) {
-      if (
-        sample.timeMs >= object.startTimeMs - 1 &&
-        sample.timeMs <= object.endTimeMs + 1
-      ) {
-        match = sample;
-        break;
-      }
-    }
-
-    bodySampleByObject.set(object, match);
+    bodySampleByObject.set(
+      object,
+      findPrimaryBodySampleInRange(bodySamples, object.startTimeMs, object.endTimeMs)
+    );
   }
 
   return {

@@ -60,11 +60,12 @@ export default function ObjectsTimelineHelpModal({
                   <strong>Circles on objects</strong> show <strong>hitsound additions</strong>{' '}
                   (Normal, Whistle, Clap, Finish). Priority is Finish → Clap → Whistle → Normal: the
                   highest-priority addition fills the marker; stacked additions appear as outer
-                  rings. Finish and Clap reuse the Soft and Drum hues; Whistle shares Normal grey.
+                  rings. Finish and Clap reuse the Soft and Drum hues; Whistle uses green.
                 </List.Item>
                 <List.Item>
                   <strong>Slider and spinner bodies</strong> are tinted by their hitnormal{' '}
-                  <strong>sample bank</strong> (Normal, Soft, or Drum).
+                  <strong>sample bank</strong> (Normal, Soft, or Drum). Sliders with a body addition
+                  (whistle, finish, or clap) also show a coloured stroke along the body path.
                 </List.Item>
                 <List.Item>
                   Double-click an object or edge to snap the <strong>playhead</strong> to that time
@@ -114,7 +115,9 @@ export default function ObjectsTimelineHelpModal({
                 </List.Item>
                 <List.Item>
                   <strong>Passive lane</strong> — dash for slider body hits, dot for slider ticks.
-                  Both use their sample bank colour.
+                  Body markers use their sample bank fill; body addition samples (e.g. sliderwhistle)
+                  add a coloured outline. Slider bodies in the row above mirror body additions with
+                  a stroke.
                 </List.Item>
                 <List.Item>
                   Circles above the strip show additions; bars in the strip show the underlying
