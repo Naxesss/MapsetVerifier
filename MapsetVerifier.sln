@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapsetVerifier", "src\MapsetVerifier.csproj", "{2AE6F8E7-1D59-481D-A4E8-6D0145CB22A4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapsetVerifier.Framework", "MapsetVerifier.Framework\MapsetVerifier.Framework.csproj", "{E9EC73E5-C508-463B-957B-484601EAEBC5}"

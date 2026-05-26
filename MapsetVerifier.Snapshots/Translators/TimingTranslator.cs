@@ -36,40 +36,6 @@ namespace MapsetVerifier.Snapshots.Translators
             return 0;
         }
 
-        private static HitObjectsTranslator.ShiftSection? GetClosestHitObjectSection(
-            List<HitObjectsTranslator.ShiftSection> sections,
-            double time
-        )
-        {
-            if (sections == null || sections.Count == 0)
-                return null;
-
-            foreach (var sec in sections)
-            {
-                if (time >= sec.StartTime && time <= sec.EndTime)
-                    return sec;
-            }
-
-            HitObjectsTranslator.ShiftSection? closest = null;
-            double minDistance = double.MaxValue;
-            foreach (var sec in sections)
-            {
-                double dist = 0;
-                if (time < sec.StartTime)
-                    dist = sec.StartTime - time;
-                else if (time > sec.EndTime)
-                    dist = time - sec.EndTime;
-
-                if (dist < minDistance)
-                {
-                    minDistance = dist;
-                    closest = sec;
-                }
-            }
-
-            return closest;
-        }
-
         private static List<TimingLine> ParseTimingLinesFromCode(string code, Beatmap beatmap)
         {
             var timingLines = new List<TimingLine>();
@@ -108,7 +74,12 @@ namespace MapsetVerifier.Snapshots.Translators
             return timingLines.OrderBy(line => line.Offset).ThenBy(line => line is InheritedLine).ToList();
         }
 
-        private static double GetDistance(TimingLine x, TimingLine y)
+        // Drift from the estimated global shift carries a stronger penalty than absolute
+        // time distance: a "wrong" match with small absolute drift but the wrong shift
+        // would otherwise out-compete the correct match across a big section-wide shift.
+        private const double ShiftDriftWeight = 0.5;
+
+        private static double GetDistance(TimingLine x, TimingLine y, double globalShift)
         {
             double cost = 0;
 
@@ -137,8 +108,12 @@ namespace MapsetVerifier.Snapshots.Translators
                 cost += Math.Abs(x.SvMult - y.SvMult) * 100.0;
             }
 
-            // 3. Temporal distance (light penalty)
-            cost += Math.Abs(x.Offset - y.Offset) * 0.05;
+            // 3. Penalise deviation from the dominant shift, not raw time distance.
+            // Without this, DTW would pair an old line to a nearby unrelated new line
+            // because the absolute time gap is small, even though the section was shifted
+            // by, say, +2009ms and the correct match sits further away.
+            double drift = (y.Offset - x.Offset) - globalShift;
+            cost += Math.Abs(drift) * ShiftDriftWeight;
 
             return cost;
         }
@@ -146,6 +121,7 @@ namespace MapsetVerifier.Snapshots.Translators
         private static List<Tuple<int, int>> AlignTimingLines(
             List<TimingLine> oldList,
             List<TimingLine> newList,
+            double globalShift,
             double maxWindow = 5000.0
         )
         {
@@ -170,7 +146,7 @@ namespace MapsetVerifier.Snapshots.Translators
 
                     if (timeDiff <= maxWindow)
                     {
-                        double matchCost = GetDistance(oldLine, newLine);
+                        double matchCost = GetDistance(oldLine, newLine, globalShift);
                         double optMatch = dp[i - 1, j - 1] + matchCost;
                         double optDelete = dp[i - 1, j] + gapPenalty;
                         double optInsert = dp[i, j - 1] + gapPenalty;
@@ -200,7 +176,7 @@ namespace MapsetVerifier.Snapshots.Translators
 
                     if (timeDiff <= maxWindow)
                     {
-                        double matchCost = GetDistance(oldLine, newLine);
+                        double matchCost = GetDistance(oldLine, newLine, globalShift);
                         if (Math.Abs(dp[currI, currJ] - (dp[currI - 1, currJ - 1] + matchCost)) < 1e-5)
                         {
                             path.Add(new Tuple<int, int>(currI - 1, currJ - 1));
@@ -365,7 +341,9 @@ namespace MapsetVerifier.Snapshots.Translators
                     var removedDiff = removedTuple.Item1;
                     var removedLine = removedTuple.Item2;
 
-                    var stamp = Timestamp.Get(removedLine.Offset);
+                    // Fallback path (no DTW); pass 0 shift so the entry still carries
+                    // the "(originally ...)" marker the main path uses.
+                    var stamp = BuildRemovedStamp(removedLine.Offset, 0);
                     var type = removedLine.Uninherited ? "Uninherited line" : "Inherited line";
 
                     yield return new DiffInstance(
@@ -386,8 +364,19 @@ namespace MapsetVerifier.Snapshots.Translators
                 ? ParseTimingLinesFromCode(newCode, beatmap)
                 : beatmap.TimingLines;
 
+            // Estimate the dominant shift first via a histogram over all candidate pairs.
+            // DTW then uses this as a bias so it picks correctly-shifted matches even when
+            // one side has many extra inserted lines (e.g. volume ramps without an old
+            // counterpart) that would otherwise look like cheap local matches.
+            double globalShiftHint = ShiftRansac.EstimateGlobalShift(
+                oldTimingLines, newTimingLines,
+                l => l.Offset, l => l.Offset,
+                (o, n) => o.Uninherited == n.Uninherited,
+                5000.0
+            );
+
             // Align old and new timing lines
-            var alignment = AlignTimingLines(oldTimingLines, newTimingLines, 5000.0);
+            var alignment = AlignTimingLines(oldTimingLines, newTimingLines, globalShiftHint, 5000.0);
 
             // Convert alignment into UnifiedSteps
             var steps = new List<UnifiedStep>();
@@ -401,252 +390,214 @@ namespace MapsetVerifier.Snapshots.Translators
                 steps.Add(unified);
             }
 
-            // Get hit objects shift sections
-            List<HitObjectsTranslator.ShiftSection>? hitObjectSections = null;
-            try
-            {
-                hitObjectSections = HitObjectsTranslator.GetShiftSections(beatmap, oldCode, newCode);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Could not compute hit object shifts for timing translator");
-            }
-
-            // Group steps into ShiftSections based on hitobjects shift sections (or fallback to default logic)
-            var sections = new List<ShiftSection>();
-            if (hitObjectSections != null && hitObjectSections.Count > 0)
-            {
-                var groups = steps.GroupBy(step => GetClosestHitObjectSection(hitObjectSections, GetStepTime(step)));
-
-                foreach (var group in groups)
-                {
-                    var hitObjectSec = group.Key;
-                    if (hitObjectSec == null)
-                        continue;
-
-                    if (hitObjectSec.IsSectionShift)
-                    {
-                        var sec = new ShiftSection
-                        {
-                            Shift = hitObjectSec.Shift,
-                            StartTime = group.Min(GetStepTime),
-                            EndTime = group.Max(GetStepTime)
-                        };
-                        sec.Steps.AddRange(group);
-                        sections.Add(sec);
-                    }
-                    else
-                    {
-                        foreach (var step in group)
-                        {
-                            var sec = new ShiftSection
-                            {
-                                Shift = 0,
-                                StartTime = GetStepTime(step),
-                                EndTime = GetStepTime(step)
-                            };
-                            sec.Steps.Add(step);
-                            sections.Add(sec);
-                        }
-                    }
-                }
-
-                sections = sections.OrderBy(s => s.StartTime).ToList();
-            }
-            else
-            {
-                int i = 0;
-                while (i < steps.Count)
-                {
-                    var step = steps[i];
-                    if (step.Shift == null)
-                    {
-                        var section = new ShiftSection
-                        {
-                            Shift = 0,
-                            StartTime = GetStepTime(step),
-                            EndTime = GetStepTime(step)
-                        };
-                        section.Steps.Add(step);
-                        sections.Add(section);
-                        i++;
-                        continue;
-                    }
-
-                    double targetShift = step.Shift.Value;
-                    var currentSection = new ShiftSection
-                    {
-                        Shift = targetShift,
-                        StartTime = GetStepTime(step),
-                        EndTime = GetStepTime(step)
-                    };
-                    currentSection.Steps.Add(step);
-                    i++;
-
-                    while (i < steps.Count)
-                    {
-                        bool foundResume = false;
-                        int resumeIndex = -1;
-                        int unmatchedCount = 0;
-
-                        for (int k = i; k < steps.Count; k++)
-                        {
-                            var aheadStep = steps[k];
-                            if (aheadStep.Shift == null || Math.Abs(aheadStep.Shift.Value - targetShift) > 2.0)
-                            {
-                                unmatchedCount++;
-                            }
-                            else
-                            {
-                                foundResume = true;
-                                resumeIndex = k;
-                                break;
-                            }
-
-                            if (unmatchedCount > 20)
-                                break;
-                        }
-
-                        if (foundResume)
-                        {
-                            for (int k = i; k <= resumeIndex; k++)
-                            {
-                                currentSection.Steps.Add(steps[k]);
-                                currentSection.EndTime = GetStepTime(steps[k]);
-                            }
-                            i = resumeIndex + 1;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-
-                    sections.Add(currentSection);
-                }
-            }
+            // Detect the dominant shift via RANSAC voting across all matched pairs.
+            // Independent of any hit-object shift: timing can shift without objects shifting
+            // (e.g. mp3 offset adjustment on a sparse map) and vice versa.
+            var sections = BuildShiftSections(steps);
 
             // Yield diffs for each section
             foreach (var section in sections)
             {
-                int matchedCount = section.Steps.Count(s => s.Shift != null && Math.Abs(s.Shift.Value - section.Shift) <= 2.0);
+                int matchedCount = section.Steps.Count(s => s.Shift != null && Math.Abs(s.Shift.Value - section.Shift) <= ShiftTolerance);
                 bool isSectionShift = Math.Abs(section.Shift) >= 1.0 && matchedCount >= 2;
 
                 if (isSectionShift)
                 {
                     var stamp = Timestamp.Get(section.StartTime);
                     var sign = section.Shift > 0 ? "+" : "";
-                    var details = new List<string>();
-
-                    foreach (var s in section.Steps)
-                    {
-                        var timeStr = Timestamp.Get(GetStepTime(s));
-                        var typeStr = s.NewLine?.Uninherited == true || s.OldLine?.Uninherited == true ? "Uninherited line" : "Inherited line";
-
-                        if (s.OldLine != null && s.NewLine == null)
-                        {
-                            details.Add($"{timeStr}{typeStr} was removed.");
-                        }
-                        else if (s.OldLine == null && s.NewLine != null)
-                        {
-                            details.Add($"{timeStr}{typeStr} was added.");
-                        }
-                        else if (s.OldLine != null && s.NewLine != null)
-                        {
-                            var changes = GetChanges(s.NewLine, s.OldLine, beatmap).ToList();
-                            double localShift = s.NewLine.Offset - s.OldLine.Offset;
-
-                            if (Math.Abs(localShift - section.Shift) > 2.0)
-                            {
-                                var diffVal = localShift - section.Shift;
-                                var localSign = diffVal > 0 ? "+" : "";
-                                changes.Insert(0, $"Time changed individually by {localSign}{diffVal:0.##} ms (total shift {localShift:0.##} ms).");
-                            }
-
-                            if (changes.Count > 0)
-                            {
-                                if (changes.Count == 1)
-                                    details.Add($"{timeStr}{changes[0]}");
-                                else
-                                    details.Add($"{timeStr}{typeStr} changed: {string.Join(" ", changes)}");
-                            }
-                        }
-                    }
 
                     yield return new DiffInstance(
                         stamp + $"Section shifted in time by {sign}{section.Shift:0.##} ms ({matchedCount} timing points).",
                         Section,
                         DiffType.Changed,
-                        details,
+                        new List<string>(),
                         snapshotCreationDate
                     );
                 }
-                else
+
+                // Emit residuals flat (separate entries, never nested inside the shift summary):
+                // - Net-added / net-removed lines
+                // - Matched lines whose shift drifts beyond +/-2ms of the section shift
+                // - Matched lines with non-time property changes (volume, sampleset, kiai, BPM, SV, ...)
+                // Matched lines that are purely on-shift with no other change are suppressed.
+                foreach (var s in section.Steps)
                 {
-                    // Treat as individual alignments
-                    foreach (var s in section.Steps)
+                    var typeObj = s.NewLine?.Uninherited == true || s.OldLine?.Uninherited == true ? "Uninherited line" : "Inherited line";
+
+                    if (s.OldLine != null && s.NewLine == null)
                     {
-                        var stampObj = Timestamp.Get(GetStepTime(s));
-                        var typeObj = s.NewLine?.Uninherited == true || s.OldLine?.Uninherited == true ? "Uninherited line" : "Inherited line";
+                        // Display orphan removals at the dominant-shifted time so they
+                        // appear next to surviving objects in the new timeline, with the
+                        // original pre-shift timestamp in parentheses for cross-reference
+                        // against the old beatmap.
+                        var stampObj = BuildRemovedStamp(s.OldLine.Offset, globalShiftHint);
+                        yield return new DiffInstance(
+                            stampObj + typeObj + " removed.",
+                            Section,
+                            DiffType.Removed,
+                            new List<string>(),
+                            snapshotCreationDate
+                        );
+                    }
+                    else if (s.OldLine == null && s.NewLine != null)
+                    {
+                        var stampObj = Timestamp.Get(s.NewLine.Offset);
+                        yield return new DiffInstance(
+                            stampObj + typeObj + " added.",
+                            Section,
+                            DiffType.Added,
+                            new List<string>(),
+                            snapshotCreationDate
+                        );
+                    }
+                    else if (s.OldLine != null && s.NewLine != null)
+                    {
+                        var stampObj = Timestamp.Get(s.NewLine.Offset);
+                        var changes = GetChanges(s.NewLine, s.OldLine, beatmap).ToList();
+                        double localShift = s.NewLine.Offset - s.OldLine.Offset;
+                        double driftFromSection = localShift - section.Shift;
+                        double snapTolerance = GetSnapTolerance(beatmap, s.NewLine.Offset);
+                        bool aligned = Math.Abs(driftFromSection) <= snapTolerance;
 
-                        if (s.OldLine != null && s.NewLine == null)
+                        if (isSectionShift)
                         {
+                            // Drift beyond a 1/32 beat at the local BPM — surface it. Sub-snap
+                            // jitter is absorbed into the section shift.
+                            if (!aligned)
+                            {
+                                var localSign = driftFromSection > 0 ? "+" : "";
+                                changes.Insert(0, $"Time drifts from section shift by {localSign}{driftFromSection:0.##} ms (line shift {localShift:0.##} ms).");
+                            }
+                        }
+                        else if (Math.Abs(localShift) >= 1.0)
+                        {
+                            var localSign = localShift > 0 ? "+" : "";
+                            changes.Insert(0, $"Time changed from {s.OldLine.Offset} ms to {s.NewLine.Offset} ms ({localSign}{localShift:0.##} ms).");
+                        }
+
+                        if (changes.Count > 0)
+                        {
+                            // Always keep the line type in the title so single-change
+                            // entries (e.g. only a volume diff) stay obviously tied to a
+                            // timing line rather than floating standalone.
                             yield return new DiffInstance(
-                                stampObj + typeObj + " removed.",
+                                stampObj + typeObj + " changed.",
                                 Section,
-                                DiffType.Removed,
-                                new List<string>(),
+                                DiffType.Changed,
+                                changes,
                                 snapshotCreationDate
                             );
-                        }
-                        else if (s.OldLine == null && s.NewLine != null)
-                        {
-                            yield return new DiffInstance(
-                                stampObj + typeObj + " added.",
-                                Section,
-                                DiffType.Added,
-                                new List<string>(),
-                                snapshotCreationDate
-                            );
-                        }
-                        else if (s.OldLine != null && s.NewLine != null)
-                        {
-                            var changes = GetChanges(s.NewLine, s.OldLine, beatmap).ToList();
-                            double localShift = s.NewLine.Offset - s.OldLine.Offset;
-
-                            if (Math.Abs(localShift) >= 1.0)
-                            {
-                                var localSign = localShift > 0 ? "+" : "";
-                                changes.Insert(0, $"Time changed from {s.OldLine.Offset} ms to {s.NewLine.Offset} ms ({localSign}{localShift:0.##} ms).");
-                            }
-
-                            if (changes.Count > 0)
-                            {
-                                if (changes.Count == 1)
-                                {
-                                    yield return new DiffInstance(
-                                        stampObj + changes[0],
-                                        Section,
-                                        DiffType.Changed,
-                                        new List<string>(),
-                                        snapshotCreationDate
-                                    );
-                                }
-                                else
-                                {
-                                    yield return new DiffInstance(
-                                        stampObj + typeObj + " changed.",
-                                        Section,
-                                        DiffType.Changed,
-                                        changes,
-                                        snapshotCreationDate
-                                    );
-                                }
-                            }
                         }
                     }
                 }
             }
+        }
+
+        // +/-2ms drift is tolerated as "on the same snap" relative to a section shift.
+        // Used for RANSAC inlier counting (tight, so the average shift is precise).
+        private const double ShiftTolerance = 2.0;
+
+        // RANSAC needs at least 2 matched pairs voting for the same shift to call it a section.
+        private const int MinShiftInliers = 2;
+
+        // Per-step drift report uses 1/32 of the active beat as the tolerance, so sub-snap
+        // jitter is absorbed into the section shift while real snap-level drift surfaces.
+        // Falls back to ShiftTolerance if no uninherited line is active.
+        private static double GetSnapTolerance(Beatmap beatmap, double time)
+        {
+            var uninherited = beatmap.GetTimingLine<UninheritedLine>(time);
+            if (uninherited == null) return ShiftTolerance;
+            return uninherited.msPerBeat / 32.0;
+        }
+
+        // Build a "<shifted> (originally <old>) - " prefix for orphan-removed entries
+        // when a non-zero global shift was detected. Falls back to a plain timestamp when
+        // no shift exists — the parenthetical would just repeat the primary stamp.
+        private static string BuildRemovedStamp(double oldTime, double shift)
+        {
+            if (Math.Abs(shift) < 1.0)
+                return Timestamp.Get(oldTime);
+            string oldTrim = Timestamp.Get(oldTime).TrimEnd(' ', '-');
+            string shiftedTrim = Timestamp.Get(oldTime + shift).TrimEnd(' ', '-');
+            return $"{shiftedTrim} (originally {oldTrim}) - ";
+        }
+
+        // Cluster every matched step's shift greedily within +/-ShiftTolerance. Any cluster
+        // with >= MinShiftInliers becomes its own section (so e.g. seven lines all shifted
+        // by -15ms collapse into a single "Section shifted by -15 ms" entry). Singleton
+        // shifts, unmatched steps (add/remove), and the zero-shift "matched-but-unchanged"
+        // group become per-step sections that the residual loop handles individually.
+        private static List<ShiftSection> BuildShiftSections(List<UnifiedStep> steps)
+        {
+            var clusters = new List<List<UnifiedStep>>();
+            var unmatched = new List<UnifiedStep>();
+
+            foreach (var step in steps)
+            {
+                if (!step.Shift.HasValue)
+                {
+                    unmatched.Add(step);
+                    continue;
+                }
+
+                long shift = (long)System.Math.Round(step.Shift.Value);
+                var existing = clusters.FirstOrDefault(c =>
+                    System.Math.Abs((long)System.Math.Round(c[0].Shift!.Value) - shift) <= ShiftTolerance);
+                if (existing != null) existing.Add(step);
+                else clusters.Add(new List<UnifiedStep> { step });
+            }
+
+            var sections = new List<ShiftSection>();
+
+            foreach (var cluster in clusters)
+            {
+                // Use the rounded shift of the cluster anchor as the canonical value; all
+                // cluster members are within +/-ShiftTolerance so any choice is fine.
+                long shift = (long)System.Math.Round(cluster[0].Shift!.Value);
+                bool isShift = System.Math.Abs(shift) >= 1 && cluster.Count >= MinShiftInliers;
+
+                if (isShift)
+                {
+                    var sec = new ShiftSection
+                    {
+                        Shift = shift,
+                        StartTime = cluster.Min(GetStepTime),
+                        EndTime = cluster.Max(GetStepTime),
+                    };
+                    sec.Steps.AddRange(cluster);
+                    sections.Add(sec);
+                }
+                else
+                {
+                    // Either zero-shift (no change to time) or a single isolated shift; let
+                    // the residual loop emit each step on its own.
+                    foreach (var step in cluster)
+                    {
+                        var sec = new ShiftSection
+                        {
+                            Shift = step.Shift ?? 0.0,
+                            StartTime = GetStepTime(step),
+                            EndTime = GetStepTime(step),
+                        };
+                        sec.Steps.Add(step);
+                        sections.Add(sec);
+                    }
+                }
+            }
+
+            foreach (var step in unmatched)
+            {
+                var sec = new ShiftSection
+                {
+                    Shift = 0.0,
+                    StartTime = GetStepTime(step),
+                    EndTime = GetStepTime(step),
+                };
+                sec.Steps.Add(step);
+                sections.Add(sec);
+            }
+
+            return sections.OrderBy(s => s.StartTime).ToList();
         }
 
         private static IEnumerable<string> GetChanges(

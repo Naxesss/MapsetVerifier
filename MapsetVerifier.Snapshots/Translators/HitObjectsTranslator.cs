@@ -3,6 +3,7 @@ using System.Numerics;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Objects.HitObjects.Catch;
+using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
 using MapsetVerifier.Snapshots.Objects;
 using MathNet.Numerics;
@@ -99,29 +100,61 @@ namespace MapsetVerifier.Snapshots.Translators
             return hitObjects;
         }
 
-        private static double GetDistance(HitObject x, HitObject y)
+        // Drift from the estimated global shift carries a stronger penalty than raw time
+        // distance so DTW prefers correctly-shifted matches over cheap-but-wrong local
+        // matches (same problem as in TimingTranslator).
+        private const double ShiftDriftWeight = 0.5;
+
+        // Distance function used by DTW to pair objects across snapshots.
+        // Mode-aware because each ruleset cares about different attributes:
+        //   - Standard: full XY position.
+        //   - Catch:    only X matters (vertical position is ignored gameplay-wise).
+        //   - Taiko:    position is irrelevant; hitsounds encode the gameplay object (don/kat/finish).
+        //   - Mania:    X = column (lane); same lane is a hard match, different lane heavily penalised.
+        private static double GetDistance(HitObject x, HitObject y, Beatmap.Mode mode, double globalShift)
         {
-            // Hybrid distance function to pair up correct objects:
-            // Combines spatial, type, and temporal info to prevent beat-snapping mismatches.
             double cost = 0;
 
             if (x.GetObjectType() != y.GetObjectType())
-                cost += 500.0; // Strong penalty for different types, but still allows matching if they are close
+            {
+                // Type changes (e.g. Circle <-> Slider) are surfaced as paired remove +
+                // add entries instead of a cross-type DTW match — much clearer than a
+                // "Slider changed" entry with a giant position move buried in details.
+                // A large finite value (rather than PositiveInfinity) keeps the DP math
+                // well-behaved during back-tracking comparisons.
+                return 1e9;
+            }
 
-            // 1. Spatial distance using log scale to reduce the penalty of large movements
-            double posDist = Vector2.Distance(x.Position, y.Position);
-            cost += Math.Log(1.0 + posDist) * 15.0;
+            // 1. Spatial term, mode-aware.
+            switch (mode)
+            {
+                case Beatmap.Mode.Taiko:
+                    // No position. Hitsounds carry the gameplay identity.
+                    if (x.hitSound != y.hitSound) cost += 200.0;
+                    break;
 
-            // 2. Hitsounds mismatch: completely removed for DTW alignment
+                case Beatmap.Mode.Catch:
+                    cost += Math.Log(1.0 + Math.Abs(x.Position.X - y.Position.X)) * 15.0;
+                    break;
 
-            // 3. Extras mismatch
+                case Beatmap.Mode.Mania:
+                    // Different lane is essentially a different object.
+                    if (Math.Abs(x.Position.X - y.Position.X) > 0.5) cost += 200.0;
+                    break;
+
+                default:
+                    cost += Math.Log(1.0 + Vector2.Distance(x.Position, y.Position)) * 15.0;
+                    break;
+            }
+
+            // 2. Extras mismatch (sampleset/addition/custom index/volume/filename).
             if (x.sampleset != y.sampleset) cost += 10.0;
             if (x.addition != y.addition) cost += 10.0;
             if (x.customIndex != y.customIndex) cost += 10.0;
             if (x.volume != y.volume) cost += 10.0;
             if (x.filename != y.filename) cost += 20.0;
 
-            // 4. Object-specific properties mismatch (excluding hitsounds)
+            // 3. Object-specific properties (excluding hitsounds for non-taiko modes).
             if (x is Slider xSlider && y is Slider ySlider)
             {
                 if (xSlider.CurveType != ySlider.CurveType) cost += 50.0;
@@ -141,17 +174,30 @@ namespace MapsetVerifier.Snapshots.Translators
                 cost += Math.Abs(xLen - yLen) * 0.1;
             }
 
-            // 5. Light time penalty to prefer closer in time matches if all else is equal
-            cost += Math.Abs(x.time - y.time) * 0.05;
+            // 4. Penalise deviation from the dominant shift rather than raw time distance.
+            // Otherwise DTW pairs an old object to a nearby unrelated new one because the
+            // absolute gap is small, even when the section was shifted by, say, +2009ms.
+            double drift = (y.time - x.time) - globalShift;
+            cost += Math.Abs(drift) * ShiftDriftWeight;
 
-            // 6. Give higher preference to exact matches (excluding hitsounds)
+            // 5. Flat penalty when anything but a perfect match (mode-aware for position).
+            bool positionsMatch = mode switch
+            {
+                Beatmap.Mode.Taiko => true, // position irrelevant
+                Beatmap.Mode.Catch => x.Position.X == y.Position.X,
+                Beatmap.Mode.Mania => Math.Abs(x.Position.X - y.Position.X) < 0.5,
+                _ => x.Position == y.Position,
+            };
             bool isExactMatch = x.GetObjectType() == y.GetObjectType() &&
-                                x.Position == y.Position &&
+                                positionsMatch &&
                                 x.sampleset == y.sampleset &&
                                 x.addition == y.addition &&
                                 (x.customIndex ?? 0) == (y.customIndex ?? 0) &&
                                 (x.volume ?? 0) == (y.volume ?? 0) &&
                                 x.filename == y.filename;
+
+            if (mode == Beatmap.Mode.Taiko)
+                isExactMatch = isExactMatch && x.hitSound == y.hitSound;
 
             if (x is Slider xs && y is Slider ys)
             {
@@ -162,9 +208,7 @@ namespace MapsetVerifier.Snapshots.Translators
             }
 
             if (!isExactMatch)
-            {
-                cost += 20.0; // Flat penalty for not being an exact match
-            }
+                cost += 20.0;
 
             return cost;
         }
@@ -172,6 +216,8 @@ namespace MapsetVerifier.Snapshots.Translators
         private static List<Tuple<int, int>> AlignHitObjects(
             List<HitObject> oldList,
             List<HitObject> newList,
+            Beatmap.Mode mode,
+            double globalShift,
             double maxWindow = 5000.0
         )
         {
@@ -196,7 +242,7 @@ namespace MapsetVerifier.Snapshots.Translators
 
                     if (timeDiff <= maxWindow)
                     {
-                        double matchCost = GetDistance(oldObj, newObj);
+                        double matchCost = GetDistance(oldObj, newObj, mode, globalShift);
                         double optMatch = dp[i - 1, j - 1] + matchCost;
                         double optDelete = dp[i - 1, j] + gapPenalty;
                         double optInsert = dp[i, j - 1] + gapPenalty;
@@ -226,7 +272,7 @@ namespace MapsetVerifier.Snapshots.Translators
 
                     if (timeDiff <= maxWindow)
                     {
-                        double matchCost = GetDistance(oldObj, newObj);
+                        double matchCost = GetDistance(oldObj, newObj, mode, globalShift);
                         if (Math.Abs(dp[currI, currJ] - (dp[currI - 1, currJ - 1] + matchCost)) < 1e-5)
                         {
                             path.Add(new Tuple<int, int>(currI - 1, currJ - 1));
@@ -383,7 +429,10 @@ namespace MapsetVerifier.Snapshots.Translators
                     var removedDiff = removedTuple.Item1;
                     var removedObject = removedTuple.Item2;
 
-                    var stamp = Timestamp.Get(removedObject.time);
+                    // No DTW available on the fallback path so shift is unknown; pass 0
+                    // through BuildRemovedStamp to keep the same "(originally ...)" format
+                    // as the main path for visual consistency.
+                    var stamp = BuildRemovedStamp(removedObject.time, 0);
                     var type = removedObject.GetObjectType();
 
                     yield return new DiffInstance(
@@ -404,111 +453,90 @@ namespace MapsetVerifier.Snapshots.Translators
                 ? ParseHitObjectsFromCode(newCode, beatmap)
                 : beatmap.HitObjects;
 
-            // Get shift sections from helper
-            var sections = GetShiftSections(beatmap, oldCode, newCode);
+            // Get shift sections from helper. The returned globalShift is the dominant
+            // pairwise offset used by DTW; we re-use it below to display orphan removals
+            // at their shifted time.
+            var (sections, globalShiftHint) = GetShiftSections(beatmap, oldCode, newCode);
 
             // Yield diffs for each section
             foreach (var section in sections)
             {
-                int matchedCount = section.Steps.Count(s => s.Shift != null && Math.Abs(s.Shift.Value - section.Shift) <= 2.0);
+                int matchedCount = section.Steps.Count(s => s.Shift != null && Math.Abs(s.Shift.Value - section.Shift) <= ShiftTolerance);
 
                 if (section.IsSectionShift)
                 {
                     var stamp = Timestamp.Get(section.StartTime);
                     var sign = section.Shift > 0 ? "+" : "";
-                    var details = new List<string>();
-
-                    foreach (var s in section.Steps)
-                    {
-                        var timeStr = Timestamp.Get(GetStepTime(s));
-                        var typeStr = s.NewObj?.GetObjectType() ?? s.OldObj?.GetObjectType() ?? "Object";
-
-                        if (s.OldObj != null && s.NewObj == null)
-                        {
-                            // Real Removal (No counterpart in shifted space)
-                            details.Add($"{timeStr}{typeStr} was removed.");
-                        }
-                        else if (s.OldObj == null && s.NewObj != null)
-                        {
-                            // Real Addition (No counterpart in shifted space)
-                            details.Add($"{timeStr}{typeStr} was added.");
-                        }
-                        else if (s.OldObj != null && s.NewObj != null)
-                        {
-                            var changes = GetChanges(s.NewObj, s.OldObj, beatmap).ToList();
-                            double localShift = s.NewObj.time - s.OldObj.time;
-
-                            if (Math.Abs(localShift - section.Shift) > 2.0)
-                            {
-                                var diffVal = localShift - section.Shift;
-                                var localSign = diffVal > 0 ? "+" : "";
-                                changes.Insert(0, $"Time changed individually by {localSign}{diffVal:0.##} ms (total shift {localShift:0.##} ms).");
-                            }
-
-                            if (changes.Count > 0)
-                            {
-                                if (changes.Count == 1)
-                                    details.Add($"{timeStr}{changes[0]}");
-                                else
-                                    details.Add($"{timeStr}{typeStr} changed: {string.Join(" ", changes)}");
-                            }
-                        }
-                    }
 
                     yield return new DiffInstance(
                         stamp + $"Section shifted in time by {sign}{section.Shift:0.##} ms ({matchedCount} objects).",
                         Section,
                         DiffType.Changed,
-                        details,
+                        new List<string>(),
                         snapshotCreationDate
                     );
                 }
-                else
+
+                // Emit residuals flat (separate entries, never nested inside the shift summary):
+                // - Net additions / removals (no counterpart in shifted space)
+                // - Matched objects whose shift drifts beyond +/-2ms of the section shift
+                // - Matched objects with non-time property changes (position, hitsounds, ...)
+                // Matched objects that are purely on-shift with no other change are suppressed.
+                foreach (var s in section.Steps)
                 {
-                    // Treat as individual alignments
-                    foreach (var s in section.Steps)
+                    var typeObj = s.NewObj?.GetObjectType() ?? s.OldObj?.GetObjectType() ?? "Object";
+
+                    if (s.OldObj != null && s.NewObj == null)
                     {
-                        var stampObj = Timestamp.Get(GetStepTime(s));
-                        var typeObj = s.NewObj?.GetObjectType() ?? s.OldObj?.GetObjectType() ?? "Object";
-
-                        if (s.OldObj != null && s.NewObj == null)
+                        // Render at the shifted time so removals appear in the same place
+                        // as surviving / replacement objects in the new timeline; keep the
+                        // pre-shift time in parentheses so the user can still find it in
+                        // the old beatmap.
+                        var stampObj = BuildRemovedStamp(s.OldObj.time, globalShiftHint);
+                        yield return new DiffInstance(
+                            stampObj + typeObj + " removed.",
+                            Section,
+                            DiffType.Removed,
+                            new List<string>(),
+                            snapshotCreationDate
+                        );
+                    }
+                    else if (s.OldObj == null && s.NewObj != null)
+                    {
+                        var stampObj = Timestamp.Get(s.NewObj.time);
+                        yield return new DiffInstance(
+                            stampObj + typeObj + " added.",
+                            Section,
+                            DiffType.Added,
+                            new List<string>(),
+                            snapshotCreationDate
+                        );
+                    }
+                    else if (s.OldObj != null && s.NewObj != null)
+                    {
+                        var stampObj = Timestamp.Get(s.NewObj.time);
+                        var changes = GetChanges(s.NewObj, s.OldObj, beatmap).ToList();
+                        double localShift = s.NewObj.time - s.OldObj.time;
+                        double driftFromSection = localShift - section.Shift;
+                        double snapTolerance = GetSnapTolerance(beatmap, s.NewObj.time);
+                        bool aligned = Math.Abs(driftFromSection) <= snapTolerance;
+                        if (section.IsSectionShift)
                         {
-                            yield return new DiffInstance(
-                                stampObj + typeObj + " removed.",
-                                Section,
-                                DiffType.Removed,
-                                new List<string>(),
-                                snapshotCreationDate
-                            );
-                        }
-                        else if (s.OldObj == null && s.NewObj != null)
-                        {
-                            yield return new DiffInstance(
-                                stampObj + typeObj + " added.",
-                                Section,
-                                DiffType.Added,
-                                new List<string>(),
-                                snapshotCreationDate
-                            );
-                        }
-                        else if (s.OldObj != null && s.NewObj != null)
-                        {
-                            var changes = GetChanges(s.NewObj, s.OldObj, beatmap).ToList();
-                            double localShift = s.NewObj.time - s.OldObj.time;
-
-                            if (Math.Abs(localShift) >= 1.0)
+                            if (!aligned)
                             {
-                                var localSign = localShift > 0 ? "+" : "";
-                                changes.Insert(0, $"Time changed from {s.OldObj.time} ms to {s.NewObj.time} ms ({localSign}{localShift:0.##} ms).");
-                            }
-
-                            if (changes.Count > 0)
-                            {
-                                if (changes.Count == 1)
+                                var localSign = driftFromSection > 0 ? "+" : "";
+                                // If the object's new time is still on a valid snap, treat
+                                // the drift as a re-snap (timing adjustment) and route it to
+                                // the Timing tab as its own entry. Property changes stay
+                                // on Hit Objects.
+                                if (IsOnSnap(beatmap, s.NewObj.time))
                                 {
+                                    // Display under the Timing tab. The Snapshotter only
+                                    // auto-rewrites Section when it still matches the input
+                                    // section, so using "Timing" here keeps it routed.
                                     yield return new DiffInstance(
-                                        stampObj + changes[0],
-                                        Section,
+                                        stampObj + $"Object re-snapped by {localSign}{driftFromSection:0.##} ms (total shift {localShift:0.##} ms).",
+                                        "Timing",
                                         DiffType.Changed,
                                         new List<string>(),
                                         snapshotCreationDate
@@ -516,37 +544,132 @@ namespace MapsetVerifier.Snapshots.Translators
                                 }
                                 else
                                 {
-                                    yield return new DiffInstance(
-                                        stampObj + typeObj + " changed.",
-                                        Section,
-                                        DiffType.Changed,
-                                        changes,
-                                        snapshotCreationDate
-                                    );
+                                    changes.Insert(0, $"Time drifts from section shift by {localSign}{driftFromSection:0.##} ms (object shift {localShift:0.##} ms).");
                                 }
                             }
+                            // else: aligned -> covered by the section shift entry, skip time note.
+                        }
+                        else if (Math.Abs(localShift) >= 1.0)
+                        {
+                            // Singleton time shift (didn't cluster into any section). If
+                            // the new time is snap-aligned, treat it as a timing change
+                            // (e.g. one object nudged by a beat division) and route it to
+                            // the Timing tab. Only fall back to a hit-object Time-changed
+                            // note when the new time is genuinely off-snap.
+                            var localSign = localShift > 0 ? "+" : "";
+                            if (IsOnSnap(beatmap, s.NewObj.time))
+                            {
+                                yield return new DiffInstance(
+                                    stampObj + $"Object re-snapped by {localSign}{localShift:0.##} ms.",
+                                    "Timing",
+                                    DiffType.Changed,
+                                    new List<string>(),
+                                    snapshotCreationDate
+                                );
+                            }
+                            else
+                            {
+                                changes.Insert(0, $"Time changed from {s.OldObj.time} ms to {s.NewObj.time} ms ({localSign}{localShift:0.##} ms).");
+                            }
+                        }
+
+                        // Always emit matched-pair changes under a "{type} changed." title
+                        // with details, so single-change entries (e.g. "Pixel length changed
+                        // from 160 to 175") stay visibly attached to their object type rather
+                        // than floating as ambiguous standalone lines.
+                        if (changes.Count > 0)
+                        {
+                            yield return new DiffInstance(
+                                stampObj + typeObj + " changed.",
+                                Section,
+                                DiffType.Changed,
+                                changes,
+                                snapshotCreationDate
+                            );
                         }
                     }
                 }
             }
         }
 
-        public static List<ShiftSection> GetShiftSections(
+        // +/-2ms drift is tolerated as "on the same snap" relative to a section shift.
+        // Used for RANSAC inlier counting (tight, so the average shift is precise).
+        private const double ShiftTolerance = 2.0;
+
+        // Per-step drift report uses 1/32 of the active beat as tolerance, absorbing
+        // sub-snap jitter into the section shift. Falls back to ShiftTolerance if no
+        // active uninherited line.
+        private static double GetSnapTolerance(Beatmap beatmap, double time)
+        {
+            var uninherited = beatmap.GetTimingLine<UninheritedLine>(time);
+            if (uninherited == null) return ShiftTolerance;
+            return uninherited.msPerBeat / 32.0;
+        }
+
+        // Build a "<shifted> (originally <old>) - " prefix for orphan-removed entries
+        // when a non-zero global shift was detected (so the user can cross-reference the
+        // pre-shift time in the old beatmap). Falls back to a plain timestamp when no
+        // shift exists — the parenthetical would just repeat the primary stamp.
+        private static string BuildRemovedStamp(double oldTime, double shift)
+        {
+            if (Math.Abs(shift) < 1.0)
+                return Timestamp.Get(oldTime);
+            string oldTrim = Timestamp.Get(oldTime).TrimEnd(' ', '-');
+            string shiftedTrim = Timestamp.Get(oldTime + shift).TrimEnd(' ', '-');
+            return $"{shiftedTrim} (originally {oldTrim}) - ";
+        }
+
+        // "On-snap" means the object's time aligns with a common beat divisor within ~2ms.
+        // Used to decide whether a drift looks like an intentional re-snap (route to
+        // Timing tab) or like an unsnap (keep on the Hit Objects tab).
+        private static bool IsOnSnap(Beatmap beatmap, double time)
+        {
+            var line = beatmap.GetTimingLine<UninheritedLine>(time);
+            if (line == null) return false;
+            try
+            {
+                double unsnap = beatmap.GetPracticalUnsnap(time, line);
+                return Math.Abs(unsnap) <= 2.0;
+            }
+            catch
+            {
+                // GetPracticalUnsnap can throw on corrupt timing data (NaN).
+                return false;
+            }
+        }
+
+        // Minimum inliers for the global shift to be reported as a section shift on the
+        // Hit Objects tab. Higher than timing because hit objects are usually plentiful and
+        // a few coincidentally-aligned objects shouldn't trigger a shift report.
+        private const int MinShiftInliersHitObjects = 5;
+
+        public static (List<ShiftSection> sections, double globalShift) GetShiftSections(
             Beatmap beatmap,
             string oldCode,
             string? newCode
         )
         {
-            // Parse old hit objects
+            var mode = beatmap.GeneralSettings.mode;
+
             var oldHitObjects = ParseHitObjectsFromCode(oldCode, beatmap);
             var newHitObjects = !string.IsNullOrEmpty(newCode)
                 ? ParseHitObjectsFromCode(newCode, beatmap)
                 : beatmap.HitObjects;
 
-            // Align old and new hit objects using DTW (Needleman-Wunsch with window)
-            var alignment = AlignHitObjects(oldHitObjects, newHitObjects, 5000.0);
+            // Estimate the dominant shift via a histogram across all candidate pairs,
+            // so DTW prefers matches whose shift agrees with the global consensus over
+            // cheap-but-wrong local matches.
+            double globalShiftHint = ShiftRansac.EstimateGlobalShift(
+                oldHitObjects, newHitObjects,
+                h => h.time, h => h.time,
+                (o, n) => o.GetObjectType() == n.GetObjectType(),
+                5000.0
+            );
 
-            // Convert alignment into UnifiedSteps
+            // Align old and new hit objects using DTW (Needleman-Wunsch with a time window).
+            var alignment = AlignHitObjects(oldHitObjects, newHitObjects, mode, globalShiftHint, 5000.0);
+
+            // Convert alignment into UnifiedSteps.
             var steps = new List<UnifiedStep>();
             foreach (var step in alignment)
             {
@@ -558,85 +681,97 @@ namespace MapsetVerifier.Snapshots.Translators
                 steps.Add(unified);
             }
 
-            // Group steps into ShiftSections based on shift tolerance (2ms) and lookahead merging
-            var sections = new List<ShiftSection>();
-            int i = 0;
-            while (i < steps.Count)
+            // Cluster shifts greedily within +/-ShiftTolerance. Any cluster with at least
+            // MinShiftInliersHitObjects members becomes its own section, so a group of
+            // objects shifted uniformly is collapsed into a single shift entry rather than
+            // emitting one Changed entry per object. Mania chord notes are deduplicated by
+            // old.time so a single chord doesn't multi-count toward the inlier threshold.
+            var seenManiaChordTimes = mode == Beatmap.Mode.Mania ? new HashSet<double>() : null;
+            var clusters = new List<List<UnifiedStep>>();
+            var unmatched = new List<UnifiedStep>();
+
+            foreach (var step in steps)
             {
-                var step = steps[i];
-                if (step.Shift == null)
+                if (!step.Shift.HasValue)
                 {
-                    var section = new ShiftSection
-                    {
-                        Shift = 0,
-                        StartTime = GetStepTime(step),
-                        EndTime = GetStepTime(step)
-                    };
-                    section.Steps.Add(step);
-                    sections.Add(section);
-                    i++;
+                    unmatched.Add(step);
                     continue;
                 }
 
-                double targetShift = step.Shift.Value;
-                var currentSection = new ShiftSection
+                long shift = (long)Math.Round(step.Shift.Value);
+                var existing = clusters.FirstOrDefault(c =>
+                    Math.Abs((long)Math.Round(c[0].Shift!.Value) - shift) <= ShiftTolerance);
+                if (existing != null) existing.Add(step);
+                else clusters.Add(new List<UnifiedStep> { step });
+            }
+
+            var sections = new List<ShiftSection>();
+
+            foreach (var cluster in clusters)
+            {
+                long shift = (long)Math.Round(cluster[0].Shift!.Value);
+
+                int votingCount;
+                if (seenManiaChordTimes != null)
                 {
-                    Shift = targetShift,
-                    StartTime = GetStepTime(step),
-                    EndTime = GetStepTime(step)
-                };
-                currentSection.Steps.Add(step);
-                i++;
-
-                while (i < steps.Count)
-                {
-                    bool foundResume = false;
-                    int resumeIndex = -1;
-                    int unmatchedCount = 0;
-
-                    for (int k = i; k < steps.Count; k++)
+                    seenManiaChordTimes.Clear();
+                    votingCount = 0;
+                    foreach (var s in cluster)
                     {
-                        var aheadStep = steps[k];
-                        if (aheadStep.Shift == null || Math.Abs(aheadStep.Shift.Value - targetShift) > 2.0)
-                        {
-                            unmatchedCount++;
-                        }
-                        else
-                        {
-                            foundResume = true;
-                            resumeIndex = k;
-                            break;
-                        }
-
-                        if (unmatchedCount > 20)
-                            break;
-                    }
-
-                    if (foundResume)
-                    {
-                        for (int k = i; k <= resumeIndex; k++)
-                        {
-                            currentSection.Steps.Add(steps[k]);
-                            currentSection.EndTime = GetStepTime(steps[k]);
-                        }
-                        i = resumeIndex + 1;
-                    }
-                    else
-                    {
-                        break;
+                        if (s.OldObj != null && seenManiaChordTimes.Add(s.OldObj.time))
+                            votingCount++;
                     }
                 }
+                else
+                {
+                    votingCount = cluster.Count;
+                }
 
-                sections.Add(currentSection);
+                bool isShift = Math.Abs(shift) >= 1 && votingCount >= MinShiftInliersHitObjects;
+
+                if (isShift)
+                {
+                    var sec = new ShiftSection
+                    {
+                        Shift = shift,
+                        StartTime = cluster.Min(GetStepTime),
+                        EndTime = cluster.Max(GetStepTime),
+                        IsSectionShift = true,
+                    };
+                    sec.Steps.AddRange(cluster);
+                    sections.Add(sec);
+                }
+                else
+                {
+                    foreach (var step in cluster)
+                    {
+                        var sec = new ShiftSection
+                        {
+                            Shift = step.Shift ?? 0.0,
+                            StartTime = GetStepTime(step),
+                            EndTime = GetStepTime(step),
+                            IsSectionShift = false,
+                        };
+                        sec.Steps.Add(step);
+                        sections.Add(sec);
+                    }
+                }
             }
 
-            foreach (var section in sections)
+            foreach (var step in unmatched)
             {
-                int matchedCount = section.Steps.Count(s => s.Shift != null && Math.Abs(s.Shift.Value - section.Shift) <= 2.0);
-                section.IsSectionShift = Math.Abs(section.Shift) >= 1.0 && matchedCount >= 5;
+                var sec = new ShiftSection
+                {
+                    Shift = 0.0,
+                    StartTime = GetStepTime(step),
+                    EndTime = GetStepTime(step),
+                    IsSectionShift = false,
+                };
+                sec.Steps.Add(step);
+                sections.Add(sec);
             }
 
-            return sections;
+            return (sections.OrderBy(s => s.StartTime).ToList(), globalShiftHint);
         }
 
         /// <summary>
