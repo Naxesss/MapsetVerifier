@@ -83,14 +83,17 @@ export type TimelinePanValue = {
   stopDragging: () => void;
 };
 
+export type TimelineCrosshairValue = {
+  crosshair: TimelineCrosshairState | null;
+  setCrosshair: (state: TimelineCrosshairState | null) => void;
+};
+
 export type TimelineFullViewValue = {
   viewMode: TimelineViewMode;
   setViewMode: (mode: TimelineViewMode) => void;
   hitsoundLayers: HitsoundLayerVisibility;
   setHitsoundLayers: React.Dispatch<React.SetStateAction<HitsoundLayerVisibility>>;
   playheadViewportX: number | null;
-  crosshair: TimelineCrosshairState | null;
-  setCrosshair: (state: TimelineCrosshairState | null) => void;
   snapPlayheadToTimestamp: ((timestampMs: number) => void) | null;
   rowHeight: number;
 };

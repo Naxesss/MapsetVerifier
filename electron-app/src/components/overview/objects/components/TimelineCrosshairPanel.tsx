@@ -1,6 +1,7 @@
 import { Box, Group, Paper, ScrollArea, Stack, Text, Tooltip } from "@mantine/core";
 import { IconGripVertical } from "@tabler/icons-react";
 import {
+  memo,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -14,26 +15,22 @@ import { getDifficultyColor } from "../../../common/DifficultyColor.ts";
 import DifficultyColorPill from "../../../common/DifficultyColorPill.tsx";
 import {
   useTimelineController,
+  useTimelineCrosshairState,
   useTimelineFullView,
   useTimelineVisibility,
 } from "../context/ObjectsTimelineContext.tsx";
 import {
-  findNearestSample,
+  buildCrosshairRowLookupCache,
+  resolveCrosshairRow,
+} from "../crosshairUtils.ts";
+import {
   formatSampleBankLine,
   getHitsoundTypesFromFlags,
-  getPrimaryEdgeSample,
   HITSOUND_FLAG_NORMAL,
-  parseHitSoundFlags,
   type HitsoundTypeDisplay,
 } from "../hitsoundUtils.ts";
-import { filterSamplesForHover } from "../timelineHitsoundDrawing.ts";
-import {
-  findNearestTimelineEdge,
-  formatEditorTimestamp,
-  getEdgeHitSoundFlags,
-  getDifficultyKey,
-} from "../timelineUtils.ts";
-import type { ObjectsOverviewDifficulty, ObjectsTimelineSample } from "../../../../Types";
+import { formatEditorTimestamp, getDifficultyKey } from "../timelineUtils.ts";
+import type { ObjectsTimelineSample } from "../../../../Types";
 
 const DEFAULT_VERTICAL_OFFSET = 50;
 const PANEL_MAX_WIDTH = 360;
@@ -177,97 +174,45 @@ function HitsoundSampleDetail({
   );
 }
 
-function resolveCrosshairRow(
-  difficulty: ObjectsOverviewDifficulty,
-  timestampMs: number,
-  samples: ObjectsTimelineSample[],
-) {
-  const nearestSample = findNearestSample(samples, timestampMs);
-  const edgeMatch = findNearestTimelineEdge(difficulty.timelineObjects, timestampMs);
-
-  const nearestDistance = nearestSample
-    ? Math.abs(nearestSample.timeMs - timestampMs)
-    : Number.POSITIVE_INFINITY;
-  const edgeDistance = edgeMatch
-    ? Math.abs(edgeMatch.edge.timeMs - timestampMs)
-    : Number.POSITIVE_INFINITY;
-
-  const preferPassiveSample =
-    nearestSample != null &&
-    nearestSample.source !== "Edge" &&
-    nearestDistance <= edgeDistance;
-
-  if (preferPassiveSample) {
-    return {
-      partName: nearestSample.partName ?? nearestSample.source,
-      hitSoundFlags: parseHitSoundFlags(nearestSample.hitSound ?? "") || HITSOUND_FLAG_NORMAL,
-      sample: nearestSample,
-      sampleSource: nearestSample.source,
-      hasMatch: true,
-    };
-  }
-
-  if (edgeMatch) {
-    return {
-      partName: edgeMatch.edge.partName,
-      hitSoundFlags: getEdgeHitSoundFlags(edgeMatch),
-      sample: getPrimaryEdgeSample(samples, edgeMatch.edge.timeMs),
-      sampleSource: "Edge",
-      hasMatch: true,
-    };
-  }
-
-  if (nearestSample?.source === "Edge") {
-    const edgeAtSample = findNearestTimelineEdge(
-      difficulty.timelineObjects,
-      nearestSample.timeMs,
-    );
-
-    return {
-      partName: nearestSample.partName ?? edgeAtSample?.edge.partName ?? "Edge",
-      hitSoundFlags: getEdgeHitSoundFlags(edgeAtSample),
-      sample: getPrimaryEdgeSample(samples, nearestSample.timeMs),
-      sampleSource: "Edge",
-      hasMatch: true,
-    };
-  }
-
-  if (nearestSample) {
-    return {
-      partName: nearestSample.partName ?? nearestSample.source,
-      hitSoundFlags: parseHitSoundFlags(nearestSample.hitSound ?? "") || HITSOUND_FLAG_NORMAL,
-      sample: nearestSample,
-      sampleSource: nearestSample.source,
-      hasMatch: true,
-    };
-  }
-
-  return {
-    partName: "Edge",
-    hitSoundFlags: HITSOUND_FLAG_NORMAL,
-    sample: null,
-    sampleSource: null,
-    hasMatch: false,
-  };
-}
-
-function TimelineCrosshairPanelBody() {
-  const { crosshair, hitsoundLayers } = useTimelineFullView();
+const TimelineCrosshairPanelBody = memo(function TimelineCrosshairPanelBody() {
+  const crosshair = useTimelineCrosshairState();
+  const { hitsoundLayers } = useTimelineFullView();
   const {
     rows: { orderedDifficulties },
   } = useTimelineController();
   const { visibilityByDifficulty } = useTimelineVisibility();
+
+  const lookupCaches = useMemo(() => {
+    const caches = new Map<string, ReturnType<typeof buildCrosshairRowLookupCache>>();
+
+    for (const difficulty of orderedDifficulties) {
+      caches.set(
+        getDifficultyKey(difficulty),
+        buildCrosshairRowLookupCache(difficulty, hitsoundLayers)
+      );
+    }
+
+    return caches;
+  }, [hitsoundLayers, orderedDifficulties]);
+
   const rows = useMemo(() => {
     if (!crosshair) return [];
 
     return orderedDifficulties
       .filter((difficulty) => visibilityByDifficulty[getDifficultyKey(difficulty)] !== false)
       .map((difficulty) => {
-        const samples = filterSamplesForHover(difficulty.timelineSamples ?? [], hitsoundLayers);
-        const resolved = resolveCrosshairRow(difficulty, crosshair.timestampMs, samples);
+        const difficultyKey = getDifficultyKey(difficulty);
+        const cache = lookupCaches.get(difficultyKey);
+        const samples = cache?.sortedSamples ?? [];
+        const resolved = resolveCrosshairRow(
+          difficulty,
+          crosshair.timestampMs,
+          samples,
+          cache
+        );
 
         return {
-          key: getDifficultyKey(difficulty),
+          key: difficultyKey,
           version: difficulty.version,
           starRating: difficulty.starRating,
           partName: resolved.partName,
@@ -277,7 +222,7 @@ function TimelineCrosshairPanelBody() {
           hasEdge: resolved.hasMatch,
         };
       });
-  }, [crosshair, hitsoundLayers, orderedDifficulties, visibilityByDifficulty]);
+  }, [crosshair, lookupCaches, orderedDifficulties, visibilityByDifficulty]);
 
   if (!crosshair) {
     return (
@@ -309,13 +254,13 @@ function TimelineCrosshairPanelBody() {
       ))}
     </Stack>
   );
-}
+});
 
 export function TimelineCrosshairFloatingPanel({
   boundsRef,
   resetKey,
 }: TimelineCrosshairFloatingPanelProps) {
-  const { crosshair } = useTimelineFullView();
+  const crosshair = useTimelineCrosshairState();
   const {
     rows: { orderedDifficulties },
   } = useTimelineController();

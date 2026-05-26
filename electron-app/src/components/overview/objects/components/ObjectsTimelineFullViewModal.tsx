@@ -8,6 +8,7 @@ import {
 } from './TimelineCrosshairPanel.tsx';
 import { HITSOUND_ROW_HEIGHT, LABEL_WIDTH, PLAYHEAD_VIEWPORT_OFFSET, ROW_HEIGHT } from '../constants.ts';
 import {
+  TimelineCrosshairProvider,
   TimelineFullViewProvider,
   TimelinePanProvider,
   useTimelineController,
@@ -18,14 +19,14 @@ import {
   type HitsoundLayerVisibility,
   type TimelineViewMode,
 } from '../hitsoundUtils.ts';
+import { useTimelineCrosshairScrollSync } from '../hooks/useTimelineCrosshairScrollSync.ts';
 import {
   getDifficultyKey,
   getFirstNoteTimeMs,
   getPlayheadScrollPadding,
   getScrollLeftForTimestamp,
-  getTimestampAtPlayhead,
 } from '../timelineUtils.ts';
-import type { TimelineCrosshairState , TimelinePanValue } from '../context/types.ts';
+import type { TimelineCrosshairState, TimelinePanValue } from '../context/types.ts';
 
 type ObjectsTimelineFullViewModalProps = {
   opened: boolean;
@@ -89,33 +90,15 @@ function ObjectsTimelineFullViewModalBody({ pan }: { pan: TimelinePanValue }) {
     [orderedDifficulties, startTimeMs, visibilityByDifficulty]
   );
 
-  const updateCrosshairFromScroll = useCallback(() => {
-    if (playheadViewportX === null) {
-      return;
-    }
-
-    const scrollElement = pan.scrollRef.current;
-    if (!scrollElement) {
-      return;
-    }
-
-    const padding =
-      scrollElement.clientWidth > 0
-        ? getPlayheadScrollPadding(playheadViewportX, LABEL_WIDTH, scrollElement.clientWidth)
-        : undefined;
-
-    const timestampMs = getTimestampAtPlayhead(
-      scrollElement.scrollLeft,
-      playheadViewportX,
-      LABEL_WIDTH,
-      timelineWidth,
-      startTimeMs,
-      endTimeMs,
-      padding
-    );
-
-    setCrosshair({ timestampMs });
-  }, [endTimeMs, pan.scrollRef, playheadViewportX, startTimeMs, timelineWidth]);
+  const { updateCrosshairNow, setCrosshairTimestamp } = useTimelineCrosshairScrollSync({
+    enabled: viewMode === 'hitsounding',
+    scrollRef: pan.scrollRef,
+    playheadViewportX,
+    timelineWidth,
+    startTimeMs,
+    endTimeMs,
+    setCrosshair,
+  });
 
   const snapPlayheadToTimestamp = useCallback(
     (timestampMs: number) => {
@@ -145,9 +128,16 @@ function ObjectsTimelineFullViewModalBody({ pan }: { pan: TimelinePanValue }) {
       );
       const maxScrollLeft = Math.max(0, scrollElement.scrollWidth - scrollElement.clientWidth);
       scrollElement.scrollLeft = Math.max(0, Math.min(maxScrollLeft, scrollLeft));
-      setCrosshair({ timestampMs: clampedTimestamp });
+      setCrosshairTimestamp(clampedTimestamp);
     },
-    [endTimeMs, pan.scrollRef, playheadViewportX, startTimeMs, timelineWidth]
+    [
+      endTimeMs,
+      pan.scrollRef,
+      playheadViewportX,
+      setCrosshairTimestamp,
+      startTimeMs,
+      timelineWidth,
+    ]
   );
 
   useEffect(() => {
@@ -207,7 +197,7 @@ function ObjectsTimelineFullViewModalBody({ pan }: { pan: TimelinePanValue }) {
       const maxScrollLeft = Math.max(0, scrollElement.scrollWidth - scrollElement.clientWidth);
       scrollElement.scrollLeft = Math.max(0, Math.min(maxScrollLeft, scrollLeft));
       pendingFirstNoteScrollRef.current = false;
-      updateCrosshairFromScroll();
+      updateCrosshairNow(true);
     };
 
     scrollToFirstNote();
@@ -225,38 +215,9 @@ function ObjectsTimelineFullViewModalBody({ pan }: { pan: TimelinePanValue }) {
     playheadViewportX,
     startTimeMs,
     timelineWidth,
-    updateCrosshairFromScroll,
+    updateCrosshairNow,
     viewMode,
   ]);
-
-  useEffect(() => {
-    if (viewMode !== 'hitsounding' || playheadViewportX === null) {
-      setCrosshair(null);
-      return;
-    }
-
-    updateCrosshairFromScroll();
-  }, [playheadViewportX, timelineWidth, updateCrosshairFromScroll, viewMode]);
-
-  useEffect(() => {
-    if (viewMode !== 'hitsounding' || playheadViewportX === null) {
-      return;
-    }
-
-    const scrollElement = pan.scrollRef.current;
-    if (!scrollElement) {
-      return;
-    }
-
-    const handleScroll = () => {
-      updateCrosshairFromScroll();
-    };
-
-    scrollElement.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      scrollElement.removeEventListener('scroll', handleScroll);
-    };
-  }, [pan.scrollRef, playheadViewportX, updateCrosshairFromScroll, viewMode]);
 
   const rowHeight = viewMode === 'hitsounding' ? HITSOUND_ROW_HEIGHT : ROW_HEIGHT;
 
@@ -318,8 +279,6 @@ function ObjectsTimelineFullViewModalBody({ pan }: { pan: TimelinePanValue }) {
       hitsoundLayers,
       setHitsoundLayers,
       playheadViewportX,
-      crosshair,
-      setCrosshair,
       snapPlayheadToTimestamp:
         viewMode === 'hitsounding' ? snapPlayheadToTimestamp : null,
       rowHeight,
@@ -328,7 +287,6 @@ function ObjectsTimelineFullViewModalBody({ pan }: { pan: TimelinePanValue }) {
       viewMode,
       hitsoundLayers,
       playheadViewportX,
-      crosshair,
       snapPlayheadToTimestamp,
       rowHeight,
     ]
@@ -337,20 +295,22 @@ function ObjectsTimelineFullViewModalBody({ pan }: { pan: TimelinePanValue }) {
   return (
     <Box ref={modalBodyRef} pos="relative">
       <TimelineFullViewProvider value={fullViewValue}>
-        <TimelinePanProvider value={pan}>
-          <ObjectsTimelineComparisonContent
-            showModeSelector
-            showVisibilityControls
-            showThemeControls
-            showZoomControls
-            headerExtra={headerExtra}
-            aboveTimelineExtra={viewMode === 'hitsounding' ? <HitsoundStripLegend /> : undefined}
-          />
-        </TimelinePanProvider>
+        <TimelineCrosshairProvider crosshair={crosshair} setCrosshair={setCrosshair}>
+          <TimelinePanProvider value={pan}>
+            <ObjectsTimelineComparisonContent
+              showModeSelector
+              showVisibilityControls
+              showThemeControls
+              showZoomControls
+              headerExtra={headerExtra}
+              aboveTimelineExtra={viewMode === 'hitsounding' ? <HitsoundStripLegend /> : undefined}
+            />
+          </TimelinePanProvider>
 
-        {viewMode === 'hitsounding' && (
-          <TimelineCrosshairFloatingPanel boundsRef={modalBodyRef} resetKey={panelResetKey} />
-        )}
+          {viewMode === 'hitsounding' && (
+            <TimelineCrosshairFloatingPanel boundsRef={modalBodyRef} resetKey={panelResetKey} />
+          )}
+        </TimelineCrosshairProvider>
       </TimelineFullViewProvider>
     </Box>
   );
