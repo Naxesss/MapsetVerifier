@@ -1,6 +1,6 @@
 {
   "name": "mapsetverifier",
-  "version": "2.0.0",
+  "version": "2.0.0-beta.727",
   "description": "Mapset Verifier",
   "author": {
     "name": "Greaper",
@@ -12,11 +12,13 @@
   },
   "main": "electron-app/electron/main.cjs",
   "scripts": {
+    "dev:all": "concurrently -k -n app,api -c cyan,yellow \"npm:dev\" \".\\\\src\\\\bin\\\\Debug\\\\net9.0\\\\MapsetVerifier.exe --urls=http://localhost:5005\"",
     "dev:frontend": "npm --prefix electron-app run dev",
     "dev:electron": "cross-env VITE_DEV_SERVER_URL=http://localhost:1420 electron .",
     "dev": "concurrently -k -n vite,electron -c cyan,magenta \"npm:dev:frontend\" \"wait-on http://localhost:1420 && npm run dev:electron\"",
     "build:frontend": "npm --prefix electron-app run build",
     "build": "npm run build:frontend",
+    "build:backend": "dotnet build src/MapsetVerifier.csproj -c Debug",
     "dist": "npm run build && electron-builder --x64 -w",
     "dist-prerelease": "npm run build && electron-builder --x64 -w --config.win.icon=assets/icons/prerelease/icon.ico --config.mac.icon=assets/icons/prerelease/icon.icns --config.linux.icon=assets/icons/prerelease --config.nsis.installerIcon=assets/icons/prerelease/icon.ico --config.nsis.installerHeaderIcon=assets/icons/prerelease/icon.ico",
     "dist-all": "npm run build && electron-builder -wl",

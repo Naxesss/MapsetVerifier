@@ -46,3 +46,5 @@ msbuild.err
 msbuild.wrn
 
 Logs/
+
+*.lnk
