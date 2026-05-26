@@ -1,20 +1,51 @@
-![Mapset Verifier](https://i.imgur.com/O4d2jTa.png)
+<p align="center">
+  <img src="assets/icons/prod/256x256.png" alt="Mapset Verifier" width="128">
+</p>
+
+<h1 align="center">Mapset Verifier</h1>
+
+<p align="center">
+  <a href="https://mv.mappersguild.com/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/Naxesss/MapsetVerifier/total"></a>
+  <a href="https://mv.mappersguild.com/releases"><img src="https://img.shields.io/github/v/release/Naxesss/MapsetVerifier?label=latest%20release&display_name=release" alt="Latest release"></a>
+  <a href="https://github.com/Naxesss/MapsetVerifier/releases"><img src="https://img.shields.io/github/v/release/Naxesss/MapsetVerifier?include_prereleases&label=latest%20beta" alt="Latest beta"></a>
+  <a href="https://github.com/Naxesss/MapsetVerifier"><img src="https://img.shields.io/github/stars/Naxesss/MapsetVerifier?style=flat&color=e3b341" alt="GitHub stars"></a>
+  <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-9-512BD4?logo=dotnet&logoColor=white" alt=".NET 9"></a>
+  <a href="https://mv.mappersguild.com/releases"><img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-blue" alt="Platform"></a>
+</p>
+
+<p align="center">
+  <a href="https://mv.mappersguild.com"><strong>Website</strong></a>
+  ·
+  <a href="https://mv.mappersguild.com/releases"><strong>Download</strong></a>
+  ·
+  <a href="https://github.com/Naxesss/MapsetVerifier/issues"><strong>Report a bug</strong></a>
+  ·
+  <a href="docs/DEVELOPMENT.md"><strong>Development</strong></a>
+</p>
 
 Mapset Verifier (MV) is a desktop app which tests quantifyable issues in [beatmapsets](https://osu.ppy.sh/help/wiki/Beatmaps) from [osu!](https://en.wikipedia.org/wiki/Osu!), such as unsnapped objects and unused files. Many of these issues would otherwise disqualify the map from being [ranked](https://osu.ppy.sh/help/wiki/Beatmap_ranking_procedure#ranked). Although mainly aimed at [Beatmap Nominators](https://osu.ppy.sh/help/wiki/Beatmap%20Nominators), this can also be used by mapset creators and reviewers to speed up [the ranking process](https://osu.ppy.sh/help/wiki/Beatmap_ranking_procedure).
 
 MV is a successor to the game's built-in [AiMod](https://osu.ppy.sh/help/wiki/Beatmap_Editor/AiMod) and [Sieg's Modding Assistant](https://osu.ppy.sh/community/forums/topics/359381), providing more features and greater scalability. Some examples include auto-updates, plugin support, and integrated documentation and diff utilities.
 
+**MV 2.0** is a ground-up rewrite of the application: New React frontend, updated .NET 9 backend, a ton of new features, and built-in checks for all game modes!
+
 *This is currently being ported to osu!lazer. [You can track its progress here!](https://github.com/ppy/osu/issues/12091#issuecomment-878760791)*
 
-### Note
-Some issues are not easily quantified, especially ones related to [metadata](https://osu.ppy.sh/help/wiki/Ranking_Criteria#metadata) and [timing](https://osu.ppy.sh/help/wiki/Ranking_Criteria#timing); far from everything is covered. Also, [false positives and false negatives](https://en.wikipedia.org/wiki/False_positives_and_false_negatives) may occur, as with any similar tool. So always use your own judgement and be critical about what the program points out, especially warnings.
-
-##
-![](https://i.imgur.com/F6HhxPU.gif?sanitize=true)
+> [!WARNING]
+> Some issues are not easily quantified, especially ones related to [metadata](https://osu.ppy.sh/help/wiki/Ranking_Criteria#metadata) and [timing](https://osu.ppy.sh/help/wiki/Ranking_Criteria#timing); far from everything is covered. Also, [false positives and false negatives](https://en.wikipedia.org/wiki/False_positives_and_false_negatives) may occur, as with any similar tool. So always use your own judgement and be critical about what the program points out, especially warnings.
 
 ## Download
 
-See [the latest release](https://github.com/Naxesss/MapsetVerifier/releases/latest). On Windows, get the exe file. On Linux, get the tar.gz / [use this package on archlinux](https://aur.archlinux.org/packages/mapset-verifier-bin/).
+Get the latest build from **[mv.mappersguild.com/releases](https://mv.mappersguild.com/releases)**.
+
+The [website](https://mv.mappersguild.com) has release notes, screenshots, and platform-specific install instructions. On Windows, grab the installer (`.exe`). On Linux, use the AppImage or [the Arch AUR package](https://aur.archlinux.org/packages/mapset-verifier-bin/). On macOS, use the DMG or ZIP.
+
+GitHub also hosts every release under [Releases](https://github.com/Naxesss/MapsetVerifier/releases).
+
+<details>
+<summary>Older versions (MV 1.x)</summary>
+
+These builds are from the pre-2.0 release line. Prefer the current download page unless you specifically need 1.x.
 
 | Version | Date Released | Windows | Linux |
 | ---     | ---           | ---     | ---   |
@@ -26,206 +57,37 @@ See [the latest release](https://github.com/Naxesss/MapsetVerifier/releases/late
 | 1.6.6   | 2020-08-04    | [![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.6.6/mapsetverifier-setup-1.6.6.exe.svg)](https://github.com/Naxesss/MapsetVerifier/releases/download/v1.6.6/mapsetverifier-setup-1.6.6.exe) | [![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.6.6/mapsetverifier-1.6.6.tar.gz.svg)](https://github.com/Naxesss/MapsetVerifier/releases/download/v1.6.6/mapsetverifier-1.6.6.tar.gz) |
 | 1.6.5   | 2020-07-03    | [![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.6.5/mapsetverifier-setup-1.6.5.exe.svg)](https://github.com/Naxesss/MapsetVerifier/releases/download/v1.6.5/mapsetverifier-setup-1.6.5.exe) | [![](https://img.shields.io/github/downloads/naxesss/mapsetverifier/v1.6.5/mapsetverifier-1.6.5.tar.gz.svg)](https://github.com/Naxesss/MapsetVerifier/releases/download/v1.6.5/mapsetverifier-1.6.5.tar.gz) |
 
-## Building
-### Dependencies
-You will need:
-- .NET SDK 9
-- Node.js
-
-### Building locally
-#### Windows
-Run:
-```bat
-start.bat
-```
-
-#### Linux and macOS
-Run:
-```sh
-chmod +x start.sh
-./start.sh
-```
-
-### Building the backend for other systems
-Run: 
-```bat
-scripts\build-sidecars.bat <runtimes>
-```
-or:
-```sh
-scripts/build-sidecars.sh <runtimes>
-```
-depending on your system.
-
-Available Runtimes:
-
-- win-x64
-- win-arm64
-- mac-x64
-- mac-arm64
-- linux-x64
-- linux-arm64
+</details>
 
 ## Common Problems
 
-- **Windows protected pc**
-    - Solution: More info > Run anyway *OR* Right click installer > Properties > Unblock
-    - Reason: Installer has no signed certificate (costs)
+- **Windows SmartScreen / "Windows protected your PC"**
+  - **Fix:** Click *More info* → *Run anyway*, or right-click the installer → *Properties* → check *Unblock*.
+  - **Why:** The installer is not code-signed (signing certificates are expensive).
 
-- **Stuck on install screen when reinstalling**
-    - Solution: Uninstall before reinstalling
-    - Reason: Limitation in electron-builder
+- **App fails to start — backend executable missing (`ENOENT`)**
+  - **Fix:** Uninstall, reinstall, and whitelist `MapsetVerifier.exe` in your antivirus before launching again. The backend lives under `bin/server/dist/<platform-arch>/` inside the installed app (for example `win-x64` on 64-bit Windows).
+  - **Why:** Some antivirus tools flag the backend on first run and delete it before MV can use it.
 
-- **Javascript error ENOENT, no MapsetVerifierBackend.exe in `/app/api/win-x86`**
-    - Solution: Uninstall, reinstall, then whitelist this exe in your antivirus before running again
-    - Reason: Antivirus false positive, deletes the backend (part that does checks) on first run
-
-## Feature Comparison
-
-| Feature | Mapset Verifier | Modding Assistant | AiMod |
-| --- | --- | --- | --- |
-| Difficulty Interpretation | ✅ (Option, Name, SR) | ✅ (Name, SR) | ✅ (SR) |
-| Snapshots | ✅ (Automatic) | ✅ (Manual) | ⬜️ |
-| Integrated Documentation | ✅ | ✅ (RC Snippets) | ⬜️ |
-| Timeline Comparison | ✅ | ✅ (Taiko-only) | ⬜️ |
-| Song folder detection | ✅ | ⬜️ | ✅ |
-| Automatic Updates | ✅ (Windows-only) | ⬜️ | ✅ |
-| Verbose Mode | ✅ | ⬜️ | ✅ |
-| Plugin Support | ✅ | ⬜️ | ⬜️ |
-| Open Source | ✅ | ⬜️ | ⬜️ |
-| Difficulty Graph | ✅ | ✅ (Outdated SR) | ⬜️ |
-
-## Examples of fixed false positives/negatives
-### Modding Assistant
-- counting extended break times as drain time.
-- failing to account for minimum SV (0.1x).
-- misinterpreting hit sounds on slider bodies as hit sounds on heads/tails.
-- completely ignoring storyboard variables and animation frames.
-
-### AiMod
-- incorrectly detecting unsnaps on slider tails < 2 ms off
-- not accounting for stacking.
-- using a vastly outdated star rating system, saying you need an easy/normal when you already have one.
-- using inaccurate playfield measurements to detect offscreen hit objects.
+- **MV 1.x plugins do not load on MV 2.0**
+  - **Fix:** Rebuild plugins for .NET 9 against the current API, or remove legacy DLLs. Many former mode-specific plugins are now built into MV 2.0.
+  - **Why:** MV 2.0 changed the runtime, folder layout, and check API. See [Custom checks documentation](docs/CUSTOM_CHECKS.md).
 
 ## Plugins
 
-Add check DLLs to `%APPDATA%/Mapset Verifier Externals/checks` to have them load in just like the default checks. To create these DLLs, have a look at how [MapsetChecks](https://github.com/Naxesss/MapsetChecks) was created. [This](https://github.com/rorre/MV-SliderOnly#building) is probably also useful.
+MV supports custom check plugins (`.dll` files) that run alongside built-in checks. Install paths, the check API, security notes, and migration guidance from MV 1.x are documented in the **[custom checks documentation](docs/CUSTOM_CHECKS.md)**.
 
-Third-party plugins (that I'm aware of):
-- [CatchCheck](https://github.com/rorre/CatchCheck) by [-Keitaro](https://osu.ppy.sh/users/3378391), adds osu!catch-specific checks.
-- [MapsetChecksCatch](https://github.com/Darius-Wattimena/MapsetChecksCatch) by [Greaper](https://osu.ppy.sh/users/2369776), adds osu!catch-specific checks.
-- [MVTaikoChecks](https://github.com/Hiviexd/MVTaikoChecks) by [Hivie](https://osu.ppy.sh/users/14102976), adds osu!taiko-specific checks.
+Only install plugins from sources you trust — they run inside the backend process with the same privileges as the application.
 
-In general, do be careful about which check plugins you use, as they can be malicious. The plugins are executed by the back end of the application, so they can pretty much do anything the rest of the application can.
+## Development
 
-## Technical Overview
-
-The backend is written in [C#/.NET](https://dotnet.microsoft.com/), with a simple [ASP.NET Core](https://dotnet.microsoft.com/en-us/apps/aspnet) server. The frontend is an [Electron](https://www.electronjs.org/) desktop application written in HTML, CSS, and [JS/JQuery](https://jquery.com/). The server-client communication is done with [SignalR](https://dotnet.microsoft.com/en-us/apps/aspnet/signalr). Upon selecting a mapset, the frontend requests tabs to be rendered, and the backend returns HTML.
-
-![](https://i.imgur.com/3kHWOmH.png?sanitize=true)
-
-## Checks (last updated 2021-09-14)
-### General
-
-| Category | Issue Message |
-| --- | --- |
-| **Resources** | Missing background. |
-| **Resources** | Too high or low background resolution. |
-| **Resources** | Inconsistent video usage. |
-| **Resources** | Overlay layer usage. |
-| **Resources** | Too high sprite resolution. |
-| **Resources** | Inconsistent video offset. |
-| **Resources** | Too high video resolution. |
-| **Metadata** | Inconsistent metadata. |
-| **Metadata** | Incorrect marker format. |
-| **Metadata** | Incorrect marker spacing. |
-| **Metadata** | BMS used as source. |
-| **Metadata** | Incorrect format of (TV Size) / (Game Ver.) / (Short Ver.) / (Cut Ver.) / (Sped Up Ver.) in title. |
-| **Metadata** | Unicode in romanized fields. |
-| **Metadata** | Missing genre/language in tags. |
-| **Files** | Issues with updating or downloading. |
-| **Files** | 0-byte files. |
-| **Files** | Unused files. |
-| **Audio** | Audio channels in video. |
-| **Audio** | More than 20% unused audio at the end. |
-| **Audio** | Too high or low audio bitrate. |
-| **Audio** | Frequent finish hit sounds. |
-| **Audio** | Delayed hit sounds. |
-| **Audio** | Incorrect hit sound format. |
-| **Audio** | Imbalanced hit sounds. |
-| **Audio** | Too short hit sounds. |
-| **Audio** | Multiple or missing audio files.  |
-| **Audio** | Incorrect audio format. |
-
-### All Modes
-
-| Category | Issue Message |
-| --- | --- |
-| **Timing** | Concurrent or conflicting timing lines. |
-| **Timing** | First line toggles kiai or is inherited. |
-| **Timing** | Inconsistent uninherited lines, meter signatures or BPM. |
-| **Timing** | Unsnapped kiai. |
-| **Timing** | Inconsistent or unset preview time. |
-| **Timing** | Unsnapped hit objects. |
-| **Timing** | Unused timing lines. |
-| **Timing** | Wrongly or inconsistently snapped hit objects. |
-| **Spread** | Lowest difficulty too difficult for the given drain/play time(s). |
-| **Settings** | Abnormal difficulty settings. |
-| **Settings** | Inconsistent mapset id, countdown, epilepsy warning, etc. |
-| **Settings** | Slider tick rates not aligning with any common beat snap divisor. |
-| **Settings** | Abnormal difficulty settings. |
-| **Hit Sounds** | Low volume hit sounding. |
-| **Events** | Breaks only achievable through .osu editing. |
-| **Compose** | Abnormal amount of slider nodes. |
-| **Compose** | Concurrent hit objects. |
-| **Compose** | Too short drain time. |
-| **Compose** | Invisible sliders. |
-| **Compose** | Abnormal amount of slider nodes. |
-
-### Standard
-
-| Category | Issue Message |
-| --- | --- |
-| **Timing** | Hit object is unaffected by a line very close to it. |
-| **Spread** | Multiple reverses on too short sliders. |
-| **Spread** | Too short sliders. |
-| **Spread** | Object too close or far away from previous. |
-| **Spread** | Too short spinner time or spinner recovery time. |
-| **Spread** | Perfect stacks too close in time. |
-| **Spread** | Objects close in time not overlapping. |
-| **Settings** | Default combo colours without forced skin. |
-| **Settings** | Too dark or bright combo colours or slider borders. |
-| **Hit Sounds** | Long periods without hit sounding. |
-| **Events** | Storyboarded hit sounds. |
-| **Compose** | Burai slider. |
-| **Compose** | Too short spinner. |
-| **Compose** | Obscured reverse arrows. |
-| **Compose** | Offscreen hit objects. |
-| **Compose** | Abnormally large spacing. |
-| **Compose** | Ambiguous slider intersection. |
-
-### Taiko
-
-| Category | Issue Message |
-| --- | --- |
-| **Timing** | Inconsistent omitted bar lines. |
-| **Timing** | Hit object is unaffected by a line very close to it. |
-| **Events** | Storyboarded hit sounds. |
-
-### Catch
-
-| Category | Issue Message |
-| --- | --- |
-| **Timing** | Hit object is unaffected by a line very close to it. |
-| **Settings** | Default combo colours without forced skin. |
-| **Settings** | Too dark or bright combo colours or slider borders. |
-| **Hit Sounds** | Long periods without hit sounding. |
-| **Events** | Storyboarded hit sounds. |
-| **Compose** | Spinner gap too small. |
-
-Modes apart from standard do not have their SRs implemented, so difficulty levels will likely be wrong.
+To build from source, package releases, or learn how the stack is put together, see the **[development documentation](docs/DEVELOPMENT.md)**.
 
 ## Reporting Bugs
 
-Either post an issue here or contact me on Discord @naxess. Give beatmapset and reproduction steps if applicable. If you don't have me on discord just join the [Aiess Project](https://discord.gg/2XV5dcW), after which you should be able to message me.
+Open a [GitHub issue](https://github.com/Naxesss/MapsetVerifier/issues) with the beatmapset link and steps to reproduce when you can.
+
+You can also reach the current maintainers directly on osu!:
+
+- [Greaper](https://osu.ppy.sh/users/2369776)
+- [Hivie](https://osu.ppy.sh/users/14102976)
