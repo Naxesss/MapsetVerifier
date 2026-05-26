@@ -1,9 +1,13 @@
 import { REVERSE_ARROW_ICON_SIZE } from './constants.ts';
 import {
+  buildHitsoundDrawCache,
   getDominantHitsoundColor,
   getHitsoundCircleLayout,
   getHitsoundCircleOuterRadius,
+  getSamplesetColor,
   getSecondaryHitsoundColors,
+  SAMPLESET_BODY_ALPHA,
+  type HitsoundDrawCache,
   type HitsoundLayerVisibility,
   type TimelineViewMode,
 } from './hitsoundUtils.ts';
@@ -36,6 +40,7 @@ import type {
   ObjectsOverviewDifficulty,
   ObjectsTimelineEdge,
   ObjectsTimelineObject,
+  ObjectsTimelineSample,
   ObjectsTimingSegment,
 } from '../../../Types';
 import type { MantineTheme } from '@mantine/core';
@@ -52,6 +57,7 @@ export type DrawTimelineRowOptions = {
   visualThemeVariant: TimelineThemeVariant;
   viewMode?: TimelineViewMode;
   hitsoundLayers?: HitsoundLayerVisibility;
+  hitsoundDrawCache?: HitsoundDrawCache;
 };
 
 export function drawTimelineRow(
@@ -68,6 +74,7 @@ export function drawTimelineRow(
     visualThemeVariant,
     viewMode = 'structure',
     hitsoundLayers,
+    hitsoundDrawCache,
   }: DrawTimelineRowOptions
 ) {
   const durationMs = Math.max(1, endTimeMs - startTimeMs);
@@ -82,6 +89,14 @@ export function drawTimelineRow(
     gaps: true,
   };
   const neutralBodyColor = theme.colors.dark[4];
+  const resolvedHitsoundCache =
+    isHitsoundView
+      ? (hitsoundDrawCache ??
+        buildHitsoundDrawCache(
+          difficulty.timelineObjects,
+          difficulty.timelineSamples ?? []
+        ))
+      : undefined;
 
   ctx.clearRect(0, 0, viewportWidth, height);
   ctx.save();
@@ -102,7 +117,6 @@ export function drawTimelineRow(
       visibleStartX: viewportStartX,
       visibleEndX: viewportEndX,
       height,
-      theme,
     });
   }
 
@@ -161,7 +175,8 @@ export function drawTimelineRow(
       viewportStartX,
       viewportEndX,
       isHitsoundView,
-      neutralBodyColor
+      neutralBodyColor,
+      resolvedHitsoundCache?.bodySampleByObject.get(timelineObject) ?? null
     );
   }
 
@@ -194,7 +209,7 @@ export function drawTimelineRow(
     }
   }
 
-  if (isHitsoundView) {
+  if (isHitsoundView && resolvedHitsoundCache) {
     drawSoundStrip(ctx, {
       difficulty,
       layers,
@@ -204,6 +219,7 @@ export function drawTimelineRow(
       visibleStartX: viewportStartX,
       visibleEndX: viewportEndX,
       height,
+      primaryEdgeMarkers: resolvedHitsoundCache.primaryEdgeMarkers,
     });
   }
 
@@ -573,7 +589,8 @@ function drawTimelineObject(
   visibleStartX: number,
   visibleEndX: number,
   isHitsoundView: boolean,
-  neutralBodyColor: string
+  neutralBodyColor: string,
+  bodySample: ObjectsTimelineSample | null
 ) {
   const color = isHitsoundView
     ? neutralBodyColor
@@ -615,7 +632,8 @@ function drawTimelineObject(
     visibleStartX,
     visibleEndX,
     isHitsoundView,
-    neutralBodyColor
+    neutralBodyColor,
+    bodySample
   );
 }
 
@@ -630,7 +648,8 @@ function drawObjectBody(
   visibleStartX: number,
   visibleEndX: number,
   isHitsoundView: boolean,
-  neutralBodyColor: string
+  neutralBodyColor: string,
+  bodySample: ObjectsTimelineSample | null
 ) {
   if (timelineObject.endTimeMs <= timelineObject.startTimeMs) return;
 
@@ -646,7 +665,9 @@ function drawObjectBody(
   if (!bodyBounds) return;
 
   const color = isHitsoundView
-    ? neutralBodyColor
+    ? bodySample
+      ? withAlpha(getSamplesetColor(bodySample.sampleset), SAMPLESET_BODY_ALPHA)
+      : neutralBodyColor
     : visualTheme.resolveObjectColor(timelineObject);
 
   if (timelineObject.objectType === 'Spinner') {

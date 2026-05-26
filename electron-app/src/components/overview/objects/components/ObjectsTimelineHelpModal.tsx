@@ -1,28 +1,11 @@
-import { Box, Group, List, Modal, Stack, Text, Title } from '@mantine/core';
-import { HITSOUND_COLORS } from '../hitsoundUtils.ts';
+import { List, Modal, Stack, Text, Title } from '@mantine/core';
+import HitsoundLegendContent from './HitsoundLegendContent.tsx';
 
 type ObjectsTimelineHelpModalProps = {
   opened: boolean;
   onClose: () => void;
   showHitsoundSection?: boolean;
 };
-
-function ColorSwatch({ color, label }: { color: string; label: string }) {
-  return (
-    <Group gap={6} wrap="nowrap">
-      <Box
-        style={{
-          width: 10,
-          height: 10,
-          borderRadius: 999,
-          background: color,
-          flexShrink: 0,
-        }}
-      />
-      <Text size="sm">{label}</Text>
-    </Group>
-  );
-}
 
 export default function ObjectsTimelineHelpModal({
   opened,
@@ -67,14 +50,18 @@ export default function ObjectsTimelineHelpModal({
               </Text>
               <List size="sm" spacing={4}>
                 <List.Item>
-                  Object circle colours show only <strong>hitsound additions</strong> (Normal,
-                  Whistle, Clap, Finish). Priority is Finish → Clap → Whistle → Normal: the highest
-                  priority addition fills the circle; when stacked, additional ones appear as outer
-                  rings.
+                  <strong>Circles on objects</strong> show <strong>hitsound additions</strong>{' '}
+                  (Normal, Whistle, Clap, Finish). Priority is Finish → Clap → Whistle → Normal: the
+                  highest-priority addition fills the marker; stacked additions appear as outer
+                  rings. Finish and Clap reuse the Soft and Drum hues; Whistle shares Normal grey.
                 </List.Item>
                 <List.Item>
-                  Slider bodies stay neutral grey in this view — edge hitsounds are shown on
-                  circles at heads, tails, and reverses.
+                  <strong>Slider and spinner bodies</strong> are tinted by their hitnormal{' '}
+                  <strong>sample bank</strong> (Normal, Soft, or Drum).
+                </List.Item>
+                <List.Item>
+                  Double-click an object or edge to snap the <strong>playhead</strong> to that time
+                  and update the floating panel.
                 </List.Item>
               </List>
             </Stack>
@@ -83,26 +70,26 @@ export default function ObjectsTimelineHelpModal({
               <Title order={5}>Seeking and floating panel</Title>
               <List size="sm" spacing={4}>
                 <List.Item>
-                  A fixed blue playhead marks the <strong>first note</strong> across all visible
-                  difficulties. It does not follow the mouse.
+                  A fixed <strong>blue playhead</strong> is the seek cursor. It stays in place while
+                  you drag the timeline underneath it. It is <strong>not</strong> a sample-bank
+                  indicator — do not confuse it with Drum strip bars.
                 </List.Item>
                 <List.Item>
-                  Drag the timeline horizontally to seek under the playhead. The floating panel
-                  updates to show the nearest object edge at that time for each difficulty.
+                  On entering hitsounding view, the timeline scrolls so the first note sits under the
+                  playhead. After that, only double-click or manual panning moves what you are
+                  inspecting.
                 </List.Item>
                 <List.Item>
-                  Drag the panel header to reposition it. The body scrolls when many difficulties
-                  are visible. Difficulty names are coloured by star rating.
+                  The floating panel shows the nearest edge or sample at the playhead time for each
+                  visible difficulty. Drag its header to reposition it.
                 </List.Item>
                 <List.Item>
-                  Under <strong>Object circle</strong>, the panel lists the same stacked additions
-                  as the drawn circle. Hover a name for a short dominant / secondary tooltip; a
-                  secondary addition is shown with dimmed text when stacked.
+                  <strong>Hitsound additions</strong> matches the circles above the strip. Hover a
+                  name for primary / stacked tooltips.
                 </List.Item>
                 <List.Item>
-                  <strong>Sample file</strong> shows the sample bank and custom index (e.g. Soft,
-                  Drum, #4). That line describes which audio file plays — it does{' '}
-                  <strong>not</strong> affect circle colour.
+                  <strong>Sample bank</strong> is the hitnormal bank at that edge (plus custom index
+                  when set). Strip bars use the same value, resolved per object edge.
                 </List.Item>
               </List>
             </Stack>
@@ -114,17 +101,17 @@ export default function ObjectsTimelineHelpModal({
               </Text>
               <List size="sm" spacing={4}>
                 <List.Item>
-                  <strong>Edge lane</strong> — coloured vertical bars at edge hitsounds, using the
-                  same colours as object circles. Helps scan hitsound patterns across time.
+                  <strong>Edge lane</strong> — short vertical bars at each object edge (head, tail,
+                  reverse). Colour is the hitnormal <strong>sample bank</strong>, not the addition
+                  overlay sample.
                 </List.Item>
                 <List.Item>
-                  <strong>Passive lane</strong> — neutral dash for slider body samples, dot for
-                  slider ticks. These are the main visual for body/tick feedback because slider
-                  bodies are not coloured in hitsounding view.
+                  <strong>Passive lane</strong> — dash for slider body hits, dot for slider ticks.
+                  Both use their sample bank colour.
                 </List.Item>
                 <List.Item>
-                  Edge bar colour reflects hitsound type only (fixed bar size). Sample bank does
-                  not change individual strip markers — it tints the whole row instead (see below).
+                  Circles above the strip show additions; bars in the strip show the underlying
+                  hitnormal bank. They can differ on the same hit (e.g. Clap circle with Soft bar).
                 </List.Item>
               </List>
             </Stack>
@@ -142,26 +129,19 @@ export default function ObjectsTimelineHelpModal({
                   <strong>Ticks</strong> — slider tick samples in the passive lane.
                 </List.Item>
                 <List.Item>
-                  <strong>Sample bank</strong> — tints the full row for timing sections that use
-                  Soft or Drum sample banks (set on timing points). Normal sections stay untinted.
+                  <strong>Sample bank</strong> — row wash for timing sections set to Soft or Drum on
+                  timing points. Normal sections stay untinted.
                 </List.Item>
                 <List.Item>
-                  <strong>Gap overlay</strong> — orange regions where hitsound feedback is sparse,
+                  <strong>Gap overlay</strong> — magenta regions where hitsound feedback is sparse,
                   similar to the osu! editor warning.
                 </List.Item>
               </List>
             </Stack>
 
             <Stack gap="xs">
-              <Title order={5}>Sound strip key</Title>
-              <Group gap="md" wrap="wrap">
-                <ColorSwatch color={HITSOUND_COLORS.normal} label="Edge · Normal" />
-                <ColorSwatch color={HITSOUND_COLORS.whistle} label="Edge · Whistle" />
-                <ColorSwatch color={HITSOUND_COLORS.clap} label="Edge · Clap" />
-                <ColorSwatch color={HITSOUND_COLORS.finish} label="Edge · Finish" />
-                <ColorSwatch color={HITSOUND_COLORS.body} label="Passive · Body dash" />
-                <ColorSwatch color={HITSOUND_COLORS.tick} label="Passive · Tick dot" />
-              </Group>
+              <Title order={5}>Colour key</Title>
+              <HitsoundLegendContent />
             </Stack>
           </>
         )}

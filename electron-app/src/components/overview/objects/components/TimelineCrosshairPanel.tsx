@@ -21,21 +21,19 @@ import {
   findNearestSample,
   formatSampleBankLine,
   getHitsoundTypesFromFlags,
+  getPrimaryEdgeSample,
   HITSOUND_FLAG_NORMAL,
+  parseHitSoundFlags,
   type HitsoundTypeDisplay,
 } from "../hitsoundUtils.ts";
 import { filterSamplesForHover } from "../timelineHitsoundDrawing.ts";
 import {
-  findEdgeSampleAtTime,
   findNearestTimelineEdge,
   formatEditorTimestamp,
   getEdgeHitSoundFlags,
- getDifficultyKey } from "../timelineUtils.ts";
-import type { ObjectsTimelineSample } from "../../../../Types";
-
-export type TimelineCrosshairState = {
-  timestampMs: number;
-};
+  getDifficultyKey,
+} from "../timelineUtils.ts";
+import type { ObjectsOverviewDifficulty, ObjectsTimelineSample } from "../../../../Types";
 
 const DEFAULT_VERTICAL_OFFSET = 50;
 const PANEL_MAX_WIDTH = 360;
@@ -100,7 +98,7 @@ function DifficultyName({ version, starRating }: { version: string; starRating: 
 
 function HitsoundTypeSwatch({ type }: { type: HitsoundTypeDisplay }) {
   const isSecondary = type.role === "ring";
-  const tooltipLabel = isSecondary ? "Secondary" : "Dominant";
+  const tooltipLabel = isSecondary ? "Stacked addition" : "Primary addition";
 
   return (
     <Tooltip label={tooltipLabel}>
@@ -126,42 +124,131 @@ function HitsoundTypeSwatch({ type }: { type: HitsoundTypeDisplay }) {
   );
 }
 
+function formatHitsoundPartLabel(partName: string, sampleSource: string | null): string {
+  if (sampleSource === "Body") {
+    return "Slider body";
+  }
+  if (sampleSource === "Tick") {
+    return "Slider tick";
+  }
+  return partName;
+}
+
 function HitsoundSampleDetail({
   partName,
   hitSoundFlags,
   sample,
+  sampleSource,
 }: {
   partName: string;
   hitSoundFlags: number;
   sample: ObjectsTimelineSample | null;
+  sampleSource: string | null;
 }) {
   const hitsoundTypes = getHitsoundTypesFromFlags(hitSoundFlags || HITSOUND_FLAG_NORMAL);
+  const showAdditions = sampleSource === "Edge";
 
   return (
     <Stack gap={4}>
       <Text size="sm" fw={500}>
-        {partName}
+        {formatHitsoundPartLabel(partName, sampleSource)}
       </Text>
-      <Group gap={6} wrap="wrap" align="center">
-        <Text size="xs" c="dimmed">
-          Object circle
-        </Text>
-        {hitsoundTypes.map((type) => (
-          <HitsoundTypeSwatch key={`${type.label}-${type.role}`} type={type} />
-        ))}
-      </Group>
+      {showAdditions && (
+        <Group gap={6} wrap="wrap" align="center">
+          <Text size="xs" c="dimmed">
+            Hitsound additions
+          </Text>
+          {hitsoundTypes.map((type) => (
+            <HitsoundTypeSwatch key={`${type.label}-${type.role}`} type={type} />
+          ))}
+        </Group>
+      )}
 
       {sample ? (
         <Text size="xs" c="dimmed">
-          Sample file: {formatSampleBankLine(sample.sampleset, sample.customIndex)}
+          Sample bank: {formatSampleBankLine(sample.sampleset, sample.customIndex)}
         </Text>
       ) : (
         <Text size="xs" c="dimmed">
-          No sample metadata at this edge
+          No sample bank at this edge
         </Text>
       )}
     </Stack>
   );
+}
+
+function resolveCrosshairRow(
+  difficulty: ObjectsOverviewDifficulty,
+  timestampMs: number,
+  samples: ObjectsTimelineSample[],
+) {
+  const nearestSample = findNearestSample(samples, timestampMs);
+  const edgeMatch = findNearestTimelineEdge(difficulty.timelineObjects, timestampMs);
+
+  const nearestDistance = nearestSample
+    ? Math.abs(nearestSample.timeMs - timestampMs)
+    : Number.POSITIVE_INFINITY;
+  const edgeDistance = edgeMatch
+    ? Math.abs(edgeMatch.edge.timeMs - timestampMs)
+    : Number.POSITIVE_INFINITY;
+
+  const preferPassiveSample =
+    nearestSample != null &&
+    nearestSample.source !== "Edge" &&
+    nearestDistance <= edgeDistance;
+
+  if (preferPassiveSample) {
+    return {
+      partName: nearestSample.partName ?? nearestSample.source,
+      hitSoundFlags: parseHitSoundFlags(nearestSample.hitSound ?? "") || HITSOUND_FLAG_NORMAL,
+      sample: nearestSample,
+      sampleSource: nearestSample.source,
+      hasMatch: true,
+    };
+  }
+
+  if (edgeMatch) {
+    return {
+      partName: edgeMatch.edge.partName,
+      hitSoundFlags: getEdgeHitSoundFlags(edgeMatch),
+      sample: getPrimaryEdgeSample(samples, edgeMatch.edge.timeMs),
+      sampleSource: "Edge",
+      hasMatch: true,
+    };
+  }
+
+  if (nearestSample?.source === "Edge") {
+    const edgeAtSample = findNearestTimelineEdge(
+      difficulty.timelineObjects,
+      nearestSample.timeMs,
+    );
+
+    return {
+      partName: nearestSample.partName ?? edgeAtSample?.edge.partName ?? "Edge",
+      hitSoundFlags: getEdgeHitSoundFlags(edgeAtSample),
+      sample: getPrimaryEdgeSample(samples, nearestSample.timeMs),
+      sampleSource: "Edge",
+      hasMatch: true,
+    };
+  }
+
+  if (nearestSample) {
+    return {
+      partName: nearestSample.partName ?? nearestSample.source,
+      hitSoundFlags: parseHitSoundFlags(nearestSample.hitSound ?? "") || HITSOUND_FLAG_NORMAL,
+      sample: nearestSample,
+      sampleSource: nearestSample.source,
+      hasMatch: true,
+    };
+  }
+
+  return {
+    partName: "Edge",
+    hitSoundFlags: HITSOUND_FLAG_NORMAL,
+    sample: null,
+    sampleSource: null,
+    hasMatch: false,
+  };
 }
 
 function TimelineCrosshairPanelBody() {
@@ -177,24 +264,20 @@ function TimelineCrosshairPanelBody() {
       .filter((difficulty) => visibilityByDifficulty[getDifficultyKey(difficulty)] !== false)
       .map((difficulty) => {
         const samples = filterSamplesForHover(difficulty.timelineSamples ?? [], hitsoundLayers);
-        const edgeMatch = findNearestTimelineEdge(difficulty.timelineObjects, crosshair.timestampMs);
-        const edgeSample = edgeMatch ? findEdgeSampleAtTime(samples, edgeMatch.edge.timeMs) : null;
-        const fallbackSample = findNearestSample(
-          samples.filter((sample) => sample.source === "Edge"),
-          crosshair.timestampMs,
-        );
+        const resolved = resolveCrosshairRow(difficulty, crosshair.timestampMs, samples);
 
         return {
           key: getDifficultyKey(difficulty),
           version: difficulty.version,
           starRating: difficulty.starRating,
-          partName: edgeMatch?.edge.partName ?? fallbackSample?.partName ?? "Edge",
-          hitSoundFlags: getEdgeHitSoundFlags(edgeMatch),
-          sample: edgeSample ?? fallbackSample,
-          hasEdge: edgeMatch != null || fallbackSample != null,
+          partName: resolved.partName,
+          hitSoundFlags: resolved.hitSoundFlags,
+          sample: resolved.sample,
+          sampleSource: resolved.sampleSource,
+          hasEdge: resolved.hasMatch,
         };
       });
-  }, [crosshair, getDifficultyKey, hitsoundLayers, orderedDifficulties, visibilityByDifficulty]);
+  }, [crosshair, hitsoundLayers, orderedDifficulties, visibilityByDifficulty]);
 
   if (!crosshair) {
     return (
@@ -215,10 +298,11 @@ function TimelineCrosshairPanelBody() {
               partName={row.partName}
               hitSoundFlags={row.hitSoundFlags}
               sample={row.sample}
+              sampleSource={row.sampleSource}
             />
           ) : (
             <Text size="xs" c="dimmed">
-              No edge hitsound nearby
+              No sample at playhead
             </Text>
           )}
         </Stack>

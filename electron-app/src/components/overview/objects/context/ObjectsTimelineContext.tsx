@@ -98,6 +98,7 @@ export function useTimelineDisplay() {
     hitsoundLayers: fullView?.hitsoundLayers ?? DEFAULT_HITSOUND_LAYERS,
     rowHeight: fullView?.rowHeight ?? ROW_HEIGHT,
     playheadViewportX: fullView?.playheadViewportX ?? null,
+    snapPlayheadToTimestamp: fullView?.snapPlayheadToTimestamp ?? null,
   };
 }
 

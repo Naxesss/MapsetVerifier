@@ -9,6 +9,12 @@ import {
   useTimelineScale,
 } from '../context/ObjectsTimelineContext.tsx';
 import {
+  buildHitsoundDrawCache,
+  type HitsoundDrawCache,
+  type HitsoundLayerVisibility,
+  type TimelineViewMode,
+} from '../hitsoundUtils.ts';
+import {
   drawTimelineRow,
   findTimelineObjectHeadAtX,
   getTimelineTimestampAtX,
@@ -16,7 +22,6 @@ import {
 } from '../timelineDrawing.ts';
 import { formatEditorTimestamp, getTimelineCanvasTiles, getTimelineX } from '../timelineUtils.ts';
 import type { ObjectsOverviewDifficulty } from '../../../../Types';
-import type { HitsoundLayerVisibility, TimelineViewMode } from '../hitsoundUtils.ts';
 import type { TimelineThemeVariant } from '../timelineTheme/types.ts';
 import type { MantineTheme } from '@mantine/core';
 
@@ -36,6 +41,7 @@ type TimelineCanvasTileProps = {
   visualThemeVariant: TimelineThemeVariant;
   viewMode: TimelineViewMode;
   hitsoundLayers?: HitsoundLayerVisibility;
+  hitsoundDrawCache?: HitsoundDrawCache;
 };
 
 const TimelineCanvasTile = memo(function TimelineCanvasTile({
@@ -49,6 +55,7 @@ const TimelineCanvasTile = memo(function TimelineCanvasTile({
   visualThemeVariant,
   viewMode,
   hitsoundLayers,
+  hitsoundDrawCache,
 }: TimelineCanvasTileProps) {
   const draw = useCallback(
     (ctx: CanvasRenderingContext2D) => {
@@ -64,12 +71,14 @@ const TimelineCanvasTile = memo(function TimelineCanvasTile({
         visualThemeVariant,
         viewMode,
         hitsoundLayers,
+        hitsoundDrawCache,
       });
     },
     [
       difficulty,
       endTimeMs,
       height,
+      hitsoundDrawCache,
       hitsoundLayers,
       startTimeMs,
       theme,
@@ -87,6 +96,7 @@ const TimelineCanvasTile = memo(function TimelineCanvasTile({
         difficulty,
         endTimeMs,
         height,
+        hitsoundDrawCache,
         hitsoundLayers,
         startTimeMs,
         theme,
@@ -100,6 +110,7 @@ const TimelineCanvasTile = memo(function TimelineCanvasTile({
       difficulty,
       endTimeMs,
       height,
+      hitsoundDrawCache,
       hitsoundLayers,
       startTimeMs,
       theme,
@@ -135,8 +146,19 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
   const theme = useMantineTheme();
   const { startTimeMs, endTimeMs, timelineWidth } = useTimelineScale();
   const { isPanningTimeline } = useTimelinePan();
-  const { timelineThemeVariant, viewMode, hitsoundLayers } = useTimelineDisplay();
+  const { timelineThemeVariant, viewMode, hitsoundLayers, snapPlayheadToTimestamp } =
+    useTimelineDisplay();
   const canvasTiles = useMemo(() => getTimelineCanvasTiles(timelineWidth), [timelineWidth]);
+  const hitsoundDrawCache = useMemo(() => {
+    if (viewMode !== 'hitsounding') {
+      return undefined;
+    }
+
+    return buildHitsoundDrawCache(
+      difficulty.timelineObjects,
+      difficulty.timelineSamples ?? []
+    );
+  }, [difficulty.timelineObjects, difficulty.timelineSamples, viewMode]);
   const [contextMenuState, setContextMenuState] = useState<{
     localX: number;
     localY: number;
@@ -218,6 +240,50 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
     setContextMenuState(null);
   };
 
+  const handleMouseDown = (event: ReactMouseEvent<HTMLDivElement>) => {
+    if (event.detail >= 2) {
+      event.stopPropagation();
+    }
+  };
+
+  const handleDoubleClick = (event: ReactMouseEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (viewMode !== 'hitsounding' || !snapPlayheadToTimestamp) {
+      return;
+    }
+
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const localX = event.clientX - bounds.left;
+    const headHit = findTimelineObjectHeadAtX({
+      difficulty,
+      startTimeMs,
+      endTimeMs,
+      timelineWidth,
+      x: localX,
+      visualThemeVariant: timelineThemeVariant,
+    });
+
+    if (headHit) {
+      snapPlayheadToTimestamp(headHit.timeMs);
+      return;
+    }
+
+    const timestampMs = getTimelineTimestampAtX({
+      difficulty,
+      startTimeMs,
+      endTimeMs,
+      timelineWidth,
+      x: localX,
+      visualThemeVariant: timelineThemeVariant,
+    });
+
+    if (timestampMs !== null) {
+      snapPlayheadToTimestamp(timestampMs);
+    }
+  };
+
   const selectedTimestampX = contextMenuState
     ? getTimelineX(
         contextMenuState.timestampMs,
@@ -230,6 +296,8 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
   return (
     <Box
       onContextMenu={handleContextMenu}
+      onMouseDown={handleMouseDown}
+      onDoubleClick={handleDoubleClick}
       onMouseMove={updateHeadHover}
       onMouseLeave={clearHeadHover}
       style={{ position: 'relative', width: timelineWidth, height, overflow: 'hidden' }}
@@ -247,6 +315,7 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
           visualThemeVariant={timelineThemeVariant}
           viewMode={viewMode}
           hitsoundLayers={hitsoundLayers}
+          hitsoundDrawCache={hitsoundDrawCache}
         />
       ))}
       {contextMenuState && (

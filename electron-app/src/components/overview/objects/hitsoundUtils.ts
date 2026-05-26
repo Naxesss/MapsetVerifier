@@ -1,28 +1,45 @@
-import type { ObjectsTimelineSample } from '../../../Types';
+import type { ObjectsTimelineObject, ObjectsTimelineSample } from '../../../Types';
 
 export const HITSOUND_FLAG_NORMAL = 1;
 export const HITSOUND_FLAG_WHISTLE = 2;
 export const HITSOUND_FLAG_FINISH = 4;
 export const HITSOUND_FLAG_CLAP = 8;
 
+/** Editor-aligned sample bank colours (Normal / Soft / Drum). */
+export const EDITOR_SAMPLE_BANK_COLORS = {
+  Normal: '#6b7280',
+  Soft: '#fbbf24',
+  Drum: '#38bdf8',
+  Auto: '#6b7280',
+} as const;
+
+/**
+ * Hitsound addition colours follow the osu! editor pairing:
+ * Whistle = Normal, Finish = Soft, Clap = Drum.
+ */
 export const HITSOUND_COLORS = {
-  normal: '#6b7280',
-  whistle: '#38bdf8',
-  clap: '#4ade80',
-  finish: '#fbbf24',
+  normal: EDITOR_SAMPLE_BANK_COLORS.Normal,
+  whistle: EDITOR_SAMPLE_BANK_COLORS.Normal,
+  finish: EDITOR_SAMPLE_BANK_COLORS.Soft,
+  clap: EDITOR_SAMPLE_BANK_COLORS.Drum,
   body: '#52525b',
   tick: '#71717a',
 } as const;
 
 export const SAMPLESET_TINTS: Record<string, string> = {
-  Normal: '#71717a',
-  Soft: '#fbbf24',
-  Drum: '#38bdf8',
-  Auto: '#71717a',
+  Normal: EDITOR_SAMPLE_BANK_COLORS.Normal,
+  Soft: EDITOR_SAMPLE_BANK_COLORS.Soft,
+  Drum: EDITOR_SAMPLE_BANK_COLORS.Drum,
+  Auto: EDITOR_SAMPLE_BANK_COLORS.Auto,
 };
 
 export const SAMPLESET_OVERLAY_ALPHA = 0.07;
 export const SAMPLESET_ACCENT_ALPHA = 0.45;
+export const SAMPLESET_BODY_ALPHA = 0.55;
+
+/** Distinct from Soft section tint (amber) and sample bank colours. */
+export const HITSOUND_GAP_OVERLAY_COLOR = '#d946ef';
+export const HITSOUND_GAP_OVERLAY_ALPHA = 0.14;
 
 export type HitsoundLayerVisibility = {
   body: boolean;
@@ -78,6 +95,138 @@ function getOrderedActiveHitsoundTypes(flags: number) {
   return active;
 }
 
+export function getSamplesetColor(sampleset: string): string {
+  return SAMPLESET_TINTS[sampleset] ?? SAMPLESET_TINTS.Normal;
+}
+
+export function findObjectBodySample(
+  samples: ObjectsTimelineSample[],
+  timelineObject: ObjectsTimelineObject
+): ObjectsTimelineSample | null {
+  if (timelineObject.objectType === 'Circle') {
+    return null;
+  }
+
+  return (
+    samples.find(
+      (sample) =>
+        sample.source === 'Body' &&
+        sample.timeMs >= timelineObject.startTimeMs - 1 &&
+        sample.timeMs <= timelineObject.endTimeMs + 1
+    ) ?? null
+  );
+}
+
+export function isBaseEdgeSample(sample: ObjectsTimelineSample): boolean {
+  return !sample.hitSound || sample.hitSound === 'Normal';
+}
+
+/** Prefer the base hitnormal sample; osu! emits separate samples per addition at the same edge. */
+export function getPrimaryEdgeSample(
+  samples: ObjectsTimelineSample[],
+  edgeTimeMs: number,
+  toleranceMs = 2
+): ObjectsTimelineSample | null {
+  let bestBase: ObjectsTimelineSample | null = null;
+  let bestBaseDistance = Number.POSITIVE_INFINITY;
+  let bestAny: ObjectsTimelineSample | null = null;
+  let bestAnyDistance = Number.POSITIVE_INFINITY;
+
+  for (const sample of samples) {
+    if (sample.source !== 'Edge') {
+      continue;
+    }
+
+    const distance = Math.abs(sample.timeMs - edgeTimeMs);
+    if (distance > toleranceMs) {
+      continue;
+    }
+
+    if (distance < bestAnyDistance) {
+      bestAnyDistance = distance;
+      bestAny = sample;
+    }
+
+    if (isBaseEdgeSample(sample) && distance < bestBaseDistance) {
+      bestBaseDistance = distance;
+      bestBase = sample;
+    }
+  }
+
+  return bestBase ?? bestAny;
+}
+
+export type PrimaryEdgeMarker = {
+  timeMs: number;
+  sampleset: string;
+};
+
+/** One strip bar per object edge, using the same hitnormal resolution as the crosshair panel. */
+export function getPrimaryEdgeMarkers(
+  timelineObjects: ObjectsTimelineObject[],
+  samples: ObjectsTimelineSample[]
+): PrimaryEdgeMarker[] {
+  const markers: PrimaryEdgeMarker[] = [];
+
+  for (const object of timelineObjects) {
+    for (const edge of object.edges) {
+      const primary = getPrimaryEdgeSample(samples, edge.timeMs);
+      if (!primary) {
+        continue;
+      }
+
+      markers.push({
+        timeMs: edge.timeMs,
+        sampleset: primary.sampleset,
+      });
+    }
+  }
+
+  return markers;
+}
+
+export type HitsoundDrawCache = {
+  primaryEdgeMarkers: PrimaryEdgeMarker[];
+  bodySampleByObject: Map<ObjectsTimelineObject, ObjectsTimelineSample | null>;
+};
+
+export function buildHitsoundDrawCache(
+  timelineObjects: ObjectsTimelineObject[],
+  samples: ObjectsTimelineSample[]
+): HitsoundDrawCache {
+  const bodySamples: ObjectsTimelineSample[] = [];
+  for (const sample of samples) {
+    if (sample.source === 'Body') {
+      bodySamples.push(sample);
+    }
+  }
+
+  const bodySampleByObject = new Map<ObjectsTimelineObject, ObjectsTimelineSample | null>();
+  for (const object of timelineObjects) {
+    if (object.objectType === 'Circle') {
+      continue;
+    }
+
+    let match: ObjectsTimelineSample | null = null;
+    for (const sample of bodySamples) {
+      if (
+        sample.timeMs >= object.startTimeMs - 1 &&
+        sample.timeMs <= object.endTimeMs + 1
+      ) {
+        match = sample;
+        break;
+      }
+    }
+
+    bodySampleByObject.set(object, match);
+  }
+
+  return {
+    primaryEdgeMarkers: getPrimaryEdgeMarkers(timelineObjects, samples),
+    bodySampleByObject,
+  };
+}
+
 export function getDominantHitsoundColor(flags: number): string {
   return getOrderedActiveHitsoundTypes(flags)[0].color;
 }
@@ -112,17 +261,6 @@ export function getHitsoundCircleLayout(baseRadius: number, flags: number): Hits
 
 export function getHitsoundCircleOuterRadius(baseRadius: number, flags: number): number {
   return getHitsoundCircleLayout(baseRadius, flags).outerRadius;
-}
-
-export function getSampleColor(hitSound: string | null, source?: string): string {
-  if (!hitSound) {
-    if (source === 'Tick') {
-      return HITSOUND_COLORS.tick;
-    }
-    return HITSOUND_COLORS.body;
-  }
-
-  return getDominantHitsoundColor(parseHitSoundFlags(hitSound));
 }
 
 export function parseHitSoundFlags(hitSound: string): number {

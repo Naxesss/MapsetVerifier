@@ -6,6 +6,7 @@ import {
   TIMING_SAMPLES_PER_BEAT,
   TIMELINE_INTERVAL_STEPS_MS,
 } from './constants.ts';
+import { getPrimaryEdgeSample } from './hitsoundUtils.ts';
 import { normalizeMode } from '../../../utils/gameMode';
 import type { ObjectsOverviewDifficulty, ObjectsSnappingBucket, ObjectsTimelineEdge, ObjectsTimelineObject, ObjectsTimelineSample } from '../../../Types';
 
@@ -217,26 +218,7 @@ export function findEdgeSampleAtTime(
   edgeTimeMs: number,
   toleranceMs = 2
 ): ObjectsTimelineSample | null {
-  let best: ObjectsTimelineSample | null = null;
-  let bestDistance = Number.POSITIVE_INFINITY;
-
-  for (const sample of samples) {
-    if (sample.source !== 'Edge') {
-      continue;
-    }
-
-    const distance = Math.abs(sample.timeMs - edgeTimeMs);
-    if (distance > toleranceMs) {
-      continue;
-    }
-
-    if (distance < bestDistance) {
-      bestDistance = distance;
-      best = sample;
-    }
-  }
-
-  return best;
+  return getPrimaryEdgeSample(samples, edgeTimeMs, toleranceMs);
 }
 
 export function getEdgeHitSoundFlags(
@@ -403,9 +385,8 @@ export function clampZoom(zoom: number) {
 }
 
 export function formatZoom(zoom: number) {
-  return Number.isInteger(zoom)
-    ? zoom.toFixed(0)
-    : zoom.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+  const rounded = Math.round(zoom * 10) / 10;
+  return Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1);
 }
 
 export function hasNearbyRoundedEdge(roundedEdgeTimes: Set<number>, timeMs: number) {

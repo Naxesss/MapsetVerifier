@@ -1,5 +1,4 @@
 import type { Mode, ObjectsOverviewDifficulty } from '../../../../Types';
-import type { TimelineCrosshairState } from '../components/TimelineCrosshairPanel.tsx';
 import type {
   HitsoundLayerVisibility,
   TimelineViewMode,
@@ -14,6 +13,10 @@ import type {
   SensorOptions,
 } from '@dnd-kit/core';
 import type { RefObject } from 'react';
+
+export type TimelineCrosshairState = {
+  timestampMs: number;
+};
 
 export type TimelineScaleValue = {
   startTimeMs: number;
@@ -88,5 +91,6 @@ export type TimelineFullViewValue = {
   playheadViewportX: number | null;
   crosshair: TimelineCrosshairState | null;
   setCrosshair: (state: TimelineCrosshairState | null) => void;
+  snapPlayheadToTimestamp: ((timestampMs: number) => void) | null;
   rowHeight: number;
 };

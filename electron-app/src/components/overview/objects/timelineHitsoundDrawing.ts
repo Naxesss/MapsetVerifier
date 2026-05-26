@@ -1,9 +1,11 @@
 import {
+  getSamplesetColor,
+  HITSOUND_GAP_OVERLAY_ALPHA,
+  HITSOUND_GAP_OVERLAY_COLOR,
   SAMPLESET_ACCENT_ALPHA,
   SAMPLESET_OVERLAY_ALPHA,
-  SAMPLESET_TINTS,
-  getSampleColor,
   type HitsoundLayerVisibility,
+  type PrimaryEdgeMarker,
 } from './hitsoundUtils.ts';
 import { getTimelineX, getObjectBodyWidth } from './timelineUtils.ts';
 import { withAlpha } from '../../../utils/color.ts';
@@ -13,13 +15,12 @@ import type {
   ObjectsTimelineSample,
   ObjectsTimingSegment,
 } from '../../../Types';
-import type { MantineTheme } from '@mantine/core';
 
 export const SOUND_STRIP_TOP_OFFSET = 6;
 export const SOUND_STRIP_EDGE_LANE_HEIGHT = 16;
 export const SOUND_STRIP_PASSIVE_LANE_HEIGHT = 10;
 export const SOUND_STRIP_LANE_GAP = 2;
-export const EDGE_MARKER_WIDTH = 3;
+export const EDGE_MARKER_WIDTH = 4;
 export const BODY_MARKER_WIDTH = 6;
 export const BODY_MARKER_HEIGHT = 4;
 export const TICK_MARKER_RADIUS = 2.5;
@@ -63,7 +64,6 @@ export function drawHitsoundGapOverlay(
     visibleStartX,
     visibleEndX,
     height,
-    theme,
   }: {
     gapPeriods: ObjectsHitsoundGapPeriod[];
     startTimeMs: number;
@@ -72,7 +72,6 @@ export function drawHitsoundGapOverlay(
     visibleStartX: number;
     visibleEndX: number;
     height: number;
-    theme: MantineTheme;
   }
 ) {
   for (const gap of gapPeriods) {
@@ -84,7 +83,7 @@ export function drawHitsoundGapOverlay(
     if (!bounds) continue;
 
     ctx.save();
-    ctx.fillStyle = withAlpha(theme.colors.orange[8], 0.12);
+    ctx.fillStyle = withAlpha(HITSOUND_GAP_OVERLAY_COLOR, HITSOUND_GAP_OVERLAY_ALPHA);
     ctx.fillRect(bounds.startX, 2, bounds.endX - bounds.startX, height - 4);
     ctx.restore();
   }
@@ -142,7 +141,7 @@ export function drawSamplesetRegions(
     const bounds = getObjectBodyWidth(startX, endX, visibleStartX, visibleEndX, 2);
     if (!bounds) continue;
 
-    const tint = SAMPLESET_TINTS[sampleset] ?? SAMPLESET_TINTS.Normal;
+    const tint = getSamplesetColor(sampleset);
     const regionWidth = bounds.endX - bounds.startX;
 
     ctx.fillStyle = withAlpha(tint, SAMPLESET_OVERLAY_ALPHA);
@@ -214,6 +213,7 @@ export function drawSoundStrip(
     visibleStartX,
     visibleEndX,
     height,
+    primaryEdgeMarkers,
   }: {
     difficulty: ObjectsOverviewDifficulty;
     layers: HitsoundLayerVisibility;
@@ -223,6 +223,7 @@ export function drawSoundStrip(
     visibleStartX: number;
     visibleEndX: number;
     height: number;
+    primaryEdgeMarkers: PrimaryEdgeMarker[];
   }
 ) {
   const samples = difficulty.timelineSamples ?? [];
@@ -230,28 +231,21 @@ export function drawSoundStrip(
 
   drawLaneDivider(ctx, bounds, visibleStartX, visibleEndX);
 
-  const passiveSamples: ObjectsTimelineSample[] = [];
-  const edgeSamples: ObjectsTimelineSample[] = [];
-
   for (const sample of samples) {
-    if (sample.source === 'Edge') {
-      edgeSamples.push(sample);
+    if (sample.source === 'Body' && !layers.body) {
       continue;
     }
-    if (sample.source === 'Body' && layers.body) {
-      passiveSamples.push(sample);
+    if (sample.source === 'Tick' && !layers.ticks) {
       continue;
     }
-    if (sample.source === 'Tick' && layers.ticks) {
-      passiveSamples.push(sample);
+    if (sample.source !== 'Body' && sample.source !== 'Tick') {
+      continue;
     }
-  }
 
-  for (const sample of passiveSamples) {
     const x = getTimelineX(sample.timeMs, startTimeMs, durationMs, width);
     if (x < visibleStartX - 4 || x > visibleEndX + 4) continue;
 
-    const color = withAlpha(getSampleColor(null, sample.source), 0.9);
+    const color = withAlpha(getSamplesetColor(sample.sampleset), 0.9);
     if (sample.source === 'Tick') {
       drawTickMarker(ctx, x, bounds, color);
     } else {
@@ -259,11 +253,11 @@ export function drawSoundStrip(
     }
   }
 
-  for (const sample of edgeSamples) {
-    const x = getTimelineX(sample.timeMs, startTimeMs, durationMs, width);
+  for (const marker of primaryEdgeMarkers) {
+    const x = getTimelineX(marker.timeMs, startTimeMs, durationMs, width);
     if (x < visibleStartX - 4 || x > visibleEndX + 4) continue;
 
-    drawEdgeMarker(ctx, x, bounds, getSampleColor(sample.hitSound));
+    drawEdgeMarker(ctx, x, bounds, getSamplesetColor(marker.sampleset));
   }
 }
 

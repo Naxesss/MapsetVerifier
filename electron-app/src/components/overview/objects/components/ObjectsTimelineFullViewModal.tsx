@@ -5,13 +5,12 @@ import ObjectsTimelineComparisonContent from './ObjectsTimelineComparisonContent
 import ObjectsTimelineHelpButton from './ObjectsTimelineHelpButton.tsx';
 import {
   TimelineCrosshairFloatingPanel,
-  type TimelineCrosshairState,
 } from './TimelineCrosshairPanel.tsx';
 import { HITSOUND_ROW_HEIGHT, LABEL_WIDTH, PLAYHEAD_VIEWPORT_OFFSET, ROW_HEIGHT } from '../constants.ts';
 import {
-  TimelineControllerProvider,
   TimelineFullViewProvider,
   TimelinePanProvider,
+  useTimelineController,
 } from '../context/ObjectsTimelineContext.tsx';
 import {
   DEFAULT_HITSOUND_LAYERS,
@@ -26,39 +25,38 @@ import {
   getScrollLeftForTimestamp,
   getTimestampAtPlayhead,
 } from '../timelineUtils.ts';
-import type { TimelineControllerValue, TimelinePanValue } from '../context/types.ts';
+import type { TimelineCrosshairState , TimelinePanValue } from '../context/types.ts';
 
 type ObjectsTimelineFullViewModalProps = {
   opened: boolean;
   onClose: () => void;
   pan: TimelinePanValue;
-  controller: TimelineControllerValue;
 };
 
 export default function ObjectsTimelineFullViewModal({
   opened,
   onClose,
   pan,
-  controller,
 }: ObjectsTimelineFullViewModalProps) {
   return (
-    <Modal opened={opened} onClose={onClose} title="Timeline comparison" size="100%" centered>
-      {opened && (
-        <TimelineControllerProvider value={controller}>
-          <ObjectsTimelineFullViewModalBody pan={pan} controller={controller} />
-        </TimelineControllerProvider>
-      )}
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title="Timeline comparison"
+      size="100%"
+      centered
+      styles={{
+        content: { overflow: 'visible' },
+        body: { overflow: 'auto' },
+      }}
+    >
+      {opened && <ObjectsTimelineFullViewModalBody pan={pan} />}
     </Modal>
   );
 }
 
-function ObjectsTimelineFullViewModalBody({
-  pan,
-  controller,
-}: {
-  pan: TimelinePanValue;
-  controller: TimelineControllerValue;
-}) {
+function ObjectsTimelineFullViewModalBody({ pan }: { pan: TimelinePanValue }) {
+  const controller = useTimelineController();
   const {
     scale: { startTimeMs, endTimeMs },
     zoom: { timelineWidth },
@@ -118,6 +116,39 @@ function ObjectsTimelineFullViewModalBody({
 
     setCrosshair({ timestampMs });
   }, [endTimeMs, pan.scrollRef, playheadViewportX, startTimeMs, timelineWidth]);
+
+  const snapPlayheadToTimestamp = useCallback(
+    (timestampMs: number) => {
+      if (playheadViewportX === null) {
+        return;
+      }
+
+      const scrollElement = pan.scrollRef.current;
+      if (!scrollElement) {
+        return;
+      }
+
+      const clampedTimestamp = Math.max(startTimeMs, Math.min(endTimeMs, timestampMs));
+      const padding =
+        scrollElement.clientWidth > 0
+          ? getPlayheadScrollPadding(playheadViewportX, LABEL_WIDTH, scrollElement.clientWidth)
+          : undefined;
+
+      const scrollLeft = getScrollLeftForTimestamp(
+        clampedTimestamp,
+        playheadViewportX,
+        LABEL_WIDTH,
+        timelineWidth,
+        startTimeMs,
+        endTimeMs,
+        padding
+      );
+      const maxScrollLeft = Math.max(0, scrollElement.scrollWidth - scrollElement.clientWidth);
+      scrollElement.scrollLeft = Math.max(0, Math.min(maxScrollLeft, scrollLeft));
+      setCrosshair({ timestampMs: clampedTimestamp });
+    },
+    [endTimeMs, pan.scrollRef, playheadViewportX, startTimeMs, timelineWidth]
+  );
 
   useEffect(() => {
     return () => {
@@ -289,9 +320,18 @@ function ObjectsTimelineFullViewModalBody({
       playheadViewportX,
       crosshair,
       setCrosshair,
+      snapPlayheadToTimestamp:
+        viewMode === 'hitsounding' ? snapPlayheadToTimestamp : null,
       rowHeight,
     }),
-    [viewMode, hitsoundLayers, playheadViewportX, crosshair, rowHeight]
+    [
+      viewMode,
+      hitsoundLayers,
+      playheadViewportX,
+      crosshair,
+      snapPlayheadToTimestamp,
+      rowHeight,
+    ]
   );
 
   return (

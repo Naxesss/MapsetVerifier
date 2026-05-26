@@ -87,39 +87,39 @@ export default function ObjectsTimelineComparison({
 
   return (
     <>
-      <Paper p="md" radius="md" withBorder>
-        <Stack gap="md">
-          <Group justify="space-between" align="flex-start">
-            <Stack gap={2}>
-              <Title order={4}>Timeline comparison</Title>
-              <Text size="sm" c="dimmed">
-                Drag the grip to reorder rows. Drag horizontally in the timeline to pan.
-                Hover or right click on objects for more info.
-              </Text>
-            </Stack>
-            {orderedDifficulties.length > 0 && (
-              <Group gap="xs" wrap="nowrap">
-                <ObjectsTimelineHelpButton
-                  showHitsoundSection={isHitsoundViewAvailable(activeMode)}
-                />
-                <Button
-                  leftSection={<IconArrowsMaximize size={16} />}
-                  variant="light"
-                  size="sm"
-                  onClick={handleOpenModal}
-                >
-                  Full view
-                </Button>
-              </Group>
-            )}
-          </Group>
+      <TimelineControllerProvider value={controller}>
+        <Paper p="md" radius="md" withBorder>
+          <Stack gap="md">
+            <Group justify="space-between" align="flex-start">
+              <Stack gap={2}>
+                <Title order={4}>Timeline comparison</Title>
+                <Text size="sm" c="dimmed">
+                  Drag the grip to reorder rows. Drag horizontally in the timeline to pan.
+                  Hover or right click on objects for more info.
+                </Text>
+              </Stack>
+              {orderedDifficulties.length > 0 && (
+                <Group gap="xs" wrap="nowrap">
+                  <ObjectsTimelineHelpButton
+                    showHitsoundSection={isHitsoundViewAvailable(activeMode)}
+                  />
+                  <Button
+                    leftSection={<IconArrowsMaximize size={16} />}
+                    variant="light"
+                    size="sm"
+                    onClick={handleOpenModal}
+                  >
+                    Full view
+                  </Button>
+                </Group>
+              )}
+            </Group>
 
-          {modalOpened ? (
-            <Text size="sm" c="dimmed" ta="center" py="md">
-              Timeline open in full view
-            </Text>
-          ) : (
-            <TimelineControllerProvider value={controller}>
+            {modalOpened ? (
+              <Text size="sm" c="dimmed" ta="center" py="md">
+                Timeline open in full view
+              </Text>
+            ) : (
               <TimelinePanProvider value={inlinePan}>
                 <ObjectsTimelineComparisonContent
                   showModeSelector
@@ -128,17 +128,16 @@ export default function ObjectsTimelineComparison({
                   showZoomControls
                 />
               </TimelinePanProvider>
-            </TimelineControllerProvider>
-          )}
-        </Stack>
-      </Paper>
+            )}
+          </Stack>
+        </Paper>
 
-      <ObjectsTimelineFullViewModal
-        opened={modalOpened}
-        onClose={handleCloseModal}
-        pan={modalPan}
-        controller={controller}
-      />
+        <ObjectsTimelineFullViewModal
+          opened={modalOpened}
+          onClose={handleCloseModal}
+          pan={modalPan}
+        />
+      </TimelineControllerProvider>
     </>
   );
 }
