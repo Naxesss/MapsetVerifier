@@ -309,7 +309,7 @@ function ObjectsTimelineFullViewModalBody({ pan }: { pan: TimelinePanValue }) {
     [hitsoundAvailable, hitsoundLayers, viewMode]
   );
 
-  const panelResetKey = `${viewMode}:${timelineWidth}:${orderedDifficulties.length}`;
+  const panelResetKey = `${viewMode}:${orderedDifficulties.length}`;
 
   const fullViewValue = useMemo(
     () => ({

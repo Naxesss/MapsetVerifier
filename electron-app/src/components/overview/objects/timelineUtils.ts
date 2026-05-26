@@ -6,7 +6,7 @@ import {
   TIMING_SAMPLES_PER_BEAT,
   TIMELINE_INTERVAL_STEPS_MS,
 } from './constants.ts';
-import { getPrimaryEdgeSample } from './hitsoundUtils.ts';
+import { getPrimaryEdgeSample, buildHitsoundDrawCache, type HitsoundDrawCache } from './hitsoundUtils.ts';
 import { normalizeMode } from '../../../utils/gameMode';
 import type { ObjectsOverviewDifficulty, ObjectsSnappingBucket, ObjectsTimelineEdge, ObjectsTimelineObject, ObjectsTimelineSample } from '../../../Types';
 
@@ -290,6 +290,36 @@ export function getTimelineCanvasTiles(width: number) {
   }
 
   return tiles;
+}
+
+export function buildRoundedEdgeTimes(timelineObjects: ObjectsTimelineObject[]): Set<number> {
+  const roundedEdgeTimes = new Set<number>();
+
+  for (const object of timelineObjects) {
+    for (const edge of object.edges) {
+      roundedEdgeTimes.add(Math.round(edge.timeMs));
+    }
+  }
+
+  return roundedEdgeTimes;
+}
+
+export type TimelineRowDrawCache = {
+  roundedEdgeTimes: Set<number>;
+  hitsound?: HitsoundDrawCache;
+};
+
+export function buildTimelineRowDrawCache(
+  timelineObjects: ObjectsTimelineObject[],
+  samples: ObjectsTimelineSample[] | undefined,
+  isHitsoundView: boolean
+): TimelineRowDrawCache {
+  return {
+    roundedEdgeTimes: buildRoundedEdgeTimes(timelineObjects),
+    hitsound: isHitsoundView
+      ? buildHitsoundDrawCache(timelineObjects, samples ?? [])
+      : undefined,
+  };
 }
 
 /** Beat snap colors aligned with osu! editor / timeline tick grid. */

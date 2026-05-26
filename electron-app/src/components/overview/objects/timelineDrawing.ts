@@ -7,7 +7,6 @@ import {
   getSamplesetColor,
   getSecondaryHitsoundColors,
   SAMPLESET_BODY_ALPHA,
-  type HitsoundDrawCache,
   type HitsoundLayerVisibility,
   type TimelineViewMode,
 } from './hitsoundUtils.ts';
@@ -27,11 +26,13 @@ import {
 } from './timelineTheme/apply.ts';
 import { resolveTimelineVisualTheme } from './timelineTheme/selection.ts';
 import {
+  buildRoundedEdgeTimes,
   getAlignedTimelineLineX,
   getObjectBodyWidth,
   getTimelineX,
   getTimingTickStyle,
   hasNearbyRoundedEdge,
+  type TimelineRowDrawCache,
 } from './timelineUtils.ts';
 import { withAlpha } from '../../../utils/color.ts';
 import type { TimelineThemeVariant , TimelineVisualTheme } from './timelineTheme/types.ts';
@@ -57,7 +58,7 @@ export type DrawTimelineRowOptions = {
   visualThemeVariant: TimelineThemeVariant;
   viewMode?: TimelineViewMode;
   hitsoundLayers?: HitsoundLayerVisibility;
-  hitsoundDrawCache?: HitsoundDrawCache;
+  rowDrawCache?: TimelineRowDrawCache;
 };
 
 export function drawTimelineRow(
@@ -74,7 +75,7 @@ export function drawTimelineRow(
     visualThemeVariant,
     viewMode = 'structure',
     hitsoundLayers,
-    hitsoundDrawCache,
+    rowDrawCache,
   }: DrawTimelineRowOptions
 ) {
   const durationMs = Math.max(1, endTimeMs - startTimeMs);
@@ -89,9 +90,11 @@ export function drawTimelineRow(
     gaps: true,
   };
   const neutralBodyColor = theme.colors.dark[4];
+  const roundedEdgeTimes =
+    rowDrawCache?.roundedEdgeTimes ?? buildRoundedEdgeTimes(difficulty.timelineObjects);
   const resolvedHitsoundCache =
     isHitsoundView
-      ? (hitsoundDrawCache ??
+      ? (rowDrawCache?.hitsound ??
         buildHitsoundDrawCache(
           difficulty.timelineObjects,
           difficulty.timelineSamples ?? []
@@ -146,7 +149,7 @@ export function drawTimelineRow(
 
   drawTimingGrid(ctx, {
     timingSegments: difficulty.timingSegments,
-    timelineObjects: difficulty.timelineObjects,
+    roundedEdgeTimes,
     startTimeMs,
     endTimeMs,
     durationMs,
@@ -466,7 +469,7 @@ function drawTimingGrid(
   ctx: CanvasRenderingContext2D,
   {
     timingSegments,
-    timelineObjects,
+    roundedEdgeTimes,
     startTimeMs,
     endTimeMs,
     durationMs,
@@ -476,7 +479,7 @@ function drawTimingGrid(
     height,
   }: {
     timingSegments: ObjectsTimingSegment[];
-    timelineObjects: ObjectsTimelineObject[];
+    roundedEdgeTimes: Set<number>;
     startTimeMs: number;
     endTimeMs: number;
     durationMs: number;
@@ -488,11 +491,6 @@ function drawTimingGrid(
 ) {
   if (timingSegments.length === 0) return;
 
-  const roundedEdgeTimes = new Set(
-    timelineObjects.flatMap((timelineObject) =>
-      timelineObject.edges.map((edge) => Math.round(edge.timeMs))
-    )
-  );
   const tickLines = new Map<
     string,
     { x: number; color: string; height: number; alpha: number; priority: number }

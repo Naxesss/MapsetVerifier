@@ -9,8 +9,6 @@ import {
   useTimelineScale,
 } from '../context/ObjectsTimelineContext.tsx';
 import {
-  buildHitsoundDrawCache,
-  type HitsoundDrawCache,
   type HitsoundLayerVisibility,
   type TimelineViewMode,
 } from '../hitsoundUtils.ts';
@@ -20,7 +18,13 @@ import {
   getTimelineTimestampAtX,
   type TimelineObjectHeadHit,
 } from '../timelineDrawing.ts';
-import { formatEditorTimestamp, getTimelineCanvasTiles, getTimelineX } from '../timelineUtils.ts';
+import {
+  buildTimelineRowDrawCache,
+  formatEditorTimestamp,
+  getTimelineCanvasTiles,
+  getTimelineX,
+  type TimelineRowDrawCache,
+} from '../timelineUtils.ts';
 import type { ObjectsOverviewDifficulty } from '../../../../Types';
 import type { TimelineThemeVariant } from '../timelineTheme/types.ts';
 import type { MantineTheme } from '@mantine/core';
@@ -41,7 +45,7 @@ type TimelineCanvasTileProps = {
   visualThemeVariant: TimelineThemeVariant;
   viewMode: TimelineViewMode;
   hitsoundLayers?: HitsoundLayerVisibility;
-  hitsoundDrawCache?: HitsoundDrawCache;
+  rowDrawCache: TimelineRowDrawCache;
 };
 
 const TimelineCanvasTile = memo(function TimelineCanvasTile({
@@ -55,7 +59,7 @@ const TimelineCanvasTile = memo(function TimelineCanvasTile({
   visualThemeVariant,
   viewMode,
   hitsoundLayers,
-  hitsoundDrawCache,
+  rowDrawCache,
 }: TimelineCanvasTileProps) {
   const draw = useCallback(
     (ctx: CanvasRenderingContext2D) => {
@@ -71,15 +75,15 @@ const TimelineCanvasTile = memo(function TimelineCanvasTile({
         visualThemeVariant,
         viewMode,
         hitsoundLayers,
-        hitsoundDrawCache,
+        rowDrawCache,
       });
     },
     [
       difficulty,
       endTimeMs,
       height,
-      hitsoundDrawCache,
       hitsoundLayers,
+      rowDrawCache,
       startTimeMs,
       theme,
       tile.startX,
@@ -96,8 +100,8 @@ const TimelineCanvasTile = memo(function TimelineCanvasTile({
         difficulty,
         endTimeMs,
         height,
-        hitsoundDrawCache,
         hitsoundLayers,
+        rowDrawCache,
         startTimeMs,
         theme,
         tile.startX,
@@ -110,8 +114,8 @@ const TimelineCanvasTile = memo(function TimelineCanvasTile({
       difficulty,
       endTimeMs,
       height,
-      hitsoundDrawCache,
       hitsoundLayers,
+      rowDrawCache,
       startTimeMs,
       theme,
       tile.startX,
@@ -149,16 +153,15 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
   const { timelineThemeVariant, viewMode, hitsoundLayers, snapPlayheadToTimestamp } =
     useTimelineDisplay();
   const canvasTiles = useMemo(() => getTimelineCanvasTiles(timelineWidth), [timelineWidth]);
-  const hitsoundDrawCache = useMemo(() => {
-    if (viewMode !== 'hitsounding') {
-      return undefined;
-    }
-
-    return buildHitsoundDrawCache(
-      difficulty.timelineObjects,
-      difficulty.timelineSamples ?? []
-    );
-  }, [difficulty.timelineObjects, difficulty.timelineSamples, viewMode]);
+  const rowDrawCache = useMemo(
+    () =>
+      buildTimelineRowDrawCache(
+        difficulty.timelineObjects,
+        difficulty.timelineSamples,
+        viewMode === 'hitsounding'
+      ),
+    [difficulty.timelineObjects, difficulty.timelineSamples, viewMode]
+  );
   const [contextMenuState, setContextMenuState] = useState<{
     localX: number;
     localY: number;
@@ -315,7 +318,7 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
           visualThemeVariant={timelineThemeVariant}
           viewMode={viewMode}
           hitsoundLayers={hitsoundLayers}
-          hitsoundDrawCache={hitsoundDrawCache}
+          rowDrawCache={rowDrawCache}
         />
       ))}
       {contextMenuState && (
