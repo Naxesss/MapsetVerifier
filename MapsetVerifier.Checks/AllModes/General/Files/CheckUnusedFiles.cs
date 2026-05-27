@@ -44,6 +44,13 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
                         ![](assets/checks/all-modes-general-files-unused-files-1.png ""Spreadsheet over which scorebar elements are used. Only consistent regardless of user settings when both marker and ki elements exist."")
                         "
                     },
+                    {
+                        "osu!(lazer) skin assets",
+                        @"
+                        Some beatmap skin files are recognized by osu!(lazer) but ignored by osu!(stable). Mapset Verifier reports those as **Info** 
+                        (not Problems) so they are not mistaken for truly unused files. Ranking and BN workflows still target stable.
+                        "
+                    },
                 },
             };
 
@@ -67,6 +74,17 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
                         "Same as the other check, but where a file with the same name is used."
                     )
                 },
+                {
+                    "Lazer Only",
+                    new IssueTemplate(
+                        Issue.Level.Info,
+                        "\"{0}\" is not used in osu!(stable), but may be used in osu!(lazer).",
+                        "path"
+                    ).WithCause(
+                        "A beatmap skin file documented as Lazer-only (e.g. fountain-shoot, grade-specific applause, slider miss indicators). "
+                            + "See https://osu.ppy.sh/wiki/en/Skinning/Sounds and https://osu.ppy.sh/wiki/en/Skinning/osu!"
+                    )
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
@@ -78,6 +96,12 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
 
                 if (beatmapSet.IsFileUsed(filePath) || fileNameWithExtension == "thumbs.db")
                     continue;
+
+                if (SkinStatic.IsLazerOnly(fileNameWithExtension, beatmapSet))
+                {
+                    yield return new Issue(GetTemplate("Lazer Only"), null, filePath);
+                    continue;
+                }
 
                 var fileName = PathStatic.ParsePath(fileNameWithExtension, true);
                 var otherFilePath = beatmapSet.HitSoundFiles.FirstOrDefault(file =>
