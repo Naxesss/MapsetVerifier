@@ -93,22 +93,28 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
                     continue;
                 }
 
-                if (length == 0 || length == BlankHitSoundSize)
+                if (length is 0 or BlankHitSoundSize)
+                {
                     continue;
+                }
 
                 var maxPeak = 0f;
 
                 foreach (var channels in peaks)
-                foreach (var level in channels)
                 {
-                    var abs = Math.Abs(level);
+                    foreach (var level in channels)
+                    {
+                        var abs = Math.Abs(level);
 
-                    if (abs > maxPeak)
-                        maxPeak = abs;
+                        if (abs > maxPeak)
+                            maxPeak = abs;
+                    }
                 }
 
                 if (maxPeak < SilenceThreshold)
+                {
                     yield return new Issue(GetTemplate("Silent"), null, hsFile);
+                }
             }
         }
     }
