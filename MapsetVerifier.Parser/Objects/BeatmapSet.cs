@@ -87,7 +87,7 @@ namespace MapsetVerifier.Parser.Objects
                 beatmapFiles.Add(new BeatmapFile(fileName, code));
             }
 
-            Beatmap.ClearCache();
+            Beatmap.ClearCacheForSongPath(SongPath);
             var concurrentBeatmaps = new ConcurrentBag<Beatmap>();
 
             try

@@ -326,12 +326,9 @@ namespace MapsetVerifier.Parser.Objects
 
         public static void ClearCache()
         {
-            // Includes all types that can be given to `GetTimingLine` methods.
             ThreadSafeCacheHelper<TimingLine>.cache.Clear();
             ThreadSafeCacheHelper<InheritedLine>.cache.Clear();
             ThreadSafeCacheHelper<UninheritedLine>.cache.Clear();
-
-            // Includes all types that can be given to `GetHitObject` methods.
             ThreadSafeCacheHelper<HitObject>.cache.Clear();
             ThreadSafeCacheHelper<Circle>.cache.Clear();
             ThreadSafeCacheHelper<Slider>.cache.Clear();
@@ -339,9 +336,46 @@ namespace MapsetVerifier.Parser.Objects
             ThreadSafeCacheHelper<HoldNote>.cache.Clear();
         }
 
+        /// <summary>
+        ///     Drops cached timing/hit-object lists for beatmaps under <paramref name="songPath" /> so reloads see fresh data
+        ///     without evicting other sets (e.g. parallel tests).
+        /// </summary>
+        public static void ClearCacheForSongPath(string songPath)
+        {
+            var normalizedSongPath = Path.GetFullPath(songPath);
+            if (!normalizedSongPath.EndsWith(Path.DirectorySeparatorChar))
+                normalizedSongPath += Path.DirectorySeparatorChar;
+
+            static bool IsUnderSongPath(string cacheKey, string normalizedSongPathPrefix) =>
+                cacheKey.StartsWith(normalizedSongPathPrefix, StringComparison.OrdinalIgnoreCase);
+
+            ClearCacheEntriesWhere<TimingLine>(normalizedSongPath, IsUnderSongPath);
+            ClearCacheEntriesWhere<InheritedLine>(normalizedSongPath, IsUnderSongPath);
+            ClearCacheEntriesWhere<UninheritedLine>(normalizedSongPath, IsUnderSongPath);
+            ClearCacheEntriesWhere<HitObject>(normalizedSongPath, IsUnderSongPath);
+            ClearCacheEntriesWhere<Circle>(normalizedSongPath, IsUnderSongPath);
+            ClearCacheEntriesWhere<Slider>(normalizedSongPath, IsUnderSongPath);
+            ClearCacheEntriesWhere<Spinner>(normalizedSongPath, IsUnderSongPath);
+            ClearCacheEntriesWhere<HoldNote>(normalizedSongPath, IsUnderSongPath);
+        }
+
+        private static void ClearCacheEntriesWhere<T>(
+            string normalizedSongPathPrefix,
+            Func<string, string, bool> isUnderSongPath
+        )
+        {
+            foreach (var key in ThreadSafeCacheHelper<T>.cache.Keys)
+            {
+                if (isUnderSongPath(key.Item1, normalizedSongPathPrefix))
+                    ThreadSafeCacheHelper<T>.cache.TryRemove(key, out _);
+            }
+        }
+
+        private string GetCacheKey() => Path.GetFullPath(Path.Combine(SongPath, MapPath));
+
         private List<T> GetOrAdd<T>(Type t, Func<List<T>> func)
         {
-            (string, Type) key = (MapPath, t);
+            (string, Type) key = (GetCacheKey(), t);
 
             return ThreadSafeCacheHelper<T>.cache.GetOrAdd(key, _ => func());
         }
