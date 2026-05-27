@@ -97,6 +97,9 @@ namespace MapsetVerifier.Parser.Statics
             "comboburst.wav",
             "comboburst.mp3",
             "comboburst.ogg",
+            "comboburst-{n}.wav",
+            "comboburst-{n}.mp3",
+            "comboburst-{n}.ogg",
             "combobreak.wav",
             "combobreak.mp3",
             "combobreak.ogg",
@@ -307,6 +310,9 @@ namespace MapsetVerifier.Parser.Statics
             "go.png",
             "ready.png",
             // sounds
+            "count.wav",
+            "count.mp3",
+            "count.ogg",
             "count1s.wav",
             "count1s.mp3",
             "count1s.ogg",
@@ -385,13 +391,72 @@ namespace MapsetVerifier.Parser.Statics
             "sectionfail.ogg",
         ];
 
+        // Beatmap-skinnable assets with no effect in stable but are used in lazer
+        private static readonly string[] SkinLazerSounds =
+        [
+            // Sounds (https://osu.ppy.sh/wiki/en/Skinning/Sounds)
+            "fountain-shoot.wav",
+            "fountain-shoot.mp3",
+            "fountain-shoot.ogg",
+            "rank-up.wav",
+            "rank-up.mp3",
+            "rank-up.ogg",
+            "rank-down.wav",
+            "rank-down.mp3",
+            "rank-down.ogg",
+            "applause-s.wav",
+            "applause-s.mp3",
+            "applause-s.ogg",
+            "applause-a.wav",
+            "applause-a.mp3",
+            "applause-a.ogg",
+            "applause-b.wav",
+            "applause-b.mp3",
+            "applause-b.ogg",
+            "applause-c.wav",
+            "applause-c.mp3",
+            "applause-c.ogg",
+            "applause-d.wav",
+            "applause-d.mp3",
+            "applause-d.ogg",
+        ];
+
+        private static readonly string[] SkinLazerSpinnerSounds =
+        [
+            // Sounds: spinner set (https://osu.ppy.sh/wiki/en/Skinning/Sounds
+            "spinnerbonus-max.wav",
+            "spinnerbonus-max.mp3",
+            "spinnerbonus-max.ogg",
+        ];
+
+        private static readonly string[] SkinLazerStandard =
+        [
+            // osu!: slider miss indicators (https://osu.ppy.sh/wiki/en/Skinning/osu%21#slider-miss-indicators-(lazer-only))
+            "sliderendmiss.png",
+            "sliderendmiss-{n}.png",
+            "slidertickmiss.png",
+            "slidertickmiss-{n}.png",
+        ];
+
+        private static readonly string[] SkinLazerInterface =
+        [
+            // Interface: performance points display (https://osu.ppy.sh/wiki/en/Skinning/Interface)
+            "score-pp.png",
+        ];
+
         private static readonly List<SkinCondition> SkinConditions = [];
+        private static readonly List<SkinCondition> LazerSkinConditions = [];
 
         private static void AddElements(string[] elements, Func<BeatmapSet, bool> useCondition) =>
             SkinConditions.Add(new SkinCondition(elements, useCondition));
 
         private static void AddElement(string element, Func<BeatmapSet, bool> useCondition) =>
             SkinConditions.Add(new SkinCondition([element], useCondition));
+
+        private static void AddLazerElements(
+            string[] elements,
+            Func<BeatmapSet, bool> useCondition
+        ) => LazerSkinConditions.Add(new SkinCondition(elements, useCondition));
 
         private static void Initialize()
         {
@@ -558,6 +623,27 @@ namespace MapsetVerifier.Parser.Statics
                 if (elementName.Contains("-{n}"))
                     AddStillFrame(elementName.Replace("-{n}", ""));
 
+            AddLazerElements(SkinLazerSounds, _ => true);
+
+            AddLazerElements(
+                SkinLazerSpinnerSounds,
+                beatmapSet =>
+                    beatmapSet.Beatmaps.Any(beatmap =>
+                        beatmap.GeneralSettings.mode == Beatmap.Mode.Standard
+                        && beatmap.HitObjects.Any(hitObject => hitObject is Spinner)
+                    )
+            );
+
+            AddLazerElements(
+                SkinLazerStandard,
+                beatmapSet =>
+                    beatmapSet.Beatmaps.Any(beatmap =>
+                        beatmap.GeneralSettings.mode == Beatmap.Mode.Standard
+                    )
+            );
+
+            AddLazerElements(SkinLazerInterface, _ => true);
+
             _isInitialized = true;
         }
 
@@ -597,9 +683,18 @@ namespace MapsetVerifier.Parser.Statics
             return false;
         }
 
-        private static SkinCondition? GetSkinCondition(string elementName)
+        private static SkinCondition? GetSkinCondition(string elementName) =>
+            TryGetSkinCondition(elementName, SkinConditions);
+
+        private static SkinCondition? GetLazerSkinCondition(string elementName) =>
+            TryGetSkinCondition(elementName, LazerSkinConditions);
+
+        private static SkinCondition? TryGetSkinCondition(
+            string elementName,
+            IReadOnlyList<SkinCondition> conditions
+        )
         {
-            foreach (var skinCondition in SkinConditions.ToList())
+            foreach (var skinCondition in conditions)
             foreach (var otherElementName in skinCondition.ElementNames)
             {
                 if (
@@ -642,6 +737,27 @@ namespace MapsetVerifier.Parser.Statics
             }
 
             return null;
+        }
+
+        /// <summary>
+        ///     Returns whether the given filename is a beatmap-skinnable asset that only has an effect in osu!(lazer)
+        ///     for the given beatmapset.
+        /// </summary>
+        public static bool IsLazerOnly(string elementName, BeatmapSet beatmapSet)
+        {
+            if (!_isInitialized)
+            {
+                lock (InitLock)
+                    if (!_isInitialized)
+                        Initialize();
+            }
+
+            var skinCondition = GetLazerSkinCondition(elementName);
+
+            if (skinCondition == null)
+                return false;
+
+            return skinCondition is { } condition && condition.IsUsedFunc(beatmapSet);
         }
 
         /// <summary> Returns whether the given skin name is used in the given beatmapset (including animations). </summary>

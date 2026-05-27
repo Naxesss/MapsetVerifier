@@ -134,6 +134,29 @@ namespace MapsetVerifier.Parser.Tests.Statics
         }
 
         [Fact]
+        public void CountWav_RequiresCountdown()
+        {
+            var setCountdown = CreateBeatmapSet(
+                BuildOsu(Beatmap.Mode.Standard, "256,192,1000,1,0,0:0:0:0:", countdown: 1)
+            );
+            Assert.True(SkinStatic.IsUsed("count.wav", setCountdown));
+
+            var setNoCountdown = CreateBeatmapSet(
+                BuildOsu(Beatmap.Mode.Standard, "256,192,1000,1,0,0:0:0:0:")
+            );
+            Assert.False(SkinStatic.IsUsed("count.wav", setNoCountdown));
+        }
+
+        [Fact]
+        public void ComboBurstAudioAnimationFrame_Recognized()
+        {
+            var set = CreateBeatmapSet(
+                BuildOsu(Beatmap.Mode.Standard, "256,192,1000,1,0,0:0:0:0:")
+            );
+            Assert.True(SkinStatic.IsUsed("comboburst-2.wav", set));
+        }
+
+        [Fact]
         public void BreakElements_RequireBreakEvent()
         {
             var setBreak = CreateBeatmapSet(
@@ -185,6 +208,45 @@ namespace MapsetVerifier.Parser.Tests.Statics
         {
             var set = CreateBeatmapSet(BuildOsu(Beatmap.Mode.Standard));
             Assert.False(SkinStatic.IsUsed("nonexistent-element.png", set));
+        }
+
+        [Fact]
+        public void LazerOnlyElements_NotUsedInStable_IsLazerOnly()
+        {
+            var set = CreateBeatmapSet(BuildOsu(Beatmap.Mode.Standard));
+
+            Assert.False(SkinStatic.IsUsed("fountain-shoot.wav", set));
+            Assert.True(SkinStatic.IsLazerOnly("fountain-shoot.wav", set));
+
+            Assert.True(SkinStatic.IsLazerOnly("applause-s.ogg", set));
+            Assert.True(SkinStatic.IsLazerOnly("sliderendmiss-1.png", set));
+            Assert.True(SkinStatic.IsLazerOnly("score-pp.png", set));
+
+            Assert.False(SkinStatic.IsLazerOnly("hitcircle.png", set));
+        }
+
+        [Fact]
+        public void LazerSliderMissIndicators_RequireStandardMode()
+        {
+            var standardSet = CreateBeatmapSet(BuildOsu(Beatmap.Mode.Standard));
+            var maniaSet = CreateBeatmapSet(BuildOsu(Beatmap.Mode.Mania));
+
+            Assert.True(SkinStatic.IsLazerOnly("sliderendmiss.png", standardSet));
+            Assert.True(SkinStatic.IsLazerOnly("slidertickmiss-0.png", standardSet));
+            Assert.False(SkinStatic.IsLazerOnly("sliderendmiss.png", maniaSet));
+        }
+
+        [Fact]
+        public void LazerSpinnerBonusMax_RequiresSpinner()
+        {
+            var spinnerLine = "256,192,2000,8,0,3000,0:0:0:0:";
+            var setSpinner = CreateBeatmapSet(BuildOsu(Beatmap.Mode.Standard, spinnerLine));
+            var setNoSpinner = CreateBeatmapSet(
+                BuildOsu(Beatmap.Mode.Standard, "256,192,1000,1,0,0:0:0:0:")
+            );
+
+            Assert.True(SkinStatic.IsLazerOnly("spinnerbonus-max.wav", setSpinner));
+            Assert.False(SkinStatic.IsLazerOnly("spinnerbonus-max.wav", setNoSpinner));
         }
 
         [Fact]
