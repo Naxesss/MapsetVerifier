@@ -88,31 +88,6 @@ function HitsoundAdditionPreview({ color, label }: { color: string; label: strin
   );
 }
 
-function PlayheadPreview() {
-  return (
-    <Box
-      style={{
-        width: 14,
-        height: SOUND_STRIP_EDGE_LANE_HEIGHT - 4,
-        position: 'relative',
-        flexShrink: 0,
-      }}
-    >
-      <Box
-        style={{
-          position: 'absolute',
-          left: 6,
-          top: 0,
-          bottom: 0,
-          width: 0,
-          borderLeft: '2px solid var(--mantine-color-blue-4)',
-          boxShadow: '0 0 8px rgba(56, 189, 248, 0.35)',
-        }}
-      />
-    </Box>
-  );
-}
-
 function SectionTintPreview({ color, label }: { color: string; label: string }) {
   return (
     <Group gap={6} wrap="nowrap">
@@ -202,13 +177,6 @@ export default function HitsoundLegendContent() {
   return (
     <Group gap={24} align="flex-start" wrap="wrap">
       <Stack gap={6}>
-        <LanePreview label="Playhead" height={SOUND_STRIP_EDGE_LANE_HEIGHT}>
-          <PlayheadPreview />
-          <Text size="xs" c="dimmed">
-            Seek cursor
-          </Text>
-        </LanePreview>
-
         <LanePreview label="Additions" height={SOUND_STRIP_EDGE_LANE_HEIGHT}>
           <HitsoundAdditionPreview color={HITSOUND_COLORS.none} label="None" />
           <HitsoundAdditionPreview color={HITSOUND_COLORS.whistle} label="Whistle" />

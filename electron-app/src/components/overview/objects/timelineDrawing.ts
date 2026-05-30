@@ -225,6 +225,57 @@ export function drawTimelineRow(
   ctx.restore();
 }
 
+function interpolateTimelineBodyTimeMs(
+  timelineObject: ObjectsTimelineObject,
+  x: number,
+  startX: number,
+  endX: number
+): number {
+  if (startX === endX) {
+    return timelineObject.startTimeMs;
+  }
+
+  return (
+    timelineObject.startTimeMs +
+    ((x - startX) / (endX - startX)) * (timelineObject.endTimeMs - timelineObject.startTimeMs)
+  );
+}
+
+/** Nearest slider head, reverse, or tail by horizontal distance (right-click snap). */
+function getSliderSnapTimeMsAtX(
+  timelineObject: ObjectsTimelineObject,
+  x: number,
+  startTimeMs: number,
+  durationMs: number,
+  timelineWidth: number
+): number {
+  let bestTimeMs = timelineObject.startTimeMs;
+  let bestDistance = Number.POSITIVE_INFINITY;
+
+  for (const edge of timelineObject.edges) {
+    if (!isHoverableTimelineEdge(timelineObject.objectType, edge.partName)) {
+      continue;
+    }
+
+    const edgeX = getTimelineX(edge.timeMs, startTimeMs, durationMs, timelineWidth);
+    const distance = Math.abs(x - edgeX);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestTimeMs = edge.timeMs;
+    }
+  }
+
+  if (timelineObject.edges.some((edge) => isHoverableTimelineEdge(timelineObject.objectType, edge.partName))) {
+    return bestTimeMs;
+  }
+
+  const startX = getTimelineX(timelineObject.startTimeMs, startTimeMs, durationMs, timelineWidth);
+  const endX = getTimelineX(timelineObject.endTimeMs, startTimeMs, durationMs, timelineWidth);
+  const distToStart = Math.abs(x - startX);
+  const distToEnd = Math.abs(x - endX);
+  return distToStart <= distToEnd ? timelineObject.startTimeMs : timelineObject.endTimeMs;
+}
+
 export function getTimelineTimestampAtX({
   difficulty,
   startTimeMs,
@@ -273,11 +324,9 @@ export function getTimelineTimestampAtX({
     const distanceToBody =
       x >= minX && x <= maxX ? 0 : Math.min(Math.abs(x - minX), Math.abs(x - maxX));
     const bodyTimeMs =
-      startX === endX
-        ? timelineObject.startTimeMs
-        : timelineObject.startTimeMs +
-          ((x - startX) / (endX - startX)) *
-            (timelineObject.endTimeMs - timelineObject.startTimeMs);
+      timelineObject.objectType === 'Slider'
+        ? getSliderSnapTimeMsAtX(timelineObject, x, startTimeMs, durationMs, timelineWidth)
+        : interpolateTimelineBodyTimeMs(timelineObject, x, startX, endX);
     consider(bodyTimeMs, distanceToBody, 8);
 
     for (const edge of timelineObject.edges) {
@@ -299,6 +348,7 @@ export type TimelineObjectHeadHit = {
   timeMs: number;
   anchorX: number;
   partLabel: string;
+  showSnapLabel: boolean;
 };
 
 function isHoverableTimelineEdge(objectType: string, partName: string) {
@@ -309,7 +359,12 @@ function isHoverableTimelineEdge(objectType: string, partName: string) {
   }
 
   if (objectType === 'Slider') {
-    return lower.includes('reverse') || lower.includes('tail') || lower.includes('end');
+    return (
+      lower.includes('reverse') ||
+      lower.includes('repeat') ||
+      lower.includes('tail') ||
+      lower.includes('end')
+    );
   }
 
   if (objectType === 'Spinner') {
@@ -328,6 +383,27 @@ function getTimelineMarkerHitThreshold(
   }
 
   return visualTheme.circleRadius(timelineObject) + 4;
+}
+
+function getNearestHoverableMarkerDistanceAtX(
+  timelineObject: ObjectsTimelineObject,
+  x: number,
+  startTimeMs: number,
+  durationMs: number,
+  timelineWidth: number
+): number {
+  let nearest = Number.POSITIVE_INFINITY;
+
+  for (const edge of timelineObject.edges) {
+    if (!isHoverableTimelineEdge(timelineObject.objectType, edge.partName)) {
+      continue;
+    }
+
+    const centerX = getTimelineX(edge.timeMs, startTimeMs, durationMs, timelineWidth);
+    nearest = Math.min(nearest, Math.abs(x - centerX));
+  }
+
+  return nearest;
 }
 
 export function findTimelineObjectHeadAtX({
@@ -356,15 +432,16 @@ export function findTimelineObjectHeadAtX({
     timeMs: number,
     centerX: number,
     threshold: number,
-    partLabel: string
+    partLabel: string,
+    showSnapLabel = true,
+    hitDistance = Math.abs(x - centerX)
   ) => {
-    const distance = Math.abs(x - centerX);
-    if (distance > threshold || distance >= bestDistance) {
+    if (hitDistance > threshold || hitDistance >= bestDistance) {
       return;
     }
 
-    bestDistance = distance;
-    bestHit = { object, edge, timeMs, anchorX: centerX, partLabel };
+    bestDistance = hitDistance;
+    bestHit = { object, edge, timeMs, anchorX: centerX, partLabel, showSnapLabel };
   };
 
   for (const timelineObject of difficulty.timelineObjects) {
@@ -405,12 +482,20 @@ export function findTimelineObjectHeadAtX({
       continue;
     }
 
-    const bodyTimeMs =
-      startX === endX
-        ? timelineObject.startTimeMs
-        : timelineObject.startTimeMs +
-          ((x - startX) / (endX - startX)) *
-            (timelineObject.endTimeMs - timelineObject.startTimeMs);
+    const markerThreshold = getTimelineMarkerHitThreshold(timelineObject, visualTheme);
+    const nearestMarkerDistance = getNearestHoverableMarkerDistanceAtX(
+      timelineObject,
+      x,
+      startTimeMs,
+      durationMs,
+      timelineWidth
+    );
+    // Inside the span, body distance is 0 and would beat every marker edge globally.
+    // Inflate it when a head/repeat/tail on this object is close so markers keep priority.
+    const bodyHitDistance =
+      nearestMarkerDistance <= markerThreshold ? markerThreshold + 0.5 : distanceToBody;
+
+    const bodyTimeMs = interpolateTimelineBodyTimeMs(timelineObject, x, startX, endX);
     const bodyPartLabel =
       timelineObject.objectType === 'Slider'
         ? 'Slider body'
@@ -418,7 +503,16 @@ export function findTimelineObjectHeadAtX({
           ? 'Spinner body'
           : 'Hold note body';
 
-    consider(timelineObject, null, bodyTimeMs, x, 8, bodyPartLabel);
+    consider(
+      timelineObject,
+      null,
+      bodyTimeMs,
+      x,
+      8,
+      bodyPartLabel,
+      timelineObject.objectType !== 'Slider',
+      bodyHitDistance
+    );
   }
 
   return bestHit;
@@ -751,7 +845,7 @@ function drawObjectMarker(
     return;
   }
 
-  if (lowerPart.includes('reverse')) {
+  if (lowerPart.includes('reverse') || lowerPart.includes('repeat')) {
     if (isHitsoundView) {
       drawHitsoundCircle(ctx, x, centerY, circleRadius, edgeHitSoundFlags);
       drawThemedReverseArrow(ctx, x, centerY, REVERSE_ARROW_ICON_SIZE, visualTheme.reverseArrow);

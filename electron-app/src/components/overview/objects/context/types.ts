@@ -11,10 +11,6 @@ import type {
 } from '@dnd-kit/core';
 import type { RefObject } from 'react';
 
-export type TimelineCrosshairState = {
-  timestampMs: number;
-};
-
 export type TimelineScaleValue = {
   startTimeMs: number;
   endTimeMs: number;
@@ -80,17 +76,10 @@ export type TimelinePanValue = {
   stopDragging: () => void;
 };
 
-export type TimelineCrosshairValue = {
-  crosshair: TimelineCrosshairState | null;
-  setCrosshair: (state: TimelineCrosshairState | null) => void;
-};
-
 export type TimelineFullViewValue = {
   viewMode: TimelineViewMode;
   setViewMode: (mode: TimelineViewMode) => void;
   hitsoundLayers: HitsoundLayerVisibility;
   setHitsoundLayers: React.Dispatch<React.SetStateAction<HitsoundLayerVisibility>>;
-  playheadViewportX: number | null;
-  snapPlayheadToTimestamp: ((timestampMs: number) => void) | null;
   rowHeight: number;
 };

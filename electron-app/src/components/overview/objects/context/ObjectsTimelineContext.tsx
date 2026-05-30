@@ -1,9 +1,8 @@
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import { createContext, useContext, type ReactNode } from 'react';
 import { ROW_HEIGHT } from '../constants.ts';
 import { DEFAULT_HITSOUND_LAYERS } from '../hitsoundUtils.ts';
 import type {
   TimelineControllerValue,
-  TimelineCrosshairValue,
   TimelineFullViewValue,
   TimelinePanValue,
 } from './types.ts';
@@ -11,11 +10,6 @@ import type {
 const TimelineControllerContext = createContext<TimelineControllerValue | null>(null);
 const TimelinePanContext = createContext<TimelinePanValue | null>(null);
 const TimelineFullViewContext = createContext<TimelineFullViewValue | null>(null);
-const TimelineCrosshairStateContext = createContext<TimelineCrosshairValue['crosshair']>(null);
-const TimelineCrosshairActionsContext = createContext<Pick<
-  TimelineCrosshairValue,
-  'setCrosshair'
-> | null>(null);
 
 export function TimelineControllerProvider({
   value,
@@ -53,26 +47,6 @@ export function TimelineFullViewProvider({
   );
 }
 
-export function TimelineCrosshairProvider({
-  crosshair,
-  setCrosshair,
-  children,
-}: {
-  crosshair: TimelineCrosshairValue['crosshair'];
-  setCrosshair: TimelineCrosshairValue['setCrosshair'];
-  children: ReactNode;
-}) {
-  const actions = useMemo(() => ({ setCrosshair }), [setCrosshair]);
-
-  return (
-    <TimelineCrosshairStateContext.Provider value={crosshair}>
-      <TimelineCrosshairActionsContext.Provider value={actions}>
-        {children}
-      </TimelineCrosshairActionsContext.Provider>
-    </TimelineCrosshairStateContext.Provider>
-  );
-}
-
 export function useTimelineController(): TimelineControllerValue {
   const context = useContext(TimelineControllerContext);
   if (!context) {
@@ -101,18 +75,6 @@ export function useTimelineFullView(): TimelineFullViewValue {
   return context;
 }
 
-export function useTimelineCrosshairState() {
-  return useContext(TimelineCrosshairStateContext);
-}
-
-export function useTimelineCrosshairActions() {
-  const context = useContext(TimelineCrosshairActionsContext);
-  if (!context) {
-    throw new Error('useTimelineCrosshairActions must be used within TimelineCrosshairProvider');
-  }
-  return context;
-}
-
 export function useTimelineScale() {
   const { scale, zoom } = useTimelineController();
   return {
@@ -133,8 +95,6 @@ export function useTimelineDisplay() {
     viewMode: fullView?.viewMode ?? ('structure' as const),
     hitsoundLayers: fullView?.hitsoundLayers ?? DEFAULT_HITSOUND_LAYERS,
     rowHeight: fullView?.rowHeight ?? ROW_HEIGHT,
-    playheadViewportX: fullView?.playheadViewportX ?? null,
-    snapPlayheadToTimestamp: fullView?.snapPlayheadToTimestamp ?? null,
   };
 }
 

@@ -37,8 +37,9 @@ export default function TimelineObjectHeadHovercard({
     return null;
   }
 
-  const snapLabel = lookupEdgeSnapLabel(difficulty, hover.timeMs);
-  const snapColor = getSnapLabelColor(snapLabel);
+  const showSnapLabel = hover.showSnapLabel;
+  const snapLabel = showSnapLabel ? lookupEdgeSnapLabel(difficulty, hover.timeMs) : null;
+  const snapColor = snapLabel ? getSnapLabelColor(snapLabel) : undefined;
   const showHitsoundDetail = viewMode === 'hitsounding' && hitsoundResolved?.hasMatch;
 
   return (
@@ -61,12 +62,14 @@ export default function TimelineObjectHeadHovercard({
           <Text size="xs" c="dimmed" ta="left">
             Part: {hover.partLabel}
           </Text>
-          <Text size="xs" c="dimmed" ta="left">
-            Snap:{' '}
-            <Text span size="xs" fw={600} style={{ color: snapColor }}>
-              {snapLabel}
+          {showSnapLabel && snapLabel ? (
+            <Text size="xs" c="dimmed" ta="left">
+              Snap:{' '}
+              <Text span size="xs" fw={600} style={{ color: snapColor }}>
+                {snapLabel}
+              </Text>
             </Text>
-          </Text>
+          ) : null}
           {showHitsoundDetail && hitsoundResolved ? (
             <Box pt={4} style={{ borderTop: '1px solid var(--mantine-color-dark-4)' }}>
               <HitsoundContextDetail

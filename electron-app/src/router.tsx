@@ -3,6 +3,7 @@ import { createHashRouter } from 'react-router-dom';
 import App from './App.tsx';
 import Checks from './components/checks/Checks.tsx';
 import RequireBeatmapSelection from './components/common/RequireBeatmapSelection.tsx';
+import RouterErrorDisplay from './components/common/RouterErrorDisplay.tsx';
 import Documentation from './components/documentation/Documentation.tsx';
 import Home from './components/home/Home.tsx';
 import Overview from './components/overview/Overview.tsx';
@@ -12,6 +13,7 @@ export const router = createHashRouter([
   {
     path: '/',
     element: <App />,
+    errorElement: <RouterErrorDisplay />,
     children: [
       { index: true, element: <Home /> },
       { path: 'documentation', element: <Documentation /> },
