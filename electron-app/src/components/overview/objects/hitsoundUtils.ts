@@ -5,17 +5,17 @@ export const HITSOUND_FLAG_WHISTLE = 2;
 export const HITSOUND_FLAG_FINISH = 4;
 export const HITSOUND_FLAG_CLAP = 8;
 
-/** Sample bank colours (Normal / Soft / Drum). Normal is explicit and rare in modern maps. */
+/** Sample bank colours (Normal / Soft / Drum). Normal uses mint green. */
 export const EDITOR_SAMPLE_BANK_COLORS = {
-  Normal: '#a78bfa',
+  Normal: '#34d399',
   Soft: '#fbbf24',
   Drum: '#38bdf8',
-  Auto: '#a78bfa',
+  Auto: '#34d399',
 } as const;
 
 /** Hitsound addition colours. Finish/Clap follow Soft/Drum; Whistle uses green. */
 export const HITSOUND_COLORS = {
-  normal: EDITOR_SAMPLE_BANK_COLORS.Normal,
+  none: '#71717a',
   whistle: '#34d399',
   finish: EDITOR_SAMPLE_BANK_COLORS.Soft,
   clap: EDITOR_SAMPLE_BANK_COLORS.Drum,
@@ -64,7 +64,7 @@ const HITSOUND_TYPE_ORDER = [
   { flag: HITSOUND_FLAG_FINISH, label: 'Finish', color: HITSOUND_COLORS.finish },
   { flag: HITSOUND_FLAG_CLAP, label: 'Clap', color: HITSOUND_COLORS.clap },
   { flag: HITSOUND_FLAG_WHISTLE, label: 'Whistle', color: HITSOUND_COLORS.whistle },
-  { flag: HITSOUND_FLAG_NORMAL, label: 'Normal', color: HITSOUND_COLORS.normal },
+  { flag: HITSOUND_FLAG_NORMAL, label: 'None', color: HITSOUND_COLORS.none },
 ] as const;
 
 export const HITSOUND_RING_BASE_OFFSET = 1.5;
@@ -143,6 +143,31 @@ export function dedupePassiveBodySamples(samples: ObjectsTimelineSample[]): Obje
   );
 }
 
+export function buildBaseBodySampleByTime(
+  samples: ObjectsTimelineSample[]
+): Map<number, ObjectsTimelineSample> {
+  const baseByTime = new Map<number, ObjectsTimelineSample>();
+
+  for (const sample of samples) {
+    if (isBaseBodySample(sample)) {
+      baseByTime.set(sample.timeMs, sample);
+    }
+  }
+
+  return baseByTime;
+}
+
+export function getBodyMarkerFillSample(
+  sample: ObjectsTimelineSample,
+  baseBodyByTime: Map<number, ObjectsTimelineSample>
+): ObjectsTimelineSample {
+  if (!isBodyAdditionSample(sample)) {
+    return sample;
+  }
+
+  return baseBodyByTime.get(sample.timeMs) ?? sample;
+}
+
 export function hasSliderBodyAddition(flags: number): boolean {
   return (
     (flags & (HITSOUND_FLAG_WHISTLE | HITSOUND_FLAG_FINISH | HITSOUND_FLAG_CLAP)) !== 0
@@ -154,8 +179,6 @@ function findPrimaryBodySampleInRange(
   startTimeMs: number,
   endTimeMs: number
 ): ObjectsTimelineSample | null {
-  let fallback: ObjectsTimelineSample | null = null;
-
   for (const sample of bodySamples) {
     if (sample.timeMs < startTimeMs - 1 || sample.timeMs > endTimeMs + 1) {
       continue;
@@ -164,11 +187,9 @@ function findPrimaryBodySampleInRange(
     if (isBaseBodySample(sample)) {
       return sample;
     }
-
-    fallback ??= sample;
   }
 
-  return fallback;
+  return null;
 }
 
 /** Prefer the base hitnormal sample; osu! emits separate samples per addition at the same edge. */

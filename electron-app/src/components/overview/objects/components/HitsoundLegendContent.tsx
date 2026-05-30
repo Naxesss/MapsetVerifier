@@ -222,7 +222,7 @@ export default function HitsoundLegendContent() {
         </LanePreview>
 
         <LanePreview label="Additions" height={SOUND_STRIP_EDGE_LANE_HEIGHT}>
-          <HitsoundAdditionPreview color={HITSOUND_COLORS.normal} label="Normal" />
+          <HitsoundAdditionPreview color={HITSOUND_COLORS.none} label="None" />
           <HitsoundAdditionPreview color={HITSOUND_COLORS.whistle} label="Whistle" />
           <HitsoundAdditionPreview color={HITSOUND_COLORS.finish} label="Finish" />
           <HitsoundAdditionPreview color={HITSOUND_COLORS.clap} label="Clap" />
@@ -288,11 +288,15 @@ export default function HitsoundLegendContent() {
           </Text>
           <Stack gap={4}>
             <Group gap="md" wrap="wrap">
+              <SectionTintPreview
+                color={EDITOR_SAMPLE_BANK_COLORS.Normal}
+                label="Normal section"
+              />
               <SectionTintPreview color={EDITOR_SAMPLE_BANK_COLORS.Soft} label="Soft section" />
               <SectionTintPreview color={EDITOR_SAMPLE_BANK_COLORS.Drum} label="Drum section" />
             </Group>
             <Text size="xs" c="dimmed">
-              From timing points; Normal sections stay untinted
+              From timing points; Auto sections stay untinted
             </Text>
           </Stack>
         </Group>

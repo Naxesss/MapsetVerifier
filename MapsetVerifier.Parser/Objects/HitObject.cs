@@ -484,11 +484,11 @@ namespace MapsetVerifier.Parser.Objects
                                     ? addition
                                     : effectiveSampleset;
 
-                        if (hitSound != HitSounds.None)
+                        if (slider.hitSound != HitSounds.None)
                             yield return new HitSample(
                                 line.CustomIndex,
                                 effectiveSampleset,
-                                hitSound,
+                                slider.hitSound,
                                 HitSample.HitSourceType.Body,
                                 line.Offset
                             );

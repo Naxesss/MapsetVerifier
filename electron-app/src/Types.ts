@@ -649,6 +649,8 @@ export type ObjectsTimelineObject = {
   hasFinishHitSound: boolean;
   /** Bitfield: Normal=1, Whistle=2, Finish=4, Clap=8 */
   hitSoundFlags?: number;
+  /** Slider body hitsound bitfield; 0 for non-sliders. */
+  sliderBodyHitSoundFlags?: number;
   comboColourIndex: number | null;
   comboColourHex: string | null;
   edges: ObjectsTimelineEdge[];

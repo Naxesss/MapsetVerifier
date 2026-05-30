@@ -24,7 +24,9 @@ import {
   resolveCrosshairRow,
 } from "../crosshairUtils.ts";
 import {
+  buildBaseBodySampleByTime,
   formatSampleBankLine,
+  getBodyMarkerFillSample,
   getHitsoundTypesFromFlags,
   HITSOUND_FLAG_CLAP,
   HITSOUND_FLAG_FINISH,
@@ -151,11 +153,13 @@ function HitsoundSampleDetail({
   hitSoundFlags,
   sample,
   sampleSource,
+  timelineSamples,
 }: {
   partName: string;
   hitSoundFlags: number;
   sample: ObjectsTimelineSample | null;
   sampleSource: string | null;
+  timelineSamples: ObjectsTimelineSample[];
 }) {
   const bodyFlags =
     sampleSource === "Body" && sample?.hitSound
@@ -166,6 +170,10 @@ function HitsoundSampleDetail({
   const showAdditions =
     sampleSource === "Edge" ||
     (sampleSource === "Body" && hasBodyAdditionFlags(resolvedFlags));
+  const baseBodyByTime = buildBaseBodySampleByTime(timelineSamples);
+  const displaySample = sample
+    ? getBodyMarkerFillSample(sample, baseBodyByTime)
+    : null;
 
   return (
     <Stack gap={4}>
@@ -183,9 +191,9 @@ function HitsoundSampleDetail({
         </Group>
       )}
 
-      {sample ? (
+      {displaySample ? (
         <Text size="xs" c="dimmed">
-          Sample bank: {formatSampleBankLine(sample.sampleset, sample.customIndex)}
+          Sample bank: {formatSampleBankLine(displaySample.sampleset, displaySample.customIndex)}
         </Text>
       ) : (
         <Text size="xs" c="dimmed">
@@ -241,6 +249,7 @@ const TimelineCrosshairPanelBody = memo(function TimelineCrosshairPanelBody() {
           hitSoundFlags: resolved.hitSoundFlags,
           sample: resolved.sample,
           sampleSource: resolved.sampleSource,
+          timelineSamples: difficulty.timelineSamples ?? [],
           hasEdge: resolved.hasMatch,
         };
       });
@@ -266,6 +275,7 @@ const TimelineCrosshairPanelBody = memo(function TimelineCrosshairPanelBody() {
               hitSoundFlags={row.hitSoundFlags}
               sample={row.sample}
               sampleSource={row.sampleSource}
+              timelineSamples={row.timelineSamples}
             />
           ) : (
             <Text size="xs" c="dimmed">

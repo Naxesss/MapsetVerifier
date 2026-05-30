@@ -58,9 +58,9 @@ export default function ObjectsTimelineHelpModal({
               <List size="sm" spacing={4}>
                 <List.Item>
                   <strong>Circles on objects</strong> show <strong>hitsound additions</strong>{' '}
-                  (Normal, Whistle, Clap, Finish). Priority is Finish → Clap → Whistle → Normal: the
-                  highest-priority addition fills the marker; stacked additions appear as outer
-                  rings. Finish and Clap reuse the Soft and Drum hues; Whistle uses green.
+                  (Whistle, Clap, Finish). No addition is grey. Priority is Finish → Clap →
+                  Whistle: the highest-priority addition fills the marker; stacked additions appear
+                  as outer rings. Finish and Clap reuse the Soft and Drum hues; Whistle uses green.
                 </List.Item>
                 <List.Item>
                   <strong>Slider and spinner bodies</strong> are tinted by their hitnormal{' '}
@@ -139,8 +139,8 @@ export default function ObjectsTimelineHelpModal({
                   <strong>Ticks</strong> — slider tick samples in the passive lane.
                 </List.Item>
                 <List.Item>
-                  <strong>Sample bank</strong> — row wash for timing sections set to Soft or Drum on
-                  timing points. Normal sections stay untinted.
+                  <strong>Sample bank</strong> — row wash for timing sections set to Normal, Soft, or
+                  Drum on timing points. Auto sections stay untinted.
                 </List.Item>
                 <List.Item>
                   <strong>Gap overlay</strong> — magenta regions where hitsound feedback is sparse,

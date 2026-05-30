@@ -705,11 +705,11 @@ function drawObjectBody(
   if (
     isHitsoundView &&
     timelineObject.objectType === 'Slider' &&
-    hasSliderBodyAddition(timelineObject.hitSoundFlags ?? 0)
+    hasSliderBodyAddition(timelineObject.sliderBodyHitSoundFlags ?? 0)
   ) {
     ctx.save();
     ctx.strokeStyle = withAlpha(
-      getDominantHitsoundColor(timelineObject.hitSoundFlags ?? 0),
+      getDominantHitsoundColor(timelineObject.sliderBodyHitSoundFlags ?? 0),
       0.85
     );
     ctx.lineWidth = 2.5;

@@ -1,5 +1,7 @@
 import {
+  buildBaseBodySampleByTime,
   dedupePassiveBodySamples,
+  getBodyMarkerFillSample,
   getDominantHitsoundColor,
   getSamplesetColor,
   isBodyAdditionSample,
@@ -134,7 +136,7 @@ export function drawSamplesetRegions(
     if (!segment.sampleset) continue;
 
     const sampleset = segment.sampleset;
-    if (sampleset === 'Normal' || sampleset === 'Auto') continue;
+    if (!sampleset || sampleset === 'Auto') continue;
 
     const segStart = Math.max(startTimeMs, segment.startTimeMs);
     const segEnd = Math.min(endTimeMs, segment.endTimeMs);
@@ -248,7 +250,9 @@ export function drawSoundStrip(
     primaryEdgeMarkers: PrimaryEdgeMarker[];
   }
 ) {
-  const samples = dedupePassiveBodySamples(difficulty.timelineSamples ?? []);
+  const allSamples = difficulty.timelineSamples ?? [];
+  const samples = dedupePassiveBodySamples(allSamples);
+  const baseBodyByTime = buildBaseBodySampleByTime(allSamples);
   const bounds = getSoundStripBounds(height);
 
   drawLaneDivider(ctx, bounds, visibleStartX, visibleEndX);
@@ -268,7 +272,8 @@ export function drawSoundStrip(
     const cullMargin = getPassiveMarkerCullMargin();
     if (x < visibleStartX - cullMargin || x > visibleEndX + cullMargin) continue;
 
-    const color = withAlpha(getSamplesetColor(sample.sampleset), 0.9);
+    const fillSample = getBodyMarkerFillSample(sample, baseBodyByTime);
+    const color = withAlpha(getSamplesetColor(fillSample.sampleset), 0.9);
     if (sample.source === 'Tick') {
       drawTickMarker(ctx, x, bounds, color);
     } else {
