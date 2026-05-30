@@ -825,10 +825,7 @@ namespace MapsetVerifier.Parser.Objects
         }
 
         /// <summary>
-        ///     Returns the interpreted difficulty level based on the star rating of the beatmap
-        ///     (may be inaccurate since recent sr reworks were done), can optionally consider diff names.
-        ///     When the name can be parsed, it wins if it disagrees with SR by at most one step on the
-        ///     Easy→Ultra scale; if the gap is two or more steps, SR is used instead.
+        /// Returns the interpreted difficulty level based on difficulty name or fallback on star rating
         /// </summary>
         public Difficulty GetDifficulty()
         {
@@ -836,27 +833,26 @@ namespace MapsetVerifier.Parser.Objects
             if (InterpretedDifficultyOverride is { } overridden)
                 return overridden;
 
-            var difficultyFromStarRating = GetDifficultyFromStarRating();
             var difficultyFromName = GetDifficultyFromName();
 
-            if (difficultyFromName != null)
+            // We can't determine the difficulty by name so instead use star rating
+            if (difficultyFromName == null)
             {
-                var interpretedFromName = (Difficulty)difficultyFromName;
-                // Broad osu!taiko "Oni" labels map to Insane by name, but trust SR when it clearly maps to Expert or Ultra.
-                if (
-                    GeneralSettings.mode == Mode.Taiko
-                    && interpretedFromName == Difficulty.Insane
-                    && difficultyFromStarRating >= Difficulty.Expert
-                )
+                return GetDifficultyFromStarRating();
+            }
+
+            var interpretedFromName = (Difficulty)difficultyFromName;
+            // Broad osu!taiko "Oni" labels map to Insane by name, but trust SR when it clearly maps to Expert or Ultra.
+            if (GeneralSettings.mode == Mode.Taiko && interpretedFromName == Difficulty.Insane)
+            {
+                var difficultyFromStarRating = GetDifficultyFromStarRating();
+                if (difficultyFromStarRating >= Difficulty.Expert)
                 {
                     return difficultyFromStarRating;
                 }
-
-                return interpretedFromName;
             }
 
-            // We can't determine the difficulty by name so instead use star rating
-            return difficultyFromStarRating;
+            return interpretedFromName;
         }
 
         private Difficulty GetDifficultyFromStarRating()
