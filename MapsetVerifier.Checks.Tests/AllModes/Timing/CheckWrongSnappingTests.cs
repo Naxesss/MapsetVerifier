@@ -121,7 +121,7 @@ public class CheckWrongSnappingTests
         Assert.Contains(
             issues,
             issue =>
-                issue.level == Issue.Level.Warning
+                issue.level == Issue.Level.Minor
                 && issue.message.Contains("Different snapping")
                 && issue.message.Contains("Hard")
         );
