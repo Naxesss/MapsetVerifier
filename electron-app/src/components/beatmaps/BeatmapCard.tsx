@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useBeatmap } from '../../context/BeatmapContext';
+import { useBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
 import { Beatmap } from '../../Types.ts';
 import { buildBeatmapImageUrl } from '../../utils/buildBeatmapFolderPath.ts';
 
@@ -18,6 +19,7 @@ function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: Beat
   const { selectedFolder, setSelectedFolder } = useBeatmap();
   const [bgUrl, setBgUrl] = useState<string | undefined>(undefined);
   const [isHovered, setIsHovered] = useState(false);
+  const { triggerReparse } = useBeatmapReparse();
 
   useEffect(() => {
     if (!beatmap.folder || beatmap.folder === 'placeholder') {
@@ -81,6 +83,10 @@ function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: Beat
         transition: `border-color ${transitionMs}, box-shadow ${transitionMs}`,
       }}
       onClick={() => {
+        if (beatmap.folder === selectedFolder) {
+          return triggerReparse();
+        }
+
         if (onSelect) {
           onSelect();
         } else {
