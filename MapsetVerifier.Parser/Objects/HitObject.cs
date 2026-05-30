@@ -408,7 +408,8 @@ namespace MapsetVerifier.Parser.Objects
 
                 var advanceFrom = beatTime;
                 line = beatmap.GetTimingLine<UninheritedLine>(advanceFrom) ?? line;
-                var nextBeat = advanceFrom - beatmap.GetOffsetIntoBeat(advanceFrom, line) + line.msPerBeat;
+                var nextBeat =
+                    advanceFrom - beatmap.GetOffsetIntoBeat(advanceFrom, line) + line.msPerBeat;
 
                 // Guard against floating-point stalls when already on a beat boundary.
                 beatTime = nextBeat.AlmostEqual(advanceFrom)

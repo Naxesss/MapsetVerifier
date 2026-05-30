@@ -1,5 +1,4 @@
 import { Box, Group, Stack, Text, Tooltip } from '@mantine/core';
-import type { CrosshairResolvedRow } from '../crosshairUtils.ts';
 import {
   formatSampleBankLine,
   getHitsoundTypesFromFlags,
@@ -9,6 +8,7 @@ import {
   type HitsoundTypeDisplay,
 } from '../hitsoundUtils.ts';
 import { formatEditorTimestamp } from '../timelineUtils.ts';
+import type { CrosshairResolvedRow } from '../crosshairUtils.ts';
 
 function HitsoundTypeSwatch({ type }: { type: HitsoundTypeDisplay }) {
   const isSecondary = type.role === 'ring';
@@ -110,16 +110,12 @@ export function HitsoundContextDetail({
     resolved.matchKind === 'slider-body' ||
     resolved.matchKind === 'body-sample' ||
     resolved.matchKind === 'tick-sample';
-  const isLongBody =
-    resolved.matchKind === 'spinner-body' || resolved.matchKind === 'hold-body';
-  const edgeAdditions = getHitsoundTypesFromFlags(
-    resolved.hitSoundFlags || HITSOUND_FLAG_NORMAL
-  );
+  const isLongBody = resolved.matchKind === 'spinner-body' || resolved.matchKind === 'hold-body';
+  const edgeAdditions = getHitsoundTypesFromFlags(resolved.hitSoundFlags || HITSOUND_FLAG_NORMAL);
   const bodyAdditions = getHitsoundTypesFromFlags(
     resolved.bodyHitSoundFlags || HITSOUND_FLAG_NORMAL
   );
-  const showBodyAdditions =
-    isSliderBody && hasSliderBodyWhistle(resolved.bodyHitSoundFlags);
+  const showBodyAdditions = isSliderBody && hasSliderBodyWhistle(resolved.bodyHitSoundFlags);
   const playheadOnPassiveSample =
     timestampMs != null &&
     resolved.nearestPassiveSampleTimeMs != null &&
@@ -225,8 +221,7 @@ export function HitsoundContextDetail({
         </Stack>
       ) : null}
 
-      {resolved.timingSegment?.sampleset &&
-      resolved.timingSegment.sampleset !== 'Auto' ? (
+      {resolved.timingSegment?.sampleset && resolved.timingSegment.sampleset !== 'Auto' ? (
         <SampleBankLine
           label="Section sample bank"
           sampleset={resolved.timingSegment.sampleset}

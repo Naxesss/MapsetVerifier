@@ -6,9 +6,9 @@ import {
 } from '../crosshairUtils.ts';
 import { type HitsoundLayerVisibility, type TimelineViewMode } from '../hitsoundUtils.ts';
 import { formatEditorTimestamp, getSnapLabelColor, lookupEdgeSnapLabel } from '../timelineUtils.ts';
-import type { TimelineObjectHeadHit } from '../timelineDrawing.ts';
 import { HitsoundContextDetail } from './HitsoundContextDetail.tsx';
 import type { ObjectsOverviewDifficulty } from '../../../../Types';
+import type { TimelineObjectHeadHit } from '../timelineDrawing.ts';
 
 type TimelineObjectHeadHovercardProps = {
   difficulty: ObjectsOverviewDifficulty;

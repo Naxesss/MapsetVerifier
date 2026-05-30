@@ -36,12 +36,14 @@ public class SliderBodySampleDebugTests(ITestOutputHelper output)
             );
         }
 
-        Assert.All(bodySamples, sample => Assert.InRange(sample.Time, slider.time - 1, slider.EndTime + 1));
+        Assert.All(
+            bodySamples,
+            sample => Assert.InRange(sample.Time, slider.time - 1, slider.EndTime + 1)
+        );
         Assert.Contains(
             bodySamples,
             sample =>
-                sample.Time.AlmostEqual(slider.time)
-                && sample.HitSound == HitObject.HitSounds.None
+                sample.Time.AlmostEqual(slider.time) && sample.HitSound == HitObject.HitSounds.None
         );
         Assert.Contains(
             bodySamples,
