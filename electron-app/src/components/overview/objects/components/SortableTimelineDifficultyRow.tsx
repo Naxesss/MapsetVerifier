@@ -7,11 +7,7 @@ import TimelineRow from './TimelineRow.tsx';
 import { withAlpha } from '../../../../utils/color.ts';
 import { formatGameModeLabel, getModeAccentColor, normalizeMode } from '../../../../utils/gameMode';
 import GameModeIcon from '../../../icons/GameModeIcon.tsx';
-import {
-  HIDDEN_ROW_HEIGHT,
-  HIDDEN_ROW_VERTICAL_PADDING,
-  LABEL_WIDTH,
-} from '../constants.ts';
+import { HIDDEN_ROW_HEIGHT, HIDDEN_ROW_VERTICAL_PADDING, LABEL_WIDTH } from '../constants.ts';
 import {
   useTimelineDisplay,
   useTimelineScale,

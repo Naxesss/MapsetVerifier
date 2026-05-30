@@ -15,12 +15,25 @@ namespace MapsetVerifier.Checks.Taiko.Compose
     {
         private const string Minor = nameof(Issue.Level.Minor);
 
+        /// <summary>
+        ///     Minimum gap before a spinner, in beats of <see cref="UninheritedLine.GetNormalizedMsPerBeat" />.
+        /// </summary>
+        private static readonly Dictionary<Beatmap.Difficulty, double> MinimalGapBeats = new()
+        {
+            { Beatmap.Difficulty.Easy, 1.0 / 2 },
+            { Beatmap.Difficulty.Normal, 1.0 / 2 },
+            { Beatmap.Difficulty.Hard, 1.0 / 2 },
+            { Beatmap.Difficulty.Insane, 1.0 / 4 },
+            { Beatmap.Difficulty.Expert, 1.0 / 4 },
+        };
+
         private readonly Beatmap.Difficulty[] difficulties =
         [
             Beatmap.Difficulty.Easy,
             Beatmap.Difficulty.Normal,
             Beatmap.Difficulty.Hard,
             Beatmap.Difficulty.Insane,
+            Beatmap.Difficulty.Expert,
         ];
 
         public override CheckMetadata GetMetadata() =>
@@ -53,9 +66,11 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                     Minor,
                     new IssueTemplate(
                         Issue.Level.Minor,
-                        "{0} Note is too close to spinner",
+                        "{0} Note is very close to spinner. Ensure there are no readability issues.",
                         "timestamp -"
-                    ).WithCause("The note is too close to the spinner")
+                    ).WithCause(
+                        "The note is very close to the spinner, risking readability issues in certain cases."
+                    )
                 },
             };
 
@@ -68,7 +83,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                 var current = hitObjects[i];
                 var next = hitObjects.SafeGetIndex(i + 1);
 
-                if (next == null)
+                if (next is not Spinner)
                 {
                     continue;
                 }
@@ -80,22 +95,14 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                 }
 
                 var normalizedMsPerBeat = timing.GetNormalizedMsPerBeat();
-
-                // for each diff: double minimalGap = ?;
-                var minimalGap = new Dictionary<Beatmap.Difficulty, double>();
-                minimalGap.AddRange(difficulties.Take(3), normalizedMsPerBeat / 2);
-                minimalGap.AddRange(difficulties.Skip(3).Take(3), normalizedMsPerBeat / 4);
-
-                // We only have to check the note before a spinner, not after
-                if (next is not Spinner)
-                    continue;
-
                 var currentEndTime = current is Slider slider ? slider.EndTime : current.time;
                 var gap = next.time - currentEndTime;
 
                 foreach (var diff in difficulties)
                 {
-                    if (gap < minimalGap[diff])
+                    var minimalGapMs = MinimalGapBeats[diff] * normalizedMsPerBeat;
+
+                    if (gap < minimalGapMs)
                     {
                         yield return new Issue(
                             GetTemplate(Minor),

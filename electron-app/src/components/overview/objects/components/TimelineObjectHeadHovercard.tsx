@@ -1,5 +1,9 @@
 import { Box, Stack, Text, Tooltip } from '@mantine/core';
+import { useMemo } from 'react';
+import { buildCrosshairRowLookupCache, resolveCrosshairRow } from '../crosshairUtils.ts';
+import { type HitsoundLayerVisibility, type TimelineViewMode } from '../hitsoundUtils.ts';
 import { formatEditorTimestamp, getSnapLabelColor, lookupEdgeSnapLabel } from '../timelineUtils.ts';
+import { HitsoundContextDetail } from './HitsoundContextDetail.tsx';
 import type { ObjectsOverviewDifficulty } from '../../../../Types';
 import type { TimelineObjectHeadHit } from '../timelineDrawing.ts';
 
@@ -8,6 +12,8 @@ type TimelineObjectHeadHovercardProps = {
   hover: TimelineObjectHeadHit | null;
   opened: boolean;
   anchorY: number;
+  viewMode: TimelineViewMode;
+  hitsoundLayers: HitsoundLayerVisibility;
 };
 
 export default function TimelineObjectHeadHovercard({
@@ -15,13 +21,25 @@ export default function TimelineObjectHeadHovercard({
   hover,
   opened,
   anchorY,
+  viewMode,
+  hitsoundLayers,
 }: TimelineObjectHeadHovercardProps) {
+  const hitsoundResolved = useMemo(() => {
+    if (!hover || viewMode !== 'hitsounding') {
+      return null;
+    }
+
+    const cache = buildCrosshairRowLookupCache(difficulty, hitsoundLayers);
+    return resolveCrosshairRow(difficulty, hover.timeMs, cache.enrichedSamples, cache);
+  }, [difficulty, hitsoundLayers, hover, viewMode]);
+
   if (!hover) {
     return null;
   }
 
   const snapLabel = lookupEdgeSnapLabel(difficulty, hover.timeMs);
   const snapColor = getSnapLabelColor(snapLabel);
+  const showHitsoundDetail = viewMode === 'hitsounding' && hitsoundResolved?.hasMatch;
 
   return (
     <Tooltip
@@ -36,7 +54,7 @@ export default function TimelineObjectHeadHovercard({
       radius="md"
       events={{ hover: false, focus: false, touch: false }}
       label={
-        <Stack gap={4} align="stretch" ta="left">
+        <Stack gap={6} align="stretch" ta="left" maw={340}>
           <Text size="sm" fw={600} ta="left">
             {formatEditorTimestamp(hover.timeMs)}
           </Text>
@@ -49,6 +67,15 @@ export default function TimelineObjectHeadHovercard({
               {snapLabel}
             </Text>
           </Text>
+          {showHitsoundDetail && hitsoundResolved ? (
+            <Box pt={4} style={{ borderTop: '1px solid var(--mantine-color-dark-4)' }}>
+              <HitsoundContextDetail
+                resolved={hitsoundResolved}
+                timestampMs={hover.timeMs}
+                compact
+              />
+            </Box>
+          ) : null}
         </Stack>
       }
       styles={{

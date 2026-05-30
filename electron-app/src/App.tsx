@@ -74,33 +74,33 @@ function App() {
             <PageHintsProvider>
               <BackendGate>
                 <DocumentationProvider>
-                <AppShell
-                  header={{ height: 92 }}
-                  navbar={{
-                    width: '256',
-                    breakpoint: 'xs',
-                    collapsed: { desktop: !desktopOpened },
-                  }}
-                >
-                  <NavBars desktopOpened={desktopOpened} toggleDesktop={toggleDesktop} />
-                  <AppShell.Main>
-                    <ScrollArea
-                      offsetScrollbars
-                      type="always"
-                      h="calc(100vh - var(--app-shell-header-offset, 0rem) + var(--app-shell-padding))"
-                    >
-                      <Container p="sm" fluid>
-                        <BeatmapReparseProvider>
-                          <RouteErrorBoundary>
-                            <BeatmapKeyedOutlet />
-                          </RouteErrorBoundary>
-                        </BeatmapReparseProvider>
-                      </Container>
-                    </ScrollArea>
-                  </AppShell.Main>
-                </AppShell>
-              </DocumentationProvider>
-            </BackendGate>
+                  <AppShell
+                    header={{ height: 92 }}
+                    navbar={{
+                      width: '256',
+                      breakpoint: 'xs',
+                      collapsed: { desktop: !desktopOpened },
+                    }}
+                  >
+                    <NavBars desktopOpened={desktopOpened} toggleDesktop={toggleDesktop} />
+                    <AppShell.Main>
+                      <ScrollArea
+                        offsetScrollbars
+                        type="always"
+                        h="calc(100vh - var(--app-shell-header-offset, 0rem) + var(--app-shell-padding))"
+                      >
+                        <Container p="sm" fluid>
+                          <BeatmapReparseProvider>
+                            <RouteErrorBoundary>
+                              <BeatmapKeyedOutlet />
+                            </RouteErrorBoundary>
+                          </BeatmapReparseProvider>
+                        </Container>
+                      </ScrollArea>
+                    </AppShell.Main>
+                  </AppShell>
+                </DocumentationProvider>
+              </BackendGate>
             </PageHintsProvider>
           </BeatmapProvider>
           <UpdaterModal />

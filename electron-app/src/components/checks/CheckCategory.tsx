@@ -59,7 +59,11 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
   const categoryData = React.useMemo(() => {
     // If we have an override result for the selected category, use it
     if (overrideCategoryResult && overrideCategoryResult.category === selectedCategory) {
-      const groups = groupChecks(overrideCategoryResult.checkResults, showMinor, hiddenMinorCheckIds);
+      const groups = groupChecks(
+        overrideCategoryResult.checkResults,
+        showMinor,
+        hiddenMinorCheckIds
+      );
       const allLevels = groups.flatMap((g) => g.items.map((item) => item.level));
       const levelCounts = getLevelCounts(allLevels);
       const totalCount = LEVEL_ORDER.reduce((sum, level) => sum + levelCounts[level], 0);
@@ -162,7 +166,9 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
               style={{ cursor: 'pointer' }}
               title={isSelected ? 'Show all severities' : `Filter by this type`}
             >
-              {level.toLowerCase() === "minor" ? `${count} Negligible` : countWord(count, level.toLowerCase())}
+              {level.toLowerCase() === 'minor'
+                ? `${count} Negligible`
+                : countWord(count, level.toLowerCase())}
             </Badge>
           );
         })}

@@ -110,8 +110,14 @@ export function drawThemedSpinnerMarker(
   ctx.save();
   ctx.beginPath();
   applyAlphaFill(ctx, markerTheme.ringFill, objectColor);
-  ctx.strokeStyle = withAlpha(resolveColor(markerTheme.ringStroke.color, objectColor), markerTheme.ringStroke.alpha);
-  ctx.lineWidth = Math.max(markerTheme.ringStrokeWidthMin, radius * markerTheme.ringStrokeWidthScale);
+  ctx.strokeStyle = withAlpha(
+    resolveColor(markerTheme.ringStroke.color, objectColor),
+    markerTheme.ringStroke.alpha
+  );
+  ctx.lineWidth = Math.max(
+    markerTheme.ringStrokeWidthMin,
+    radius * markerTheme.ringStrokeWidthScale
+  );
   ctx.arc(x, centerY, radius, 0, Math.PI * 2);
   ctx.fill();
   ctx.stroke();
@@ -153,7 +159,10 @@ export function drawThemedObjectMarkerEdge(
   markerTheme: TimelineObjectMarkerTheme
 ): void {
   applyAlphaStroke(ctx, markerTheme.edgeStroke, objectColor);
-  ctx.fillStyle = withAlpha(resolveColor(markerTheme.edgeStroke.color, objectColor), markerTheme.edgeStroke.alpha);
+  ctx.fillStyle = withAlpha(
+    resolveColor(markerTheme.edgeStroke.color, objectColor),
+    markerTheme.edgeStroke.alpha
+  );
 }
 
 export function drawThemedTailSquare(

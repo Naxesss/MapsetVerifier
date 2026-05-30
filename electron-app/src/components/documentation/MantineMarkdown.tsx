@@ -87,7 +87,11 @@ export default function MantineMarkdown({
               </Anchor>
             );
           },
-          code: ({ children }: { children?: ReactNode }) => <Code c="primary.2" px="sm" fz="sm">{children}</Code>,
+          code: ({ children }: { children?: ReactNode }) => (
+            <Code c="primary.2" px="sm" fz="sm">
+              {children}
+            </Code>
+          ),
           img: ({ src, alt, title }: { src?: string; alt?: string; title?: string }) => {
             if (!title) {
               return <img src={src} alt={alt} />;
@@ -115,12 +119,7 @@ export default function MantineMarkdown({
                 {children}
               </Alert>
             ) : (
-              <Blockquote
-                mt={hasLeadingContent(node) ? 'md' : 0}
-                mb="md"
-                py="sm"
-                px="md"
-              >
+              <Blockquote mt={hasLeadingContent(node) ? 'md' : 0} mb="md" py="sm" px="md">
                 {children}
               </Blockquote>
             ),

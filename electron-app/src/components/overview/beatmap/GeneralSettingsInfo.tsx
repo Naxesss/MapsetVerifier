@@ -50,7 +50,11 @@ function CountdownCell({ settings }: { settings: DifficultyGeneralSettings }) {
 
   if (settings.countdownInsufficientTime) {
     return (
-      <Tooltip multiline w={260} label="Countdown is enabled, but there is insufficient time before the first object for it to work">
+      <Tooltip
+        multiline
+        w={260}
+        label="Countdown is enabled, but there is insufficient time before the first object for it to work"
+      >
         <Badge color="yellow" variant="light" leftSection={<IconAlertTriangle size={12} />}>
           {settings.countdownSpeed}
         </Badge>
@@ -127,7 +131,7 @@ function GeneralSettingsInfo({ generalSettings }: GeneralSettingsInfoProps) {
                 <Table.Td>
                   <Text size="sm">
                     {settings.countdownSpeed !== null && settings.countdownOffset !== null
-                      ? countWord(settings.countdownOffset, "beat")
+                      ? countWord(settings.countdownOffset, 'beat')
                       : 'N/A'}
                   </Text>
                 </Table.Td>

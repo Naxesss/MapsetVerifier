@@ -57,6 +57,7 @@ public class ObjectsTimelineObject
     public string ObjectType { get; set; } = string.Empty;
     public bool HasFinishHitSound { get; set; }
     public int HitSoundFlags { get; set; }
+    public int SliderBodyHitSoundFlags { get; set; }
     public int? ComboColourIndex { get; set; }
     public string? ComboColourHex { get; set; }
     public List<ObjectsTimelineEdge> Edges { get; set; } = [];

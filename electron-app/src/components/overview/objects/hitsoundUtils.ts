@@ -5,17 +5,17 @@ export const HITSOUND_FLAG_WHISTLE = 2;
 export const HITSOUND_FLAG_FINISH = 4;
 export const HITSOUND_FLAG_CLAP = 8;
 
-/** Sample bank colours (Normal / Soft / Drum). Normal is explicit and rare in modern maps. */
+/** Sample bank colours (Normal / Soft / Drum). Normal uses mint green. */
 export const EDITOR_SAMPLE_BANK_COLORS = {
-  Normal: '#a78bfa',
+  Normal: '#34d399',
   Soft: '#fbbf24',
   Drum: '#38bdf8',
-  Auto: '#a78bfa',
+  Auto: '#34d399',
 } as const;
 
 /** Hitsound addition colours. Finish/Clap follow Soft/Drum; Whistle uses green. */
 export const HITSOUND_COLORS = {
-  normal: EDITOR_SAMPLE_BANK_COLORS.Normal,
+  none: '#71717a',
   whistle: '#34d399',
   finish: EDITOR_SAMPLE_BANK_COLORS.Soft,
   clap: EDITOR_SAMPLE_BANK_COLORS.Drum,
@@ -64,7 +64,7 @@ const HITSOUND_TYPE_ORDER = [
   { flag: HITSOUND_FLAG_FINISH, label: 'Finish', color: HITSOUND_COLORS.finish },
   { flag: HITSOUND_FLAG_CLAP, label: 'Clap', color: HITSOUND_COLORS.clap },
   { flag: HITSOUND_FLAG_WHISTLE, label: 'Whistle', color: HITSOUND_COLORS.whistle },
-  { flag: HITSOUND_FLAG_NORMAL, label: 'Normal', color: HITSOUND_COLORS.normal },
+  { flag: HITSOUND_FLAG_NORMAL, label: 'None', color: HITSOUND_COLORS.none },
 ] as const;
 
 export const HITSOUND_RING_BASE_OFFSET = 1.5;
@@ -120,32 +120,66 @@ export function isBaseBodySample(sample: ObjectsTimelineSample): boolean {
   return sample.source === 'Body' && isBaseEdgeSample(sample);
 }
 
-export function isBodyAdditionSample(sample: ObjectsTimelineSample): boolean {
-  return sample.source === 'Body' && !isBaseEdgeSample(sample);
+export function isSliderWhistleSample(sample: ObjectsTimelineSample): boolean {
+  if (sample.source !== 'Body' || isBaseBodySample(sample)) {
+    return false;
+  }
+
+  const flags = parseHitSoundFlags(sample.hitSound);
+  return flags === 0 || (flags & HITSOUND_FLAG_WHISTLE) !== 0;
 }
 
-/** Drop redundant sliderslide markers when a body addition sample exists at the same time. */
-export function dedupePassiveBodySamples(samples: ObjectsTimelineSample[]): ObjectsTimelineSample[] {
-  const additionTimes = new Set<number>();
+export function getSliderWhistleSampleAtTime(
+  samples: ObjectsTimelineSample[],
+  timeMs: number,
+  toleranceMs = 2
+): ObjectsTimelineSample | null {
+  let best: ObjectsTimelineSample | null = null;
+  let bestDistance = Number.POSITIVE_INFINITY;
 
   for (const sample of samples) {
-    if (isBodyAdditionSample(sample)) {
-      additionTimes.add(sample.timeMs);
+    if (!isSliderWhistleSample(sample)) {
+      continue;
+    }
+
+    const distance = Math.abs(sample.timeMs - timeMs);
+    if (distance > toleranceMs || distance >= bestDistance) {
+      continue;
+    }
+
+    bestDistance = distance;
+    best = sample;
+  }
+
+  return best;
+}
+
+export function buildBaseBodySampleByTime(
+  samples: ObjectsTimelineSample[]
+): Map<number, ObjectsTimelineSample> {
+  const baseByTime = new Map<number, ObjectsTimelineSample>();
+
+  for (const sample of samples) {
+    if (isBaseBodySample(sample)) {
+      baseByTime.set(sample.timeMs, sample);
     }
   }
 
-  if (additionTimes.size === 0) {
-    return samples;
-  }
-
-  return samples.filter(
-    (sample) => !(isBaseBodySample(sample) && additionTimes.has(sample.timeMs))
-  );
+  return baseByTime;
 }
 
-export function hasSliderBodyAddition(flags: number): boolean {
+export function hasSliderBodyWhistle(flags: number): boolean {
+  return (flags & HITSOUND_FLAG_WHISTLE) !== 0;
+}
+
+export function hasAnySliderBodyAddition(flags: number): boolean {
   return (
-    (flags & (HITSOUND_FLAG_WHISTLE | HITSOUND_FLAG_FINISH | HITSOUND_FLAG_CLAP)) !== 0
+    (flags &
+      (HITSOUND_FLAG_NORMAL |
+        HITSOUND_FLAG_WHISTLE |
+        HITSOUND_FLAG_FINISH |
+        HITSOUND_FLAG_CLAP)) !==
+    0
   );
 }
 
@@ -305,20 +339,25 @@ export function getHitsoundCircleOuterRadius(baseRadius: number, flags: number):
   return getHitsoundCircleLayout(baseRadius, flags).outerRadius;
 }
 
-export function parseHitSoundFlags(hitSound: string): number {
+export function parseHitSoundFlags(hitSound: string | null | undefined): number {
+  const text = String(hitSound ?? '').toLowerCase();
   let flags = 0;
 
-  if (hitSound.includes('Normal')) {
+  if (text.includes('normal')) {
     flags |= HITSOUND_FLAG_NORMAL;
   }
-  if (hitSound.includes('Whistle')) {
+  if (text.includes('whistle')) {
     flags |= HITSOUND_FLAG_WHISTLE;
   }
-  if (hitSound.includes('Finish')) {
+  if (text.includes('finish')) {
     flags |= HITSOUND_FLAG_FINISH;
   }
-  if (hitSound.includes('Clap')) {
+  if (text.includes('clap')) {
     flags |= HITSOUND_FLAG_CLAP;
+  }
+
+  if (flags === 0 && /^[0-9]+$/.test(text.trim())) {
+    return Number.parseInt(text, 10);
   }
 
   return flags;

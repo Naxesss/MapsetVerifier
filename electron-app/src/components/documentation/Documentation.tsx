@@ -51,7 +51,11 @@ interface InfoIconExplanationProp {
 
 function DocumentationIconExplanation(props: InfoIconExplanationProp) {
   const theme = useMantineTheme();
-  const background = theme.variantColorResolver({ variant: 'light', theme, color: 'gray' }).background;
+  const background = theme.variantColorResolver({
+    variant: 'light',
+    theme,
+    color: 'gray',
+  }).background;
 
   return (
     <Group

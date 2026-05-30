@@ -8,10 +8,7 @@ import {
   useTimelinePan,
   useTimelineScale,
 } from '../context/ObjectsTimelineContext.tsx';
-import {
-  type HitsoundLayerVisibility,
-  type TimelineViewMode,
-} from '../hitsoundUtils.ts';
+import { type HitsoundLayerVisibility, type TimelineViewMode } from '../hitsoundUtils.ts';
 import {
   drawTimelineRow,
   findTimelineObjectHeadAtX,
@@ -369,6 +366,8 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
         hover={headHover}
         opened={headHover !== null && !isPanningTimeline && contextMenuState === null}
         anchorY={height / 2}
+        viewMode={viewMode}
+        hitsoundLayers={hitsoundLayers}
       />
     </Box>
   );

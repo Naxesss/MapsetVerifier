@@ -77,7 +77,16 @@ export function buildCharts(
 
   if (sliderVelocitySeries.length > 0) {
     chartSeries.push(
-      buildChartDefinition('Slider velocity', sliderVelocitySeries, msPerPeak, '×', undefined, 'step', true, false)
+      buildChartDefinition(
+        'Slider velocity',
+        sliderVelocitySeries,
+        msPerPeak,
+        '×',
+        undefined,
+        'step',
+        true,
+        false
+      )
     );
   }
 
@@ -87,7 +96,16 @@ export function buildCharts(
 
   if (volumeSeries.length > 0) {
     chartSeries.push(
-      buildChartDefinition(SAMPLE_VOLUME_CHART_TITLE, volumeSeries, msPerPeak, '%', 5, 'step', true, false)
+      buildChartDefinition(
+        SAMPLE_VOLUME_CHART_TITLE,
+        volumeSeries,
+        msPerPeak,
+        '%',
+        5,
+        'step',
+        true,
+        false
+      )
     );
   }
 

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Numerics;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
@@ -115,12 +116,16 @@ namespace MapsetVerifier.Checks.Taiko.Design
                 foreach (var offset in offsets)
                 {
                     var offsetCoords = offset.Key;
+                    var offsetCoordsText = string.Create(
+                        CultureInfo.InvariantCulture,
+                        $"({offsetCoords.X}, {offsetCoords.Y})"
+                    );
                     var diffNames = string.Join(", ", offset.Value);
                     yield return new Issue(
                         GetTemplate(Inconsistent),
                         null,
                         fileName,
-                        offsetCoords,
+                        offsetCoordsText,
                         diffNames
                     );
                 }

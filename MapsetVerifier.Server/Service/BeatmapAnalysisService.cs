@@ -626,6 +626,7 @@ public static class BeatmapAnalysisService
                 ObjectType = hitObject.GetObjectType(),
                 HasFinishHitSound = hitObject.HasHitSound(HitObject.HitSounds.Finish),
                 HitSoundFlags = GetObjectHitSoundFlags(hitObject),
+                SliderBodyHitSoundFlags = GetSliderBodyHitSoundFlags(hitObject),
                 ComboColourIndex = GetObjectComboColourIndex(beatmap, hitObject),
                 ComboColourHex = GetObjectComboColourHex(beatmap, hitObject),
                 Edges = hitObject
@@ -922,6 +923,9 @@ public static class BeatmapAnalysisService
 
         return (int)hitObject.hitSound;
     }
+
+    private static int GetSliderBodyHitSoundFlags(HitObject hitObject) =>
+        hitObject is Slider slider ? (int)slider.hitSound : 0;
 
     private static int GetEdgeHitSoundFlags(HitObject hitObject, double edgeTime)
     {

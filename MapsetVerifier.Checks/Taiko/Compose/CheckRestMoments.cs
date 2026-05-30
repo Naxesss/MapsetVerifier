@@ -39,7 +39,19 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                     {
                         "Purpose",
                         @"
-                    Ensuring that a chain of objects doesn't exceed a certain threshold without a required rest moment."
+                    Rest moments are small pauses in gameplay used to separate patterns and provide a break for the player from continuous rhythm chains. They play an important role in reducing player fatigue, especially on denser rhythms.
+
+                    Using rest moments less frequently is acceptable if either the pace of the music makes rest moments counter-intuitive or if the continuously mapped part is overall more forgiving to the player.
+
+                    **Each difficulty should follow its respective rest moment guidelines:**
+
+                    | Difficulty | Rest moment | Example | Chain length |
+                    | :-: | :-: | :-: | :-- |
+                    | **Kantan** | 3/1 or longer | ![](assets/checks/taiko-compose-rest-moments-example-kantan.png ""3/1"") | Rest moment needed every 32–36 beats |
+                    | **Futsuu** | 2/1 or longer | ![](assets/checks/taiko-compose-rest-moments-example-futsuu.png ""2/1"") | Rest moment needed every 32–36 beats |
+                    | **Muzukashii** (option 1) | 3/2 or longer | ![](assets/checks/taiko-compose-rest-moments-example-muzu-3-2.png ""3/2"") | Rest moment needed every 32–36 beats |
+                    | **Muzukashii** (option 2) | 3 consecutive 1/1 or longer | ![](assets/checks/taiko-compose-rest-moments-example-muzu-1-1.png ""3 consecutive 1/1"") | Rest moment needed every 32–36 beats |
+                    | **Oni** | 1/1 or longer | ![](assets/checks/taiko-compose-rest-moments-example-oni.png ""1/1"") | Rest moment needed every 16–20 beats"
                     },
                     {
                         "Reasoning",
@@ -56,7 +68,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                     Minor,
                     new IssueTemplate(
                         Issue.Level.Minor,
-                        "{0} > {1} No {2} rest moments for {3}, ensure this makes sense",
+                        "{0} > {1} No {2} rest moments for {3}. Ensure this makes sense.",
                         "start",
                         "end",
                         "break",
@@ -67,7 +79,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                     Warning,
                     new IssueTemplate(
                         Issue.Level.Warning,
-                        "{0} > {1} No {2} rest moments for {3}, ensure this makes sense",
+                        "{0} > {1} No {2} rest moments for {3}. Ensure this makes sense.",
                         "start",
                         "end",
                         "break",

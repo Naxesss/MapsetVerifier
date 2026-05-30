@@ -59,7 +59,8 @@ export default function ObjectsTimelineComparison({
   };
 
   const handleCloseModal = () => {
-    savedScrollLeftRef.current = modalPan.scrollRef.current?.scrollLeft ?? savedScrollLeftRef.current;
+    savedScrollLeftRef.current =
+      modalPan.scrollRef.current?.scrollLeft ?? savedScrollLeftRef.current;
     modalPan.stopDragging();
     inlinePan.stopDragging();
     setModalOpened(false);
@@ -87,39 +88,39 @@ export default function ObjectsTimelineComparison({
 
   return (
     <>
-      <TimelineControllerProvider value={controller}>
-        <Paper p="md" radius="md" withBorder>
-          <Stack gap="md">
-            <Group justify="space-between" align="flex-start">
-              <Stack gap={2}>
-                <Title order={4}>Timeline comparison</Title>
-                <Text size="sm" c="dimmed">
-                  Drag the grip to reorder rows. Drag horizontally or shift + scroll to pan.
-                  Hover or right click on objects for more info.
-                </Text>
-              </Stack>
-              {orderedDifficulties.length > 0 && (
-                <Group gap="xs" wrap="nowrap">
-                  <ObjectsTimelineHelpButton
-                    showHitsoundSection={isHitsoundViewAvailable(activeMode)}
-                  />
-                  <Button
-                    leftSection={<IconArrowsMaximize size={16} />}
-                    variant="light"
-                    size="sm"
-                    onClick={handleOpenModal}
-                  >
-                    Full view
-                  </Button>
-                </Group>
-              )}
-            </Group>
-
-            {modalOpened ? (
-              <Text size="sm" c="dimmed" ta="center" py="md">
-                Timeline open in full view
+      <Paper p="md" radius="md" withBorder>
+        <Stack gap="md">
+          <Group justify="space-between" align="flex-start">
+            <Stack gap={2}>
+              <Title order={4}>Timeline comparison</Title>
+              <Text size="sm" c="dimmed">
+                Drag the grip to reorder rows. Drag horizontally or shift + scroll to pan. Hover or
+                right click on objects for more info.
               </Text>
-            ) : (
+            </Stack>
+            {orderedDifficulties.length > 0 && (
+              <Group gap="xs" wrap="nowrap">
+                <ObjectsTimelineHelpButton
+                  showHitsoundSection={isHitsoundViewAvailable(activeMode)}
+                />
+                <Button
+                  leftSection={<IconArrowsMaximize size={16} />}
+                  variant="light"
+                  size="sm"
+                  onClick={handleOpenModal}
+                >
+                  Full view
+                </Button>
+              </Group>
+            )}
+          </Group>
+
+          {modalOpened ? (
+            <Text size="sm" c="dimmed" ta="center" py="md">
+              Timeline open in full view
+            </Text>
+          ) : (
+            <TimelineControllerProvider value={controller}>
               <TimelinePanProvider value={inlinePan}>
                 <ObjectsTimelineComparisonContent
                   showModeSelector
@@ -128,16 +129,17 @@ export default function ObjectsTimelineComparison({
                   showZoomControls
                 />
               </TimelinePanProvider>
-            )}
-          </Stack>
-        </Paper>
+            </TimelineControllerProvider>
+          )}
+        </Stack>
+      </Paper>
 
-        <ObjectsTimelineFullViewModal
-          opened={modalOpened}
-          onClose={handleCloseModal}
-          pan={modalPan}
-        />
-      </TimelineControllerProvider>
+      <ObjectsTimelineFullViewModal
+        opened={modalOpened}
+        onClose={handleCloseModal}
+        pan={modalPan}
+        controller={controller}
+      />
     </>
   );
 }

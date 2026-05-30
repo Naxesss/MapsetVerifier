@@ -1,11 +1,18 @@
-﻿import { Alert, Box, Progress, Stack, Text } from "@mantine/core";
-import { IconAlertCircle, IconEyeOff } from "@tabler/icons-react";
-import { useMemo } from "react";
-import CheckCategory from "./CheckCategory.tsx";
-import { getRawCheckResultsForSelectedCategory, hasMinorResultsHiddenByUserFilter } from "./checkResultVisibility";
-import { FetchError } from "../../client/ApiHelper";
-import { ApiBeatmapSetCheckResult, ApiCategoryOverrideCheckResult, CheckProgress } from "../../Types";
-import StackTraceMessage from "../common/StackTraceMessage.tsx";
+﻿import { Alert, Box, Progress, Stack, Text } from '@mantine/core';
+import { IconAlertCircle, IconEyeOff } from '@tabler/icons-react';
+import { useMemo } from 'react';
+import CheckCategory from './CheckCategory.tsx';
+import {
+  getRawCheckResultsForSelectedCategory,
+  hasMinorResultsHiddenByUserFilter,
+} from './checkResultVisibility';
+import { FetchError } from '../../client/ApiHelper';
+import {
+  ApiBeatmapSetCheckResult,
+  ApiCategoryOverrideCheckResult,
+  CheckProgress,
+} from '../../Types';
+import StackTraceMessage from '../common/StackTraceMessage.tsx';
 
 interface ChecksResultsProps {
   data?: ApiBeatmapSetCheckResult;
@@ -31,8 +38,9 @@ function ChecksResults({
   overrideResult,
 }: ChecksResultsProps) {
   const rawForCategory = useMemo(
-    () => (data ? getRawCheckResultsForSelectedCategory(data, selectedCategory, overrideResult) : []),
-    [data, selectedCategory, overrideResult],
+    () =>
+      data ? getRawCheckResultsForSelectedCategory(data, selectedCategory, overrideResult) : [],
+    [data, selectedCategory, overrideResult]
   );
 
   const showMinorFilterNotice = useMemo(
@@ -41,7 +49,7 @@ function ChecksResults({
         showMinor,
         hiddenMinorCheckIds,
       }),
-    [rawForCategory, showMinor, hiddenMinorCheckIds],
+    [rawForCategory, showMinor, hiddenMinorCheckIds]
   );
 
   const progressPercent =
@@ -50,15 +58,15 @@ function ChecksResults({
       : 0;
 
   const statusLabel = (() => {
-    if (!progress) return "Starting checks…";
+    if (!progress) return 'Starting checks…';
 
     const { activeLabels, completed, total } = progress;
     if (activeLabels.length === 0) {
-      return completed >= total && total > 0 ? "Finishing…" : "Starting checks…";
+      return completed >= total && total > 0 ? 'Finishing…' : 'Starting checks…';
     }
     if (activeLabels.length === 1) return activeLabels[0];
-    if (activeLabels.length <= 3) return activeLabels.join(", ");
-    return `${activeLabels.slice(0, 2).join(", ")} and ${activeLabels.length - 2} others`;
+    if (activeLabels.length <= 3) return activeLabels.join(', ');
+    return `${activeLabels.slice(0, 2).join(', ')} and ${activeLabels.length - 2} others`;
   })();
 
   return (
@@ -66,7 +74,7 @@ function ChecksResults({
       {isLoading && (
         <Stack gap="xs" py="sm">
           <Text size="sm" c="dimmed">
-            Checking for{" "}
+            Checking for{' '}
             <Text span fw={600} c="gray.3" inherit>
               {statusLabel}
             </Text>
@@ -82,7 +90,7 @@ function ChecksResults({
 
       {isError && (
         <Alert icon={<IconAlertCircle />} color="red" title="Error loading checks">
-          <Text size="sm" style={{ whiteSpace: "pre-wrap" }}>
+          <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
             {error?.message}
           </Text>
           {error?.stackTrace && <StackTraceMessage stackTrace={error.stackTrace} />}
@@ -99,14 +107,14 @@ function ChecksResults({
               p="xs"
               my="sm"
               styles={{
-                wrapper: { alignItems: "flex-start" },
+                wrapper: { alignItems: 'flex-start' },
                 icon: { marginTop: 2, marginRight: 4, marginLeft: 8 },
                 body: { paddingTop: 0 },
                 message: { marginTop: 0 },
               }}
             >
               <Text size="xs" c="dimmed" lh={2}>
-                Minor issues exist for checks hidden in{" "}
+                Minor issues exist for checks hidden in{' '}
                 <Text span fw={600} inherit>
                   Settings → Minor checks filter
                 </Text>
@@ -115,7 +123,7 @@ function ChecksResults({
             </Alert>
           ) : null}
           <CheckCategory
-            key={selectedCategory ?? "General"}
+            key={selectedCategory ?? 'General'}
             data={data}
             showMinor={showMinor}
             hiddenMinorCheckIds={hiddenMinorCheckIds}

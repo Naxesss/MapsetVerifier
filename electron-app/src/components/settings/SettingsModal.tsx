@@ -14,7 +14,14 @@
   Box,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconAlertTriangle, IconBrandGithub, IconFolder, IconNote, IconRefresh, IconWorld } from '@tabler/icons-react';
+import {
+  IconAlertTriangle,
+  IconBrandGithub,
+  IconFolder,
+  IconNote,
+  IconRefresh,
+  IconWorld,
+} from '@tabler/icons-react';
 import React, { useEffect, useState } from 'react';
 import AdvancedAudioWarningModal from './AdvancedAudioWarningModal';
 import LazerLookupWarningModal from './LazerLookupWarningModal';
@@ -57,10 +64,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
   );
   const [lazerWarningOpened, setLazerWarningOpened] = useState(false);
   const [advancedAudioConfirmOpened, setAdvancedAudioConfirmOpened] = useState(false);
-  const [
-    minorFilterOpened,
-    { open: openMinorFilterModal, close: closeMinorFilterModal },
-  ] = useDisclosure(false);
+  const [minorFilterOpened, { open: openMinorFilterModal, close: closeMinorFilterModal }] =
+    useDisclosure(false);
 
   const { status: docsStatus } = useDocumentation();
 
@@ -192,10 +197,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
               }}
             />
             {showMinor && (
-              <Tooltip
-                label="Loading check catalogue…"
-                disabled={docsStatus === 'success'}
-              >
+              <Tooltip label="Loading check catalogue…" disabled={docsStatus === 'success'}>
                 <Box style={{ flexShrink: 0 }}>
                   <Button
                     size="compact-xs"
