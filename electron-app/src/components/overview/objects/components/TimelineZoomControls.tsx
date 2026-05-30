@@ -110,7 +110,7 @@ export default function TimelineZoomControls() {
             value={sliderZoom}
             min={MIN_ZOOM}
             max={MAX_ZOOM}
-            step={0.01}
+            step={1}
             onChange={handleSliderChange}
             label={null}
             styles={{

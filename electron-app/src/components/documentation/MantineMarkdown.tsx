@@ -38,8 +38,7 @@ export default function MantineMarkdown({
   const { colorScheme } = useMantineColorScheme();
 
   const tableBorderColor = theme.colors.gray[colorScheme === 'dark' ? 4 : 3];
-  const tableHeaderBg =
-    colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[0];
+  const tableHeaderBg = colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[0];
   const tableBg = colorScheme === 'dark' ? theme.colors.dark[6] : theme.white;
   const theadBg = colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[1];
 
@@ -98,7 +97,11 @@ export default function MantineMarkdown({
               </Anchor>
             );
           },
-          code: ({ children }: { children?: ReactNode }) => <Code c="primary.2" px="sm" fz="sm">{children}</Code>,
+          code: ({ children }: { children?: ReactNode }) => (
+            <Code c="primary.2" px="sm" fz="sm">
+              {children}
+            </Code>
+          ),
           img: ({ src, alt, title }: { src?: string; alt?: string; title?: string }) => {
             if (!title) {
               return <img src={src} alt={alt} />;
@@ -126,12 +129,7 @@ export default function MantineMarkdown({
                 {children}
               </Alert>
             ) : (
-              <Blockquote
-                mt={hasLeadingContent(node) ? 'md' : 0}
-                mb="md"
-                py="sm"
-                px="md"
-              >
+              <Blockquote mt={hasLeadingContent(node) ? 'md' : 0} mb="md" py="sm" px="md">
                 {children}
               </Blockquote>
             ),

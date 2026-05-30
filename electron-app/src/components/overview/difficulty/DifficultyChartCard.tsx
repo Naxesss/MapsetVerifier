@@ -122,8 +122,7 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
     }
   }, []);
 
-  const effectiveHover =
-    hover ?? (hoverSafeZone ? lastHoverRef.current : null);
+  const effectiveHover = hover ?? (hoverSafeZone ? lastHoverRef.current : null);
 
   const handleModalBodyPointerLeave = useCallback((event: PointerEvent<HTMLDivElement>) => {
     const related = event.relatedTarget;
@@ -226,10 +225,7 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
           </Group>
 
           <SimpleGrid cols={chart.showResolution ? 4 : 3} spacing="md">
-            <MetricStat
-              label="Peak"
-              value={formatChartMetricValue(peakValue, chart.valueSuffix)}
-            />
+            <MetricStat label="Peak" value={formatChartMetricValue(peakValue, chart.valueSuffix)} />
             <MetricStat label="Peak at" value={formatSeconds(peakAtSeconds)} />
             <MetricStat label="Duration" value={formatChartDuration(chart.durationMs)} />
             {chart.showResolution ? (

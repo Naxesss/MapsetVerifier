@@ -1,7 +1,7 @@
-import { Box, FloatingIndicator, Group, useMantineTheme } from "@mantine/core";
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { NavBarTab } from "./NavBarTab";
-import { NAV_INDICATOR_TRANSITION_MS, navItems } from "./navConfig";
+import { Box, FloatingIndicator, Group, useMantineTheme } from '@mantine/core';
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { NavBarTab } from './NavBarTab';
+import { NAV_INDICATOR_TRANSITION_MS, navItems } from './navConfig';
 
 export interface MainNavRailProps {
   activeRoute: string;
@@ -16,7 +16,7 @@ export function MainNavRail({ activeRoute }: MainNavRailProps) {
 
   const attachNavRoot = useCallback(
     (el: HTMLElement | null) => setNavRootEl((prev) => (prev === el ? prev : el)),
-    [],
+    []
   );
 
   const setControlRef = useMemo(() => {
@@ -44,7 +44,8 @@ export function MainNavRail({ activeRoute }: MainNavRailProps) {
       aria-label="Main pages"
       pos="relative"
       p={0}
-      style={{ display: "inline-flex", alignItems: "stretch" }}>
+      style={{ display: 'inline-flex', alignItems: 'stretch' }}
+    >
       <FloatingIndicator
         parent={navRootEl}
         target={targetControl}
@@ -53,15 +54,20 @@ export function MainNavRail({ activeRoute }: MainNavRailProps) {
           root: {
             backgroundColor: selectionFill,
             borderRadius: 5,
-            boxShadow: "none",
+            boxShadow: 'none',
             zIndex: 0,
-            pointerEvents: "none",
+            pointerEvents: 'none',
           },
         }}
       />
       <Group gap="xs" wrap="nowrap">
         {navItems.map((item) => (
-          <NavBarTab key={item.to} item={item} activeRoute={activeRoute} controlRef={setControlRef[item.to]} />
+          <NavBarTab
+            key={item.to}
+            item={item}
+            activeRoute={activeRoute}
+            controlRef={setControlRef[item.to]}
+          />
         ))}
       </Group>
     </Box>

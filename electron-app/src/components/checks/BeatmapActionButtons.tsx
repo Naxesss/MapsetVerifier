@@ -65,7 +65,7 @@ function BeatmapActionButtons({
               try {
                 const folderPath = await window.electronAPI?.app.getSnapshotFolderPath(
                   snapshotFolder.beatmapSetId,
-                  snapshotFolder.subfolder,
+                  snapshotFolder.subfolder
                 );
                 if (!folderPath) return;
                 await openFolderPath(folderPath);

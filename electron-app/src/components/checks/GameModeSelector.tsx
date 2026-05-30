@@ -37,11 +37,7 @@ function GameModeSelector({
           return {
             label: (
               <Flex gap="xs" align="center">
-                <LevelIcon
-                  level={groupHighestLevel}
-                  size={24}
-                  loading={levelLoading}
-                />
+                <LevelIcon level={groupHighestLevel} size={24} loading={levelLoading} />
                 <GameModeIcon mode={group.mode} size={24} />
               </Flex>
             ),

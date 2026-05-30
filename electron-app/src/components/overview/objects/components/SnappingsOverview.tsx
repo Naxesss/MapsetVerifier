@@ -129,8 +129,7 @@ function SnappingDifficultyTableRow({
               count={difficulty.unsnappedCount}
               percentage={difficulty.unsnappedPercentage}
               style={{
-                cursor:
-                  (difficulty.unsnappedEdgeTimesMs?.length ?? 0) > 0 ? 'pointer' : undefined,
+                cursor: (difficulty.unsnappedEdgeTimesMs?.length ?? 0) > 0 ? 'pointer' : undefined,
               }}
             />
           </EdgeTimesPopover>

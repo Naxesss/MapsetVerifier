@@ -89,9 +89,7 @@ function TimeSeriesChartInner({
 
   const renderRows = useMemo(
     () =>
-      viewportRows.length <= MAX_FULL_RES_RENDER_ROWS
-        ? viewportRows
-        : downsampleRows(viewportRows),
+      viewportRows.length <= MAX_FULL_RES_RENDER_ROWS ? viewportRows : downsampleRows(viewportRows),
     [viewportRows]
   );
 

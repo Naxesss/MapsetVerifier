@@ -6,9 +6,19 @@ import {
   TIMING_SAMPLES_PER_BEAT,
   TIMELINE_INTERVAL_STEPS_MS,
 } from './constants.ts';
-import { getPrimaryEdgeSample, buildHitsoundDrawCache, type HitsoundDrawCache } from './hitsoundUtils.ts';
+import {
+  getPrimaryEdgeSample,
+  buildHitsoundDrawCache,
+  type HitsoundDrawCache,
+} from './hitsoundUtils.ts';
 import { normalizeMode } from '../../../utils/gameMode';
-import type { ObjectsOverviewDifficulty, ObjectsSnappingBucket, ObjectsTimelineEdge, ObjectsTimelineObject, ObjectsTimelineSample } from '../../../Types';
+import type {
+  ObjectsOverviewDifficulty,
+  ObjectsSnappingBucket,
+  ObjectsTimelineEdge,
+  ObjectsTimelineObject,
+  ObjectsTimelineSample,
+} from '../../../Types';
 
 /** Lenience matching server-side `HitObject.IsClose` (±2 ms). */
 const EDGE_TIME_MATCH_EPSILON_MS = 2;
@@ -361,9 +371,7 @@ export function buildTimelineRowDrawCache(
 ): TimelineRowDrawCache {
   return {
     roundedEdgeTimes: buildRoundedEdgeTimes(timelineObjects),
-    hitsound: isHitsoundView
-      ? buildHitsoundDrawCache(timelineObjects, samples ?? [])
-      : undefined,
+    hitsound: isHitsoundView ? buildHitsoundDrawCache(timelineObjects, samples ?? []) : undefined,
   };
 }
 
@@ -621,10 +629,7 @@ function isEdgeTimeMatch(leftMs: number, rightMs: number) {
 }
 
 /** Returns the snap label (e.g. `1/4`) or `Unsnapped` for an edge timestamp. */
-export function lookupEdgeSnapLabel(
-  difficulty: ObjectsOverviewDifficulty,
-  timeMs: number
-): string {
+export function lookupEdgeSnapLabel(difficulty: ObjectsOverviewDifficulty, timeMs: number): string {
   if (difficulty.unsnappedEdgeTimesMs?.some((candidate) => isEdgeTimeMatch(candidate, timeMs))) {
     return 'Unsnapped';
   }
@@ -637,4 +642,3 @@ export function lookupEdgeSnapLabel(
 
   return 'Unknown';
 }
-

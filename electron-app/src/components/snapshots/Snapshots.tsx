@@ -22,9 +22,7 @@ import { useBeatmap } from '../../context/BeatmapContext';
 import { useBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
 import { useSettings } from '../../context/SettingsContext';
 import { ApiSnapshotDifficulty, Mode } from '../../Types';
-import BeatmapActionButtons, {
-  SnapshotFolderTarget,
-} from '../checks/BeatmapActionButtons';
+import BeatmapActionButtons, { SnapshotFolderTarget } from '../checks/BeatmapActionButtons';
 import { useBeatmapBackground } from '../checks/hooks/useBeatmapBackground';
 import BeatmapHeader from '../common/BeatmapHeader';
 import DifficultyTabSelector from '../common/DifficultyTabSelector';
@@ -106,7 +104,7 @@ function Snapshots() {
 
   const activeSnapshotHistory = useMemo(
     () => (data ? getSnapshotHistory(data, selectedDifficulty) : null),
-    [data, selectedDifficulty],
+    [data, selectedDifficulty]
   );
 
   const snapshotFolder = useMemo((): SnapshotFolderTarget | null => {

@@ -99,14 +99,7 @@ export function useTimelineWheelSeek({
 
       return false;
     },
-    [
-      endTimeMs,
-      playheadViewportX,
-      scrollRef,
-      snapTicks,
-      startTimeMs,
-      timelineWidth,
-    ]
+    [endTimeMs, playheadViewportX, scrollRef, snapTicks, startTimeMs, timelineWidth]
   );
 
   useEffect(() => {

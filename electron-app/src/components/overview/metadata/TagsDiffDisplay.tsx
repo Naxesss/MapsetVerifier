@@ -1,13 +1,4 @@
-import {
-  Text,
-  Badge,
-  Group,
-  Paper,
-  useMantineTheme,
-  Stack,
-  Box,
-  Code,
-} from '@mantine/core';
+import { Text, Badge, Group, Paper, useMantineTheme, Stack, Box, Code } from '@mantine/core';
 import { DifficultyMetadata } from '../../../Types';
 import { countWord } from '../../../utils/countWord';
 
@@ -160,7 +151,8 @@ export default function TagsDiffDisplay({ difficulties }: TagsDiffDisplayProps) 
             radius="sm"
             withBorder
             bg={theme.colors.dark[6]}
-            style={{ borderColor: theme.colors.yellow[9] }}>
+            style={{ borderColor: theme.colors.yellow[9] }}
+          >
             {inner}
           </Paper>
         ) : (

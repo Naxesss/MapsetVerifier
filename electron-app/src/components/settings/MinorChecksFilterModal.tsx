@@ -27,7 +27,9 @@ interface MinorChecksFilterModalProps {
   onClose: () => void;
 }
 
-function minorCapableDocumentationChecks(allChecks: ApiDocumentationCheck[]): ApiDocumentationCheck[] {
+function minorCapableDocumentationChecks(
+  allChecks: ApiDocumentationCheck[]
+): ApiDocumentationCheck[] {
   const minors = allChecks.filter((c) => c.outcomes.includes('Minor'));
   return dedupeDocumentationChecksById(minors).sort((a, b) =>
     a.description.localeCompare(b.description, undefined, { sensitivity: 'base' })
@@ -35,7 +37,10 @@ function minorCapableDocumentationChecks(allChecks: ApiDocumentationCheck[]): Ap
 }
 
 /** Same fields as catalogue search, plus id substring match (e.g. "12" matches id 124). */
-function filterMinorChecksList(checks: ApiDocumentationCheck[], query: string): ApiDocumentationCheck[] {
+function filterMinorChecksList(
+  checks: ApiDocumentationCheck[],
+  query: string
+): ApiDocumentationCheck[] {
   const q = query.trim();
   if (!q) return checks;
 

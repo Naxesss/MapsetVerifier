@@ -17,12 +17,18 @@ export function getDiffTypeIcon(diffType: DiffType, size: number = 16) {
   }
 }
 
-function parseDiffDetail(detail: string):
+function parseDiffDetail(
+  detail: string
+):
   | { type: 'transition'; before: string; after: string }
   | { type: 'keyValue'; key: string; value: string }
   | { type: 'plain'; text: string } {
   const transitionMatch = detail.match(/^(.*)\s->\s(.*)$/);
-  if (transitionMatch && transitionMatch[1].trim().length > 0 && transitionMatch[2].trim().length > 0) {
+  if (
+    transitionMatch &&
+    transitionMatch[1].trim().length > 0 &&
+    transitionMatch[2].trim().length > 0
+  ) {
     return {
       type: 'transition',
       before: transitionMatch[1].trim(),
@@ -135,7 +141,11 @@ function SnapshotDiffLine({ diff }: SnapshotDiffLineProps) {
             <Box mt={2} style={{ display: 'flex', flexShrink: 0 }}>
               {getDiffTypeIcon(diff.diffType, 14)}
             </Box>
-            <Text size="sm" fw={500} style={{ flex: 1, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            <Text
+              size="sm"
+              fw={500}
+              style={{ flex: 1, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
+            >
               <OsuLink text={diff.message} />
             </Text>
           </Group>

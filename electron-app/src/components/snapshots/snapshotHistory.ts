@@ -2,7 +2,7 @@ import type { ApiSnapshotHistory, ApiSnapshotResult } from '../../Types';
 
 export function getSnapshotHistory(
   data: ApiSnapshotResult,
-  selectedDifficulty?: string,
+  selectedDifficulty?: string
 ): ApiSnapshotHistory | null {
   if (selectedDifficulty === 'General' && data.general) {
     return data.general;
@@ -13,10 +13,7 @@ export function getSnapshotHistory(
   return data.beatmapHistories.find((h) => h.difficultyName === selectedDifficulty) ?? null;
 }
 
-function commitHasChanges(
-  commits: ApiSnapshotHistory['commits'],
-  commitId: string | undefined,
-) {
+function commitHasChanges(commits: ApiSnapshotHistory['commits'], commitId: string | undefined) {
   if (!commitId) {
     return false;
   }
@@ -25,10 +22,7 @@ function commitHasChanges(
 }
 
 /** Whether the general (beatmapset) snapshot had changes at the given commit. */
-export function generalHasChangesAtCommit(
-  data: ApiSnapshotResult,
-  commitId: string | undefined,
-) {
+export function generalHasChangesAtCommit(data: ApiSnapshotResult, commitId: string | undefined) {
   return commitHasChanges(data.general?.commits ?? [], commitId);
 }
 
@@ -36,7 +30,7 @@ export function generalHasChangesAtCommit(
 export function difficultyHasChangesAtCommit(
   data: ApiSnapshotResult,
   difficultyName: string,
-  commitId: string | undefined,
+  commitId: string | undefined
 ) {
   const history = data.beatmapHistories.find((h) => h.difficultyName === difficultyName);
   return commitHasChanges(history?.commits ?? [], commitId);

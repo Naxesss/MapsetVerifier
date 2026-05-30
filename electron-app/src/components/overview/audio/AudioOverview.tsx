@@ -15,20 +15,12 @@ function AudioOverview() {
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
 
-  const {
-    data,
-    isLoading,
-    isError,
-    error,
-  } = useAudioAnalysis({
+  const { data, isLoading, isError, error } = useAudioAnalysis({
     folder,
     songFolder: settings.songFolder,
   });
 
-  const {
-    data: frequencyData,
-    isLoading: frequencyLoading,
-  } = useFrequencyAnalysis({
+  const { data: frequencyData, isLoading: frequencyLoading } = useFrequencyAnalysis({
     folder,
     songFolder: settings.songFolder,
   });

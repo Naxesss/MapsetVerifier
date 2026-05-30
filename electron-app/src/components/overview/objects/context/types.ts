@@ -1,8 +1,5 @@
 import type { Mode, ObjectsOverviewDifficulty } from '../../../../Types';
-import type {
-  HitsoundLayerVisibility,
-  TimelineViewMode,
-} from '../hitsoundUtils.ts';
+import type { HitsoundLayerVisibility, TimelineViewMode } from '../hitsoundUtils.ts';
 import type { TimelineThemeVariant } from '../timelineTheme/types.ts';
 import type { ObjectsModeGroup } from '../types.ts';
 import type {

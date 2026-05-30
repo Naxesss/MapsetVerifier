@@ -230,10 +230,7 @@
 /* Mantine notifications (see https://mantine.dev/x/notifications — full surface color, no left accent) */
 .mv-notifications-root {
   width: max-content !important;
-  max-width: min(
-    calc(100vw - var(--mantine-spacing-md) * 2),
-    var(--notifications-container-width)
-  );
+  max-width: min(calc(100vw - var(--mantine-spacing-md) * 2), var(--notifications-container-width));
 }
 
 .mv-notifications-root[data-position='top-center'] {
@@ -243,10 +240,7 @@
 
 .mv-notification {
   width: fit-content !important;
-  max-width: min(
-    calc(100vw - var(--mantine-spacing-md) * 2),
-    var(--notifications-container-width)
-  );
+  max-width: min(calc(100vw - var(--mantine-spacing-md) * 2), var(--notifications-container-width));
   align-items: center;
   /* Tinted glass: muted color + blur what’s behind the toast */
   background: color-mix(
@@ -308,7 +302,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   ::view-transition-old(root),
   ::view-transition-new(root) {
     animation-duration: 1ms;

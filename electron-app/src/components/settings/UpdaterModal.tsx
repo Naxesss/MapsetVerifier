@@ -59,7 +59,7 @@ const UpdaterModal: React.FC = () => {
   const updateNotes = availableUpdate?.body?.trim();
   const releaseNotesMarkdown = useMemo(
     () => (updateNotes ? releaseNotesTurndown.turndown(updateNotes) : ''),
-    [updateNotes],
+    [updateNotes]
   );
   const availableUpdateIsPrerelease = isSemverPreRelease(availableUpdate?.version);
 
@@ -153,8 +153,8 @@ const UpdaterModal: React.FC = () => {
                 color="green"
                 title={`Update ${completedVersion ?? 'installed'}`}
               >
-                The update has been installed. On Windows, the app may close automatically while
-                the installer finishes.
+                The update has been installed. On Windows, the app may close automatically while the
+                installer finishes.
               </Alert>
             )}
 
@@ -187,13 +187,12 @@ const UpdaterModal: React.FC = () => {
                 )}
               </>
             )}
-
           </Stack>
         </Modal.Body>
 
         <Box px="md" pb="md" style={{ flexShrink: 0 }}>
           {status !== 'checking' && <Divider mb="md" />}
-          {(status === 'downloading' || status === 'installing') ? (
+          {status === 'downloading' || status === 'installing' ? (
             <Stack gap="xs">
               <Progress value={progress} animated={status !== 'installing'} />
               <Group justify="space-between">

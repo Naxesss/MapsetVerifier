@@ -1,12 +1,4 @@
-﻿import {
-  Text,
-  Badge,
-  Group,
-  Paper,
-  useMantineTheme,
-  Stack,
-  SimpleGrid,
-} from '@mantine/core';
+﻿import { Text, Badge, Group, Paper, useMantineTheme, Stack, SimpleGrid } from '@mantine/core';
 import { IconAlertTriangle } from '@tabler/icons-react';
 import { useMemo } from 'react';
 import { BitrateAnalysisResult, BitrateDataPoint } from '../../../Types';

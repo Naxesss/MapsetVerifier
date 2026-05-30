@@ -36,14 +36,8 @@ export function usePreserveTimelineScrollOnZoom({
       return;
     }
 
-    const readAnchorX =
-      prevAnchorViewportX ??
-      anchorViewportX ??
-      container.clientWidth / 2;
-    const writeAnchorX =
-      anchorViewportX ??
-      prevAnchorViewportX ??
-      container.clientWidth / 2;
+    const readAnchorX = prevAnchorViewportX ?? anchorViewportX ?? container.clientWidth / 2;
+    const writeAnchorX = anchorViewportX ?? prevAnchorViewportX ?? container.clientWidth / 2;
     const readPadding =
       prevAnchorViewportX != null
         ? getPlayheadScrollPadding(prevAnchorViewportX, LABEL_WIDTH, container.clientWidth)

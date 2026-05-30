@@ -15,7 +15,8 @@ function copyTimestampHint(isMac: boolean): PageHint {
     id: 'copy-timestamp',
     content: (
       <>
-        {isMac ? <Kbd size="xs">⌘</Kbd> : <Kbd size="xs">Ctrl</Kbd>} + <Kbd size="xs">Left Click</Kbd> to copy a timestamp.
+        {isMac ? <Kbd size="xs">⌘</Kbd> : <Kbd size="xs">Ctrl</Kbd>} +{' '}
+        <Kbd size="xs">Left Click</Kbd> to copy a timestamp.
       </>
     ),
   };
@@ -96,13 +97,18 @@ export function getPageHints(
     if (overviewTab === 'Objects') {
       const hints = [
         ...commonHints(isMac),
-        contextClickHint('timeline-rclick', isMac, 'an object in the timeline to copy its timestamp.'),
+        contextClickHint(
+          'timeline-rclick',
+          isMac,
+          'an object in the timeline to copy its timestamp.'
+        ),
         {
           id: 'timeline-scroll-mode',
           content: (
             <>
               Hold <Kbd size="xs">Shift</Kbd> over the timeline for{' '}
-              <strong>timeline scroll mode</strong>. While <Kbd size="xs">Shift</Kbd> is held, the wheel steps timing snap ticks.
+              <strong>timeline scroll mode</strong>. While <Kbd size="xs">Shift</Kbd> is held, the
+              wheel steps timing snap ticks.
             </>
           ),
         },
@@ -110,7 +116,7 @@ export function getPageHints(
           ? [
               {
                 id: 'hitsound-full-view',
-                content: 'Use the timeline\'s full view to access the hitsounding overview.',
+                content: "Use the timeline's full view to access the hitsounding overview.",
               } satisfies PageHint,
             ]
           : []),
@@ -118,7 +124,8 @@ export function getPageHints(
           id: 'table-cell',
           content: (
             <>
-              <Kbd size="xs">Left Click</Kbd> on a cell in the tables to view a list of all related objects.
+              <Kbd size="xs">Left Click</Kbd> on a cell in the tables to view a list of all related
+              objects.
             </>
           ),
         },
@@ -131,7 +138,8 @@ export function getPageHints(
         ...commonHints(isMac),
         {
           id: 'cell-groups',
-          content: 'Certain matching values across difficulties share the same cell highlight color.',
+          content:
+            'Certain matching values across difficulties share the same cell highlight color.',
         },
       ];
     }
@@ -153,10 +161,7 @@ export function getPageHints(
   }
 
   if (route === '/checks') {
-    return [
-      ...commonHints(isMac),
-      ...(!showMinor ? [minorChecksDisabledHint()] : []),
-    ];
+    return [...commonHints(isMac), ...(!showMinor ? [minorChecksDisabledHint()] : [])];
   }
 
   return commonHints(isMac);

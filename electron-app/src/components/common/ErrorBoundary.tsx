@@ -1,13 +1,4 @@
-import {
-  Alert,
-  Button,
-  Collapse,
-  Flex,
-  Stack,
-  Text,
-  Title,
-  UnstyledButton,
-} from '@mantine/core';
+import { Alert, Button, Collapse, Flex, Stack, Text, Title, UnstyledButton } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import {
   IconAlertTriangle,
@@ -174,7 +165,9 @@ function RootErrorFallback({ error, onRetry }: RootErrorFallbackProps) {
             {error.message}
           </pre>
         )}
-        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+        <div
+          style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}
+        >
           <button
             type="button"
             onClick={onRetry}
@@ -254,9 +247,7 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
 export function RootErrorBoundary({ children }: { children: ReactNode }) {
   return (
     <ErrorBoundary
-      fallback={(error, _errorInfo, retry) => (
-        <RootErrorFallback error={error} onRetry={retry} />
-      )}
+      fallback={(error, _errorInfo, retry) => <RootErrorFallback error={error} onRetry={retry} />}
     >
       {children}
     </ErrorBoundary>
