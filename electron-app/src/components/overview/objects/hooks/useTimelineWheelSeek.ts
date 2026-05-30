@@ -1,16 +1,13 @@
 import { useCallback, useEffect, type RefObject } from 'react';
 import { LABEL_WIDTH } from '../constants.ts';
 import {
-  EMPTY_PLAYHEAD_SCROLL_PADDING,
   getAdjacentTimingSnapTick,
-  getPlayheadScrollPadding,
   getScrollLeftForTimestamp,
   getTimestampAtPlayhead,
 } from '../timelineUtils.ts';
 
 type UseTimelineWheelSeekOptions = {
   scrollRef: RefObject<HTMLDivElement | null>;
-  playheadViewportX: number | null;
   timelineWidth: number;
   startTimeMs: number;
   endTimeMs: number;
@@ -22,7 +19,6 @@ const MAX_SAME_PIXEL_STEPS = 512;
 
 export function useTimelineWheelSeek({
   scrollRef,
-  playheadViewportX,
   timelineWidth,
   startTimeMs,
   endTimeMs,
@@ -37,11 +33,7 @@ export function useTimelineWheelSeek({
       }
 
       const viewportWidth = scrollElement.clientWidth;
-      const anchorViewportX = playheadViewportX ?? viewportWidth / 2;
-      const padding =
-        playheadViewportX !== null
-          ? getPlayheadScrollPadding(playheadViewportX, LABEL_WIDTH, viewportWidth)
-          : EMPTY_PLAYHEAD_SCROLL_PADDING;
+      const anchorViewportX = viewportWidth / 2;
 
       const currentTimestamp = getTimestampAtPlayhead(
         scrollElement.scrollLeft,
@@ -49,8 +41,7 @@ export function useTimelineWheelSeek({
         LABEL_WIDTH,
         timelineWidth,
         startTimeMs,
-        endTimeMs,
-        padding
+        endTimeMs
       );
 
       const startScrollLeft = scrollElement.scrollLeft;
@@ -79,8 +70,7 @@ export function useTimelineWheelSeek({
           LABEL_WIDTH,
           timelineWidth,
           startTimeMs,
-          endTimeMs,
-          padding
+          endTimeMs
         );
         const clampedScrollLeft = Math.max(0, Math.min(maxScrollLeft, nextScrollLeft));
 
@@ -99,7 +89,7 @@ export function useTimelineWheelSeek({
 
       return false;
     },
-    [endTimeMs, playheadViewportX, scrollRef, snapTicks, startTimeMs, timelineWidth]
+    [endTimeMs, scrollRef, snapTicks, startTimeMs, timelineWidth]
   );
 
   useEffect(() => {

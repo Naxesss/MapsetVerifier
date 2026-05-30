@@ -147,8 +147,7 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
   const theme = useMantineTheme();
   const { startTimeMs, endTimeMs, timelineWidth } = useTimelineScale();
   const { isPanningTimeline } = useTimelinePan();
-  const { timelineThemeVariant, viewMode, hitsoundLayers, snapPlayheadToTimestamp } =
-    useTimelineDisplay();
+  const { timelineThemeVariant, viewMode, hitsoundLayers } = useTimelineDisplay();
   const canvasTiles = useMemo(() => getTimelineCanvasTiles(timelineWidth), [timelineWidth]);
   const rowDrawCache = useMemo(
     () =>
@@ -240,50 +239,6 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
     setContextMenuState(null);
   };
 
-  const handleMouseDown = (event: ReactMouseEvent<HTMLDivElement>) => {
-    if (event.detail >= 2) {
-      event.stopPropagation();
-    }
-  };
-
-  const handleDoubleClick = (event: ReactMouseEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-
-    if (viewMode !== 'hitsounding' || !snapPlayheadToTimestamp) {
-      return;
-    }
-
-    const bounds = event.currentTarget.getBoundingClientRect();
-    const localX = event.clientX - bounds.left;
-    const headHit = findTimelineObjectHeadAtX({
-      difficulty,
-      startTimeMs,
-      endTimeMs,
-      timelineWidth,
-      x: localX,
-      visualThemeVariant: timelineThemeVariant,
-    });
-
-    if (headHit) {
-      snapPlayheadToTimestamp(headHit.timeMs);
-      return;
-    }
-
-    const timestampMs = getTimelineTimestampAtX({
-      difficulty,
-      startTimeMs,
-      endTimeMs,
-      timelineWidth,
-      x: localX,
-      visualThemeVariant: timelineThemeVariant,
-    });
-
-    if (timestampMs !== null) {
-      snapPlayheadToTimestamp(timestampMs);
-    }
-  };
-
   const selectedTimestampX = contextMenuState
     ? getTimelineX(
         contextMenuState.timestampMs,
@@ -296,8 +251,6 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
   return (
     <Box
       onContextMenu={handleContextMenu}
-      onMouseDown={handleMouseDown}
-      onDoubleClick={handleDoubleClick}
       onMouseMove={updateHeadHover}
       onMouseLeave={clearHeadHover}
       style={{ position: 'relative', width: timelineWidth, height, overflow: 'hidden' }}

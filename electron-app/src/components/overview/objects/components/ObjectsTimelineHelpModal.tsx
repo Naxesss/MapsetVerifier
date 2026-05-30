@@ -68,29 +68,15 @@ export default function ObjectsTimelineHelpModal({
                   lane.
                 </List.Item>
                 <List.Item>
-                  Double-click an object or edge to snap the <strong>playhead</strong> to that time
-                  and update the floating panel.
+                  Hover an object or edge for hitsound details. Right-click to copy a timestamp or
+                  open the osu! editor.
                 </List.Item>
               </List>
             </Stack>
 
             <Stack gap="xs">
-              <Title order={5}>Seeking and floating panel</Title>
+              <Title order={5}>Hitsound details</Title>
               <List size="sm" spacing={4}>
-                <List.Item>
-                  A fixed <strong>blue playhead</strong> is the seek cursor. It stays in place while
-                  you drag the timeline underneath it. It is <strong>not</strong> a sample-bank
-                  indicator — do not confuse it with Drum strip bars.
-                </List.Item>
-                <List.Item>
-                  On entering hitsounding view, the timeline scrolls so the first note sits under
-                  the playhead. After that, only double-click or manual panning moves what you are
-                  inspecting.
-                </List.Item>
-                <List.Item>
-                  The floating panel shows the nearest edge or sample at the playhead time for each
-                  visible difficulty. Drag its header to reposition it.
-                </List.Item>
                 <List.Item>
                   <strong>Hitsound additions</strong> matches the circles above the strip. Hover a
                   name for primary / stacked tooltips.

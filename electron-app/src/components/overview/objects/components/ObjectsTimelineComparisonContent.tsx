@@ -15,7 +15,6 @@ import {
   useTimelinePan,
   useTimelineScale,
 } from '../context/ObjectsTimelineContext.tsx';
-import { usePlayheadScrollPadding } from '../hooks/usePlayheadScrollPadding.ts';
 import { usePreserveTimelineScrollOnZoom } from '../hooks/usePreserveTimelineScrollOnZoom.ts';
 import { useShiftKeyHeld } from '../hooks/useShiftKeyHeld.ts';
 import { useTimelineWheelSeek } from '../hooks/useTimelineWheelSeek.ts';
@@ -46,7 +45,6 @@ export default function ObjectsTimelineComparisonContent({
   const { scrollRef, isPanningTimeline, handleMouseDown, handleMouseMove, stopDragging } =
     useTimelinePan();
   const { startTimeMs, endTimeMs, timelineWidth } = useTimelineScale();
-  const { viewMode, playheadViewportX } = useTimelineDisplay();
 
   const {
     mode: { groupedDifficulties, selectedMode, onModeChange },
@@ -56,11 +54,7 @@ export default function ObjectsTimelineComparisonContent({
     dnd,
   } = controller;
 
-  const playheadScrollPadding = usePlayheadScrollPadding(scrollRef, playheadViewportX, {
-    timelineWidth,
-    startTimeMs,
-    endTimeMs,
-  });
+  const { viewMode } = useTimelineDisplay();
 
   const snapTicks = useMemo(
     () =>
@@ -76,7 +70,6 @@ export default function ObjectsTimelineComparisonContent({
 
   useTimelineWheelSeek({
     scrollRef,
-    playheadViewportX,
     timelineWidth,
     startTimeMs,
     endTimeMs,
@@ -88,12 +81,9 @@ export default function ObjectsTimelineComparisonContent({
     timelineWidth,
     startTimeMs,
     endTimeMs,
-    anchorViewportX: playheadViewportX,
   });
 
   const contentWidth = timelineWidth + LABEL_WIDTH;
-  const scrollContentWidth =
-    contentWidth + playheadScrollPadding.padLeft + playheadScrollPadding.padRight;
 
   const visibleCount = orderedDifficulties.filter(
     (difficulty) => visibilityByDifficulty[getDifficultyKey(difficulty)] !== false
@@ -164,21 +154,6 @@ export default function ObjectsTimelineComparisonContent({
 
       <Box pos="relative">
         <TimelineShiftSeekModeBadge visible={shiftHeld} />
-        {playheadViewportX !== null && (
-          <Box
-            style={{
-              pointerEvents: 'none',
-              position: 'absolute',
-              left: playheadViewportX,
-              top: 0,
-              bottom: 0,
-              width: 0,
-              borderLeft: '2px solid var(--mantine-color-blue-4)',
-              boxShadow: '0 0 12px rgba(56, 189, 248, 0.35)',
-              zIndex: 20,
-            }}
-          />
-        )}
         <Box
           ref={scrollRef}
           onMouseDown={handleMouseDown}
@@ -195,18 +170,10 @@ export default function ObjectsTimelineComparisonContent({
           <Box
             style={{
               display: 'flex',
-              width: scrollContentWidth,
-              minWidth: scrollContentWidth,
+              width: contentWidth,
+              minWidth: contentWidth,
             }}
           >
-            {playheadScrollPadding.padLeft > 0 && (
-              <Box
-                style={{
-                  flex: `0 0 ${playheadScrollPadding.padLeft}px`,
-                  width: playheadScrollPadding.padLeft,
-                }}
-              />
-            )}
             <Stack
               gap="xs"
               style={{ width: contentWidth, minWidth: contentWidth, flex: '0 0 auto' }}
@@ -253,14 +220,6 @@ export default function ObjectsTimelineComparisonContent({
 
               {orderedDifficulties.length > 0 && <TimelineAxisRow linePosition="top" />}
             </Stack>
-            {playheadScrollPadding.padRight > 0 && (
-              <Box
-                style={{
-                  flex: `0 0 ${playheadScrollPadding.padRight}px`,
-                  width: playheadScrollPadding.padRight,
-                }}
-              />
-            )}
           </Box>
         </Box>
       </Box>
