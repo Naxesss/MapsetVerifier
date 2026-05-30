@@ -77,9 +77,9 @@ function AppContent() {
                           h="calc(100vh - var(--app-shell-header-offset, 0rem) + var(--app-shell-padding))"
                         >
                           <Container p="sm" fluid>
-                              <RouteErrorBoundary>
-                                <BeatmapKeyedOutlet />
-                              </RouteErrorBoundary>
+                            <RouteErrorBoundary>
+                              <BeatmapKeyedOutlet />
+                            </RouteErrorBoundary>
                           </Container>
                         </ScrollArea>
                       </AppShell.Main>
