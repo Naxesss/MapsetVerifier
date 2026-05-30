@@ -1,13 +1,4 @@
-import {
-  Title,
-  Text,
-  Code,
-  Divider,
-  List,
-  Anchor,
-  Alert,
-  Blockquote,
-} from '@mantine/core';
+import { Title, Text, Code, Divider, List, Anchor, Alert, Blockquote } from '@mantine/core';
 import { IconInfoCircleFilled } from '@tabler/icons-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';

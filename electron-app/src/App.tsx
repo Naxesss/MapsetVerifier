@@ -1,9 +1,4 @@
-import {
-  AppShell,
-  Container,
-  MantineProvider,
-  ScrollArea,
-} from '@mantine/core';
+import { AppShell, Container, MantineProvider, ScrollArea } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { Notifications } from '@mantine/notifications';
 import { useLayoutEffect, useRef } from 'react';

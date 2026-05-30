@@ -1,11 +1,7 @@
 import { createContext, useContext, type ReactNode } from 'react';
 import { ROW_HEIGHT } from '../constants.ts';
 import { DEFAULT_HITSOUND_LAYERS } from '../hitsoundUtils.ts';
-import type {
-  TimelineControllerValue,
-  TimelineFullViewValue,
-  TimelinePanValue,
-} from './types.ts';
+import type { TimelineControllerValue, TimelineFullViewValue, TimelinePanValue } from './types.ts';
 
 const TimelineControllerContext = createContext<TimelineControllerValue | null>(null);
 const TimelinePanContext = createContext<TimelinePanValue | null>(null);
