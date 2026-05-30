@@ -153,7 +153,7 @@ export default function ObjectsTimelineComparisonContent({
       {aboveTimelineExtra}
 
       <Box pos="relative">
-        <TimelineShiftSeekModeBadge visible={shiftHeld} />
+        <TimelineShiftSeekModeBadge active={shiftHeld} />
         <Box
           ref={scrollRef}
           onMouseDown={handleMouseDown}

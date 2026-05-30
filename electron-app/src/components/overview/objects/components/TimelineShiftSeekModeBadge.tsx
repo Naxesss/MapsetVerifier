@@ -1,29 +1,30 @@
-import { Badge, Transition } from '@mantine/core';
+import { Badge, Box, Tooltip } from '@mantine/core';
 
 type TimelineShiftSeekModeBadgeProps = {
-  visible: boolean;
+  active: boolean;
 };
 
-export default function TimelineShiftSeekModeBadge({ visible }: TimelineShiftSeekModeBadgeProps) {
+export default function TimelineShiftSeekModeBadge({ active }: TimelineShiftSeekModeBadgeProps) {
   return (
-    <Transition mounted={visible} transition="slide-right" duration={150} timingFunction="ease">
-      {(styles) => (
+    <Tooltip label="Hold Shift and scroll the timeline" withArrow>
+      <Box
+        style={{
+          position: 'absolute',
+          top: 6,
+          left: 28,
+          zIndex: 25,
+          display: 'inline-flex',
+        }}
+      >
         <Badge
-          color="green"
+          color={active ? 'green' : 'gray'}
           variant="light"
           size="sm"
-          style={{
-            ...styles,
-            position: 'absolute',
-            top: 6,
-            left: 28,
-            zIndex: 25,
-            pointerEvents: 'none',
-          }}
+          style={{ opacity: active ? 1 : 0.45 }}
         >
           Timeline scroll mode
         </Badge>
-      )}
-    </Transition>
+      </Box>
+    </Tooltip>
   );
 }
