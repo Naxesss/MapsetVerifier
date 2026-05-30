@@ -70,7 +70,6 @@ export default function ObjectsTimelineComparisonContent({
 
   useTimelineWheelSeek({
     scrollRef,
-
     timelineWidth,
     startTimeMs,
     endTimeMs,

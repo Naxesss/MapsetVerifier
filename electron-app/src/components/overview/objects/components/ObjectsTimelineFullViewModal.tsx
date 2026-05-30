@@ -147,7 +147,6 @@ function ObjectsTimelineFullViewModalBody({ pan }: { pan: TimelinePanValue }) {
       setViewMode,
       hitsoundLayers,
       setHitsoundLayers,
-
       rowHeight,
     }),
     [viewMode, hitsoundLayers, rowHeight]
