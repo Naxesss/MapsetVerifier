@@ -17,6 +17,7 @@ import {
 } from '../context/ObjectsTimelineContext.tsx';
 import { usePreserveTimelineScrollOnZoom } from '../hooks/usePreserveTimelineScrollOnZoom.ts';
 import { useShiftKeyHeld } from '../hooks/useShiftKeyHeld.ts';
+import { useTimelineScrollTickStep } from '../hooks/useTimelineScrollTickStep.ts';
 import { useTimelineWheelSeek } from '../hooks/useTimelineWheelSeek.ts';
 import {
   parseTimelineThemeVariant,
@@ -25,6 +26,7 @@ import {
 import { buildTimelineSnapTicks, getDifficultyKey } from '../timelineUtils.ts';
 
 export type ObjectsTimelineComparisonContentProps = {
+  showScrollModeControls?: boolean;
   showModeSelector?: boolean;
   showVisibilityControls?: boolean;
   showThemeControls?: boolean;
@@ -34,6 +36,7 @@ export type ObjectsTimelineComparisonContentProps = {
 };
 
 export default function ObjectsTimelineComparisonContent({
+  showScrollModeControls = true,
   showModeSelector = true,
   showVisibilityControls = true,
   showThemeControls = true,
@@ -56,6 +59,8 @@ export default function ObjectsTimelineComparisonContent({
 
   const { viewMode } = useTimelineDisplay();
 
+  const { tickStep, setTickStep } = useTimelineScrollTickStep();
+
   const snapTicks = useMemo(
     () =>
       buildTimelineSnapTicks(
@@ -74,6 +79,7 @@ export default function ObjectsTimelineComparisonContent({
     startTimeMs,
     endTimeMs,
     snapTicks,
+    tickStepCount: tickStep,
   });
 
   usePreserveTimelineScrollOnZoom({
@@ -97,63 +103,78 @@ export default function ObjectsTimelineComparisonContent({
 
   const shiftHeld = useShiftKeyHeld();
 
+  const hasRightHeaderControls =
+    showModeSelector ||
+    showVisibilityControls ||
+    showThemeControls ||
+    showZoomControls ||
+    !!headerExtra;
+
+  const showHeaderRow = showScrollModeControls || hasRightHeaderControls;
+
   return (
     <Stack gap="md">
-      {(showModeSelector ||
-        showVisibilityControls ||
-        showThemeControls ||
-        showZoomControls ||
-        headerExtra) && (
-        <Group gap="sm" align="center" wrap="wrap" justify="flex-end">
-          {headerExtra}
-          {showModeSelector && (
-            <ObjectsGameModeSelector
-              groupedDifficulties={groupedDifficulties}
-              selectedMode={selectedMode}
-              onModeChange={onModeChange}
+      {showHeaderRow && (
+        <Group gap="sm" align="center" wrap="wrap" w="100%">
+          {showScrollModeControls && (
+            <TimelineShiftSeekModeBadge
+              active={shiftHeld}
+              tickStep={tickStep}
+              onTickStepChange={setTickStep}
             />
           )}
-          {showVisibilityControls && (
-            <Group gap="xs" align="center" wrap="nowrap">
-              <ActionIcon
-                variant="default"
-                aria-label="Show all difficulties"
-                disabled={orderedDifficulties.length === 0 || allVisible}
-                onClick={() => setSelectedDifficultyVisibility(true)}
-              >
-                <IconEye size={16} />
-              </ActionIcon>
-              <ActionIcon
-                variant="default"
-                aria-label="Hide all difficulties"
-                disabled={orderedDifficulties.length === 0 || allHidden}
-                onClick={() => setSelectedDifficultyVisibility(false)}
-              >
-                <IconEyeOff size={16} />
-              </ActionIcon>
+          {hasRightHeaderControls && (
+            <Group gap="sm" align="center" wrap="wrap" justify="flex-end" ml="auto">
+              {headerExtra}
+              {showModeSelector && (
+                <ObjectsGameModeSelector
+                  groupedDifficulties={groupedDifficulties}
+                  selectedMode={selectedMode}
+                  onModeChange={onModeChange}
+                />
+              )}
+              {showVisibilityControls && (
+                <Group gap="xs" align="center" wrap="nowrap">
+                  <ActionIcon
+                    variant="default"
+                    aria-label="Show all difficulties"
+                    disabled={orderedDifficulties.length === 0 || allVisible}
+                    onClick={() => setSelectedDifficultyVisibility(true)}
+                  >
+                    <IconEye size={16} />
+                  </ActionIcon>
+                  <ActionIcon
+                    variant="default"
+                    aria-label="Hide all difficulties"
+                    disabled={orderedDifficulties.length === 0 || allHidden}
+                    onClick={() => setSelectedDifficultyVisibility(false)}
+                  >
+                    <IconEyeOff size={16} />
+                  </ActionIcon>
+                </Group>
+              )}
+              {showThemeControls && viewMode === 'structure' && (
+                <Select
+                  aria-label="Timeline object style"
+                  title="Timeline object style"
+                  size="xs"
+                  w={108}
+                  data={TIMELINE_THEME_VARIANT_OPTIONS}
+                  value={timelineThemeVariant}
+                  allowDeselect={false}
+                  comboboxProps={{ withinPortal: true }}
+                  onChange={(value) => setTimelineThemeVariant(parseTimelineThemeVariant(value))}
+                />
+              )}
+              {showZoomControls && <TimelineZoomControls />}
             </Group>
           )}
-          {showThemeControls && viewMode === 'structure' && (
-            <Select
-              aria-label="Timeline object style"
-              title="Timeline object style"
-              size="xs"
-              w={108}
-              data={TIMELINE_THEME_VARIANT_OPTIONS}
-              value={timelineThemeVariant}
-              allowDeselect={false}
-              comboboxProps={{ withinPortal: true }}
-              onChange={(value) => setTimelineThemeVariant(parseTimelineThemeVariant(value))}
-            />
-          )}
-          {showZoomControls && <TimelineZoomControls />}
         </Group>
       )}
 
       {aboveTimelineExtra}
 
-      <Box pos="relative">
-        <TimelineShiftSeekModeBadge visible={shiftHeld} />
+      <Box>
         <Box
           ref={scrollRef}
           onMouseDown={handleMouseDown}

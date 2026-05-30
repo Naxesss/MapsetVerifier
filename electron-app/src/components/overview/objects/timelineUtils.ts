@@ -444,6 +444,28 @@ export function getAdjacentTimingSnapTick(
   return startTimeMs;
 }
 
+export function getAdjacentTimingSnapTickBySteps(
+  sortedTicks: number[],
+  timestampMs: number,
+  direction: 1 | -1,
+  steps: number,
+  startTimeMs: number,
+  endTimeMs: number
+): number {
+  let result = timestampMs;
+
+  for (let step = 0; step < steps; step += 1) {
+    const next = getAdjacentTimingSnapTick(sortedTicks, result, direction, startTimeMs, endTimeMs);
+    if (next === result) {
+      break;
+    }
+
+    result = next;
+  }
+
+  return result;
+}
+
 /** Beat snap colors aligned with osu! editor / timeline tick grid. */
 export const SNAP_DIVISOR_COLORS: Partial<Record<number, string>> = {
   1: 'rgb(255,255,255)',

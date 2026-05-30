@@ -1,7 +1,7 @@
 import { useCallback, useEffect, type RefObject } from 'react';
 import { LABEL_WIDTH } from '../constants.ts';
 import {
-  getAdjacentTimingSnapTick,
+  getAdjacentTimingSnapTickBySteps,
   getScrollLeftForTimestamp,
   getTimestampAtPlayhead,
 } from '../timelineUtils.ts';
@@ -12,6 +12,7 @@ type UseTimelineWheelSeekOptions = {
   startTimeMs: number;
   endTimeMs: number;
   snapTicks: number[];
+  tickStepCount?: number;
   enabled?: boolean;
 };
 
@@ -23,6 +24,7 @@ export function useTimelineWheelSeek({
   startTimeMs,
   endTimeMs,
   snapTicks,
+  tickStepCount = 1,
   enabled = true,
 }: UseTimelineWheelSeekOptions) {
   const seekByDirection = useCallback(
@@ -50,10 +52,11 @@ export function useTimelineWheelSeek({
       let candidateTimestamp = currentTimestamp;
 
       for (let step = 0; step < MAX_SAME_PIXEL_STEPS; step += 1) {
-        const nextTimestamp = getAdjacentTimingSnapTick(
+        const nextTimestamp = getAdjacentTimingSnapTickBySteps(
           snapTicks,
           candidateTimestamp,
           direction,
+          tickStepCount,
           startTimeMs,
           endTimeMs
         );
@@ -89,7 +92,7 @@ export function useTimelineWheelSeek({
 
       return false;
     },
-    [endTimeMs, scrollRef, snapTicks, startTimeMs, timelineWidth]
+    [endTimeMs, scrollRef, snapTicks, startTimeMs, tickStepCount, timelineWidth]
   );
 
   useEffect(() => {
