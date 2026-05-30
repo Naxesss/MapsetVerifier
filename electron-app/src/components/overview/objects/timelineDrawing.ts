@@ -385,6 +385,27 @@ function getTimelineMarkerHitThreshold(
   return visualTheme.circleRadius(timelineObject) + 4;
 }
 
+function getNearestHoverableMarkerDistanceAtX(
+  timelineObject: ObjectsTimelineObject,
+  x: number,
+  startTimeMs: number,
+  durationMs: number,
+  timelineWidth: number
+): number {
+  let nearest = Number.POSITIVE_INFINITY;
+
+  for (const edge of timelineObject.edges) {
+    if (!isHoverableTimelineEdge(timelineObject.objectType, edge.partName)) {
+      continue;
+    }
+
+    const centerX = getTimelineX(edge.timeMs, startTimeMs, durationMs, timelineWidth);
+    nearest = Math.min(nearest, Math.abs(x - centerX));
+  }
+
+  return nearest;
+}
+
 export function findTimelineObjectHeadAtX({
   difficulty,
   startTimeMs,
@@ -412,14 +433,14 @@ export function findTimelineObjectHeadAtX({
     centerX: number,
     threshold: number,
     partLabel: string,
-    showSnapLabel = true
+    showSnapLabel = true,
+    hitDistance = Math.abs(x - centerX)
   ) => {
-    const distance = Math.abs(x - centerX);
-    if (distance > threshold || distance >= bestDistance) {
+    if (hitDistance > threshold || hitDistance >= bestDistance) {
       return;
     }
 
-    bestDistance = distance;
+    bestDistance = hitDistance;
     bestHit = { object, edge, timeMs, anchorX: centerX, partLabel, showSnapLabel };
   };
 
@@ -461,6 +482,19 @@ export function findTimelineObjectHeadAtX({
       continue;
     }
 
+    const markerThreshold = getTimelineMarkerHitThreshold(timelineObject, visualTheme);
+    const nearestMarkerDistance = getNearestHoverableMarkerDistanceAtX(
+      timelineObject,
+      x,
+      startTimeMs,
+      durationMs,
+      timelineWidth
+    );
+    // Inside the span, body distance is 0 and would beat every marker edge globally.
+    // Inflate it when a head/repeat/tail on this object is close so markers keep priority.
+    const bodyHitDistance =
+      nearestMarkerDistance <= markerThreshold ? markerThreshold + 0.5 : distanceToBody;
+
     const bodyTimeMs = interpolateTimelineBodyTimeMs(timelineObject, x, startX, endX);
     const bodyPartLabel =
       timelineObject.objectType === 'Slider'
@@ -476,7 +510,8 @@ export function findTimelineObjectHeadAtX({
       x,
       8,
       bodyPartLabel,
-      timelineObject.objectType !== 'Slider'
+      timelineObject.objectType !== 'Slider',
+      bodyHitDistance
     );
   }
 
@@ -810,7 +845,7 @@ function drawObjectMarker(
     return;
   }
 
-  if (lowerPart.includes('reverse')) {
+  if (lowerPart.includes('reverse') || lowerPart.includes('repeat')) {
     if (isHitsoundView) {
       drawHitsoundCircle(ctx, x, centerY, circleRadius, edgeHitSoundFlags);
       drawThemedReverseArrow(ctx, x, centerY, REVERSE_ARROW_ICON_SIZE, visualTheme.reverseArrow);
