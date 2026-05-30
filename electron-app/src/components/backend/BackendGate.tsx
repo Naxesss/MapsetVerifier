@@ -14,7 +14,7 @@
 } from '@mantine/core';
 import { IconAlertCircle, IconCheck, IconCopy, IconTerminal2 } from '@tabler/icons-react';
 import React, { useEffect, useState, useRef, useCallback, ReactNode } from 'react';
-import { cssVarResolver } from '../../App';
+import { cssVarResolver } from '../../theme/cssVarResolver';
 import { BACKEND_BASE_URL } from '../../Constants.ts';
 import { useSettings } from '../../context/SettingsContext';
 import { useAppTheme } from '../../theme/useAppTheme';

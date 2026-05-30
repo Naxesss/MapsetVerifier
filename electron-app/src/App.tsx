@@ -1,7 +1,6 @@
 import {
   AppShell,
   Container,
-  CSSVariablesResolver,
   MantineProvider,
   ScrollArea,
 } from '@mantine/core';
@@ -19,22 +18,14 @@ import { BeatmapProvider, useBeatmap } from './context/BeatmapContext.tsx';
 import { BeatmapReparseProvider } from './context/BeatmapReparseRegistry.tsx';
 import { DocumentationProvider } from './context/DocumentationContext.tsx';
 import { PageHintsProvider } from './context/PageHintsContext.tsx';
+import { SettingsProvider } from './context/SettingsContext.tsx';
 import { UpdaterProvider } from './context/UpdaterContext';
+import { cssVarResolver } from './theme/cssVarResolver.ts';
 import { useAppTheme } from './theme/useAppTheme.ts';
 import '@mantine/core/styles.css';
 import '@mantine/charts/styles.css';
 import '@mantine/notifications/styles.css';
 import './theme/global.scss';
-
-export const cssVarResolver: CSSVariablesResolver = () => ({
-  variables: {},
-  light: {},
-  dark: {
-    // Default dark mode makes the text color use --mantine-color-dark-0 which we don't want
-    '--mantine-color-text': '#fff',
-    '--mantine-color-dimmed': '#9e9e9e',
-  },
-});
 
 function BeatmapKeyedOutlet() {
   const { selectedFolder } = useBeatmap();
@@ -60,7 +51,7 @@ function BeatmapKeyedOutlet() {
   );
 }
 
-function App() {
+function AppContent() {
   const theme = useAppTheme();
   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
 
@@ -110,4 +101,10 @@ function App() {
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <SettingsProvider>
+      <AppContent />
+    </SettingsProvider>
+  );
+}

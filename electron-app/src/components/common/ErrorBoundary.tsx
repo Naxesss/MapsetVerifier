@@ -8,7 +8,7 @@ import {
   IconRefresh,
 } from '@tabler/icons-react';
 import { Component, ErrorInfo, ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { isRouteErrorResponse, Link } from 'react-router-dom';
 import StackTraceMessage from './StackTraceMessage';
 import { useOpenExternal } from '../../hooks/useOpenExternal';
 
@@ -126,9 +126,44 @@ function ErrorFallback({ error, errorInfo, onRetry, title, showHomeLink }: Error
 interface RootErrorFallbackProps {
   error: Error;
   onRetry: () => void;
+  title?: string;
+  showReload?: boolean;
 }
 
-function RootErrorFallback({ error, onRetry }: RootErrorFallbackProps) {
+export function routeErrorToError(routeError: unknown): Error {
+  if (routeError instanceof Error) {
+    return routeError;
+  }
+
+  if (isRouteErrorResponse(routeError)) {
+    const dataMessage =
+      typeof routeError.data === 'string'
+        ? routeError.data
+        : routeError.data &&
+            typeof routeError.data === 'object' &&
+            'message' in routeError.data &&
+            typeof routeError.data.message === 'string'
+          ? routeError.data.message
+          : null;
+
+    return new Error(
+      dataMessage ?? routeError.statusText ?? `Request failed (${routeError.status})`
+    );
+  }
+
+  if (typeof routeError === 'string') {
+    return new Error(routeError);
+  }
+
+  return new Error('An unexpected error occurred');
+}
+
+export function RootErrorFallback({
+  error,
+  onRetry,
+  title = 'Something went wrong',
+  showReload = true,
+}: RootErrorFallbackProps) {
   return (
     <div
       style={{
@@ -143,10 +178,10 @@ function RootErrorFallback({ error, onRetry }: RootErrorFallbackProps) {
       }}
     >
       <div style={{ maxWidth: '32rem', textAlign: 'center' }}>
-        <h1 style={{ margin: '0 0 0.75rem', fontSize: '1.5rem' }}>Something went wrong</h1>
+        <h1 style={{ margin: '0 0 0.75rem', fontSize: '1.5rem' }}>{title}</h1>
         <p style={{ margin: '0 0 1rem', color: '#9e9e9e', lineHeight: 1.5 }}>
-          Mapset Verifier hit an unexpected error while loading. Try reloading the app, or report
-          the issue on GitHub if it keeps happening.
+          Mapset Verifier hit an unexpected error. Try again, reload the app, or report the issue on
+          GitHub if it keeps happening.
         </p>
         {error.message && (
           <pre
@@ -183,21 +218,23 @@ function RootErrorFallback({ error, onRetry }: RootErrorFallbackProps) {
           >
             Try again
           </button>
-          <button
-            type="button"
-            onClick={() => window.location.reload()}
-            style={{
-              border: '1px solid #373a40',
-              borderRadius: '0.375rem',
-              padding: '0.5rem 1rem',
-              background: 'transparent',
-              color: '#fff',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-            }}
-          >
-            Reload app
-          </button>
+          {showReload && (
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              style={{
+                border: '1px solid #373a40',
+                borderRadius: '0.375rem',
+                padding: '0.5rem 1rem',
+                background: 'transparent',
+                color: '#fff',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+              }}
+            >
+              Reload app
+            </button>
+          )}
         </div>
       </div>
     </div>
