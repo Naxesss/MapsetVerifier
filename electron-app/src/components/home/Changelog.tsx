@@ -107,13 +107,7 @@ export default function Changelog() {
         const isLatest = index === 0;
 
         return (
-          <Card
-            key={entry.version}
-            withBorder
-            padding="lg"
-            radius="md"
-            shadow="sm"
-          >
+          <Card key={entry.version} withBorder padding="lg" radius="md" shadow="sm">
             <Stack gap="sm">
               <div
                 role="button"

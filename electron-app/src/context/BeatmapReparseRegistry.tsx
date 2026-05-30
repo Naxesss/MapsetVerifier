@@ -2,7 +2,15 @@ import { useHotkeys, type HotkeyItem } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { IconCheck } from '@tabler/icons-react';
 import { useQueryClient } from '@tanstack/react-query';
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  type ReactNode,
+} from 'react';
 import { useBeatmap } from './BeatmapContext.tsx';
 
 /** Runs before all beatmap-scoped queries are invalidated (e.g. clear checks override state). */
@@ -82,18 +90,16 @@ export function BeatmapReparseProvider({ children }: { children: ReactNode }) {
 
   const f5Hotkeys = useMemo<HotkeyItem[]>(
     () => [['F5', () => void triggerReparse(), { preventDefault: true }]],
-    [triggerReparse],
+    [triggerReparse]
   );
   useHotkeys(f5Hotkeys);
 
   const value = useMemo(
     () => ({ registerReparse, triggerReparse }),
-    [registerReparse, triggerReparse],
+    [registerReparse, triggerReparse]
   );
 
-  return (
-    <BeatmapReparseContext.Provider value={value}>{children}</BeatmapReparseContext.Provider>
-  );
+  return <BeatmapReparseContext.Provider value={value}>{children}</BeatmapReparseContext.Provider>;
 }
 
 export function useBeatmapReparse() {

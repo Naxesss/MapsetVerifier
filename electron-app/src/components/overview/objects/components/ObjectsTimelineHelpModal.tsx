@@ -22,9 +22,8 @@ export default function ObjectsTimelineHelpModal({
             <List.Item>
               Hold <Kbd size="xs">Shift</Kbd> over the timeline to enter{' '}
               <strong>timeline scroll mode</strong>. While <Kbd size="xs">Shift</Kbd> is held,
-              scroll the wheel to step one timing snap tick forward (scroll down) or
-              backward (scroll up). Horizontal trackpad scrolling over the timeline also steps snap
-              ticks.
+              scroll the wheel to step one timing snap tick forward (scroll down) or backward
+              (scroll up). Horizontal trackpad scrolling over the timeline also steps snap ticks.
             </List.Item>
             <List.Item>Use the zoom slider to stretch or compress time.</List.Item>
             <List.Item>Drag the grip on a row to reorder difficulties.</List.Item>
@@ -58,9 +57,9 @@ export default function ObjectsTimelineHelpModal({
               <List size="sm" spacing={4}>
                 <List.Item>
                   <strong>Circles on objects</strong> show <strong>hitsound additions</strong>{' '}
-                  (Whistle, Clap, Finish). No addition is grey. Priority is Finish → Clap →
-                  Whistle: the highest-priority addition fills the marker; stacked additions appear
-                  as outer rings. Finish and Clap reuse the Soft and Drum hues; Whistle uses green.
+                  (Whistle, Clap, Finish). No addition is grey. Priority is Finish → Clap → Whistle:
+                  the highest-priority addition fills the marker; stacked additions appear as outer
+                  rings. Finish and Clap reuse the Soft and Drum hues; Whistle uses green.
                 </List.Item>
                 <List.Item>
                   <strong>Slider and spinner bodies</strong> — the path tint is the object{' '}
@@ -84,8 +83,8 @@ export default function ObjectsTimelineHelpModal({
                   indicator — do not confuse it with Drum strip bars.
                 </List.Item>
                 <List.Item>
-                  On entering hitsounding view, the timeline scrolls so the first note sits under the
-                  playhead. After that, only double-click or manual panning moves what you are
+                  On entering hitsounding view, the timeline scrolls so the first note sits under
+                  the playhead. After that, only double-click or manual panning moves what you are
                   inspecting.
                 </List.Item>
                 <List.Item>
@@ -116,8 +115,8 @@ export default function ObjectsTimelineHelpModal({
                 </List.Item>
                 <List.Item>
                   <strong>Passive lane</strong> — dash for sliderslide (object bank) and, when
-                  present, a second dash for sliderwhistle (addition bank). Dot for slidertick.
-                  Both dashes can appear at the same timing line when body whistle is enabled.
+                  present, a second dash for sliderwhistle (addition bank). Dot for slidertick. Both
+                  dashes can appear at the same timing line when body whistle is enabled.
                 </List.Item>
                 <List.Item>
                   Circles above the strip show additions; bars in the strip show the underlying
@@ -139,8 +138,8 @@ export default function ObjectsTimelineHelpModal({
                   <strong>Ticks</strong> — slider tick samples in the passive lane.
                 </List.Item>
                 <List.Item>
-                  <strong>Sample bank</strong> — row wash for timing sections set to Normal, Soft, or
-                  Drum on timing points. Auto sections stay untinted.
+                  <strong>Sample bank</strong> — row wash for timing sections set to Normal, Soft,
+                  or Drum on timing points. Auto sections stay untinted.
                 </List.Item>
                 <List.Item>
                   <strong>Gap overlay</strong> — magenta regions where hitsound feedback is sparse,

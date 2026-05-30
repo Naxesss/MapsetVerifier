@@ -9,14 +9,8 @@ import {
   parseHitSoundFlags,
   type HitsoundLayerVisibility,
 } from './hitsoundUtils.ts';
-import {
-  enrichBodySamplesForDisplay,
-  filterSamplesForHover,
-} from './timelineHitsoundDrawing.ts';
-import {
-  findNearestTimelineEdge,
-  getEdgeHitSoundFlags,
-} from './timelineUtils.ts';
+import { enrichBodySamplesForDisplay, filterSamplesForHover } from './timelineHitsoundDrawing.ts';
+import { findNearestTimelineEdge, getEdgeHitSoundFlags } from './timelineUtils.ts';
 import type {
   ObjectsOverviewDifficulty,
   ObjectsTimelineEdge,
@@ -359,15 +353,10 @@ export function resolveCrosshairRow(
     : Number.POSITIVE_INFINITY;
 
   const preferPassiveSample =
-    nearestSample != null &&
-    nearestSample.source !== 'Edge' &&
-    nearestDistance <= edgeDistance;
+    nearestSample != null && nearestSample.source !== 'Edge' && nearestDistance <= edgeDistance;
 
   if (preferPassiveSample) {
-    const containingObject = findContainingTimelineObject(
-      difficulty.timelineObjects,
-      timestampMs
-    );
+    const containingObject = findContainingTimelineObject(difficulty.timelineObjects, timestampMs);
 
     return resolvePassiveSampleContext(
       nearestSample,
@@ -408,9 +397,7 @@ export function resolveCrosshairRow(
       hasMatch: true,
       matchKind: 'edge',
       partName: nearestSample.partName ?? edgeAtSample?.edge.partName ?? 'Edge',
-      hitSoundFlags: getEdgeHitSoundFlags(
-        edgeAtSample ? toEdgeMatch(edgeAtSample) : null
-      ),
+      hitSoundFlags: getEdgeHitSoundFlags(edgeAtSample ? toEdgeMatch(edgeAtSample) : null),
       sample: getPrimaryEdgeSample(lookupSamples, nearestSample.timeMs),
       sampleSource: 'Edge',
       timelineObject: edgeAtSample?.object ?? null,
@@ -423,10 +410,7 @@ export function resolveCrosshairRow(
   }
 
   if (nearestSample) {
-    const containingObject = findContainingTimelineObject(
-      difficulty.timelineObjects,
-      timestampMs
-    );
+    const containingObject = findContainingTimelineObject(difficulty.timelineObjects, timestampMs);
 
     return resolvePassiveSampleContext(
       nearestSample,
@@ -436,18 +420,10 @@ export function resolveCrosshairRow(
     );
   }
 
-  const containingObject = findContainingTimelineObject(
-    difficulty.timelineObjects,
-    timestampMs
-  );
+  const containingObject = findContainingTimelineObject(difficulty.timelineObjects, timestampMs);
 
   if (containingObject?.objectType === 'Slider') {
-    return resolveSliderBodyContext(
-      containingObject,
-      timestampMs,
-      lookupSamples,
-      timingSegment
-    );
+    return resolveSliderBodyContext(containingObject, timestampMs, lookupSamples, timingSegment);
   }
 
   if (

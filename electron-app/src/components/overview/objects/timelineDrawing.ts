@@ -35,7 +35,7 @@ import {
   type TimelineRowDrawCache,
 } from './timelineUtils.ts';
 import { withAlpha } from '../../../utils/color.ts';
-import type { TimelineThemeVariant , TimelineVisualTheme } from './timelineTheme/types.ts';
+import type { TimelineThemeVariant, TimelineVisualTheme } from './timelineTheme/types.ts';
 import type {
   ObjectsBreakPeriod,
   ObjectsOverviewDifficulty,
@@ -92,14 +92,10 @@ export function drawTimelineRow(
   const neutralBodyColor = theme.colors.dark[4];
   const roundedEdgeTimes =
     rowDrawCache?.roundedEdgeTimes ?? buildRoundedEdgeTimes(difficulty.timelineObjects);
-  const resolvedHitsoundCache =
-    isHitsoundView
-      ? (rowDrawCache?.hitsound ??
-        buildHitsoundDrawCache(
-          difficulty.timelineObjects,
-          difficulty.timelineSamples ?? []
-        ))
-      : undefined;
+  const resolvedHitsoundCache = isHitsoundView
+    ? (rowDrawCache?.hitsound ??
+      buildHitsoundDrawCache(difficulty.timelineObjects, difficulty.timelineSamples ?? []))
+    : undefined;
 
   ctx.clearRect(0, 0, viewportWidth, height);
   ctx.save();
@@ -380,14 +376,7 @@ export function findTimelineObjectHeadAtX({
         timelineWidth
       );
       const radius = visualTheme.circleRadius(timelineObject);
-      consider(
-        timelineObject,
-        null,
-        timelineObject.startTimeMs,
-        centerX,
-        radius + 4,
-        'Circle'
-      );
+      consider(timelineObject, null, timelineObject.startTimeMs, centerX, radius + 4, 'Circle');
       continue;
     }
 
@@ -620,9 +609,7 @@ function drawTimelineObject(
   neutralBodyColor: string,
   bodySample: ObjectsTimelineSample | null
 ) {
-  const color = isHitsoundView
-    ? neutralBodyColor
-    : visualTheme.resolveObjectColor(timelineObject);
+  const color = isHitsoundView ? neutralBodyColor : visualTheme.resolveObjectColor(timelineObject);
   const circleRadius = visualTheme.circleRadius(timelineObject);
 
   if (timelineObject.objectType === 'Circle') {
@@ -635,13 +622,7 @@ function drawTimelineObject(
     }
 
     if (isHitsoundView) {
-      drawHitsoundCircle(
-        ctx,
-        x,
-        centerY,
-        circleRadius,
-        timelineObject.hitSoundFlags ?? 0
-      );
+      drawHitsoundCircle(ctx, x, centerY, circleRadius, timelineObject.hitSoundFlags ?? 0);
       return;
     }
 
@@ -749,9 +730,7 @@ function drawObjectMarker(
   neutralBodyColor: string
 ) {
   const lowerPart = partName.toLowerCase();
-  const color = isHitsoundView
-    ? neutralBodyColor
-    : visualTheme.resolveObjectColor(timelineObject);
+  const color = isHitsoundView ? neutralBodyColor : visualTheme.resolveObjectColor(timelineObject);
   const isSlider = timelineObject.objectType === 'Slider';
   const circleRadius = visualTheme.circleRadius(timelineObject);
 
@@ -775,24 +754,12 @@ function drawObjectMarker(
   if (lowerPart.includes('reverse')) {
     if (isHitsoundView) {
       drawHitsoundCircle(ctx, x, centerY, circleRadius, edgeHitSoundFlags);
-      drawThemedReverseArrow(
-        ctx,
-        x,
-        centerY,
-        REVERSE_ARROW_ICON_SIZE,
-        visualTheme.reverseArrow
-      );
+      drawThemedReverseArrow(ctx, x, centerY, REVERSE_ARROW_ICON_SIZE, visualTheme.reverseArrow);
       return;
     }
 
     drawThemedCircle(ctx, x, centerY, circleRadius, color, visualTheme.circle);
-    drawThemedReverseArrow(
-      ctx,
-      x,
-      centerY,
-      REVERSE_ARROW_ICON_SIZE,
-      visualTheme.reverseArrow
-    );
+    drawThemedReverseArrow(ctx, x, centerY, REVERSE_ARROW_ICON_SIZE, visualTheme.reverseArrow);
     return;
   }
 

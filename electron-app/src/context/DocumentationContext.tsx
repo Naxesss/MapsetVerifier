@@ -114,10 +114,7 @@ export const DocumentationProvider = ({ children }: { children: ReactNode }) => 
     [generalChecks, beatmapChecks]
   );
 
-  const getCheckById = useCallback(
-    (id: number) => merged.checksById.get(id),
-    [merged.checksById]
-  );
+  const getCheckById = useCallback((id: number) => merged.checksById.get(id), [merged.checksById]);
 
   const value = useMemo<DocumentationContextType>(
     () => ({
@@ -132,9 +129,7 @@ export const DocumentationProvider = ({ children }: { children: ReactNode }) => 
     [status, error, generalChecks, beatmapChecks, merged.allChecks, merged.checksById, getCheckById]
   );
 
-  return (
-    <DocumentationContext.Provider value={value}>{children}</DocumentationContext.Provider>
-  );
+  return <DocumentationContext.Provider value={value}>{children}</DocumentationContext.Provider>;
 };
 
 export const useDocumentation = () => {

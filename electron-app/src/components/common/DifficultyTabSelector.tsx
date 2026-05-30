@@ -67,8 +67,7 @@ function DifficultyTabSelector({
     : tabs;
 
   const isGeneralActive =
-    selectedId === GENERAL_TAB_ID ||
-    (highlightGeneralWhenIdle && hoveredId === undefined);
+    selectedId === GENERAL_TAB_ID || (highlightGeneralWhenIdle && hoveredId === undefined);
 
   const handleHover = (id: string | undefined) => {
     onHover?.(id);
@@ -97,27 +96,18 @@ function DifficultyTabSelector({
           onClick={() => onSelect(GENERAL_TAB_ID)}
           onMouseEnter={activeOnHover ? () => handleHover(undefined) : undefined}
           onMouseLeave={activeOnHover ? handleHoverLeave : undefined}
-          bd={
-            isGeneralActive
-              ? `1px solid ${diffButtonSelectedBorder}`
-              : '1px solid transparent'
-          }
+          bd={isGeneralActive ? `1px solid ${diffButtonSelectedBorder}` : '1px solid transparent'}
         >
           <Flex gap="xs" align="center">
             {showLevelIcons && (generalLevel != null || levelLoading) && (
-              <LevelIcon
-                level={generalLevel ?? 'Check'}
-                size={24}
-                loading={levelLoading}
-              />
+              <LevelIcon level={generalLevel ?? 'Check'} size={24} loading={levelLoading} />
             )}
             {generalLeading}
             <Text c="white">General</Text>
           </Flex>
         </Button>
         {displayTabs.map((tab) => {
-          const isActive =
-            selectedId === tab.id || (activeOnHover && hoveredId === tab.id);
+          const isActive = selectedId === tab.id || (activeOnHover && hoveredId === tab.id);
           const srColor = getDifficultyColor(tab.starRating ?? 0);
 
           return (
@@ -138,11 +128,7 @@ function DifficultyTabSelector({
             >
               <Flex gap="xs" align="center">
                 {showLevelIcons && (tab.level != null || tab.levelLoading) && (
-                  <LevelIcon
-                    level={tab.level ?? 'Check'}
-                    size={24}
-                    loading={tab.levelLoading}
-                  />
+                  <LevelIcon level={tab.level ?? 'Check'} size={24} loading={tab.levelLoading} />
                 )}
                 {tab.leading}
                 <DifficultyColorPill color={srColor} />

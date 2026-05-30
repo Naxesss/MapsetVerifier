@@ -36,11 +36,7 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
       <Group justify="space-between" mb="md">
         <Group gap="xs">
           <Text fw={600}>Resources</Text>
-          <InfoIconTooltip
-            label="Files and resources used by the beatmapset"
-            multiline
-            w={250}
-          />
+          <InfoIconTooltip label="Files and resources used by the beatmapset" multiline w={250} />
         </Group>
         <Badge color="blue" variant="light">
           <Group gap={4}>

@@ -59,7 +59,8 @@ export default function ObjectsTimelineComparison({
   };
 
   const handleCloseModal = () => {
-    savedScrollLeftRef.current = modalPan.scrollRef.current?.scrollLeft ?? savedScrollLeftRef.current;
+    savedScrollLeftRef.current =
+      modalPan.scrollRef.current?.scrollLeft ?? savedScrollLeftRef.current;
     modalPan.stopDragging();
     inlinePan.stopDragging();
     setModalOpened(false);
@@ -93,8 +94,8 @@ export default function ObjectsTimelineComparison({
             <Stack gap={2}>
               <Title order={4}>Timeline comparison</Title>
               <Text size="sm" c="dimmed">
-                Drag the grip to reorder rows. Drag horizontally or shift + scroll to pan.
-                Hover or right click on objects for more info.
+                Drag the grip to reorder rows. Drag horizontally or shift + scroll to pan. Hover or
+                right click on objects for more info.
               </Text>
             </Stack>
             {orderedDifficulties.length > 0 && (

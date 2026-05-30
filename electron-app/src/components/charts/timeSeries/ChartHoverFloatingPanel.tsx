@@ -135,9 +135,7 @@ export function ChartHoverFloatingPanel({
     applyPosition(posRef.current);
   }, [applyPosition, hover?.values.length, valueSuffix]);
 
-  const headerTitle = hover
-    ? formatEditorTimestamp(hover.timeMs)
-    : 'Hover over chart';
+  const headerTitle = hover ? formatEditorTimestamp(hover.timeMs) : 'Hover over chart';
 
   return (
     <Box
@@ -149,44 +147,49 @@ export function ChartHoverFloatingPanel({
       onPointerEnter={() => onSafeZoneChange?.(true)}
       onPointerLeave={() => onSafeZoneChange?.(false)}
     >
-    <Paper
-      ref={panelRef}
-      shadow="lg"
-      radius="md"
-      withBorder
-      style={{
-        width: 'max-content',
-        maxWidth: 360,
-        background: 'var(--mantine-color-dark-6)',
-      }}
-    >
-      <Group
-        gap={6}
-        wrap="nowrap"
-        px="xs"
-        py={6}
+      <Paper
+        ref={panelRef}
+        shadow="lg"
+        radius="md"
+        withBorder
         style={{
-          cursor: active ? 'grabbing' : 'grab',
-          borderBottom: '1px solid var(--mantine-color-dark-4)',
-          userSelect: 'none',
-          touchAction: 'none',
+          width: 'max-content',
+          maxWidth: 360,
+          background: 'var(--mantine-color-dark-6)',
         }}
       >
-        <IconGripVertical size={14} color="var(--mantine-color-primary-2)" />
-        <Text size="xs" mr="xs" fw={600} style={{ lineHeight: 1.35 }}>
-          {headerTitle}
-        </Text>
-      </Group>
-      <Box p="xs" mx="sm" pt={8} onMouseDown={(event) => event.stopPropagation()}>
-        {hover ? (
-          <TimeSeriesHoverTooltip hover={hover} valueSuffix={valueSuffix} showTimestamp={false} embedded />
-        ) : (
-          <Text size="xs" c="dimmed">
-            to inspect values.
+        <Group
+          gap={6}
+          wrap="nowrap"
+          px="xs"
+          py={6}
+          style={{
+            cursor: active ? 'grabbing' : 'grab',
+            borderBottom: '1px solid var(--mantine-color-dark-4)',
+            userSelect: 'none',
+            touchAction: 'none',
+          }}
+        >
+          <IconGripVertical size={14} color="var(--mantine-color-primary-2)" />
+          <Text size="xs" mr="xs" fw={600} style={{ lineHeight: 1.35 }}>
+            {headerTitle}
           </Text>
-        )}
-      </Box>
-    </Paper>
+        </Group>
+        <Box p="xs" mx="sm" pt={8} onMouseDown={(event) => event.stopPropagation()}>
+          {hover ? (
+            <TimeSeriesHoverTooltip
+              hover={hover}
+              valueSuffix={valueSuffix}
+              showTimestamp={false}
+              embedded
+            />
+          ) : (
+            <Text size="xs" c="dimmed">
+              to inspect values.
+            </Text>
+          )}
+        </Box>
+      </Paper>
     </Box>
   );
 }

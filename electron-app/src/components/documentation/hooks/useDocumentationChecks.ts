@@ -3,15 +3,8 @@ import { useDocumentation } from '../../../context/DocumentationContext';
 import { ApiDocumentationCheck, Mode } from '../../../Types';
 
 export function useDocumentationChecks() {
-  const {
-    status,
-    error,
-    generalChecks,
-    beatmapChecks,
-    allChecks,
-    checksById,
-    getCheckById,
-  } = useDocumentation();
+  const { status, error, generalChecks, beatmapChecks, allChecks, checksById, getCheckById } =
+    useDocumentation();
 
   const isLoading = status === 'idle' || status === 'loading';
   const isError = status === 'error';

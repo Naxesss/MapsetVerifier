@@ -185,8 +185,7 @@ function drawBodyMarker(
   color: string
 ) {
   const markerLeft = x - BODY_MARKER_WIDTH / 2;
-  const markerTop =
-    bounds.passiveLaneTop + (bounds.passiveLaneHeight - BODY_MARKER_HEIGHT) / 2;
+  const markerTop = bounds.passiveLaneTop + (bounds.passiveLaneHeight - BODY_MARKER_HEIGHT) / 2;
 
   ctx.fillStyle = color;
   ctx.fillRect(markerLeft, markerTop, BODY_MARKER_WIDTH, BODY_MARKER_HEIGHT);

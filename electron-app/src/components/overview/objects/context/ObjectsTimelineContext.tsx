@@ -12,9 +12,10 @@ const TimelineControllerContext = createContext<TimelineControllerValue | null>(
 const TimelinePanContext = createContext<TimelinePanValue | null>(null);
 const TimelineFullViewContext = createContext<TimelineFullViewValue | null>(null);
 const TimelineCrosshairStateContext = createContext<TimelineCrosshairValue['crosshair']>(null);
-const TimelineCrosshairActionsContext = createContext<
-  Pick<TimelineCrosshairValue, 'setCrosshair'> | null
->(null);
+const TimelineCrosshairActionsContext = createContext<Pick<
+  TimelineCrosshairValue,
+  'setCrosshair'
+> | null>(null);
 
 export function TimelineControllerProvider({
   value,
@@ -37,9 +38,7 @@ export function TimelinePanProvider({
   value: TimelinePanValue;
   children: ReactNode;
 }) {
-  return (
-    <TimelinePanContext.Provider value={value}>{children}</TimelinePanContext.Provider>
-  );
+  return <TimelinePanContext.Provider value={value}>{children}</TimelinePanContext.Provider>;
 }
 
 export function TimelineFullViewProvider({

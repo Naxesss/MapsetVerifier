@@ -8,10 +8,7 @@ import {
   useTimelinePan,
   useTimelineScale,
 } from '../context/ObjectsTimelineContext.tsx';
-import {
-  type HitsoundLayerVisibility,
-  type TimelineViewMode,
-} from '../hitsoundUtils.ts';
+import { type HitsoundLayerVisibility, type TimelineViewMode } from '../hitsoundUtils.ts';
 import {
   drawTimelineRow,
   findTimelineObjectHeadAtX,

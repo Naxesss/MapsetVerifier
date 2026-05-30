@@ -35,7 +35,7 @@ export default function PageHintsButton() {
     >
       <HoverCard.Target>
         <ActionIcon color="gray.6" variant="subtle" size="xl" radius="xl" aria-label="Page tips">
-          <IconInfoCircle color='var(--mantine-color-white)' />
+          <IconInfoCircle color="var(--mantine-color-white)" />
         </ActionIcon>
       </HoverCard.Target>
       <HoverCard.Dropdown p="sm" style={{ width: 'max-content', maxWidth: 360 }}>

@@ -179,11 +179,9 @@ export const UpdaterProvider = ({ children }: { children: React.ReactNode }) => 
 
       return new Promise<UpdateInfo | null>((resolve) => {
         pendingCheck.current = { resolve, silent, openModalOnAvailable };
-        window.electronAPI!
-          .updater.check({ allowPrerelease })
-          .catch(() => {
-            // Errors are delivered via the 'error' event listener.
-          });
+        window.electronAPI!.updater.check({ allowPrerelease }).catch(() => {
+          // Errors are delivered via the 'error' event listener.
+        });
       });
     },
     [resetProgress, settings.receivePrereleases]

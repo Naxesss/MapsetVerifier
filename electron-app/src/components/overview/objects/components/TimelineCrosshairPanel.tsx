@@ -1,5 +1,5 @@
-import { Box, Group, Paper, ScrollArea, Stack, Text } from "@mantine/core";
-import { IconGripVertical } from "@tabler/icons-react";
+import { Box, Group, Paper, ScrollArea, Stack, Text } from '@mantine/core';
+import { IconGripVertical } from '@tabler/icons-react';
 import {
   memo,
   useCallback,
@@ -10,21 +10,18 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
   type RefObject,
-} from "react";
-import { HitsoundContextDetail } from "./HitsoundContextDetail.tsx";
-import { getDifficultyColor } from "../../../common/DifficultyColor.ts";
-import DifficultyColorPill from "../../../common/DifficultyColorPill.tsx";
+} from 'react';
+import { HitsoundContextDetail } from './HitsoundContextDetail.tsx';
+import { getDifficultyColor } from '../../../common/DifficultyColor.ts';
+import DifficultyColorPill from '../../../common/DifficultyColorPill.tsx';
 import {
   useTimelineController,
   useTimelineCrosshairState,
   useTimelineFullView,
   useTimelineVisibility,
-} from "../context/ObjectsTimelineContext.tsx";
-import {
-  buildCrosshairRowLookupCache,
-  resolveCrosshairRow,
-} from "../crosshairUtils.ts";
-import { formatEditorTimestamp, getDifficultyKey } from "../timelineUtils.ts";
+} from '../context/ObjectsTimelineContext.tsx';
+import { buildCrosshairRowLookupCache, resolveCrosshairRow } from '../crosshairUtils.ts';
+import { formatEditorTimestamp, getDifficultyKey } from '../timelineUtils.ts';
 
 const DEFAULT_VERTICAL_OFFSET = 50;
 const PANEL_MAX_WIDTH = 400;
@@ -48,7 +45,7 @@ function clampPosition(
   containerWidth: number,
   containerHeight: number,
   panelWidth: number,
-  panelHeight: number,
+  panelHeight: number
 ): Point {
   const maxX = Math.max(0, containerWidth - panelWidth);
   const maxY = Math.max(0, containerHeight - panelHeight);
@@ -63,14 +60,14 @@ function getDefaultPosition(
   containerWidth: number,
   containerHeight: number,
   panelWidth: number,
-  panelHeight: number,
+  panelHeight: number
 ): Point {
   return clampPosition(
     { x: containerWidth - panelWidth, y: DEFAULT_VERTICAL_OFFSET },
     containerWidth,
     containerHeight,
     panelWidth,
-    panelHeight,
+    panelHeight
   );
 }
 
@@ -101,7 +98,7 @@ const TimelineCrosshairPanelBody = memo(function TimelineCrosshairPanelBody() {
     for (const difficulty of orderedDifficulties) {
       caches.set(
         getDifficultyKey(difficulty),
-        buildCrosshairRowLookupCache(difficulty, hitsoundLayers),
+        buildCrosshairRowLookupCache(difficulty, hitsoundLayers)
       );
     }
 
@@ -117,12 +114,7 @@ const TimelineCrosshairPanelBody = memo(function TimelineCrosshairPanelBody() {
         const difficultyKey = getDifficultyKey(difficulty);
         const cache = lookupCaches.get(difficultyKey);
         const samples = cache?.enrichedSamples ?? difficulty.timelineSamples ?? [];
-        const resolved = resolveCrosshairRow(
-          difficulty,
-          crosshair.timestampMs,
-          samples,
-          cache,
-        );
+        const resolved = resolveCrosshairRow(difficulty, crosshair.timestampMs, samples, cache);
 
         return {
           key: difficultyKey,
@@ -148,10 +140,7 @@ const TimelineCrosshairPanelBody = memo(function TimelineCrosshairPanelBody() {
           <DifficultyName version={row.version} starRating={row.starRating} />
 
           {row.resolved.hasMatch ? (
-            <HitsoundContextDetail
-              resolved={row.resolved}
-              timestampMs={crosshair.timestampMs}
-            />
+            <HitsoundContextDetail resolved={row.resolved} timestampMs={crosshair.timestampMs} />
           ) : (
             <Text size="xs" c="dimmed">
               No hitsound context at playhead
@@ -201,7 +190,7 @@ export function TimelineCrosshairFloatingPanel({
       const { width, height } = container.getBoundingClientRect();
       return clampPosition(point, width, height, panel.offsetWidth, panel.offsetHeight);
     },
-    [boundsRef],
+    [boundsRef]
   );
 
   const applyPosition = useCallback(
@@ -210,7 +199,7 @@ export function TimelineCrosshairFloatingPanel({
       posRef.current = clamped;
       setPosition(clamped);
     },
-    [clampToContainer],
+    [clampToContainer]
   );
 
   const handleHeaderPointerDown = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
@@ -243,7 +232,7 @@ export function TimelineCrosshairFloatingPanel({
         y: drag.originPanel.y + (event.clientY - drag.originClient.y),
       });
     },
-    [applyPosition],
+    [applyPosition]
   );
 
   const endHeaderDrag = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
@@ -293,15 +282,15 @@ export function TimelineCrosshairFloatingPanel({
 
   const headerTitle = crosshair
     ? formatEditorTimestamp(crosshair.timestampMs)
-    : "Drag timeline to seek";
+    : 'Drag timeline to seek';
 
   return (
-    <Box pos="absolute" inset={0} style={{ zIndex: 30, pointerEvents: "none" }}>
+    <Box pos="absolute" inset={0} style={{ zIndex: 30, pointerEvents: 'none' }}>
       <Box
         pos="absolute"
         left={position.x}
         top={position.y}
-        style={{ pointerEvents: "auto" }}
+        style={{ pointerEvents: 'auto' }}
         onPointerDown={(event) => event.stopPropagation()}
       >
         <Paper
@@ -310,9 +299,9 @@ export function TimelineCrosshairFloatingPanel({
           radius="md"
           withBorder
           style={{
-            width: "max-content",
+            width: 'max-content',
             maxWidth: PANEL_MAX_WIDTH,
-            background: "var(--mantine-color-dark-6)",
+            background: 'var(--mantine-color-dark-6)',
           }}
         >
           <Group
@@ -325,10 +314,10 @@ export function TimelineCrosshairFloatingPanel({
             onPointerUp={endHeaderDrag}
             onPointerCancel={endHeaderDrag}
             style={{
-              cursor: isDragging ? "grabbing" : "grab",
-              borderBottom: "1px solid var(--mantine-color-dark-4)",
-              userSelect: "none",
-              touchAction: "none",
+              cursor: isDragging ? 'grabbing' : 'grab',
+              borderBottom: '1px solid var(--mantine-color-dark-4)',
+              userSelect: 'none',
+              touchAction: 'none',
             }}
           >
             <IconGripVertical size={14} color="var(--mantine-color-primary-2)" />

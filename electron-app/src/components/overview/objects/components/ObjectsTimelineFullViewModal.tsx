@@ -3,7 +3,12 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import HitsoundStripLegend from './HitsoundStripLegend.tsx';
 import ObjectsTimelineComparisonContent from './ObjectsTimelineComparisonContent.tsx';
 import ObjectsTimelineHelpButton from './ObjectsTimelineHelpButton.tsx';
-import { HITSOUND_ROW_HEIGHT, LABEL_WIDTH, PLAYHEAD_VIEWPORT_OFFSET, ROW_HEIGHT } from '../constants.ts';
+import {
+  HITSOUND_ROW_HEIGHT,
+  LABEL_WIDTH,
+  PLAYHEAD_VIEWPORT_OFFSET,
+  ROW_HEIGHT,
+} from '../constants.ts';
 import {
   TimelineControllerProvider,
   TimelineCrosshairProvider,
@@ -153,14 +158,7 @@ function ObjectsTimelineFullViewModalBody({ pan }: { pan: TimelinePanValue }) {
       scrollElement.scrollLeft = Math.max(0, Math.min(maxScrollLeft, scrollLeft));
       setCrosshairTimestamp(clampedTimestamp);
     },
-    [
-      endTimeMs,
-      pan.scrollRef,
-      playheadViewportX,
-      setCrosshairTimestamp,
-      startTimeMs,
-      timelineWidth,
-    ]
+    [endTimeMs, pan.scrollRef, playheadViewportX, setCrosshairTimestamp, startTimeMs, timelineWidth]
   );
 
   useEffect(() => {
@@ -300,17 +298,10 @@ function ObjectsTimelineFullViewModalBody({ pan }: { pan: TimelinePanValue }) {
       hitsoundLayers,
       setHitsoundLayers,
       playheadViewportX,
-      snapPlayheadToTimestamp:
-        viewMode === 'hitsounding' ? snapPlayheadToTimestamp : null,
+      snapPlayheadToTimestamp: viewMode === 'hitsounding' ? snapPlayheadToTimestamp : null,
       rowHeight,
     }),
-    [
-      viewMode,
-      hitsoundLayers,
-      playheadViewportX,
-      snapPlayheadToTimestamp,
-      rowHeight,
-    ]
+    [viewMode, hitsoundLayers, playheadViewportX, snapPlayheadToTimestamp, rowHeight]
   );
 
   return (

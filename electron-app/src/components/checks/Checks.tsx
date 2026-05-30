@@ -1,12 +1,4 @@
-import {
-  Alert,
-  Text,
-  Box,
-  useMantineTheme,
-  Group,
-  Flex,
-  Collapse,
-} from '@mantine/core';
+import { Alert, Text, Box, useMantineTheme, Group, Flex, Collapse } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
 import React, { useCallback, useEffect, useMemo } from 'react';
 import BeatmapActionButtons from './BeatmapActionButtons';
@@ -21,7 +13,10 @@ import { useBeatmapChecks } from './hooks/useBeatmapChecks';
 import { useDifficultyOverride } from './hooks/useDifficultyOverride';
 import { getCategoryHighestLevel } from './utils/levelUtils';
 import { useBeatmap } from '../../context/BeatmapContext';
-import { useBeatmapReparse, useRegisterBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
+import {
+  useBeatmapReparse,
+  useRegisterBeatmapReparse,
+} from '../../context/BeatmapReparseRegistry.tsx';
 import { useSettings } from '../../context/SettingsContext';
 import { ApiCategoryCheckResult, Level, Mode } from '../../Types';
 import StackTraceMessage from '../common/StackTraceMessage.tsx';
@@ -74,7 +69,7 @@ function Checks() {
   useRegisterBeatmapReparse(
     useCallback(() => {
       resetOverrides();
-    }, [resetOverrides]),
+    }, [resetOverrides])
   );
 
   const difficultiesForTabs = useMemo((): ApiCategoryCheckResult[] => {

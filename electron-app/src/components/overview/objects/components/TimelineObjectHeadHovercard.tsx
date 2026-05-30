@@ -1,9 +1,6 @@
 import { Box, Stack, Text, Tooltip } from '@mantine/core';
 import { useMemo } from 'react';
-import {
-  buildCrosshairRowLookupCache,
-  resolveCrosshairRow,
-} from '../crosshairUtils.ts';
+import { buildCrosshairRowLookupCache, resolveCrosshairRow } from '../crosshairUtils.ts';
 import { type HitsoundLayerVisibility, type TimelineViewMode } from '../hitsoundUtils.ts';
 import { formatEditorTimestamp, getSnapLabelColor, lookupEdgeSnapLabel } from '../timelineUtils.ts';
 import { HitsoundContextDetail } from './HitsoundContextDetail.tsx';
@@ -33,12 +30,7 @@ export default function TimelineObjectHeadHovercard({
     }
 
     const cache = buildCrosshairRowLookupCache(difficulty, hitsoundLayers);
-    return resolveCrosshairRow(
-      difficulty,
-      hover.timeMs,
-      cache.enrichedSamples,
-      cache,
-    );
+    return resolveCrosshairRow(difficulty, hover.timeMs, cache.enrichedSamples, cache);
   }, [difficulty, hitsoundLayers, hover, viewMode]);
 
   if (!hover) {
