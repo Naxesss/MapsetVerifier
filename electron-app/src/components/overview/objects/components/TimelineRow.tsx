@@ -19,7 +19,7 @@ import {
   buildTimelineRowDrawCache,
   formatEditorTimestamp,
   getTimelineCanvasTiles,
-  getTimelineX,
+  getTimelineHighlightX,
   type TimelineRowDrawCache,
 } from '../timelineUtils.ts';
 import type { ObjectsOverviewDifficulty } from '../../../../Types';
@@ -240,10 +240,11 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
   };
 
   const selectedTimestampX = contextMenuState
-    ? getTimelineX(
+    ? getTimelineHighlightX(
         contextMenuState.timestampMs,
+        difficulty,
         startTimeMs,
-        Math.max(1, endTimeMs - startTimeMs),
+        endTimeMs,
         timelineWidth
       )
     : undefined;
@@ -281,6 +282,7 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
               top: 0,
               bottom: 0,
               width: 0,
+              transform: 'translateX(-50%)',
               borderLeft: `2px solid ${theme.colors.blue[4]}`,
               boxShadow: `0 0 0 1px ${theme.colors.blue[3]}, 0 0 12px ${theme.colors.blue[7]}`,
               zIndex: 8,

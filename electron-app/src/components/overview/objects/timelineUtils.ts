@@ -109,6 +109,34 @@ export function getAlignedTimelineLineX(
   return Math.round(getTimelineX(timeMs, startTimeMs, durationMs, width)) + 0.5;
 }
 
+/** DOM highlight X for a snapped timestamp — matches canvas marker placement. */
+export function getTimelineHighlightX(
+  timestampMs: number,
+  difficulty: ObjectsOverviewDifficulty,
+  startTimeMs: number,
+  endTimeMs: number,
+  timelineWidth: number
+) {
+  const durationMs = Math.max(1, endTimeMs - startTimeMs);
+
+  for (const timelineObject of difficulty.timelineObjects) {
+    if (timelineObject.objectType === 'Circle') {
+      if (Math.abs(timelineObject.startTimeMs - timestampMs) <= EDGE_TIME_MATCH_EPSILON_MS) {
+        return getTimelineX(timestampMs, startTimeMs, durationMs, timelineWidth);
+      }
+      continue;
+    }
+
+    for (const edge of timelineObject.edges) {
+      if (Math.abs(edge.timeMs - timestampMs) <= EDGE_TIME_MATCH_EPSILON_MS) {
+        return getAlignedTimelineLineX(edge.timeMs, startTimeMs, durationMs, timelineWidth);
+      }
+    }
+  }
+
+  return getTimelineX(timestampMs, startTimeMs, durationMs, timelineWidth);
+}
+
 /** Next axis tick strictly after `timestampMs` (or the following grid line when already on a tick). */
 /** Next axis tick strictly after `timestampMs` (or the following grid line when already on a tick). */
 export function getNextTimelineTick(
