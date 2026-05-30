@@ -7,8 +7,6 @@ import {
   Anchor,
   Alert,
   Blockquote,
-  useMantineTheme,
-  useMantineColorScheme,
 } from '@mantine/core';
 import { IconInfoCircleFilled } from '@tabler/icons-react';
 import ReactMarkdown from 'react-markdown';
@@ -34,14 +32,6 @@ export default function MantineMarkdown({
   children,
   notesForBlockquotes = false,
 }: MantineMarkdownProps) {
-  const theme = useMantineTheme();
-  const { colorScheme } = useMantineColorScheme();
-
-  const tableBorderColor = theme.colors.gray[colorScheme === 'dark' ? 4 : 3];
-  const tableHeaderBg = colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[0];
-  const tableBg = colorScheme === 'dark' ? theme.colors.dark[6] : theme.white;
-  const theadBg = colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[1];
-
   return (
     <div className="markdown-text">
       <ReactMarkdown
@@ -137,46 +127,16 @@ export default function MantineMarkdown({
             <Divider mt={hasLeadingContent(node) ? 'xl' : 0} mb="xl" />
           ),
           table: ({ node, children }: { node?: unknown; children?: ReactNode }) => (
-            <table
-              className={`markdown-text-table${hasLeadingContent(node) ? '' : ' markdown-text-table-first'}`}
-              style={{
-                borderCollapse: 'collapse',
-                background: tableBg,
-                overflow: 'hidden',
-              }}
+            <div
+              className={`markdown-text-table-wrapper${hasLeadingContent(node) ? '' : ' markdown-text-table-wrapper-first'}`}
             >
-              {children}
-            </table>
+              <table className="markdown-text-table">{children}</table>
+            </div>
           ),
-          thead: ({ children }: { children?: ReactNode }) => (
-            <thead style={{ background: theadBg }}>{children}</thead>
-          ),
-          tr: ({ children }: { children?: ReactNode }) => (
-            <tr style={{ borderBottom: `1px solid ${tableBorderColor}` }}>{children}</tr>
-          ),
-          th: ({ children }: { children?: ReactNode }) => (
-            <th
-              style={{
-                padding: theme.spacing.sm,
-                border: `1px solid ${tableBorderColor}`,
-                fontWeight: 700,
-                textAlign: 'left',
-                background: tableHeaderBg,
-              }}
-            >
-              {children}
-            </th>
-          ),
-          td: ({ children }: { children?: ReactNode }) => (
-            <td
-              style={{
-                padding: theme.spacing.sm,
-                border: `1px solid ${tableBorderColor}`,
-              }}
-            >
-              {children}
-            </td>
-          ),
+          thead: ({ children }: { children?: ReactNode }) => <thead>{children}</thead>,
+          tr: ({ children }: { children?: ReactNode }) => <tr>{children}</tr>,
+          th: ({ children }: { children?: ReactNode }) => <th>{children}</th>,
+          td: ({ children }: { children?: ReactNode }) => <td>{children}</td>,
         }}
       >
         {children}

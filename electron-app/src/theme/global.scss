@@ -361,12 +361,60 @@
     border: 1px solid var(--mantine-color-blue-6);
   }
 
-  .markdown-text-table {
-    width: 100%;
+  .markdown-text-table-wrapper {
+    width: fit-content;
+    max-width: 100%;
+    overflow-x: auto;
     margin-block: var(--mantine-spacing-md);
+    border: 1px solid var(--mantine-color-default-border);
+    border-radius: var(--mantine-radius-md);
+    background-color: var(--mantine-color-body);
 
-    &.markdown-text-table-first {
+    &.markdown-text-table-wrapper-first {
       margin-top: 0;
+    }
+  }
+
+  .markdown-text-table {
+    width: auto;
+    border-collapse: collapse;
+    font-size: var(--mantine-font-size-sm);
+    line-height: 1.55;
+
+    thead th {
+      padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+      font-weight: 600;
+      text-align: left;
+      color: var(--mantine-color-text);
+      background-color: var(--mantine-color-default-hover);
+      border-bottom: 1px solid var(--mantine-color-default-border);
+      white-space: nowrap;
+    }
+
+    tbody td {
+      padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+      border-bottom: 1px solid var(--mantine-color-default-border);
+      vertical-align: top;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr {
+      transition: background-color 120ms ease;
+    }
+
+    tbody tr:hover {
+      background-color: var(--mantine-color-default-hover);
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: color-mix(in srgb, var(--mantine-color-default-hover) 35%, transparent);
+    }
+
+    tbody tr:nth-child(even):hover {
+      background-color: var(--mantine-color-default-hover);
     }
   }
 }
