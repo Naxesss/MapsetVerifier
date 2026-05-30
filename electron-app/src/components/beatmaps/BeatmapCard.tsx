@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useBeatmap } from '../../context/BeatmapContext';
+import { useBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
 import { Beatmap } from '../../Types.ts';
 import { buildBeatmapImageUrl } from '../../utils/buildBeatmapFolderPath.ts';
 
@@ -18,6 +19,7 @@ function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: Beat
   const { selectedFolder, setSelectedFolder } = useBeatmap();
   const [bgUrl, setBgUrl] = useState<string | undefined>(undefined);
   const [isHovered, setIsHovered] = useState(false);
+  const { triggerReparse } = useBeatmapReparse();
 
   useEffect(() => {
     if (!beatmap.folder || beatmap.folder === 'placeholder') {
@@ -47,7 +49,42 @@ function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: Beat
   const isSelected = isSelectedOverride ?? selectedFolder === beatmap.folder;
 
   const transitionMs = '0.22s ease';
-  const active = isSelected || isHovered;
+
+  const cardVisual = (() => {
+    if (isSelected && isHovered) {
+      return {
+        border: '1px solid var(--mantine-color-blue-4)',
+        boxShadow: '0 10px 28px rgba(0, 0, 0, 0.4)',
+        overlay: 'rgba(0, 0, 0, 0.38)',
+        scale: 1.045,
+      };
+    }
+
+    if (isSelected) {
+      return {
+        border: '1px solid var(--mantine-color-blue-6)',
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.28)',
+        overlay: 'rgba(0, 0, 0, 0.48)',
+        scale: 1,
+      };
+    }
+
+    if (isHovered) {
+      return {
+        border: '1px solid var(--mantine-color-dark-2)',
+        boxShadow: '0 6px 20px rgba(0, 0, 0, 0.32)',
+        overlay: 'rgba(0, 0, 0, 0.52)',
+        scale: 1.025,
+      };
+    }
+
+    return {
+      border: '1px solid var(--mantine-color-dark-4)',
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+      overlay: 'rgba(0, 0, 0, 0.6)',
+      scale: 1,
+    };
+  })();
 
   const textStyle = {
     overflow: 'hidden',
@@ -72,15 +109,15 @@ function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: Beat
         position: 'relative',
         overflow: 'hidden',
         cursor: 'pointer',
-        border: active
-          ? '1px solid var(--mantine-color-blue-6)'
-          : '1px solid var(--mantine-color-dark-4)',
-        boxShadow: active
-          ? '0 0 0 1px color-mix(in srgb, var(--mantine-color-blue-6) 35%, transparent), 0 8px 24px rgba(0, 0, 0, 0.35)'
-          : '0 2px 8px rgba(0, 0, 0, 0.2)',
+        border: cardVisual.border,
+        boxShadow: cardVisual.boxShadow,
         transition: `border-color ${transitionMs}, box-shadow ${transitionMs}`,
       }}
       onClick={() => {
+        if (beatmap.folder === selectedFolder) {
+          return triggerReparse();
+        }
+
         if (onSelect) {
           onSelect();
         } else {
@@ -112,7 +149,7 @@ function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: Beat
           borderRadius: 'var(--mantine-radius-md)',
           zIndex: 0,
           backgroundImage: bgUrl ? `url('${bgUrl}')` : 'none',
-          transform: active ? 'scale(1.045)' : 'scale(1)',
+          transform: `scale(${cardVisual.scale})`,
           transformOrigin: 'center center',
           transition: `transform ${transitionMs}`,
         }}
@@ -125,7 +162,7 @@ function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: Beat
           left: 0,
           width: '100%',
           height: '100%',
-          background: active ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0.6)',
+          background: cardVisual.overlay,
           borderRadius: 'var(--mantine-radius-md)',
           zIndex: 1,
           pointerEvents: 'none',
@@ -142,6 +179,11 @@ function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: Beat
           zIndex: 2,
           overflow: 'hidden',
           textAlign: 'center',
+          cursor: 'pointer',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
         }}
       >
         <Stack gap="sm">

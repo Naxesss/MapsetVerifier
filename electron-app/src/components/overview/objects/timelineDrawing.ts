@@ -265,7 +265,11 @@ function getSliderSnapTimeMsAtX(
     }
   }
 
-  if (timelineObject.edges.some((edge) => isHoverableTimelineEdge(timelineObject.objectType, edge.partName))) {
+  if (
+    timelineObject.edges.some((edge) =>
+      isHoverableTimelineEdge(timelineObject.objectType, edge.partName)
+    )
+  ) {
     return bestTimeMs;
   }
 

@@ -1,9 +1,4 @@
-import {
-  AppShell,
-  Container,
-  MantineProvider,
-  ScrollArea,
-} from '@mantine/core';
+import { AppShell, Container, MantineProvider, ScrollArea } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { Notifications } from '@mantine/notifications';
 import { useLayoutEffect, useRef } from 'react';
@@ -73,22 +68,22 @@ function AppContent() {
                       collapsed: { desktop: !desktopOpened },
                     }}
                   >
-                    <NavBars desktopOpened={desktopOpened} toggleDesktop={toggleDesktop} />
-                    <AppShell.Main>
-                      <ScrollArea
-                        offsetScrollbars
-                        type="always"
-                        h="calc(100vh - var(--app-shell-header-offset, 0rem) + var(--app-shell-padding))"
-                      >
-                        <Container p="sm" fluid>
-                          <BeatmapReparseProvider>
-                            <RouteErrorBoundary>
-                              <BeatmapKeyedOutlet />
-                            </RouteErrorBoundary>
-                          </BeatmapReparseProvider>
-                        </Container>
-                      </ScrollArea>
-                    </AppShell.Main>
+                    <BeatmapReparseProvider>
+                      <NavBars desktopOpened={desktopOpened} toggleDesktop={toggleDesktop} />
+                      <AppShell.Main>
+                        <ScrollArea
+                          offsetScrollbars
+                          type="always"
+                          h="calc(100vh - var(--app-shell-header-offset, 0rem) + var(--app-shell-padding))"
+                        >
+                          <Container p="sm" fluid>
+                              <RouteErrorBoundary>
+                                <BeatmapKeyedOutlet />
+                              </RouteErrorBoundary>
+                          </Container>
+                        </ScrollArea>
+                      </AppShell.Main>
+                    </BeatmapReparseProvider>
                   </AppShell>
                 </DocumentationProvider>
               </BackendGate>
