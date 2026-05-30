@@ -118,7 +118,8 @@ namespace MapsetVerifier.Checks.Taiko.Design
                     var offsetCoords = offset.Key;
                     var offsetCoordsText = string.Create(
                         CultureInfo.InvariantCulture,
-                        $"({offsetCoords.X}, {offsetCoords.Y})");
+                        $"({offsetCoords.X}, {offsetCoords.Y})"
+                    );
                     var diffNames = string.Join(", ", offset.Value);
                     yield return new Issue(
                         GetTemplate(Inconsistent),
