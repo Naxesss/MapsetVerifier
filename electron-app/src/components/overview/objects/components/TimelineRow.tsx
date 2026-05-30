@@ -369,6 +369,8 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
         hover={headHover}
         opened={headHover !== null && !isPanningTimeline && contextMenuState === null}
         anchorY={height / 2}
+        viewMode={viewMode}
+        hitsoundLayers={hitsoundLayers}
       />
     </Box>
   );

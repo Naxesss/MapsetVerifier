@@ -63,9 +63,10 @@ export default function ObjectsTimelineHelpModal({
                   as outer rings. Finish and Clap reuse the Soft and Drum hues; Whistle uses green.
                 </List.Item>
                 <List.Item>
-                  <strong>Slider and spinner bodies</strong> are tinted by their hitnormal{' '}
-                  <strong>sample bank</strong> (Normal, Soft, or Drum). Sliders with a body addition
-                  (whistle, finish, or clap) also show a coloured stroke along the body path.
+                  <strong>Slider and spinner bodies</strong> — the path tint is the object{' '}
+                  <strong>sample bank</strong> for sliderslide (Normal, Soft, or Drum). Every slider
+                  has a sliderslide; only body-whistle sliders also get a second dash in the passive
+                  lane.
                 </List.Item>
                 <List.Item>
                   Double-click an object or edge to snap the <strong>playhead</strong> to that time
@@ -114,10 +115,9 @@ export default function ObjectsTimelineHelpModal({
                   overlay sample.
                 </List.Item>
                 <List.Item>
-                  <strong>Passive lane</strong> — dash for slider body hits, dot for slider ticks.
-                  Body markers use their sample bank fill; body addition samples (e.g. sliderwhistle)
-                  add a coloured outline. Slider bodies in the row above mirror body additions with
-                  a stroke.
+                  <strong>Passive lane</strong> — dash for sliderslide (object bank) and, when
+                  present, a second dash for sliderwhistle (addition bank). Dot for slidertick.
+                  Both dashes can appear at the same timing line when body whistle is enabled.
                 </List.Item>
                 <List.Item>
                   Circles above the strip show additions; bars in the strip show the underlying

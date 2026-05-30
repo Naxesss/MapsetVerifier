@@ -6,7 +6,6 @@ import {
   getHitsoundCircleOuterRadius,
   getSamplesetColor,
   getSecondaryHitsoundColors,
-  hasSliderBodyAddition,
   SAMPLESET_BODY_ALPHA,
   type HitsoundLayerVisibility,
   type TimelineViewMode,
@@ -401,6 +400,36 @@ export function findTimelineObjectHeadAtX({
       const threshold = getTimelineMarkerHitThreshold(timelineObject, visualTheme);
       consider(timelineObject, edge, edge.timeMs, centerX, threshold, edge.partName);
     }
+
+    if (timelineObject.endTimeMs <= timelineObject.startTimeMs) {
+      continue;
+    }
+
+    const startX = getTimelineX(timelineObject.startTimeMs, startTimeMs, durationMs, timelineWidth);
+    const endX = getTimelineX(timelineObject.endTimeMs, startTimeMs, durationMs, timelineWidth);
+    const minX = Math.min(startX, endX);
+    const maxX = Math.max(startX, endX);
+    const distanceToBody =
+      x >= minX && x <= maxX ? 0 : Math.min(Math.abs(x - minX), Math.abs(x - maxX));
+
+    if (distanceToBody > 8) {
+      continue;
+    }
+
+    const bodyTimeMs =
+      startX === endX
+        ? timelineObject.startTimeMs
+        : timelineObject.startTimeMs +
+          ((x - startX) / (endX - startX)) *
+            (timelineObject.endTimeMs - timelineObject.startTimeMs);
+    const bodyPartLabel =
+      timelineObject.objectType === 'Slider'
+        ? 'Slider body'
+        : timelineObject.objectType === 'Spinner'
+          ? 'Spinner body'
+          : 'Hold note body';
+
+    consider(timelineObject, null, bodyTimeMs, x, 8, bodyPartLabel);
   }
 
   return bestHit;
@@ -701,24 +730,6 @@ function drawObjectBody(
     color,
     visualTheme.sliderBody
   );
-
-  if (
-    isHitsoundView &&
-    timelineObject.objectType === 'Slider' &&
-    hasSliderBodyAddition(timelineObject.sliderBodyHitSoundFlags ?? 0)
-  ) {
-    ctx.save();
-    ctx.strokeStyle = withAlpha(
-      getDominantHitsoundColor(timelineObject.sliderBodyHitSoundFlags ?? 0),
-      0.85
-    );
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.moveTo(bodyBounds.startX, centerY);
-    ctx.lineTo(bodyBounds.endX, centerY);
-    ctx.stroke();
-    ctx.restore();
-  }
 }
 
 function drawObjectMarker(

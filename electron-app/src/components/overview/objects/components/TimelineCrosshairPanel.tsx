@@ -1,4 +1,4 @@
-import { Box, Group, Paper, ScrollArea, Stack, Text, Tooltip } from "@mantine/core";
+import { Box, Group, Paper, ScrollArea, Stack, Text } from "@mantine/core";
 import { IconGripVertical } from "@tabler/icons-react";
 import {
   memo,
@@ -11,6 +11,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type RefObject,
 } from "react";
+import { HitsoundContextDetail } from "./HitsoundContextDetail.tsx";
 import { getDifficultyColor } from "../../../common/DifficultyColor.ts";
 import DifficultyColorPill from "../../../common/DifficultyColorPill.tsx";
 import {
@@ -23,24 +24,11 @@ import {
   buildCrosshairRowLookupCache,
   resolveCrosshairRow,
 } from "../crosshairUtils.ts";
-import {
-  buildBaseBodySampleByTime,
-  formatSampleBankLine,
-  getBodyMarkerFillSample,
-  getHitsoundTypesFromFlags,
-  HITSOUND_FLAG_CLAP,
-  HITSOUND_FLAG_FINISH,
-  HITSOUND_FLAG_NORMAL,
-  HITSOUND_FLAG_WHISTLE,
-  parseHitSoundFlags,
-  type HitsoundTypeDisplay,
-} from "../hitsoundUtils.ts";
 import { formatEditorTimestamp, getDifficultyKey } from "../timelineUtils.ts";
-import type { ObjectsTimelineSample } from "../../../../Types";
 
 const DEFAULT_VERTICAL_OFFSET = 50;
-const PANEL_MAX_WIDTH = 360;
-const PANEL_BODY_MAX_HEIGHT = 320;
+const PANEL_MAX_WIDTH = 400;
+const PANEL_BODY_MAX_HEIGHT = 420;
 
 type Point = { x: number; y: number };
 
@@ -99,111 +87,6 @@ function DifficultyName({ version, starRating }: { version: string; starRating: 
   );
 }
 
-function HitsoundTypeSwatch({ type }: { type: HitsoundTypeDisplay }) {
-  const isSecondary = type.role === "ring";
-  const tooltipLabel = isSecondary ? "Stacked addition" : "Primary addition";
-
-  return (
-    <Tooltip label={tooltipLabel}>
-      <Group gap={4} wrap="nowrap" style={{ cursor: "help" }}>
-        <Box
-          style={{
-            width: 10,
-            height: 10,
-            borderRadius: isSecondary ? "50%" : 2,
-            background: type.color,
-            boxShadow: isSecondary
-              ? `0 0 0 1px ${type.color}, 0 0 0 2px rgba(255, 255, 255, 0.25)`
-              : undefined,
-            flexShrink: 0,
-            opacity: isSecondary ? 0.65 : 1,
-          }}
-        />
-        <Text size="xs" c={isSecondary ? "dimmed" : undefined}>
-          {type.label}
-        </Text>
-      </Group>
-    </Tooltip>
-  );
-}
-
-function formatHitsoundPartLabel(
-  partName: string,
-  sampleSource: string | null,
-  sample: ObjectsTimelineSample | null
-): string {
-  if (sampleSource === "Body") {
-    if (sample?.hitSound && sample.hitSound !== "Normal") {
-      return `Slider body (${sample.hitSound.toLowerCase()})`;
-    }
-    return "Slider body";
-  }
-  if (sampleSource === "Tick") {
-    return "Slider tick";
-  }
-  return partName;
-}
-
-function hasBodyAdditionFlags(flags: number): boolean {
-  return (flags & (HITSOUND_FLAG_WHISTLE | HITSOUND_FLAG_FINISH | HITSOUND_FLAG_CLAP)) !== 0;
-}
-
-function HitsoundSampleDetail({
-  partName,
-  hitSoundFlags,
-  sample,
-  sampleSource,
-  timelineSamples,
-}: {
-  partName: string;
-  hitSoundFlags: number;
-  sample: ObjectsTimelineSample | null;
-  sampleSource: string | null;
-  timelineSamples: ObjectsTimelineSample[];
-}) {
-  const bodyFlags =
-    sampleSource === "Body" && sample?.hitSound
-      ? parseHitSoundFlags(sample.hitSound)
-      : hitSoundFlags;
-  const resolvedFlags = bodyFlags || HITSOUND_FLAG_NORMAL;
-  const hitsoundTypes = getHitsoundTypesFromFlags(resolvedFlags);
-  const showAdditions =
-    sampleSource === "Edge" ||
-    (sampleSource === "Body" && hasBodyAdditionFlags(resolvedFlags));
-  const baseBodyByTime = buildBaseBodySampleByTime(timelineSamples);
-  const displaySample = sample
-    ? getBodyMarkerFillSample(sample, baseBodyByTime)
-    : null;
-
-  return (
-    <Stack gap={4}>
-      <Text size="sm" fw={500}>
-        {formatHitsoundPartLabel(partName, sampleSource, sample)}
-      </Text>
-      {showAdditions && (
-        <Group gap={6} wrap="wrap" align="center">
-          <Text size="xs" c="dimmed">
-            Hitsound additions
-          </Text>
-          {hitsoundTypes.map((type) => (
-            <HitsoundTypeSwatch key={`${type.label}-${type.role}`} type={type} />
-          ))}
-        </Group>
-      )}
-
-      {displaySample ? (
-        <Text size="xs" c="dimmed">
-          Sample bank: {formatSampleBankLine(displaySample.sampleset, displaySample.customIndex)}
-        </Text>
-      ) : (
-        <Text size="xs" c="dimmed">
-          No sample bank at this point
-        </Text>
-      )}
-    </Stack>
-  );
-}
-
 const TimelineCrosshairPanelBody = memo(function TimelineCrosshairPanelBody() {
   const crosshair = useTimelineCrosshairState();
   const { hitsoundLayers } = useTimelineFullView();
@@ -218,7 +101,7 @@ const TimelineCrosshairPanelBody = memo(function TimelineCrosshairPanelBody() {
     for (const difficulty of orderedDifficulties) {
       caches.set(
         getDifficultyKey(difficulty),
-        buildCrosshairRowLookupCache(difficulty, hitsoundLayers)
+        buildCrosshairRowLookupCache(difficulty, hitsoundLayers),
       );
     }
 
@@ -233,24 +116,19 @@ const TimelineCrosshairPanelBody = memo(function TimelineCrosshairPanelBody() {
       .map((difficulty) => {
         const difficultyKey = getDifficultyKey(difficulty);
         const cache = lookupCaches.get(difficultyKey);
-        const samples = cache?.sortedSamples ?? [];
+        const samples = cache?.enrichedSamples ?? difficulty.timelineSamples ?? [];
         const resolved = resolveCrosshairRow(
           difficulty,
           crosshair.timestampMs,
           samples,
-          cache
+          cache,
         );
 
         return {
           key: difficultyKey,
           version: difficulty.version,
           starRating: difficulty.starRating,
-          partName: resolved.partName,
-          hitSoundFlags: resolved.hitSoundFlags,
-          sample: resolved.sample,
-          sampleSource: resolved.sampleSource,
-          timelineSamples: difficulty.timelineSamples ?? [],
-          hasEdge: resolved.hasMatch,
+          resolved,
         };
       });
   }, [crosshair, lookupCaches, orderedDifficulties, visibilityByDifficulty]);
@@ -269,17 +147,14 @@ const TimelineCrosshairPanelBody = memo(function TimelineCrosshairPanelBody() {
         <Stack key={row.key} gap={4}>
           <DifficultyName version={row.version} starRating={row.starRating} />
 
-          {row.hasEdge ? (
-            <HitsoundSampleDetail
-              partName={row.partName}
-              hitSoundFlags={row.hitSoundFlags}
-              sample={row.sample}
-              sampleSource={row.sampleSource}
-              timelineSamples={row.timelineSamples}
+          {row.resolved.hasMatch ? (
+            <HitsoundContextDetail
+              resolved={row.resolved}
+              timestampMs={crosshair.timestampMs}
             />
           ) : (
             <Text size="xs" c="dimmed">
-              No sample at playhead
+              No hitsound context at playhead
             </Text>
           )}
         </Stack>
@@ -416,7 +291,9 @@ export function TimelineCrosshairFloatingPanel({
     };
   }, [applyPosition, boundsRef, resetKey]);
 
-  const headerTitle = crosshair ? formatEditorTimestamp(crosshair.timestampMs) : "Drag timeline to seek";
+  const headerTitle = crosshair
+    ? formatEditorTimestamp(crosshair.timestampMs)
+    : "Drag timeline to seek";
 
   return (
     <Box pos="absolute" inset={0} style={{ zIndex: 30, pointerEvents: "none" }}>
@@ -425,7 +302,8 @@ export function TimelineCrosshairFloatingPanel({
         left={position.x}
         top={position.y}
         style={{ pointerEvents: "auto" }}
-        onPointerDown={(event) => event.stopPropagation()}>
+        onPointerDown={(event) => event.stopPropagation()}
+      >
         <Paper
           ref={panelRef}
           shadow="lg"
@@ -435,7 +313,8 @@ export function TimelineCrosshairFloatingPanel({
             width: "max-content",
             maxWidth: PANEL_MAX_WIDTH,
             background: "var(--mantine-color-dark-6)",
-          }}>
+          }}
+        >
           <Group
             gap={6}
             wrap="nowrap"
@@ -450,7 +329,8 @@ export function TimelineCrosshairFloatingPanel({
               borderBottom: "1px solid var(--mantine-color-dark-4)",
               userSelect: "none",
               touchAction: "none",
-            }}>
+            }}
+          >
             <IconGripVertical size={14} color="var(--mantine-color-primary-2)" />
             <Text size="xs" mr="xs" fw={600} style={{ lineHeight: 1.35 }}>
               {headerTitle}

@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Numerics;
 using MapsetVerifier.Parser.Objects.HitObjects;
+using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
 using MathNet.Numerics;
 
@@ -369,6 +370,53 @@ namespace MapsetVerifier.Parser.Objects
             );
         }
 
+        /// <summary>
+        ///     Returns the times at which slider body samples play during a slider.
+        ///     Includes the slider start, each beat crossed while the slider is active, and any timing lines that begin inside the slider.
+        /// </summary>
+        private IEnumerable<double> GetSliderBodySampleTimes(Slider slider)
+        {
+            var sampleTimes = new SortedSet<double> { slider.time };
+
+            foreach (
+                var line in beatmap.TimingLines.Where(line =>
+                    line.Offset > slider.time && line.Offset <= slider.EndTime
+                )
+            )
+                sampleTimes.Add(line.Offset);
+
+            foreach (var beatTime in GetBeatTimesAfter(slider.time, slider.EndTime))
+                sampleTimes.Add(beatTime);
+
+            return sampleTimes;
+        }
+
+        /// <summary> Returns beat start times strictly after <paramref name="startTime" /> up to <paramref name="endTime" />. </summary>
+        private IEnumerable<double> GetBeatTimesAfter(double startTime, double endTime)
+        {
+            const int maxBeats = 512;
+            var line = beatmap.GetTimingLine<UninheritedLine>(startTime);
+            if (line == null)
+                yield break;
+
+            var beatTime = startTime - beatmap.GetOffsetIntoBeat(startTime, line) + line.msPerBeat;
+
+            for (var i = 0; i < maxBeats && beatTime <= endTime + 1; ++i)
+            {
+                if (beatTime > startTime + 1)
+                    yield return beatTime;
+
+                var advanceFrom = beatTime;
+                line = beatmap.GetTimingLine<UninheritedLine>(advanceFrom) ?? line;
+                var nextBeat = advanceFrom - beatmap.GetOffsetIntoBeat(advanceFrom, line) + line.msPerBeat;
+
+                // Guard against floating-point stalls when already on a beat boundary.
+                beatTime = nextBeat.AlmostEqual(advanceFrom)
+                    ? advanceFrom + line.msPerBeat
+                    : nextBeat;
+            }
+        }
+
         /// <summary> Returns all used combinations of customs, samplesets and hit sounds for this object. </summary>
         protected IEnumerable<HitSample> GetUsedHitSamples()
         {
@@ -448,21 +496,14 @@ namespace MapsetVerifier.Parser.Objects
                     );
                 }
 
-                var lines = beatmap
-                    .TimingLines.Where(line =>
-                        line.Offset > slider.time && line.Offset <= slider.EndTime
-                    )
-                    .ToList();
-
-                var sliderTimingLine = beatmap.GetTimingLine(slider.time, true);
-
-                if (sliderTimingLine != null)
-                    lines.Add(sliderTimingLine);
-
                 // Body, only applies to standard. Catch has droplets instead of body. Taiko and mania have a body but play no background sound.
                 if (beatmap.GeneralSettings.mode == Beatmap.Mode.Standard)
-                    foreach (var line in lines)
+                    foreach (var bodyTime in GetSliderBodySampleTimes(slider))
                     {
+                        var line = beatmap.GetTimingLine(bodyTime, true);
+                        if (line == null)
+                            continue;
+
                         // Priority: object sampleset > line sampleset
                         // The addition is ignored for sliderslides, it seems.
                         var effectiveSampleset =
@@ -474,24 +515,25 @@ namespace MapsetVerifier.Parser.Objects
                             effectiveSampleset,
                             HitSounds.None,
                             HitSample.HitSourceType.Body,
-                            line.Offset
+                            bodyTime
                         );
 
                         // Additions are not ignored for sliderwhistles, however.
-                        if (slider.hitSound == HitSounds.Whistle)
-                            effectiveSampleset =
+                        if (slider.HasHitSound(HitSounds.Whistle))
+                        {
+                            var whistleSampleset =
                                 addition != HitSample.SamplesetType.Auto
                                     ? addition
                                     : effectiveSampleset;
 
-                        if (slider.hitSound != HitSounds.None)
                             yield return new HitSample(
                                 line.CustomIndex,
-                                effectiveSampleset,
-                                slider.hitSound,
+                                whistleSampleset,
+                                HitSounds.Whistle,
                                 HitSample.HitSourceType.Body,
-                                line.Offset
+                                bodyTime
                             );
+                        }
                     }
 
                 // Tick, only applies to standard and catch. Mania has no ticks, taiko sliders play regular impacts.

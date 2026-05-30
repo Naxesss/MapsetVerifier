@@ -8,6 +8,7 @@ import {
 } from './TimelineCrosshairPanel.tsx';
 import { HITSOUND_ROW_HEIGHT, LABEL_WIDTH, PLAYHEAD_VIEWPORT_OFFSET, ROW_HEIGHT } from '../constants.ts';
 import {
+  TimelineControllerProvider,
   TimelineCrosshairProvider,
   TimelineFullViewProvider,
   TimelinePanProvider,
@@ -26,18 +27,24 @@ import {
   getPlayheadScrollPadding,
   getScrollLeftForTimestamp,
 } from '../timelineUtils.ts';
-import type { TimelineCrosshairState, TimelinePanValue } from '../context/types.ts';
+import type {
+  TimelineControllerValue,
+  TimelineCrosshairState,
+  TimelinePanValue,
+} from '../context/types.ts';
 
 type ObjectsTimelineFullViewModalProps = {
   opened: boolean;
   onClose: () => void;
   pan: TimelinePanValue;
+  controller: TimelineControllerValue;
 };
 
 export default function ObjectsTimelineFullViewModal({
   opened,
   onClose,
   pan,
+  controller,
 }: ObjectsTimelineFullViewModalProps) {
   return (
     <Modal.Root opened={opened} onClose={onClose} size="100%" centered>
@@ -64,7 +71,11 @@ export default function ObjectsTimelineFullViewModal({
             },
           }}
         >
-          {opened && <ObjectsTimelineFullViewModalBody pan={pan} />}
+          {opened && (
+            <TimelineControllerProvider value={controller}>
+              <ObjectsTimelineFullViewModalBody pan={pan} />
+            </TimelineControllerProvider>
+          )}
         </Modal.Body>
       </Modal.Content>
     </Modal.Root>

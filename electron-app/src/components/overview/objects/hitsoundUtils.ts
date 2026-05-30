@@ -120,27 +120,38 @@ export function isBaseBodySample(sample: ObjectsTimelineSample): boolean {
   return sample.source === 'Body' && isBaseEdgeSample(sample);
 }
 
-export function isBodyAdditionSample(sample: ObjectsTimelineSample): boolean {
-  return sample.source === 'Body' && !isBaseEdgeSample(sample);
+export function isSliderWhistleSample(sample: ObjectsTimelineSample): boolean {
+  if (sample.source !== 'Body' || isBaseBodySample(sample)) {
+    return false;
+  }
+
+  const flags = parseHitSoundFlags(sample.hitSound);
+  return flags === 0 || (flags & HITSOUND_FLAG_WHISTLE) !== 0;
 }
 
-/** Drop redundant sliderslide markers when a body addition sample exists at the same time. */
-export function dedupePassiveBodySamples(samples: ObjectsTimelineSample[]): ObjectsTimelineSample[] {
-  const additionTimes = new Set<number>();
+export function getSliderWhistleSampleAtTime(
+  samples: ObjectsTimelineSample[],
+  timeMs: number,
+  toleranceMs = 2
+): ObjectsTimelineSample | null {
+  let best: ObjectsTimelineSample | null = null;
+  let bestDistance = Number.POSITIVE_INFINITY;
 
   for (const sample of samples) {
-    if (isBodyAdditionSample(sample)) {
-      additionTimes.add(sample.timeMs);
+    if (!isSliderWhistleSample(sample)) {
+      continue;
     }
+
+    const distance = Math.abs(sample.timeMs - timeMs);
+    if (distance > toleranceMs || distance >= bestDistance) {
+      continue;
+    }
+
+    bestDistance = distance;
+    best = sample;
   }
 
-  if (additionTimes.size === 0) {
-    return samples;
-  }
-
-  return samples.filter(
-    (sample) => !(isBaseBodySample(sample) && additionTimes.has(sample.timeMs))
-  );
+  return best;
 }
 
 export function buildBaseBodySampleByTime(
@@ -157,21 +168,8 @@ export function buildBaseBodySampleByTime(
   return baseByTime;
 }
 
-export function getBodyMarkerFillSample(
-  sample: ObjectsTimelineSample,
-  baseBodyByTime: Map<number, ObjectsTimelineSample>
-): ObjectsTimelineSample {
-  if (!isBodyAdditionSample(sample)) {
-    return sample;
-  }
-
-  return baseBodyByTime.get(sample.timeMs) ?? sample;
-}
-
-export function hasSliderBodyAddition(flags: number): boolean {
-  return (
-    (flags & (HITSOUND_FLAG_WHISTLE | HITSOUND_FLAG_FINISH | HITSOUND_FLAG_CLAP)) !== 0
-  );
+export function hasSliderBodyWhistle(flags: number): boolean {
+  return (flags & HITSOUND_FLAG_WHISTLE) !== 0;
 }
 
 function findPrimaryBodySampleInRange(
@@ -179,6 +177,8 @@ function findPrimaryBodySampleInRange(
   startTimeMs: number,
   endTimeMs: number
 ): ObjectsTimelineSample | null {
+  let fallback: ObjectsTimelineSample | null = null;
+
   for (const sample of bodySamples) {
     if (sample.timeMs < startTimeMs - 1 || sample.timeMs > endTimeMs + 1) {
       continue;
@@ -187,9 +187,11 @@ function findPrimaryBodySampleInRange(
     if (isBaseBodySample(sample)) {
       return sample;
     }
+
+    fallback ??= sample;
   }
 
-  return null;
+  return fallback;
 }
 
 /** Prefer the base hitnormal sample; osu! emits separate samples per addition at the same edge. */
@@ -326,20 +328,25 @@ export function getHitsoundCircleOuterRadius(baseRadius: number, flags: number):
   return getHitsoundCircleLayout(baseRadius, flags).outerRadius;
 }
 
-export function parseHitSoundFlags(hitSound: string): number {
+export function parseHitSoundFlags(hitSound: string | null | undefined): number {
+  const text = String(hitSound ?? '').toLowerCase();
   let flags = 0;
 
-  if (hitSound.includes('Normal')) {
+  if (text.includes('normal')) {
     flags |= HITSOUND_FLAG_NORMAL;
   }
-  if (hitSound.includes('Whistle')) {
+  if (text.includes('whistle')) {
     flags |= HITSOUND_FLAG_WHISTLE;
   }
-  if (hitSound.includes('Finish')) {
+  if (text.includes('finish')) {
     flags |= HITSOUND_FLAG_FINISH;
   }
-  if (hitSound.includes('Clap')) {
+  if (text.includes('clap')) {
     flags |= HITSOUND_FLAG_CLAP;
+  }
+
+  if (flags === 0 && /^[0-9]+$/.test(text.trim())) {
+    return Number.parseInt(text, 10);
   }
 
   return flags;

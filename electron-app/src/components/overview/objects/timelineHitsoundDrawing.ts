@@ -1,11 +1,9 @@
 import {
-  buildBaseBodySampleByTime,
-  dedupePassiveBodySamples,
-  getBodyMarkerFillSample,
-  getDominantHitsoundColor,
   getSamplesetColor,
-  isBodyAdditionSample,
-  parseHitSoundFlags,
+  hasSliderBodyWhistle,
+  isBaseBodySample,
+  isBaseEdgeSample,
+  isSliderWhistleSample,
   HITSOUND_GAP_OVERLAY_ALPHA,
   HITSOUND_GAP_OVERLAY_COLOR,
   SAMPLESET_ACCENT_ALPHA,
@@ -18,6 +16,7 @@ import { withAlpha } from '../../../utils/color.ts';
 import type {
   ObjectsHitsoundGapPeriod,
   ObjectsOverviewDifficulty,
+  ObjectsTimelineObject,
   ObjectsTimelineSample,
   ObjectsTimingSegment,
 } from '../../../Types';
@@ -29,6 +28,7 @@ export const SOUND_STRIP_LANE_GAP = 2;
 export const EDGE_MARKER_WIDTH = 4;
 export const BODY_MARKER_WIDTH = 8;
 export const BODY_MARKER_HEIGHT = 5;
+export const BODY_MARKER_PAIR_OFFSET = 5;
 export const TICK_MARKER_RADIUS = 3;
 
 export type SoundStripBounds = {
@@ -180,8 +180,7 @@ function drawBodyMarker(
   ctx: CanvasRenderingContext2D,
   x: number,
   bounds: SoundStripBounds,
-  color: string,
-  additionColor?: string
+  color: string
 ) {
   const markerLeft = x - BODY_MARKER_WIDTH / 2;
   const markerTop =
@@ -190,16 +189,9 @@ function drawBodyMarker(
   ctx.fillStyle = color;
   ctx.fillRect(markerLeft, markerTop, BODY_MARKER_WIDTH, BODY_MARKER_HEIGHT);
 
-  if (additionColor) {
-    ctx.strokeStyle = withAlpha(additionColor, 0.95);
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(
-      markerLeft + 0.75,
-      markerTop + 0.75,
-      BODY_MARKER_WIDTH - 1.5,
-      BODY_MARKER_HEIGHT - 1.5
-    );
-  }
+  ctx.strokeStyle = withAlpha('#ffffff', 0.3);
+  ctx.lineWidth = 1;
+  ctx.strokeRect(markerLeft + 0.5, markerTop + 0.5, BODY_MARKER_WIDTH - 1, BODY_MARKER_HEIGHT - 1);
 }
 
 function drawTickMarker(
@@ -223,7 +215,132 @@ function drawTickMarker(
 const PASSIVE_MARKER_CULL_PADDING = 2;
 
 function getPassiveMarkerCullMargin(): number {
-  return Math.max(BODY_MARKER_WIDTH, TICK_MARKER_RADIUS * 2) / 2 + PASSIVE_MARKER_CULL_PADDING;
+  return (
+    Math.max(BODY_MARKER_WIDTH + BODY_MARKER_PAIR_OFFSET, TICK_MARKER_RADIUS * 2) / 2 +
+    PASSIVE_MARKER_CULL_PADDING
+  );
+}
+
+function buildPairedBodyTimes(samples: ObjectsTimelineSample[]): Set<number> {
+  const slideTimes = new Set<number>();
+  const whistleTimes = new Set<number>();
+
+  for (const sample of samples) {
+    if (sample.source !== 'Body') {
+      continue;
+    }
+
+    if (isBaseBodySample(sample)) {
+      slideTimes.add(sample.timeMs);
+    } else if (isSliderWhistleSample(sample)) {
+      whistleTimes.add(sample.timeMs);
+    }
+  }
+
+  const paired = new Set<number>();
+  for (const timeMs of slideTimes) {
+    if (whistleTimes.has(timeMs)) {
+      paired.add(timeMs);
+    }
+  }
+
+  return paired;
+}
+
+function getBodyMarkerX(
+  sample: ObjectsTimelineSample,
+  x: number,
+  pairedBodyTimes: Set<number>
+): number {
+  if (!pairedBodyTimes.has(sample.timeMs)) {
+    return x;
+  }
+
+  if (isSliderWhistleSample(sample)) {
+    return x + BODY_MARKER_PAIR_OFFSET;
+  }
+
+  if (isBaseBodySample(sample)) {
+    return x - BODY_MARKER_PAIR_OFFSET;
+  }
+
+  return x;
+}
+
+export function enrichBodySamplesForDisplay(
+  samples: ObjectsTimelineSample[],
+  timelineObjects: ObjectsTimelineObject[]
+): ObjectsTimelineSample[] {
+  const enriched = [...samples];
+  const whistleTimes = new Set<number>();
+
+  for (const sample of samples) {
+    if (isSliderWhistleSample(sample)) {
+      whistleTimes.add(sample.timeMs);
+    }
+  }
+
+  for (const object of timelineObjects) {
+    if (object.objectType !== 'Slider') {
+      continue;
+    }
+
+    const inRangeBaseSamples = samples.filter(
+      (sample) =>
+        sample.source === 'Body' &&
+        isBaseBodySample(sample) &&
+        sample.timeMs >= object.startTimeMs - 1 &&
+        sample.timeMs <= object.endTimeMs + 1
+    );
+    const hasWhistleInRange = samples.some(
+      (sample) =>
+        isSliderWhistleSample(sample) &&
+        sample.timeMs >= object.startTimeMs - 1 &&
+        sample.timeMs <= object.endTimeMs + 1
+    );
+
+    if (
+      inRangeBaseSamples.length === 0 &&
+      hasSliderBodyWhistle(object.sliderBodyHitSoundFlags ?? 0)
+    ) {
+      const headSample = samples.find(
+        (sample) =>
+          sample.source === 'Edge' &&
+          Math.abs(sample.timeMs - object.startTimeMs) <= 2 &&
+          isBaseEdgeSample(sample)
+      );
+      const fallbackSampleset = headSample?.sampleset ?? 'Normal';
+
+      enriched.push({
+        timeMs: object.startTimeMs,
+        source: 'Body',
+        hitSound: null,
+        sampleset: fallbackSampleset,
+        customIndex: headSample?.customIndex ?? 1,
+        partName: null,
+        objectType: 'Slider',
+      });
+      inRangeBaseSamples.push(enriched[enriched.length - 1]);
+    }
+
+    if (!hasSliderBodyWhistle(object.sliderBodyHitSoundFlags ?? 0) || hasWhistleInRange) {
+      continue;
+    }
+
+    for (const sample of inRangeBaseSamples) {
+      if (whistleTimes.has(sample.timeMs)) {
+        continue;
+      }
+
+      enriched.push({
+        ...sample,
+        hitSound: 'Whistle',
+      });
+      whistleTimes.add(sample.timeMs);
+    }
+  }
+
+  return enriched;
 }
 
 export function drawSoundStrip(
@@ -250,9 +367,11 @@ export function drawSoundStrip(
     primaryEdgeMarkers: PrimaryEdgeMarker[];
   }
 ) {
-  const allSamples = difficulty.timelineSamples ?? [];
-  const samples = dedupePassiveBodySamples(allSamples);
-  const baseBodyByTime = buildBaseBodySampleByTime(allSamples);
+  const samples = enrichBodySamplesForDisplay(
+    difficulty.timelineSamples ?? [],
+    difficulty.timelineObjects
+  );
+  const pairedBodyTimes = buildPairedBodyTimes(samples);
   const bounds = getSoundStripBounds(height);
 
   drawLaneDivider(ctx, bounds, visibleStartX, visibleEndX);
@@ -272,15 +391,11 @@ export function drawSoundStrip(
     const cullMargin = getPassiveMarkerCullMargin();
     if (x < visibleStartX - cullMargin || x > visibleEndX + cullMargin) continue;
 
-    const fillSample = getBodyMarkerFillSample(sample, baseBodyByTime);
-    const color = withAlpha(getSamplesetColor(fillSample.sampleset), 0.9);
+    const color = withAlpha(getSamplesetColor(sample.sampleset), 0.9);
     if (sample.source === 'Tick') {
       drawTickMarker(ctx, x, bounds, color);
     } else {
-      const additionColor = isBodyAdditionSample(sample)
-        ? getDominantHitsoundColor(parseHitSoundFlags(sample.hitSound ?? ''))
-        : undefined;
-      drawBodyMarker(ctx, x, bounds, color, additionColor);
+      drawBodyMarker(ctx, getBodyMarkerX(sample, x, pairedBodyTimes), bounds, color);
     }
   }
 
@@ -296,12 +411,10 @@ export function filterSamplesForHover(
   samples: ObjectsTimelineSample[],
   layers: HitsoundLayerVisibility
 ): ObjectsTimelineSample[] {
-  const filtered = samples.filter((sample) => {
+  return samples.filter((sample) => {
     if (sample.source === 'Edge') return true;
     if (sample.source === 'Body') return layers.body;
     if (sample.source === 'Tick') return layers.ticks;
     return false;
   });
-
-  return dedupePassiveBodySamples(filtered);
 }
