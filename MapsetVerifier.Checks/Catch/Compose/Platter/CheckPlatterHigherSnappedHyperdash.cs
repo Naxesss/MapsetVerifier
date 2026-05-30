@@ -41,8 +41,8 @@ public class CheckPlatterHigherSnappedHyperdash : BeatmapCheck
                 "HigherSnapFollowedByAntiFlow",
                 new IssueTemplate(
                     Issue.Level.Warning,
-                    "{0} Higher-snapped hyperdashes followed by antiflow.",
-                    "timestamp -"
+                    "{0} Higher-snapped hyperdashes on {1} followed by antiflow.",
+                    "timestamp -", "note"
                 )
             },
         };
@@ -58,15 +58,15 @@ public class CheckPlatterHigherSnappedHyperdash : BeatmapCheck
             var next = catchObjects[i + 1];
 
             // Only higher-snapped hyperdashes are relevant for this check.
-            if (current.MovementType != CatchMovementType.Hyperdash)
-                continue; // || !current.IsHigherSnapped(next, Beatmap.Difficulty.Hard)) continue;
+            if (current.MovementType != CatchMovementType.Hyperdash || !current.IsHigherSnapped(next, Beatmap.Difficulty.Hard))
+                continue;
 
             // No need to check for dashes or hyperdashes as they are covered in other checks.
             if (next.MovementType == CatchMovementType.Walk)
             {
                 // Only direction changes are classified as antiflow patterns.
                 if (
-                    current.NoteDirection == CatchNoteDirection.None
+                    next.NoteDirection == CatchNoteDirection.None
                     || current.NoteDirection == next.NoteDirection
                 )
                 {
@@ -77,7 +77,8 @@ public class CheckPlatterHigherSnappedHyperdash : BeatmapCheck
                 yield return new Issue(
                     GetTemplate("HigherSnapFollowedByAntiFlow"),
                     beatmap,
-                    CatchExtensions.GetTimestamps(current, next)
+                    CatchExtensions.GetTimestamps(current, next),
+                    current.GetNoteTypeName()
                 ).ForDifficulties(Beatmap.Difficulty.Hard);
             }
         }
