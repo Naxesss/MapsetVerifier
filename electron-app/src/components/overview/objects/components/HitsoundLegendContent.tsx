@@ -195,6 +195,21 @@ export default function HitsoundLegendContent() {
           ))}
         </LanePreview>
 
+        <Group gap={8} wrap="nowrap" align="flex-start">
+          <Text size="xs" c="dimmed" w={92} style={{ flexShrink: 0, paddingTop: 2 }}>
+            Section tint
+          </Text>
+          <Stack gap={4}>
+            <Group gap="md" wrap="wrap">
+              <SectionTintPreview color={EDITOR_SAMPLE_BANK_COLORS.Normal} label="Normal section" />
+              <SectionTintPreview color={EDITOR_SAMPLE_BANK_COLORS.Soft} label="Soft section" />
+              <SectionTintPreview color={EDITOR_SAMPLE_BANK_COLORS.Drum} label="Drum section" />
+            </Group>
+          </Stack>
+        </Group>
+      </Stack>
+
+      <Stack gap={6}>
         <LanePreview label="Object body" height={SOUND_STRIP_EDGE_LANE_HEIGHT}>
           {sampleBanks.map((item) => (
             <Group key={item.label} gap={6} wrap="nowrap">
@@ -205,9 +220,6 @@ export default function HitsoundLegendContent() {
             </Group>
           ))}
         </LanePreview>
-      </Stack>
-
-      <Stack gap={6}>
         <LanePreview
           label="Slider sounds"
           height={SOUND_STRIP_PASSIVE_LANE_HEIGHT + SOUND_STRIP_LANE_GAP}
@@ -230,27 +242,7 @@ export default function HitsoundLegendContent() {
               Slidertick
             </Text>
           </Group>
-          <Text size="xs" c="dimmed">
-            Slider line = object sample bank. Each dash/dot colour is its sample bank; whistle uses
-            the addition bank.
-          </Text>
         </LanePreview>
-
-        <Group gap={8} wrap="nowrap" align="flex-start">
-          <Text size="xs" c="dimmed" w={92} style={{ flexShrink: 0, paddingTop: 2 }}>
-            Section tint
-          </Text>
-          <Stack gap={4}>
-            <Group gap="md" wrap="wrap">
-              <SectionTintPreview color={EDITOR_SAMPLE_BANK_COLORS.Normal} label="Normal section" />
-              <SectionTintPreview color={EDITOR_SAMPLE_BANK_COLORS.Soft} label="Soft section" />
-              <SectionTintPreview color={EDITOR_SAMPLE_BANK_COLORS.Drum} label="Drum section" />
-            </Group>
-            <Text size="xs" c="dimmed">
-              From timing points; Auto sections stay untinted
-            </Text>
-          </Stack>
-        </Group>
 
         <LanePreview label="Gap overlay" height={SOUND_STRIP_EDGE_LANE_HEIGHT}>
           <GapOverlayPreview color={gapOverlayColor} />
