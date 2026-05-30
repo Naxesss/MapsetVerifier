@@ -15,7 +15,7 @@ using osu.Game.Rulesets.Difficulty.Skills;
 
 namespace MapsetVerifier.Parser.Objects
 {
-    public class Beatmap
+    public partial class Beatmap
     {
         /// <summary> Which type of difficulty level the beatmap is considered. </summary>
         public enum Difficulty
@@ -174,6 +174,7 @@ namespace MapsetVerifier.Parser.Objects
                 }
             },
         };
+        private static readonly Dictionary<Mode, Dictionary<string, Difficulty>> DifficultyIndex = new();
 
         public string Code { get; }
         public string SongPath { get; }
@@ -232,6 +233,25 @@ namespace MapsetVerifier.Parser.Objects
         public List<HitObject> HitObjects { get; }
         public List<TimingLine> TimingLines { get; }
 
+        static Beatmap()
+        {
+            foreach (var mode in NameDiffPairs)
+            {
+                var map = new Dictionary<string, Difficulty>();
+
+                foreach (var (difficulty, names) in mode.Value)
+                {
+                    foreach (var name in names)
+                    {
+                        var key = GetRelevantPartOfDifficultyName(name);
+                        map[key] = difficulty;
+                    }
+                }
+
+                DifficultyIndex[mode.Key] = map;
+            }
+        }
+        
         public Beatmap(string code, string songPath, string mapPath)
         {
             Code = code;
@@ -832,10 +852,6 @@ namespace MapsetVerifier.Parser.Objects
                     return difficultyFromStarRating;
                 }
 
-                var levelGap = Math.Abs((int)interpretedFromName - (int)difficultyFromStarRating);
-                if (levelGap >= 2)
-                    return difficultyFromStarRating;
-
                 return interpretedFromName;
             }
 
@@ -856,24 +872,31 @@ namespace MapsetVerifier.Parser.Objects
             };
         }
 
+        private static string GetRelevantPartOfDifficultyName(string input)
+        {
+            input = input.ToLowerInvariant();
+
+            // Remove indication of ownership
+            input = OwnerPrefixRegex().Replace(input, "");
+            input = CollabRegex().Replace(input, "");
+            
+            input = SpecialCharactersRegex().Replace(input, " ");
+            input = WhiteSpaceCleanupRegex().Replace(input, " ").Trim();
+
+            return input;
+        }
+
         public Difficulty? GetDifficultyFromName()
         {
-            var name = MetadataSettings.version;
+            var name = GetRelevantPartOfDifficultyName(MetadataSettings.version);
 
-            // Reverse order allows e.g. "Inner Oni"/"Black Another" to be looked for separately from just "Oni"/"Another".
-            var pairs = NameDiffPairs[GeneralSettings.mode].Reverse();
+            var map = DifficultyIndex[GeneralSettings.mode];
 
-            foreach (var pair in pairs)
-                // Allows difficulty names such as "Normal...!??" and ">{(__HARD;)}" to be detected,
-                // but still prevents "Normality" or similar inclusions.
-                if (
-                    pair.Value.Any(value =>
-                        new Regex(@$"(?i)(^| )[!-@\[-`{{-~]*{value}[!-@\[-`{{-~]*( |$)").IsMatch(
-                            name
-                        )
-                    )
-                )
-                    return pair.Key;
+            // Only do direct matching to avoid false positives
+            if (map.TryGetValue(name, out var diff))
+            {
+                return diff;
+            }
 
             return null;
         }
@@ -1428,5 +1451,14 @@ namespace MapsetVerifier.Parser.Objects
             // Works under the assumption that hit objects and timing lines are immutable per beatmap id, which is the case.
             internal static readonly ConcurrentDictionary<(string, Type), List<T>> cache = new();
         }
+
+        [GeneratedRegex(@"^\s*\w+'s\s+")]
+        private static partial Regex OwnerPrefixRegex();
+        [GeneratedRegex(@"\bcollab\b")]
+        private static partial Regex CollabRegex();
+        [GeneratedRegex(@"[^a-z0-9\s]")]
+        private static partial Regex SpecialCharactersRegex();
+        [GeneratedRegex(@"\s+")]
+        private static partial Regex WhiteSpaceCleanupRegex();
     }
 }
