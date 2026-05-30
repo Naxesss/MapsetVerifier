@@ -174,7 +174,8 @@ namespace MapsetVerifier.Parser.Objects
                 }
             },
         };
-        private static readonly Dictionary<Mode, Dictionary<string, Difficulty>> DifficultyIndex = new();
+        private static readonly Dictionary<Mode, Dictionary<string, Difficulty>> DifficultyIndex =
+            new();
 
         public string Code { get; }
         public string SongPath { get; }
@@ -251,7 +252,7 @@ namespace MapsetVerifier.Parser.Objects
                 DifficultyIndex[mode.Key] = map;
             }
         }
-        
+
         public Beatmap(string code, string songPath, string mapPath)
         {
             Code = code;
@@ -875,7 +876,7 @@ namespace MapsetVerifier.Parser.Objects
             // Remove indication of ownership
             input = OwnerPrefixRegex().Replace(input, "");
             input = CollabRegex().Replace(input, "");
-            
+
             input = SpecialCharactersRegex().Replace(input, " ");
             input = WhiteSpaceCleanupRegex().Replace(input, " ").Trim();
 
@@ -1450,10 +1451,13 @@ namespace MapsetVerifier.Parser.Objects
 
         [GeneratedRegex(@"^\s*\w+'s\s+")]
         private static partial Regex OwnerPrefixRegex();
+
         [GeneratedRegex(@"\bcollab\b")]
         private static partial Regex CollabRegex();
+
         [GeneratedRegex(@"[^a-z0-9\s]")]
         private static partial Regex SpecialCharactersRegex();
+
         [GeneratedRegex(@"\s+")]
         private static partial Regex WhiteSpaceCleanupRegex();
     }

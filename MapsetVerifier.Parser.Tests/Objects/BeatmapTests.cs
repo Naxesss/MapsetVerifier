@@ -7,10 +7,9 @@ public class BeatmapTests
 {
     private Beatmap CreateBeatmap(string version, Beatmap.Mode mode = Beatmap.Mode.Standard)
     {
-        var code =
-$"""
+        var code = $"""
 [General]
-Mode: {(int) mode}
+Mode: {(int)mode}
 
 [Metadata]
 Version:{version}

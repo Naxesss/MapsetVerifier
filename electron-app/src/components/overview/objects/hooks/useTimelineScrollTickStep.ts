@@ -1,8 +1,5 @@
 import { useCallback, useState } from 'react';
-import {
-  TIMELINE_SCROLL_TICK_STEP_OPTIONS,
-  type TimelineScrollTickStep,
-} from '../constants.ts';
+import { TIMELINE_SCROLL_TICK_STEP_OPTIONS, type TimelineScrollTickStep } from '../constants.ts';
 
 const DEFAULT_TICK_STEP: TimelineScrollTickStep = 2;
 
