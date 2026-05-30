@@ -1,9 +1,11 @@
 import {
+  getDominantHitsoundColor,
   getSamplesetColor,
   hasSliderBodyWhistle,
   isBaseBodySample,
   isBaseEdgeSample,
   isSliderWhistleSample,
+  parseHitSoundFlags,
   HITSOUND_GAP_OVERLAY_ALPHA,
   HITSOUND_GAP_OVERLAY_COLOR,
   SAMPLESET_ACCENT_ALPHA,
@@ -391,11 +393,15 @@ export function drawSoundStrip(
     const cullMargin = getPassiveMarkerCullMargin();
     if (x < visibleStartX - cullMargin || x > visibleEndX + cullMargin) continue;
 
-    const color = withAlpha(getSamplesetColor(sample.sampleset), 0.9);
     if (sample.source === 'Tick') {
+      const color = withAlpha(getSamplesetColor(sample.sampleset), 0.9);
       drawTickMarker(ctx, x, bounds, color);
     } else {
-      drawBodyMarker(ctx, getBodyMarkerX(sample, x, pairedBodyTimes), bounds, color);
+      const bodyColor = withAlpha(
+        getDominantHitsoundColor(parseHitSoundFlags(sample.hitSound)),
+        0.9
+      );
+      drawBodyMarker(ctx, getBodyMarkerX(sample, x, pairedBodyTimes), bounds, bodyColor);
     }
   }
 

@@ -693,9 +693,14 @@ function drawObjectBody(
   if (!bodyBounds) return;
 
   const color = isHitsoundView
-    ? bodySample
-      ? withAlpha(getSamplesetColor(bodySample.sampleset), SAMPLESET_BODY_ALPHA)
-      : neutralBodyColor
+    ? timelineObject.objectType === 'Slider'
+      ? withAlpha(
+          getDominantHitsoundColor(timelineObject.sliderBodyHitSoundFlags ?? 0),
+          SAMPLESET_BODY_ALPHA
+        )
+      : bodySample
+        ? withAlpha(getSamplesetColor(bodySample.sampleset), SAMPLESET_BODY_ALPHA)
+        : neutralBodyColor
     : visualTheme.resolveObjectColor(timelineObject);
 
   if (timelineObject.objectType === 'Spinner') {

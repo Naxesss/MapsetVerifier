@@ -4,6 +4,7 @@ import {
   getHitsoundTypesFromFlags,
   getSamplesetColor,
   HITSOUND_FLAG_NORMAL,
+  hasAnySliderBodyAddition,
   hasSliderBodyWhistle,
   type HitsoundTypeDisplay,
 } from '../hitsoundUtils.ts';
@@ -115,7 +116,8 @@ export function HitsoundContextDetail({
   const bodyAdditions = getHitsoundTypesFromFlags(
     resolved.bodyHitSoundFlags || HITSOUND_FLAG_NORMAL
   );
-  const showBodyAdditions = isSliderBody && hasSliderBodyWhistle(resolved.bodyHitSoundFlags);
+  const showBodyAdditions = isSliderBody && hasAnySliderBodyAddition(resolved.bodyHitSoundFlags);
+  const hasBodyWhistle = hasSliderBodyWhistle(resolved.bodyHitSoundFlags);
   const playheadOnPassiveSample =
     timestampMs != null &&
     resolved.nearestPassiveSampleTimeMs != null &&
@@ -196,7 +198,7 @@ export function HitsoundContextDetail({
               customIndex={resolved.whistleSample.customIndex}
               hint="Whistle dash in passive lane"
             />
-          ) : showBodyAdditions ? (
+          ) : hasBodyWhistle ? (
             <Text size="xs" c="dimmed">
               Sliderwhistle bank: same as sliderslide (Auto addition)
             </Text>

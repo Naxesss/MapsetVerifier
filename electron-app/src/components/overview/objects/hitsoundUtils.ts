@@ -172,6 +172,17 @@ export function hasSliderBodyWhistle(flags: number): boolean {
   return (flags & HITSOUND_FLAG_WHISTLE) !== 0;
 }
 
+export function hasAnySliderBodyAddition(flags: number): boolean {
+  return (
+    (flags &
+      (HITSOUND_FLAG_NORMAL |
+        HITSOUND_FLAG_WHISTLE |
+        HITSOUND_FLAG_FINISH |
+        HITSOUND_FLAG_CLAP)) !==
+    0
+  );
+}
+
 function findPrimaryBodySampleInRange(
   bodySamples: ObjectsTimelineSample[],
   startTimeMs: number,
