@@ -3,9 +3,6 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import HitsoundStripLegend from './HitsoundStripLegend.tsx';
 import ObjectsTimelineComparisonContent from './ObjectsTimelineComparisonContent.tsx';
 import ObjectsTimelineHelpButton from './ObjectsTimelineHelpButton.tsx';
-import {
-  TimelineCrosshairFloatingPanel,
-} from './TimelineCrosshairPanel.tsx';
 import { HITSOUND_ROW_HEIGHT, LABEL_WIDTH, PLAYHEAD_VIEWPORT_OFFSET, ROW_HEIGHT } from '../constants.ts';
 import {
   TimelineControllerProvider,
@@ -296,8 +293,6 @@ function ObjectsTimelineFullViewModalBody({ pan }: { pan: TimelinePanValue }) {
     [hitsoundAvailable, hitsoundLayers, viewMode]
   );
 
-  const panelResetKey = `${viewMode}:${orderedDifficulties.length}`;
-
   const fullViewValue = useMemo(
     () => ({
       viewMode,
@@ -332,10 +327,6 @@ function ObjectsTimelineFullViewModalBody({ pan }: { pan: TimelinePanValue }) {
               aboveTimelineExtra={viewMode === 'hitsounding' ? <HitsoundStripLegend /> : undefined}
             />
           </TimelinePanProvider>
-
-          {viewMode === 'hitsounding' && (
-            <TimelineCrosshairFloatingPanel boundsRef={modalBodyRef} resetKey={panelResetKey} />
-          )}
         </TimelineCrosshairProvider>
       </TimelineFullViewProvider>
     </Box>
