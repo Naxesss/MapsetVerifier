@@ -148,6 +148,11 @@ function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: Beat
           zIndex: 2,
           overflow: 'hidden',
           textAlign: 'center',
+          cursor: 'pointer',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
         }}
       >
         <Stack gap="sm">
