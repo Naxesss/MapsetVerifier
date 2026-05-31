@@ -292,6 +292,58 @@ public class CheckTitleMarkersTests
     }
 
     [Fact]
+    public void FlagsMissingMarkerInUnicodeTitle()
+    {
+        using var context = CreateContextWithUnicodeTitle("Song (TV Size)", "歌曲");
+
+        var issues = context.RunGeneralCheck<CheckTitleMarkers>();
+
+        Assert.Single(
+            issues,
+            issue =>
+                issue.level == Issue.Level.Problem
+                && issue.message.Contains("Romanized title field includes \"(TV Size)\"")
+                && issue.message.Contains("Unicode title field does not")
+        );
+    }
+
+    [Fact]
+    public void FlagsMissingMarkerInRomanizedTitle()
+    {
+        using var context = CreateContextWithUnicodeTitle("Song", "歌曲 (TV Size)");
+
+        var issues = context.RunGeneralCheck<CheckTitleMarkers>();
+
+        Assert.Single(
+            issues,
+            issue =>
+                issue.level == Issue.Level.Problem
+                && issue.message.Contains("Unicode title field includes \"(TV Size)\"")
+                && issue.message.Contains("Romanized title field does not")
+        );
+    }
+
+    [Fact]
+    public void DoesNotFlagMatchingMarkersAcrossTitleFields()
+    {
+        using var context = CreateContextWithUnicodeTitle("Song (TV Size)", "歌曲 (TV Size)");
+
+        var issues = context.RunGeneralCheck<CheckTitleMarkers>();
+
+        Assert.DoesNotContain(issues, issue => issue.message.Contains("title field does not"));
+    }
+
+    [Fact]
+    public void DoesNotFlagTitleMarkerMismatchWhenUnicodeMatchesRomanized()
+    {
+        using var context = CreateContext("Song (TV Size)");
+
+        var issues = context.RunGeneralCheck<CheckTitleMarkers>();
+
+        Assert.DoesNotContain(issues, issue => issue.message.Contains("title field does not"));
+    }
+
+    [Fact]
     public void DoesNotFlagStylisedCombinedTempoMarkersOnUnicodeTitle()
     {
         using var context = CheckTestContext.CreateFromOsuFiles([
@@ -327,6 +379,41 @@ public class CheckTitleMarkersTests
 
         Assert.DoesNotContain(issues, issue => issue.level == Issue.Level.Problem);
     }
+
+    private static CheckTestContext CreateContextWithUnicodeTitle(
+        string title,
+        string titleUnicode,
+        string tags = ""
+    ) =>
+        CheckTestContext.CreateFromOsuFiles([
+            (
+                "test.osu",
+                string.Join(
+                    "\n",
+                    "osu file format v14",
+                    "[General]",
+                    "AudioFilename:audio.mp3",
+                    "Mode: 0",
+                    "[Metadata]",
+                    $"Title:{title}",
+                    $"TitleUnicode:{titleUnicode}",
+                    "Artist:Tests",
+                    "Creator:Tests",
+                    "Version:Test",
+                    $"Tags:{tags}",
+                    "[Difficulty]",
+                    "CircleSize:4",
+                    "HPDrainRate:5",
+                    "OverallDifficulty:5",
+                    "ApproachRate:5",
+                    "SliderMultiplier:1.4",
+                    "SliderTickRate:1",
+                    "[Events]",
+                    "[TimingPoints]",
+                    "[HitObjects]"
+                )
+            ),
+        ]);
 
     private static CheckTestContext CreateContext(string title, string tags = "") =>
         CheckTestContext.CreateFromOsuFiles([

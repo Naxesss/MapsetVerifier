@@ -89,8 +89,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             {
                 Category = "Metadata",
                 Message =
-                    "Incorrect format of title version markers such as (TV Size), (Game Ver.), (Extended Edit), etc.",
-                Author = "Naxess",
+                    "Incorrect format of title version markers such as (TV Size), (Game Ver.), etc.",
+                Author = "Hivie",
 
                 Documentation = new Dictionary<string, string>
                 {
@@ -148,7 +148,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     )
                 },
                 {
-                    "Warning Nightcore Tag",
+                    "Nightcore Tag",
                     new IssueTemplate(
                         Issue.Level.Warning,
                         "\"{0}\" in tags, consider \"{1}\" instead of \"{2}\" in {3} title.",
@@ -161,7 +161,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     )
                 },
                 {
-                    "Warning Guideline Ver",
+                    "Generic Marker Format",
                     new IssueTemplate(
                         Issue.Level.Warning,
                         "{0} title field; \"{1}\" should use guideline format \"{2}\".",
@@ -173,7 +173,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     )
                 },
                 {
-                    "Warning Tv Position",
+                    "TV Size Position",
                     new IssueTemplate(
                         Issue.Level.Warning,
                         "{0} title field; \"{1}\" — (TV Size) should be at the end of the title.",
@@ -184,7 +184,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     )
                 },
                 {
-                    "Warning Op Version",
+                    "OP Version",
                     new IssueTemplate(
                         Issue.Level.Warning,
                         "{0} title field; \"{1}\" — consider \"(Game Ver.)\" instead of \"OP Version\" (game-related tags detected).",
@@ -192,6 +192,18 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         "field"
                     ).WithCause(
                         "\"OP Version\" in a game context should be standardized to (Game Ver.)."
+                    )
+                },
+                {
+                    "Title Marker Mismatch",
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "{0} title field includes \"{1}\" but {2} title field does not.",
+                        "Romanized/unicode",
+                        "title marker",
+                        "Romanized/unicode"
+                    ).WithCause(
+                        "When a version marker is present in one title field, the same marker should appear in the other title field as well."
                     )
                 },
             };
@@ -217,6 +229,56 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
 
             foreach (var issue in GetNightcoreIssues(beatmap))
                 yield return issue;
+
+            foreach (var issue in GetTitleMarkerMismatchIssues(beatmap))
+                yield return issue;
+        }
+
+        private IEnumerable<Issue> GetTitleMarkerMismatchIssues(Beatmap beatmap)
+        {
+            var romanized = beatmap.MetadataSettings.title;
+            var unicode = beatmap.MetadataSettings.titleUnicode;
+
+            if (string.IsNullOrWhiteSpace(romanized) || string.IsNullOrWhiteSpace(unicode))
+                yield break;
+
+            if (unicode == romanized)
+                yield break;
+
+            foreach (var markerFormat in MarkerFormatsOrdered)
+            {
+                var romanizedHas = HasAcceptableVersionMarker(romanized, markerFormat);
+                var unicodeHas = HasAcceptableVersionMarker(unicode, markerFormat);
+
+                if (romanizedHas == unicodeHas)
+                    continue;
+
+                var presentField = romanizedHas ? "Romanized" : "Unicode";
+                var missingField = romanizedHas ? "Unicode" : "Romanized";
+
+                yield return new Issue(
+                    GetTemplate("Title Marker Mismatch"),
+                    null,
+                    presentField,
+                    markerFormat.marker.Value,
+                    missingField
+                );
+            }
+        }
+
+        private static bool HasAcceptableVersionMarker(string title, MarkerFormat markerFormat)
+        {
+            if (!markerFormat.approxRegex.IsMatch(title))
+                return false;
+
+            if (ShouldSkipIndividualTempoMarker(markerFormat.marker, title))
+                return false;
+
+            if (IsWithinLiveMarker(title, markerFormat.approxRegex))
+                return false;
+
+            return IsMarkerCasingAcceptable(title, markerFormat.marker.Value)
+                || IsApproxMarkerSatisfied(title, markerFormat);
         }
 
         private IEnumerable<Issue> GetMarkerFormatIssues(Beatmap beatmap)
@@ -317,7 +379,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                 }
 
                 yield return new Issue(
-                    GetTemplate("Warning Tv Position"),
+                    GetTemplate("TV Size Position"),
                     null,
                     Capitalize(titleType.type),
                     title
@@ -343,7 +405,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     continue;
 
                 yield return new Issue(
-                    GetTemplate("Warning Op Version"),
+                    GetTemplate("OP Version"),
                     null,
                     Capitalize(titleType.type),
                     title
@@ -487,7 +549,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
 
         private Issue CreateGuidelineVerIssue(string titleType, string title, string suggested) =>
             new(
-                GetTemplate("Warning Guideline Ver"),
+                GetTemplate("Generic Marker Format"),
                 null,
                 Capitalize(titleType),
                 title,
@@ -533,7 +595,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         continue;
 
                     yield return new Issue(
-                        GetTemplate("Warning Nightcore Tag"),
+                        GetTemplate("Nightcore Tag"),
                         null,
                         nightcoreTag,
                         pair.substitution.Value,
