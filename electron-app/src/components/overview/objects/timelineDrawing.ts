@@ -162,7 +162,9 @@ export function drawTimelineRow(
   ctx.lineTo(viewportEndX, centerY);
   ctx.stroke();
 
-  for (const timelineObject of difficulty.timelineObjects) {
+  const { timelineObjects } = difficulty;
+  for (let index = timelineObjects.length - 1; index >= 0; index -= 1) {
+    const timelineObject = timelineObjects[index];
     drawTimelineObject(
       ctx,
       timelineObject,
@@ -180,7 +182,8 @@ export function drawTimelineRow(
   }
 
   const drawnMarkers = new Set<string>();
-  for (const timelineObject of difficulty.timelineObjects) {
+  for (let index = timelineObjects.length - 1; index >= 0; index -= 1) {
+    const timelineObject = timelineObjects[index];
     if (timelineObject.objectType === 'Circle') {
       continue;
     }
