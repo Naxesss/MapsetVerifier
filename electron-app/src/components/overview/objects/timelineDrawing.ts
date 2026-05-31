@@ -1,4 +1,4 @@
-import { REVERSE_ARROW_ICON_SIZE } from './constants.ts';
+import { REVERSE_ARROW_ICON_SIZE, SLIDER_TICK_DOT_RADIUS } from './constants.ts';
 import {
   buildHitsoundDrawCache,
   getDominantHitsoundColor,
@@ -46,6 +46,8 @@ import type {
   ObjectsTimingSegment,
 } from '../../../Types';
 import type { MantineTheme } from '@mantine/core';
+
+const SLIDER_TICK_DOT_ALPHA = 0.65;
 
 export type DrawTimelineRowOptions = {
   difficulty: ObjectsOverviewDifficulty;
@@ -180,6 +182,18 @@ export function drawTimelineRow(
       neutralBodyColor,
       resolvedHitsoundCache?.bodySampleByObject.get(timelineObject) ?? null
     );
+  }
+
+  if (!isHitsoundView) {
+    drawSliderTickDots(ctx, {
+      samples: difficulty.timelineSamples ?? [],
+      startTimeMs,
+      durationMs,
+      timelineWidth,
+      centerY,
+      visibleStartX: viewportStartX,
+      visibleEndX: viewportEndX,
+    });
   }
 
   const drawnMarkers = new Set<string>();
@@ -746,6 +760,53 @@ function drawTimelineObject(
     neutralBodyColor,
     bodySample
   );
+}
+
+function drawSliderTickDots(
+  ctx: CanvasRenderingContext2D,
+  {
+    samples,
+    startTimeMs,
+    durationMs,
+    timelineWidth,
+    centerY,
+    visibleStartX,
+    visibleEndX,
+  }: {
+    samples: ObjectsTimelineSample[];
+    startTimeMs: number;
+    durationMs: number;
+    timelineWidth: number;
+    centerY: number;
+    visibleStartX: number;
+    visibleEndX: number;
+  }
+) {
+  if (samples.length === 0) {
+    return;
+  }
+
+  const cullPadding = SLIDER_TICK_DOT_RADIUS + 1;
+
+  ctx.save();
+  ctx.fillStyle = withAlpha('#ffffff', SLIDER_TICK_DOT_ALPHA);
+
+  for (const sample of samples) {
+    if (sample.source !== 'Tick' || sample.objectType !== 'Slider') {
+      continue;
+    }
+
+    const x = getTimelineX(sample.timeMs, startTimeMs, durationMs, timelineWidth);
+    if (x < visibleStartX - cullPadding || x > visibleEndX + cullPadding) {
+      continue;
+    }
+
+    ctx.beginPath();
+    ctx.arc(x, centerY, SLIDER_TICK_DOT_RADIUS, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
 }
 
 function drawObjectBody(
