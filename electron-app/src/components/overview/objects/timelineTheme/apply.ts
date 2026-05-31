@@ -51,6 +51,25 @@ export function drawThemedCircle(
   ctx.stroke();
 }
 
+/** Slider head/tail: normal circle with a small white center dot. */
+export function drawThemedSliderEndpoint(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  centerY: number,
+  radius: number,
+  objectColor: string,
+  circleTheme: TimelineCircleTheme
+): void {
+  drawThemedCircle(ctx, x, centerY, radius, objectColor, circleTheme);
+
+  const dotRadius = Math.max(1.4, radius * 0.18);
+
+  ctx.beginPath();
+  ctx.fillStyle = withAlpha('#ffffff', 0.95);
+  ctx.arc(x, centerY, dotRadius, 0, Math.PI * 2);
+  ctx.fill();
+}
+
 export function drawThemedLineBody(
   ctx: CanvasRenderingContext2D,
   startX: number,

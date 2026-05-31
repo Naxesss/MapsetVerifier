@@ -21,6 +21,7 @@ import {
   drawThemedLineBody,
   drawThemedObjectMarkerEdge,
   drawThemedReverseArrow,
+  drawThemedSliderEndpoint,
   drawThemedSpinnerMarker,
   drawThemedTailSquare,
 } from './timelineTheme/apply.ts';
@@ -871,7 +872,7 @@ function drawObjectMarker(
         return;
       }
 
-      drawThemedCircle(ctx, x, centerY, circleRadius, color, visualTheme.circle);
+      drawThemedSliderEndpoint(ctx, x, centerY, circleRadius, color, visualTheme.circle);
       return;
     }
 
@@ -882,6 +883,11 @@ function drawObjectMarker(
 
   if (isHitsoundView) {
     drawHitsoundCircle(ctx, x, centerY, circleRadius, edgeHitSoundFlags);
+    return;
+  }
+
+  if (isSlider) {
+    drawThemedSliderEndpoint(ctx, x, centerY, circleRadius, color, visualTheme.circle);
     return;
   }
 
