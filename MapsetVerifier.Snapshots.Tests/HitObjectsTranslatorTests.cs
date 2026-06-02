@@ -70,7 +70,7 @@ namespace MapsetVerifier.Parser.Tests.Objects
                 new DiffInstance("500,500,5000,1,0,0:0:0:0:", "HitObjects", Snapshotter.DiffType.Removed, new List<string>(), creationDate),
             };
 
-            SetupMockSnapshot(oldOsu, creationDate);
+            SetupMockSnapshot(oldOsu, creationDate, "123", "456");
 
             beatmap.MetadataSettings.beatmapSetId = 123;
             beatmap.MetadataSettings.beatmapId = 456;
@@ -78,8 +78,13 @@ namespace MapsetVerifier.Parser.Tests.Objects
             var translator = new HitObjectsTranslator();
             var result = translator.Translate(diffs, beatmap).ToList();
 
-            Assert.Single(result);
-            var sectionDiff = result[0];
+            // We expect 2 diffs: the map-wide global shift and the section shift.
+            Assert.Equal(2, result.Count);
+            
+            var globalShiftDiff = result[0];
+            Assert.Contains("Global object offset shifted by +5 ms", globalShiftDiff.Diff);
+
+            var sectionDiff = result[1];
             Assert.Contains("Section shifted in time by +5 ms", sectionDiff.Diff);
             Assert.Empty(sectionDiff.Details);
         }
@@ -125,26 +130,29 @@ namespace MapsetVerifier.Parser.Tests.Objects
                 new DiffInstance("500,500,5000,1,0,0:0:0:0:", "HitObjects", Snapshotter.DiffType.Removed, new List<string>(), creationDate),
             };
 
-            SetupMockSnapshot(oldOsu, creationDate);
+            SetupMockSnapshot(oldOsu, creationDate, "123", "457");
 
             beatmap.MetadataSettings.beatmapSetId = 123;
-            beatmap.MetadataSettings.beatmapId = 456;
+            beatmap.MetadataSettings.beatmapId = 457;
 
             var translator = new HitObjectsTranslator();
             var result = translator.Translate(diffs, beatmap).ToList();
 
-            // We expect 3 diffs: the (flat) section shift summary, the modified position, and the trailing addition.
-            Assert.Equal(3, result.Count);
+            // We expect 4 diffs: the map-wide global shift, the section shift summary, the modified position, and the trailing addition.
+            Assert.Equal(4, result.Count);
 
-            var sectionDiff = result[0];
+            var globalShiftDiff = result[0];
+            Assert.Contains("Global object offset shifted by +5 ms", globalShiftDiff.Diff);
+
+            var sectionDiff = result[1];
             Assert.Contains("Section shifted in time by +5 ms", sectionDiff.Diff);
             Assert.Empty(sectionDiff.Details);
 
-            var moveDiff = result[1];
+            var moveDiff = result[2];
             Assert.Contains("Circle changed", moveDiff.Diff);
             Assert.Contains("Moved from (200; 200) to (250; 250)", moveDiff.Details[0]);
 
-            var addedDiff = result[2];
+            var addedDiff = result[3];
             Assert.Contains("Circle added", addedDiff.Diff);
         }
 
@@ -189,22 +197,25 @@ namespace MapsetVerifier.Parser.Tests.Objects
                 new DiffInstance("600,600,6000,1,0,0:0:0:0:", "HitObjects", Snapshotter.DiffType.Removed, new List<string>(), creationDate),
             };
 
-            SetupMockSnapshot(oldOsu, creationDate);
+            SetupMockSnapshot(oldOsu, creationDate, "123", "458");
 
             beatmap.MetadataSettings.beatmapSetId = 123;
-            beatmap.MetadataSettings.beatmapId = 456;
+            beatmap.MetadataSettings.beatmapId = 458;
 
             var translator = new HitObjectsTranslator();
             var result = translator.Translate(diffs, beatmap).ToList();
 
-            // We expect 2 diffs: the (flat) section shift summary and the intermediate addition emitted as a separate entry.
-            Assert.Equal(2, result.Count);
+            // We expect 3 diffs: the map-wide global shift, the section shift summary, and the intermediate addition.
+            Assert.Equal(3, result.Count);
 
-            var sectionDiff = result[0];
+            var globalShiftDiff = result[0];
+            Assert.Contains("Global object offset shifted by +5 ms", globalShiftDiff.Diff);
+
+            var sectionDiff = result[1];
             Assert.Contains("Section shifted in time by +5 ms", sectionDiff.Diff);
             Assert.Empty(sectionDiff.Details);
 
-            var addedDiff = result[1];
+            var addedDiff = result[2];
             Assert.Contains("Circle added", addedDiff.Diff);
         }
 
@@ -253,16 +264,21 @@ namespace MapsetVerifier.Parser.Tests.Objects
                 new DiffInstance("500,500,5000,1,0,0:0:0:0:", "HitObjects", Snapshotter.DiffType.Removed, new List<string>(), creationDate1),
             };
 
-            SetupMockSnapshots(new[] { oldOsu, newOsu }, new[] { creationDate1, creationDate2 });
+            SetupMockSnapshots(new[] { oldOsu, newOsu }, new[] { creationDate1, creationDate2 }, "123", "459");
 
             beatmap.MetadataSettings.beatmapSetId = 123;
-            beatmap.MetadataSettings.beatmapId = 456;
+            beatmap.MetadataSettings.beatmapId = 459;
 
             var translator = new HitObjectsTranslator();
             var result = translator.Translate(diffs, beatmap).ToList();
 
-            Assert.Single(result);
-            var sectionDiff = result[0];
+            // We expect 2 diffs: the map-wide global shift and the section shift.
+            Assert.Equal(2, result.Count);
+            
+            var globalShiftDiff = result[0];
+            Assert.Contains("Global object offset shifted by +5 ms", globalShiftDiff.Diff);
+
+            var sectionDiff = result[1];
             Assert.Contains("Section shifted in time by +5 ms", sectionDiff.Diff);
             Assert.Empty(sectionDiff.Details);
         }
@@ -321,9 +337,9 @@ namespace MapsetVerifier.Parser.Tests.Objects
                 new DiffInstance("100,100,1000,1,0,0:0:0:0:", "HitObjects", Snapshotter.DiffType.Added, new List<string>(), creationDate),
             };
 
-            SetupMockSnapshot(oldOsu, creationDate);
+            SetupMockSnapshot(oldOsu, creationDate, "123", "460");
             beatmap.MetadataSettings.beatmapSetId = 123;
-            beatmap.MetadataSettings.beatmapId = 456;
+            beatmap.MetadataSettings.beatmapId = 460;
 
             var result = new HitObjectsTranslator().Translate(diffs, beatmap).ToList();
             Assert.Contains(result, r => r.DiffType == Snapshotter.DiffType.Added);
@@ -342,9 +358,9 @@ namespace MapsetVerifier.Parser.Tests.Objects
                 new DiffInstance("100,100,1000,1,0,0:0:0:0:", "HitObjects", Snapshotter.DiffType.Removed, new List<string>(), creationDate),
             };
 
-            SetupMockSnapshot(oldOsu, creationDate);
+            SetupMockSnapshot(oldOsu, creationDate, "123", "461");
             beatmap.MetadataSettings.beatmapSetId = 123;
-            beatmap.MetadataSettings.beatmapId = 456;
+            beatmap.MetadataSettings.beatmapId = 461;
 
             var result = new HitObjectsTranslator().Translate(diffs, beatmap).ToList();
             Assert.Contains(result, r => r.DiffType == Snapshotter.DiffType.Removed);
@@ -361,9 +377,9 @@ namespace MapsetVerifier.Parser.Tests.Objects
             // No diffs to seed; translator should produce no output.
             var diffs = new List<DiffInstance>();
 
-            SetupMockSnapshot(oldOsu, creationDate);
+            SetupMockSnapshot(oldOsu, creationDate, "123", "462");
             beatmap.MetadataSettings.beatmapSetId = 123;
-            beatmap.MetadataSettings.beatmapId = 456;
+            beatmap.MetadataSettings.beatmapId = 462;
 
             var result = new HitObjectsTranslator().Translate(diffs, beatmap).ToList();
             Assert.Empty(result);
@@ -391,9 +407,9 @@ namespace MapsetVerifier.Parser.Tests.Objects
 
             var beatmap = new Beatmap(newOsu, "", "test.osu");
             var creationDate = DateTime.UtcNow;
-            SetupMockSnapshot(oldOsu, creationDate);
+            SetupMockSnapshot(oldOsu, creationDate, "123", "463");
             beatmap.MetadataSettings.beatmapSetId = 123;
-            beatmap.MetadataSettings.beatmapId = 456;
+            beatmap.MetadataSettings.beatmapId = 463;
 
             var diffs = new List<DiffInstance>();
             foreach (var ho in new[] { "100,100,1050,1,0,0:0:0:0:", "200,200,2050,1,0,0:0:0:0:", "300,300,3050,1,0,0:0:0:0:", "400,400,4050,1,0,0:0:0:0:" })
@@ -436,9 +452,9 @@ namespace MapsetVerifier.Parser.Tests.Objects
             // Snapshot filenames are at second precision; drop ms so the diff timestamp
             // matches the on-disk snapshot when the translator looks it up.
             var creationDate = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, now.Second, DateTimeKind.Utc);
-            SetupMockSnapshot(oldOsu, creationDate);
+            SetupMockSnapshot(oldOsu, creationDate, "123", "464");
             beatmap.MetadataSettings.beatmapSetId = 123;
-            beatmap.MetadataSettings.beatmapId = 456;
+            beatmap.MetadataSettings.beatmapId = 464;
 
             var diffs = new List<DiffInstance>();
             foreach (var n in newNotes) diffs.Add(new DiffInstance(n, "HitObjects", Snapshotter.DiffType.Added, new List<string>(), creationDate));
@@ -482,15 +498,15 @@ namespace MapsetVerifier.Parser.Tests.Objects
                 }.Concat(hitObjects)
             );
 
-        private static void SetupMockSnapshots(string[] osuCodes, DateTime[] creationDates)
+        private static void SetupMockSnapshots(string[] osuCodes, DateTime[] creationDates, string setId = "123", string mapId = "456")
         {
             var appDataPath = Path.Combine(Path.GetTempPath(), "MapsetVerifierSnapshotsTests_HitObjects");
             Snapshotter.ConfigurePath(appDataPath, "test_folder");
 
-            var saveDirectory = Path.Combine(appDataPath, "test_folder", "snapshots", "123", "456");
-            if (Directory.Exists(appDataPath))
+            var saveDirectory = Path.Combine(appDataPath, "test_folder", "snapshots", setId, mapId);
+            if (Directory.Exists(saveDirectory))
             {
-                Directory.Delete(appDataPath, true);
+                Directory.Delete(saveDirectory, true);
             }
             Directory.CreateDirectory(saveDirectory);
             for (int i = 0; i < osuCodes.Length; i++)
@@ -500,9 +516,9 @@ namespace MapsetVerifier.Parser.Tests.Objects
             }
         }
 
-        private static void SetupMockSnapshot(string oldOsu, DateTime creationDate)
+        private static void SetupMockSnapshot(string oldOsu, DateTime creationDate, string setId = "123", string mapId = "456")
         {
-            SetupMockSnapshots(new[] { oldOsu }, new[] { creationDate });
+            SetupMockSnapshots(new[] { oldOsu }, new[] { creationDate }, setId, mapId);
         }
 
         private static string BuildOsu(string[] hitObjects) =>

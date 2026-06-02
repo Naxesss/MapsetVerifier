@@ -112,10 +112,10 @@ namespace MapsetVerifier.Snapshots.Tests
                 new DiffInstance("100,500,4,2,0,100,1,0", "TimingPoints", Snapshotter.DiffType.Removed, new List<string>(), creationDate),
             };
 
-            SetupMockSnapshot(oldOsu, creationDate);
+            SetupMockSnapshot(oldOsu, creationDate, "123", "457");
 
             beatmap.MetadataSettings.beatmapSetId = 123;
-            beatmap.MetadataSettings.beatmapId = 456;
+            beatmap.MetadataSettings.beatmapId = 457;
 
             var translator = new TimingTranslator();
             var result = translator.Translate(diffs, beatmap).ToList();
@@ -124,9 +124,8 @@ namespace MapsetVerifier.Snapshots.Tests
             var shiftDiff = result[0];
             // Since it's < 2 matched timing points, it is treated as individual shift
             Assert.Contains("Uninherited line changed", shiftDiff.Diff);
-            Assert.Equal(2, shiftDiff.Details.Count);
-            Assert.Contains("Time changed from 100 ms to 105 ms", shiftDiff.Details[0]);
-            Assert.Contains("BPM changed from 120 to 150", shiftDiff.Details[1]);
+            Assert.Single(shiftDiff.Details);
+            Assert.Contains("BPM changed from 120 to 150", shiftDiff.Details[0]);
         }
 
         [Fact]
@@ -182,10 +181,10 @@ namespace MapsetVerifier.Snapshots.Tests
                 new DiffInstance("200,-100,4,2,0,100,0,0", "TimingPoints", Snapshotter.DiffType.Removed, new List<string>(), creationDate1),
             };
 
-            SetupMockSnapshots(new[] { oldOsu, newOsu }, new[] { creationDate1, creationDate2 });
+            SetupMockSnapshots(new[] { oldOsu, newOsu }, new[] { creationDate1, creationDate2 }, "123", "458");
 
             beatmap.MetadataSettings.beatmapSetId = 123;
-            beatmap.MetadataSettings.beatmapId = 456;
+            beatmap.MetadataSettings.beatmapId = 458;
 
             var translator = new TimingTranslator();
             var result = translator.Translate(diffs, beatmap).ToList();
@@ -237,10 +236,10 @@ namespace MapsetVerifier.Snapshots.Tests
             foreach (var line in oldTimingLines)
                 diffs.Add(new DiffInstance(line, "TimingPoints", Snapshotter.DiffType.Removed, new List<string>(), creationDate));
 
-            SetupMockSnapshot(oldOsu, creationDate);
+            SetupMockSnapshot(oldOsu, creationDate, "123", "459");
 
             beatmap.MetadataSettings.beatmapSetId = 123;
-            beatmap.MetadataSettings.beatmapId = 456;
+            beatmap.MetadataSettings.beatmapId = 459;
 
             var translator = new TimingTranslator();
             var result = translator.Translate(diffs, beatmap).ToList();
@@ -252,14 +251,11 @@ namespace MapsetVerifier.Snapshots.Tests
             Assert.Contains("+2009 ms", sectionShift!.Diff);
             Assert.Empty(sectionShift.Details);
 
-            // Every matched line should now have an entry for "Volume changed from 90 to 55"
-            // since the shift is flat-reported and property changes surface separately.
-            // The volume diff lives in the entry's Details now that single-change matched
-            // entries are emitted with a "{line type} changed." title for clarity.
-            var volumeEntries = result.Where(
-                r => r.Details.Any(d => d.Contains("Volume changed from 90 to 55"))
-            ).ToList();
-            Assert.Equal(oldTimingLines.Length, volumeEntries.Count);
+            // Volume changes are collapsed into a single group entry for the 6 timing points.
+            var collapsedVolumeChange = result.FirstOrDefault(r => r.Diff.Contains("Volume changed from 90 to 55 for 6 timing points"));
+            Assert.NotNull(collapsedVolumeChange);
+            Assert.Equal(6, collapsedVolumeChange!.Details.Count);
+            Assert.All(collapsedVolumeChange.Details, d => Assert.Contains("Volume changed from 90 to 55", d));
 
             // No drift note should appear since all matched lines are within +/-2ms of the section shift.
             Assert.DoesNotContain(result, r => r.Diff.Contains("drifts from section shift"));
@@ -335,9 +331,9 @@ namespace MapsetVerifier.Snapshots.Tests
                 new DiffInstance("100,500,4,2,0,100,1,0", "TimingPoints", Snapshotter.DiffType.Added, new List<string>(), creationDate),
             };
 
-            SetupMockSnapshot(oldOsu, creationDate);
+            SetupMockSnapshot(oldOsu, creationDate, "123", "460");
             beatmap.MetadataSettings.beatmapSetId = 123;
-            beatmap.MetadataSettings.beatmapId = 456;
+            beatmap.MetadataSettings.beatmapId = 460;
 
             var translator = new TimingTranslator();
             var result = translator.Translate(diffs, beatmap).ToList();
@@ -358,9 +354,9 @@ namespace MapsetVerifier.Snapshots.Tests
                 new DiffInstance("100,500,4,2,0,100,1,0", "TimingPoints", Snapshotter.DiffType.Removed, new List<string>(), creationDate),
             };
 
-            SetupMockSnapshot(oldOsu, creationDate);
+            SetupMockSnapshot(oldOsu, creationDate, "123", "461");
             beatmap.MetadataSettings.beatmapSetId = 123;
-            beatmap.MetadataSettings.beatmapId = 456;
+            beatmap.MetadataSettings.beatmapId = 461;
 
             var translator = new TimingTranslator();
             var result = translator.Translate(diffs, beatmap).ToList();
@@ -387,9 +383,9 @@ namespace MapsetVerifier.Snapshots.Tests
 
             var beatmap = new Beatmap(newOsu, "", "test.osu");
             var creationDate = DateTime.UtcNow;
-            SetupMockSnapshot(oldOsu, creationDate);
+            SetupMockSnapshot(oldOsu, creationDate, "123", "462");
             beatmap.MetadataSettings.beatmapSetId = 123;
-            beatmap.MetadataSettings.beatmapId = 456;
+            beatmap.MetadataSettings.beatmapId = 462;
 
             var diffs = new List<DiffInstance>
             {
@@ -404,15 +400,15 @@ namespace MapsetVerifier.Snapshots.Tests
             Assert.DoesNotContain(result, r => r.Diff.Contains("Section shifted"));
         }
 
-        private static void SetupMockSnapshots(string[] osuCodes, DateTime[] creationDates)
+        private static void SetupMockSnapshots(string[] osuCodes, DateTime[] creationDates, string setId = "123", string mapId = "456")
         {
             var appDataPath = Path.Combine(Path.GetTempPath(), "MapsetVerifierSnapshotsTests_Timing");
             Snapshotter.ConfigurePath(appDataPath, "test_folder");
 
-            var saveDirectory = Path.Combine(appDataPath, "test_folder", "snapshots", "123", "456");
-            if (Directory.Exists(appDataPath))
+            var saveDirectory = Path.Combine(appDataPath, "test_folder", "snapshots", setId, mapId);
+            if (Directory.Exists(saveDirectory))
             {
-                Directory.Delete(appDataPath, true);
+                Directory.Delete(saveDirectory, true);
             }
             Directory.CreateDirectory(saveDirectory);
             for (int i = 0; i < osuCodes.Length; i++)
@@ -422,9 +418,9 @@ namespace MapsetVerifier.Snapshots.Tests
             }
         }
 
-        private static void SetupMockSnapshot(string oldOsu, DateTime creationDate)
+        private static void SetupMockSnapshot(string oldOsu, DateTime creationDate, string setId = "123", string mapId = "456")
         {
-            SetupMockSnapshots(new[] { oldOsu }, new[] { creationDate });
+            SetupMockSnapshots(new[] { oldOsu }, new[] { creationDate }, setId, mapId);
         }
 
         private static string BuildOsu(string[] timingPoints, string[]? hitObjects = null) =>

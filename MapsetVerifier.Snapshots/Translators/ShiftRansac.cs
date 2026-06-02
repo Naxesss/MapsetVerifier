@@ -84,7 +84,7 @@ namespace MapsetVerifier.Snapshots.Translators
         //
         // Caller supplies the times for both sides plus a compatibility predicate
         // (e.g. same uninherited flag, same lane) and an absolute time window.
-        public static double EstimateGlobalShift<TOld, TNew>(
+        public static (double shift, int count) EstimateGlobalShift<TOld, TNew>(
             IReadOnlyList<TOld> oldList,
             IReadOnlyList<TNew> newList,
             System.Func<TOld, double> oldTime,
@@ -109,7 +109,7 @@ namespace MapsetVerifier.Snapshots.Translators
                 }
             }
 
-            if (bucket.Count == 0) return 0;
+            if (bucket.Count == 0) return (0, 0);
 
             long bestShift = 0;
             int bestCount = 0;
@@ -121,7 +121,7 @@ namespace MapsetVerifier.Snapshots.Translators
                     bestShift = kvp.Key;
                 }
             }
-            return bestShift;
+            return (bestShift, bestCount);
         }
     }
 }
