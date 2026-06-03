@@ -1,4 +1,4 @@
-import { REVERSE_ARROW_ICON_SIZE } from './constants.ts';
+import { REVERSE_ARROW_ICON_SIZE, SLIDER_TICK_DOT_RADIUS } from './constants.ts';
 import {
   buildHitsoundDrawCache,
   getDominantHitsoundColor,
@@ -21,6 +21,7 @@ import {
   drawThemedLineBody,
   drawThemedObjectMarkerEdge,
   drawThemedReverseArrow,
+  drawThemedSliderEndpoint,
   drawThemedSpinnerMarker,
   drawThemedTailSquare,
 } from './timelineTheme/apply.ts';
@@ -45,6 +46,8 @@ import type {
   ObjectsTimingSegment,
 } from '../../../Types';
 import type { MantineTheme } from '@mantine/core';
+
+const SLIDER_TICK_DOT_ALPHA = 0.65;
 
 export type DrawTimelineRowOptions = {
   difficulty: ObjectsOverviewDifficulty;
@@ -162,7 +165,9 @@ export function drawTimelineRow(
   ctx.lineTo(viewportEndX, centerY);
   ctx.stroke();
 
-  for (const timelineObject of difficulty.timelineObjects) {
+  const { timelineObjects } = difficulty;
+  for (let index = timelineObjects.length - 1; index >= 0; index -= 1) {
+    const timelineObject = timelineObjects[index];
     drawTimelineObject(
       ctx,
       timelineObject,
@@ -179,8 +184,21 @@ export function drawTimelineRow(
     );
   }
 
+  if (!isHitsoundView) {
+    drawSliderTickDots(ctx, {
+      samples: difficulty.timelineSamples ?? [],
+      startTimeMs,
+      durationMs,
+      timelineWidth,
+      centerY,
+      visibleStartX: viewportStartX,
+      visibleEndX: viewportEndX,
+    });
+  }
+
   const drawnMarkers = new Set<string>();
-  for (const timelineObject of difficulty.timelineObjects) {
+  for (let index = timelineObjects.length - 1; index >= 0; index -= 1) {
+    const timelineObject = timelineObjects[index];
     if (timelineObject.objectType === 'Circle') {
       continue;
     }
@@ -744,6 +762,53 @@ function drawTimelineObject(
   );
 }
 
+function drawSliderTickDots(
+  ctx: CanvasRenderingContext2D,
+  {
+    samples,
+    startTimeMs,
+    durationMs,
+    timelineWidth,
+    centerY,
+    visibleStartX,
+    visibleEndX,
+  }: {
+    samples: ObjectsTimelineSample[];
+    startTimeMs: number;
+    durationMs: number;
+    timelineWidth: number;
+    centerY: number;
+    visibleStartX: number;
+    visibleEndX: number;
+  }
+) {
+  if (samples.length === 0) {
+    return;
+  }
+
+  const cullPadding = SLIDER_TICK_DOT_RADIUS + 1;
+
+  ctx.save();
+  ctx.fillStyle = withAlpha('#ffffff', SLIDER_TICK_DOT_ALPHA);
+
+  for (const sample of samples) {
+    if (sample.source !== 'Tick' || sample.objectType !== 'Slider') {
+      continue;
+    }
+
+    const x = getTimelineX(sample.timeMs, startTimeMs, durationMs, timelineWidth);
+    if (x < visibleStartX - cullPadding || x > visibleEndX + cullPadding) {
+      continue;
+    }
+
+    ctx.beginPath();
+    ctx.arc(x, centerY, SLIDER_TICK_DOT_RADIUS, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
 function drawObjectBody(
   ctx: CanvasRenderingContext2D,
   timelineObject: ObjectsTimelineObject,
@@ -868,7 +933,7 @@ function drawObjectMarker(
         return;
       }
 
-      drawThemedCircle(ctx, x, centerY, circleRadius, color, visualTheme.circle);
+      drawThemedSliderEndpoint(ctx, x, centerY, circleRadius, color, visualTheme.circle);
       return;
     }
 
@@ -879,6 +944,11 @@ function drawObjectMarker(
 
   if (isHitsoundView) {
     drawHitsoundCircle(ctx, x, centerY, circleRadius, edgeHitSoundFlags);
+    return;
+  }
+
+  if (isSlider) {
+    drawThemedSliderEndpoint(ctx, x, centerY, circleRadius, color, visualTheme.circle);
     return;
   }
 
