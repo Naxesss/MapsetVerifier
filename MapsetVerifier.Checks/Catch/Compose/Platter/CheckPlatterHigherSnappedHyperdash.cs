@@ -41,8 +41,9 @@ public class CheckPlatterHigherSnappedHyperdash : BeatmapCheck
                 "HigherSnapFollowedByAntiFlow",
                 new IssueTemplate(
                     Issue.Level.Warning,
-                    "{0} Higher-snapped hyperdashes followed by antiflow.",
-                    "timestamp -"
+                    "{0} Higher-snapped hyperdashes on {1} followed by antiflow.",
+                    "timestamp -",
+                    "note"
                 )
             },
         };
@@ -52,23 +53,38 @@ public class CheckPlatterHigherSnappedHyperdash : BeatmapCheck
     {
         var catchObjects = beatmap.GetCatchHitObjects(includeJuiceStreamParts: true);
 
-        for (int i = 0; i < catchObjects.Count - 1; i++)
+        for (int i = 0; i < catchObjects.Count - 2; i++)
         {
             var current = catchObjects[i];
             var next = catchObjects[i + 1];
+            var followUp = catchObjects[i + 2];
 
             // Only higher-snapped hyperdashes are relevant for this check.
-            if (current.MovementType != CatchMovementType.Hyperdash)
-                continue; // || !current.IsHigherSnapped(next, Beatmap.Difficulty.Hard)) continue;
+            if (
+                current.MovementType != CatchMovementType.Hyperdash
+                || !current.IsHigherSnapped(next, Beatmap.Difficulty.Hard)
+            )
+                continue;
 
             // No need to check for dashes or hyperdashes as they are covered in other checks.
             if (next.MovementType == CatchMovementType.Walk)
             {
                 // Only direction changes are classified as antiflow patterns.
                 if (
-                    current.NoteDirection == CatchNoteDirection.None
+                    next.NoteDirection == CatchNoteDirection.None
                     || current.NoteDirection == next.NoteDirection
                 )
+                {
+                    continue;
+                }
+
+                // Additional check based on BPM scaling if we moved a lot of x distance
+                // With 180 BPM allow 10 pixels of room
+                var distanceToFollowUp = (int)Math.Abs(next.Position.X - followUp.Position.X);
+                var followUpScaledBpm = beatmap.GetScaledBpm(followUp);
+                var allowedAntiflowDistance = (int)Math.Floor(10 * followUpScaledBpm);
+
+                if (distanceToFollowUp <= allowedAntiflowDistance)
                 {
                     continue;
                 }
@@ -77,7 +93,8 @@ public class CheckPlatterHigherSnappedHyperdash : BeatmapCheck
                 yield return new Issue(
                     GetTemplate("HigherSnapFollowedByAntiFlow"),
                     beatmap,
-                    CatchExtensions.GetTimestamps(current, next)
+                    CatchExtensions.GetTimestamps(current, next, followUp),
+                    current.GetNoteTypeName()
                 ).ForDifficulties(Beatmap.Difficulty.Hard);
             }
         }
