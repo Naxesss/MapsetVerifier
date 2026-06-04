@@ -68,6 +68,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                 .Beatmaps.Select(beatmap => beatmap.GeneralSettings.mode)
                 .Distinct();
 
+            // It's possible the .osb file includes a video as well, which would run at the
+            // same time as *any* .osu video file (either in front of or behind the other).
+            var osbVideoPath = beatmapSet.Osb?.videos.FirstOrDefault()?.path;
+            var osbContainsVideo = osbVideoPath != null;
+
             foreach (var mode in modes)
             {
                 var videoNames = beatmapSet
@@ -76,37 +81,38 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                     .Distinct()
                     .ToList();
 
-                // It's possible the .osb file includes a video as well, which would run at the
-                // same time as *any* .osu video file (either in front of or behind the other).
-                var osbVideoPath = beatmapSet.Osb?.videos.FirstOrDefault()?.path;
-
-                if (osbVideoPath != null && !videoNames.Contains(osbVideoPath))
-                    videoNames.Add(osbVideoPath);
-
-                foreach (var videoName in videoNames)
+                if (osbContainsVideo)
                 {
-                    var suchBeatmaps = beatmapSet
-                        .Beatmaps.Where(beatmap =>
-                            (beatmap.Videos.FirstOrDefault()?.path ?? "None") == videoName
-                            || beatmapSet.Osb?.videos.FirstOrDefault()?.path == videoName
-                        )
-                        .ToList();
+                    // .osu files with no video just use the .osb video instead
+                    videoNames = videoNames.Where(v => v != "None").ToList();
 
-                    if (videoNames.Count > 1 && suchBeatmaps.Any())
+                    if (!videoNames.Contains(osbVideoPath!))
+                    {
+                        videoNames.Add(osbVideoPath!);
+                    }
+                }
+
+                if (videoNames.Count > 1)
+                {
+                    foreach (var videoName in videoNames)
+                    {
+                        var suchBeatmaps = beatmapSet
+                            .Beatmaps.Where(beatmap =>
+                                (beatmap.Videos.FirstOrDefault()?.path ?? "None") == videoName
+                                || beatmapSet.Osb?.videos.FirstOrDefault()?.path == videoName
+                            )
+                            .ToList();
+
                         yield return new Issue(
                             GetTemplate("Same Mode"),
                             null,
                             videoName,
                             string.Join(", ", suchBeatmaps)
                         );
-
-                    if (
-                        !modeVideoPairs.Any(pair =>
-                            pair.mode == mode && pair.videoName == videoName
-                        )
-                    )
-                        modeVideoPairs.Add(new ModeVideoPair(mode, videoName));
+                    }
                 }
+
+                modeVideoPairs.AddRange(videoNames.Select(v => new ModeVideoPair(mode, v)));
             }
 
             foreach (var issue in GetCrossModeIssues(modeVideoPairs))
@@ -118,35 +124,35 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
             var inconsistentModes = new List<(Beatmap.Mode, Beatmap.Mode)>();
 
             for (var i = 0; i < modeVideoPairs.Count - 1; ++i)
-            for (var j = i; j < modeVideoPairs.Count; ++j)
-            {
-                var pair = modeVideoPairs[i];
-                var otherPair = modeVideoPairs[j];
+                for (var j = i; j < modeVideoPairs.Count; ++j)
+                {
+                    var pair = modeVideoPairs[i];
+                    var otherPair = modeVideoPairs[j];
 
-                // We're only looking for inconsistenties between modes here.
-                if (pair.mode == otherPair.mode || pair.videoName == otherPair.videoName)
-                    continue;
+                    // We're only looking for inconsistenties between modes here.
+                    if (pair.mode == otherPair.mode || pair.videoName == otherPair.videoName)
+                        continue;
 
-                // Taiko generally does not include videos due to their playfield covering it, hence ignoring inconsistencies.
-                if (pair.mode == Beatmap.Mode.Taiko || otherPair.mode == Beatmap.Mode.Taiko)
-                    continue;
+                    // Taiko generally does not include videos due to their playfield covering it, hence ignoring inconsistencies.
+                    if (pair.mode == Beatmap.Mode.Taiko || otherPair.mode == Beatmap.Mode.Taiko)
+                        continue;
 
-                // Only mention this once for each combination of modes.
-                if (
-                    inconsistentModes.Contains((pair.mode, otherPair.mode))
-                    || inconsistentModes.Contains((otherPair.mode, pair.mode))
-                )
-                    continue;
+                    // Only mention this once for each combination of modes.
+                    if (
+                        inconsistentModes.Contains((pair.mode, otherPair.mode))
+                        || inconsistentModes.Contains((otherPair.mode, pair.mode))
+                    )
+                        continue;
 
-                inconsistentModes.Add((pair.mode, otherPair.mode));
+                    inconsistentModes.Add((pair.mode, otherPair.mode));
 
-                yield return new Issue(
-                    GetTemplate("Cross Mode"),
-                    null,
-                    pair.mode.ToString().ToLower(),
-                    otherPair.mode.ToString().ToLower()
-                );
-            }
+                    yield return new Issue(
+                        GetTemplate("Cross Mode"),
+                        null,
+                        pair.mode.ToString().ToLower(),
+                        otherPair.mode.ToString().ToLower()
+                    );
+                }
         }
 
         private readonly struct ModeVideoPair
