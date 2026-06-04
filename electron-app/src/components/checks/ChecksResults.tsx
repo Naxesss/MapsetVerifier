@@ -2,6 +2,7 @@
 import { IconAlertCircle, IconEyeOff } from '@tabler/icons-react';
 import { useMemo } from 'react';
 import CheckCategory from './CheckCategory.tsx';
+import CheckProgressTaskList from './CheckProgressTaskList.tsx';
 import {
   getRawCheckResultsForSelectedCategory,
   hasMinorResultsHiddenByUserFilter,
@@ -57,28 +58,14 @@ function ChecksResults({
       ? Math.min(100, Math.round((progress.completed / progress.total) * 100))
       : 0;
 
-  const statusLabel = (() => {
-    if (!progress) return 'Starting checks…';
-
-    const { activeLabels, completed, total } = progress;
-    if (activeLabels.length === 0) {
-      return completed >= total && total > 0 ? 'Finishing…' : 'Starting checks…';
-    }
-    if (activeLabels.length === 1) return activeLabels[0];
-    if (activeLabels.length <= 3) return activeLabels.join(', ');
-    return `${activeLabels.slice(0, 2).join(', ')} and ${activeLabels.length - 2} others`;
-  })();
-
   return (
     <Box>
       {isLoading && (
         <Stack gap="xs" py="sm">
           <Text size="sm" c="dimmed">
-            Checking for{' '}
-            <Text span fw={600} c="gray.3" inherit>
-              {statusLabel}
-            </Text>
+            Checking for...
           </Text>
+          <CheckProgressTaskList progress={progress ?? null} />
           <Progress value={progressPercent} animated size="lg" radius="xl" />
           {progress && progress.total > 0 ? (
             <Text size="xs" c="dimmed">
