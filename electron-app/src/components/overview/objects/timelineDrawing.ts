@@ -203,7 +203,9 @@ export function drawTimelineRow(
       continue;
     }
 
-    for (const edge of timelineObject.edges) {
+    const { edges } = timelineObject;
+    for (let edgeIndex = edges.length - 1; edgeIndex >= 0; edgeIndex -= 1) {
+      const edge = edges[edgeIndex];
       const rawX = getTimelineX(edge.timeMs, startTimeMs, durationMs, timelineWidth);
       if (rawX < viewportStartX || rawX > viewportEndX) continue;
 
