@@ -17,7 +17,6 @@ namespace MapsetVerifier.Server.Service;
 
 public static class BeatmapAnalysisService
 {
-    private static readonly int[] SupportedSnapDivisors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 16];
     private const double TimelineMarginMs = 2000;
     private const int MsPerPeak = 400;
     private const int MaxSamplePoints = 1500; // Widen the grid on long maps instead of sending thousands of chart points.
@@ -677,8 +676,8 @@ public static class BeatmapAnalysisService
             .Where(period => period.EndTimeMs > period.StartTimeMs)
             .ToList();
 
-        var snappingCounts = SupportedSnapDivisors.ToDictionary(divisor => divisor, _ => 0);
-        var snappingEdgeTimes = SupportedSnapDivisors.ToDictionary(
+        var snappingCounts = Beatmap.SnapDivisors.ToDictionary(divisor => divisor, _ => 0);
+        var snappingEdgeTimes = Beatmap.SnapDivisors.ToDictionary(
             divisor => divisor,
             _ => new List<double>()
         );
@@ -732,8 +731,8 @@ public static class BeatmapAnalysisService
             UnsnappedEdgeTimesMs = unsnappedEdgeTimes,
             TimelineSamples = timelineSamples,
             HitsoundGapPeriods = hitsoundGapPeriods,
-            Snappings = SupportedSnapDivisors
-                .Select(divisor => new ObjectsSnappingBucket
+            Snappings = Beatmap
+                .SnapDivisors.Select(divisor => new ObjectsSnappingBucket
                 {
                     Divisor = divisor,
                     Label = $"1/{divisor}",

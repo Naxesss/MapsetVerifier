@@ -37,7 +37,10 @@ namespace MapsetVerifier.Parser.Objects
             Mania,
         }
 
-        private static readonly int[] Divisors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 16];
+        /// <summary>
+        ///     Beat snap divisors supported by osu! and used by <see cref="GetLowestDivisor" />.
+        /// </summary>
+        public static readonly int[] SnapDivisors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 16];
 
         /// <summary>
         ///     A list of aliases for difficulty levels. Can't be ambigious with named top diffs, so something
@@ -1045,12 +1048,12 @@ namespace MapsetVerifier.Parser.Objects
             double GetAbsoluteUnsnap(int divisor) =>
                 Math.Abs(GetPracticalUnsnap(time, divisor, line));
 
-            var minUnsnap = Divisors.Min(GetAbsoluteUnsnap);
+            var minUnsnap = SnapDivisors.Min(GetAbsoluteUnsnap);
 
             if (minUnsnap > 2)
                 return 0;
 
-            return Divisors.First(divisor => GetAbsoluteUnsnap(divisor).AlmostEqual(minUnsnap));
+            return SnapDivisors.First(divisor => GetAbsoluteUnsnap(divisor).AlmostEqual(minUnsnap));
         }
 
         /// <summary> Returns the unsnap ignoring all of the game's rounding and other approximations. Can be negative. </summary>

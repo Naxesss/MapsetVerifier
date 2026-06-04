@@ -11,6 +11,13 @@ namespace MapsetVerifier.Checks.Utils;
 public static class TimingUtils
 {
     /// <summary>
+    ///     Returns the standard snap divisor whose beat length (<paramref name="msPerBeat" /> / divisor)
+    ///     is closest to <paramref name="durationMs" />.
+    /// </summary>
+    public static int GetClosestSnapDivisor(double durationMs, double msPerBeat) =>
+        Beatmap.SnapDivisors.MinBy(d => Math.Abs(durationMs - msPerBeat / d));
+
+    /// <summary>
     ///     Returns whether this timing section contains the respective hit object type.
     ///     Only counts the start of objects.
     /// </summary>

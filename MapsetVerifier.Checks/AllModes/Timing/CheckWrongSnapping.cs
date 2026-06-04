@@ -15,7 +15,6 @@ namespace MapsetVerifier.Checks.AllModes.Timing
         // How close two edges must be to count as the same object across difficulties.
         private const double EdgeMatchToleranceMs = 3;
 
-        private readonly int[] divisors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 16];
         private HashSet<int> countMinorDivisors = [];
         private List<Tuple<int, string>> countMinorStamps = [];
 
@@ -478,10 +477,12 @@ namespace MapsetVerifier.Checks.AllModes.Timing
 
             if (otherTime == null)
             {
-                var divisorIndex = Array.IndexOf(divisors, divisor);
+                var divisorIndex = Array.IndexOf(Beatmap.SnapDivisors, divisor);
 
-                var greaterDivisor = divisors.ElementAt(
-                    divisorIndex + 2 > divisors.Length - 1 ? divisors.Length - 1 : divisorIndex + 2
+                var greaterDivisor = Beatmap.SnapDivisors.ElementAt(
+                    divisorIndex + 2 > Beatmap.SnapDivisors.Length - 1
+                        ? Beatmap.SnapDivisors.Length - 1
+                        : divisorIndex + 2
                 );
 
                 const int unsnapMargin = 2;
