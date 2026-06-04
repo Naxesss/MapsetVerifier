@@ -68,6 +68,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                 .Beatmaps.Select(beatmap => beatmap.GeneralSettings.mode)
                 .Distinct();
 
+            // It's possible the .osb file includes a video as well, which would run at the
+            // same time as *any* .osu video file (either in front of or behind the other).
+            var osbVideoPath = beatmapSet.Osb?.videos.FirstOrDefault()?.path;
+            var osbContainsVideo = osbVideoPath != null;
+
             foreach (var mode in modes)
             {
                 var videoNames = beatmapSet
@@ -76,37 +81,38 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                     .Distinct()
                     .ToList();
 
-                // It's possible the .osb file includes a video as well, which would run at the
-                // same time as *any* .osu video file (either in front of or behind the other).
-                var osbVideoPath = beatmapSet.Osb?.videos.FirstOrDefault()?.path;
-
-                if (osbVideoPath != null && !videoNames.Contains(osbVideoPath))
-                    videoNames.Add(osbVideoPath);
-
-                foreach (var videoName in videoNames)
+                if (osbContainsVideo)
                 {
-                    var suchBeatmaps = beatmapSet
-                        .Beatmaps.Where(beatmap =>
-                            (beatmap.Videos.FirstOrDefault()?.path ?? "None") == videoName
-                            || beatmapSet.Osb?.videos.FirstOrDefault()?.path == videoName
-                        )
-                        .ToList();
+                    // .osu files with no video just use the .osb video instead
+                    videoNames = videoNames.Where(v => v != "None").ToList();
 
-                    if (videoNames.Count > 1 && suchBeatmaps.Any())
+                    if (!videoNames.Contains(osbVideoPath!))
+                    {
+                        videoNames.Add(osbVideoPath!);
+                    }
+                }
+
+                if (videoNames.Count > 1)
+                {
+                    foreach (var videoName in videoNames)
+                    {
+                        var suchBeatmaps = beatmapSet
+                            .Beatmaps.Where(beatmap =>
+                                (beatmap.Videos.FirstOrDefault()?.path ?? "None") == videoName
+                                || beatmapSet.Osb?.videos.FirstOrDefault()?.path == videoName
+                            )
+                            .ToList();
+
                         yield return new Issue(
                             GetTemplate("Same Mode"),
                             null,
                             videoName,
                             string.Join(", ", suchBeatmaps)
                         );
-
-                    if (
-                        !modeVideoPairs.Any(pair =>
-                            pair.mode == mode && pair.videoName == videoName
-                        )
-                    )
-                        modeVideoPairs.Add(new ModeVideoPair(mode, videoName));
+                    }
                 }
+
+                modeVideoPairs.AddRange(videoNames.Select(v => new ModeVideoPair(mode, v)));
             }
 
             foreach (var issue in GetCrossModeIssues(modeVideoPairs))
