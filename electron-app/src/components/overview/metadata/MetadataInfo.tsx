@@ -6,7 +6,6 @@
   useMantineTheme,
   Stack,
   SimpleGrid,
-  Accordion,
   Box,
   Code,
 } from '@mantine/core';
@@ -16,9 +15,38 @@ import { countWord } from '../../../utils/countWord';
 import { getModeAccentColor } from '../../../utils/gameMode.ts';
 import { InfoIconTooltip } from '../../common/InfoIconTooltip.tsx';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
+import type { ReactNode } from 'react';
 
 interface MetadataInfoProps {
   difficulties: DifficultyMetadata[];
+}
+
+/** Two-column grid: version badges align; values share a fixed gap from the badge column. */
+function MetadataDifficultyGrid({
+  difficulties,
+  children,
+}: {
+  difficulties: DifficultyMetadata[];
+  children: (d: DifficultyMetadata) => ReactNode;
+}) {
+  return (
+    <Box
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'max-content 1fr',
+        columnGap: 'var(--mantine-spacing-md)',
+        rowGap: 'var(--mantine-spacing-xs)',
+        alignItems: 'start',
+      }}
+    >
+      {difficulties.map((d, idx) => [
+        <Badge key={`${idx}-badge`} size="xs" variant="light">
+          {d.version}
+        </Badge>,
+        <Box key={`${idx}-value`}>{children(d)}</Box>,
+      ])}
+    </Box>
+  );
 }
 
 function MetadataInfo({ difficulties }: MetadataInfoProps) {
@@ -70,23 +98,18 @@ function MetadataInfo({ difficulties }: MetadataInfoProps) {
               )}
             </Stack>
           ) : (
-            <Accordion variant="contained" radius="sm">
-              {difficulties.map((d, idx) => (
-                <Accordion.Item key={idx} value={d.version}>
-                  <Accordion.Control>
-                    <Text size="sm">{d.version}</Text>
-                  </Accordion.Control>
-                  <Accordion.Panel>
-                    <Text>{d.artist}</Text>
-                    {d.artist !== d.artistUnicode && (
-                      <Text size="sm" c="dimmed">
-                        {d.artistUnicode}
-                      </Text>
-                    )}
-                  </Accordion.Panel>
-                </Accordion.Item>
-              ))}
-            </Accordion>
+            <MetadataDifficultyGrid difficulties={difficulties}>
+              {(d) => (
+                <Stack gap={2}>
+                  <Text size="sm">{d.artist}</Text>
+                  {d.artist !== d.artistUnicode && (
+                    <Text size="xs" c="dimmed">
+                      {d.artistUnicode}
+                    </Text>
+                  )}
+                </Stack>
+              )}
+            </MetadataDifficultyGrid>
           )}
         </Box>
 
@@ -105,23 +128,18 @@ function MetadataInfo({ difficulties }: MetadataInfoProps) {
               )}
             </Stack>
           ) : (
-            <Accordion variant="contained" radius="sm">
-              {difficulties.map((d, idx) => (
-                <Accordion.Item key={idx} value={d.version}>
-                  <Accordion.Control>
-                    <Text size="sm">{d.version}</Text>
-                  </Accordion.Control>
-                  <Accordion.Panel>
-                    <Text>{d.title}</Text>
-                    {d.title !== d.titleUnicode && (
-                      <Text size="sm" c="dimmed">
-                        {d.titleUnicode}
-                      </Text>
-                    )}
-                  </Accordion.Panel>
-                </Accordion.Item>
-              ))}
-            </Accordion>
+            <MetadataDifficultyGrid difficulties={difficulties}>
+              {(d) => (
+                <Stack gap={2}>
+                  <Text size="sm">{d.title}</Text>
+                  {d.title !== d.titleUnicode && (
+                    <Text size="xs" c="dimmed">
+                      {d.titleUnicode}
+                    </Text>
+                  )}
+                </Stack>
+              )}
+            </MetadataDifficultyGrid>
           )}
         </Box>
 
@@ -134,16 +152,9 @@ function MetadataInfo({ difficulties }: MetadataInfoProps) {
             {allSame('creator') ? (
               <Text fw={500}>{first.creator}</Text>
             ) : (
-              <Stack gap={2}>
-                {difficulties.map((d, idx) => (
-                  <Group key={idx} gap="xs">
-                    <Badge size="xs" variant="light">
-                      {d.version}
-                    </Badge>
-                    <Text size="sm">{d.creator}</Text>
-                  </Group>
-                ))}
-              </Stack>
+              <MetadataDifficultyGrid difficulties={difficulties}>
+                {(d) => <Text size="sm">{d.creator}</Text>}
+              </MetadataDifficultyGrid>
             )}
           </Box>
 
@@ -163,22 +174,17 @@ function MetadataInfo({ difficulties }: MetadataInfoProps) {
                 )}
               </Text>
             ) : (
-              <Stack gap={2}>
-                {difficulties.map((d, idx) => (
-                  <Group key={idx} gap="xs">
-                    <Badge size="xs" variant="light">
-                      {d.version}
-                    </Badge>
-                    {d.source ? (
-                      <Text size="sm">{d.source}</Text>
-                    ) : (
-                      <Text size="xs" c="dimmed">
-                        (none)
-                      </Text>
-                    )}
-                  </Group>
-                ))}
-              </Stack>
+              <MetadataDifficultyGrid difficulties={difficulties}>
+                {(d) =>
+                  d.source ? (
+                    <Text size="sm">{d.source}</Text>
+                  ) : (
+                    <Text size="xs" c="dimmed">
+                      (none)
+                    </Text>
+                  )
+                }
+              </MetadataDifficultyGrid>
             )}
           </Box>
         </SimpleGrid>
