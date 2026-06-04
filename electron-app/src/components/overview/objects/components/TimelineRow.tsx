@@ -283,7 +283,7 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
               bottom: 0,
               width: 0,
               transform: 'translateX(-50%)',
-              borderLeft: `2px solid ${theme.colors.blue[4]}`,
+              borderLeft: `1px solid ${theme.colors.blue[4]}`,
               boxShadow: `0 0 0 1px ${theme.colors.blue[3]}, 0 0 12px ${theme.colors.blue[7]}`,
               zIndex: 8,
             }}
