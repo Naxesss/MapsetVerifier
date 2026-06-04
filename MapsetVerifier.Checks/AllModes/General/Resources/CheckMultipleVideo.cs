@@ -124,35 +124,35 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
             var inconsistentModes = new List<(Beatmap.Mode, Beatmap.Mode)>();
 
             for (var i = 0; i < modeVideoPairs.Count - 1; ++i)
-                for (var j = i; j < modeVideoPairs.Count; ++j)
-                {
-                    var pair = modeVideoPairs[i];
-                    var otherPair = modeVideoPairs[j];
+            for (var j = i; j < modeVideoPairs.Count; ++j)
+            {
+                var pair = modeVideoPairs[i];
+                var otherPair = modeVideoPairs[j];
 
-                    // We're only looking for inconsistenties between modes here.
-                    if (pair.mode == otherPair.mode || pair.videoName == otherPair.videoName)
-                        continue;
+                // We're only looking for inconsistenties between modes here.
+                if (pair.mode == otherPair.mode || pair.videoName == otherPair.videoName)
+                    continue;
 
-                    // Taiko generally does not include videos due to their playfield covering it, hence ignoring inconsistencies.
-                    if (pair.mode == Beatmap.Mode.Taiko || otherPair.mode == Beatmap.Mode.Taiko)
-                        continue;
+                // Taiko generally does not include videos due to their playfield covering it, hence ignoring inconsistencies.
+                if (pair.mode == Beatmap.Mode.Taiko || otherPair.mode == Beatmap.Mode.Taiko)
+                    continue;
 
-                    // Only mention this once for each combination of modes.
-                    if (
-                        inconsistentModes.Contains((pair.mode, otherPair.mode))
-                        || inconsistentModes.Contains((otherPair.mode, pair.mode))
-                    )
-                        continue;
+                // Only mention this once for each combination of modes.
+                if (
+                    inconsistentModes.Contains((pair.mode, otherPair.mode))
+                    || inconsistentModes.Contains((otherPair.mode, pair.mode))
+                )
+                    continue;
 
-                    inconsistentModes.Add((pair.mode, otherPair.mode));
+                inconsistentModes.Add((pair.mode, otherPair.mode));
 
-                    yield return new Issue(
-                        GetTemplate("Cross Mode"),
-                        null,
-                        pair.mode.ToString().ToLower(),
-                        otherPair.mode.ToString().ToLower()
-                    );
-                }
+                yield return new Issue(
+                    GetTemplate("Cross Mode"),
+                    null,
+                    pair.mode.ToString().ToLower(),
+                    otherPair.mode.ToString().ToLower()
+                );
+            }
         }
 
         private readonly struct ModeVideoPair
