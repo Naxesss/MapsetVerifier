@@ -201,22 +201,16 @@ export function drawThemedReverseArrow(
   size: number,
   arrowTheme: TimelineReverseArrowTheme
 ): void {
-  const leftX = x - size;
-  const middleX = x - size * 0.17;
-  const rightX = x + size * 0.67;
-  const yOffset = size * 0.89;
+  const arrowX = x - 1; // more visually centered
+  const middleX = arrowX - size * 0.14;
+  const rightX = arrowX + size * 0.56;
+  const yOffset = size * 0.68;
 
   ctx.save();
   ctx.strokeStyle = arrowTheme.stroke;
   ctx.lineWidth = Math.max(arrowTheme.lineWidthMin, size * arrowTheme.lineWidthScale);
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
-
-  ctx.beginPath();
-  ctx.moveTo(leftX, centerY - yOffset);
-  ctx.lineTo(middleX, centerY);
-  ctx.lineTo(leftX, centerY + yOffset);
-  ctx.stroke();
 
   ctx.beginPath();
   ctx.moveTo(middleX, centerY - yOffset);
