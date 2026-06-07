@@ -91,6 +91,10 @@ namespace MapsetVerifier.Checks.Standard.Spread
                 if (timeDifference >= snapping[0] * 60000 / 160d)
                     break;
 
+                // If stack is already perfect in original diff, it's guaranteed to be perfect on HR as well without inconsistencies
+                if (hitObject.Position == otherHitObject.Position)
+                    continue;
+
                 var difficultyIndex = GetHighestApplicableDifficultyIndex(timeDifference, snapping);
                 if (difficultyIndex == null)
                     continue;
