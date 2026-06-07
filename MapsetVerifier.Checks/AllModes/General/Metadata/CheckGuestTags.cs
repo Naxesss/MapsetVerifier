@@ -56,8 +56,10 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             foreach (var beatmap in beatmapSet.Beatmaps)
             foreach (var possessor in GetAllPossessors(beatmap.MetadataSettings.version))
             {
+                var possessorTag = BuildPossessorTag(possessor);
+
                 if (
-                    beatmap.MetadataSettings.IsCoveredByTags(possessor)
+                    beatmap.MetadataSettings.IsCoveredByTags(possessorTag)
                     || beatmap.MetadataSettings.creator.ToLower() == possessor.ToLower()
                 )
                     continue;
@@ -66,9 +68,19 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     GetTemplate("Warning"),
                     null,
                     beatmap.MetadataSettings.version,
-                    possessor.ToLower().Replace(" ", "_")
+                    possessorTag
                 );
             }
+        }
+
+        private string BuildPossessorTag(string possessor)
+        {
+            var components = possessor.Split(" ");
+            bool hasSingleCharacterComponents = components.Any(p => p.Length == 1);
+
+            return hasSingleCharacterComponents
+                ? string.Join("_", components).ToLower()
+                : possessor.ToLower();
         }
 
         /// <summary>
@@ -104,7 +116,10 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
         /// </summary>
         private IEnumerable<string> GetAllPossessors(string text)
         {
-            return text.Split(collabChars).Select(GetPossessor).OfType<string>();
+            return text.Split(collabChars)
+                .Select(GetPossessor)
+                .Where(p => !string.IsNullOrEmpty(p))
+                .OfType<string>();
         }
     }
 }
