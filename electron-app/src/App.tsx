@@ -4,6 +4,7 @@ import { Notifications } from '@mantine/notifications';
 import { useLayoutEffect, useRef } from 'react';
 import { Outlet } from 'react-router-dom';
 import BackendGate from './components/backend/BackendGate.tsx';
+import BeatmapSelectionNavigator from './components/beatmaps/BeatmapSelectionNavigator.tsx';
 import ErrorBoundary from './components/common/ErrorBoundary.tsx';
 import RouteErrorBoundary from './components/common/RouteErrorBoundary.tsx';
 import NavBars from './components/navbar/NavBars.tsx';
@@ -69,6 +70,7 @@ function AppContent() {
                     }}
                   >
                     <BeatmapReparseProvider>
+                      <BeatmapSelectionNavigator />
                       <NavBars desktopOpened={desktopOpened} toggleDesktop={toggleDesktop} />
                       <AppShell.Main>
                         <ScrollArea

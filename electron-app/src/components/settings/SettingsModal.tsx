@@ -1,4 +1,4 @@
-﻿import {
+import {
   Modal,
   Button,
   TextInput,
@@ -59,6 +59,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
   const [lazerLookupEnabled, setLazerLookupEnabled] = useState(settings.lazerLookupEnabled);
   const [receivePrereleases, setReceivePrereleases] = useState(settings.receivePrereleases);
   const [gateInDev, setGateInDev] = useState(settings.gateInDev);
+  const [goToChecksOnMapsetSwitch, setGoToChecksOnMapsetSwitch] = useState(
+    settings.goToChecksOnMapsetSwitch
+  );
   const [uiFontFamily, setUiFontFamily] = useState<UiFontFamily>(
     parseUiFontFamily(settings.uiFontFamily)
   );
@@ -79,6 +82,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
       setLazerLookupEnabled(settings.lazerLookupEnabled);
       setReceivePrereleases(settings.receivePrereleases);
       setGateInDev(settings.gateInDev);
+      setGoToChecksOnMapsetSwitch(settings.goToChecksOnMapsetSwitch);
       setUiFontFamily(parseUiFontFamily(settings.uiFontFamily));
     }
   }, [
@@ -90,6 +94,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
     settings.lazerLookupEnabled,
     settings.receivePrereleases,
     settings.gateInDev,
+    settings.goToChecksOnMapsetSwitch,
     settings.uiFontFamily,
   ]);
 
@@ -218,6 +223,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
               const checked = e.currentTarget.checked;
               setShowGamemodeDifficultyNames(checked);
               setSettings((prev) => ({ ...prev, showGamemodeDifficultyNames: checked }));
+            }}
+          />
+          <Switch
+            label="Go to checks tab when switching mapsets"
+            checked={goToChecksOnMapsetSwitch}
+            onChange={(e) => {
+              const checked = e.currentTarget.checked;
+              setGoToChecksOnMapsetSwitch(checked);
+              setSettings((prev) => ({ ...prev, goToChecksOnMapsetSwitch: checked }));
             }}
           />
           <Switch

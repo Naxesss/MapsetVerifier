@@ -1,6 +1,5 @@
-﻿import { Box, Flex, Stack, Text } from '@mantine/core';
+import { Box, Flex, Stack, Text } from '@mantine/core';
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { useBeatmap } from '../../context/BeatmapContext';
 import { useBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
 import { Beatmap } from '../../Types.ts';
@@ -14,8 +13,6 @@ interface BeatmapCardProps {
 }
 
 function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: BeatmapCardProps) {
-  const location = useLocation();
-  const navigate = useNavigate();
   const { selectedFolder, setSelectedFolder } = useBeatmap();
   const [bgUrl, setBgUrl] = useState<string | undefined>(undefined);
   const [isHovered, setIsHovered] = useState(false);
@@ -122,14 +119,6 @@ function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: Beat
           onSelect();
         } else {
           setSelectedFolder(beatmap.folder);
-        }
-        // No page open that uses a beatmap, redirect to checks page as default
-        if (
-          location.pathname !== '/checks' &&
-          location.pathname !== '/snapshots' &&
-          location.pathname !== '/overview'
-        ) {
-          navigate('/checks', { viewTransition: true });
         }
       }}
       onMouseEnter={() => setIsHovered(true)}

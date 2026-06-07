@@ -18,6 +18,8 @@ export type Settings = {
   uiFontFamily: UiFontFamily;
   /** Objects overview timeline circle style (synced across game modes). */
   timelineThemeVariant: TimelineThemeVariant;
+  /** When enabled, switching mapsets navigates to the checks tab. */
+  goToChecksOnMapsetSwitch: boolean;
   // DEV-only: whether to gate Backend in development mode
   gateInDev: boolean;
 };
@@ -39,6 +41,7 @@ const defaultSettings: Settings = {
   receivePrereleases: false,
   uiFontFamily: DEFAULT_UI_FONT_FAMILY,
   timelineThemeVariant: 'default',
+  goToChecksOnMapsetSwitch: true,
   gateInDev: false,
 };
 
