@@ -67,7 +67,7 @@ function DifficultyTabSelector({
     : tabs;
 
   const isGeneralActive =
-    selectedId === GENERAL_TAB_ID || (highlightGeneralWhenIdle && hoveredId === undefined);
+    selectedId === GENERAL_TAB_ID || (highlightGeneralWhenIdle && hoveredId === undefined && !selectedId);
 
   const handleHover = (id: string | undefined) => {
     onHover?.(id);

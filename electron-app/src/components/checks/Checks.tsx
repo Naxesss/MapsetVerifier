@@ -93,31 +93,6 @@ function Checks() {
     : undefined;
   const currentOverrideLevel = displayedCategory ? getOverrideLevel(displayedCategory) : undefined;
 
-  useEffect(() => {
-    if (difficultiesForTabs.length === 0) return;
-
-    const nextCategory = selectedCategory ?? 'General';
-    const categoryExists =
-      nextCategory === 'General' ||
-      difficultiesForTabs.some((difficulty) => difficulty.category === nextCategory);
-
-    if (!categoryExists) {
-      setSelectedCategory('General');
-      setDisplayedCategory('General');
-      setIsDifficultyContentVisible(true);
-      return;
-    }
-
-    if (!data) return;
-
-    if (displayedCategory === nextCategory) {
-      setIsDifficultyContentVisible(true);
-      return;
-    }
-
-    setIsDifficultyContentVisible(false);
-  }, [data, difficultiesForTabs, selectedCategory, displayedCategory]);
-
   const handleDifficultyContentTransitionEnd = React.useCallback(() => {
     if (isDifficultyContentVisible) return;
 
@@ -191,6 +166,31 @@ function Checks() {
   const selectedGroup =
     groupedDifficulties.find((g) => g.mode === selectedMode) ?? groupedDifficulties[0];
 
+  useEffect(() => {
+    if (difficultiesForTabs.length === 0) return;
+
+    const nextCategory = selectedCategory ?? 'General';
+    const categoryExists =
+      nextCategory === 'General' ||
+      difficultiesForTabs.some((difficulty) => difficulty.category === nextCategory);
+
+    if (!categoryExists) {
+      setSelectedCategory('General');
+      setDisplayedCategory('General');
+      setIsDifficultyContentVisible(true);
+      return;
+    }
+
+    if (!data) return;
+
+    if (displayedCategory === nextCategory) {
+      setIsDifficultyContentVisible(true);
+      return;
+    }
+
+    setIsDifficultyContentVisible(false);
+  }, [data, difficultiesForTabs, selectedCategory, displayedCategory]);
+
   if (!folder) {
     return (
       <Alert
@@ -252,7 +252,7 @@ function Checks() {
             onHover={(id) =>
               setHoveredDifficulty(
                 id && id !== GENERAL_TAB_ID
-                  ? selectedGroup.difficulties.find((d) => d.category === id)
+                  ? difficultiesForTabs.find((d) => d.category === id)
                   : undefined
               )
             }
