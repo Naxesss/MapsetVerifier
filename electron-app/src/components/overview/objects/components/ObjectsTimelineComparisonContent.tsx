@@ -1,12 +1,13 @@
 import { DndContext } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { ActionIcon, Box, Group, Paper, Select, Stack, Text } from '@mantine/core';
+import { ActionIcon, Box, Collapse, Group, Paper, Select, Stack, Text } from '@mantine/core';
 import { IconEye, IconEyeOff } from '@tabler/icons-react';
 import { useMemo } from 'react';
-import { LABEL_WIDTH } from '../constants.ts';
+import { LABEL_WIDTH, TIMELINE_VIEW_MODE_TRANSITION_MS } from '../constants.ts';
 import ObjectsGameModeSelector from './ObjectsGameModeSelector.tsx';
 import SortableTimelineDifficultyRow from './SortableTimelineDifficultyRow.tsx';
 import TimelineAxisRow from './TimelineAxisRow.tsx';
+import TimelineHorizontalReveal from './TimelineHorizontalReveal.tsx';
 import TimelineShiftSeekModeBadge from './TimelineShiftSeekModeBadge.tsx';
 import TimelineZoomControls from './TimelineZoomControls.tsx';
 import {
@@ -27,6 +28,7 @@ import { buildTimelineSnapTicks, getDifficultyKey } from '../timelineUtils.ts';
 
 export type ObjectsTimelineComparisonContentProps = {
   showScrollModeControls?: boolean;
+  scrollModeExtra?: React.ReactNode;
   showModeSelector?: boolean;
   showVisibilityControls?: boolean;
   showThemeControls?: boolean;
@@ -37,6 +39,7 @@ export type ObjectsTimelineComparisonContentProps = {
 
 export default function ObjectsTimelineComparisonContent({
   showScrollModeControls = true,
+  scrollModeExtra,
   showModeSelector = true,
   showVisibilityControls = true,
   showThemeControls = true,
@@ -110,31 +113,44 @@ export default function ObjectsTimelineComparisonContent({
     showZoomControls ||
     !!headerExtra;
 
-  const showHeaderRow = showScrollModeControls || hasRightHeaderControls;
+  const showHeaderRow = showScrollModeControls || !!scrollModeExtra || hasRightHeaderControls;
 
   return (
     <Stack gap="md">
       {showHeaderRow && (
         <Group gap="sm" align="center" wrap="wrap" w="100%">
-          {showScrollModeControls && (
-            <TimelineShiftSeekModeBadge
-              active={shiftHeld}
-              tickStep={tickStep}
-              onTickStepChange={setTickStep}
-            />
-          )}
-          {hasRightHeaderControls && (
-            <Group gap="sm" align="center" wrap="wrap" justify="flex-end" ml="auto">
-              {headerExtra}
-              {showModeSelector && (
-                <ObjectsGameModeSelector
-                  groupedDifficulties={groupedDifficulties}
-                  selectedMode={selectedMode}
-                  onModeChange={onModeChange}
+          {(showScrollModeControls || scrollModeExtra) && (
+            <Group
+              gap="sm"
+              wrap="nowrap"
+              align="center"
+              data-stop-timeline-pan="true"
+              data-timeline-wheel-ignore="true"
+            >
+              {showScrollModeControls && (
+                <TimelineShiftSeekModeBadge
+                  active={shiftHeld}
+                  tickStep={tickStep}
+                  onTickStepChange={setTickStep}
                 />
               )}
+              {scrollModeExtra}
+            </Group>
+          )}
+          {hasRightHeaderControls && (
+            <Group gap={0} align="center" wrap="nowrap" justify="flex-end" ml="auto">
+              {headerExtra}
+              {showModeSelector && (
+                <Box ml="sm">
+                  <ObjectsGameModeSelector
+                    groupedDifficulties={groupedDifficulties}
+                    selectedMode={selectedMode}
+                    onModeChange={onModeChange}
+                  />
+                </Box>
+              )}
               {showVisibilityControls && (
-                <Group gap="xs" align="center" wrap="nowrap">
+                <Group gap="xs" align="center" wrap="nowrap" ml="sm">
                   <ActionIcon
                     variant="default"
                     aria-label="Show all difficulties"
@@ -153,26 +169,43 @@ export default function ObjectsTimelineComparisonContent({
                   </ActionIcon>
                 </Group>
               )}
-              {showThemeControls && viewMode === 'structure' && (
-                <Select
-                  aria-label="Timeline object style"
-                  title="Timeline object style"
-                  size="xs"
-                  w={108}
-                  data={TIMELINE_THEME_VARIANT_OPTIONS}
-                  value={timelineThemeVariant}
-                  allowDeselect={false}
-                  comboboxProps={{ withinPortal: true }}
-                  onChange={(value) => setTimelineThemeVariant(parseTimelineThemeVariant(value))}
-                />
+              {showThemeControls && (
+                <TimelineHorizontalReveal
+                  visible={viewMode === 'structure'}
+                  spacing="var(--mantine-spacing-sm)"
+                >
+                  <Select
+                    aria-label="Timeline object style"
+                    title="Timeline object style"
+                    size="xs"
+                    w={108}
+                    data={TIMELINE_THEME_VARIANT_OPTIONS}
+                    value={timelineThemeVariant}
+                    allowDeselect={false}
+                    comboboxProps={{ withinPortal: true }}
+                    onChange={(value) => setTimelineThemeVariant(parseTimelineThemeVariant(value))}
+                  />
+                </TimelineHorizontalReveal>
               )}
-              {showZoomControls && <TimelineZoomControls />}
+              {showZoomControls && (
+                <Box ml="sm">
+                  <TimelineZoomControls />
+                </Box>
+              )}
             </Group>
           )}
         </Group>
       )}
 
-      {aboveTimelineExtra}
+      {aboveTimelineExtra && (
+        <Collapse
+          in={viewMode === 'hitsounding'}
+          transitionDuration={TIMELINE_VIEW_MODE_TRANSITION_MS}
+          animateOpacity
+        >
+          {aboveTimelineExtra}
+        </Collapse>
+      )}
 
       <Box>
         <Box

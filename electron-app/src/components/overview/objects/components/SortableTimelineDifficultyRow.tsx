@@ -7,7 +7,13 @@ import TimelineRow from './TimelineRow.tsx';
 import { withAlpha } from '../../../../utils/color.ts';
 import { formatGameModeLabel, getModeAccentColor, normalizeMode } from '../../../../utils/gameMode';
 import GameModeIcon from '../../../icons/GameModeIcon.tsx';
-import { HIDDEN_ROW_HEIGHT, HIDDEN_ROW_VERTICAL_PADDING, LABEL_WIDTH } from '../constants.ts';
+import {
+  HIDDEN_ROW_HEIGHT,
+  HIDDEN_ROW_VERTICAL_PADDING,
+  LABEL_WIDTH,
+  TIMELINE_VIEW_MODE_TRANSITION_EASING,
+  TIMELINE_VIEW_MODE_TRANSITION_MS,
+} from '../constants.ts';
 import {
   useTimelineDisplay,
   useTimelineScale,
@@ -33,6 +39,7 @@ function SortableTimelineDifficultyRow({
   const { rowHeight } = useTimelineDisplay();
   const { toggleDifficultyVisibility } = useTimelineVisibility();
   const visibleRowHeight = isVisible ? rowHeight : HIDDEN_ROW_HEIGHT;
+  const rowHeightTransition = `height ${TIMELINE_VIEW_MODE_TRANSITION_MS}ms ${TIMELINE_VIEW_MODE_TRANSITION_EASING}`;
   const dropIndicatorColor = theme.colors.blue[4];
   const {
     attributes,
@@ -66,7 +73,7 @@ function SortableTimelineDifficultyRow({
         opacity: isDragging ? 0.78 : 1,
         zIndex: isDragging ? 10 : undefined,
         transform: CSS.Transform.toString(transform),
-        transition,
+        transition: [transition, rowHeightTransition].filter(Boolean).join(', '),
       }}
     >
       <Box
@@ -85,6 +92,7 @@ function SortableTimelineDifficultyRow({
           boxSizing: 'border-box',
           overflow: 'hidden',
           outline: isOver ? `1px solid ${withAlpha(dropIndicatorColor, 0.55)}` : undefined,
+          transition: rowHeightTransition,
         }}
       >
         <Flex align="center" gap={8} style={{ width: '100%', minWidth: 0, overflow: 'hidden' }}>
@@ -158,6 +166,7 @@ function SortableTimelineDifficultyRow({
           border: `1px solid ${isOver ? withAlpha(dropIndicatorColor, 0.75) : theme.colors.dark[4]}`,
           boxShadow: isOver ? `0 0 0 1px ${withAlpha(dropIndicatorColor, 0.35)} inset` : undefined,
           boxSizing: 'border-box',
+          transition: rowHeightTransition,
         }}
       >
         {isVisible ? (

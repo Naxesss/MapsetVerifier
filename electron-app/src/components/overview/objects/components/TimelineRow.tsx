@@ -4,6 +4,10 @@ import TimelineObjectContextMenu from './TimelineObjectContextMenu.tsx';
 import TimelineObjectHeadHovercard from './TimelineObjectHeadHovercard.tsx';
 import AutoResizeCanvas from '../../../common/AutoResizeCanvas.tsx';
 import {
+  TIMELINE_VIEW_MODE_TRANSITION_EASING,
+  TIMELINE_VIEW_MODE_TRANSITION_MS,
+} from '../constants.ts';
+import {
   useTimelineDisplay,
   useTimelinePan,
   useTimelineScale,
@@ -254,7 +258,13 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
       onContextMenu={handleContextMenu}
       onMouseMove={updateHeadHover}
       onMouseLeave={clearHeadHover}
-      style={{ position: 'relative', width: timelineWidth, height, overflow: 'hidden' }}
+      style={{
+        position: 'relative',
+        width: timelineWidth,
+        height,
+        overflow: 'hidden',
+        transition: `height ${TIMELINE_VIEW_MODE_TRANSITION_MS}ms ${TIMELINE_VIEW_MODE_TRANSITION_EASING}`,
+      }}
     >
       {canvasTiles.map((tile) => (
         <TimelineCanvasTile
