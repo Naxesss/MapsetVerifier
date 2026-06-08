@@ -81,8 +81,9 @@ public class CheckPlatterHigherSnappedHyperdash : BeatmapCheck
                 // Additional check based on BPM scaling if we moved a lot of x distance
                 // With 180 BPM allow 10 pixels of room
                 var distanceToFollowUp = (int)Math.Abs(next.Position.X - followUp.Position.X);
-                var followUpScaledBpm = beatmap.GetScaledBpm(followUp);
-                var allowedAntiflowDistance = (int)Math.Floor(10 * followUpScaledBpm);
+                var timeBetweenMs = (int)(followUp.Time - next.Time);
+                var timeBasedFactor = timeBetweenMs / 50.0;
+                var allowedAntiflowDistance = (int)Math.Floor(10 * timeBasedFactor);
 
                 if (distanceToFollowUp <= allowedAntiflowDistance)
                 {
