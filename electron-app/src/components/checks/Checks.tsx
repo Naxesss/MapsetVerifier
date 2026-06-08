@@ -46,12 +46,12 @@ function Checks() {
     }
   }, [folder]);
 
-  const { data, isLoading, isError, error, beatmapFolderPath, progress, structure } =
+  const { data, isLoading, isFetching, isError, error, beatmapFolderPath, progress, structure } =
     useBeatmapChecks({
       folder,
       songFolder: settings.songFolder,
     });
-  const areCheckResultsExpanded = !!data && !isLoading;
+  const areCheckResultsExpanded = !!data && !isLoading && !isFetching;
   const levelIconsLoading = isLoading;
 
   const { bgUrl } = useBeatmapBackground(folder, settings.songFolder);
@@ -277,9 +277,9 @@ function Checks() {
           {error?.stackTrace && <StackTraceMessage stackTrace={error.stackTrace} />}
         </Alert>
       )}
-      {(isLoading || data) && (
+      {(isLoading || isFetching || data) && (
         <Flex gap="sm" p="md" direction="column" bg="dark.6">
-          {isLoading && (
+          {(isLoading || isFetching) && (
             <ChecksResults
               isLoading
               isError={false}
