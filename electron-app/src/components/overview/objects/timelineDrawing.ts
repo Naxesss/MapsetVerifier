@@ -166,6 +166,9 @@ export function drawTimelineRow(
   ctx.stroke();
 
   const { timelineObjects } = difficulty;
+  const drawnMarkers = new Set<string>();
+  const timelineSamples = difficulty.timelineSamples ?? [];
+
   for (let index = timelineObjects.length - 1; index >= 0; index -= 1) {
     const timelineObject = timelineObjects[index];
     drawTimelineObject(
@@ -182,48 +185,35 @@ export function drawTimelineRow(
       neutralBodyColor,
       resolvedHitsoundCache?.bodySampleByObject.get(timelineObject) ?? null
     );
-  }
 
-  if (!isHitsoundView) {
-    drawSliderTickDots(ctx, {
-      samples: difficulty.timelineSamples ?? [],
-      startTimeMs,
-      durationMs,
-      timelineWidth,
-      centerY,
-      visibleStartX: viewportStartX,
-      visibleEndX: viewportEndX,
-    });
-  }
-
-  const drawnMarkers = new Set<string>();
-  for (let index = timelineObjects.length - 1; index >= 0; index -= 1) {
-    const timelineObject = timelineObjects[index];
-    if (timelineObject.objectType === 'Circle') {
-      continue;
+    if (!isHitsoundView && timelineObject.objectType === 'Slider') {
+      drawSliderTickDots(ctx, {
+        samples: timelineSamples,
+        startTimeMs,
+        durationMs,
+        timelineWidth,
+        centerY,
+        visibleStartX: viewportStartX,
+        visibleEndX: viewportEndX,
+        startTimeFilterMs: timelineObject.startTimeMs,
+        endTimeFilterMs: timelineObject.endTimeMs,
+      });
     }
 
-    const { edges } = timelineObject;
-    for (let edgeIndex = edges.length - 1; edgeIndex >= 0; edgeIndex -= 1) {
-      const edge = edges[edgeIndex];
-      const rawX = getTimelineX(edge.timeMs, startTimeMs, durationMs, timelineWidth);
-      if (rawX < viewportStartX || rawX > viewportEndX) continue;
-
-      const x = getAlignedTimelineLineX(edge.timeMs, startTimeMs, durationMs, timelineWidth);
-      const markerKey = `${timelineObject.objectType}-${edge.partName}-${x}`;
-      if (drawnMarkers.has(markerKey)) continue;
-
-      drawnMarkers.add(markerKey);
-      drawObjectMarker(
+    if (timelineObject.objectType !== 'Circle') {
+      drawTimelineObjectMarkers(
         ctx,
         timelineObject,
         visualTheme,
-        edge.partName,
-        x,
+        startTimeMs,
+        durationMs,
+        timelineWidth,
         centerY,
+        viewportStartX,
+        viewportEndX,
         isHitsoundView,
-        edge.hitSoundFlags ?? 0,
-        neutralBodyColor
+        neutralBodyColor,
+        drawnMarkers
       );
     }
   }
@@ -764,6 +754,45 @@ function drawTimelineObject(
   );
 }
 
+function drawTimelineObjectMarkers(
+  ctx: CanvasRenderingContext2D,
+  timelineObject: ObjectsTimelineObject,
+  visualTheme: TimelineVisualTheme,
+  startTimeMs: number,
+  durationMs: number,
+  timelineWidth: number,
+  centerY: number,
+  visibleStartX: number,
+  visibleEndX: number,
+  isHitsoundView: boolean,
+  neutralBodyColor: string,
+  drawnMarkers: Set<string>
+) {
+  const { edges } = timelineObject;
+  for (let edgeIndex = edges.length - 1; edgeIndex >= 0; edgeIndex -= 1) {
+    const edge = edges[edgeIndex];
+    const rawX = getTimelineX(edge.timeMs, startTimeMs, durationMs, timelineWidth);
+    if (rawX < visibleStartX || rawX > visibleEndX) continue;
+
+    const x = getAlignedTimelineLineX(edge.timeMs, startTimeMs, durationMs, timelineWidth);
+    const markerKey = `${timelineObject.objectType}-${edge.partName}-${x}`;
+    if (drawnMarkers.has(markerKey)) continue;
+
+    drawnMarkers.add(markerKey);
+    drawObjectMarker(
+      ctx,
+      timelineObject,
+      visualTheme,
+      edge.partName,
+      x,
+      centerY,
+      isHitsoundView,
+      edge.hitSoundFlags ?? 0,
+      neutralBodyColor
+    );
+  }
+}
+
 function drawSliderTickDots(
   ctx: CanvasRenderingContext2D,
   {
@@ -774,6 +803,8 @@ function drawSliderTickDots(
     centerY,
     visibleStartX,
     visibleEndX,
+    startTimeFilterMs,
+    endTimeFilterMs,
   }: {
     samples: ObjectsTimelineSample[];
     startTimeMs: number;
@@ -782,6 +813,8 @@ function drawSliderTickDots(
     centerY: number;
     visibleStartX: number;
     visibleEndX: number;
+    startTimeFilterMs?: number;
+    endTimeFilterMs?: number;
   }
 ) {
   if (samples.length === 0) {
@@ -795,6 +828,14 @@ function drawSliderTickDots(
 
   for (const sample of samples) {
     if (sample.source !== 'Tick' || sample.objectType !== 'Slider') {
+      continue;
+    }
+
+    if (
+      startTimeFilterMs != null &&
+      endTimeFilterMs != null &&
+      (sample.timeMs < startTimeFilterMs - 1 || sample.timeMs > endTimeFilterMs + 1)
+    ) {
       continue;
     }
 
