@@ -1,9 +1,9 @@
-﻿import {Alert, Group, Loader, Text} from '@mantine/core';
+﻿import { Alert, Group, Loader, Text } from '@mantine/core';
+import { IconAlertCircle } from '@tabler/icons-react';
 import DocumentationCheck from './DocumentationCheck';
 import { useBeatmapDocumentationChecks } from './hooks/useDocumentationChecks';
 import { Mode } from '../../Types.ts';
 import { formatGameModeLabel } from '../../utils/gameMode';
-import {IconAlertCircle} from "@tabler/icons-react";
 
 interface BeatmapChecksProps {
   mode: Mode;
