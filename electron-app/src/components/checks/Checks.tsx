@@ -296,7 +296,7 @@ function Checks() {
             animateOpacity
           >
             {data && (
-              <>
+              <Group gap="sm">
                 <DifficultyInfo
                   hoveredDifficulty={hoveredDifficulty}
                   selectedCategory={selectedCategory}
@@ -334,7 +334,7 @@ function Checks() {
                     overrideResult={displayedOverrideResult}
                   />
                 </Collapse>
-              </>
+              </Group>
             )}
           </Collapse>
         </Flex>
