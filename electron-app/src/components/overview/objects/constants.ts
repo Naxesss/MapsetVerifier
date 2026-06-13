@@ -1,6 +1,8 @@
 export const LABEL_WIDTH = 208;
 export const ROW_HEIGHT = 44;
 export const HITSOUND_ROW_HEIGHT = 92;
+export const TIMELINE_VIEW_MODE_TRANSITION_MS = 220;
+export const TIMELINE_VIEW_MODE_TRANSITION_EASING = 'cubic-bezier(0.2, 0, 0, 1)';
 export const HIDDEN_ROW_HEIGHT = 36;
 export const HIDDEN_ROW_VERTICAL_PADDING = 6;
 export const AXIS_HEIGHT = 30;

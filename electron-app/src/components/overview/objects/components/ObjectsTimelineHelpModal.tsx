@@ -29,10 +29,6 @@ export default function ObjectsTimelineHelpModal({
             <List.Item>Drag the grip on a row to reorder difficulties.</List.Item>
             <List.Item>Use the eye icons to show or hide individual rows.</List.Item>
             <List.Item>
-              Open <strong>Full view</strong> for a larger timeline. Pan position is kept when you
-              switch between inline and full view.
-            </List.Item>
-            <List.Item>
               Right-click an object to copy its editor timestamp or open it in the osu! editor.
             </List.Item>
           </List>
@@ -51,8 +47,8 @@ export default function ObjectsTimelineHelpModal({
             <Stack gap="xs">
               <Title order={5}>Hitsounding view</Title>
               <Text size="sm" c="dimmed">
-                Available for osu! and osu!catch. Open full view, then switch with the Structure /
-                Hitsounding control.
+                Available for osu! and osu!catch. Switch with the Structure / Hitsounding control
+                in the timeline header.
               </Text>
               <List size="sm" spacing={4}>
                 <List.Item>
@@ -114,7 +110,7 @@ export default function ObjectsTimelineHelpModal({
             <Stack gap="xs">
               <Title order={5}>Layer toggles</Title>
               <Text size="sm" c="dimmed">
-                In full view hitsounding mode.
+                In hitsounding mode.
               </Text>
               <List size="sm" spacing={4}>
                 <List.Item>

@@ -115,8 +115,9 @@ export function getPageHints(
         ...(objectsHasHitsoundModes
           ? [
               {
-                id: 'hitsound-full-view',
-                content: "Use the timeline's full view to access the hitsounding overview.",
+                id: 'hitsound-view',
+                content:
+                  'Use the Structure / Hitsounding toggle in the timeline to access the hitsounding overview.',
               } satisfies PageHint,
             ]
           : []),
