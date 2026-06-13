@@ -1,4 +1,4 @@
-import { Alert, Text, Box, useMantineTheme, Group, Flex, Collapse } from '@mantine/core';
+import { Alert, Text, Box, useMantineTheme, Group, Flex, Collapse, Stack } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
 import React, { useCallback, useEffect, useMemo } from 'react';
 import BeatmapActionButtons from './BeatmapActionButtons';
@@ -297,7 +297,7 @@ function Checks() {
             animateOpacity
           >
             {data && (
-              <Group gap="sm">
+              <Stack gap="sm">
                 <DifficultyInfo
                   hoveredDifficulty={hoveredDifficulty}
                   selectedCategory={selectedCategory}
@@ -335,7 +335,7 @@ function Checks() {
                     overrideResult={displayedOverrideResult}
                   />
                 </Collapse>
-              </Group>
+              </Stack>
             )}
           </Collapse>
         </Flex>
