@@ -1,0 +1,4 @@
+<Project>
+  <!-- Override Sentry target to prevent injecting local project paths into AssemblyMetadata -->
+  <Target Name="WriteSentryAttributes" />
+</Project>
