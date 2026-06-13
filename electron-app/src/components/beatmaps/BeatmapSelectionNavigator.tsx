@@ -37,12 +37,7 @@ export default function BeatmapSelectionNavigator() {
     if (!shouldNavigateToChecks(location.pathname, settings.goToChecksOnMapsetSwitch)) return;
 
     navigate('/checks', { viewTransition: true });
-  }, [
-    beatmapFolderPath,
-    location.pathname,
-    navigate,
-    settings.goToChecksOnMapsetSwitch,
-  ]);
+  }, [beatmapFolderPath, location.pathname, navigate, settings.goToChecksOnMapsetSwitch]);
 
   return null;
 }

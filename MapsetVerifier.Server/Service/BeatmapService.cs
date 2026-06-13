@@ -150,6 +150,10 @@ public static class BeatmapService
         var content = File.ReadAllText(osuFile);
         var meta = ParseBeatmapMetadata(beatmapSetFolder, content);
 
+        ulong? beatmapId = null;
+        if (ulong.TryParse(meta.beatmapId, out var parsedBeatmapId))
+            beatmapId = parsedBeatmapId;
+
         ulong? beatmapSetId = null;
         if (ulong.TryParse(meta.beatmapSetId, out var parsedBeatmapSetId))
             beatmapSetId = parsedBeatmapSetId;
@@ -158,6 +162,7 @@ public static class BeatmapService
             title: meta.title,
             artist: meta.artist,
             creator: meta.creator,
+            beatmapId: beatmapId,
             beatmapSetId: beatmapSetId
         );
     }

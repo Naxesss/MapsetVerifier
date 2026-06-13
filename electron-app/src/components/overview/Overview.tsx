@@ -50,6 +50,7 @@ function Overview() {
         <Group gap="sm" justify="space-between" style={{ width: '100%' }}>
           <BeatmapActionButtons
             beatmapFolderPath={beatmapFolderPath}
+            beatmapId={beatmapInfo?.beatmapId ?? undefined}
             beatmapSetId={beatmapInfo?.beatmapSetId ?? undefined}
             onReparse={triggerReparse}
           />

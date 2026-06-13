@@ -1,4 +1,14 @@
-import { Box, Group, Paper, SegmentedControl, Stack, Switch, Text, Title, Tooltip } from '@mantine/core';
+import {
+  Box,
+  Group,
+  Paper,
+  SegmentedControl,
+  Stack,
+  Switch,
+  Text,
+  Title,
+  Tooltip,
+} from '@mantine/core';
 import { useEffect, useMemo, useState } from 'react';
 import HitsoundStripLegend from './HitsoundStripLegend.tsx';
 import ObjectsTimelineComparisonContent from './ObjectsTimelineComparisonContent.tsx';
