@@ -1,5 +1,12 @@
 ﻿import { Button, Group, Tooltip, useMantineTheme } from '@mantine/core';
-import { IconFolder, IconMessage, IconRefresh, IconVersions, IconWorld } from '@tabler/icons-react';
+import {
+  IconFolder,
+  IconLink,
+  IconMessage,
+  IconRefresh,
+  IconVersions,
+  IconWorld,
+} from '@tabler/icons-react';
 import { useOpenExternal } from '../../hooks/useOpenExternal.ts';
 
 export type SnapshotFolderTarget = {
@@ -10,6 +17,7 @@ export type SnapshotFolderTarget = {
 interface BeatmapActionButtonsProps {
   beatmapFolderPath?: string;
   beatmapSetId?: number;
+  beatmapId?: number;
   onReparse: () => Promise<void>;
   /** Undefined hides the button; null disables it on the snapshots page. */
   snapshotFolder?: SnapshotFolderTarget | null;
@@ -23,6 +31,7 @@ async function openFolderPath(folderPath: string) {
 function BeatmapActionButtons({
   beatmapFolderPath,
   beatmapSetId,
+  beatmapId,
   onReparse,
   snapshotFolder,
 }: BeatmapActionButtonsProps) {
@@ -116,6 +125,25 @@ function BeatmapActionButtons({
           disabled={!beatmapSetId}
         >
           <IconMessage />
+        </Button>
+      </Tooltip>
+      <Tooltip label="Open with osu!direct">
+        <Button
+          size="xs"
+          variant="default"
+          type="button"
+          onClick={async () => {
+            if (!beatmapId) return;
+            try {
+              await openExternal(`osu://b/${beatmapId}`);
+            } catch (e) {
+              console.error('Failed to open via osu direct:', e);
+              alert('Failed to open via osu!direct. See console for details.');
+            }
+          }}
+          disabled={!beatmapId}
+        >
+          <IconLink />
         </Button>
       </Tooltip>
     </Group>

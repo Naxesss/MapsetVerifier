@@ -58,6 +58,7 @@ export type ApiBeatmapInfo = {
   title: string | null;
   artist: string | null;
   creator: string | null;
+  beatmapId: number | null;
   beatmapSetId: number | null;
 };
 

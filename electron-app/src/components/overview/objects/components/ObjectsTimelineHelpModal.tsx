@@ -47,8 +47,8 @@ export default function ObjectsTimelineHelpModal({
             <Stack gap="xs">
               <Title order={5}>Hitsounding view</Title>
               <Text size="sm" c="dimmed">
-                Available for osu! and osu!catch. Switch with the Structure / Hitsounding control
-                in the timeline header.
+                Available for osu! and osu!catch. Switch with the Structure / Hitsounding control in
+                the timeline header.
               </Text>
               <List size="sm" spacing={4}>
                 <List.Item>

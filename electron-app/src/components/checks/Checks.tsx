@@ -223,6 +223,7 @@ function Checks() {
         <Group gap="sm">
           <BeatmapActionButtons
             beatmapFolderPath={beatmapFolderPath}
+            beatmapId={beatmapInfo?.beatmapId ?? undefined}
             beatmapSetId={beatmapInfo?.beatmapSetId ?? undefined}
             onReparse={triggerReparse}
           />
