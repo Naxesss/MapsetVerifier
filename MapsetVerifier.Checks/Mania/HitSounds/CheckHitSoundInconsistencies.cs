@@ -8,7 +8,9 @@ using MathNet.Numerics;
 
 namespace MapsetVerifier.Checks.Mania.HitSounds
 {
-    [Check]
+    // [Check]
+    // temporarily disabled due to flakiness, will need a rework.
+    // Ref: https://github.com/Naxesss/MapsetVerifier/issues/100
     public class CheckHitSoundInconsistencies : BeatmapSetCheck
     {
         private record HitSoundEvent(
