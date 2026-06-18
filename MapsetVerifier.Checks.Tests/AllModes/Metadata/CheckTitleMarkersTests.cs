@@ -218,12 +218,12 @@ public class CheckTitleMarkersTests
         );
     }
 
-    [Fact]
-    public void SkipsStylisedLongParenthetical()
+    [Theory]
+    [InlineData("Pippiquest (Pippi x Mocha Romantic Movie Remix Edition)")]
+    [InlineData("You Make My Life 1UP (x127 Long Ver.)")]
+    public void SkipsStylisedLongParenthetical(string title)
     {
-        using var context = CreateContext(
-            "Pippiquest (Pippi x Mocha Romantic Movie Remix Edition)"
-        );
+        using var context = CreateContext(title);
 
         var issues = context.RunGeneralCheck<CheckTitleMarkers>();
 

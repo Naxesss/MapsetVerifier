@@ -169,7 +169,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         "field",
                         "title marker"
                     ).WithCause(
-                        @"Length or version markers not covered by the standard list should use a descriptive ""(#### Ver.)"" form in title case, e.g. ""(Extended Version)"" -> ""(Extended Ver.)"", ""(Long)"" -> ""(Long Ver.)""."
+                        @"Length or version markers not covered by the standard list should use a descriptive ""(#### Ver.)"" form in title case, e.g. ""(Extended Version)"" -> ""(Extended Ver.)"", ""(Long)"" -> ""(Long Ver.)"". Stylised markers considered part of the title should be kept as-is."
                     )
                 },
                 {
@@ -803,10 +803,15 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             return string.Join(
                 ' ',
                 words.Select(word =>
-                    CultureInfo.InvariantCulture.TextInfo.ToTitleCase(word.ToLowerInvariant())
+                    ContainsLetterAndDigit(word)
+                        ? word
+                        : CultureInfo.InvariantCulture.TextInfo.ToTitleCase(word.ToLowerInvariant())
                 )
             );
         }
+
+        private static bool ContainsLetterAndDigit(string text) =>
+            text.Any(char.IsLetter) && text.Any(char.IsDigit);
 
         private static string Capitalize(string str) =>
             str.Length == 0 ? str : char.ToUpper(str[0]) + str[1..];
