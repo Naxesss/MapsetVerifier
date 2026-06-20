@@ -41,7 +41,8 @@ public sealed class CheckTestContext : IDisposable
 
     public static CheckTestContext CreateFromOsuFiles(
         IEnumerable<(string FileName, string Content)> osuFiles,
-        IEnumerable<string>? extraFiles = null
+        IEnumerable<string>? extraFiles = null,
+        IEnumerable<(string FileName, string Content)>? extraFileContents = null
     )
     {
         var tempPath = Path.Combine(
@@ -65,6 +66,19 @@ public sealed class CheckTestContext : IDisposable
                     Directory.CreateDirectory(dir);
 
                 File.WriteAllText(dest, string.Empty);
+            }
+        }
+
+        if (extraFileContents != null)
+        {
+            foreach (var (fileName, content) in extraFileContents)
+            {
+                var dest = Path.Combine(tempPath, fileName);
+                var dir = Path.GetDirectoryName(dest);
+                if (!string.IsNullOrEmpty(dir))
+                    Directory.CreateDirectory(dir);
+
+                File.WriteAllText(dest, content);
             }
         }
 
