@@ -201,8 +201,8 @@ namespace MapsetVerifier.Parser.Objects
                 return true;
 
             // When the path is "go", and "go.png" is over "go.jpg" in order, then "go.jpg" will be the one used.
-            // So we basically want to find the last path which matches the name.
-            var lastMatchingPath = PathStatic.ParsePath(GetLastMatchingFilePath(parsedPath));
+            // So we basically want to find the last path which matches the stripped name.
+            var lastMatchingPath = GetLastMatchingFilePathWithStrippedPath(strippedPath);
 
             // These are always used, but you won't be able to update them unless they have the right format.
             if (fileName.EndsWith(".osu"))
@@ -222,10 +222,18 @@ namespace MapsetVerifier.Parser.Objects
             // animations cannot be stripped of their extension
             if (
                 Beatmaps.Any(beatmap =>
-                    beatmap.Sprites.Any(element => element.strippedPath == strippedPath)
-                    || beatmap.Videos.Any(element => element.strippedPath == strippedPath)
-                    || beatmap.Backgrounds.Any(element => element.strippedPath == strippedPath)
-                    || beatmap.Samples.Any(element => element.strippedPath == strippedPath)
+                    beatmap.Sprites.Any(element =>
+                        IsExtensionlessReference(element.path, strippedPath)
+                    )
+                    || beatmap.Videos.Any(element =>
+                        IsExtensionlessReference(element.path, strippedPath)
+                    )
+                    || beatmap.Backgrounds.Any(element =>
+                        IsExtensionlessReference(element.path, strippedPath)
+                    )
+                    || beatmap.Samples.Any(element =>
+                        IsExtensionlessReference(element.path, strippedPath)
+                    )
                 )
                 && parsedPath == lastMatchingPath
             )
@@ -246,10 +254,16 @@ namespace MapsetVerifier.Parser.Objects
             if (
                 Osb != null
                 && (
-                    Osb.sprites.Any(element => element.strippedPath == strippedPath)
-                    || Osb.videos.Any(element => element.strippedPath == strippedPath)
-                    || Osb.backgrounds.Any(element => element.strippedPath == strippedPath)
-                    || Osb.samples.Any(element => element.strippedPath == strippedPath)
+                    Osb.sprites.Any(element => IsExtensionlessReference(element.path, strippedPath))
+                    || Osb.videos.Any(element =>
+                        IsExtensionlessReference(element.path, strippedPath)
+                    )
+                    || Osb.backgrounds.Any(element =>
+                        IsExtensionlessReference(element.path, strippedPath)
+                    )
+                    || Osb.samples.Any(element =>
+                        IsExtensionlessReference(element.path, strippedPath)
+                    )
                 )
                 && parsedPath == lastMatchingPath
             )
@@ -296,11 +310,41 @@ namespace MapsetVerifier.Parser.Objects
             }
 
             foreach (var animation in animations)
-            foreach (var framePath in animation.framePaths)
-                if (string.Equals(framePath, filePath, StringComparison.CurrentCultureIgnoreCase))
-                    return true;
+            {
+                foreach (var framePath in animation.framePaths)
+                    if (
+                        string.Equals(
+                            framePath,
+                            filePath,
+                            StringComparison.CurrentCultureIgnoreCase
+                        )
+                    )
+                        return true;
+            }
 
             return false;
+        }
+
+        private string? GetLastMatchingFilePathWithStrippedPath(string? strippedPath)
+        {
+            if (strippedPath == null)
+                return null;
+
+            var lastMatchingPath = SongFilePaths.LastOrDefault(path =>
+                PathStatic.ParsePath(PathStatic.RelativePath(path, SongPath), true) == strippedPath
+            );
+
+            return lastMatchingPath == null
+                ? null
+                : PathStatic.ParsePath(PathStatic.RelativePath(lastMatchingPath, SongPath));
+        }
+
+        private static bool IsExtensionlessReference(string? referencePath, string? strippedPath)
+        {
+            if (referencePath == null || strippedPath == null)
+                return false;
+
+            return PathStatic.ParsePath(referencePath) == strippedPath;
         }
 
         /// <summary> Returns the beatmapset as a string in the format "Artist - Title (Creator)". </summary>
