@@ -81,9 +81,11 @@ export default function TimelineZoomControls() {
 
   return (
     <Group gap="xs" align="center" wrap="nowrap">
-      <ActionIcon variant="default" aria-label="Zoom out" onClick={() => adjustZoom(-1)}>
-        <IconMinus size={16} />
-      </ActionIcon>
+      <Tooltip label="Zoom out timeline">
+        <ActionIcon variant="default" aria-label="Zoom out" onClick={() => adjustZoom(-1)}>
+          <IconMinus size={16} />
+        </ActionIcon>
+      </Tooltip>
       <Tooltip
         label={`${formatZoomLabel(displayZoom)}x`}
         opened={hovered || dragging}
@@ -121,9 +123,11 @@ export default function TimelineZoomControls() {
           />
         </Box>
       </Tooltip>
-      <ActionIcon variant="default" aria-label="Zoom in" onClick={() => adjustZoom(1)}>
-        <IconPlus size={16} />
-      </ActionIcon>
+      <Tooltip label="Zoom in timeline">
+        <ActionIcon variant="default" aria-label="Zoom in" onClick={() => adjustZoom(1)}>
+          <IconPlus size={16} />
+        </ActionIcon>
+      </Tooltip>
     </Group>
   );
 }
