@@ -211,7 +211,7 @@ namespace MapsetVerifier.Checks.Mania.HitSounds
             if (line == null)
                 return "";
 
-            return line.CustomIndex == 1 ? "" : line.CustomIndex.ToString();
+            return line.CustomIndex <= 1 ? "" : line.CustomIndex.ToString();
         }
 
         private IEnumerable<Issue> CompareBeatmaps(
