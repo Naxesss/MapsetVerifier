@@ -1,6 +1,7 @@
 import {
   Box,
   Group,
+  Loader,
   Paper,
   SegmentedControl,
   Stack,
@@ -9,7 +10,7 @@ import {
   Title,
   Tooltip,
 } from '@mantine/core';
-import { useEffect, useMemo, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import HitsoundStripLegend from './HitsoundStripLegend.tsx';
 import ObjectsTimelineComparisonContent from './ObjectsTimelineComparisonContent.tsx';
 import ObjectsTimelineHelpButton from './ObjectsTimelineHelpButton.tsx';
@@ -88,7 +89,9 @@ function ObjectsTimelineComparisonBody({ pan }: { pan: TimelinePanValue }) {
   } = controller;
 
   const hitsoundAvailable = isHitsoundViewAvailable(activeMode);
-  const [viewMode, setViewMode] = useState<TimelineViewMode>('structure');
+  const [selectedViewMode, setSelectedViewMode] = useState<TimelineViewMode>('structure');
+  const viewMode = useDeferredValue(selectedViewMode);
+  const isViewModePending = selectedViewMode !== viewMode;
   const [hitsoundLayers, setHitsoundLayers] =
     useState<HitsoundLayerVisibility>(DEFAULT_HITSOUND_LAYERS);
 
@@ -99,10 +102,10 @@ function ObjectsTimelineComparisonBody({ pan }: { pan: TimelinePanValue }) {
   }, [pan.stopDragging]);
 
   useEffect(() => {
-    if (!hitsoundAvailable && viewMode === 'hitsounding') {
-      setViewMode('structure');
+    if (!hitsoundAvailable && selectedViewMode === 'hitsounding') {
+      setSelectedViewMode('structure');
     }
-  }, [hitsoundAvailable, viewMode]);
+  }, [hitsoundAvailable, selectedViewMode]);
 
   const rowHeight = viewMode === 'hitsounding' ? HITSOUND_ROW_HEIGHT : ROW_HEIGHT;
 
@@ -127,22 +130,25 @@ function ObjectsTimelineComparisonBody({ pan }: { pan: TimelinePanValue }) {
         disabled={hitsoundAvailable}
         withArrow
       >
-        <SegmentedControl
-          size="xs"
-          value={viewMode}
-          onChange={(value) => setViewMode(value as TimelineViewMode)}
-          data={[
-            { label: 'Structure', value: 'structure' },
-            {
-              label: 'Hitsounding',
-              value: 'hitsounding',
-              disabled: !hitsoundAvailable,
-            },
-          ]}
-        />
+        <Group gap="xs" wrap="nowrap">
+          <SegmentedControl
+            size="xs"
+            value={selectedViewMode}
+            onChange={(value) => setSelectedViewMode(value as TimelineViewMode)}
+            data={[
+              { label: 'Structure', value: 'structure' },
+              {
+                label: 'Hitsounding',
+                value: 'hitsounding',
+                disabled: !hitsoundAvailable,
+              },
+            ]}
+          />
+          {isViewModePending && <Loader size="xs" />}
+        </Group>
       </Tooltip>
     ),
-    [hitsoundAvailable, viewMode]
+    [hitsoundAvailable, isViewModePending, selectedViewMode]
   );
 
   const headerExtra = useMemo(
@@ -168,7 +174,7 @@ function ObjectsTimelineComparisonBody({ pan }: { pan: TimelinePanValue }) {
   const fullViewValue = useMemo(
     () => ({
       viewMode,
-      setViewMode,
+      setViewMode: setSelectedViewMode,
       hitsoundLayers,
       setHitsoundLayers,
       rowHeight,
