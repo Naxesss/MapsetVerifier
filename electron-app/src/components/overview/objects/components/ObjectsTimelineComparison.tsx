@@ -153,7 +153,7 @@ function ObjectsTimelineComparisonBody({ pan }: { pan: TimelinePanValue }) {
           visible={viewMode === 'hitsounding'}
           spacing="var(--mantine-spacing-sm)"
         >
-          <Group gap="md" wrap="nowrap">
+          <Group gap="md">
             {layerToggle('body', 'Body sounds')}
             {layerToggle('ticks', 'Ticks')}
             {layerToggle('sampleset', 'Sample bank')}
