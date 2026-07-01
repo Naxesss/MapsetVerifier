@@ -1,11 +1,11 @@
-import { Badge, Box, Group, Stack, Text } from '@mantine/core';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { Badge, Group, Stack, Text } from '@mantine/core';
 import React from 'react';
 import CheckGroup from './CheckGroup.tsx';
-import { GroupedChecks, groupChecks } from './groupChecks';
+import { groupChecks } from './groupChecks';
 import { ApiBeatmapSetCheckResult, ApiCategoryOverrideCheckResult, Level } from '../../Types';
 import { countWord } from '../../utils/countWord';
 import { InfoIconTooltip } from '../common/InfoIconTooltip.tsx';
+import VirtualizedList from '../common/VirtualizedList.tsx';
 
 type DisplayLevel = Exclude<Level, 'Check'>;
 
@@ -64,9 +64,6 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
 }) => {
   const [levelFilter, setLevelFilter] = React.useState<DisplayLevel | null>(null);
   const [groupUiState, setGroupUiState] = React.useState<Record<number, CheckGroupUiState>>({});
-  const virtualListRef = React.useRef<HTMLDivElement | null>(null);
-  const [scrollElement, setScrollElement] = React.useState<HTMLElement | null>(null);
-  const [scrollMargin, setScrollMargin] = React.useState(0);
 
   const overrideCategoryResult = overrideResult?.categoryResult;
   const categoryData = React.useMemo(() => {
@@ -157,40 +154,9 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
       ? overrideResult.checks
       : data.checks;
 
-  const updateScrollContext = React.useCallback(() => {
-    const listElement = virtualListRef.current;
-    if (!listElement) return;
-
-    const nextScrollElement = listElement.closest<HTMLElement>('.mantine-ScrollArea-viewport');
-    setScrollElement(nextScrollElement);
-
-    if (!nextScrollElement) {
-      setScrollMargin(0);
-      return;
-    }
-
-    const listRect = listElement.getBoundingClientRect();
-    const scrollRect = nextScrollElement.getBoundingClientRect();
-    setScrollMargin(listRect.top - scrollRect.top + nextScrollElement.scrollTop);
-  }, []);
-
-  React.useLayoutEffect(() => {
-    updateScrollContext();
-  }, [filteredGroups.length, updateScrollContext]);
-
-  const groupVirtualizer = useVirtualizer({
-    count: filteredGroups.length,
-    estimateSize: () => 104,
-    getItemKey: (index) => filteredGroups[index]?.id ?? index,
-    getScrollElement: () => scrollElement,
-    overscan: VIRTUAL_GROUP_OVERSCAN,
-    scrollMargin,
-  });
-
   React.useEffect(() => {
     setGroupUiState({});
-    groupVirtualizer.scrollToOffset(0);
-  }, [groupVirtualizer, levelFilter, selectedCategory, overrideResult]);
+  }, [levelFilter, selectedCategory, overrideResult]);
 
   const toggleGroupOpen = React.useCallback((id: number) => {
     setGroupUiState((current) => {
@@ -218,7 +184,7 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
     });
   }, []);
 
-  const renderVirtualGroup = (group: GroupedChecks) => {
+  const renderVirtualGroup = (group: (typeof filteredGroups)[number]) => {
     const state = groupUiState[group.id] ?? defaultGroupState;
 
     return (
@@ -271,37 +237,14 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
       </Group>
       {categoryData.totalCount > 0 ? (
         filteredGroups.length > 0 ? (
-          <Box
-            ref={virtualListRef}
-            style={{
-              height: `${groupVirtualizer.getTotalSize()}px`,
-              position: 'relative',
-              width: '100%',
-            }}
-          >
-            {groupVirtualizer.getVirtualItems().map((virtualGroup) => {
-              const group = filteredGroups[virtualGroup.index];
-              if (!group) return null;
-
-              return (
-                <Box
-                  key={virtualGroup.key}
-                  data-index={virtualGroup.index}
-                  ref={groupVirtualizer.measureElement}
-                  style={{
-                    left: 0,
-                    paddingBottom: 'var(--mantine-spacing-sm)',
-                    position: 'absolute',
-                    top: 0,
-                    transform: `translateY(${virtualGroup.start - scrollMargin}px)`,
-                    width: '100%',
-                  }}
-                >
-                  {renderVirtualGroup(group)}
-                </Box>
-              );
-            })}
-          </Box>
+          <VirtualizedList
+            items={filteredGroups}
+            estimateSize={() => 104}
+            getItemKey={(group) => group.id}
+            renderItem={renderVirtualGroup}
+            overscan={VIRTUAL_GROUP_OVERSCAN}
+            rowGap="var(--mantine-spacing-sm)"
+          />
         ) : (
           <Text size="sm" c="dimmed">
             No issues match this severity.
