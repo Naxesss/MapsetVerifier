@@ -5,9 +5,9 @@ import {
   Button,
   Code,
   Group,
+  List,
   Loader,
   Paper,
-  ScrollArea,
   Stack,
   Table,
   Text,
@@ -110,66 +110,62 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
       )}
 
       {report && report.loadedPlugins.length > 0 && (
-        <ScrollArea type="auto">
-          <Table verticalSpacing="xs" miw={620}>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Plugin</Table.Th>
-                <Table.Th>Version</Table.Th>
-                <Table.Th>Author</Table.Th>
-                <Table.Th>Checks</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {report.loadedPlugins.map((plugin) => (
-                <Table.Tr key={plugin.filePath}>
-                  <Table.Td>
-                    <Stack gap={2}>
-                      <Text size="sm" fw={500}>
-                        {plugin.assemblyName ?? plugin.fileName}
-                      </Text>
-                      <Tooltip label={plugin.filePath}>
-                        <Text size="xs" c="dimmed" truncate maw={220}>
-                          {plugin.fileName}
-                        </Text>
-                      </Tooltip>
-                    </Stack>
-                  </Table.Td>
-                  <Table.Td>
-                    <Text size="sm">{plugin.version ?? 'Unknown'}</Text>
-                  </Table.Td>
-                  <Table.Td>
-                    <Text size="sm">
-                      {plugin.authors.length > 0 ? plugin.authors.join(', ') : 'Unknown'}
+        <Table verticalSpacing="xs">
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Plugin</Table.Th>
+              <Table.Th>Version</Table.Th>
+              <Table.Th>Author</Table.Th>
+              <Table.Th>Checks</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {report.loadedPlugins.map((plugin) => (
+              <Table.Tr key={plugin.filePath}>
+                <Table.Td>
+                  <Stack gap={2}>
+                    <Text size="sm" fw={500}>
+                      {plugin.assemblyName}
                     </Text>
-                  </Table.Td>
-                  <Table.Td>
-                    <Group gap={4}>
-                      <Badge size="sm" variant="light">
-                        {plugin.checkCount} total
+                    <Text size="xs" c="dimmed" truncate maw={220}>
+                      {plugin.fileName}
+                    </Text>
+                  </Stack>
+                </Table.Td>
+                <Table.Td>
+                  <Text size="sm">{plugin.version ?? 'Unknown'}</Text>
+                </Table.Td>
+                <Table.Td>
+                  <Text size="sm">
+                    {plugin.authors.length > 0 ? plugin.authors.join(', ') : 'Unknown'}
+                  </Text>
+                </Table.Td>
+                <Table.Td>
+                  <Group gap={4}>
+                    <Badge size="sm" variant="light">
+                      {plugin.checkCount} total
+                    </Badge>
+                    {plugin.generalCheckCount > 0 && (
+                      <Badge size="sm" variant="outline">
+                        {plugin.generalCheckCount} general
                       </Badge>
-                      {plugin.generalCheckCount > 0 && (
-                        <Badge size="sm" variant="outline">
-                          {plugin.generalCheckCount} general
-                        </Badge>
-                      )}
-                      {plugin.beatmapCheckCount > 0 && (
-                        <Badge size="sm" variant="outline">
-                          {plugin.beatmapCheckCount} beatmap
-                        </Badge>
-                      )}
-                      {plugin.beatmapSetCheckCount > 0 && (
-                        <Badge size="sm" variant="outline">
-                          {plugin.beatmapSetCheckCount} set
-                        </Badge>
-                      )}
-                    </Group>
-                  </Table.Td>
-                </Table.Tr>
-              ))}
-            </Table.Tbody>
-          </Table>
-        </ScrollArea>
+                    )}
+                    {plugin.beatmapCheckCount > 0 && (
+                      <Badge size="sm" variant="outline">
+                        {plugin.beatmapCheckCount} beatmap
+                      </Badge>
+                    )}
+                    {plugin.beatmapSetCheckCount > 0 && (
+                      <Badge size="sm" variant="outline">
+                        {plugin.beatmapSetCheckCount} set
+                      </Badge>
+                    )}
+                  </Group>
+                </Table.Td>
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
       )}
 
       {report && report.loadedPlugins.some((plugin) => plugin.checkNames.length > 0) && (
@@ -178,14 +174,16 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
             .filter((plugin) => plugin.checkNames.length > 0)
             .map((plugin) => (
               <Accordion.Item key={plugin.filePath} value={plugin.filePath}>
-                <Accordion.Control>{plugin.assemblyName ?? plugin.fileName}</Accordion.Control>
+                <Accordion.Control>{plugin.assemblyName}</Accordion.Control>
                 <Accordion.Panel>
                   <Stack gap={4}>
+                    <List>
                     {plugin.checkNames.map((checkName) => (
-                      <Text key={checkName} size="sm">
+                      <List.Item key={checkName}>
                         {checkName}
-                      </Text>
+                      </List.Item>
                     ))}
+                    </List>
                   </Stack>
                 </Accordion.Panel>
               </Accordion.Item>
@@ -197,17 +195,21 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
         <Accordion variant="contained">
           {report.failedPlugins.map((plugin) => (
             <Accordion.Item key={plugin.filePath} value={plugin.filePath}>
-              <Accordion.Control icon={<IconAlertTriangle size={16} />}>
-                {plugin.fileName}
+              <Accordion.Control icon={<IconAlertTriangle size={16} color="orange" />}>
+                <Text c="orange">
+                  {plugin.fileName}
+                </Text>
               </Accordion.Control>
               <Accordion.Panel>
                 <Stack gap="xs">
                   <Text size="sm" c="red">
                     {plugin.message}
                   </Text>
-                  <ScrollArea.Autosize mah={180} type="auto">
-                    <Code block>{plugin.details}</Code>
-                  </ScrollArea.Autosize>
+                  <Code
+                    block
+                    fz="sm"
+                    style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}
+                  >{plugin.details}</Code>
                 </Stack>
               </Accordion.Panel>
             </Accordion.Item>

@@ -124,7 +124,7 @@ export type ApiPluginReport = {
 export type ApiLoadedPlugin = {
   fileName: string;
   filePath: string;
-  assemblyName: string | null;
+  assemblyName: string;
   version: string | null;
   authors: string[];
   checkCount: number;

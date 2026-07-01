@@ -2,15 +2,15 @@ namespace MapsetVerifier.Framework.Objects
 {
     public class CustomCheckPluginInfo
     {
-        public string FileName { get; set; } = "";
-        public string FilePath { get; set; } = "";
-        public string? AssemblyName { get; set; }
-        public string? Version { get; set; }
-        public string[] Authors { get; set; } = [];
-        public int CheckCount { get; set; }
-        public int GeneralCheckCount { get; set; }
-        public int BeatmapCheckCount { get; set; }
-        public int BeatmapSetCheckCount { get; set; }
-        public string[] CheckNames { get; set; } = [];
+        public required string FileName { get; init; }
+        public required string FilePath { get; init; }
+        public required string AssemblyName { get; init; }
+        public string? Version { get; init; }
+        public string[] Authors { get; init; } = [];
+        public int CheckCount { get; init; }
+        public int GeneralCheckCount { get; init; }
+        public int BeatmapCheckCount { get; init; }
+        public int BeatmapSetCheckCount { get; init; }
+        public string[] CheckNames { get; init; } = [];
     }
 }

@@ -290,7 +290,7 @@ namespace MapsetVerifier.Framework
             {
                 FileName = Path.GetFileName(rootedPath),
                 FilePath = rootedPath,
-                AssemblyName = assemblyName.Name,
+                AssemblyName = assemblyName.Name ?? assemblyName.FullName,
                 Version = assemblyName.Version?.ToString(),
                 Authors = authors,
                 CheckCount = checks.Count,
