@@ -25,6 +25,7 @@ namespace MapsetVerifier.Parser.Objects
             Initalize(beatmapSetPath);
 
             HitSoundFiles = GetUsedHitSoundFiles().ToList();
+            ApplyBeatmapSetDifficultyOverrides();
             SortBeatmapsByInterpretedOrder();
         }
 
@@ -61,6 +62,40 @@ namespace MapsetVerifier.Parser.Objects
                 .ToList();
             Beatmaps.Clear();
             Beatmaps.AddRange(sorted);
+        }
+
+        private void ApplyBeatmapSetDifficultyOverrides()
+        {
+            foreach (var beatmap in Beatmaps)
+                beatmap.BeatmapSetDifficultyOverride = null;
+
+            ApplyTaikoOniDifficultyOverrides();
+        }
+
+        private void ApplyTaikoOniDifficultyOverrides()
+        {
+            var taikoBeatmaps = Beatmaps
+                .Where(beatmap => beatmap.GeneralSettings.mode == Beatmap.Mode.Taiko)
+                .ToList();
+
+            foreach (
+                var oniBeatmap in taikoBeatmaps.Where(beatmap =>
+                    beatmap.GetDifficultyFromName() == Beatmap.Difficulty.Insane
+                    && beatmap.GetDifficulty() >= Beatmap.Difficulty.Expert
+                )
+            )
+            {
+                var hasHigherNamedDifficulty = taikoBeatmaps.Any(beatmap =>
+                    beatmap != oniBeatmap
+                    && beatmap.GetDifficultyFromName() >= Beatmap.Difficulty.Expert
+                );
+                var hasHigherStarRatingDifficulty = taikoBeatmaps.Any(beatmap =>
+                    beatmap != oniBeatmap && beatmap.StarRating > oniBeatmap.StarRating
+                );
+
+                if (hasHigherNamedDifficulty || hasHigherStarRatingDifficulty)
+                    oniBeatmap.BeatmapSetDifficultyOverride = Beatmap.Difficulty.Insane;
+            }
         }
 
         private void Initalize(string beatmapSetPath)

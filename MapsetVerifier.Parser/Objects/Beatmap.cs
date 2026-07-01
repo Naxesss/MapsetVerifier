@@ -190,6 +190,11 @@ namespace MapsetVerifier.Parser.Objects
         /// </summary>
         public Difficulty? InterpretedDifficultyOverride { get; set; }
 
+        /// <summary>
+        ///     Set by <see cref="BeatmapSet" /> when the spread gives extra context for an otherwise ambiguous difficulty name.
+        /// </summary>
+        internal Difficulty? BeatmapSetDifficultyOverride { get; set; }
+
         // Difficulty is expensive; defer until StarRating/Skills are needed, or until overview calls EnsureTimedAttributesCalculated.
         private readonly object _difficultyLock = new();
         private DifficultyAttributes? _difficultyAttributes;
@@ -836,6 +841,9 @@ namespace MapsetVerifier.Parser.Objects
             // Prioritize the interpreted difficulty override if it exists
             if (InterpretedDifficultyOverride is { } overridden)
                 return overridden;
+
+            if (BeatmapSetDifficultyOverride is { } beatmapSetOverride)
+                return beatmapSetOverride;
 
             var difficultyFromName = GetDifficultyFromName();
 
