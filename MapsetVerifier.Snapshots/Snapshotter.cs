@@ -415,8 +415,12 @@ namespace MapsetVerifier.Snapshots
                 if (translator != null)
                     foreach (var diff in translator.Translate(diffsBySection, beatmap))
                     {
-                        // Since all translators should be able to translate sections, we do that here.
-                        diff.Section = translator.TranslatedSection;
+                        // Translators may explicitly route a diff to a different display
+                        // section (e.g. HitObjectsTranslator emits "Object re-snapped" diffs
+                        // on the Timing tab). Only auto-translate when the diff still carries
+                        // the input section name.
+                        if (diff.Section == diffsBySection.Key)
+                            diff.Section = translator.TranslatedSection;
 
                         yield return diff;
                     }
