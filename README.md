@@ -8,8 +8,11 @@
   <a href="https://mv.mappersguild.com/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/Naxesss/MapsetVerifier/total"></a>
   <a href="https://mv.mappersguild.com/releases"><img src="https://img.shields.io/github/v/release/Naxesss/MapsetVerifier?label=latest%20release&display_name=release" alt="Latest release"></a>
   <a href="https://github.com/Naxesss/MapsetVerifier/releases"><img src="https://img.shields.io/github/v/release/Naxesss/MapsetVerifier?include_prereleases&label=latest%20beta" alt="Latest beta"></a>
+</p>
+<p align="center">
   <a href="https://github.com/Naxesss/MapsetVerifier"><img src="https://img.shields.io/github/stars/Naxesss/MapsetVerifier?style=flat&color=e3b341" alt="GitHub stars"></a>
   <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-9-512BD4?logo=dotnet&logoColor=white" alt=".NET 9"></a>
+  <a href="https://www.gnu.org/licenses/gpl-3.0" alt="License: GPLv3"><img src="https://img.shields.io/badge/License-GPL%20v3-blue.svg"></a>
   <a href="https://mv.mappersguild.com/releases"><img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-blue" alt="Platform"></a>
 </p>
 
