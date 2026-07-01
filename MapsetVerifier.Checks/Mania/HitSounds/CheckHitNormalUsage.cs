@@ -81,7 +81,7 @@ namespace MapsetVerifier.Checks.Mania.HitSounds
                             yield return new Issue(GetTemplate("HitnormalOverride"), beatmap);
 
                         var customIndex =
-                            timingLine.CustomIndex == 1 ? "" : timingLine.CustomIndex.ToString();
+                            timingLine.CustomIndex <= 1 ? "" : timingLine.CustomIndex.ToString();
                         var sample =
                             timingLine.Sampleset.ToString().ToLower() + "-hitnormal" + customIndex;
 

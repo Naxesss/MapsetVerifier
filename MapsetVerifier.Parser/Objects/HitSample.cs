@@ -149,7 +149,7 @@ namespace MapsetVerifier.Parser.Objects
             if (HitSource == HitSourceType.Tick)
                 hitSoundString = "slidertick";
 
-            var customIndexString = CustomIndex == 1 ? "" : CustomIndex.ToString();
+            var customIndexString = CustomIndex <= 1 ? "" : CustomIndex.ToString();
 
             if (hitSoundString != null && samplesetString != null)
                 return $"{taikoString}{samplesetString}-{hitSoundString}{customIndexString}";

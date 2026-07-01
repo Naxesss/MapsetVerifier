@@ -159,16 +159,14 @@ public class CheckTitleMarkersTests
     [Theory]
     [InlineData("song name (arrange ver.)")]
     [InlineData("SONG NAME (ARRANGE VER.)")]
+    [InlineData("clarity rmx (hayakou boutleg) (cut ver.)")]
     public void AllowsGuidelineVerCasingWhenTitleIsUniformlyStylised(string title)
     {
         using var context = CreateContext(title);
 
         var issues = context.RunGeneralCheck<CheckTitleMarkers>();
 
-        Assert.DoesNotContain(
-            issues,
-            issue => issue.message.Contains("should use guideline format")
-        );
+        Assert.Empty(issues);
     }
 
     [Theory]

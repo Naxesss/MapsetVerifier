@@ -140,11 +140,16 @@ namespace MapsetVerifier.Parser.Objects
         }
 
         /// <summary> Returns the full audio file path of the first beatmap in the set if one exists, otherwise null. </summary>
-        public string? GetAudioFilePath() => Beatmaps.FirstOrDefault()?.GetAudioFilePath() ?? null;
+        public string? GetAudioFilePath()
+        {
+            return Beatmaps.FirstOrDefault()?.GetAudioFilePath() ?? null;
+        }
 
         /// <summary> Returns the audio file name of the first beatmap in the set if one exists, otherwise null. </summary>
-        public string? GetAudioFileName() =>
-            Beatmaps.FirstOrDefault()?.GeneralSettings.audioFileName ?? null;
+        public string? GetAudioFileName()
+        {
+            return Beatmaps.FirstOrDefault()?.GeneralSettings.audioFileName ?? null;
+        }
 
         /// <summary>
         ///     Returns the last file path matching the given search pattern, relative to the song folder.
@@ -193,98 +198,148 @@ namespace MapsetVerifier.Parser.Objects
             var parsedPath = PathStatic.ParsePath(relativePath);
             var strippedPath = PathStatic.ParsePath(relativePath, true);
 
-            if (
-                Beatmaps.Any(beatmap =>
-                    beatmap.GeneralSettings.audioFileName.ToLower() == parsedPath
-                )
-            )
-                return true;
-
-            // When the path is "go", and "go.png" is over "go.jpg" in order, then "go.jpg" will be the one used.
-            // So we basically want to find the last path which matches the name.
-            var lastMatchingPath = PathStatic.ParsePath(GetLastMatchingFilePath(parsedPath));
-
-            // These are always used, but you won't be able to update them unless they have the right format.
             if (fileName.EndsWith(".osu"))
                 return true;
 
-            if (
-                Beatmaps.Any(beatmap =>
-                    beatmap.Sprites.Any(element => element.path?.ToLower() == parsedPath)
-                    || beatmap.Videos.Any(element => element.path?.ToLower() == parsedPath)
-                    || beatmap.Backgrounds.Any(element => element.path?.ToLower() == parsedPath)
-                    || beatmap.Animations.Any(element => element.path?.ToLower() == parsedPath)
-                    || beatmap.Samples.Any(element => element.path?.ToLower() == parsedPath)
-                )
-            )
+            if (IsAudioFile(parsedPath))
                 return true;
 
-            // animations cannot be stripped of their extension
-            if (
-                Beatmaps.Any(beatmap =>
-                    beatmap.Sprites.Any(element => element.strippedPath == strippedPath)
-                    || beatmap.Videos.Any(element => element.strippedPath == strippedPath)
-                    || beatmap.Backgrounds.Any(element => element.strippedPath == strippedPath)
-                    || beatmap.Samples.Any(element => element.strippedPath == strippedPath)
-                )
-                && parsedPath == lastMatchingPath
-            )
+            if (IsStoryboardFile(parsedPath, strippedPath))
                 return true;
 
-            if (
-                Osb != null
-                && (
-                    Osb.sprites.Any(element => element.path?.ToLower() == parsedPath)
-                    || Osb.videos.Any(element => element.path?.ToLower() == parsedPath)
-                    || Osb.backgrounds.Any(element => element.path?.ToLower() == parsedPath)
-                    || Osb.animations.Any(element => element.path?.ToLower() == parsedPath)
-                    || Osb.samples.Any(element => element.path?.ToLower() == parsedPath)
-                )
-            )
+            if (IsHitObjectSampleFile(strippedPath))
                 return true;
 
-            if (
-                Osb != null
-                && (
-                    Osb.sprites.Any(element => element.strippedPath == strippedPath)
-                    || Osb.videos.Any(element => element.strippedPath == strippedPath)
-                    || Osb.backgrounds.Any(element => element.strippedPath == strippedPath)
-                    || Osb.samples.Any(element => element.strippedPath == strippedPath)
-                )
-                && parsedPath == lastMatchingPath
-            )
-                return true;
-
-            if (
-                Beatmaps.Any(beatmap =>
-                    beatmap.HitObjects.Any(hitObject =>
-                        (
-                            hitObject.filename != null
-                                ? PathStatic.ParsePath(hitObject.filename, true)
-                                : null
-                        ) == strippedPath
-                    )
-                )
-            )
-                return true;
-
-            if (HitSoundFiles.Any(hsPath => PathStatic.ParsePath(hsPath) == parsedPath))
+            if (IsHitSoundFile(parsedPath))
                 return true;
 
             if (SkinStatic.IsUsed(fileName, this))
                 return true;
 
-            if (Osb != null && fileName == GetOsbFileName()?.ToLower() && Osb.IsUsed())
+            if (IsUsedOsbFile(fileName))
                 return true;
 
-            foreach (var beatmap in Beatmaps)
-                if (IsAnimationPathUsed(parsedPath, beatmap.Animations))
-                    return true;
-
-            if (Osb != null && IsAnimationPathUsed(parsedPath, Osb.animations))
+            if (IsAnimationFrameFile(parsedPath))
                 return true;
 
             return false;
+        }
+
+        private bool IsAudioFile(string? parsedPath)
+        {
+            return parsedPath != null
+                && Beatmaps.Any(beatmap =>
+                    beatmap.GeneralSettings.audioFileName.ToLower() == parsedPath
+                );
+        }
+
+        private bool IsStoryboardFile(string? parsedPath, string? strippedPath)
+        {
+            return IsExactStoryboardReference(parsedPath)
+                || IsExtensionlessStoryboardReference(parsedPath, strippedPath);
+        }
+
+        private bool IsExactStoryboardReference(string? parsedPath)
+        {
+            return parsedPath != null
+                && (
+                    Beatmaps.Any(beatmap =>
+                        GetStoryboardPaths(beatmap, true).Any(path => IsSamePath(path, parsedPath))
+                    )
+                    || (
+                        Osb != null
+                        && GetStoryboardPaths(Osb, true).Any(path => IsSamePath(path, parsedPath))
+                    )
+                );
+        }
+
+        private bool IsExtensionlessStoryboardReference(string? parsedPath, string? strippedPath)
+        {
+            return parsedPath != null
+                && strippedPath != null
+                && parsedPath == GetLastMatchingFilePathWithStrippedPath(strippedPath)
+                && (
+                    Beatmaps.Any(beatmap =>
+                        GetStoryboardPaths(beatmap, false)
+                            .Any(path => IsExtensionlessReference(path, strippedPath))
+                    )
+                    || (
+                        Osb != null
+                        && GetStoryboardPaths(Osb, false)
+                            .Any(path => IsExtensionlessReference(path, strippedPath))
+                    )
+                );
+        }
+
+        private bool IsHitObjectSampleFile(string? strippedPath)
+        {
+            return strippedPath != null
+                && Beatmaps.Any(beatmap =>
+                    beatmap.HitObjects.Any(hitObject =>
+                        PathStatic.ParsePath(hitObject.filename, true) == strippedPath
+                    )
+                );
+        }
+
+        private bool IsHitSoundFile(string? parsedPath)
+        {
+            return parsedPath != null
+                && HitSoundFiles.Any(hsPath => PathStatic.ParsePath(hsPath) == parsedPath);
+        }
+
+        private bool IsUsedOsbFile(string fileName)
+        {
+            return Osb != null && fileName == GetOsbFileName()?.ToLower() && Osb.IsUsed();
+        }
+
+        private bool IsAnimationFrameFile(string? parsedPath)
+        {
+            return Beatmaps.Any(beatmap => IsAnimationPathUsed(parsedPath, beatmap.Animations))
+                || (Osb != null && IsAnimationPathUsed(parsedPath, Osb.animations));
+        }
+
+        private static bool IsSamePath(string? referencePath, string? parsedPath)
+        {
+            return parsedPath != null && PathStatic.ParsePath(referencePath) == parsedPath;
+        }
+
+        private static IEnumerable<string?> GetStoryboardPaths(
+            Beatmap beatmap,
+            bool includeAnimations
+        )
+        {
+            foreach (var sprite in beatmap.Sprites)
+                yield return sprite.path;
+            foreach (var video in beatmap.Videos)
+                yield return video.path;
+            foreach (var background in beatmap.Backgrounds)
+                yield return background.path;
+            foreach (var sample in beatmap.Samples)
+                yield return sample.path;
+
+            if (!includeAnimations)
+                yield break;
+
+            foreach (var animation in beatmap.Animations)
+                yield return animation.path;
+        }
+
+        private static IEnumerable<string?> GetStoryboardPaths(Osb osb, bool includeAnimations)
+        {
+            foreach (var sprite in osb.sprites)
+                yield return sprite.path;
+            foreach (var video in osb.videos)
+                yield return video.path;
+            foreach (var background in osb.backgrounds)
+                yield return background.path;
+            foreach (var sample in osb.samples)
+                yield return sample.path;
+
+            if (!includeAnimations)
+                yield break;
+
+            foreach (var animation in osb.animations)
+                yield return animation.path;
         }
 
         /// <summary> Returns whether the given path (case insensitive) is used by any of the given animations. </summary>
@@ -296,11 +351,41 @@ namespace MapsetVerifier.Parser.Objects
             }
 
             foreach (var animation in animations)
-            foreach (var framePath in animation.framePaths)
-                if (string.Equals(framePath, filePath, StringComparison.CurrentCultureIgnoreCase))
-                    return true;
+            {
+                foreach (var framePath in animation.framePaths)
+                    if (
+                        string.Equals(
+                            framePath,
+                            filePath,
+                            StringComparison.CurrentCultureIgnoreCase
+                        )
+                    )
+                        return true;
+            }
 
             return false;
+        }
+
+        private string? GetLastMatchingFilePathWithStrippedPath(string? strippedPath)
+        {
+            if (strippedPath == null)
+                return null;
+
+            var lastMatchingPath = SongFilePaths.LastOrDefault(path =>
+                PathStatic.ParsePath(PathStatic.RelativePath(path, SongPath), true) == strippedPath
+            );
+
+            return lastMatchingPath == null
+                ? null
+                : PathStatic.ParsePath(PathStatic.RelativePath(lastMatchingPath, SongPath));
+        }
+
+        private static bool IsExtensionlessReference(string? referencePath, string? strippedPath)
+        {
+            if (referencePath == null || strippedPath == null)
+                return false;
+
+            return PathStatic.ParsePath(referencePath) == strippedPath;
         }
 
         /// <summary> Returns the beatmapset as a string in the format "Artist - Title (Creator)". </summary>

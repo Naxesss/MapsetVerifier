@@ -1,6 +1,6 @@
 import { DndContext } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { ActionIcon, Box, Collapse, Group, Paper, Select, Stack, Text } from '@mantine/core';
+import {ActionIcon, Box, Collapse, Group, Paper, Select, Stack, Text, Tooltip} from '@mantine/core';
 import { IconEye, IconEyeOff } from '@tabler/icons-react';
 import { useMemo } from 'react';
 import { LABEL_WIDTH, TIMELINE_VIEW_MODE_TRANSITION_MS } from '../constants.ts';
@@ -151,22 +151,26 @@ export default function ObjectsTimelineComparisonContent({
               )}
               {showVisibilityControls && (
                 <Group gap="xs" align="center" wrap="nowrap" ml="sm">
-                  <ActionIcon
-                    variant="default"
-                    aria-label="Show all difficulties"
-                    disabled={orderedDifficulties.length === 0 || allVisible}
-                    onClick={() => setSelectedDifficultyVisibility(true)}
-                  >
-                    <IconEye size={16} />
-                  </ActionIcon>
-                  <ActionIcon
-                    variant="default"
-                    aria-label="Hide all difficulties"
-                    disabled={orderedDifficulties.length === 0 || allHidden}
-                    onClick={() => setSelectedDifficultyVisibility(false)}
-                  >
-                    <IconEyeOff size={16} />
-                  </ActionIcon>
+                  <Tooltip label="Show all difficulties">
+                    <ActionIcon
+                      variant="default"
+                      aria-label="Show all difficulties"
+                      disabled={orderedDifficulties.length === 0 || allVisible}
+                      onClick={() => setSelectedDifficultyVisibility(true)}
+                    >
+                      <IconEye size={16} />
+                    </ActionIcon>
+                  </Tooltip>
+                  <Tooltip label="Hide all difficulties">
+                    <ActionIcon
+                      variant="default"
+                      aria-label="Hide all difficulties"
+                      disabled={orderedDifficulties.length === 0 || allHidden}
+                      onClick={() => setSelectedDifficultyVisibility(false)}
+                    >
+                      <IconEyeOff size={16} />
+                    </ActionIcon>
+                  </Tooltip>
                 </Group>
               )}
               {showThemeControls && (
@@ -174,17 +178,18 @@ export default function ObjectsTimelineComparisonContent({
                   visible={viewMode === 'structure'}
                   spacing="var(--mantine-spacing-sm)"
                 >
-                  <Select
-                    aria-label="Timeline object style"
-                    title="Timeline object style"
-                    size="xs"
-                    w={108}
-                    data={TIMELINE_THEME_VARIANT_OPTIONS}
-                    value={timelineThemeVariant}
-                    allowDeselect={false}
-                    comboboxProps={{ withinPortal: true }}
-                    onChange={(value) => setTimelineThemeVariant(parseTimelineThemeVariant(value))}
-                  />
+                  <Tooltip label="Timeline object style">
+                    <Select
+                      aria-label="Timeline object style"
+                      size="xs"
+                      w={108}
+                      data={TIMELINE_THEME_VARIANT_OPTIONS}
+                      value={timelineThemeVariant}
+                      allowDeselect={false}
+                      comboboxProps={{ withinPortal: true }}
+                      onChange={(value) => setTimelineThemeVariant(parseTimelineThemeVariant(value))}
+                    />
+                  </Tooltip>
                 </TimelineHorizontalReveal>
               )}
               {showZoomControls && (
