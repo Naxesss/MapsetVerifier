@@ -80,8 +80,16 @@ public static class CheckRunHistoryService
             .Select(issue => issue.ToApiIssue(previousByKey[issue.Key].Level))
             .ToList();
 
+        var improvedIssues = sharedIssues
+            .Where(issue => IsBetter(issue.Level, previousByKey[issue.Key].Level))
+            .Select(issue => issue.ToApiIssue(previousByKey[issue.Key].Level))
+            .ToList();
+
         var unchangedIssues = sharedIssues
-            .Where(issue => !IsWorse(issue.Level, previousByKey[issue.Key].Level))
+            .Where(issue =>
+                !IsWorse(issue.Level, previousByKey[issue.Key].Level)
+                && !IsBetter(issue.Level, previousByKey[issue.Key].Level)
+            )
             .Select(issue => issue.ToApiIssue(previousByKey[issue.Key].Level))
             .ToList();
 
@@ -91,6 +99,7 @@ public static class CheckRunHistoryService
             newIssues,
             resolvedIssues,
             worsenedIssues,
+            improvedIssues,
             unchangedIssues
         );
     }
@@ -100,8 +109,18 @@ public static class CheckRunHistoryService
     ) =>
         issues.GroupBy(issue => issue.Key).ToDictionary(group => group.Key, group => group.First());
 
+    public static void ClearHistory(BeatmapSet beatmapSet)
+    {
+        var path = GetHistoryPath(beatmapSet);
+        if (File.Exists(path))
+            File.Delete(path);
+    }
+
     private static bool IsWorse(Issue.Level current, Issue.Level previous) =>
         GetSeverityRank(current) > GetSeverityRank(previous);
+
+    private static bool IsBetter(Issue.Level current, Issue.Level previous) =>
+        GetSeverityRank(current) < GetSeverityRank(previous);
 
     private static int GetSeverityRank(Issue.Level level) =>
         level switch

@@ -118,6 +118,7 @@ export type ApiCheckRunDelta = {
   newIssues: ApiCheckDeltaIssue[];
   resolvedIssues: ApiCheckDeltaIssue[];
   worsenedIssues: ApiCheckDeltaIssue[];
+  improvedIssues: ApiCheckDeltaIssue[];
   unchangedIssues: ApiCheckDeltaIssue[];
 };
 

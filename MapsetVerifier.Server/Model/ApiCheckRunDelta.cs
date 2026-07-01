@@ -8,6 +8,7 @@ public readonly struct ApiCheckRunDelta(
     IEnumerable<ApiCheckDeltaIssue> newIssues,
     IEnumerable<ApiCheckDeltaIssue> resolvedIssues,
     IEnumerable<ApiCheckDeltaIssue> worsenedIssues,
+    IEnumerable<ApiCheckDeltaIssue> improvedIssues,
     IEnumerable<ApiCheckDeltaIssue> unchangedIssues
 )
 {
@@ -16,6 +17,7 @@ public readonly struct ApiCheckRunDelta(
     public IEnumerable<ApiCheckDeltaIssue> NewIssues { get; } = newIssues;
     public IEnumerable<ApiCheckDeltaIssue> ResolvedIssues { get; } = resolvedIssues;
     public IEnumerable<ApiCheckDeltaIssue> WorsenedIssues { get; } = worsenedIssues;
+    public IEnumerable<ApiCheckDeltaIssue> ImprovedIssues { get; } = improvedIssues;
     public IEnumerable<ApiCheckDeltaIssue> UnchangedIssues { get; } = unchangedIssues;
 }
 
