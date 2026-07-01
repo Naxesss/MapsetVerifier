@@ -8,6 +8,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing;
+using Serilog;
 
 namespace MapsetVerifier.Server.Service;
 
@@ -364,6 +365,15 @@ public static class BeatmapService
         IProgress<CheckProgress>? progress = null
     )
     {
+        try
+        {
+            SnapshotService.SnapshotCurrentBeatmapSet(beatmapSet);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to snapshot beatmap set before running checks.");
+        }
+
         var issues = Checker.GetBeatmapSetIssues(beatmapSet, progress);
         return BuildBeatmapSetCheckResult(beatmapSet, issues);
     }

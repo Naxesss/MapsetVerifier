@@ -7,6 +7,15 @@ namespace MapsetVerifier.Server.Service;
 
 public static class SnapshotService
 {
+    public static void SnapshotCurrentBeatmapSet(BeatmapSet beatmapSet)
+    {
+        var refBeatmap = beatmapSet.Beatmaps.FirstOrDefault();
+        if (refBeatmap?.MetadataSettings.beatmapSetId == null)
+            return;
+
+        Snapshotter.SnapshotBeatmapSet(beatmapSet);
+    }
+
     public static ApiSnapshotResult GetSnapshots(string beatmapSetFolder)
     {
         var beatmapSet = new BeatmapSet(beatmapSetFolder);
@@ -50,7 +59,7 @@ public static class SnapshotService
         }
 
         // Snapshot the current beatmap before we start comparing with previous snapshots
-        Snapshotter.SnapshotBeatmapSet(beatmapSet);
+        SnapshotCurrentBeatmapSet(beatmapSet);
 
         // Get general/files snapshot history
         var refSnapshots = Snapshotter.GetSnapshots(beatmapSetId, "files").ToArray();
