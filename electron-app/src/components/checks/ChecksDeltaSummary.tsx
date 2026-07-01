@@ -385,23 +385,7 @@ export default function ChecksDeltaSummary({
     }
   };
 
-  if (totalVisible === 0) {
-    return (
-      <Box
-        p="sm"
-        style={{
-          border: '1px solid var(--mantine-color-dark-4)',
-          borderRadius: 'var(--mantine-radius-sm)',
-          background: 'var(--mantine-color-dark-7)',
-        }}
-      >
-        <Text size="sm" c="dimmed">
-          No visible check changes since last run
-          {previousRunAt ? ` (${previousRunAt})` : ''}.
-        </Text>
-      </Box>
-    );
-  }
+  if (totalVisible === 0) return null;
 
   return (
     <Box
