@@ -68,7 +68,7 @@ function loadEntries(): ChangelogEntry[] {
 
   return Object.entries(changelogFiles)
     .map(([path, raw]) => {
-      const match = path.match(/[\\/](\d+\.\d+\.\d+)\.md$/);
+      const match = path.match(/[\\/](\d+\.\d+)\.md$/);
       if (!match) return null;
       return parseEntry(raw, match[1]);
     })
