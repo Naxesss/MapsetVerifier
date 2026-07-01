@@ -4,11 +4,11 @@ using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Server.Model;
 using MapsetVerifier.Server.Service.OsuRuntime;
+using Serilog;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing;
-using Serilog;
 
 namespace MapsetVerifier.Server.Service;
 
