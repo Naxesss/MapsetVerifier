@@ -115,6 +115,32 @@ export type DifficultyLevel = 'Easy' | 'Normal' | 'Hard' | 'Insane' | 'Expert' |
 export type Mode = 'Standard' | 'Taiko' | 'Catch' | 'Mania';
 export type Level = 'Info' | 'Check' | 'Error' | 'Minor' | 'Warning' | 'Problem';
 
+export type ApiPluginReport = {
+  directoryPath: string;
+  loadedPlugins: ApiLoadedPlugin[];
+  failedPlugins: ApiFailedPlugin[];
+};
+
+export type ApiLoadedPlugin = {
+  fileName: string;
+  filePath: string;
+  assemblyName: string | null;
+  version: string | null;
+  authors: string[];
+  checkCount: number;
+  generalCheckCount: number;
+  beatmapCheckCount: number;
+  beatmapSetCheckCount: number;
+  checkNames: string[];
+};
+
+export type ApiFailedPlugin = {
+  fileName: string;
+  filePath: string;
+  message: string;
+  details: string;
+};
+
 // Snapshot types
 export type DiffType = 'Added' | 'Removed' | 'Changed';
 
