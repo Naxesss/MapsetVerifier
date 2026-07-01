@@ -178,11 +178,9 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
                 <Accordion.Panel>
                   <Stack gap={4}>
                     <List>
-                    {plugin.checkNames.map((checkName) => (
-                      <List.Item key={checkName}>
-                        {checkName}
-                      </List.Item>
-                    ))}
+                      {plugin.checkNames.map((checkName) => (
+                        <List.Item key={checkName}>{checkName}</List.Item>
+                      ))}
                     </List>
                   </Stack>
                 </Accordion.Panel>
@@ -196,20 +194,16 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
           {report.failedPlugins.map((plugin) => (
             <Accordion.Item key={plugin.filePath} value={plugin.filePath}>
               <Accordion.Control icon={<IconAlertTriangle size={16} color="orange" />}>
-                <Text c="orange">
-                  {plugin.fileName}
-                </Text>
+                <Text c="orange">{plugin.fileName}</Text>
               </Accordion.Control>
               <Accordion.Panel>
                 <Stack gap="xs">
                   <Text size="sm" c="red">
                     {plugin.message}
                   </Text>
-                  <Code
-                    block
-                    fz="sm"
-                    style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}
-                  >{plugin.details}</Code>
+                  <Code block fz="sm" style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
+                    {plugin.details}
+                  </Code>
                 </Stack>
               </Accordion.Panel>
             </Accordion.Item>
