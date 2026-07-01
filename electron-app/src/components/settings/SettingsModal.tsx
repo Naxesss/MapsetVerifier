@@ -244,7 +244,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
           />
           <Switch
             label="Show check changes since last run"
-            description="Compares the current check run to the previous one for the same mapset."
             checked={showCheckRunDelta}
             onChange={(e) => {
               const checked = e.currentTarget.checked;
