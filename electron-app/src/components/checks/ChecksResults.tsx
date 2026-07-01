@@ -2,6 +2,7 @@
 import { IconAlertCircle, IconEyeOff } from '@tabler/icons-react';
 import { useMemo } from 'react';
 import CheckCategory from './CheckCategory.tsx';
+import ChecksDeltaSummary from './ChecksDeltaSummary.tsx';
 import CheckProgressTaskList from './CheckProgressTaskList.tsx';
 import {
   getRawCheckResultsForSelectedCategory,
@@ -86,6 +87,11 @@ function ChecksResults({
 
       {data && (
         <Stack gap="xs">
+          <ChecksDeltaSummary
+            delta={data.checkRunDelta}
+            showMinor={showMinor}
+            hiddenMinorCheckIds={hiddenMinorCheckIds}
+          />
           {showMinorFilterNotice ? (
             <Alert
               variant="light"

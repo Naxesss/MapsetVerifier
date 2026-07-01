@@ -375,7 +375,15 @@ public static class BeatmapService
         }
 
         var issues = Checker.GetBeatmapSetIssues(beatmapSet, progress);
-        return BuildBeatmapSetCheckResult(beatmapSet, issues);
+        var result = BuildBeatmapSetCheckResult(beatmapSet, issues);
+        var delta = CheckRunHistoryService.BuildDeltaAndRememberCurrent(beatmapSet, result);
+
+        return new ApiBeatmapSetCheckResult(
+            general: result.General,
+            difficulties: result.Difficulties,
+            checks: result.Checks,
+            checkRunDelta: delta
+        );
     }
 
     private static BeatmapSet CreateBeatmapSet(string beatmapSetFolder)

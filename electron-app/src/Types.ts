@@ -66,6 +66,7 @@ export type ApiBeatmapSetCheckResult = {
   general: ApiCategoryCheckResult;
   difficulties: ApiCategoryCheckResult[];
   checks: Record<number, ApiCheckDefinition>;
+  checkRunDelta?: ApiCheckRunDelta | null;
 };
 
 export type ApiBeatmapStructureDifficulty = {
@@ -108,6 +109,24 @@ export type ApiCheckDefinition = {
 export type ApiCheckResult = {
   id: number;
   level: Level;
+  message: string;
+};
+
+export type ApiCheckRunDelta = {
+  previousRunAt: string;
+  currentRunAt: string;
+  newIssues: ApiCheckDeltaIssue[];
+  resolvedIssues: ApiCheckDeltaIssue[];
+  worsenedIssues: ApiCheckDeltaIssue[];
+  unchangedIssues: ApiCheckDeltaIssue[];
+};
+
+export type ApiCheckDeltaIssue = {
+  category: string;
+  id: number;
+  checkName: string;
+  level: Level;
+  previousLevel?: Level | null;
   message: string;
 };
 

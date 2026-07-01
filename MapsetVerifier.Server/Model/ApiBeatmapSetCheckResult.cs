@@ -3,10 +3,12 @@
 public readonly struct ApiBeatmapSetCheckResult(
     ApiCategoryCheckResult general,
     IEnumerable<ApiCategoryCheckResult> difficulties,
-    Dictionary<int, ApiCheckDefinition> checks
+    Dictionary<int, ApiCheckDefinition> checks,
+    ApiCheckRunDelta? checkRunDelta = null
 )
 {
     public ApiCategoryCheckResult General { get; } = general;
     public IEnumerable<ApiCategoryCheckResult> Difficulties { get; } = difficulties;
     public Dictionary<int, ApiCheckDefinition> Checks { get; } = checks;
+    public ApiCheckRunDelta? CheckRunDelta { get; } = checkRunDelta;
 }
