@@ -1,9 +1,10 @@
-import { Accordion, Badge, Group, Stack, Text, useMantineTheme } from '@mantine/core';
+import { Accordion, Badge, Group, Text, useMantineTheme } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
-import { MouseEvent, useEffect, useState } from 'react';
+import { MouseEvent, useEffect, useMemo, useState } from 'react';
 import SnapshotDiffLine, { getDiffTypeIcon } from './SnapshotDiffLine';
 import { ApiSnapshotCommit, ApiSnapshotSection, ApiSnapshotDiff, DiffType } from '../../Types';
 import { InfoIconTooltip } from '../common/InfoIconTooltip.tsx';
+import VirtualizedList from '../common/VirtualizedList.tsx';
 
 interface UnifiedDiffViewerProps {
   commit: ApiSnapshotCommit;
@@ -49,7 +50,14 @@ function sortDiffsChronologically(diffs: ApiSnapshotDiff[]): ApiSnapshotDiff[] {
 
 function SectionAccordion({ section }: { section: ApiSnapshotSection }) {
   const [activeDiffFilter, setActiveDiffFilter] = useState<DiffType | null>(null);
-  const sortedDiffs = sortDiffsChronologically(section.diffs);
+  const sortedDiffs = useMemo(() => sortDiffsChronologically(section.diffs), [section.diffs]);
+  const visibleDiffs = useMemo(
+    () =>
+      activeDiffFilter === null
+        ? sortedDiffs
+        : sortedDiffs.filter((diff) => diff.diffType === activeDiffFilter),
+    [activeDiffFilter, sortedDiffs]
+  );
 
   const handleBadgeClick = (event: MouseEvent<HTMLElement>, diffType: DiffType) => {
     event.preventDefault();
@@ -93,14 +101,12 @@ function SectionAccordion({ section }: { section: ApiSnapshotSection }) {
         </Group>
       </Accordion.Control>
       <Accordion.Panel>
-        <Stack gap="xs">
-          {sortedDiffs.map(
-            (diff, index) =>
-              (activeDiffFilter === null || diff.diffType === activeDiffFilter) && (
-                <SnapshotDiffLine key={`snapshot-${section.name}-${index}`} diff={diff} />
-              )
-          )}
-        </Stack>
+        <VirtualizedList
+          items={visibleDiffs}
+          estimateSize={() => 52}
+          getItemKey={(diff, index) => `${section.name}-${index}-${diff.message}`}
+          renderItem={(diff) => <SnapshotDiffLine diff={diff} />}
+        />
       </Accordion.Panel>
     </Accordion.Item>
   );
