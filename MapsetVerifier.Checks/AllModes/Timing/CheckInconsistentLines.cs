@@ -148,8 +148,9 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         // Including decimal unsnaps - use the same tolerance approach
                         var respectiveLineExact = beatmap
                             .TimingLines.OfType<UninheritedLine>()
-                            .FirstOrDefault(otherLine => 
-                                Math.Abs(otherLine.Offset - line.Offset) < 0.001); // Same tolerance
+                            .FirstOrDefault(otherLine =>
+                                Math.Abs(otherLine.Offset - line.Offset) < 0.001
+                            ); // Same tolerance
 
                         if (respectiveLineExact == null)
                             yield return new Issue(
@@ -190,8 +191,9 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         // Including decimal unsnaps - use the same tolerance approach
                         var respectiveLineExact = refBeatmap
                             .TimingLines.OfType<UninheritedLine>()
-                            .FirstOrDefault(otherLine => 
-                                Math.Abs(otherLine.Offset - line.Offset) < 0.001); // Same tolerance
+                            .FirstOrDefault(otherLine =>
+                                Math.Abs(otherLine.Offset - line.Offset) < 0.001
+                            ); // Same tolerance
 
                         if (respectiveLineExact == null)
                             yield return new Issue(

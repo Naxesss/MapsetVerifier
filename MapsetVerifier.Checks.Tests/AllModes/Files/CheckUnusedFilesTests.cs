@@ -170,12 +170,7 @@ public class CheckUnusedFilesTests
     public void HitObjectCustomSampleFile_NoUnusedIssue()
     {
         using var context = CheckTestContext.CreateFromOsuFiles(
-            [
-                (
-                    "test.osu",
-                    BuildMinimalOsu(hitObject: "256,192,1000,1,0,0:0:0:0:custom.wav")
-                ),
-            ],
+            [("test.osu", BuildMinimalOsu(hitObject: "256,192,1000,1,0,0:0:0:0:custom.wav"))],
             ["audio.mp3", "custom.wav"]
         );
 
@@ -199,7 +194,12 @@ public class CheckUnusedFilesTests
         using var context = CheckTestContext.CreateFromOsuFiles(
             [("test.osu", BuildMinimalOsu())],
             ["audio.mp3"],
-            [(ExpectedOsbFileName, "[Events]\nSprite,Foreground,Centre,\"SB\\missing.png\",320,200")]
+            [
+                (
+                    ExpectedOsbFileName,
+                    "[Events]\nSprite,Foreground,Centre,\"SB\\missing.png\",320,200"
+                ),
+            ]
         );
 
         AssertNoUnusedIssues(context);
@@ -224,7 +224,10 @@ public class CheckUnusedFilesTests
                 (
                     "test.osu",
                     BuildMinimalOsu(
-                        events: ["Animation,Foreground,Centre,\"SB\\frame.png\",320,200,2,100,LoopOnce"]
+                        events:
+                        [
+                            "Animation,Foreground,Centre,\"SB\\frame.png\",320,200,2,100,LoopOnce",
+                        ]
                     )
                 ),
             ],
