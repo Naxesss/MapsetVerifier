@@ -13,15 +13,8 @@ import {
   Title,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import {
-  IconAlertCircle,
-  IconBook,
-  IconCheck,
-  IconCopy,
-} from '@tabler/icons-react';
+import { IconAlertCircle, IconBook, IconCheck, IconCopy } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
-import DocumentationOutcomeBlockquote from '../documentation/DocumentationOutcomeBlockquote';
-import MantineMarkdown from '../documentation/MantineMarkdown';
 import DocumentationApi from '../../client/DocumentationApi';
 import {
   ApiCheckResult,
@@ -31,6 +24,8 @@ import {
 } from '../../Types';
 import OsuLink from '../common/OsuLink';
 import { buildOsuEditHref, parseOsuLinkSegments } from '../common/osuLinkUtils';
+import DocumentationOutcomeBlockquote from '../documentation/DocumentationOutcomeBlockquote';
+import MantineMarkdown from '../documentation/MantineMarkdown';
 import LevelIcon from '../icons/LevelIcon';
 
 interface IssueDetailDrawerProps {
@@ -111,9 +106,11 @@ export default function IssueDetailDrawer({
             <Text size="sm" c="dimmed">
               Issue details
             </Text>
-            <Text size="lg" fw={700}>{checkName ?? 'Check issue'}</Text>
+            <Text size="lg" fw={700}>
+              {checkName ?? 'Check issue'}
+            </Text>
 
-            {documentationCheck &&
+            {documentationCheck && (
               <Group gap="xs">
                 <Badge size="xs" variant="light">
                   {documentationCheck.category}
@@ -122,10 +119,9 @@ export default function IssueDetailDrawer({
                   Created by {documentationCheck.author}
                 </Text>
               </Group>
-            }
+            )}
           </Stack>
         </Group>
-        
       }
       styles={{
         overlay: {
@@ -159,9 +155,7 @@ export default function IssueDetailDrawer({
           </Group>
 
           <Stack gap="xs">
-            <Title order={3}>
-              Full message
-            </Title>
+            <Title order={3}>Full message</Title>
             <Paper p="sm" radius="sm" withBorder>
               <Text size="sm" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
                 <OsuLink text={issue.message} />
@@ -170,9 +164,7 @@ export default function IssueDetailDrawer({
           </Stack>
 
           <Stack gap="xs">
-            <Title order={3}>
-              Timestamp links
-            </Title>
+            <Title order={3}>Timestamp links</Title>
             {visibleTimestamps.length > 0 ? (
               <Stack gap="xs">
                 {visibleTimestamps.map((timestamp) => (
@@ -202,14 +194,14 @@ export default function IssueDetailDrawer({
             )}
           </Stack>
 
-          <Divider label={
-            <Group>
-              <IconBook />
-              <Text>
-                Check documentation
-              </Text>
-            </Group>
-          } />
+          <Divider
+            label={
+              <Group>
+                <IconBook />
+                <Text>Check documentation</Text>
+              </Group>
+            }
+          />
 
           <Stack gap="sm">
             {documentationCheck ? (
