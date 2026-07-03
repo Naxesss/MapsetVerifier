@@ -15,7 +15,7 @@ import {
   Text,
   Tooltip,
 } from '@mantine/core';
-import { IconAlertTriangle, IconFolder, IconRefresh } from '@tabler/icons-react';
+import { IconAlertTriangle, IconFolder, IconInfoCircle, IconRefresh } from '@tabler/icons-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PluginApi from '../../client/PluginApi.ts';
 import { useDocumentation } from '../../context/DocumentationContext.tsx';
@@ -116,22 +116,18 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
 
   return (
     <Stack gap="sm">
-      <Alert color="blue" variant="light">
-        <Stack gap={4}>
-          <Text size="sm" fw={500}>
-            Installing plugins
-          </Text>
-          <List size="sm" spacing={2}>
-            <List.Item>Download the DLL for the plugin you want to use.</List.Item>
-            <List.Item>
-              Put the DLL in the <Code>CustomChecks</Code> folder.
-            </List.Item>
-            <List.Item>
-              Use <Code>Reload checks</Code> to load newly installed plugins, or restart the
-              application.
-            </List.Item>
-          </List>
-        </Stack>
+      <Alert icon={<IconInfoCircle />} title="Installing plugins" color="blue" variant="light">
+        <List size="sm" type="ordered">
+          <List.Item>Download the DLL of the plugin you want to use.</List.Item>
+          <List.Item>
+            Put the DLL in the <Code>CustomChecks</Code> folder. Removing or replacing an already
+            loaded plugin is not possible without shutting down this app first.
+          </List.Item>
+          <List.Item>
+            Use the <Code>Reload checks</Code> button to load newly installed plugins, or restart
+            the application.
+          </List.Item>
+        </List>
       </Alert>
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
         <Button
