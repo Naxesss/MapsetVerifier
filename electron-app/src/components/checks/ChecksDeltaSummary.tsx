@@ -3,6 +3,7 @@ import {
   Badge,
   Box,
   Collapse,
+  Flex,
   Group,
   ScrollArea,
   Stack,
@@ -157,17 +158,19 @@ function DeltaIssueGroup({
     <Stack gap={0}>
       <UnstyledButton
         onClick={() => setOpen((value) => !value)}
-        style={{ cursor: 'pointer', userSelect: 'none' }}
+        style={{ cursor: 'pointer', userSelect: 'none', width: '100%' }}
       >
-        <Group gap="xs" wrap="nowrap">
+        <Flex gap="xs" align="center" style={{ minWidth: 0 }}>
           <span
             style={{
               display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
               transition: 'transform 200ms ease',
             }}
           >
-            <IconChevronRight size={14} />
+            <IconChevronRight size={16} />
           </span>
           <LevelIcon level={highest === 'Check' ? 'Info' : highest} size={16} />
           {mapsetWide ? (
@@ -175,14 +178,14 @@ function DeltaIssueGroup({
               {group.category}
             </Badge>
           ) : null}
-          <Text size="sm" fw={700}>
+          <Text size="sm" fw={700} style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
             {group.checkName}
           </Text>
-        </Group>
+        </Flex>
       </UnstyledButton>
 
       <Collapse in={open}>
-        <Stack gap={4} ml="lg">
+        <Stack gap="0" ml="xl">
           {firstItems.map((issue, index) => (
             <Box
               key={`${group.key}-${index}`}
@@ -192,7 +195,7 @@ function DeltaIssueGroup({
               onKeyDown={(event) => handleIssueKeyDown(event, issue)}
               style={{ cursor: 'pointer', textAlign: 'left' }}
             >
-              <Stack gap={2}>
+              <Stack gap="0">
                 {issue.previousLevel && issue.previousLevel !== issue.level ? (
                   <Group gap={6}>
                     <LevelIcon
@@ -210,7 +213,7 @@ function DeltaIssueGroup({
             </Box>
           ))}
           <Collapse in={showAll}>
-            <Stack gap={4}>
+            <Stack gap="0">
               {extraItems.map((issue, index) => (
                 <Box
                   key={`${group.key}-extra-${index}`}
@@ -220,7 +223,7 @@ function DeltaIssueGroup({
                   onKeyDown={(event) => handleIssueKeyDown(event, issue)}
                   style={{ cursor: 'pointer', textAlign: 'left' }}
                 >
-                  <Stack gap={2}>
+                  <Stack gap="0">
                     {issue.previousLevel && issue.previousLevel !== issue.level ? (
                       <Group gap={6}>
                         <LevelIcon
@@ -502,7 +505,7 @@ export default function ChecksDeltaSummary({
             </Group>
 
             <Tabs key={activeTab} defaultValue={activeTab} keepMounted={false}>
-              <Tabs.List>
+              <Tabs.List style={{ flexWrap: 'wrap' }}>
                 {scopedTabs.map((tab) => (
                   <Tabs.Tab key={tab.id} value={tab.id} leftSection={tab.icon}>
                     <Group gap={6}>
@@ -518,7 +521,7 @@ export default function ChecksDeltaSummary({
               {scopedTabs.map((tab) => (
                 <Tabs.Panel key={tab.id} value={tab.id} pt="sm">
                   {tab.issues.length > 0 ? (
-                    <ScrollArea.Autosize mah={PANEL_MAX_HEIGHT} type="auto">
+                    <ScrollArea.Autosize mah={PANEL_MAX_HEIGHT} type="auto" scrollbars="y">
                       <Stack gap="sm">
                         {groupIssues(tab.issues, showMapsetWide).map((group) => (
                           <DeltaIssueGroup
