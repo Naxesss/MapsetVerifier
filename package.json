@@ -25,13 +25,16 @@
     "dist-all-prerelease": "npm run build && electron-builder -wl --config.win.icon=assets/icons/prerelease/icon.ico --config.mac.icon=assets/icons/prerelease/icon.icns --config.linux.icon=assets/icons/prerelease --config.nsis.installerIcon=assets/icons/prerelease/icon.ico --config.nsis.installerHeaderIcon=assets/icons/prerelease/icon.ico",
     "release": "npm run build && electron-builder --publish always",
     "release-prerelease": "npm run build && electron-builder --publish always --config.win.icon=assets/icons/prerelease/icon.ico --config.mac.icon=assets/icons/prerelease/icon.icns --config.linux.icon=assets/icons/prerelease --config.nsis.installerIcon=assets/icons/prerelease/icon.ico --config.nsis.installerHeaderIcon=assets/icons/prerelease/icon.ico",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-builder install-app-deps",
+    "prepare": "husky"
   },
   "devDependencies": {
     "concurrently": "9.1.0",
     "cross-env": "7.0.3",
     "electron": "41.2.1",
     "electron-builder": "25.1.8",
+    "husky": "9.1.7",
+    "lint-staged": "17.0.8",
     "wait-on": "8.0.1"
   },
   "dependencies": {
