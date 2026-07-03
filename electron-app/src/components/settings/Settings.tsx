@@ -113,7 +113,6 @@ export default function Settings() {
     return <Navigate to="/settings" replace />;
   }
 
-  // ponytail: sticky TOC inside the existing App ScrollArea — no App.tsx fork needed
   const paneHeight =
     'calc(100vh - var(--app-shell-header-offset, 0rem) + var(--app-shell-padding))';
 
