@@ -1,4 +1,5 @@
 import { Box, Kbd } from '@mantine/core';
+import { IconPin } from '@tabler/icons-react';
 import { getActiveNavRoute } from './navConfig.ts';
 import MinorIcon from '../icons/MinorIcon.tsx';
 import type { ReactNode } from 'react';
@@ -72,6 +73,49 @@ function minorChecksDisabledHint(): PageHint {
   };
 }
 
+function bookmarkHint(bookmarksEnabled: boolean): PageHint {
+  if (bookmarksEnabled) {
+    return {
+      id: 'bookmark-pin',
+      content:
+        'Use the pin icon on a beatmapset in the sidebar to bookmark it, then filter the list to show bookmarked sets only.',
+    };
+  }
+
+  return {
+    id: 'bookmarks-disabled',
+    content: (
+      <>
+        Looking to{' '}
+        <Box
+          component="span"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+            verticalAlign: 'middle',
+          }}
+        >
+          <IconPin size={16} />
+          pin beatmapsets
+        </Box>
+        ? Enable bookmarks in Experimental Settings.
+      </>
+    ),
+  };
+}
+
+function issueDetailsSidebarHint(): PageHint {
+  return {
+    id: 'issue-details-sidebar',
+    content: (
+      <>
+        <Kbd size="xs">Left Click</Kbd> an issue to open its details and documentation in the sidebar.
+      </>
+    ),
+  };
+}
+
 function commonHints(isMac: boolean): PageHint[] {
   return [copyTimestampHint(isMac), refreshBeatmapHint()];
 }
@@ -81,7 +125,8 @@ export function getPageHints(
   overviewTab: OverviewTab | null,
   objectsHasHitsoundModes: boolean,
   isMac: boolean,
-  showMinor: boolean
+  showMinor: boolean,
+  bookmarksEnabled: boolean
 ): PageHint[] {
   const route = getActiveNavRoute(pathname);
 
@@ -166,7 +211,12 @@ export function getPageHints(
   }
 
   if (route === '/checks') {
-    return [...commonHints(isMac), ...(!showMinor ? [minorChecksDisabledHint()] : [])];
+    return [
+      ...commonHints(isMac),
+      issueDetailsSidebarHint(),
+      bookmarkHint(bookmarksEnabled),
+      ...(!showMinor ? [minorChecksDisabledHint()] : []),
+    ];
   }
 
   return commonHints(isMac);
