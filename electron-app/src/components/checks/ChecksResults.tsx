@@ -2,12 +2,12 @@
 import { IconAlertCircle, IconEyeOff } from '@tabler/icons-react';
 import { useMemo } from 'react';
 import CheckCategory from './CheckCategory.tsx';
-import ChecksDeltaSummary from './ChecksDeltaSummary.tsx';
 import CheckProgressTaskList from './CheckProgressTaskList.tsx';
 import {
   getRawCheckResultsForSelectedCategory,
   hasMinorResultsHiddenByUserFilter,
 } from './checkResultVisibility';
+import ChecksDeltaSummary from './ChecksDeltaSummary.tsx';
 import { FetchError } from '../../client/ApiHelper';
 import {
   ApiBeatmapSetCheckResult,

@@ -181,10 +181,7 @@ function DeltaIssueGroup({
                     <Text size="xs" c="dimmed">
                       to
                     </Text>
-                    <LevelIcon
-                      level={issue.level === 'Check' ? 'Info' : issue.level}
-                      size={14}
-                    />
+                    <LevelIcon level={issue.level === 'Check' ? 'Info' : issue.level} size={14} />
                   </Group>
                 ) : null}
                 <IssueRow item={{ id: issue.id, level: issue.level, message: issue.message }} />
@@ -349,8 +346,7 @@ export default function ChecksDeltaSummary({
     if (!delta) return;
     const visible = (issues: ApiCheckDeltaIssue[]) =>
       issues.filter((issue) => isVisibleIssue(issue, showMinor, hiddenMinorCheckIds));
-    const urgent =
-      visible(delta.newIssues).length + visible(delta.worsenedIssues).length;
+    const urgent = visible(delta.newIssues).length + visible(delta.worsenedIssues).length;
     setExpanded(urgent > 0);
     setShowMapsetWide(false);
   }, [delta, showMinor, hiddenMinorCheckIds]);
@@ -503,7 +499,8 @@ export default function ChecksDeltaSummary({
                     </ScrollArea.Autosize>
                   ) : (
                     <Text size="sm" c="dimmed">
-                      No {tab.label.toLowerCase()} issues for {showMapsetWide ? 'this mapset' : category}.
+                      No {tab.label.toLowerCase()} issues for{' '}
+                      {showMapsetWide ? 'this mapset' : category}.
                     </Text>
                   )}
                 </Tabs.Panel>

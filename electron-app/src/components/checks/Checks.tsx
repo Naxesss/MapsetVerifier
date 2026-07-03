@@ -46,11 +46,20 @@ function Checks() {
     }
   }, [folder]);
 
-  const { data, isLoading, isFetching, isError, error, beatmapFolderPath, progress, structure, refetch } =
-    useBeatmapChecks({
-      folder,
-      songFolder: settings.songFolder,
-    });
+  const {
+    data,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    beatmapFolderPath,
+    progress,
+    structure,
+    refetch,
+  } = useBeatmapChecks({
+    folder,
+    songFolder: settings.songFolder,
+  });
   const areCheckResultsExpanded = !!data && !isLoading && !isFetching;
   const levelIconsLoading = isLoading;
 

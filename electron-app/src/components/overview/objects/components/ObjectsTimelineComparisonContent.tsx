@@ -1,6 +1,16 @@
 import { DndContext } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import {ActionIcon, Box, Collapse, Group, Paper, Select, Stack, Text, Tooltip} from '@mantine/core';
+import {
+  ActionIcon,
+  Box,
+  Collapse,
+  Group,
+  Paper,
+  Select,
+  Stack,
+  Text,
+  Tooltip,
+} from '@mantine/core';
 import { IconEye, IconEyeOff } from '@tabler/icons-react';
 import { useMemo } from 'react';
 import { LABEL_WIDTH, TIMELINE_VIEW_MODE_TRANSITION_MS } from '../constants.ts';
@@ -187,7 +197,9 @@ export default function ObjectsTimelineComparisonContent({
                       value={timelineThemeVariant}
                       allowDeselect={false}
                       comboboxProps={{ withinPortal: true }}
-                      onChange={(value) => setTimelineThemeVariant(parseTimelineThemeVariant(value))}
+                      onChange={(value) =>
+                        setTimelineThemeVariant(parseTimelineThemeVariant(value))
+                      }
                     />
                   </Tooltip>
                 </TimelineHorizontalReveal>
