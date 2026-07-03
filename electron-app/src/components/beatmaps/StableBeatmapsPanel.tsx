@@ -259,7 +259,7 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
           {settings.bookmarksEnabled && (
             <Tooltip label={bookmarkedOnly ? 'Show all beatmapsets' : 'Show bookmarked only'}>
               <ActionIcon
-                variant={bookmarkedOnly ? 'filled' : 'default'}
+                variant={bookmarkedOnly ? 'light' : 'default'}
                 color="yellow"
                 onClick={() => setBookmarkedOnly((prev) => !prev)}
                 size="36"
@@ -326,7 +326,11 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
               ))}
               <div ref={sentinelRef} style={{ height: 1 }} />
               {showNextPagePlaceholder && <PlaceholderBeatmapCard />}
-              {beatmaps.length > 0 && !hasNextPage && !isFetchingNextPage && !error && (
+              {beatmaps.length > 0 &&
+                !hasNextPage &&
+                !isFetchingNextPage &&
+                !error &&
+                !filterByBookmarks && (
                 <Alert
                   icon={<IconListDetails />}
                   color="gray"
