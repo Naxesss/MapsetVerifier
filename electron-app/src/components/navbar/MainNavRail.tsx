@@ -46,20 +46,22 @@ export function MainNavRail({ activeRoute }: MainNavRailProps) {
       p={0}
       style={{ display: 'inline-flex', alignItems: 'stretch' }}
     >
-      <FloatingIndicator
-        parent={navRootEl}
-        target={targetControl}
-        transitionDuration={NAV_INDICATOR_TRANSITION_MS}
-        styles={{
-          root: {
-            backgroundColor: selectionFill,
-            borderRadius: 5,
-            boxShadow: 'none',
-            zIndex: 0,
-            pointerEvents: 'none',
-          },
-        }}
-      />
+      {targetControl && (
+        <FloatingIndicator
+          parent={navRootEl}
+          target={targetControl}
+          transitionDuration={NAV_INDICATOR_TRANSITION_MS}
+          styles={{
+            root: {
+              backgroundColor: selectionFill,
+              borderRadius: 5,
+              boxShadow: 'none',
+              zIndex: 0,
+              pointerEvents: 'none',
+            },
+          }}
+        />
+      )}
       <Group gap="xs" wrap="nowrap">
         {navItems.map((item) => (
           <NavBarTab

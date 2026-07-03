@@ -85,6 +85,10 @@ export function getPageHints(
 ): PageHint[] {
   const route = getActiveNavRoute(pathname);
 
+  if (!route) {
+    return [];
+  }
+
   if (route === '/documentation' || route === '/') {
     return [];
   }

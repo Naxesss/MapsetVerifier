@@ -65,9 +65,9 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
           <Text fw={500}>Plugin manager</Text>
         </Group>
         <Button
-          size="compact-sm"
+          size="sm"
           variant="light"
-          leftSection={loading ? <Loader size={14} /> : <IconRefresh size={15} />}
+          leftSection={loading ? <Loader size={18} /> : <IconRefresh size={18} />}
           onClick={() => void loadPlugins()}
           disabled={loading}
         >
