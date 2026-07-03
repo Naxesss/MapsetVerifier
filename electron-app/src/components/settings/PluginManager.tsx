@@ -13,7 +13,6 @@ import {
   Switch,
   Table,
   Text,
-  Tooltip,
 } from '@mantine/core';
 import { IconAlertTriangle, IconFolder, IconInfoCircle, IconRefresh } from '@tabler/icons-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
