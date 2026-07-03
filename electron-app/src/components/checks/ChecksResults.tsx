@@ -12,7 +12,6 @@ import { FetchError } from '../../client/ApiHelper';
 import {
   ApiBeatmapSetCheckResult,
   ApiCategoryOverrideCheckResult,
-  ApiCheckDeltaIssue,
   CheckProgress,
 } from '../../Types';
 import StackTraceMessage from '../common/StackTraceMessage.tsx';
@@ -30,7 +29,6 @@ interface ChecksResultsProps {
   showCheckRunDelta?: boolean;
   checkRunDeltaShowUnchanged?: boolean;
   beatmapFolderPath?: string;
-  onDeltaIssueClick?: (issue: ApiCheckDeltaIssue) => void;
   onCheckRunHistoryCleared?: () => void;
 }
 
@@ -47,7 +45,6 @@ function ChecksResults({
   showCheckRunDelta = true,
   checkRunDeltaShowUnchanged = false,
   beatmapFolderPath,
-  onDeltaIssueClick,
   onCheckRunHistoryCleared,
 }: ChecksResultsProps) {
   const rawForCategory = useMemo(
@@ -106,7 +103,6 @@ function ChecksResults({
               selectedCategory={selectedCategory}
               showUnchanged={checkRunDeltaShowUnchanged}
               beatmapFolderPath={beatmapFolderPath}
-              onIssueClick={onDeltaIssueClick}
               onHistoryCleared={onCheckRunHistoryCleared}
             />
           ) : null}
