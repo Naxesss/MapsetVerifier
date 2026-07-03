@@ -18,7 +18,7 @@ import {
   useRegisterBeatmapReparse,
 } from '../../context/BeatmapReparseRegistry.tsx';
 import { useSettings } from '../../context/SettingsContext';
-import { ApiCategoryCheckResult, ApiCheckDeltaIssue, Level, Mode } from '../../Types';
+import { ApiCategoryCheckResult, Level, Mode } from '../../Types';
 import StackTraceMessage from '../common/StackTraceMessage.tsx';
 
 function Checks() {
@@ -59,6 +59,7 @@ function Checks() {
   } = useBeatmapChecks({
     folder,
     songFolder: settings.songFolder,
+    includeCheckRunDelta: settings.showCheckRunDelta,
   });
   const areCheckResultsExpanded = !!data && !isLoading && !isFetching;
   const levelIconsLoading = isLoading;
@@ -110,19 +111,6 @@ function Checks() {
     setIsDifficultyContentVisible(true);
   }, [isDifficultyContentVisible, selectedCategory]);
 
-  const handleDeltaIssueClick = React.useCallback((issue: ApiCheckDeltaIssue) => {
-    const nextCategory = issue.category;
-    setSelectedCategory(nextCategory);
-    setDisplayedCategory(nextCategory);
-    setIsDifficultyContentVisible(true);
-    window.setTimeout(() => {
-      document.getElementById(`check-group-${issue.id}`)?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-      });
-    }, 50);
-  }, []);
-
   const handleCheckRunHistoryCleared = React.useCallback(() => {
     void refetch();
   }, [refetch]);
@@ -134,7 +122,6 @@ function Checks() {
     showCheckRunDelta: settings.showCheckRunDelta,
     checkRunDeltaShowUnchanged: settings.checkRunDeltaShowUnchanged,
     beatmapFolderPath,
-    onDeltaIssueClick: handleDeltaIssueClick,
     onCheckRunHistoryCleared: handleCheckRunHistoryCleared,
   };
 

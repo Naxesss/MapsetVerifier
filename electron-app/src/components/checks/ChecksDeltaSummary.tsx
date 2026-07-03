@@ -3,6 +3,7 @@ import {
   Badge,
   Box,
   Collapse,
+  Flex,
   Group,
   ScrollArea,
   Stack,
@@ -22,10 +23,12 @@ import {
   IconTrendingUp,
 } from '@tabler/icons-react';
 import { useEffect, useMemo, useState } from 'react';
+import IssueDetailDrawer from './IssueDetailDrawer';
 import IssueRow from './IssueRow';
 import BeatmapApi from '../../client/BeatmapApi';
-import { ApiCheckDeltaIssue, ApiCheckRunDelta, Level } from '../../Types';
+import { ApiCheckDeltaIssue, ApiCheckResult, ApiCheckRunDelta, Level } from '../../Types';
 import { countWord } from '../../utils/countWord';
+import { useDocumentationChecks } from '../documentation/hooks/useDocumentationChecks';
 import LevelIcon from '../icons/LevelIcon';
 
 const VISIBLE_ISSUE_COUNT = 5;
@@ -56,7 +59,6 @@ interface ChecksDeltaSummaryProps {
   selectedCategory?: string;
   showUnchanged: boolean;
   beatmapFolderPath?: string;
-  onIssueClick?: (issue: ApiCheckDeltaIssue) => void;
   onHistoryCleared?: () => void;
 }
 
@@ -123,33 +125,52 @@ function filterByCategory(issues: ApiCheckDeltaIssue[], category?: string) {
 function DeltaIssueGroup({
   group,
   mapsetWide,
-  onIssueClick,
+  onIssueOpen,
 }: {
   group: IssueGroup;
   mapsetWide: boolean;
-  onIssueClick?: (issue: ApiCheckDeltaIssue) => void;
+  onIssueOpen: (issue: ApiCheckDeltaIssue) => void;
 }) {
   const [open, setOpen] = useState(true);
   const [showAll, setShowAll] = useState(false);
   const highest = highestLevel(group.items);
   const firstItems = group.items.slice(0, VISIBLE_ISSUE_COUNT);
   const extraItems = group.items.slice(VISIBLE_ISSUE_COUNT);
+  const handleIssueClick = (event: React.MouseEvent, issue: ApiCheckDeltaIssue) => {
+    const target = event.target;
+    if (target instanceof Element && target.closest('a, button')) {
+      return;
+    }
+
+    onIssueOpen(issue);
+  };
+
+  const handleIssueKeyDown = (event: React.KeyboardEvent, issue: ApiCheckDeltaIssue) => {
+    if (event.key !== 'Enter') {
+      return;
+    }
+
+    event.preventDefault();
+    onIssueOpen(issue);
+  };
 
   return (
     <Stack gap={0}>
       <UnstyledButton
         onClick={() => setOpen((value) => !value)}
-        style={{ cursor: 'pointer', userSelect: 'none' }}
+        style={{ cursor: 'pointer', userSelect: 'none', width: '100%' }}
       >
-        <Group gap="xs" wrap="nowrap">
+        <Flex gap="xs" align="center" style={{ minWidth: 0 }}>
           <span
             style={{
               display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
               transition: 'transform 200ms ease',
             }}
           >
-            <IconChevronRight size={14} />
+            <IconChevronRight size={16} />
           </span>
           <LevelIcon level={highest === 'Check' ? 'Info' : highest} size={16} />
           {mapsetWide ? (
@@ -157,21 +178,24 @@ function DeltaIssueGroup({
               {group.category}
             </Badge>
           ) : null}
-          <Text size="sm" fw={700}>
+          <Text size="sm" fw={700} style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
             {group.checkName}
           </Text>
-        </Group>
+        </Flex>
       </UnstyledButton>
 
       <Collapse in={open}>
-        <Stack gap={4} ml="lg" mt={4}>
+        <Stack gap="0" ml="xl">
           {firstItems.map((issue, index) => (
-            <UnstyledButton
+            <Box
               key={`${group.key}-${index}`}
-              onClick={() => onIssueClick?.(issue)}
-              style={{ cursor: onIssueClick ? 'pointer' : 'default', textAlign: 'left' }}
+              role="button"
+              tabIndex={0}
+              onClick={(event) => handleIssueClick(event, issue)}
+              onKeyDown={(event) => handleIssueKeyDown(event, issue)}
+              style={{ cursor: 'pointer', textAlign: 'left' }}
             >
-              <Stack gap={2}>
+              <Stack gap="0">
                 {issue.previousLevel && issue.previousLevel !== issue.level ? (
                   <Group gap={6}>
                     <LevelIcon
@@ -186,17 +210,20 @@ function DeltaIssueGroup({
                 ) : null}
                 <IssueRow item={{ id: issue.id, level: issue.level, message: issue.message }} />
               </Stack>
-            </UnstyledButton>
+            </Box>
           ))}
           <Collapse in={showAll}>
-            <Stack gap={4}>
+            <Stack gap="0">
               {extraItems.map((issue, index) => (
-                <UnstyledButton
+                <Box
                   key={`${group.key}-extra-${index}`}
-                  onClick={() => onIssueClick?.(issue)}
-                  style={{ cursor: onIssueClick ? 'pointer' : 'default', textAlign: 'left' }}
+                  role="button"
+                  tabIndex={0}
+                  onClick={(event) => handleIssueClick(event, issue)}
+                  onKeyDown={(event) => handleIssueKeyDown(event, issue)}
+                  style={{ cursor: 'pointer', textAlign: 'left' }}
                 >
-                  <Stack gap={2}>
+                  <Stack gap="0">
                     {issue.previousLevel && issue.previousLevel !== issue.level ? (
                       <Group gap={6}>
                         <LevelIcon
@@ -214,7 +241,7 @@ function DeltaIssueGroup({
                     ) : null}
                     <IssueRow item={{ id: issue.id, level: issue.level, message: issue.message }} />
                   </Stack>
-                </UnstyledButton>
+                </Box>
               ))}
             </Stack>
           </Collapse>
@@ -242,12 +269,13 @@ export default function ChecksDeltaSummary({
   selectedCategory,
   showUnchanged,
   beatmapFolderPath,
-  onIssueClick,
   onHistoryCleared,
 }: ChecksDeltaSummaryProps) {
   const [expanded, setExpanded] = useState(false);
   const [showMapsetWide, setShowMapsetWide] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [selectedIssue, setSelectedIssue] = useState<ApiCheckDeltaIssue | null>(null);
+  const { getCheckById } = useDocumentationChecks();
 
   const category = selectedCategory ?? 'General';
 
@@ -383,6 +411,14 @@ export default function ChecksDeltaSummary({
 
   if (totalVisible === 0) return null;
 
+  const selectedDrawerIssue: ApiCheckResult | null = selectedIssue
+    ? {
+        id: selectedIssue.id,
+        level: selectedIssue.level,
+        message: selectedIssue.message,
+      }
+    : null;
+
   return (
     <Box
       p="sm"
@@ -469,7 +505,7 @@ export default function ChecksDeltaSummary({
             </Group>
 
             <Tabs key={activeTab} defaultValue={activeTab} keepMounted={false}>
-              <Tabs.List>
+              <Tabs.List style={{ flexWrap: 'wrap' }}>
                 {scopedTabs.map((tab) => (
                   <Tabs.Tab key={tab.id} value={tab.id} leftSection={tab.icon}>
                     <Group gap={6}>
@@ -485,14 +521,14 @@ export default function ChecksDeltaSummary({
               {scopedTabs.map((tab) => (
                 <Tabs.Panel key={tab.id} value={tab.id} pt="sm">
                   {tab.issues.length > 0 ? (
-                    <ScrollArea.Autosize mah={PANEL_MAX_HEIGHT} type="auto">
+                    <ScrollArea.Autosize mah={PANEL_MAX_HEIGHT} type="auto" scrollbars="y">
                       <Stack gap="sm">
                         {groupIssues(tab.issues, showMapsetWide).map((group) => (
                           <DeltaIssueGroup
                             key={`${tab.id}-${group.key}`}
                             group={group}
                             mapsetWide={showMapsetWide}
-                            onIssueClick={onIssueClick}
+                            onIssueOpen={setSelectedIssue}
                           />
                         ))}
                       </Stack>
@@ -509,6 +545,13 @@ export default function ChecksDeltaSummary({
           </Stack>
         </Collapse>
       </Stack>
+      <IssueDetailDrawer
+        opened={selectedIssue !== null}
+        onClose={() => setSelectedIssue(null)}
+        issue={selectedDrawerIssue}
+        checkName={selectedIssue?.checkName}
+        documentationCheck={selectedIssue ? getCheckById(selectedIssue.id) : undefined}
+      />
     </Box>
   );
 }
