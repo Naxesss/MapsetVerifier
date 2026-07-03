@@ -24,6 +24,8 @@ export type Settings = {
   showCheckRunDelta: boolean;
   /** Include the unchanged-issues tab in the check run delta panel. */
   checkRunDeltaShowUnchanged: boolean;
+  /** Load external check DLLs from CustomChecks. */
+  customChecksEnabled: boolean;
   // DEV-only: whether to gate Backend in development mode
   gateInDev: boolean;
 };
@@ -48,6 +50,7 @@ const defaultSettings: Settings = {
   goToChecksOnMapsetSwitch: true,
   showCheckRunDelta: true,
   checkRunDeltaShowUnchanged: false,
+  customChecksEnabled: false,
   gateInDev: false,
 };
 

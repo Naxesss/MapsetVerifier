@@ -20,6 +20,10 @@ export interface BackendStatus {
   port: number;
 }
 
+export interface BackendStartOptions {
+  customChecksEnabled?: boolean;
+}
+
 export type Unsubscribe = () => void;
 
 export interface ElectronAPI {
@@ -60,7 +64,7 @@ export interface ElectronAPI {
 
   backend: {
     status(): Promise<BackendStatus>;
-    start(): Promise<void>;
+    start(options?: BackendStartOptions): Promise<void>;
     onLog(cb: (line: string) => void): Unsubscribe;
   };
 

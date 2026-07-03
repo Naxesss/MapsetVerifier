@@ -90,8 +90,10 @@ function registerIpc(getMainWindow) {
     running: sidecar.isRunning(),
     port: sidecar.BACKEND_PORT,
   }));
-  ipcMain.handle('backend:start', () => {
-    sidecar.spawnSidecar();
+  ipcMain.handle('backend:start', (_e, options) => {
+    sidecar.spawnSidecar({
+      customChecksEnabled: options?.customChecksEnabled !== false,
+    });
   });
 
   ipcMain.handle('app:version', () => app.getVersion());

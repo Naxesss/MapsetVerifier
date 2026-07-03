@@ -14,6 +14,7 @@ namespace MapsetVerifier.Framework
 
         private static string? CustomCheckDirectory { get; set; }
         private static readonly object CustomPluginReportLock = new();
+        private static readonly object ReloadChecksLock = new();
         private static CustomCheckPluginReport CustomPluginReport { get; set; } = new();
 
         public static void ConfigureCustomChecksPath(string appDataPath, string externalFolderName)
@@ -31,10 +32,42 @@ namespace MapsetVerifier.Framework
                 return new CustomCheckPluginReport
                 {
                     DirectoryPath = CustomPluginReport.DirectoryPath,
+                    CustomChecksEnabled = CustomPluginReport.CustomChecksEnabled,
                     LoadedPlugins = [.. CustomPluginReport.LoadedPlugins],
                     FailedPlugins = [.. CustomPluginReport.FailedPlugins],
                 };
             }
+        }
+
+        public static CustomCheckPluginReport ReloadChecks(bool loadCustomChecks = true)
+        {
+            lock (ReloadChecksLock)
+            {
+                Log.Information("Reloading all checks...");
+                CheckerRegistry.ClearChecks();
+
+                Log.Information("Reloading default checks...");
+                LoadDefaultChecks();
+
+                if (loadCustomChecks)
+                {
+                    Log.Information("Reloading custom checks...");
+                    LoadCustomChecks();
+                }
+                else
+                {
+                    Log.Information("Skipping custom checks because they are disabled");
+                    SetCustomCheckPluginReport([], [], customChecksEnabled: false);
+                }
+
+                return GetCustomCheckPluginReport();
+            }
+        }
+
+        public static void DisableCustomChecks()
+        {
+            Log.Information("Custom checks are disabled");
+            SetCustomCheckPluginReport([], [], customChecksEnabled: false);
         }
 
         /// <summary> Returns a list of issues sorted by level, in the given beatmap set. </summary>
@@ -189,7 +222,7 @@ namespace MapsetVerifier.Framework
             if (paths.Count == 0)
             {
                 Log.Information("No custom checks found");
-                SetCustomCheckPluginReport([], []);
+                SetCustomCheckPluginReport([], [], customChecksEnabled: true);
                 return;
             }
 
@@ -219,13 +252,15 @@ namespace MapsetVerifier.Framework
 
             SetCustomCheckPluginReport(
                 loadedPlugins.OrderBy(plugin => plugin.FileName).ToArray(),
-                failedPlugins.OrderBy(plugin => plugin.FileName).ToArray()
+                failedPlugins.OrderBy(plugin => plugin.FileName).ToArray(),
+                customChecksEnabled: true
             );
         }
 
         private static void SetCustomCheckPluginReport(
             CustomCheckPluginInfo[] loadedPlugins,
-            CustomCheckPluginLoadError[] failedPlugins
+            CustomCheckPluginLoadError[] failedPlugins,
+            bool customChecksEnabled
         )
         {
             lock (CustomPluginReportLock)
@@ -233,6 +268,7 @@ namespace MapsetVerifier.Framework
                 CustomPluginReport = new CustomCheckPluginReport
                 {
                     DirectoryPath = CustomCheckDirectory ?? "",
+                    CustomChecksEnabled = customChecksEnabled,
                     LoadedPlugins = loadedPlugins,
                     FailedPlugins = failedPlugins,
                 };

@@ -25,6 +25,7 @@ interface DocumentationContextType {
   allChecks: ApiDocumentationCheck[];
   checksById: Map<number, ApiDocumentationCheck>;
   getCheckById: (id: number) => ApiDocumentationCheck | undefined;
+  reload: () => Promise<void>;
 }
 
 const DocumentationContext = createContext<DocumentationContextType | undefined>(undefined);
@@ -51,11 +52,53 @@ function mergeDocumentationChecks(params: {
   return { allChecks: checks, checksById };
 }
 
+async function loadDocumentationChecks() {
+  const [general, standard, taiko, catchMode, mania] = await Promise.all([
+    DocumentationApi.getGeneralDocumentation(),
+    DocumentationApi.getBeatmapDocumentation('Standard'),
+    DocumentationApi.getBeatmapDocumentation('Taiko'),
+    DocumentationApi.getBeatmapDocumentation('Catch'),
+    DocumentationApi.getBeatmapDocumentation('Mania'),
+  ]);
+
+  return {
+    general,
+    beatmap: {
+      Standard: standard,
+      Taiko: taiko,
+      Catch: catchMode,
+      Mania: mania,
+    },
+  };
+}
+
 export const DocumentationProvider = ({ children }: { children: ReactNode }) => {
   const [status, setStatus] = useState<DocumentationStatus>('idle');
   const [error, setError] = useState<Error | null>(null);
   const [generalChecks, setGeneralChecks] = useState<ApiDocumentationCheck[]>();
   const [beatmapChecks, setBeatmapChecks] = useState<DocumentationBeatmapChecks>({});
+
+  const reload = useCallback(async () => {
+    setStatus('loading');
+    setError(null);
+
+    try {
+      const checks = await loadDocumentationChecks();
+
+      setGeneralChecks(checks.general);
+      setBeatmapChecks(checks.beatmap);
+      setStatus('success');
+    } catch (e) {
+      console.error('[Documentation] Failed to load documentation', e);
+
+      const err = e instanceof Error ? e : new Error(String(e));
+      setGeneralChecks(undefined);
+      setBeatmapChecks({});
+      setError(err);
+      setStatus('error');
+      throw err;
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -65,23 +108,11 @@ export const DocumentationProvider = ({ children }: { children: ReactNode }) => 
       setError(null);
 
       try {
-        const [general, standard, taiko, catchMode, mania] = await Promise.all([
-          DocumentationApi.getGeneralDocumentation(),
-          DocumentationApi.getBeatmapDocumentation('Standard'),
-          DocumentationApi.getBeatmapDocumentation('Taiko'),
-          DocumentationApi.getBeatmapDocumentation('Catch'),
-          DocumentationApi.getBeatmapDocumentation('Mania'),
-        ]);
-
+        const checks = await loadDocumentationChecks();
         if (cancelled) return;
 
-        setGeneralChecks(general);
-        setBeatmapChecks({
-          Standard: standard,
-          Taiko: taiko,
-          Catch: catchMode,
-          Mania: mania,
-        });
+        setGeneralChecks(checks.general);
+        setBeatmapChecks(checks.beatmap);
         setStatus('success');
       } catch (e) {
         if (cancelled) return;
@@ -125,8 +156,18 @@ export const DocumentationProvider = ({ children }: { children: ReactNode }) => 
       allChecks: merged.allChecks,
       checksById: merged.checksById,
       getCheckById,
+      reload,
     }),
-    [status, error, generalChecks, beatmapChecks, merged.allChecks, merged.checksById, getCheckById]
+    [
+      status,
+      error,
+      generalChecks,
+      beatmapChecks,
+      merged.allChecks,
+      merged.checksById,
+      getCheckById,
+      reload,
+    ]
   );
 
   return <DocumentationContext.Provider value={value}>{children}</DocumentationContext.Provider>;

@@ -20,6 +20,13 @@ namespace MapsetVerifier.Framework
                 Checks.Add(check);
         }
 
+        /// <summary> Removes all registered checks before a full check reload. </summary>
+        public static void ClearChecks()
+        {
+            lock (ChecksLock)
+                Checks.Clear();
+        }
+
         /// <summary>
         /// Returns all checks as a dictionary where the key is the index and the value is the check itself.
         /// </summary>

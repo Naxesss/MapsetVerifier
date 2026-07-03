@@ -136,7 +136,9 @@ const BackendGate: React.FC<BackendGateProps> = ({
     try {
       setStatus('starting');
 
-      await window.electronAPI?.backend.start();
+      await window.electronAPI?.backend.start({
+        customChecksEnabled: settings.customChecksEnabled,
+      });
       setSidecarLogs([]);
 
       const preHealthy = await isHealthy(BACKEND_BASE_URL, 2500);

@@ -8,14 +8,18 @@ import {
   List,
   Loader,
   Paper,
+  SimpleGrid,
   Stack,
+  Switch,
   Table,
   Text,
   Tooltip,
 } from '@mantine/core';
-import { IconAlertTriangle, IconPackage, IconRefresh } from '@tabler/icons-react';
+import { IconAlertTriangle, IconFolder, IconRefresh } from '@tabler/icons-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PluginApi from '../../client/PluginApi.ts';
+import { useDocumentation } from '../../context/DocumentationContext.tsx';
+import { useSettings } from '../../context/SettingsContext.tsx';
 import { ApiPluginReport } from '../../Types.ts';
 
 interface PluginManagerProps {
@@ -23,9 +27,28 @@ interface PluginManagerProps {
 }
 
 const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
+  const { reload: reloadDocumentation } = useDocumentation();
+  const { settings, setSettings } = useSettings();
   const [report, setReport] = useState<ApiPluginReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const openFolder = async (getPath: () => Promise<string | undefined>) => {
+    try {
+      const folderPath = await getPath();
+      if (!folderPath) return;
+      const err = await window.electronAPI?.shell.openPath(folderPath);
+      if (err) throw new Error(err);
+    } catch (e) {
+      console.error('[Settings] Failed to open folder:', e);
+      alert('Failed to open folder. See console for details.');
+    }
+  };
+
+  const openExternalsFolder = () =>
+    openFolder(
+      () => window.electronAPI?.app.getExternalsFolderPath() ?? Promise.resolve(undefined)
+    );
 
   const loadPlugins = useCallback(async () => {
     setLoading(true);
@@ -40,6 +63,40 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
       setLoading(false);
     }
   }, []);
+
+  const reloadPlugins = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      setReport(await PluginApi.reloadPlugins(settings.customChecksEnabled));
+      await reloadDocumentation();
+    } catch (e: any) {
+      console.error('[PluginManager] Failed to reload plugins:', e);
+      setError(e?.message ?? 'Failed to reload plugins.');
+    } finally {
+      setLoading(false);
+    }
+  }, [reloadDocumentation, settings.customChecksEnabled]);
+
+  const setCustomChecksEnabled = useCallback(
+    async (customChecksEnabled: boolean) => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        setReport(await PluginApi.reloadPlugins(customChecksEnabled));
+        setSettings((prev) => ({ ...prev, customChecksEnabled }));
+        await reloadDocumentation();
+      } catch (e: any) {
+        console.error('[PluginManager] Failed to toggle custom checks:', e);
+        setError(e?.message ?? 'Failed to toggle custom checks.');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [reloadDocumentation, setSettings]
+  );
 
   useEffect(() => {
     if (!opened) return;
@@ -59,22 +116,57 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
 
   return (
     <Stack gap="sm">
-      <Group justify="space-between" align="center">
-        <Group gap="xs">
-          <IconPackage size={18} />
-          <Text fw={500}>Plugin manager</Text>
-        </Group>
+      <Alert color="blue" variant="light">
+        <Stack gap={4}>
+          <Text size="sm" fw={500}>
+            Installing plugins
+          </Text>
+          <List size="sm" spacing={2}>
+            <List.Item>Download the DLL for the plugin you want to use.</List.Item>
+            <List.Item>
+              Put the DLL in the <Code>CustomChecks</Code> folder.
+            </List.Item>
+            <List.Item>
+              Use <Code>Reload checks</Code> to load newly installed plugins, or restart the
+              application.
+            </List.Item>
+          </List>
+        </Stack>
+      </Alert>
+      <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+        <Button
+          size="sm"
+          variant="light"
+          leftSection={<IconFolder size={18} />}
+          onClick={() => void openExternalsFolder()}
+        >
+          Open externals folder
+        </Button>
         <Button
           size="sm"
           variant="light"
           leftSection={loading ? <Loader size={18} /> : <IconRefresh size={18} />}
-          onClick={() => void loadPlugins()}
+          onClick={() => void reloadPlugins()}
           disabled={loading}
         >
-          Refresh
+          Reload checks
         </Button>
+      </SimpleGrid>
+      <Group justify="space-between" align="center" wrap="nowrap">
+        <Stack gap={0}>
+          <Text size="sm" fw={500}>
+            Load custom checks
+          </Text>
+          <Text size="xs" c="dimmed">
+            Reloads checks immediately when changed.
+          </Text>
+        </Stack>
+        <Switch
+          checked={settings.customChecksEnabled}
+          onChange={(e) => void setCustomChecksEnabled(e.currentTarget.checked)}
+          disabled={loading}
+        />
       </Group>
-
       <Paper withBorder p="sm" radius="sm">
         <Stack gap="xs">
           <Group gap="xs">
@@ -104,8 +196,9 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
 
       {report && report.loadedPlugins.length === 0 && report.failedPlugins.length === 0 && (
         <Alert color="gray" variant="light">
-          No custom check DLLs were found. Add plugins to the CustomChecks folder and restart the
-          backend.
+          {settings.customChecksEnabled
+            ? 'No custom check DLLs were found. Add plugins to the CustomChecks folder and reload checks.'
+            : 'Custom checks are disabled. Built-in checks remain active.'}
         </Alert>
       )}
 

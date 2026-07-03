@@ -1,4 +1,15 @@
-import { Badge, Box, Button, Group, Paper, ScrollArea, Stack, Switch, Text, Tooltip } from '@mantine/core';
+import {
+  Badge,
+  Box,
+  Button,
+  Group,
+  Paper,
+  ScrollArea,
+  Stack,
+  Switch,
+  Text,
+  Tooltip,
+} from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { IconAdjustments } from '@tabler/icons-react';
 import { useMemo } from 'react';

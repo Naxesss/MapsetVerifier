@@ -1,4 +1,5 @@
 using MapsetVerifier.Framework;
+using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Server.Model;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,11 +12,23 @@ public class PluginController : ControllerBase
     [HttpGet]
     public ApiPluginReport GetPlugins()
     {
-        var report = Checker.GetCustomCheckPluginReport();
+        return ToApiPluginReport(Checker.GetCustomCheckPluginReport());
+    }
 
+    [HttpPost("reload")]
+    public ApiPluginReport ReloadPlugins([FromBody] ApiPluginReloadRequest? request)
+    {
+        return ToApiPluginReport(
+            Checker.ReloadChecks(loadCustomChecks: request?.CustomChecksEnabled ?? true)
+        );
+    }
+
+    private static ApiPluginReport ToApiPluginReport(CustomCheckPluginReport report)
+    {
         return new ApiPluginReport
         {
             DirectoryPath = report.DirectoryPath,
+            CustomChecksEnabled = report.CustomChecksEnabled,
             LoadedPlugins = report
                 .LoadedPlugins.Select(plugin => new ApiLoadedPlugin
                 {

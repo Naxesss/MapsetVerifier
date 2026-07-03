@@ -6,8 +6,7 @@ import { useUpdater } from '../../context/UpdaterContext';
 
 export default function UpdateSettingsSection() {
   const { settings, setSettings } = useSettings();
-  const { checkForUpdates, openUpdater, currentVersion, currentVersionIsPrerelease } =
-    useUpdater();
+  const { checkForUpdates, openUpdater, currentVersion, currentVersionIsPrerelease } = useUpdater();
 
   return (
     <SettingsSection
