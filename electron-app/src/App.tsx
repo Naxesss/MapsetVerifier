@@ -88,7 +88,11 @@ function AppContent() {
                           scrollbars={isSettingsRoute ? 'y' : undefined}
                           h="calc(100vh - var(--app-shell-header-offset, 0rem) + var(--app-shell-padding))"
                         >
-                          <Container py={isSettingsRoute ? 0 : undefined} px={isSettingsRoute ? 0 : 'sm'} fluid>
+                          <Container
+                            py={isSettingsRoute ? 0 : undefined}
+                            px={isSettingsRoute ? 0 : 'sm'}
+                            fluid
+                          >
                             <RouteErrorBoundary>
                               <BeatmapKeyedOutlet />
                             </RouteErrorBoundary>
