@@ -176,11 +176,9 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
               {totals.checkCount} checks
             </Badge>
           </Group>
-          <Tooltip label={report?.directoryPath ?? ''} disabled={!report?.directoryPath}>
-            <Text size="sm" c="dimmed" truncate>
-              Folder: {report?.directoryPath || 'Not configured'}
-            </Text>
-          </Tooltip>
+          <Text size="sm" c="dimmed" truncate>
+            Folder: {report?.directoryPath || 'Not configured'}
+          </Text>
         </Stack>
       </Paper>
 

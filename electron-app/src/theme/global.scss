@@ -222,6 +222,71 @@
   animation: none;
 }
 
+/* Settings page: TOC slides from the left, content from the right */
+@keyframes mv-settings-toc-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes mv-settings-toc-exit {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+}
+
+@keyframes mv-settings-content-enter {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes mv-settings-content-exit {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+}
+
+::view-transition-old(settings-toc) {
+  animation: mv-settings-toc-exit 220ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+::view-transition-new(settings-toc) {
+  animation: mv-settings-toc-enter 220ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+::view-transition-old(settings-content) {
+  animation: mv-settings-content-exit 220ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+::view-transition-new(settings-content) {
+  animation: mv-settings-content-enter 220ms cubic-bezier(0.4, 0, 0.2, 1) 40ms both;
+}
+
 /* Window bar height — keep in sync with WindowBar `barHeight` */
 :root {
   --mv-window-bar-height: 32px;
@@ -305,6 +370,13 @@
   ::view-transition-old(root),
   ::view-transition-new(root) {
     animation-duration: 1ms;
+  }
+
+  ::view-transition-old(settings-toc),
+  ::view-transition-new(settings-toc),
+  ::view-transition-old(settings-content),
+  ::view-transition-new(settings-content) {
+    animation: none;
   }
 
   .mv-route-outlet-wrap {
