@@ -26,6 +26,7 @@ import React, { useEffect, useState } from 'react';
 import AdvancedAudioWarningModal from './AdvancedAudioWarningModal';
 import LazerLookupWarningModal from './LazerLookupWarningModal';
 import MinorChecksFilterModal from './MinorChecksFilterModal';
+import PluginManager from './PluginManager';
 import { SOURCE_CODE_URL, WEBSITE_URL } from '../../Constants.ts';
 import { useDocumentation } from '../../context/DocumentationContext.tsx';
 import { useSettings } from '../../context/SettingsContext';
@@ -269,6 +270,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
               }
             }}
           />
+          <Divider my="xs" />
+          <PluginManager opened={opened} />
           <Divider my="xs" />
           <Group justify="space-between" align="end">
             <div>
