@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Flex, Stack, Text, Tooltip } from '@mantine/core';
+import { ActionIcon, Box, Flex, Skeleton, Stack, Text, Tooltip } from '@mantine/core';
 import { IconPin, IconPinFilled } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { useBeatmap } from '../../context/BeatmapContext';
@@ -12,12 +12,20 @@ interface BeatmapCardProps {
   songFolder?: string;
   onSelect?: () => void;
   isSelectedOverride?: boolean;
+  enterIndex?: number;
 }
 
-function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: BeatmapCardProps) {
+function BeatmapCard({
+  beatmap,
+  songFolder,
+  onSelect,
+  isSelectedOverride,
+  enterIndex,
+}: BeatmapCardProps) {
   const { selectedFolder, setSelectedFolder } = useBeatmap();
   const { settings, setSettings } = useSettings();
   const [bgUrl, setBgUrl] = useState<string | undefined>(undefined);
+  const [imageLoading, setImageLoading] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const { triggerReparse } = useBeatmapReparse();
 
@@ -35,19 +43,27 @@ function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: Beat
   useEffect(() => {
     if (!beatmap.folder || beatmap.folder === 'placeholder') {
       setBgUrl(undefined);
+      setImageLoading(false);
       return;
     }
 
+    setImageLoading(true);
     const candidate = buildBeatmapImageUrl(beatmap.folder, { songFolder });
     let cancelled = false;
     const img = new Image();
 
     img.onload = () => {
-      if (!cancelled) setBgUrl(candidate);
+      if (!cancelled) {
+        setBgUrl(candidate);
+        setImageLoading(false);
+      }
     };
 
     img.onerror = () => {
-      if (!cancelled) setBgUrl(undefined);
+      if (!cancelled) {
+        setBgUrl(undefined);
+        setImageLoading(false);
+      }
     };
 
     img.src = candidate;
@@ -110,9 +126,12 @@ function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: Beat
 
   const artistTitleStyle = { ...textStyle, lineHeight: 1.15 };
 
+  const enterDelayMs = enterIndex !== undefined ? Math.min(enterIndex, 10) * 22 : 0;
+
   return (
     <Flex
       h={96}
+      className={beatmap.folder !== 'placeholder' ? 'mv-beatmap-card-enter' : undefined}
       style={{
         justifyContent: 'center',
         alignItems: 'center',
@@ -123,6 +142,12 @@ function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: Beat
         border: cardVisual.border,
         boxShadow: cardVisual.boxShadow,
         transition: `border-color ${transitionMs}, box-shadow ${transitionMs}`,
+        ...(beatmap.folder !== 'placeholder'
+          ? {
+              animation: 'mv-beatmap-card-enter 280ms cubic-bezier(0.4, 0, 0.2, 1) both',
+              animationDelay: `${enterDelayMs}ms`,
+            }
+          : {}),
       }}
       onClick={() => {
         if (beatmap.folder === selectedFolder) {
@@ -138,6 +163,13 @@ function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: Beat
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      {/* Loading shimmer, shown until the background image settles */}
+      {beatmap.folder !== 'placeholder' && imageLoading && (
+        <Skeleton
+          radius="var(--mantine-radius-md)"
+          style={{ position: 'absolute', inset: 0, zIndex: 0 }}
+        />
+      )}
       {/* Background image */}
       <Box
         style={{
@@ -152,9 +184,10 @@ function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: Beat
           borderRadius: 'var(--mantine-radius-md)',
           zIndex: 0,
           backgroundImage: bgUrl ? `url('${bgUrl}')` : 'none',
+          opacity: bgUrl ? 1 : 0,
           transform: `scale(${cardVisual.scale})`,
           transformOrigin: 'center center',
-          transition: `transform ${transitionMs}`,
+          transition: `transform ${transitionMs}, opacity 0.35s ease`,
         }}
       />
       {/* Dark overlay */}

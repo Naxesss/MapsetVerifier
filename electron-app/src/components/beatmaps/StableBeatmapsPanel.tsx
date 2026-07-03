@@ -320,9 +320,15 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
           >
             <Flex direction="column" gap="xs" w="100%" style={{ justifyContent: 'center' }}>
               {renderStableCurrentMap()}
-              {!firstPageLoaded && <PlaceholderBeatmapCard />}
-              {beatmaps.map((bm) => (
-                <BeatmapCard key={bm.folder + bm.title} beatmap={bm} songFolder={songFolder} />
+              {!firstPageLoaded &&
+                Array.from({ length: 6 }).map((_, i) => <PlaceholderBeatmapCard key={i} />)}
+              {beatmaps.map((bm, i) => (
+                <BeatmapCard
+                  key={bm.folder + bm.title}
+                  beatmap={bm}
+                  songFolder={songFolder}
+                  enterIndex={i}
+                />
               ))}
               <div ref={sentinelRef} style={{ height: 1 }} />
               {showNextPagePlaceholder && <PlaceholderBeatmapCard />}
