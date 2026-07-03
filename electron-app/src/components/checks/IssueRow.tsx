@@ -35,4 +35,4 @@ const IssueRow: React.FC<IssueRowProps> = ({ item }) => {
   );
 };
 
-export default IssueRow;
+export default React.memo(IssueRow);
