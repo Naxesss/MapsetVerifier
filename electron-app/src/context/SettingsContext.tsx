@@ -28,6 +28,10 @@ export type Settings = {
   autoCreateSnapshotOnCheckRun: boolean;
   /** Load external check DLLs from CustomChecks. */
   customChecksEnabled: boolean;
+  /** Enables bookmarking/pinning beatmapsets for quick lookup in the sidebar. */
+  bookmarksEnabled: boolean;
+  /** Folder names of bookmarked beatmapsets. */
+  bookmarkedFolders: string[];
   // DEV-only: whether to gate Backend in development mode
   gateInDev: boolean;
 };
@@ -54,6 +58,8 @@ const defaultSettings: Settings = {
   checkRunDeltaShowUnchanged: false,
   autoCreateSnapshotOnCheckRun: true,
   customChecksEnabled: false,
+  bookmarksEnabled: false,
+  bookmarkedFolders: [],
   gateInDev: false,
 };
 
@@ -117,6 +123,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         hiddenMinorCheckIds: Array.isArray(loaded?.hiddenMinorCheckIds)
           ? loaded.hiddenMinorCheckIds
           : defaultSettings.hiddenMinorCheckIds,
+        bookmarkedFolders: Array.isArray(loaded?.bookmarkedFolders)
+          ? loaded.bookmarkedFolders
+          : defaultSettings.bookmarkedFolders,
         uiFontFamily: parseUiFontFamily(loaded?.uiFontFamily),
         timelineThemeVariant: parseTimelineThemeVariant(loaded?.timelineThemeVariant ?? null),
       });

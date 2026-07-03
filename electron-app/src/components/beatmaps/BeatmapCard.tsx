@@ -1,7 +1,9 @@
-import { Box, Flex, Stack, Text } from '@mantine/core';
+import { ActionIcon, Box, Flex, Stack, Text, Tooltip } from '@mantine/core';
+import { IconPin, IconPinFilled } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { useBeatmap } from '../../context/BeatmapContext';
 import { useBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
+import { useSettings } from '../../context/SettingsContext';
 import { Beatmap } from '../../Types.ts';
 import { buildBeatmapImageUrl } from '../../utils/buildBeatmapFolderPath.ts';
 
@@ -14,9 +16,21 @@ interface BeatmapCardProps {
 
 function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: BeatmapCardProps) {
   const { selectedFolder, setSelectedFolder } = useBeatmap();
+  const { settings, setSettings } = useSettings();
   const [bgUrl, setBgUrl] = useState<string | undefined>(undefined);
   const [isHovered, setIsHovered] = useState(false);
   const { triggerReparse } = useBeatmapReparse();
+
+  const isBookmarked = settings.bookmarkedFolders.includes(beatmap.folder);
+
+  const toggleBookmark = () => {
+    setSettings((prev) => ({
+      ...prev,
+      bookmarkedFolders: isBookmarked
+        ? prev.bookmarkedFolders.filter((folder) => folder !== beatmap.folder)
+        : [...prev.bookmarkedFolders, beatmap.folder],
+    }));
+  };
 
   useEffect(() => {
     if (!beatmap.folder || beatmap.folder === 'placeholder') {
@@ -158,6 +172,23 @@ function BeatmapCard({ beatmap, songFolder, onSelect, isSelectedOverride }: Beat
           transition: `background ${transitionMs}`,
         }}
       />
+      {settings.bookmarksEnabled && beatmap.folder !== 'placeholder' && (
+        <Tooltip label={isBookmarked ? 'Remove bookmark' : 'Bookmark this beatmapset'}>
+          <ActionIcon
+            variant="subtle"
+            color="yellow"
+            size="sm"
+            style={{ position: 'absolute', top: 4, right: 4, zIndex: 3 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleBookmark();
+            }}
+            aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark this beatmapset'}
+          >
+            {isBookmarked ? <IconPinFilled size={16} /> : <IconPin size={16} />}
+          </ActionIcon>
+        </Tooltip>
+      )}
       {/* Text content */}
       <Flex
         direction="column"

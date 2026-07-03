@@ -77,6 +77,18 @@ export default function ExperimentalSettingsSection() {
             />
           }
         />
+        <SettingsRow
+          title={<ExperimentalLabel>Bookmark beatmapsets</ExperimentalLabel>}
+          description="Pin beatmapsets for quick lookup in the sidebar, without scrolling to find them."
+          control={
+            <Switch
+              checked={settings.bookmarksEnabled}
+              onChange={(e) => {
+                setSettings((prev) => ({ ...prev, bookmarksEnabled: e.currentTarget.checked }));
+              }}
+            />
+          }
+        />
       </SettingsSection>
       <LazerLookupWarningModal
         opened={lazerWarningOpened}

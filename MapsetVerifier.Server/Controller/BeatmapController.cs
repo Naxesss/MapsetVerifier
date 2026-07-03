@@ -17,7 +17,8 @@ public class BeatmapController : ControllerBase
         [FromQuery] string? songsFolder,
         [FromQuery] string? search,
         [FromQuery] int page = 0,
-        [FromQuery] int pageSize = 16
+        [FromQuery] int pageSize = 16,
+        [FromQuery] string? bookmarkedFolders = null
     )
     {
         if (string.IsNullOrWhiteSpace(songsFolder))
@@ -34,7 +35,21 @@ public class BeatmapController : ControllerBase
         if (pageSize > 100)
             pageSize = 100; // safety cap
 
-        var pageResult = BeatmapService.GetBeatmaps(songsFolder, search, page, pageSize);
+        HashSet<string>? bookmarkedFolderSet = null;
+        if (!string.IsNullOrWhiteSpace(bookmarkedFolders))
+        {
+            bookmarkedFolderSet = bookmarkedFolders
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .ToHashSet();
+        }
+
+        var pageResult = BeatmapService.GetBeatmaps(
+            songsFolder,
+            search,
+            page,
+            pageSize,
+            bookmarkedFolderSet
+        );
 
         // If we have items, always 200.
         if (pageResult.Items.Any())

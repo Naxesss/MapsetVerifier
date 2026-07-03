@@ -91,7 +91,8 @@ public static class BeatmapService
         string songsFolder,
         string? search,
         int page,
-        int pageSize
+        int pageSize,
+        IReadOnlySet<string>? bookmarkedFolders = null
     )
     {
         if (!Directory.Exists(songsFolder))
@@ -99,6 +100,9 @@ public static class BeatmapService
 
         var dirInfo = new DirectoryInfo(songsFolder);
         var folders = dirInfo.GetDirectories().OrderByDescending(d => d.LastWriteTimeUtc).ToList();
+
+        if (bookmarkedFolders is { Count: > 0 })
+            folders = folders.Where(f => bookmarkedFolders.Contains(f.Name)).ToList();
 
         var skipped = page * pageSize;
         var pageFolders = folders.Skip(skipped).Take(pageSize + 1).ToList();
