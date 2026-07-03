@@ -4,6 +4,7 @@
   CloseButton,
   Group,
   Loader,
+  Skeleton,
   SimpleGrid,
   Space,
   Stack,
@@ -34,6 +35,38 @@ import SnapshotHasChangesIcon from '../icons/SnapshotHasChangesIcon.tsx';
 import SnapshotNoChangesIcon from '../icons/SnapshotNoChangesIcon.tsx';
 import WarningIcon from '../icons/WarningIcon.tsx';
 import type { ApiDocumentationCheck, Mode } from '../../Types';
+
+/**
+ * Mounting the check list is CPU-heavy (per-row theme resolution across 100+ checks). Waiting
+ * two rAFs lets the route swap paint first, so navigation feels instant and the list pops in
+ * right after instead of blocking the transition.
+ */
+function useDeferredReady() {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let inner = 0;
+    const outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => setReady(true));
+    });
+    return () => {
+      cancelAnimationFrame(outer);
+      cancelAnimationFrame(inner);
+    };
+  }, []);
+
+  return ready;
+}
+
+function CheckListSkeleton({ rows = 6 }: { rows?: number }) {
+  return (
+    <Stack gap="xs" w="100%">
+      {Array.from({ length: rows }).map((_, i) => (
+        <Skeleton key={i} height={56} radius="var(--mantine-radius-md)" />
+      ))}
+    </Stack>
+  );
+}
 
 const BEATMAP_TAB_TO_MODE: Record<string, Mode> = {
   standard: 'Standard',
@@ -201,6 +234,7 @@ function DocumentationChecksBrowser() {
   );
 
   const isSearching = appliedSearchQuery.trim().length > 0;
+  const ready = useDeferredReady();
 
   const categoryCountSummary = useMemo(() => {
     if (allChecksLoading) return 'Loading check counts…';
@@ -225,8 +259,9 @@ function DocumentationChecksBrowser() {
               Failed to load checks for search.
             </Alert>
           )}
-          {!allChecksLoading && !allChecksError && (
-            <>
+          {!allChecksLoading && !allChecksError && !ready && <CheckListSkeleton />}
+          {!allChecksLoading && !allChecksError && ready && (
+            <Box className="mv-deferred-content-enter" w="100%">
               <Text size="xs" c="dimmed">
                 Showing {filteredAllChecks.length} of {dedupedChecks.length}{' '}
                 {pluralize(dedupedChecks.length, 'check')} across all categories
@@ -240,11 +275,11 @@ function DocumentationChecksBrowser() {
                   <DocumentationCheck key={check.id} check={check} />
                 ))
               )}
-            </>
+            </Box>
           )}
         </Group>
       ) : (
-        <Tabs value={activeTab} onChange={(v) => setActiveTab(v ?? 'general')}>
+        <Tabs value={activeTab} onChange={(v) => setActiveTab(v ?? 'general')} keepMounted={false}>
           <Tabs.List grow>
             <Tabs.Tab value="general">General</Tabs.Tab>
             <Tabs.Tab value="standard">{formatGameModeLabel('Standard')}</Tabs.Tab>
@@ -256,19 +291,49 @@ function DocumentationChecksBrowser() {
             {categoryCountSummary}
           </Text>
           <Tabs.Panel value="general" pt="sm">
-            <GeneralChecks />
+            {ready ? (
+              <Box className="mv-deferred-content-enter" w="100%">
+                <GeneralChecks />
+              </Box>
+            ) : (
+              <CheckListSkeleton />
+            )}
           </Tabs.Panel>
           <Tabs.Panel value="standard" pt="sm">
-            <BeatmapChecks mode="Standard" />
+            {ready ? (
+              <Box className="mv-deferred-content-enter" w="100%">
+                <BeatmapChecks mode="Standard" />
+              </Box>
+            ) : (
+              <CheckListSkeleton />
+            )}
           </Tabs.Panel>
           <Tabs.Panel value="taiko" pt="sm">
-            <BeatmapChecks mode="Taiko" />
+            {ready ? (
+              <Box className="mv-deferred-content-enter" w="100%">
+                <BeatmapChecks mode="Taiko" />
+              </Box>
+            ) : (
+              <CheckListSkeleton />
+            )}
           </Tabs.Panel>
           <Tabs.Panel value="catch" pt="sm">
-            <BeatmapChecks mode="Catch" />
+            {ready ? (
+              <Box className="mv-deferred-content-enter" w="100%">
+                <BeatmapChecks mode="Catch" />
+              </Box>
+            ) : (
+              <CheckListSkeleton />
+            )}
           </Tabs.Panel>
           <Tabs.Panel value="mania" pt="sm">
-            <BeatmapChecks mode="Mania" />
+            {ready ? (
+              <Box className="mv-deferred-content-enter" w="100%">
+                <BeatmapChecks mode="Mania" />
+              </Box>
+            ) : (
+              <CheckListSkeleton />
+            )}
           </Tabs.Panel>
         </Tabs>
       )}

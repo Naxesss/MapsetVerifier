@@ -45,7 +45,6 @@ function Overview() {
         justifyContent: 'flex-start',
       }}
     >
-      <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
       <BeatmapHeader bgUrl={bgUrl}>
         <Group gap="sm" justify="space-between" style={{ width: '100%' }}>
           <BeatmapActionButtons
@@ -62,7 +61,12 @@ function Overview() {
           />
         </Group>
       </BeatmapHeader>
-      <Box style={{ flex: 1, overflow: 'auto' }} bg="dark.6">
+      <Box style={{ flex: 1, overflow: 'auto', position: 'relative' }} bg="dark.6">
+        <LoadingOverlay
+          visible={isLoading}
+          zIndex={1000}
+          overlayProps={{ radius: 'sm', blur: 2 }}
+        />
         {activeTab === 'Metadata' && <MetadataOverview />}
         {activeTab === 'Beatmap' && <BeatmapOverview />}
         {activeTab === 'Difficulty' && <DifficultyOverview />}

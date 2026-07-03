@@ -52,6 +52,7 @@ function AppContent() {
   const location = useLocation();
   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
   const isSettingsRoute = location.pathname.startsWith('/settings');
+  const isNavbarOpened = desktopOpened || isSettingsRoute;
 
   return (
     <MantineProvider defaultColorScheme="dark" theme={theme} cssVariablesResolver={cssVarResolver}>
@@ -69,17 +70,17 @@ function AppContent() {
                       width: '256',
                       breakpoint: 'xs',
                       collapsed: {
-                        desktop: isSettingsRoute || !desktopOpened,
-                        mobile: isSettingsRoute,
+                        desktop: !isNavbarOpened,
+                        mobile: false,
                       },
                     }}
                   >
                     <BeatmapReparseProvider>
                       {!isSettingsRoute && <BeatmapSelectionNavigator />}
                       <NavBars
-                        desktopOpened={desktopOpened}
+                        desktopOpened={isNavbarOpened}
                         showBeatmapSidebar={!isSettingsRoute}
-                        toggleDesktop={toggleDesktop}
+                        toggleDesktop={isSettingsRoute ? undefined : toggleDesktop}
                       />
                       <AppShell.Main pb={isSettingsRoute ? 0 : undefined}>
                         <ScrollArea
@@ -88,7 +89,11 @@ function AppContent() {
                           scrollbars={isSettingsRoute ? 'y' : undefined}
                           h="calc(100vh - var(--app-shell-header-offset, 0rem) + var(--app-shell-padding))"
                         >
-                          <Container py={isSettingsRoute ? 0 : undefined} px={isSettingsRoute ? 0 : 'sm'} fluid>
+                          <Container
+                            py={isSettingsRoute ? 0 : 'sm'}
+                            px={isSettingsRoute ? 0 : 'sm'}
+                            fluid
+                          >
                             <RouteErrorBoundary>
                               <BeatmapKeyedOutlet />
                             </RouteErrorBoundary>

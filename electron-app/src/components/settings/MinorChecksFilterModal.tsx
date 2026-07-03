@@ -102,7 +102,7 @@ const MinorChecksFilterModal: React.FC<MinorChecksFilterModalProps> = ({ opened,
             }
           />
         </FocusTrap>
-        <ScrollArea.Autosize mah={420} offsetScrollbars type="always">
+        <ScrollArea.Autosize mah={420} offsetScrollbars type="always" scrollbars="y">
           <Stack gap={0}>
             {minorChecksList.length === 0 ? (
               <Text size="sm" c="dimmed" py="md">

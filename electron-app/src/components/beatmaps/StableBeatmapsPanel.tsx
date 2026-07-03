@@ -311,18 +311,24 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
         <>
           <Divider />
           <ScrollArea
-            type="auto"
-            offsetScrollbars="present"
+            type="always"
+            scrollbars="y"
+            offsetScrollbars="y"
             viewportRef={scrollRef}
-            className="flipped-scrollbar"
             p="xs"
             style={{ flex: '1 1 auto' }}
           >
             <Flex direction="column" gap="xs" w="100%" style={{ justifyContent: 'center' }}>
               {renderStableCurrentMap()}
-              {!firstPageLoaded && <PlaceholderBeatmapCard />}
-              {beatmaps.map((bm) => (
-                <BeatmapCard key={bm.folder + bm.title} beatmap={bm} songFolder={songFolder} />
+              {!firstPageLoaded &&
+                Array.from({ length: 6 }).map((_, i) => <PlaceholderBeatmapCard key={i} />)}
+              {beatmaps.map((bm, i) => (
+                <BeatmapCard
+                  key={bm.folder + bm.title}
+                  beatmap={bm}
+                  songFolder={songFolder}
+                  enterIndex={i}
+                />
               ))}
               <div ref={sentinelRef} style={{ height: 1 }} />
               {showNextPagePlaceholder && <PlaceholderBeatmapCard />}
@@ -331,23 +337,23 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
                 !isFetchingNextPage &&
                 !error &&
                 !filterByBookmarks && (
-                <Alert
-                  icon={<IconListDetails />}
-                  color="gray"
-                  title="No more beatmaps"
-                  variant="light"
-                >
-                  You have reached the last available beatmap.
-                  <Button
-                    size="xs"
-                    mt="xs"
-                    variant="default"
-                    onClick={() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+                  <Alert
+                    icon={<IconListDetails />}
+                    color="gray"
+                    title="No more beatmaps"
+                    variant="light"
                   >
-                    Back to top
-                  </Button>
-                </Alert>
-              )}
+                    You have reached the last available beatmap.
+                    <Button
+                      size="xs"
+                      mt="xs"
+                      variant="default"
+                      onClick={() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+                    >
+                      Back to top
+                    </Button>
+                  </Alert>
+                )}
             </Flex>
           </ScrollArea>
         </>

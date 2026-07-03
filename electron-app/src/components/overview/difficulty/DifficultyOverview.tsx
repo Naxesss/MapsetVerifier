@@ -35,7 +35,7 @@ function DifficultyOverview() {
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
   const [selectedMode, setSelectedMode] = useState<Mode | undefined>();
-  const { data, isLoading, isError, error } = useDifficultyOverview({
+  const { data, isLoading, isFetching, isError, error } = useDifficultyOverview({
     folder,
     songFolder: settings.songFolder,
   });
@@ -117,8 +117,11 @@ function DifficultyOverview() {
 
   return (
     <Box>
-      <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
-
+      <LoadingOverlay
+        visible={isLoading || isFetching}
+        zIndex={1000}
+        overlayProps={{ radius: 'sm', blur: 2 }}
+      />
       {isError && (
         <Flex p="md">
           <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing difficulty overview">

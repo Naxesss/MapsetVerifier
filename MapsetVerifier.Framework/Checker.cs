@@ -309,7 +309,11 @@ namespace MapsetVerifier.Framework
             if (!Path.IsPathRooted(checkPath))
                 rootedPath = Path.Combine(Directory.GetCurrentDirectory(), checkPath);
 
-            var assembly = Assembly.LoadFrom(rootedPath);
+            // Loaded from a byte array rather than Assembly.LoadFrom(path) so the file on disk
+            // isn't memory-mapped and locked, which on Windows prevents editing/deleting the .dll
+            // until the whole process exits, even after a reload.
+            var assemblyBytes = File.ReadAllBytes(rootedPath);
+            var assembly = Assembly.Load(assemblyBytes);
             var checks = LoadCheckAssembly(assembly);
             var assemblyName = assembly.GetName();
             var authors = checks
