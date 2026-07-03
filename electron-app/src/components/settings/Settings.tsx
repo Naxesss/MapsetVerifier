@@ -1,84 +1,13 @@
-import { Box, Flex, NavLink, Stack, Title } from '@mantine/core';
-import {
-  IconAdjustments,
-  IconAnalyze,
-  IconCode,
-  IconInfoCircle,
-  IconPackage,
-  IconRefresh,
-  IconSettings,
-} from '@tabler/icons-react';
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { Stack } from '@mantine/core';
+import { Navigate, useParams } from 'react-router-dom';
 import AboutSettingsSection from './AboutSettingsSection';
 import CheckSettingsSection from './CheckSettingsSection';
 import DeveloperSettingsSection from './DeveloperSettingsSection';
 import ExperimentalSettingsSection from './ExperimentalSettingsSection';
 import GeneralSettingsSection from './GeneralSettingsSection';
 import PluginSettingsSection from './PluginSettingsSection';
+import { resolveSettingsSection, type SettingsSectionId } from './settingsSections';
 import UpdateSettingsSection from './UpdateSettingsSection';
-
-type SettingsSectionId =
-  | 'general'
-  | 'checks'
-  | 'experimental'
-  | 'plugins'
-  | 'updates'
-  | 'about'
-  | 'developer';
-
-interface SettingsNavEntry {
-  id: SettingsSectionId;
-  label: string;
-  description: string;
-  icon: typeof IconSettings;
-  devOnly?: boolean;
-}
-
-const settingsSections: SettingsNavEntry[] = [
-  {
-    id: 'general',
-    label: 'General',
-    description: 'Folders, fonts, and core preferences',
-    icon: IconSettings,
-  },
-  {
-    id: 'checks',
-    label: 'Checks',
-    description: 'Result display and check-run behavior',
-    icon: IconAdjustments,
-  },
-  {
-    id: 'experimental',
-    label: 'Experimental',
-    description: 'Features that are still being tested',
-    icon: IconAnalyze,
-  },
-  {
-    id: 'plugins',
-    label: 'Plugins',
-    description: 'Custom check plugin status',
-    icon: IconPackage,
-  },
-  {
-    id: 'updates',
-    label: 'Updates',
-    description: 'Version checks and beta releases',
-    icon: IconRefresh,
-  },
-  {
-    id: 'about',
-    label: 'About',
-    description: 'Folders and project links',
-    icon: IconInfoCircle,
-  },
-  {
-    id: 'developer',
-    label: 'Developer',
-    description: 'Development-only backend controls',
-    icon: IconCode,
-    devOnly: true,
-  },
-];
 
 function renderSettingsSection(section: SettingsSectionId) {
   switch (section) {
@@ -102,69 +31,15 @@ function renderSettingsSection(section: SettingsSectionId) {
 export default function Settings() {
   const params = useParams();
   const isDev = import.meta.env.DEV;
-  const visibleSections = settingsSections.filter((section) => isDev || !section.devOnly);
-  const routeSection = params.section === 'analysis' ? 'experimental' : params.section;
-  const requestedSection = (routeSection ?? 'general') as SettingsSectionId;
-  const activeSection = visibleSections.some((section) => section.id === requestedSection)
-    ? requestedSection
-    : null;
+  const activeSection = resolveSettingsSection(params.section, isDev);
 
   if (!activeSection) {
     return <Navigate to="/settings" replace />;
   }
 
-  const paneHeight =
-    'calc(100vh - var(--app-shell-header-offset, 0rem) + var(--app-shell-padding))';
-
   return (
-    <Flex align="flex-start" gap="md" w="100%" style={{ overflow: 'hidden' }}>
-      <Box
-        component="nav"
-        aria-label="Settings sections"
-        bg="dark.8"
-        py="md"
-        px="sm"
-        w="min(25%, 280px)"
-        miw={220}
-        style={{
-          position: 'sticky',
-          top: 0,
-          flexShrink: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          height: paneHeight,
-          borderRight: '1px solid var(--mantine-color-dark-6)',
-          viewTransitionName: 'settings-toc',
-        }}
-      >
-        <Box py="xs" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <Title order={2} size="h3" ta="center" m={0}>
-            Settings
-          </Title>
-        </Box>
-        <Stack gap={4} mt="md" style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
-          {visibleSections.map((section) => (
-            <NavLink
-              key={section.id}
-              component={Link}
-              to={section.id === 'general' ? '/settings' : `/settings/${section.id}`}
-              label={section.label}
-              description={section.description}
-              leftSection={<section.icon size={18} />}
-              active={activeSection === section.id}
-              variant="light"
-              styles={{
-                root: {
-                  borderRadius: 5,
-                },
-              }}
-            />
-          ))}
-        </Stack>
-      </Box>
-      <Box flex={1} miw={0} py="md" px="md" style={{ viewTransitionName: 'settings-content' }}>
-        <Stack gap="md">{renderSettingsSection(activeSection)}</Stack>
-      </Box>
-    </Flex>
+    <Stack gap="md" py="md" px="md" style={{ viewTransitionName: 'settings-content' }}>
+      {renderSettingsSection(activeSection)}
+    </Stack>
   );
 }

@@ -69,8 +69,8 @@ function AppContent() {
                       width: '256',
                       breakpoint: 'xs',
                       collapsed: {
-                        desktop: isSettingsRoute || !desktopOpened,
-                        mobile: isSettingsRoute,
+                        desktop: !desktopOpened,
+                        mobile: false,
                       },
                     }}
                   >

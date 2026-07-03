@@ -1,10 +1,11 @@
-import { AppShell, Box, Burger, Group, useMantineTheme } from '@mantine/core';
+import { AppShell, Burger, Group, useMantineTheme } from '@mantine/core';
 import { useLocation } from 'react-router-dom';
 import { MainNavRail } from './MainNavRail';
 import { getActiveNavRoute } from './navConfig';
 import PageHintsButton from './PageHintsButton.tsx';
 import Beatmaps from '../beatmaps/Beatmaps.tsx';
 import SettingsButton from '../settings/SettingsButton';
+import SettingsSidebar from '../settings/SettingsSidebar';
 
 interface NavBarsProps {
   desktopOpened: boolean;
@@ -16,7 +17,6 @@ function NavBars(props: NavBarsProps) {
   const theme = useMantineTheme();
   const location = useLocation();
   const activeRoute = getActiveNavRoute(location.pathname);
-  const sidebarToggleDisabled = !props.showBeatmapSidebar;
 
   return (
     <>
@@ -30,26 +30,12 @@ function NavBars(props: NavBarsProps) {
         }}
       >
         <Group h={60} px="md" wrap="nowrap">
-          <Box
-            component="span"
-            style={{ cursor: sidebarToggleDisabled ? 'not-allowed' : undefined }}
-          >
-            <Burger
-              opened={props.showBeatmapSidebar && props.desktopOpened}
-              onClick={props.showBeatmapSidebar ? props.toggleDesktop : undefined}
-              disabled={sidebarToggleDisabled}
-              size="sm"
-              aria-label="Toggle beatmap sidebar"
-              styles={{
-                root: sidebarToggleDisabled
-                  ? {
-                      opacity: 0.35,
-                      cursor: 'not-allowed',
-                    }
-                  : undefined,
-              }}
-            />
-          </Box>
+          <Burger
+            opened={props.desktopOpened}
+            onClick={props.toggleDesktop}
+            size="sm"
+            aria-label="Toggle sidebar"
+          />
           <Group
             gap="xs"
             justify="space-between"
@@ -65,11 +51,9 @@ function NavBars(props: NavBarsProps) {
           </Group>
         </Group>
       </AppShell.Header>
-      {props.showBeatmapSidebar && (
-        <AppShell.Navbar style={{ viewTransitionName: 'app-sidebar' }}>
-          <Beatmaps />
-        </AppShell.Navbar>
-      )}
+      <AppShell.Navbar style={{ viewTransitionName: 'app-sidebar' }}>
+        {props.showBeatmapSidebar ? <Beatmaps /> : <SettingsSidebar />}
+      </AppShell.Navbar>
     </>
   );
 }
