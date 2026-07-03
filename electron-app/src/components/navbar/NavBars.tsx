@@ -10,7 +10,7 @@ import SettingsSidebar from '../settings/SettingsSidebar';
 interface NavBarsProps {
   desktopOpened: boolean;
   showBeatmapSidebar: boolean;
-  toggleDesktop: () => void;
+  toggleDesktop?: () => void;
 }
 
 function NavBars(props: NavBarsProps) {
@@ -33,8 +33,10 @@ function NavBars(props: NavBarsProps) {
           <Burger
             opened={props.desktopOpened}
             onClick={props.toggleDesktop}
+            disabled={!props.toggleDesktop}
             size="sm"
             aria-label="Toggle sidebar"
+            style={!props.toggleDesktop ? { cursor: 'not-allowed', opacity: 0.4 } : undefined}
           />
           <Group
             gap="xs"

@@ -24,7 +24,6 @@ const SettingsButton: React.FC = () => {
   return (
     <NavLink
       onClick={handleClick}
-      viewTransition
       w={'unset'}
       label={<IconSettings />}
       active={active}

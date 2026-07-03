@@ -110,7 +110,8 @@ function issueDetailsSidebarHint(): PageHint {
     id: 'issue-details-sidebar',
     content: (
       <>
-        <Kbd size="xs">Left Click</Kbd> an issue to open its details and documentation in the sidebar.
+        <Kbd size="xs">Left Click</Kbd> an issue to open its details and documentation in the
+        sidebar.
       </>
     ),
   };

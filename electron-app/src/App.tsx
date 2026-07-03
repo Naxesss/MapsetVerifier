@@ -52,6 +52,7 @@ function AppContent() {
   const location = useLocation();
   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
   const isSettingsRoute = location.pathname.startsWith('/settings');
+  const isNavbarOpened = desktopOpened || isSettingsRoute;
 
   return (
     <MantineProvider defaultColorScheme="dark" theme={theme} cssVariablesResolver={cssVarResolver}>
@@ -69,7 +70,7 @@ function AppContent() {
                       width: '256',
                       breakpoint: 'xs',
                       collapsed: {
-                        desktop: !desktopOpened,
+                        desktop: !isNavbarOpened,
                         mobile: false,
                       },
                     }}
@@ -77,9 +78,9 @@ function AppContent() {
                     <BeatmapReparseProvider>
                       {!isSettingsRoute && <BeatmapSelectionNavigator />}
                       <NavBars
-                        desktopOpened={desktopOpened}
+                        desktopOpened={isNavbarOpened}
                         showBeatmapSidebar={!isSettingsRoute}
-                        toggleDesktop={toggleDesktop}
+                        toggleDesktop={isSettingsRoute ? undefined : toggleDesktop}
                       />
                       <AppShell.Main pb={isSettingsRoute ? 0 : undefined}>
                         <ScrollArea
