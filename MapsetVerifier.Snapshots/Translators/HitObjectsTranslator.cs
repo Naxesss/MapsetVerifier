@@ -218,11 +218,7 @@ namespace MapsetVerifier.Snapshots.Translators
                             && !removedObject.HasHitSound(hitSound)
                         )
                         {
-                            yield return GetHitSoundChange(
-                                true,
-                                hitSound,
-                                addedObject
-                            );
+                            yield return GetHitSoundChange(true, hitSound, addedObject);
                         }
 
                         if (
@@ -230,11 +226,7 @@ namespace MapsetVerifier.Snapshots.Translators
                             && removedObject.HasHitSound(hitSound)
                         )
                         {
-                            yield return GetHitSoundChange(
-                                false,
-                                hitSound,
-                                addedObject
-                            );
+                            yield return GetHitSoundChange(false, hitSound, addedObject);
                         }
                     }
                 }
