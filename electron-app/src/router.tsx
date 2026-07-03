@@ -7,6 +7,7 @@ import RouterErrorDisplay from './components/common/RouterErrorDisplay.tsx';
 import Documentation from './components/documentation/Documentation.tsx';
 import Home from './components/home/Home.tsx';
 import Overview from './components/overview/Overview.tsx';
+import Settings from './components/settings/Settings.tsx';
 import Snapshots from './components/snapshots/Snapshots.tsx';
 
 export const router = createHashRouter([
@@ -17,6 +18,7 @@ export const router = createHashRouter([
     children: [
       { index: true, element: <Home /> },
       { path: 'documentation', element: <Documentation /> },
+      { path: 'settings/:section?', element: <Settings /> },
       {
         element: <RequireBeatmapSelection />,
         children: [

@@ -137,6 +137,7 @@ export type Level = 'Info' | 'Check' | 'Error' | 'Minor' | 'Warning' | 'Problem'
 
 export type ApiPluginReport = {
   directoryPath: string;
+  customChecksEnabled: boolean;
   loadedPlugins: ApiLoadedPlugin[];
   failedPlugins: ApiFailedPlugin[];
 };

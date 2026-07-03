@@ -30,7 +30,7 @@ This guide covers how to **install** existing plugins and how to **create** new 
 
 1. Build or obtain a check plugin `.dll` targeting **.NET 9** and built against the current `MapsetVerifier.Framework` API.
 2. Copy **only the plugin `.dll`** into the custom checks folder (see paths below). Do not copy `MapsetVerifier.Framework.dll`, `MapsetVerifier.Parser.dll`, or other assemblies that MV already ships — duplicate copies can prevent checks from loading correctly.
-3. **Restart Mapset Verifier.** Custom checks are loaded once during backend startup, before the server begins handling requests.
+3. Open the plugin manager and use **Reload checks**, or restart Mapset Verifier.
 4. Open a beatmapset and verify your check appears in the issues/documentation UI.
 
 ### Custom checks folder
@@ -82,7 +82,8 @@ Relevant rules from the loader:
 - If a check type is **already registered** (same CLR type as a built-in or another plugin), the duplicate is skipped.
 - Failures loading one DLL do not stop other DLLs from loading; errors are logged per file.
 
-Custom checks are **not** hot-reloaded. Add, remove, or update a plugin, then restart MV.
+Custom checks are reloaded when you use **Reload checks** in the plugin manager, or when MV starts.
+You can also disable custom checks from the plugin manager. When disabled, MV starts with built-in checks only and reloads omit DLLs from `CustomChecks`.
 
 ---
 
@@ -136,7 +137,7 @@ See [built-in checks](../MapsetVerifier.Checks/) for many real examples.
 dotnet build -c Release
 ```
 
-Copy the resulting plugin `.dll` from `bin/Release/net9.0/` into the `CustomChecks` folder. Restart MV.
+Copy the resulting plugin `.dll` from `bin/Release/net9.0/` into the `CustomChecks` folder. Use **Reload checks** in the plugin manager, or restart MV.
 
 ---
 
@@ -289,7 +290,7 @@ If you maintain a standalone plugin repository, keep `GetMetadata()` and `GetTem
 
 | Symptom | Likely cause |
 | :-- | :-- |
-| Plugin never appears | Wrong folder (`CustomChecks` vs old `checks` path), or MV not restarted |
+| Plugin never appears | Wrong folder (`CustomChecks` vs old `checks` path), or checks were not reloaded |
 | `Failed to load checks from ...` | Wrong .NET version, missing dependency, or invalid assembly |
 | Check loads but never reports issues | Wrong base class scope, or `Modes` / `Difficulties` filter excludes the target beatmap |
 | `Failed to instantiate check type ...` | No public parameterless constructor, or constructor throws |

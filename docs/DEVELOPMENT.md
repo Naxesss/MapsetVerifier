@@ -13,6 +13,16 @@ You will need:
 - [.NET SDK 9](https://dotnet.microsoft.com/download)
 - [Node.js](https://nodejs.org/) (LTS recommended)
 
+## Git hooks
+
+Running `npm install` at the repository root sets up a pre-commit hook (via [husky](https://typicode.github.io/husky/)) that automatically formats staged files before each commit:
+
+- `electron-app/src/**/*.{ts,tsx}` — Prettier, then ESLint `--fix`
+- `electron-app/src/**/*.{css,scss,md}` — Prettier
+- `**/*.cs` — `dotnet csharpier format`
+
+Only staged files are touched, and the commit is aborted if a tool fails (e.g. the file doesn't compile), so you no longer need a separate "fix lint" commit afterwards.
+
 ## Building locally
 
 The launcher scripts build the backend sidecar if needed, install npm dependencies, start the .NET server, and run the Electron frontend in dev mode.

@@ -164,12 +164,10 @@ namespace MapsetVerifier.Snapshots.Translators
         private static string GetHitSoundChange(
             bool isAddition,
             HitObject.HitSounds hitSound,
-            HitObject addedObject,
-            HitObject removedObject,
-            Beatmap beatmap
+            HitObject addedObject
         )
         {
-            var prefix = isAddition ? "Addition " : "Removal ";
+            var prefix = isAddition ? "Added " : "Removed ";
             var suffix = "";
 
             if (addedObject.type.HasFlag(HitObject.Types.Slider))
@@ -220,13 +218,7 @@ namespace MapsetVerifier.Snapshots.Translators
                             && !removedObject.HasHitSound(hitSound)
                         )
                         {
-                            yield return GetHitSoundChange(
-                                true,
-                                hitSound,
-                                addedObject,
-                                removedObject,
-                                beatmap
-                            );
+                            yield return GetHitSoundChange(true, hitSound, addedObject);
                         }
 
                         if (
@@ -234,13 +226,7 @@ namespace MapsetVerifier.Snapshots.Translators
                             && removedObject.HasHitSound(hitSound)
                         )
                         {
-                            yield return GetHitSoundChange(
-                                false,
-                                hitSound,
-                                addedObject,
-                                removedObject,
-                                beatmap
-                            );
+                            yield return GetHitSoundChange(false, hitSound, addedObject);
                         }
                     }
                 }

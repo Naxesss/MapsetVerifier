@@ -9,12 +9,14 @@ interface UseBeatmapChecksArgs {
   folder?: string;
   songFolder?: string;
   includeCheckRunDelta?: boolean;
+  createSnapshot?: boolean;
 }
 
 export function useBeatmapChecks({
   folder,
   songFolder,
   includeCheckRunDelta = true,
+  createSnapshot = true,
 }: UseBeatmapChecksArgs) {
   const beatmapFolderPath = buildBeatmapFolderPath(songFolder, folder);
   const [progress, setProgress] = useState<CheckProgress | null>(null);
@@ -28,7 +30,12 @@ export function useBeatmapChecks({
   }, [beatmapFolderPath]);
 
   const query = useQuery<ApiBeatmapSetCheckResult, FetchError>({
-    queryKey: ['beatmap-checks', beatmapFolderPath || 'unavailable', includeCheckRunDelta],
+    queryKey: [
+      'beatmap-checks',
+      beatmapFolderPath || 'unavailable',
+      includeCheckRunDelta,
+      createSnapshot,
+    ],
     queryFn: ({ signal }) => {
       if (!beatmapFolderPath) throw new Error('Beatmap folder path unavailable');
 
@@ -42,6 +49,7 @@ export function useBeatmapChecks({
 
       return BeatmapApi.runChecksStream(beatmapFolderPath, {
         includeCheckRunDelta,
+        createSnapshot,
         signal,
         onProgress: (update) => {
           if (!isCurrentRequest()) return;

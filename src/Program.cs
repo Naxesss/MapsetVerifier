@@ -51,8 +51,15 @@ namespace MapsetVerifier
                 Log.Information("Loading default checks...");
                 Checker.LoadDefaultChecks();
 
-                Log.Information("Loading custom checks...");
-                Checker.LoadCustomChecks();
+                if (ShouldLoadCustomChecks())
+                {
+                    Log.Information("Loading custom checks...");
+                    Checker.LoadCustomChecks();
+                }
+                else
+                {
+                    Checker.DisableCustomChecks();
+                }
 
                 var host = HostBuilderFactory.Build(args);
                 Log.Information("Running host...");
@@ -68,6 +75,16 @@ namespace MapsetVerifier
                 Log.Information("Mapset Verifier stopped");
                 Log.CloseAndFlush();
             }
+        }
+
+        private static bool ShouldLoadCustomChecks()
+        {
+            var value = Environment.GetEnvironmentVariable("MAPSET_VERIFIER_CUSTOM_CHECKS_ENABLED");
+
+            if (bool.TryParse(value, out var enabled))
+                return enabled;
+
+            return true;
         }
     }
 }

@@ -2,7 +2,7 @@ import { AppShell, Container, MantineProvider, ScrollArea } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks';
 import { Notifications } from '@mantine/notifications';
 import { useLayoutEffect, useRef } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import BackendGate from './components/backend/BackendGate.tsx';
 import BeatmapSelectionNavigator from './components/beatmaps/BeatmapSelectionNavigator.tsx';
 import ErrorBoundary from './components/common/ErrorBoundary.tsx';
@@ -49,7 +49,9 @@ function BeatmapKeyedOutlet() {
 
 function AppContent() {
   const theme = useAppTheme();
+  const location = useLocation();
   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
+  const isSettingsRoute = location.pathname.startsWith('/settings');
 
   return (
     <MantineProvider defaultColorScheme="dark" theme={theme} cssVariablesResolver={cssVarResolver}>
@@ -66,12 +68,19 @@ function AppContent() {
                     navbar={{
                       width: '256',
                       breakpoint: 'xs',
-                      collapsed: { desktop: !desktopOpened },
+                      collapsed: {
+                        desktop: isSettingsRoute || !desktopOpened,
+                        mobile: isSettingsRoute,
+                      },
                     }}
                   >
                     <BeatmapReparseProvider>
-                      <BeatmapSelectionNavigator />
-                      <NavBars desktopOpened={desktopOpened} toggleDesktop={toggleDesktop} />
+                      {!isSettingsRoute && <BeatmapSelectionNavigator />}
+                      <NavBars
+                        desktopOpened={desktopOpened}
+                        showBeatmapSidebar={!isSettingsRoute}
+                        toggleDesktop={toggleDesktop}
+                      />
                       <AppShell.Main>
                         <ScrollArea
                           offsetScrollbars

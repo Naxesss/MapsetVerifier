@@ -46,6 +46,6 @@ export function getActiveNavRoute(pathname: string): string {
         return false;
       }
       return item.to === '/' ? pathname === '/' : pathname.startsWith(item.to);
-    })?.to ?? '/'
+    })?.to ?? ''
   );
 }

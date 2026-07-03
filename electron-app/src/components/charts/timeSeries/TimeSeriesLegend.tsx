@@ -27,7 +27,7 @@ function TimeSeriesLegend({
     <Stack gap="xs" w="100%">
       <Group gap="xs" wrap="wrap">
         <Button type="button" variant="light" color="gray" size="compact-xs" onClick={onSelectAll}>
-          Select all
+          Show all
         </Button>
         <Button
           type="button"
@@ -36,7 +36,7 @@ function TimeSeriesLegend({
           size="compact-xs"
           onClick={onUnselectAll}
         >
-          Unselect all
+          Hide all
         </Button>
       </Group>
       <Group
