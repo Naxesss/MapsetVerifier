@@ -311,10 +311,10 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
         <>
           <Divider />
           <ScrollArea
-            type="auto"
-            offsetScrollbars="present"
+            type="always"
+            scrollbars="y"
+            offsetScrollbars="y"
             viewportRef={scrollRef}
-            className="flipped-scrollbar"
             p="xs"
             style={{ flex: '1 1 auto' }}
           >
@@ -331,23 +331,23 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
                 !isFetchingNextPage &&
                 !error &&
                 !filterByBookmarks && (
-                <Alert
-                  icon={<IconListDetails />}
-                  color="gray"
-                  title="No more beatmaps"
-                  variant="light"
-                >
-                  You have reached the last available beatmap.
-                  <Button
-                    size="xs"
-                    mt="xs"
-                    variant="default"
-                    onClick={() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+                  <Alert
+                    icon={<IconListDetails />}
+                    color="gray"
+                    title="No more beatmaps"
+                    variant="light"
                   >
-                    Back to top
-                  </Button>
-                </Alert>
-              )}
+                    You have reached the last available beatmap.
+                    <Button
+                      size="xs"
+                      mt="xs"
+                      variant="default"
+                      onClick={() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+                    >
+                      Back to top
+                    </Button>
+                  </Alert>
+                )}
             </Flex>
           </ScrollArea>
         </>
