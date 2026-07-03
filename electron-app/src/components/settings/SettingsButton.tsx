@@ -1,19 +1,20 @@
 import { NavLink } from '@mantine/core';
 import { IconSettings } from '@tabler/icons-react';
 import React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 const SettingsButton: React.FC = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   const active = location.pathname.startsWith('/settings');
 
   return (
     <NavLink
+      component={Link}
+      to="/settings"
+      viewTransition
       w={'unset'}
       label={<IconSettings />}
       active={active}
-      onClick={() => navigate('/settings')}
       styles={{
         root: {
           borderRadius: '100%',

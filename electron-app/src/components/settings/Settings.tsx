@@ -1,4 +1,4 @@
-import { Grid, NavLink, Stack, Title } from '@mantine/core';
+import { Box, Flex, NavLink, Stack, Title } from '@mantine/core';
 import {
   IconAdjustments,
   IconAnalyze,
@@ -113,39 +113,58 @@ export default function Settings() {
     return <Navigate to="/settings" replace />;
   }
 
+  const paneHeight =
+    'calc(100vh - var(--app-shell-header-offset, 0rem) + var(--app-shell-padding))';
+
   return (
-    <Grid>
-      <Grid.Col span={{ base: 3 }}>
-        <Stack gap="md">
-          <Stack gap={2}>
-            <Title order={2} size="h3">
-              Settings
-            </Title>
-          </Stack>
-          <Stack gap={4}>
-            {visibleSections.map((section) => (
-              <NavLink
-                key={section.id}
-                component={Link}
-                to={section.id === 'general' ? '/settings' : `/settings/${section.id}`}
-                label={section.label}
-                description={section.description}
-                leftSection={<section.icon size={18} />}
-                active={activeSection === section.id}
-                variant="light"
-                styles={{
-                  root: {
-                    borderRadius: 5,
-                  },
-                }}
-              />
-            ))}
-          </Stack>
+    <Flex align="flex-start" gap="md" w="100%" style={{ overflow: 'hidden' }}>
+      <Box
+        component="nav"
+        aria-label="Settings sections"
+        bg="dark.8"
+        py="md"
+        px="sm"
+        w="min(25%, 280px)"
+        miw={220}
+        style={{
+          position: 'sticky',
+          top: 0,
+          flexShrink: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          height: paneHeight,
+          borderRight: '1px solid var(--mantine-color-dark-6)',
+          viewTransitionName: 'settings-toc',
+        }}
+      >
+        <Box py="xs" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <Title order={2} size="h3" ta="center" m={0}>
+            Settings
+          </Title>
+        </Box>
+        <Stack gap={4} mt="md" style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+          {visibleSections.map((section) => (
+            <NavLink
+              key={section.id}
+              component={Link}
+              to={section.id === 'general' ? '/settings' : `/settings/${section.id}`}
+              label={section.label}
+              description={section.description}
+              leftSection={<section.icon size={18} />}
+              active={activeSection === section.id}
+              variant="light"
+              styles={{
+                root: {
+                  borderRadius: 5,
+                },
+              }}
+            />
+          ))}
         </Stack>
-      </Grid.Col>
-      <Grid.Col span={{ base: 9 }}>
+      </Box>
+      <Box flex={1} miw={0} py="md" px="md" style={{ viewTransitionName: 'settings-content' }}>
         <Stack gap="md">{renderSettingsSection(activeSection)}</Stack>
-      </Grid.Col>
-    </Grid>
+      </Box>
+    </Flex>
   );
 }
