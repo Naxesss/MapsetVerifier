@@ -97,10 +97,10 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
               <Stack gap="0">
                 {extraItems.map((item, idx) => (
                   <IssueRow
-                  key={`${id}-${VISIBLE_COUNT + idx}`}
-                  item={item}
-                  onOpen={() => setSelectedIssue(item)}
-                />
+                    key={`${id}-${VISIBLE_COUNT + idx}`}
+                    item={item}
+                    onOpen={() => setSelectedIssue(item)}
+                  />
                 ))}
               </Stack>
             </Collapse>
