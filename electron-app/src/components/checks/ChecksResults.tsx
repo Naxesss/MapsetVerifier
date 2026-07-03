@@ -7,10 +7,12 @@ import {
   getRawCheckResultsForSelectedCategory,
   hasMinorResultsHiddenByUserFilter,
 } from './checkResultVisibility';
+import ChecksDeltaSummary from './ChecksDeltaSummary.tsx';
 import { FetchError } from '../../client/ApiHelper';
 import {
   ApiBeatmapSetCheckResult,
   ApiCategoryOverrideCheckResult,
+  ApiCheckDeltaIssue,
   CheckProgress,
 } from '../../Types';
 import StackTraceMessage from '../common/StackTraceMessage.tsx';
@@ -25,6 +27,11 @@ interface ChecksResultsProps {
   hiddenMinorCheckIds: readonly number[];
   selectedCategory?: string;
   overrideResult?: ApiCategoryOverrideCheckResult;
+  showCheckRunDelta?: boolean;
+  checkRunDeltaShowUnchanged?: boolean;
+  beatmapFolderPath?: string;
+  onDeltaIssueClick?: (issue: ApiCheckDeltaIssue) => void;
+  onCheckRunHistoryCleared?: () => void;
 }
 
 function ChecksResults({
@@ -37,6 +44,11 @@ function ChecksResults({
   hiddenMinorCheckIds,
   selectedCategory,
   overrideResult,
+  showCheckRunDelta = true,
+  checkRunDeltaShowUnchanged = false,
+  beatmapFolderPath,
+  onDeltaIssueClick,
+  onCheckRunHistoryCleared,
 }: ChecksResultsProps) {
   const rawForCategory = useMemo(
     () =>
@@ -86,6 +98,18 @@ function ChecksResults({
 
       {data && (
         <Stack gap="xs">
+          {showCheckRunDelta ? (
+            <ChecksDeltaSummary
+              delta={data.checkRunDelta}
+              showMinor={showMinor}
+              hiddenMinorCheckIds={hiddenMinorCheckIds}
+              selectedCategory={selectedCategory}
+              showUnchanged={checkRunDeltaShowUnchanged}
+              beatmapFolderPath={beatmapFolderPath}
+              onIssueClick={onDeltaIssueClick}
+              onHistoryCleared={onCheckRunHistoryCleared}
+            />
+          ) : null}
           {showMinorFilterNotice ? (
             <Alert
               variant="light"

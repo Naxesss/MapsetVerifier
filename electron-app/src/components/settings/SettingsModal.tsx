@@ -26,6 +26,7 @@ import React, { useEffect, useState } from 'react';
 import AdvancedAudioWarningModal from './AdvancedAudioWarningModal';
 import LazerLookupWarningModal from './LazerLookupWarningModal';
 import MinorChecksFilterModal from './MinorChecksFilterModal';
+import PluginManager from './PluginManager';
 import { SOURCE_CODE_URL, WEBSITE_URL } from '../../Constants.ts';
 import { useDocumentation } from '../../context/DocumentationContext.tsx';
 import { useSettings } from '../../context/SettingsContext';
@@ -62,6 +63,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
   const [goToChecksOnMapsetSwitch, setGoToChecksOnMapsetSwitch] = useState(
     settings.goToChecksOnMapsetSwitch
   );
+  const [showCheckRunDelta, setShowCheckRunDelta] = useState(settings.showCheckRunDelta);
+  const [checkRunDeltaShowUnchanged, setCheckRunDeltaShowUnchanged] = useState(
+    settings.checkRunDeltaShowUnchanged
+  );
   const [uiFontFamily, setUiFontFamily] = useState<UiFontFamily>(
     parseUiFontFamily(settings.uiFontFamily)
   );
@@ -83,6 +88,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
       setReceivePrereleases(settings.receivePrereleases);
       setGateInDev(settings.gateInDev);
       setGoToChecksOnMapsetSwitch(settings.goToChecksOnMapsetSwitch);
+      setShowCheckRunDelta(settings.showCheckRunDelta);
+      setCheckRunDeltaShowUnchanged(settings.checkRunDeltaShowUnchanged);
       setUiFontFamily(parseUiFontFamily(settings.uiFontFamily));
     }
   }, [
@@ -95,6 +102,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
     settings.receivePrereleases,
     settings.gateInDev,
     settings.goToChecksOnMapsetSwitch,
+    settings.showCheckRunDelta,
+    settings.checkRunDeltaShowUnchanged,
     settings.uiFontFamily,
   ]);
 
@@ -235,6 +244,26 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
             }}
           />
           <Switch
+            label="Show check changes since last run"
+            checked={showCheckRunDelta}
+            onChange={(e) => {
+              const checked = e.currentTarget.checked;
+              setShowCheckRunDelta(checked);
+              setSettings((prev) => ({ ...prev, showCheckRunDelta: checked }));
+            }}
+          />
+          {showCheckRunDelta && (
+            <Switch
+              label="Include unchanged issues in check delta"
+              checked={checkRunDeltaShowUnchanged}
+              onChange={(e) => {
+                const checked = e.currentTarget.checked;
+                setCheckRunDeltaShowUnchanged(checked);
+                setSettings((prev) => ({ ...prev, checkRunDeltaShowUnchanged: checked }));
+              }}
+            />
+          )}
+          <Switch
             label={renderExperimentalLabel('Show advanced audio analysis')}
             checked={showAdvancedAudioAnalysis}
             onChange={(e) => {
@@ -269,6 +298,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
               }
             }}
           />
+          <Divider my="xs" />
+          <PluginManager opened={opened} />
           <Divider my="xs" />
           <Group justify="space-between" align="end">
             <div>

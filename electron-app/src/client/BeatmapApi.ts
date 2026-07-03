@@ -213,6 +213,25 @@ const BeatmapApi = {
       }
     });
   },
+  clearCheckRunHistory: async function clearCheckRunHistory(folder: string) {
+    const params = new URLSearchParams({ folder });
+    return apiFetch(`/beatmap/checkRunHistory?${params.toString()}`, {
+      method: 'DELETE',
+    }).then(async (response) => {
+      if (response.ok || response.status === 204) return;
+      const raw = await response.text();
+      let data: any = undefined;
+      try {
+        data = raw ? JSON.parse(raw) : undefined;
+      } catch {
+        /* ignore */
+      }
+      throw new FetchError(
+        response,
+        data?.message || data?.error || raw || `HTTP ${response.status}`
+      );
+    });
+  },
 };
 
 export default BeatmapApi;

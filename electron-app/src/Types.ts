@@ -66,6 +66,7 @@ export type ApiBeatmapSetCheckResult = {
   general: ApiCategoryCheckResult;
   difficulties: ApiCategoryCheckResult[];
   checks: Record<number, ApiCheckDefinition>;
+  checkRunDelta?: ApiCheckRunDelta | null;
 };
 
 export type ApiBeatmapStructureDifficulty = {
@@ -111,9 +112,54 @@ export type ApiCheckResult = {
   message: string;
 };
 
+export type ApiCheckRunDelta = {
+  previousRunAt: string;
+  currentRunAt: string;
+  newIssues: ApiCheckDeltaIssue[];
+  resolvedIssues: ApiCheckDeltaIssue[];
+  worsenedIssues: ApiCheckDeltaIssue[];
+  improvedIssues: ApiCheckDeltaIssue[];
+  unchangedIssues: ApiCheckDeltaIssue[];
+};
+
+export type ApiCheckDeltaIssue = {
+  category: string;
+  id: number;
+  checkName: string;
+  level: Level;
+  previousLevel?: Level | null;
+  message: string;
+};
+
 export type DifficultyLevel = 'Easy' | 'Normal' | 'Hard' | 'Insane' | 'Expert' | 'Ultra';
 export type Mode = 'Standard' | 'Taiko' | 'Catch' | 'Mania';
 export type Level = 'Info' | 'Check' | 'Error' | 'Minor' | 'Warning' | 'Problem';
+
+export type ApiPluginReport = {
+  directoryPath: string;
+  loadedPlugins: ApiLoadedPlugin[];
+  failedPlugins: ApiFailedPlugin[];
+};
+
+export type ApiLoadedPlugin = {
+  fileName: string;
+  filePath: string;
+  assemblyName: string;
+  version: string | null;
+  authors: string[];
+  checkCount: number;
+  generalCheckCount: number;
+  beatmapCheckCount: number;
+  beatmapSetCheckCount: number;
+  checkNames: string[];
+};
+
+export type ApiFailedPlugin = {
+  fileName: string;
+  filePath: string;
+  message: string;
+  details: string;
+};
 
 // Snapshot types
 export type DiffType = 'Added' | 'Removed' | 'Changed';

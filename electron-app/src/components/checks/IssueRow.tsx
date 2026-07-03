@@ -77,4 +77,4 @@ const IssueRow: React.FC<IssueRowProps> = ({ item, onOpen }) => {
   );
 };
 
-export default IssueRow;
+export default React.memo(IssueRow);

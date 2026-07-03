@@ -18,7 +18,7 @@ import {
   useRegisterBeatmapReparse,
 } from '../../context/BeatmapReparseRegistry.tsx';
 import { useSettings } from '../../context/SettingsContext';
-import { ApiCategoryCheckResult, Level, Mode } from '../../Types';
+import { ApiCategoryCheckResult, ApiCheckDeltaIssue, Level, Mode } from '../../Types';
 import StackTraceMessage from '../common/StackTraceMessage.tsx';
 
 function Checks() {
@@ -46,11 +46,20 @@ function Checks() {
     }
   }, [folder]);
 
-  const { data, isLoading, isFetching, isError, error, beatmapFolderPath, progress, structure } =
-    useBeatmapChecks({
-      folder,
-      songFolder: settings.songFolder,
-    });
+  const {
+    data,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    beatmapFolderPath,
+    progress,
+    structure,
+    refetch,
+  } = useBeatmapChecks({
+    folder,
+    songFolder: settings.songFolder,
+  });
   const areCheckResultsExpanded = !!data && !isLoading && !isFetching;
   const levelIconsLoading = isLoading;
 
@@ -100,6 +109,34 @@ function Checks() {
     setDisplayedCategory(nextCategory);
     setIsDifficultyContentVisible(true);
   }, [isDifficultyContentVisible, selectedCategory]);
+
+  const handleDeltaIssueClick = React.useCallback((issue: ApiCheckDeltaIssue) => {
+    const nextCategory = issue.category;
+    setSelectedCategory(nextCategory);
+    setDisplayedCategory(nextCategory);
+    setIsDifficultyContentVisible(true);
+    window.setTimeout(() => {
+      document.getElementById(`check-group-${issue.id}`)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+      });
+    }, 50);
+  }, []);
+
+  const handleCheckRunHistoryCleared = React.useCallback(() => {
+    void refetch();
+  }, [refetch]);
+
+  const checkResultsSharedProps = {
+    showMinor: settings.showMinor,
+    hiddenMinorCheckIds: settings.hiddenMinorCheckIds,
+    selectedCategory: displayedCategory,
+    showCheckRunDelta: settings.showCheckRunDelta,
+    checkRunDeltaShowUnchanged: settings.checkRunDeltaShowUnchanged,
+    beatmapFolderPath,
+    onDeltaIssueClick: handleDeltaIssueClick,
+    onCheckRunHistoryCleared: handleCheckRunHistoryCleared,
+  };
 
   const categoryHighestLevels = useMemo(() => {
     if (!data) return {};
@@ -285,9 +322,7 @@ function Checks() {
               isLoading
               isError={false}
               progress={progress}
-              showMinor={settings.showMinor}
-              hiddenMinorCheckIds={settings.hiddenMinorCheckIds}
-              selectedCategory={displayedCategory}
+              {...checkResultsSharedProps}
             />
           )}
 
@@ -329,10 +364,8 @@ function Checks() {
                     isLoading={false}
                     isError={isError}
                     error={error}
-                    showMinor={settings.showMinor}
-                    hiddenMinorCheckIds={settings.hiddenMinorCheckIds}
-                    selectedCategory={displayedCategory}
                     overrideResult={displayedOverrideResult}
+                    {...checkResultsSharedProps}
                   />
                 </Collapse>
               </Stack>

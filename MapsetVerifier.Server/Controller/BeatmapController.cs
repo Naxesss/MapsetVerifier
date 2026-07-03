@@ -269,4 +269,29 @@ public class BeatmapController : ControllerBase
             );
         }
     }
+
+    [HttpDelete("checkRunHistory")]
+    public ActionResult ClearCheckRunHistory([FromQuery] string folder)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(folder))
+                return BadRequest(new ApiError("Folder is required.", null));
+
+            var beatmapSet = BeatmapService.ParseBeatmapSet(folder).BeatmapSet;
+            CheckRunHistoryService.ClearHistory(beatmapSet);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to clear check run history for {Folder}", folder);
+            return StatusCode(
+                500,
+                ApiErrorFactory.FromException(
+                    ex,
+                    "An error occurred while clearing check run history."
+                )
+            );
+        }
+    }
 }
