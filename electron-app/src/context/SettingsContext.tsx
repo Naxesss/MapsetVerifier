@@ -24,6 +24,8 @@ export type Settings = {
   showCheckRunDelta: boolean;
   /** Include the unchanged-issues tab in the check run delta panel. */
   checkRunDeltaShowUnchanged: boolean;
+  /** Automatically create a snapshot before running checks. */
+  autoCreateSnapshotOnCheckRun: boolean;
   /** Load external check DLLs from CustomChecks. */
   customChecksEnabled: boolean;
   // DEV-only: whether to gate Backend in development mode
@@ -50,6 +52,7 @@ const defaultSettings: Settings = {
   goToChecksOnMapsetSwitch: true,
   showCheckRunDelta: true,
   checkRunDeltaShowUnchanged: false,
+  autoCreateSnapshotOnCheckRun: true,
   customChecksEnabled: false,
   gateInDev: false,
 };

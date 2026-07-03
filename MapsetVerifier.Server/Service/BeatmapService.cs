@@ -354,26 +354,31 @@ public static class BeatmapService
     public static ApiBeatmapSetCheckResult RunBeatmapSetChecks(
         string beatmapSetFolder,
         IProgress<CheckProgress>? progress = null,
-        bool includeCheckRunDelta = true
+        bool includeCheckRunDelta = true,
+        bool createSnapshot = true
     )
     {
         var (beatmapSet, _) = ParseBeatmapSet(beatmapSetFolder);
-        return RunBeatmapSetChecks(beatmapSet, progress, includeCheckRunDelta);
+        return RunBeatmapSetChecks(beatmapSet, progress, includeCheckRunDelta, createSnapshot);
     }
 
     public static ApiBeatmapSetCheckResult RunBeatmapSetChecks(
         BeatmapSet beatmapSet,
         IProgress<CheckProgress>? progress = null,
-        bool includeCheckRunDelta = true
+        bool includeCheckRunDelta = true,
+        bool createSnapshot = true
     )
     {
-        try
+        if (createSnapshot)
         {
-            SnapshotService.SnapshotCurrentBeatmapSet(beatmapSet);
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to snapshot beatmap set before running checks.");
+            try
+            {
+                SnapshotService.SnapshotCurrentBeatmapSet(beatmapSet);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to snapshot beatmap set before running checks.");
+            }
         }
 
         var issues = Checker.GetBeatmapSetIssues(beatmapSet, progress);

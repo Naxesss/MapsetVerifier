@@ -60,6 +60,7 @@ function Checks() {
     folder,
     songFolder: settings.songFolder,
     includeCheckRunDelta: settings.showCheckRunDelta,
+    createSnapshot: settings.autoCreateSnapshotOnCheckRun,
   });
   const areCheckResultsExpanded = !!data && !isLoading && !isFetching;
   const levelIconsLoading = isLoading;

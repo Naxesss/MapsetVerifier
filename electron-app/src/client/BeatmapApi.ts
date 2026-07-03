@@ -83,6 +83,7 @@ const BeatmapApi = {
     folder: string,
     options?: {
       includeCheckRunDelta?: boolean;
+      createSnapshot?: boolean;
       signal?: AbortSignal;
       onProgress?: (progress: CheckProgress) => void;
       onStructure?: (structure: ApiBeatmapStructure) => void;
@@ -100,7 +101,11 @@ const BeatmapApi = {
         'Content-Type': 'application/json',
         Accept: 'text/event-stream',
       },
-      body: JSON.stringify({ folder, includeCheckRunDelta: options?.includeCheckRunDelta ?? true }),
+      body: JSON.stringify({
+        folder,
+        includeCheckRunDelta: options?.includeCheckRunDelta ?? true,
+        createSnapshot: options?.createSnapshot ?? true,
+      }),
       signal,
     });
 

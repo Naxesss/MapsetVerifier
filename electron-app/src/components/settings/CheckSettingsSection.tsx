@@ -148,6 +148,21 @@ export default function CheckSettingsSection() {
           }
         />
         <SettingsRow
+          title="Automatically create a snapshot when checks are run"
+          description="Stores a snapshot before each check run so the Snapshots page can compare changes over time."
+          control={
+            <Switch
+              checked={settings.autoCreateSnapshotOnCheckRun}
+              onChange={(e) =>
+                setSettings((prev) => ({
+                  ...prev,
+                  autoCreateSnapshotOnCheckRun: e.currentTarget.checked,
+                }))
+              }
+            />
+          }
+        />
+        <SettingsRow
           title="Show check changes since last run"
           description="Adds the delta summary to the checks page."
           control={
