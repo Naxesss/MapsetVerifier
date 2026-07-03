@@ -20,6 +20,10 @@ export type Settings = {
   timelineThemeVariant: TimelineThemeVariant;
   /** When enabled, switching mapsets navigates to the checks tab. */
   goToChecksOnMapsetSwitch: boolean;
+  /** Show "what changed since last check run" on the checks tab. */
+  showCheckRunDelta: boolean;
+  /** Include the unchanged-issues tab in the check run delta panel. */
+  checkRunDeltaShowUnchanged: boolean;
   // DEV-only: whether to gate Backend in development mode
   gateInDev: boolean;
 };
@@ -42,6 +46,8 @@ const defaultSettings: Settings = {
   uiFontFamily: DEFAULT_UI_FONT_FAMILY,
   timelineThemeVariant: 'default',
   goToChecksOnMapsetSwitch: true,
+  showCheckRunDelta: true,
+  checkRunDeltaShowUnchanged: false,
   gateInDev: false,
 };
 

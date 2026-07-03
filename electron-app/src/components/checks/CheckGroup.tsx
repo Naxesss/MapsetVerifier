@@ -60,7 +60,7 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
   const extraCount = extraItems.length;
 
   return (
-    <Stack gap="0" justify="center">
+    <Stack gap="0" justify="center" id={`check-group-${id}`}>
       <Flex justify="space-between" wrap="nowrap" align="center">
         <Flex
           gap="xs"

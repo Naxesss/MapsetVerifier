@@ -63,6 +63,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
   const [goToChecksOnMapsetSwitch, setGoToChecksOnMapsetSwitch] = useState(
     settings.goToChecksOnMapsetSwitch
   );
+  const [showCheckRunDelta, setShowCheckRunDelta] = useState(settings.showCheckRunDelta);
+  const [checkRunDeltaShowUnchanged, setCheckRunDeltaShowUnchanged] = useState(
+    settings.checkRunDeltaShowUnchanged
+  );
   const [uiFontFamily, setUiFontFamily] = useState<UiFontFamily>(
     parseUiFontFamily(settings.uiFontFamily)
   );
@@ -84,6 +88,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
       setReceivePrereleases(settings.receivePrereleases);
       setGateInDev(settings.gateInDev);
       setGoToChecksOnMapsetSwitch(settings.goToChecksOnMapsetSwitch);
+      setShowCheckRunDelta(settings.showCheckRunDelta);
+      setCheckRunDeltaShowUnchanged(settings.checkRunDeltaShowUnchanged);
       setUiFontFamily(parseUiFontFamily(settings.uiFontFamily));
     }
   }, [
@@ -96,6 +102,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
     settings.receivePrereleases,
     settings.gateInDev,
     settings.goToChecksOnMapsetSwitch,
+    settings.showCheckRunDelta,
+    settings.checkRunDeltaShowUnchanged,
     settings.uiFontFamily,
   ]);
 
@@ -235,6 +243,26 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ opened, onClose }) => {
               setSettings((prev) => ({ ...prev, goToChecksOnMapsetSwitch: checked }));
             }}
           />
+          <Switch
+            label="Show check changes since last run"
+            checked={showCheckRunDelta}
+            onChange={(e) => {
+              const checked = e.currentTarget.checked;
+              setShowCheckRunDelta(checked);
+              setSettings((prev) => ({ ...prev, showCheckRunDelta: checked }));
+            }}
+          />
+          {showCheckRunDelta && (
+            <Switch
+              label="Include unchanged issues in check delta"
+              checked={checkRunDeltaShowUnchanged}
+              onChange={(e) => {
+                const checked = e.currentTarget.checked;
+                setCheckRunDeltaShowUnchanged(checked);
+                setSettings((prev) => ({ ...prev, checkRunDeltaShowUnchanged: checked }));
+              }}
+            />
+          )}
           <Switch
             label={renderExperimentalLabel('Show advanced audio analysis')}
             checked={showAdvancedAudioAnalysis}
