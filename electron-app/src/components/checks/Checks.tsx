@@ -59,6 +59,7 @@ function Checks() {
   } = useBeatmapChecks({
     folder,
     songFolder: settings.songFolder,
+    includeCheckRunDelta: settings.showCheckRunDelta,
   });
   const areCheckResultsExpanded = !!data && !isLoading && !isFetching;
   const levelIconsLoading = isLoading;

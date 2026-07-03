@@ -76,12 +76,13 @@ const BeatmapApi = {
       }
     });
   },
-  runChecks: async function runChecks(folder: string) {
-    return BeatmapApi.runChecksStream(folder);
+  runChecks: async function runChecks(folder: string, includeCheckRunDelta = true) {
+    return BeatmapApi.runChecksStream(folder, { includeCheckRunDelta });
   },
   runChecksStream: async function runChecksStream(
     folder: string,
     options?: {
+      includeCheckRunDelta?: boolean;
       signal?: AbortSignal;
       onProgress?: (progress: CheckProgress) => void;
       onStructure?: (structure: ApiBeatmapStructure) => void;
@@ -99,7 +100,7 @@ const BeatmapApi = {
         'Content-Type': 'application/json',
         Accept: 'text/event-stream',
       },
-      body: JSON.stringify({ folder }),
+      body: JSON.stringify({ folder, includeCheckRunDelta: options?.includeCheckRunDelta ?? true }),
       signal,
     });
 

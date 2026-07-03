@@ -137,7 +137,10 @@ public class BeatmapController : ControllerBase
     {
         try
         {
-            var result = BeatmapService.RunBeatmapSetChecks(request.Folder);
+            var result = BeatmapService.RunBeatmapSetChecks(
+                request.Folder,
+                includeCheckRunDelta: request.IncludeCheckRunDelta
+            );
             return Ok(result);
         }
         catch (Exception ex)
@@ -198,7 +201,11 @@ public class BeatmapController : ControllerBase
             {
                 try
                 {
-                    var result = BeatmapService.RunBeatmapSetChecks(beatmapSet, progress);
+                    var result = BeatmapService.RunBeatmapSetChecks(
+                        beatmapSet,
+                        progress,
+                        request.IncludeCheckRunDelta
+                    );
                     channel.Writer.TryWrite(("complete", result));
                 }
                 catch (Exception ex)
