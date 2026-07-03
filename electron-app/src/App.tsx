@@ -89,7 +89,7 @@ function AppContent() {
                           h="calc(100vh - var(--app-shell-header-offset, 0rem) + var(--app-shell-padding))"
                         >
                           <Container
-                            py={isSettingsRoute ? 0 : undefined}
+                            py={isSettingsRoute ? 0 : 'sm'}
                             px={isSettingsRoute ? 0 : 'sm'}
                             fluid
                           >
