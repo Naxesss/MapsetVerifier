@@ -79,20 +79,19 @@ function Snapshots() {
     });
 
     // Return only modes that have difficulties
-    const result = (['Standard', 'Taiko', 'Catch', 'Mania'] as Mode[])
+    return (['Standard', 'Taiko', 'Catch', 'Mania'] as Mode[])
       .filter((mode) => modeGroups[mode].length > 0)
       .map((mode) => ({
         mode,
         difficulties: modeGroups[mode],
       }));
+  }, [data?.difficulties]);
 
-    // Set initial selected mode if not set
-    if (result.length > 0 && !selectedMode) {
-      setSelectedMode(result[0].mode);
+  useEffect(() => {
+    if (groupedDifficulties.length > 0 && !selectedMode) {
+      setSelectedMode(groupedDifficulties[0].mode);
     }
-
-    return result;
-  }, [data?.difficulties, selectedMode]);
+  }, [groupedDifficulties, selectedMode]);
 
   const selectedGroup =
     groupedDifficulties.find((g) => g.mode === selectedMode) ?? groupedDifficulties[0];
