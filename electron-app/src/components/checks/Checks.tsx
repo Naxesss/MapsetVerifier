@@ -178,16 +178,20 @@ function Checks() {
     // Create ordered array of mode groups (only include modes that have difficulties)
     const orderedModes: Mode[] = ['Standard', 'Taiko', 'Catch', 'Mania'];
 
-    const result = orderedModes
+    return orderedModes
       .filter((mode) => modeGroups[mode].length > 0)
       .map((mode) => ({
         mode,
         difficulties: modeGroups[mode],
       }));
-    setSelectedMode(result[0].mode);
-
-    return result;
   }, [difficultiesForTabs]);
+
+  useEffect(() => {
+    if (groupedDifficulties.length > 0 && !selectedMode) {
+      setSelectedMode(groupedDifficulties[0].mode);
+    }
+  }, [groupedDifficulties, selectedMode]);
+
   const selectedGroup =
     groupedDifficulties.find((g) => g.mode === selectedMode) ?? groupedDifficulties[0];
 
