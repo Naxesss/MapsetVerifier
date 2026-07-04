@@ -18,7 +18,8 @@ export default function PageHintsButton() {
     objectsHasHitsoundModes,
     isMac,
     settings.showMinor,
-    settings.bookmarksEnabled
+    settings.bookmarksEnabled,
+    settings.showCheckRunDelta
   );
 
   if (hints.length === 0) {
