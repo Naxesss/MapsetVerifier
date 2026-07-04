@@ -385,6 +385,7 @@ export default function ChecksDeltaSummary({
   return (
     <Box
       p="sm"
+      mb="sm"
       style={{
         border: '1px solid var(--mantine-color-dark-4)',
         borderRadius: 'var(--mantine-radius-sm)',
