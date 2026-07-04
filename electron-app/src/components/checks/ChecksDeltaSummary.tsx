@@ -122,6 +122,25 @@ function filterByCategory(issues: ApiCheckDeltaIssue[], category?: string) {
   return issues.filter((issue) => issue.category === category);
 }
 
+function renderDeltaIssueLevelChange(issue: ApiCheckDeltaIssue) {
+  if (!issue.previousLevel || issue.previousLevel === issue.level) {
+    return undefined;
+  }
+
+  return (
+    <Group gap={6}>
+      <LevelIcon
+        level={issue.previousLevel === 'Check' ? 'Info' : issue.previousLevel}
+        size={14}
+      />
+      <Text size="xs" c="dimmed">
+        to
+      </Text>
+      <LevelIcon level={issue.level === 'Check' ? 'Info' : issue.level} size={14} />
+    </Group>
+  );
+}
+
 function DeltaIssueGroup({
   group,
   mapsetWide,
@@ -136,23 +155,6 @@ function DeltaIssueGroup({
   const highest = highestLevel(group.items);
   const firstItems = group.items.slice(0, VISIBLE_ISSUE_COUNT);
   const extraItems = group.items.slice(VISIBLE_ISSUE_COUNT);
-  const handleIssueClick = (event: React.MouseEvent, issue: ApiCheckDeltaIssue) => {
-    const target = event.target;
-    if (target instanceof Element && target.closest('a, button')) {
-      return;
-    }
-
-    onIssueOpen(issue);
-  };
-
-  const handleIssueKeyDown = (event: React.KeyboardEvent, issue: ApiCheckDeltaIssue) => {
-    if (event.key !== 'Enter') {
-      return;
-    }
-
-    event.preventDefault();
-    onIssueOpen(issue);
-  };
 
   return (
     <Stack gap={0}>
@@ -187,61 +189,22 @@ function DeltaIssueGroup({
       <Collapse in={open}>
         <Stack gap="0" ml="xl">
           {firstItems.map((issue, index) => (
-            <Box
+            <IssueRow
               key={`${group.key}-${index}`}
-              role="button"
-              tabIndex={0}
-              onClick={(event) => handleIssueClick(event, issue)}
-              onKeyDown={(event) => handleIssueKeyDown(event, issue)}
-              style={{ cursor: 'pointer', textAlign: 'left' }}
-            >
-              <Stack gap="0">
-                {issue.previousLevel && issue.previousLevel !== issue.level ? (
-                  <Group gap={6}>
-                    <LevelIcon
-                      level={issue.previousLevel === 'Check' ? 'Info' : issue.previousLevel}
-                      size={14}
-                    />
-                    <Text size="xs" c="dimmed">
-                      to
-                    </Text>
-                    <LevelIcon level={issue.level === 'Check' ? 'Info' : issue.level} size={14} />
-                  </Group>
-                ) : null}
-                <IssueRow item={{ id: issue.id, level: issue.level, message: issue.message }} />
-              </Stack>
-            </Box>
+              item={{ id: issue.id, level: issue.level, message: issue.message }}
+              onOpen={() => onIssueOpen(issue)}
+              prefix={renderDeltaIssueLevelChange(issue)}
+            />
           ))}
           <Collapse in={showAll}>
             <Stack gap="0">
               {extraItems.map((issue, index) => (
-                <Box
+                <IssueRow
                   key={`${group.key}-extra-${index}`}
-                  role="button"
-                  tabIndex={0}
-                  onClick={(event) => handleIssueClick(event, issue)}
-                  onKeyDown={(event) => handleIssueKeyDown(event, issue)}
-                  style={{ cursor: 'pointer', textAlign: 'left' }}
-                >
-                  <Stack gap="0">
-                    {issue.previousLevel && issue.previousLevel !== issue.level ? (
-                      <Group gap={6}>
-                        <LevelIcon
-                          level={issue.previousLevel === 'Check' ? 'Info' : issue.previousLevel}
-                          size={14}
-                        />
-                        <Text size="xs" c="dimmed">
-                          to
-                        </Text>
-                        <LevelIcon
-                          level={issue.level === 'Check' ? 'Info' : issue.level}
-                          size={14}
-                        />
-                      </Group>
-                    ) : null}
-                    <IssueRow item={{ id: issue.id, level: issue.level, message: issue.message }} />
-                  </Stack>
-                </Box>
+                  item={{ id: issue.id, level: issue.level, message: issue.message }}
+                  onOpen={() => onIssueOpen(issue)}
+                  prefix={renderDeltaIssueLevelChange(issue)}
+                />
               ))}
             </Stack>
           </Collapse>
@@ -422,6 +385,7 @@ export default function ChecksDeltaSummary({
   return (
     <Box
       p="sm"
+      mb="sm"
       style={{
         border: '1px solid var(--mantine-color-dark-4)',
         borderRadius: 'var(--mantine-radius-sm)',

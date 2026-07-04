@@ -117,6 +117,18 @@ function issueDetailsSidebarHint(): PageHint {
   };
 }
 
+function checkRunDeltaDisabledHint(): PageHint {
+  return {
+    id: 'check-run-delta-disabled',
+    content: (
+      <>
+        Want to see what changed since your last check run?
+        Enable &quot;Show check changes since last run&quot; in Settings.
+      </>
+    ),
+  };
+}
+
 function commonHints(isMac: boolean): PageHint[] {
   return [copyTimestampHint(isMac), refreshBeatmapHint()];
 }
@@ -127,7 +139,8 @@ export function getPageHints(
   objectsHasHitsoundModes: boolean,
   isMac: boolean,
   showMinor: boolean,
-  bookmarksEnabled: boolean
+  bookmarksEnabled: boolean,
+  showCheckRunDelta: boolean
 ): PageHint[] {
   const route = getActiveNavRoute(pathname);
 
@@ -217,6 +230,7 @@ export function getPageHints(
       issueDetailsSidebarHint(),
       bookmarkHint(bookmarksEnabled),
       ...(!showMinor ? [minorChecksDisabledHint()] : []),
+      ...(!showCheckRunDelta ? [checkRunDeltaDisabledHint()] : []),
     ];
   }
 
