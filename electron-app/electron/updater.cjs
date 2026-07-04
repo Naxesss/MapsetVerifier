@@ -84,6 +84,15 @@ function registerUpdater(getMainWindow) {
         console.info('[Updater] checkForUpdates returned');
         return serializeUpdateInfo(result?.updateInfo);
       } catch (e) {
+        // electron-updater's GitHub provider can resolve the "latest" tag to a
+        // release whose channel file (latest.yml/beta.yml) isn't downloadable yet -
+        // e.g. a draft release awaiting manual publish. Treat that as "no update
+        // available" instead of surfacing it as an error to the user.
+        if (e && e.code === 'ERR_UPDATER_CHANNEL_FILE_NOT_FOUND') {
+          console.warn('[Updater] latest release artifacts not accessible yet (likely a draft release), treating as up-to-date', e.message);
+          send('updater:not-available', null);
+          return null;
+        }
         console.error('[Updater] check failed', e);
         send('updater:error', e.message || String(e));
         return null;
