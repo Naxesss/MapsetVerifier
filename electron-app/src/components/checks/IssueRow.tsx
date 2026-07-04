@@ -1,5 +1,5 @@
-import { Group, Text, useMantineTheme } from '@mantine/core';
-import React from 'react';
+import { Box, Group, Stack, Text, useMantineTheme } from '@mantine/core';
+import React, { useState } from 'react';
 import { ApiCheckResult } from '../../Types';
 import OsuLink from '../common/OsuLink';
 import LevelIcon from '../icons/LevelIcon';
@@ -7,10 +7,13 @@ import LevelIcon from '../icons/LevelIcon';
 interface IssueRowProps {
   item: ApiCheckResult;
   onOpen?: () => void;
+  prefix?: React.ReactNode;
 }
 
-const IssueRow: React.FC<IssueRowProps> = ({ item, onOpen }) => {
+const IssueRow: React.FC<IssueRowProps> = ({ item, onOpen, prefix }) => {
   const theme = useMantineTheme();
+  const [hovered, setHovered] = useState(false);
+  const isInteractive = Boolean(onOpen);
 
   const handleOpen = (event: React.MouseEvent) => {
     const target = event.target;
@@ -30,34 +33,18 @@ const IssueRow: React.FC<IssueRowProps> = ({ item, onOpen }) => {
     onOpen();
   };
 
-  return (
+  const row = (
     <Group
       gap="xs"
-      align="center"
-      role={onOpen ? 'button' : undefined}
-      tabIndex={onOpen ? 0 : undefined}
-      onClick={handleOpen}
-      onKeyDown={handleKeyDown}
-      onMouseEnter={(event) => {
-        if (onOpen) {
-          event.currentTarget.style.background = theme.colors.dark[6];
-        }
-      }}
-      onMouseLeave={(event) => {
-        event.currentTarget.style.background = 'transparent';
-      }}
+      align="flex-start"
+      wrap="nowrap"
       style={{
-        display: 'grid',
-        gridTemplateColumns: 'auto 1fr',
-        alignItems: 'start',
-        borderRadius: theme.radius.sm,
-        cursor: onOpen ? 'pointer' : undefined,
-        marginLeft: -4,
-        marginRight: -4,
-        padding: '2px 4px',
+        display: 'inline-flex',
+        maxWidth: '100%',
+        verticalAlign: 'top',
       }}
     >
-      <div style={{ alignSelf: 'start', userSelect: 'none' }}>
+      <div style={{ flexShrink: 0, userSelect: 'none' }}>
         <LevelIcon level={item.level === 'Check' ? 'Info' : item.level} size={16} />
       </div>
       <Text
@@ -68,12 +55,44 @@ const IssueRow: React.FC<IssueRowProps> = ({ item, onOpen }) => {
           overflowWrap: 'anywhere',
           wordBreak: 'break-word',
           minWidth: 0,
-          width: '100%',
         }}
       >
         <OsuLink text={item.message} />
       </Text>
     </Group>
+  );
+
+  const content = (
+    <Stack gap={0} style={{ width: 'fit-content', maxWidth: '100%' }}>
+      {prefix}
+      {row}
+    </Stack>
+  );
+
+  if (!isInteractive) {
+    return content;
+  }
+
+  return (
+    <Box
+      role="button"
+      tabIndex={0}
+      onClick={handleOpen}
+      onKeyDown={handleKeyDown}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        width: 'fit-content',
+        maxWidth: '100%',
+        borderRadius: theme.radius.sm,
+        cursor: 'pointer',
+        padding: '2px 4px',
+        backgroundColor: hovered ? 'var(--mantine-color-default-hover)' : undefined,
+        transition: 'background-color 120ms ease',
+      }}
+    >
+      {content}
+    </Box>
   );
 };
 
