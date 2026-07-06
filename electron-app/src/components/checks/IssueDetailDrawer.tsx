@@ -34,6 +34,8 @@ interface IssueDetailDrawerProps {
   issue: ApiCheckResult | null;
   checkName?: string;
   documentationCheck?: ApiDocumentationCheck;
+  groupCount?: number;
+  onCopyAll?: () => void;
 }
 
 function normalizeLevel(level: Level): Exclude<Level, 'Check'> {
@@ -76,6 +78,8 @@ export default function IssueDetailDrawer({
   issue,
   checkName,
   documentationCheck,
+  groupCount,
+  onCopyAll,
 }: IssueDetailDrawerProps) {
   const normalizedLevel = issue ? normalizeLevel(issue.level) : 'Info';
   const timestamps = getIssueTimestamps(issue);
@@ -152,6 +156,11 @@ export default function IssueDetailDrawer({
             >
               Copy issue
             </Button>
+            {onCopyAll && groupCount && groupCount > 1 && (
+              <Button variant="light" leftSection={<IconCopy size={14} />} onClick={onCopyAll}>
+                Copy all ({groupCount})
+              </Button>
+            )}
           </Group>
 
           <Stack gap="xs">

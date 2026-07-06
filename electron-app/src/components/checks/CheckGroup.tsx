@@ -66,13 +66,17 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
   const copyAllIssues = () =>
     copyToClipboard(getGroupCopyText(items, name), `Copied ${items.length} issues.`);
 
-  const onCopyAllClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const triggerCopyAll = () => {
     if (items.length > LARGE_GROUP_THRESHOLD) {
       setConfirmCopyAll(true);
     } else {
       copyAllIssues();
     }
+  };
+
+  const onCopyAllClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    triggerCopyAll();
   };
 
   const firstItems = items.slice(0, VISIBLE_COUNT);
@@ -154,6 +158,8 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
         issue={selectedIssue}
         checkName={name}
         documentationCheck={documentationCheck}
+        groupCount={items.length}
+        onCopyAll={triggerCopyAll}
       />
 
       <Modal
