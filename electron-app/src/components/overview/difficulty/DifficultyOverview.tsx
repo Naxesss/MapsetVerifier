@@ -11,7 +11,7 @@ import {
   useMantineTheme,
 } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { DifficultyChartCard } from './DifficultyChartCard.tsx';
 import {
   buildCharts,
@@ -64,16 +64,13 @@ function DifficultyOverview() {
     }));
   }, [data]);
 
-  useEffect(() => {
-    if (groupedDifficulties.length === 0) {
+  if (groupedDifficulties.length === 0) {
+    if (selectedMode !== undefined) {
       setSelectedMode(undefined);
-      return;
     }
-
-    if (!selectedMode || !groupedDifficulties.some((group) => group.mode === selectedMode)) {
-      setSelectedMode(groupedDifficulties[0].mode);
-    }
-  }, [groupedDifficulties, selectedMode]);
+  } else if (!selectedMode || !groupedDifficulties.some((group) => group.mode === selectedMode)) {
+    setSelectedMode(groupedDifficulties[0].mode);
+  }
 
   const selectedGroup =
     groupedDifficulties.find((group) => group.mode === selectedMode) ?? groupedDifficulties[0];

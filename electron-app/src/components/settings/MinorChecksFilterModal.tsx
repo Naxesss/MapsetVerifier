@@ -12,7 +12,7 @@ import {
   FocusTrap,
 } from '@mantine/core';
 import { IconSearch } from '@tabler/icons-react';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useSettings } from '../../context/SettingsContext';
 import {
   dedupeDocumentationChecksById,
@@ -59,9 +59,12 @@ const MinorChecksFilterModal: React.FC<MinorChecksFilterModalProps> = ({ opened,
 
   const minorChecksList = useMemo(() => minorCapableDocumentationChecks(allChecks), [allChecks]);
 
-  useEffect(() => {
+  const [prevOpened, setPrevOpened] = useState(opened);
+
+  if (opened !== prevOpened) {
+    setPrevOpened(opened);
     if (!opened) setSearchQuery('');
-  }, [opened]);
+  }
 
   const filteredMinorChecks = useMemo(
     () => filterMinorChecksList(minorChecksList, searchQuery),

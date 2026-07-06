@@ -1,27 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 export function useSeriesVisibility(seriesIds: string[], resetKey?: string) {
   const [visibilityById, setVisibilityById] = useState<Record<string, boolean>>({});
+  const [prevToken, setPrevToken] = useState({ resetKey, seriesIds });
 
-  useEffect(() => {
+  if (prevToken.resetKey !== resetKey || prevToken.seriesIds !== seriesIds) {
+    setPrevToken({ resetKey, seriesIds });
     setVisibilityById(Object.fromEntries(seriesIds.map((id) => [id, true])));
-  }, [resetKey, seriesIds]);
-
-  useEffect(() => {
-    setVisibilityById((current) => {
-      let changed = false;
-      const next = { ...current };
-
-      for (const id of seriesIds) {
-        if (!(id in next)) {
-          next[id] = true;
-          changed = true;
-        }
-      }
-
-      return changed ? next : current;
-    });
-  }, [seriesIds]);
+  }
 
   const toggleSeries = useCallback((seriesId: string) => {
     setVisibilityById((current) => ({

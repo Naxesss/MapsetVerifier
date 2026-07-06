@@ -23,10 +23,16 @@ export function useBeatmapChecks({
   const [structure, setStructure] = useState<ApiBeatmapStructure | null>(null);
   const activeRequestPathRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    activeRequestPathRef.current = beatmapFolderPath ?? null;
+  const [prevBeatmapFolderPath, setPrevBeatmapFolderPath] = useState(beatmapFolderPath);
+
+  if (beatmapFolderPath !== prevBeatmapFolderPath) {
+    setPrevBeatmapFolderPath(beatmapFolderPath);
     setProgress(null);
     setStructure(null);
+  }
+
+  useEffect(() => {
+    activeRequestPathRef.current = beatmapFolderPath ?? null;
   }, [beatmapFolderPath]);
 
   const query = useQuery<ApiBeatmapSetCheckResult, FetchError>({

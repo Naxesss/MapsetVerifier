@@ -16,12 +16,6 @@ export default function TimelineZoomControls() {
   const pendingZoomRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!dragging) {
-      setSliderZoom(zoom);
-    }
-  }, [dragging, zoom]);
-
-  useEffect(() => {
     return () => {
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
@@ -109,7 +103,7 @@ export default function TimelineZoomControls() {
           onPointerCancel={endSliderDrag}
         >
           <Slider
-            value={sliderZoom}
+            value={displayZoom}
             min={MIN_ZOOM}
             max={MAX_ZOOM}
             step={1}

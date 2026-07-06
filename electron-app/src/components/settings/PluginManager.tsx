@@ -100,7 +100,15 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
   useEffect(() => {
     if (!opened) return;
 
-    void loadPlugins();
+    let cancelled = false;
+
+    void Promise.resolve().then(() => {
+      if (!cancelled) void loadPlugins();
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [loadPlugins, opened]);
 
   const totals = useMemo(() => {

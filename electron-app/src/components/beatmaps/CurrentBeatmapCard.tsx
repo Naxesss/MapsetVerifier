@@ -1,5 +1,5 @@
 import { Box, Transition } from '@mantine/core';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import BeatmapCard from './BeatmapCard.tsx';
 import { Beatmap } from '../../Types.ts';
 
@@ -30,30 +30,26 @@ export default function CurrentBeatmapCard({
 }: CurrentBeatmapCardProps) {
   const [renderedCurrent, setRenderedCurrent] = useState<CurrentBeatmapData | null>(null);
   const [visible, setVisible] = useState(false);
-  const pendingRef = useRef<CurrentBeatmapData | null>(null);
+  const [pending, setPending] = useState<CurrentBeatmapData | null>(null);
   const currentKey = current?.folderPath ?? null;
+  const [prevKey, setPrevKey] = useState(currentKey);
 
-  useEffect(() => {
+  if (currentKey !== prevKey) {
+    setPrevKey(currentKey);
+
     if (!current) {
-      pendingRef.current = null;
+      setPending(null);
       setVisible(false);
-      return;
-    }
-
-    if (!renderedCurrent) {
+    } else if (!renderedCurrent) {
       setRenderedCurrent(current);
       setVisible(true);
-      return;
-    }
-
-    if (renderedCurrent.folderPath === current.folderPath) {
+    } else if (renderedCurrent.folderPath === current.folderPath) {
       setRenderedCurrent(current);
-      return;
+    } else {
+      setPending(current);
+      setVisible(false);
     }
-
-    pendingRef.current = current;
-    setVisible(false);
-  }, [currentKey]);
+  }
 
   return (
     <Transition
@@ -62,9 +58,9 @@ export default function CurrentBeatmapCard({
       duration={SWAP_DURATION_MS}
       timingFunction="ease"
       onExited={() => {
-        if (pendingRef.current) {
-          setRenderedCurrent(pendingRef.current);
-          pendingRef.current = null;
+        if (pending) {
+          setRenderedCurrent(pending);
+          setPending(null);
           setVisible(true);
         } else {
           setRenderedCurrent(null);

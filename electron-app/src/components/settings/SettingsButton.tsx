@@ -1,6 +1,6 @@
 import { NavLink } from '@mantine/core';
 import { IconSettings } from '@tabler/icons-react';
-import React, { useRef } from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const SettingsButton: React.FC = () => {
@@ -9,9 +9,11 @@ const SettingsButton: React.FC = () => {
   const active = location.pathname.startsWith('/settings');
   const previousPathRef = useRef<string>('/');
 
-  if (!active) {
-    previousPathRef.current = location.pathname + location.search;
-  }
+  useLayoutEffect(() => {
+    if (!active) {
+      previousPathRef.current = location.pathname + location.search;
+    }
+  }, [active, location.pathname, location.search]);
 
   const handleClick = () => {
     if (active) {

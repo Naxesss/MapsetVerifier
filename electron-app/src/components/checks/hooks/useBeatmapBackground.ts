@@ -11,38 +11,37 @@ export function useBeatmapBackground(
   songFolder?: string
 ): UseBeatmapBackgroundResult {
   const [bgUrl, setBgUrl] = useState<string | undefined>(undefined);
-  const [loaded, setLoaded] = useState(false);
+  const [loadedCandidate, setLoadedCandidate] = useState<string | undefined>(undefined);
+  const candidate = folder
+    ? buildBeatmapImageUrl(folder, { songFolder, original: true })
+    : undefined;
 
   useEffect(() => {
-    if (!folder) {
-      setBgUrl(undefined);
-      setLoaded(false);
-      return;
-    }
+    if (!candidate) return;
 
-    const candidate = buildBeatmapImageUrl(folder, { songFolder, original: true });
     let cancelled = false;
     const img = new Image();
+
     img.onload = () => {
       if (!cancelled) {
         setBgUrl(candidate);
-        setLoaded(true);
+        setLoadedCandidate(candidate);
       }
     };
     img.onerror = () => {
       if (!cancelled) {
         setBgUrl(undefined);
-        setLoaded(true); // finished attempt
+        setLoadedCandidate(candidate); // finished attempt
       }
     };
     img.src = candidate;
 
     return () => {
       cancelled = true;
-      setBgUrl(undefined);
-      setLoaded(false);
     };
-  }, [folder, songFolder]);
+  }, [candidate]);
 
-  return { bgUrl, isLoading: !loaded };
+  const loaded = !!candidate && loadedCandidate === candidate;
+
+  return { bgUrl: loaded ? bgUrl : undefined, isLoading: !loaded };
 }

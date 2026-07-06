@@ -1,20 +1,17 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { Mode } from '../../../../Types';
 import type { ObjectsModeGroup } from '../types.ts';
 
 export function useObjectsOverviewModeSelection(groupedDifficulties: ObjectsModeGroup[]) {
   const [selectedMode, setSelectedMode] = useState<Mode | undefined>();
 
-  useEffect(() => {
-    if (groupedDifficulties.length === 0) {
+  if (groupedDifficulties.length === 0) {
+    if (selectedMode !== undefined) {
       setSelectedMode(undefined);
-      return;
     }
-
-    if (!selectedMode || !groupedDifficulties.some((group) => group.mode === selectedMode)) {
-      setSelectedMode(groupedDifficulties[0].mode);
-    }
-  }, [groupedDifficulties, selectedMode]);
+  } else if (!selectedMode || !groupedDifficulties.some((group) => group.mode === selectedMode)) {
+    setSelectedMode(groupedDifficulties[0].mode);
+  }
 
   const selectedGroup = useMemo(
     () =>
