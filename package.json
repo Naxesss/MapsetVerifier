@@ -32,7 +32,7 @@
     "concurrently": "9.1.0",
     "cross-env": "7.0.3",
     "electron": "41.2.1",
-    "electron-builder": "25.1.8",
+    "electron-builder": "26.15.6",
     "husky": "9.1.7",
     "lint-staged": "17.0.8",
     "wait-on": "8.0.1"
@@ -73,7 +73,9 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "assets/icons/prod/icon.ico"
@@ -91,11 +93,17 @@
       "target": [
         {
           "target": "dmg",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         },
         {
           "target": "zip",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ],
       "icon": "assets/icons/prod/icon.icns"
