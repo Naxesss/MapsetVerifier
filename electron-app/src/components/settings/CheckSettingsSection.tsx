@@ -53,7 +53,7 @@ export default function CheckSettingsSection() {
           title={
             <Group gap="xs" align="center" wrap="nowrap">
               <MinorIcon size={16} />
-              Show minor issues
+              Show negligible issues
             </Group>
           }
           description="Includes negligible findings in the checks page."
@@ -69,7 +69,7 @@ export default function CheckSettingsSection() {
         {settings.showMinor && (
           <Stack gap="xs">
             <SettingsRow
-              title="Minor check filter"
+              title="Negligible check filter"
               description={`${hiddenMinorChecks.length} of ${minorChecks.length} checks disabled.`}
               control={
                 <Tooltip label="Loading check catalogue..." disabled={docsStatus === 'success'}>
@@ -80,7 +80,7 @@ export default function CheckSettingsSection() {
                       disabled={docsStatus !== 'success'}
                       onClick={openMinorFilterModal}
                     >
-                      Disable minor checks
+                      Disable negligible checks
                     </Button>
                   </Box>
                 </Tooltip>
@@ -89,7 +89,7 @@ export default function CheckSettingsSection() {
             <Paper withBorder radius="sm" p="sm">
               {hiddenMinorChecks.length === 0 ? (
                 <Text size="sm" c="dimmed">
-                  No Minor checks are currently disabled.
+                  No negligible checks are currently disabled.
                 </Text>
               ) : (
                 <ScrollArea.Autosize mah={180} offsetScrollbars type="auto" scrollbars="y">

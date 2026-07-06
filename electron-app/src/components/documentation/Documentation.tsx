@@ -120,7 +120,7 @@ const DOCUMENTATION_ICON_EXPLANATIONS: InfoIconExplanationProp[] = [
   },
   {
     icon: <MinorIcon />,
-    title: 'Minor',
+    title: 'Negligible',
     category: 'Checks',
     description: 'One or more negligible issues were found.',
   },

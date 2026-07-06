@@ -65,7 +65,7 @@ function minorChecksDisabledHint(): PageHint {
           }}
         >
           <MinorIcon size={16} />
-          minor checks
+          negligible checks
         </Box>
         ? Enable them in Settings.
       </>

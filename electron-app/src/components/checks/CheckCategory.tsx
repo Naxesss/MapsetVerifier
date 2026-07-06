@@ -4,6 +4,7 @@ import CheckGroup from './CheckGroup.tsx';
 import { groupChecks } from './groupChecks';
 import { ApiBeatmapSetCheckResult, ApiCategoryOverrideCheckResult, Level } from '../../Types';
 import { countWord } from '../../utils/countWord';
+import { getLevelLabel } from '../../utils/levelLabel';
 import { InfoIconTooltip } from '../common/InfoIconTooltip.tsx';
 import VirtualizedList from '../common/VirtualizedList.tsx';
 
@@ -225,8 +226,8 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
               style={{ cursor: 'pointer' }}
               title={isSelected ? 'Show all severities' : `Filter by this type`}
             >
-              {level.toLowerCase() === 'minor'
-                ? `${count} Negligible`
+              {level === 'Minor'
+                ? `${count} ${getLevelLabel(level)}`
                 : countWord(count, level.toLowerCase())}
             </Badge>
           );

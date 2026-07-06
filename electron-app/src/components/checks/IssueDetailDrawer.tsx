@@ -23,6 +23,7 @@ import {
   ApiDocumentationCheckDetails,
   Level,
 } from '../../Types';
+import { getLevelLabel } from '../../utils/levelLabel';
 import OsuLink from '../common/OsuLink';
 import { buildOsuEditHref, parseOsuLinkSegments } from '../common/osuLinkUtils';
 import DocumentationOutcomeBlockquote from '../documentation/DocumentationOutcomeBlockquote';
@@ -43,14 +44,7 @@ interface IssueDetailDrawerProps {
 }
 
 export function normalizeLevel(level: Level): Exclude<Level, 'Check'> {
-  switch (level) {
-    case 'Check':
-      return 'Info';
-    case 'Minor':
-      return 'Negligible';
-    default:
-      return level;
-  }
+  return level === 'Check' ? 'Info' : level;
 }
 
 function getIssueTimestamps(issue: ApiCheckResult | null) {
@@ -180,7 +174,7 @@ export default function IssueDetailDrawer({
                     leftSection={<IconCopy size={14} />}
                     onClick={onCopySameSeverity}
                   >
-                    Copy {normalizedLevel} ({sameSeverityCount})
+                    Copy {getLevelLabel(normalizedLevel)} ({sameSeverityCount})
                   </Button>
                 </Grid.Col>
               )}

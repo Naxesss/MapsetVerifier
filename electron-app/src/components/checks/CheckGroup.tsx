@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import IssueDetailDrawer, { copyToClipboard, normalizeLevel } from './IssueDetailDrawer';
 import IssueRow from './IssueRow';
 import { ApiCheckResult, Level } from '../../Types';
+import { getLevelLabel } from '../../utils/levelLabel';
 import { useDocumentationChecks } from '../documentation/hooks/useDocumentationChecks';
 import LevelIcon from '../icons/LevelIcon.tsx';
 
@@ -98,7 +99,7 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
   const triggerCopySameSeverity = () => {
     if (!selectedIssue) return;
     const level = normalizeLevel(selectedIssue.level);
-    triggerCopy(sameSeverityItems, `${sameSeverityItems.length} ${level} issues`);
+    triggerCopy(sameSeverityItems, `${sameSeverityItems.length} ${getLevelLabel(level)} issues`);
   };
 
   const firstItems = items.slice(0, VISIBLE_COUNT);

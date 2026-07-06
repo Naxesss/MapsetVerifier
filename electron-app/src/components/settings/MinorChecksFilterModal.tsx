@@ -117,10 +117,11 @@ const MinorChecksFilterModal: React.FC<MinorChecksFilterModalProps> = ({ opened,
                 <Group
                   key={check.id}
                   justify="space-between"
-                  align="flex-start"
+                  align="center"
                   wrap="nowrap"
                   gap="sm"
                   py="xs"
+                  pr="xs"
                   style={{ borderBottom: '1px solid var(--mantine-color-dark-5)' }}
                 >
                   <Stack gap={4} style={{ minWidth: 0, flex: 1 }}>
