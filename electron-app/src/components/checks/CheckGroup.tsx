@@ -20,7 +20,7 @@ interface CheckGroupProps {
 const VISIBLE_COUNT = 5;
 const LARGE_GROUP_THRESHOLD = 25;
 
-function getGroupCopyText(items: ApiCheckResult[], groupName?: string) {
+export function getGroupCopyText(items: ApiCheckResult[], groupName?: string) {
   const title = groupName ? groupName : 'Issues';
   const lines = items.map((item) => `- ${item.message}`);
   return [title, ...lines].join('\n');
@@ -78,6 +78,11 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
   };
 
   const triggerCopyAll = () => triggerCopy(items, `all ${items.length} issues`);
+
+  const triggerCopyIssue = () => {
+    if (!selectedIssue) return;
+    triggerCopy([selectedIssue], '1 issue');
+  };
 
   const onCopyAllClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -175,6 +180,7 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
         issue={selectedIssue}
         checkName={name}
         documentationCheck={documentationCheck}
+        onCopyIssue={triggerCopyIssue}
         groupCount={items.length}
         onCopyAll={triggerCopyAll}
         sameSeverityCount={sameSeverityItems.length}

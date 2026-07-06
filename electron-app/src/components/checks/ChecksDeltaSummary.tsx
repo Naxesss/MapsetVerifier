@@ -23,7 +23,8 @@ import {
   IconTrendingUp,
 } from '@tabler/icons-react';
 import { useEffect, useMemo, useState } from 'react';
-import IssueDetailDrawer from './IssueDetailDrawer';
+import { getGroupCopyText } from './CheckGroup';
+import IssueDetailDrawer, { copyToClipboard } from './IssueDetailDrawer';
 import IssueRow from './IssueRow';
 import BeatmapApi from '../../client/BeatmapApi';
 import { ApiCheckDeltaIssue, ApiCheckResult, ApiCheckRunDelta, Level } from '../../Types';
@@ -512,6 +513,13 @@ export default function ChecksDeltaSummary({
         issue={selectedDrawerIssue}
         checkName={selectedIssue?.checkName}
         documentationCheck={selectedIssue ? getCheckById(selectedIssue.id) : undefined}
+        onCopyIssue={() => {
+          if (!selectedDrawerIssue) return;
+          copyToClipboard(
+            getGroupCopyText([selectedDrawerIssue], selectedIssue?.checkName),
+            'Copied 1 issue.'
+          );
+        }}
       />
     </Box>
   );

@@ -35,6 +35,7 @@ interface IssueDetailDrawerProps {
   issue: ApiCheckResult | null;
   checkName?: string;
   documentationCheck?: ApiDocumentationCheck;
+  onCopyIssue: () => void;
   groupCount?: number;
   onCopyAll?: () => void;
   sameSeverityCount?: number;
@@ -50,11 +51,6 @@ export function normalizeLevel(level: Level): Exclude<Level, 'Check'> {
     default:
       return level;
   }
-}
-
-export function getIssueCopyText(issue: ApiCheckResult, checkName?: string) {
-  const title = checkName ? `${checkName}` : `Check #${issue.id}`;
-  return `${title}\n${issue.message}`;
 }
 
 function getIssueTimestamps(issue: ApiCheckResult | null) {
@@ -88,6 +84,7 @@ export default function IssueDetailDrawer({
   issue,
   checkName,
   documentationCheck,
+  onCopyIssue,
   groupCount,
   onCopyAll,
   sameSeverityCount,
@@ -166,7 +163,7 @@ export default function IssueDetailDrawer({
                 w="100%"
                 variant="light"
                 leftSection={<IconCopy size={14} />}
-                onClick={() => copyToClipboard(getIssueCopyText(issue, checkName), 'Issue copied.')}
+                onClick={onCopyIssue}
               >
                 Copy issue
               </Button>
