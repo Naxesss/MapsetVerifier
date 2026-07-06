@@ -1,7 +1,7 @@
-import { Collapse, Flex, Stack, Text } from '@mantine/core';
-import { IconChevronRight } from '@tabler/icons-react';
+import { Button, Collapse, Flex, Group, Modal, Stack, Text } from '@mantine/core';
+import { IconChevronRight, IconCopy } from '@tabler/icons-react';
 import React, { useMemo, useState } from 'react';
-import IssueDetailDrawer from './IssueDetailDrawer';
+import IssueDetailDrawer, { copyToClipboard } from './IssueDetailDrawer';
 import IssueRow from './IssueRow';
 import { ApiCheckResult, Level } from '../../Types';
 import { useDocumentationChecks } from '../documentation/hooks/useDocumentationChecks';
@@ -18,6 +18,13 @@ interface CheckGroupProps {
 }
 
 const VISIBLE_COUNT = 5;
+const LARGE_GROUP_THRESHOLD = 25;
+
+function getGroupCopyText(items: ApiCheckResult[], groupName?: string) {
+  const title = groupName ? groupName : 'Issues';
+  const lines = items.map((item) => `- ${item.message}`);
+  return [title, ...lines].join('\n');
+}
 
 const CheckGroup: React.FC<CheckGroupProps> = ({
   id,
@@ -43,6 +50,7 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
   }, [items]);
 
   const [selectedIssue, setSelectedIssue] = useState<ApiCheckResult | null>(null);
+  const [confirmCopyAll, setConfirmCopyAll] = useState(false);
   const { getCheckById } = useDocumentationChecks();
   const documentationCheck = getCheckById(id);
 
@@ -52,6 +60,18 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       toggle();
+    }
+  };
+
+  const copyAllIssues = () =>
+    copyToClipboard(getGroupCopyText(items, name), `Copied ${items.length} issues.`);
+
+  const onCopyAllClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (items.length > LARGE_GROUP_THRESHOLD) {
+      setConfirmCopyAll(true);
+    } else {
+      copyAllIssues();
     }
   };
 
@@ -85,6 +105,15 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
         <Text size="sm" fw="bold">
           {name}
         </Text>
+        <Button
+          size="compact-xs"
+          variant="subtle"
+          ml="auto"
+          leftSection={<IconCopy size={13} />}
+          onClick={onCopyAllClick}
+        >
+          Copy all ({items.length})
+        </Button>
       </Flex>
 
       <Collapse in={isOpen}>
@@ -126,6 +155,33 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
         checkName={name}
         documentationCheck={documentationCheck}
       />
+
+      <Modal
+        opened={confirmCopyAll}
+        onClose={() => setConfirmCopyAll(false)}
+        title="Copy all issues?"
+        zIndex={2000}
+      >
+        <Stack gap="md">
+          <Text size="sm">
+            This will copy all {items.length} issues in &quot;{name}&quot; to your clipboard as a
+            single block of text.
+          </Text>
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setConfirmCopyAll(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                copyAllIssues();
+                setConfirmCopyAll(false);
+              }}
+            >
+              Copy all
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Stack>
   );
 };

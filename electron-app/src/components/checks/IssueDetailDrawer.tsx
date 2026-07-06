@@ -40,7 +40,7 @@ function normalizeLevel(level: Level): Exclude<Level, 'Check'> {
   return level === 'Check' ? 'Info' : level;
 }
 
-function getIssueCopyText(issue: ApiCheckResult, checkName?: string) {
+export function getIssueCopyText(issue: ApiCheckResult, checkName?: string) {
   const title = checkName ? `${checkName}` : `Check #${issue.id}`;
   return `${title}\n${issue.message}`;
 }
@@ -53,7 +53,7 @@ function getIssueTimestamps(issue: ApiCheckResult | null) {
     .map((segment) => segment.value);
 }
 
-async function copyToClipboard(text: string, message: string) {
+export async function copyToClipboard(text: string, message: string) {
   try {
     await navigator.clipboard.writeText(text);
     notifications.show({
