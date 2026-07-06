@@ -42,6 +42,18 @@ function VirtualizedList<T>({
 
   React.useLayoutEffect(() => {
     updateScrollContext();
+
+    // Content above the list (e.g. another accordion section collapsing) can move
+    // the list without changing our item count, so keep the scroll margin in sync
+    // with any resize of the scroll area's content.
+    const scrollContent = listRef.current?.closest<HTMLElement>(
+      '.mantine-ScrollArea-viewport'
+    )?.firstElementChild;
+    if (!scrollContent || typeof ResizeObserver === 'undefined') return;
+
+    const observer = new ResizeObserver(() => updateScrollContext());
+    observer.observe(scrollContent);
+    return () => observer.disconnect();
   }, [items.length, updateScrollContext]);
 
   const virtualizer = useVirtualizer({
@@ -52,6 +64,13 @@ function VirtualizedList<T>({
       return item ? getItemKey(item, index) : index;
     },
     getScrollElement: () => scrollElement,
+    // Rows inside a closed or animating Collapse (accordion panel) measure as 0.
+    // Accepting 0 makes the virtualizer think every row fits on screen, mounting
+    // the entire list in one commit and exceeding React's update depth.
+    measureElement: (element) => {
+      const height = element.getBoundingClientRect().height;
+      return height > 0 ? height : estimateSize();
+    },
     overscan,
     scrollMargin,
   });
