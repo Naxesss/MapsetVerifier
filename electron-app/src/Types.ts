@@ -133,7 +133,7 @@ export type ApiCheckDeltaIssue = {
 
 export type DifficultyLevel = 'Easy' | 'Normal' | 'Hard' | 'Insane' | 'Expert' | 'Ultra';
 export type Mode = 'Standard' | 'Taiko' | 'Catch' | 'Mania';
-export type Level = 'Info' | 'Check' | 'Error' | 'Minor' | 'Warning' | 'Problem';
+export type Level = 'Info' | 'Check' | 'Error' | 'Minor' | 'Warning' | 'Problem' | 'Negligible';
 
 export type ApiPluginReport = {
   directoryPath: string;

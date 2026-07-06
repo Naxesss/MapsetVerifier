@@ -129,10 +129,7 @@ function renderDeltaIssueLevelChange(issue: ApiCheckDeltaIssue) {
 
   return (
     <Group gap={6}>
-      <LevelIcon
-        level={issue.previousLevel === 'Check' ? 'Info' : issue.previousLevel}
-        size={14}
-      />
+      <LevelIcon level={issue.previousLevel === 'Check' ? 'Info' : issue.previousLevel} size={14} />
       <Text size="xs" c="dimmed">
         to
       </Text>

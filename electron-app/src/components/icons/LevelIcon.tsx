@@ -46,6 +46,7 @@ function LevelIcon({
     case 'Warning':
       return wrap(<WarningIcon size={size} />);
     case 'Minor':
+    case 'Negligible':
       return wrap(<MinorIcon size={size} />);
     default:
       return wrap(<Text size="xs">Missing</Text>);
