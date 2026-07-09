@@ -30,6 +30,8 @@ import NoBeatmapsetDisplay from '../../common/NoBeatmapsetDisplay.tsx';
 import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 import type { DifficultyOverviewDifficulty, Mode } from '../../../Types';
 
+const EMPTY_DIFFICULTIES: DifficultyOverviewDifficulty[] = [];
+
 function DifficultyOverview() {
   const theme = useMantineTheme();
   const { selectedFolder: folder } = useBeatmap();
@@ -74,7 +76,7 @@ function DifficultyOverview() {
 
   const selectedGroup =
     groupedDifficulties.find((group) => group.mode === selectedMode) ?? groupedDifficulties[0];
-  const selectedDifficulties = selectedGroup?.difficulties ?? [];
+  const selectedDifficulties = selectedGroup?.difficulties ?? EMPTY_DIFFICULTIES;
   const charts = useMemo(
     () => buildCharts(selectedDifficulties, data?.msPerPeak),
     [data?.msPerPeak, selectedDifficulties]
