@@ -65,16 +65,21 @@ export default function ObjectsTimelineComparison({
     stopPanning: () => pan.stopDragging(),
   });
 
+  const hitsoundAvailable = isHitsoundViewAvailable(controller.mode.activeMode);
+
   return (
     <Paper p="md" radius="md" withBorder>
       <Stack gap="md">
-        <Stack gap={2}>
-          <Title order={4}>Timeline comparison</Title>
-          <Text size="sm" c="dimmed">
-            Drag the grip to reorder rows. Drag horizontally or shift + scroll to pan. Hover or
-            right click on objects for more info.
-          </Text>
-        </Stack>
+        <Group justify="space-between" align="flex-start" wrap="nowrap">
+          <Stack gap={2}>
+            <Title order={4}>Timeline comparison</Title>
+            <Text size="sm" c="dimmed">
+              Drag the grip to reorder rows. Drag horizontally or shift + scroll to pan. Hover or
+              right click on objects for more info.
+            </Text>
+          </Stack>
+          <ObjectsTimelineHelpButton showHitsoundSection={hitsoundAvailable} />
+        </Group>
 
         <TimelineControllerProvider value={controller}>
           <ObjectsTimelineComparisonBody pan={pan} />
@@ -153,22 +158,16 @@ function ObjectsTimelineComparisonBody({ pan }: { pan: TimelinePanValue }) {
 
   const headerExtra = useMemo(
     () => (
-      <Group gap={0} wrap="nowrap" align="center">
-        <ObjectsTimelineHelpButton showHitsoundSection={hitsoundAvailable} size="xs" />
-        <TimelineHorizontalReveal
-          visible={viewMode === 'hitsounding'}
-          spacing="var(--mantine-spacing-sm)"
-        >
-          <Group gap="md">
-            {layerToggle('body', 'Body sounds')}
-            {layerToggle('ticks', 'Ticks')}
-            {layerToggle('sampleset', 'Sample bank')}
-            {layerToggle('gaps', 'Gap overlay')}
-          </Group>
-        </TimelineHorizontalReveal>
-      </Group>
+      <TimelineHorizontalReveal visible={viewMode === 'hitsounding'}>
+        <Group gap="md">
+          {layerToggle('body', 'Body sounds')}
+          {layerToggle('ticks', 'Ticks')}
+          {layerToggle('sampleset', 'Sample bank')}
+          {layerToggle('gaps', 'Gap overlay')}
+        </Group>
+      </TimelineHorizontalReveal>
     ),
-    [hitsoundAvailable, hitsoundLayers, viewMode]
+    [hitsoundLayers, viewMode]
   );
 
   const fullViewValue = useMemo(

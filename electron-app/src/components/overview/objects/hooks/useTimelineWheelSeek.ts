@@ -138,6 +138,12 @@ export function useTimelineWheelSeek({
       }
 
       if (event.ctrlKey || event.metaKey) {
+        if (event.shiftKey) {
+          // Both modifiers held: neither zoom nor seek. Still swallow the event so it doesn't
+          // fall through to the browser/OS's native ctrl+scroll zoom.
+          event.preventDefault();
+          return;
+        }
         if (adjustZoom && event.deltaY !== 0) {
           event.preventDefault();
           adjustZoom(event.deltaY < 0 ? 1 : -1);

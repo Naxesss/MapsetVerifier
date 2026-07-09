@@ -24,6 +24,12 @@ export default function TimelineHorizontalReveal({
       style={{
         display: 'grid',
         gridTemplateColumns: visible ? '1fr' : '0fr',
+        // `grid-template-columns: 0fr` only collapses width — the grid row still sizes to the
+        // child's natural content height regardless, so a hidden reveal was still reserving its
+        // full height and inflating the flex row it sits in. Collapse height directly too; it
+        // isn't transitioned (CSS can't animate to/from `auto`), but since it only matters while
+        // width/opacity are already at (or animating through) zero, the snap isn't visible.
+        height: visible ? 'auto' : 0,
         marginLeft: visible ? spacing : 0,
         opacity: visible ? 1 : 0,
         overflow: 'hidden',

@@ -12,7 +12,7 @@ export const MAX_AXIS_PRECISION_ZOOM = 6;
 export const TIMING_SAMPLES_PER_BEAT = 48;
 export const MIN_TIMELINE_WIDTH = 1400;
 
-export const TIMELINE_SCROLL_TICK_STEP_OPTIONS = [2, 4, 8, 16] as const;
+export const TIMELINE_SCROLL_TICK_STEP_OPTIONS = [2, 4, 8, 16, 32] as const;
 export type TimelineScrollTickStep = (typeof TIMELINE_SCROLL_TICK_STEP_OPTIONS)[number];
 export const MAX_TIMELINE_CANVAS_TILE_WIDTH = 4096;
 export const CIRCLE_OBJECT_RADIUS = 16.0;

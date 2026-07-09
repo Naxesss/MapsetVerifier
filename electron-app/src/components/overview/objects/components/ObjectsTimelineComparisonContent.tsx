@@ -20,6 +20,7 @@ import TimelineAxisRow from './TimelineAxisRow.tsx';
 import TimelineHorizontalReveal from './TimelineHorizontalReveal.tsx';
 import TimelineShiftSeekModeBadge from './TimelineShiftSeekModeBadge.tsx';
 import TimelineZoomControls from './TimelineZoomControls.tsx';
+import TimelineZoomModeBadge from './TimelineZoomModeBadge.tsx';
 import {
   useTimelineController,
   useTimelineDisplay,
@@ -28,7 +29,7 @@ import {
   useTimelineViewport,
 } from '../context/ObjectsTimelineContext.tsx';
 import { usePreserveTimelineScrollOnZoom } from '../hooks/usePreserveTimelineScrollOnZoom.ts';
-import { useShiftKeyHeld } from '../hooks/useShiftKeyHeld.ts';
+import { useTimelineModifierKeys } from '../hooks/useTimelineModifierKeys.ts';
 import { useTimelineScrollTickStep } from '../hooks/useTimelineScrollTickStep.ts';
 import { useTimelineWheelSeek } from '../hooks/useTimelineWheelSeek.ts';
 import {
@@ -152,7 +153,9 @@ export default function ObjectsTimelineComparisonContent({
     setManyVisible(orderedDifficulties, visible);
   };
 
-  const shiftHeld = useShiftKeyHeld();
+  const { shiftHeld, ctrlHeld } = useTimelineModifierKeys();
+  const scrollModeActive = shiftHeld && !ctrlHeld;
+  const zoomModeActive = ctrlHeld && !shiftHeld;
 
   const hasRightHeaderControls =
     showModeSelector ||
@@ -170,35 +173,36 @@ export default function ObjectsTimelineComparisonContent({
           {(showScrollModeControls || scrollModeExtra) && (
             <Group
               gap="sm"
-              wrap="nowrap"
+              wrap="wrap"
               align="center"
               data-stop-timeline-pan="true"
               data-timeline-wheel-ignore="true"
             >
               {showScrollModeControls && (
-                <TimelineShiftSeekModeBadge
-                  active={shiftHeld}
-                  tickStep={tickStep}
-                  onTickStepChange={setTickStep}
-                />
+                <>
+                  <TimelineZoomModeBadge active={zoomModeActive} />
+                  <TimelineShiftSeekModeBadge
+                    active={scrollModeActive}
+                    tickStep={tickStep}
+                    onTickStepChange={setTickStep}
+                  />
+                </>
               )}
               {scrollModeExtra}
             </Group>
           )}
           {hasRightHeaderControls && (
-            <Group gap={0} align="center" wrap="nowrap" justify="flex-end" ml="auto">
+            <Group gap="sm" align="center" wrap="wrap" justify="flex-end" ml="auto">
               {headerExtra}
               {showModeSelector && (
-                <Box ml="sm">
-                  <ObjectsGameModeSelector
-                    groupedDifficulties={groupedDifficulties}
-                    selectedMode={selectedMode}
-                    onModeChange={onModeChange}
-                  />
-                </Box>
+                <ObjectsGameModeSelector
+                  groupedDifficulties={groupedDifficulties}
+                  selectedMode={selectedMode}
+                  onModeChange={onModeChange}
+                />
               )}
               {showVisibilityControls && (
-                <Group gap="xs" align="center" wrap="nowrap" ml="sm">
+                <Group gap="xs" align="center" wrap="nowrap">
                   <Tooltip label="Show all difficulties">
                     <ActionIcon
                       variant="default"
@@ -242,11 +246,7 @@ export default function ObjectsTimelineComparisonContent({
                   </Tooltip>
                 </TimelineHorizontalReveal>
               )}
-              {showZoomControls && (
-                <Box ml="sm">
-                  <TimelineZoomControls />
-                </Box>
-              )}
+              {showZoomControls && <TimelineZoomControls />}
             </Group>
           )}
         </Group>
