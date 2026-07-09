@@ -28,8 +28,10 @@ import {
 import { resolveTimelineVisualTheme } from './timelineTheme/selection.ts';
 import {
   buildRoundedEdgeTimes,
+  findLowerBoundIndex,
   getAlignedTimelineLineX,
   getObjectBodyWidth,
+  getTimelineTimeFromX,
   getTimelineX,
   getTimingTickStyle,
   hasNearbyRoundedEdge,
@@ -48,6 +50,12 @@ import type {
 import type { MantineTheme } from '@mantine/core';
 
 const SLIDER_TICK_DOT_ALPHA = 0.65;
+// Visibility-check padding for markers/ticks near a tile's edge — must cover the largest radius
+// a marker (slider head/tail circle, reverse arrow) is drawn at, so both neighboring tiles
+// attempt to draw a boundary-straddling marker and their clips split it correctly (as already
+// happens for plain hit circles in drawTimelineObject).
+const MARKER_CULL_PADDING_PX = 40;
+const TICK_CULL_PADDING_PX = 8;
 
 export type DrawTimelineRowOptions = {
   difficulty: ObjectsOverviewDifficulty;
@@ -168,9 +176,50 @@ export function drawTimelineRow(
   const { timelineObjects } = difficulty;
   const drawnMarkers = new Set<string>();
   const timelineSamples = difficulty.timelineSamples ?? [];
+  const sliderTickSamples = rowDrawCache?.sortedSliderTickSamples ?? timelineSamples;
 
-  for (let index = timelineObjects.length - 1; index >= 0; index -= 1) {
-    const timelineObject = timelineObjects[index];
+  // Draw only objects overlapping this tile's viewport instead of scanning every object in the
+  // difficulty — the extra margin covers visual radius/marker overhang plus the longest
+  // slider/spinner that could start just before the window and still extend into it.
+  const CULL_MARGIN_PX = 96;
+  const windowStartMs = getTimelineTimeFromX(
+    viewportStartX - CULL_MARGIN_PX,
+    startTimeMs,
+    durationMs,
+    timelineWidth
+  );
+  const windowEndMs = getTimelineTimeFromX(
+    viewportEndX + CULL_MARGIN_PX,
+    startTimeMs,
+    durationMs,
+    timelineWidth
+  );
+
+  let drawObjects: ObjectsTimelineObject[];
+  let drawStartIndex: number;
+  let drawEndIndexExclusive: number;
+
+  if (rowDrawCache) {
+    const { sortedObjects, maxObjectDurationMs } = rowDrawCache;
+    drawObjects = sortedObjects;
+    drawStartIndex = findLowerBoundIndex(
+      sortedObjects,
+      windowStartMs - maxObjectDurationMs,
+      (object) => object.startTimeMs
+    );
+    drawEndIndexExclusive = findLowerBoundIndex(
+      sortedObjects,
+      windowEndMs + 1e-6,
+      (object) => object.startTimeMs
+    );
+  } else {
+    drawObjects = timelineObjects;
+    drawStartIndex = 0;
+    drawEndIndexExclusive = timelineObjects.length;
+  }
+
+  for (let index = drawEndIndexExclusive - 1; index >= drawStartIndex; index -= 1) {
+    const timelineObject = drawObjects[index];
     drawTimelineObject(
       ctx,
       timelineObject,
@@ -188,7 +237,7 @@ export function drawTimelineRow(
 
     if (!isHitsoundView && timelineObject.objectType === 'Slider') {
       drawSliderTickDots(ctx, {
-        samples: timelineSamples,
+        samples: sliderTickSamples,
         startTimeMs,
         durationMs,
         timelineWidth,
@@ -618,14 +667,26 @@ function drawTimingGrid(
 ) {
   if (timingSegments.length === 0) return;
 
+  // Bound beat-sample generation to this tile's own window, not the full map duration — without
+  // this, every tile would regenerate the whole map's worth of beat-tick samples just to keep
+  // the handful that land within its small visible range.
+  const tileWindowStartMs = Math.max(
+    startTimeMs,
+    getTimelineTimeFromX(visibleStartX - TICK_CULL_PADDING_PX, startTimeMs, durationMs, width)
+  );
+  const tileWindowEndMs = Math.min(
+    endTimeMs,
+    getTimelineTimeFromX(visibleEndX + TICK_CULL_PADDING_PX, startTimeMs, durationMs, width)
+  );
+
   const tickLines = new Map<
     string,
     { x: number; color: string; height: number; alpha: number; priority: number }
   >();
 
   for (const segment of timingSegments) {
-    const visibleStartMs = Math.max(startTimeMs, segment.startTimeMs);
-    const visibleEndMs = Math.min(endTimeMs, segment.endTimeMs);
+    const visibleStartMs = Math.max(tileWindowStartMs, segment.startTimeMs);
+    const visibleEndMs = Math.min(tileWindowEndMs, segment.endTimeMs);
     const sampleStepMs = segment.msPerBeat / 48;
 
     if (visibleEndMs <= visibleStartMs || sampleStepMs <= 0) continue;
@@ -639,7 +700,8 @@ function drawTimingGrid(
     for (let sampleIndex = startSampleIndex; sampleIndex <= endSampleIndex; sampleIndex += 1) {
       const sampleTimeMs = segment.offsetMs + sampleIndex * sampleStepMs;
       const rawX = getTimelineX(sampleTimeMs, startTimeMs, durationMs, width);
-      if (rawX < visibleStartX || rawX > visibleEndX) continue;
+      if (rawX < visibleStartX - TICK_CULL_PADDING_PX || rawX > visibleEndX + TICK_CULL_PADDING_PX)
+        continue;
 
       const hasNearbyEdge = hasNearbyRoundedEdge(roundedEdgeTimes, sampleTimeMs);
       const tickStyle = getTimingTickStyle(sampleIndex, segment.meter, hasNearbyEdge);
@@ -769,10 +831,18 @@ function drawTimelineObjectMarkers(
   drawnMarkers: Set<string>
 ) {
   const { edges } = timelineObject;
+  // Padded like the circle check in drawTimelineObject: a marker (slider head/tail, reverse
+  // arrow, spinner) is drawn as a circle up to MARKER_CULL_PADDING_PX wide, so an unpadded check
+  // here would let a marker near a tile boundary be attempted by only one tile — whose clip then
+  // cuts off the half that belonged to the (never-drawn-by) neighboring tile.
   for (let edgeIndex = edges.length - 1; edgeIndex >= 0; edgeIndex -= 1) {
     const edge = edges[edgeIndex];
     const rawX = getTimelineX(edge.timeMs, startTimeMs, durationMs, timelineWidth);
-    if (rawX < visibleStartX || rawX > visibleEndX) continue;
+    if (
+      rawX < visibleStartX - MARKER_CULL_PADDING_PX ||
+      rawX > visibleEndX + MARKER_CULL_PADDING_PX
+    )
+      continue;
 
     const x = getAlignedTimelineLineX(edge.timeMs, startTimeMs, durationMs, timelineWidth);
     const markerKey = `${timelineObject.objectType}-${edge.partName}-${x}`;
@@ -823,19 +893,25 @@ function drawSliderTickDots(
 
   const cullPadding = SLIDER_TICK_DOT_RADIUS + 1;
 
+  // `samples` is sorted ascending by timeMs, so jump straight to the object's own time range
+  // instead of scanning every sample in the map for every slider drawn.
+  let startIndex = 0;
+  let endIndexExclusive = samples.length;
+  if (startTimeFilterMs != null && endTimeFilterMs != null) {
+    startIndex = findLowerBoundIndex(samples, startTimeFilterMs - 1, (sample) => sample.timeMs);
+    endIndexExclusive = findLowerBoundIndex(
+      samples,
+      endTimeFilterMs + 1 + 1e-6,
+      (sample) => sample.timeMs
+    );
+  }
+
   ctx.save();
   ctx.fillStyle = withAlpha('#ffffff', SLIDER_TICK_DOT_ALPHA);
 
-  for (const sample of samples) {
+  for (let index = startIndex; index < endIndexExclusive; index += 1) {
+    const sample = samples[index];
     if (sample.source !== 'Tick' || sample.objectType !== 'Slider') {
-      continue;
-    }
-
-    if (
-      startTimeFilterMs != null &&
-      endTimeFilterMs != null &&
-      (sample.timeMs < startTimeFilterMs - 1 || sample.timeMs > endTimeFilterMs + 1)
-    ) {
       continue;
     }
 

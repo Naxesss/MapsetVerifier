@@ -76,6 +76,11 @@ export type TimelinePanValue = {
   stopDragging: () => void;
 };
 
+export type TimelineViewportValue = {
+  startX: number;
+  endX: number;
+};
+
 export type TimelineFullViewValue = {
   viewMode: TimelineViewMode;
   setViewMode: (mode: TimelineViewMode) => void;

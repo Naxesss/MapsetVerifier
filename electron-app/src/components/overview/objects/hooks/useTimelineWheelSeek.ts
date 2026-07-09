@@ -12,7 +12,13 @@ type UseTimelineWheelSeekOptions = {
   startTimeMs: number;
   endTimeMs: number;
   snapTicks: number[];
+  /** Bounds `snapTicks` was actually built for — used to clamp seeking once ticks run
+   * out in the seek direction. Defaults to `startTimeMs`/`endTimeMs` when `snapTicks`
+   * covers the full timeline. */
+  snapClampStartMs?: number;
+  snapClampEndMs?: number;
   tickStepCount?: number;
+  adjustZoom?: (direction: -1 | 1) => void;
   enabled?: boolean;
 };
 
@@ -24,7 +30,10 @@ export function useTimelineWheelSeek({
   startTimeMs,
   endTimeMs,
   snapTicks,
+  snapClampStartMs = startTimeMs,
+  snapClampEndMs = endTimeMs,
   tickStepCount = 1,
+  adjustZoom,
   enabled = true,
 }: UseTimelineWheelSeekOptions) {
   const seekByDirection = useCallback(
@@ -57,8 +66,8 @@ export function useTimelineWheelSeek({
           candidateTimestamp,
           direction,
           tickStepCount,
-          startTimeMs,
-          endTimeMs
+          snapClampStartMs,
+          snapClampEndMs
         );
 
         if (nextTimestamp === candidateTimestamp) {
@@ -83,8 +92,8 @@ export function useTimelineWheelSeek({
         }
 
         if (
-          (direction === 1 && candidateTimestamp >= endTimeMs) ||
-          (direction === -1 && candidateTimestamp <= startTimeMs)
+          (direction === 1 && candidateTimestamp >= snapClampEndMs) ||
+          (direction === -1 && candidateTimestamp <= snapClampStartMs)
         ) {
           break;
         }
@@ -92,7 +101,16 @@ export function useTimelineWheelSeek({
 
       return false;
     },
-    [endTimeMs, scrollRef, snapTicks, startTimeMs, tickStepCount, timelineWidth]
+    [
+      endTimeMs,
+      scrollRef,
+      snapClampEndMs,
+      snapClampStartMs,
+      snapTicks,
+      startTimeMs,
+      tickStepCount,
+      timelineWidth,
+    ]
   );
 
   useEffect(() => {
@@ -119,6 +137,20 @@ export function useTimelineWheelSeek({
         return;
       }
 
+      if (event.ctrlKey || event.metaKey) {
+        if (event.shiftKey) {
+          // Both modifiers held: neither zoom nor seek. Still swallow the event so it doesn't
+          // fall through to the browser/OS's native ctrl+scroll zoom.
+          event.preventDefault();
+          return;
+        }
+        if (adjustZoom && event.deltaY !== 0) {
+          event.preventDefault();
+          adjustZoom(event.deltaY < 0 ? 1 : -1);
+        }
+        return;
+      }
+
       const useHorizontalDelta = Math.abs(event.deltaX) > Math.abs(event.deltaY);
       if (!event.shiftKey && !useHorizontalDelta) {
         return;
@@ -140,5 +172,5 @@ export function useTimelineWheelSeek({
     return () => {
       scrollElement.removeEventListener('wheel', handleWheel);
     };
-  }, [enabled, scrollRef, seekByDirection]);
+  }, [adjustZoom, enabled, scrollRef, seekByDirection]);
 }

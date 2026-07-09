@@ -20,21 +20,28 @@ import TimelineAxisRow from './TimelineAxisRow.tsx';
 import TimelineHorizontalReveal from './TimelineHorizontalReveal.tsx';
 import TimelineShiftSeekModeBadge from './TimelineShiftSeekModeBadge.tsx';
 import TimelineZoomControls from './TimelineZoomControls.tsx';
+import TimelineZoomModeBadge from './TimelineZoomModeBadge.tsx';
 import {
   useTimelineController,
   useTimelineDisplay,
   useTimelinePan,
   useTimelineScale,
+  useTimelineViewport,
 } from '../context/ObjectsTimelineContext.tsx';
 import { usePreserveTimelineScrollOnZoom } from '../hooks/usePreserveTimelineScrollOnZoom.ts';
-import { useShiftKeyHeld } from '../hooks/useShiftKeyHeld.ts';
+import { useTimelineModifierKeys } from '../hooks/useTimelineModifierKeys.ts';
 import { useTimelineScrollTickStep } from '../hooks/useTimelineScrollTickStep.ts';
 import { useTimelineWheelSeek } from '../hooks/useTimelineWheelSeek.ts';
 import {
   parseTimelineThemeVariant,
   TIMELINE_THEME_VARIANT_OPTIONS,
 } from '../timelineTheme/selection.ts';
-import { buildTimelineSnapTicks, getDifficultyKey } from '../timelineUtils.ts';
+import {
+  buildAllRoundedEdgeTimes,
+  buildTimelineSnapTicks,
+  getDifficultyKey,
+  getTimelineTimeFromX,
+} from '../timelineUtils.ts';
 
 export type ObjectsTimelineComparisonContentProps = {
   showScrollModeControls?: boolean;
@@ -67,6 +74,7 @@ export default function ObjectsTimelineComparisonContent({
     rows: { orderedDifficulties },
     visibility: { visibilityByDifficulty, setManyVisible },
     display: { timelineThemeVariant, setTimelineThemeVariant },
+    zoom: { adjustZoom },
     dnd,
   } = controller;
 
@@ -74,16 +82,44 @@ export default function ObjectsTimelineComparisonContent({
 
   const { tickStep, setTickStep } = useTimelineScrollTickStep();
 
+  const viewport = useTimelineViewport();
+
+  const snapTicksWindow = useMemo(() => {
+    const durationMs = Math.max(1, endTimeMs - startTimeMs);
+    const clampedStartX = Math.max(0, viewport.startX);
+    const clampedEndX = Math.min(timelineWidth, viewport.endX);
+    if (clampedEndX <= clampedStartX) {
+      return { windowStartMs: startTimeMs, windowEndMs: endTimeMs };
+    }
+    return {
+      windowStartMs: getTimelineTimeFromX(clampedStartX, startTimeMs, durationMs, timelineWidth),
+      windowEndMs: getTimelineTimeFromX(clampedEndX, startTimeMs, durationMs, timelineWidth),
+    };
+  }, [endTimeMs, startTimeMs, timelineWidth, viewport.endX, viewport.startX]);
+
+  const visibleDifficultiesForSnapTicks = useMemo(
+    () =>
+      orderedDifficulties.filter(
+        (difficulty) => visibilityByDifficulty[getDifficultyKey(difficulty)] !== false
+      ),
+    [orderedDifficulties, visibilityByDifficulty]
+  );
+
+  // O(objects) — independent of scroll position, so kept out of the (scroll-bound) snapTicks memo.
+  const roundedEdgeTimes = useMemo(
+    () => buildAllRoundedEdgeTimes(visibleDifficultiesForSnapTicks),
+    [visibleDifficultiesForSnapTicks]
+  );
+
   const snapTicks = useMemo(
     () =>
       buildTimelineSnapTicks(
-        orderedDifficulties.filter(
-          (difficulty) => visibilityByDifficulty[getDifficultyKey(difficulty)] !== false
-        ),
-        startTimeMs,
-        endTimeMs
+        visibleDifficultiesForSnapTicks,
+        roundedEdgeTimes,
+        snapTicksWindow.windowStartMs,
+        snapTicksWindow.windowEndMs
       ),
-    [endTimeMs, orderedDifficulties, startTimeMs, visibilityByDifficulty]
+    [visibleDifficultiesForSnapTicks, roundedEdgeTimes, snapTicksWindow]
   );
 
   useTimelineWheelSeek({
@@ -92,7 +128,10 @@ export default function ObjectsTimelineComparisonContent({
     startTimeMs,
     endTimeMs,
     snapTicks,
+    snapClampStartMs: snapTicksWindow.windowStartMs,
+    snapClampEndMs: snapTicksWindow.windowEndMs,
     tickStepCount: tickStep,
+    adjustZoom,
   });
 
   usePreserveTimelineScrollOnZoom({
@@ -114,7 +153,9 @@ export default function ObjectsTimelineComparisonContent({
     setManyVisible(orderedDifficulties, visible);
   };
 
-  const shiftHeld = useShiftKeyHeld();
+  const { shiftHeld, ctrlHeld } = useTimelineModifierKeys();
+  const scrollModeActive = shiftHeld && !ctrlHeld;
+  const zoomModeActive = ctrlHeld && !shiftHeld;
 
   const hasRightHeaderControls =
     showModeSelector ||
@@ -132,35 +173,36 @@ export default function ObjectsTimelineComparisonContent({
           {(showScrollModeControls || scrollModeExtra) && (
             <Group
               gap="sm"
-              wrap="nowrap"
+              wrap="wrap"
               align="center"
               data-stop-timeline-pan="true"
               data-timeline-wheel-ignore="true"
             >
               {showScrollModeControls && (
-                <TimelineShiftSeekModeBadge
-                  active={shiftHeld}
-                  tickStep={tickStep}
-                  onTickStepChange={setTickStep}
-                />
+                <>
+                  <TimelineZoomModeBadge active={zoomModeActive} />
+                  <TimelineShiftSeekModeBadge
+                    active={scrollModeActive}
+                    tickStep={tickStep}
+                    onTickStepChange={setTickStep}
+                  />
+                </>
               )}
               {scrollModeExtra}
             </Group>
           )}
           {hasRightHeaderControls && (
-            <Group gap={0} align="center" wrap="nowrap" justify="flex-end" ml="auto">
+            <Group gap="sm" align="center" wrap="wrap" justify="flex-end" ml="auto">
               {headerExtra}
               {showModeSelector && (
-                <Box ml="sm">
-                  <ObjectsGameModeSelector
-                    groupedDifficulties={groupedDifficulties}
-                    selectedMode={selectedMode}
-                    onModeChange={onModeChange}
-                  />
-                </Box>
+                <ObjectsGameModeSelector
+                  groupedDifficulties={groupedDifficulties}
+                  selectedMode={selectedMode}
+                  onModeChange={onModeChange}
+                />
               )}
               {showVisibilityControls && (
-                <Group gap="xs" align="center" wrap="nowrap" ml="sm">
+                <Group gap="xs" align="center" wrap="nowrap">
                   <Tooltip label="Show all difficulties">
                     <ActionIcon
                       variant="default"
@@ -204,11 +246,7 @@ export default function ObjectsTimelineComparisonContent({
                   </Tooltip>
                 </TimelineHorizontalReveal>
               )}
-              {showZoomControls && (
-                <Box ml="sm">
-                  <TimelineZoomControls />
-                </Box>
-              )}
+              {showZoomControls && <TimelineZoomControls />}
             </Group>
           )}
         </Group>

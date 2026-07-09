@@ -1,11 +1,19 @@
 import { createContext, useContext, type ReactNode } from 'react';
 import { ROW_HEIGHT } from '../constants.ts';
 import { DEFAULT_HITSOUND_LAYERS } from '../hitsoundUtils.ts';
-import type { TimelineControllerValue, TimelineFullViewValue, TimelinePanValue } from './types.ts';
+import type {
+  TimelineControllerValue,
+  TimelineFullViewValue,
+  TimelinePanValue,
+  TimelineViewportValue,
+} from './types.ts';
 
 const TimelineControllerContext = createContext<TimelineControllerValue | null>(null);
 const TimelinePanContext = createContext<TimelinePanValue | null>(null);
 const TimelineFullViewContext = createContext<TimelineFullViewValue | null>(null);
+const TimelineViewportContext = createContext<TimelineViewportValue | null>(null);
+
+const FULL_TIMELINE_VIEWPORT: TimelineViewportValue = { startX: -Infinity, endX: Infinity };
 
 export function TimelineControllerProvider({
   value,
@@ -57,6 +65,22 @@ export function useTimelinePan(): TimelinePanValue {
     throw new Error('useTimelinePan must be used within TimelinePanProvider');
   }
   return context;
+}
+
+export function TimelineViewportProvider({
+  value,
+  children,
+}: {
+  value: TimelineViewportValue;
+  children: ReactNode;
+}) {
+  return (
+    <TimelineViewportContext.Provider value={value}>{children}</TimelineViewportContext.Provider>
+  );
+}
+
+export function useTimelineViewport(): TimelineViewportValue {
+  return useContext(TimelineViewportContext) ?? FULL_TIMELINE_VIEWPORT;
 }
 
 function useOptionalTimelineFullView(): TimelineFullViewValue | null {

@@ -20,6 +20,7 @@ import {
   TimelineControllerProvider,
   TimelineFullViewProvider,
   TimelinePanProvider,
+  TimelineViewportProvider,
   useTimelineController,
 } from '../context/ObjectsTimelineContext.tsx';
 import {
@@ -30,6 +31,7 @@ import {
 } from '../hitsoundUtils.ts';
 import { useHorizontalScrollPan } from '../hooks/useHorizontalScrollPan.ts';
 import { useObjectsTimelineController } from '../hooks/useObjectsTimelineController.ts';
+import { useTimelineViewportRange } from '../hooks/useTimelineViewportRange.ts';
 import type { Mode, ObjectsOverviewDifficulty } from '../../../../Types';
 import type { TimelinePanValue } from '../context/types.ts';
 import type { ObjectsModeGroup } from '../types.ts';
@@ -63,16 +65,21 @@ export default function ObjectsTimelineComparison({
     stopPanning: () => pan.stopDragging(),
   });
 
+  const hitsoundAvailable = isHitsoundViewAvailable(controller.mode.activeMode);
+
   return (
     <Paper p="md" radius="md" withBorder>
       <Stack gap="md">
-        <Stack gap={2}>
-          <Title order={4}>Timeline comparison</Title>
-          <Text size="sm" c="dimmed">
-            Drag the grip to reorder rows. Drag horizontally or shift + scroll to pan. Hover or
-            right click on objects for more info.
-          </Text>
-        </Stack>
+        <Group justify="space-between" align="flex-start" wrap="nowrap">
+          <Stack gap={2}>
+            <Title order={4}>Timeline comparison</Title>
+            <Text size="sm" c="dimmed">
+              Drag the grip to reorder rows. Drag horizontally or shift + scroll to pan. Hover or
+              right click on objects for more info.
+            </Text>
+          </Stack>
+          <ObjectsTimelineHelpButton showHitsoundSection={hitsoundAvailable} />
+        </Group>
 
         <TimelineControllerProvider value={controller}>
           <ObjectsTimelineComparisonBody pan={pan} />
@@ -87,6 +94,8 @@ function ObjectsTimelineComparisonBody({ pan }: { pan: TimelinePanValue }) {
   const {
     mode: { activeMode },
   } = controller;
+
+  const viewport = useTimelineViewportRange(pan.scrollRef, controller.zoom.timelineWidth);
 
   const hitsoundAvailable = isHitsoundViewAvailable(activeMode);
   const [selectedViewMode, setSelectedViewMode] = useState<TimelineViewMode>('structure');
@@ -149,22 +158,16 @@ function ObjectsTimelineComparisonBody({ pan }: { pan: TimelinePanValue }) {
 
   const headerExtra = useMemo(
     () => (
-      <Group gap={0} wrap="nowrap" align="center">
-        <ObjectsTimelineHelpButton showHitsoundSection={hitsoundAvailable} size="xs" />
-        <TimelineHorizontalReveal
-          visible={viewMode === 'hitsounding'}
-          spacing="var(--mantine-spacing-sm)"
-        >
-          <Group gap="md">
-            {layerToggle('body', 'Body sounds')}
-            {layerToggle('ticks', 'Ticks')}
-            {layerToggle('sampleset', 'Sample bank')}
-            {layerToggle('gaps', 'Gap overlay')}
-          </Group>
-        </TimelineHorizontalReveal>
-      </Group>
+      <TimelineHorizontalReveal visible={viewMode === 'hitsounding'}>
+        <Group gap="md">
+          {layerToggle('body', 'Body sounds')}
+          {layerToggle('ticks', 'Ticks')}
+          {layerToggle('sampleset', 'Sample bank')}
+          {layerToggle('gaps', 'Gap overlay')}
+        </Group>
+      </TimelineHorizontalReveal>
     ),
-    [hitsoundAvailable, hitsoundLayers, viewMode]
+    [hitsoundLayers, viewMode]
   );
 
   const fullViewValue = useMemo(
@@ -182,15 +185,17 @@ function ObjectsTimelineComparisonBody({ pan }: { pan: TimelinePanValue }) {
     <Box pos="relative">
       <TimelineFullViewProvider value={fullViewValue}>
         <TimelinePanProvider value={pan}>
-          <ObjectsTimelineComparisonContent
-            showModeSelector
-            showVisibilityControls
-            showThemeControls
-            showZoomControls
-            scrollModeExtra={scrollModeExtra}
-            headerExtra={headerExtra}
-            aboveTimelineExtra={hitsoundAvailable ? <HitsoundStripLegend /> : undefined}
-          />
+          <TimelineViewportProvider value={viewport}>
+            <ObjectsTimelineComparisonContent
+              showModeSelector
+              showVisibilityControls
+              showThemeControls
+              showZoomControls
+              scrollModeExtra={scrollModeExtra}
+              headerExtra={headerExtra}
+              aboveTimelineExtra={hitsoundAvailable ? <HitsoundStripLegend /> : undefined}
+            />
+          </TimelineViewportProvider>
         </TimelinePanProvider>
       </TimelineFullViewProvider>
     </Box>

@@ -356,6 +356,17 @@ export function buildRoundedEdgeTimes(timelineObjects: ObjectsTimelineObject[]):
 export type TimelineRowDrawCache = {
   roundedEdgeTimes: Set<number>;
   hitsound?: HitsoundDrawCache;
+  /** `timelineObjects` sorted ascending by `startTimeMs` — the raw array is sorted in practice
+   * (chronological hit-object order) but not contractually guaranteed, so we sort defensively
+   * once per difficulty instead of trusting call sites. */
+  sortedObjects: ObjectsTimelineObject[];
+  /** Longest object duration (slider/spinner extent) — used to widen a time-window lower bound
+   * so long objects starting just before the window still get included. */
+  maxObjectDurationMs: number;
+  /** Slider tick samples only, sorted ascending by `timeMs` (samples are already globally
+   * time-sorted server-side, but pre-filtering here avoids re-checking source/objectType per
+   * sample in the hot draw loop). */
+  sortedSliderTickSamples: ObjectsTimelineSample[];
 };
 
 export function buildTimelineRowDrawCache(
@@ -363,26 +374,77 @@ export function buildTimelineRowDrawCache(
   samples: ObjectsTimelineSample[] | undefined,
   isHitsoundView: boolean
 ): TimelineRowDrawCache {
+  const sortedObjects = timelineObjects
+    .slice()
+    .sort((left, right) => left.startTimeMs - right.startTimeMs);
+
+  let maxObjectDurationMs = 0;
+  for (const object of sortedObjects) {
+    const objectDurationMs = object.endTimeMs - object.startTimeMs;
+    if (objectDurationMs > maxObjectDurationMs) {
+      maxObjectDurationMs = objectDurationMs;
+    }
+  }
+
+  const sortedSliderTickSamples = (samples ?? [])
+    .filter((sample) => sample.source === 'Tick' && sample.objectType === 'Slider')
+    .sort((left, right) => left.timeMs - right.timeMs);
+
   return {
     roundedEdgeTimes: buildRoundedEdgeTimes(timelineObjects),
     hitsound: isHitsoundView ? buildHitsoundDrawCache(timelineObjects, samples ?? []) : undefined,
+    sortedObjects,
+    maxObjectDurationMs,
+    sortedSliderTickSamples,
   };
 }
 
+/** Index of the first element with `getTimeMs(item) >= timeMs`, assuming `items` is sorted
+ * ascending by that key. Returns `items.length` if none qualify. Pass `timeMs + epsilon` to get
+ * an exclusive upper bound instead (first index strictly greater than `timeMs`). */
+export function findLowerBoundIndex<T>(
+  items: T[],
+  timeMs: number,
+  getTimeMs: (item: T) => number
+): number {
+  let lo = 0;
+  let hi = items.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >>> 1;
+    if (getTimeMs(items[mid]) < timeMs) {
+      lo = mid + 1;
+    } else {
+      hi = mid;
+    }
+  }
+  return lo;
+}
+
 /** Visible timing-grid snap ticks (same rules as `drawTimingGrid`). */
-export function buildTimelineSnapTicks(
-  difficulties: ObjectsOverviewDifficulty[],
-  startTimeMs: number,
-  endTimeMs: number
-): number[] {
+/** O(objects) across all difficulties — independent of the visible time window, so callers
+ * should memoize this separately from the (potentially scroll-bound) window passed to
+ * `buildTimelineSnapTicks`. */
+export function buildAllRoundedEdgeTimes(difficulties: ObjectsOverviewDifficulty[]): Set<number> {
   const roundedEdgeTimes = new Set<number>();
-  const tickTimes = new Set<number>();
 
   for (const difficulty of difficulties) {
     for (const edgeTimeMs of buildRoundedEdgeTimes(difficulty.timelineObjects)) {
       roundedEdgeTimes.add(edgeTimeMs);
     }
+  }
 
+  return roundedEdgeTimes;
+}
+
+export function buildTimelineSnapTicks(
+  difficulties: ObjectsOverviewDifficulty[],
+  roundedEdgeTimes: Set<number>,
+  startTimeMs: number,
+  endTimeMs: number
+): number[] {
+  const tickTimes = new Set<number>();
+
+  for (const difficulty of difficulties) {
     for (const segment of difficulty.timingSegments) {
       const sampleStepMs = segment.msPerBeat / TIMING_SAMPLES_PER_BEAT;
       if (sampleStepMs <= 0) {
