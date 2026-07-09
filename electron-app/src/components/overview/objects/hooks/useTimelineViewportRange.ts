@@ -1,4 +1,4 @@
-import { useEffect, useState, type RefObject } from 'react';
+import { useLayoutEffect, useState, type RefObject } from 'react';
 import { LABEL_WIDTH } from '../constants.ts';
 
 export type TimelineViewportRange = {
@@ -10,11 +10,17 @@ const FULL_RANGE: TimelineViewportRange = { startX: -Infinity, endX: Infinity };
 const MIN_OVERSCAN_PX = 512;
 
 export function useTimelineViewportRange(
-  scrollRef: RefObject<HTMLDivElement | null>
+  scrollRef: RefObject<HTMLDivElement | null>,
+  timelineWidth: number
 ): TimelineViewportRange {
   const [range, setRange] = useState<TimelineViewportRange>(FULL_RANGE);
 
-  useEffect(() => {
+  // Layout effect (not a plain effect) so that when `timelineWidth` changes (zoom), this runs
+  // synchronously before paint — and, since layout effects fire child-before-parent, after any
+  // scrollLeft correction a child (e.g. usePreserveTimelineScrollOnZoom) makes in the same commit.
+  // Skipping this would leave stale pixel bounds filtering tiles at the new scale for one frame,
+  // which briefly renders nothing (tiles computed with the old window never overlap the new one).
+  useLayoutEffect(() => {
     const scrollElement = scrollRef.current;
     if (!scrollElement) {
       return;
@@ -58,7 +64,7 @@ export function useTimelineViewportRange(
       scrollElement.removeEventListener('scroll', handleScroll);
       resizeObserver.disconnect();
     };
-  }, [scrollRef]);
+  }, [scrollRef, timelineWidth]);
 
   return range;
 }

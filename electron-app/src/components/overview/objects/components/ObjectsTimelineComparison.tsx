@@ -90,7 +90,7 @@ function ObjectsTimelineComparisonBody({ pan }: { pan: TimelinePanValue }) {
     mode: { activeMode },
   } = controller;
 
-  const viewport = useTimelineViewportRange(pan.scrollRef);
+  const viewport = useTimelineViewportRange(pan.scrollRef, controller.zoom.timelineWidth);
 
   const hitsoundAvailable = isHitsoundViewAvailable(activeMode);
   const [selectedViewMode, setSelectedViewMode] = useState<TimelineViewMode>('structure');
