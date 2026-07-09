@@ -1,4 +1,4 @@
-import { ActionIcon, Button, Tooltip } from '@mantine/core';
+import { Button } from '@mantine/core';
 import { IconHelpCircle } from '@tabler/icons-react';
 import { useState } from 'react';
 import ObjectsTimelineHelpModal from './ObjectsTimelineHelpModal.tsx';
