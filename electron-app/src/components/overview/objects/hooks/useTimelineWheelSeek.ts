@@ -13,6 +13,7 @@ type UseTimelineWheelSeekOptions = {
   endTimeMs: number;
   snapTicks: number[];
   tickStepCount?: number;
+  adjustZoom?: (direction: -1 | 1) => void;
   enabled?: boolean;
 };
 
@@ -25,6 +26,7 @@ export function useTimelineWheelSeek({
   endTimeMs,
   snapTicks,
   tickStepCount = 1,
+  adjustZoom,
   enabled = true,
 }: UseTimelineWheelSeekOptions) {
   const seekByDirection = useCallback(
@@ -119,6 +121,14 @@ export function useTimelineWheelSeek({
         return;
       }
 
+      if (event.ctrlKey || event.metaKey) {
+        if (adjustZoom && event.deltaY !== 0) {
+          event.preventDefault();
+          adjustZoom(event.deltaY < 0 ? 1 : -1);
+        }
+        return;
+      }
+
       const useHorizontalDelta = Math.abs(event.deltaX) > Math.abs(event.deltaY);
       if (!event.shiftKey && !useHorizontalDelta) {
         return;
@@ -140,5 +150,5 @@ export function useTimelineWheelSeek({
     return () => {
       scrollElement.removeEventListener('wheel', handleWheel);
     };
-  }, [enabled, scrollRef, seekByDirection]);
+  }, [adjustZoom, enabled, scrollRef, seekByDirection]);
 }

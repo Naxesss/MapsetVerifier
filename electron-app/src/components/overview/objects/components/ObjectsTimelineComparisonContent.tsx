@@ -67,6 +67,7 @@ export default function ObjectsTimelineComparisonContent({
     rows: { orderedDifficulties },
     visibility: { visibilityByDifficulty, setManyVisible },
     display: { timelineThemeVariant, setTimelineThemeVariant },
+    zoom: { adjustZoom },
     dnd,
   } = controller;
 
@@ -93,6 +94,7 @@ export default function ObjectsTimelineComparisonContent({
     endTimeMs,
     snapTicks,
     tickStepCount: tickStep,
+    adjustZoom,
   });
 
   usePreserveTimelineScrollOnZoom({
