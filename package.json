@@ -86,7 +86,9 @@
       "icon": "assets/icons/prod",
       "executableName": "mapsetverifier",
       "desktop": {
-        "StartupWMClass": "mapsetverifier"
+        "entry": {
+          "StartupWMClass": "mapsetverifier"
+        }
       }
     },
     "mac": {
