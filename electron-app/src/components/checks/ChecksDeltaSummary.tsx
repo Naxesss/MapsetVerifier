@@ -22,7 +22,7 @@ import {
   IconTrendingDown,
   IconTrendingUp,
 } from '@tabler/icons-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import IssueDetailDrawer from './IssueDetailDrawer';
 import IssueRow from './IssueRow';
 import BeatmapApi from '../../client/BeatmapApi';
@@ -129,10 +129,7 @@ function renderDeltaIssueLevelChange(issue: ApiCheckDeltaIssue) {
 
   return (
     <Group gap={6}>
-      <LevelIcon
-        level={issue.previousLevel === 'Check' ? 'Info' : issue.previousLevel}
-        size={14}
-      />
+      <LevelIcon level={issue.previousLevel === 'Check' ? 'Info' : issue.previousLevel} size={14} />
       <Text size="xs" c="dimmed">
         to
       </Text>
@@ -333,18 +330,30 @@ export default function ChecksDeltaSummary({
 
   const totalVisible = scopedTabs.reduce((sum, tab) => sum + tab.issues.length, 0);
 
-  useEffect(() => {
-    if (!delta) return;
-    const visible = (issues: ApiCheckDeltaIssue[]) =>
-      issues.filter((issue) => isVisibleIssue(issue, showMinor, hiddenMinorCheckIds));
-    const urgent = visible(delta.newIssues).length + visible(delta.worsenedIssues).length;
-    setExpanded(urgent > 0);
-    setShowMapsetWide(false);
-  }, [delta, showMinor, hiddenMinorCheckIds]);
+  const [prevDeltaToken, setPrevDeltaToken] = useState({ delta, showMinor, hiddenMinorCheckIds });
 
-  useEffect(() => {
+  if (
+    prevDeltaToken.delta !== delta ||
+    prevDeltaToken.showMinor !== showMinor ||
+    prevDeltaToken.hiddenMinorCheckIds !== hiddenMinorCheckIds
+  ) {
+    setPrevDeltaToken({ delta, showMinor, hiddenMinorCheckIds });
+
+    if (delta) {
+      const visible = (issues: ApiCheckDeltaIssue[]) =>
+        issues.filter((issue) => isVisibleIssue(issue, showMinor, hiddenMinorCheckIds));
+      const urgent = visible(delta.newIssues).length + visible(delta.worsenedIssues).length;
+      setExpanded(urgent > 0);
+      setShowMapsetWide(false);
+    }
+  }
+
+  const [prevCategory, setPrevCategory] = useState(category);
+
+  if (category !== prevCategory) {
+    setPrevCategory(category);
     setShowMapsetWide(false);
-  }, [category]);
+  }
 
   if (!delta) return null;
 

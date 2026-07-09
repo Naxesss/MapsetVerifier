@@ -213,7 +213,16 @@ export const UpdaterProvider = ({ children }: { children: React.ReactNode }) => 
   useEffect(() => {
     if (!loaded || startupCheckTriggered) return;
     startupCheckTriggered = true;
-    void checkForUpdates({ silent: true, openModalOnAvailable: true });
+
+    let cancelled = false;
+
+    void Promise.resolve().then(() => {
+      if (!cancelled) void checkForUpdates({ silent: true, openModalOnAvailable: true });
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [checkForUpdates, loaded]);
 
   const value = useMemo<UpdaterContextType>(

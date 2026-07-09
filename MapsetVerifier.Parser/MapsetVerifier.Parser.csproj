@@ -6,10 +6,11 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
-    <PackageReference Include="ppy.osu.Game.Rulesets.Catch" Version="2026.505.0" />
-    <PackageReference Include="ppy.osu.Game.Rulesets.Mania" Version="2026.505.0" />
-    <PackageReference Include="ppy.osu.Game.Rulesets.Osu" Version="2026.505.0" />
-    <PackageReference Include="ppy.osu.Game.Rulesets.Taiko" Version="2026.505.0" />
+    <PackageReference Include="ppy.osu.Game.Rulesets.Catch" Version="2026.702.1" />
+    <PackageReference Include="ppy.osu.Game.Rulesets.Mania" Version="2026.702.1" />
+    <PackageReference Include="ppy.osu.Game.Rulesets.Osu" Version="2026.702.1" />
+    <PackageReference Include="ppy.osu.Game.Rulesets.Taiko" Version="2026.702.1" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MapsetVerifier.Logging\MapsetVerifier.Logging.csproj" />

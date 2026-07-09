@@ -1,6 +1,6 @@
 import { Alert, Text, Box, useMantineTheme, Group, Flex, Collapse, Stack } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import BeatmapActionButtons from './BeatmapActionButtons';
 import ChecksResults from './ChecksResults';
 import DifficultyInfo from './DifficultyInfo';
@@ -36,7 +36,11 @@ function Checks() {
   const difficultyTransitionDurationMs = 220;
   const checkResultsTransitionDurationMs = 320;
 
-  useEffect(() => {
+  const [prevFolder, setPrevFolder] = React.useState(folder);
+
+  if (folder !== prevFolder) {
+    setPrevFolder(folder);
+
     // Reset selected category when changing beatmap
     if (folder) {
       setSelectedCategory('General');
@@ -44,7 +48,7 @@ function Checks() {
       setIsDifficultyContentVisible(true);
       setHoveredDifficulty(undefined);
     }
-  }, [folder]);
+  }
 
   const {
     data,
@@ -83,18 +87,21 @@ function Checks() {
     }, [resetOverrides])
   );
 
-  const difficultiesForTabs = useMemo((): ApiCategoryCheckResult[] => {
-    if (data?.difficulties) return data.difficulties;
-    if (!structure?.difficulties) return [];
+  const dataDifficulties = data?.difficulties;
+  const structureDifficulties = structure?.difficulties;
 
-    return structure.difficulties.map((difficulty) => ({
+  const difficultiesForTabs = useMemo((): ApiCategoryCheckResult[] => {
+    if (dataDifficulties) return dataDifficulties;
+    if (!structureDifficulties) return [];
+
+    return structureDifficulties.map((difficulty) => ({
       category: difficulty.category,
       beatmapId: difficulty.beatmapId ?? undefined,
       checkResults: [],
       mode: difficulty.mode,
       starRating: difficulty.starRating ?? null,
     }));
-  }, [data?.difficulties, structure?.difficulties]);
+  }, [dataDifficulties, structureDifficulties]);
 
   const selectedDifficulty = difficultiesForTabs.find((d) => d.category === selectedCategory);
   const displayedDifficulty = data?.difficulties?.find((d) => d.category === displayedCategory);
@@ -186,39 +193,43 @@ function Checks() {
       }));
   }, [difficultiesForTabs]);
 
-  useEffect(() => {
-    if (groupedDifficulties.length > 0 && !selectedMode) {
-      setSelectedMode(groupedDifficulties[0].mode);
-    }
-  }, [groupedDifficulties, selectedMode]);
+  if (groupedDifficulties.length > 0 && !selectedMode) {
+    setSelectedMode(groupedDifficulties[0].mode);
+  }
 
   const selectedGroup =
     groupedDifficulties.find((g) => g.mode === selectedMode) ?? groupedDifficulties[0];
 
-  useEffect(() => {
-    if (difficultiesForTabs.length === 0) return;
+  const [prevSyncToken, setPrevSyncToken] = React.useState({
+    data,
+    difficultiesForTabs,
+    selectedCategory,
+    displayedCategory,
+  });
 
-    const nextCategory = selectedCategory ?? 'General';
-    const categoryExists =
-      nextCategory === 'General' ||
-      difficultiesForTabs.some((difficulty) => difficulty.category === nextCategory);
+  if (
+    prevSyncToken.data !== data ||
+    prevSyncToken.difficultiesForTabs !== difficultiesForTabs ||
+    prevSyncToken.selectedCategory !== selectedCategory ||
+    prevSyncToken.displayedCategory !== displayedCategory
+  ) {
+    setPrevSyncToken({ data, difficultiesForTabs, selectedCategory, displayedCategory });
 
-    if (!categoryExists) {
-      setSelectedCategory('General');
-      setDisplayedCategory('General');
-      setIsDifficultyContentVisible(true);
-      return;
+    if (difficultiesForTabs.length > 0) {
+      const nextCategory = selectedCategory ?? 'General';
+      const categoryExists =
+        nextCategory === 'General' ||
+        difficultiesForTabs.some((difficulty) => difficulty.category === nextCategory);
+
+      if (!categoryExists) {
+        setSelectedCategory('General');
+        setDisplayedCategory('General');
+        setIsDifficultyContentVisible(true);
+      } else if (data) {
+        setIsDifficultyContentVisible(displayedCategory === nextCategory);
+      }
     }
-
-    if (!data) return;
-
-    if (displayedCategory === nextCategory) {
-      setIsDifficultyContentVisible(true);
-      return;
-    }
-
-    setIsDifficultyContentVisible(false);
-  }, [data, difficultiesForTabs, selectedCategory, displayedCategory]);
+  }
 
   if (!folder) {
     return (

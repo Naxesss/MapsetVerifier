@@ -90,8 +90,10 @@ function ObjectsTimelineComparisonBody({ pan }: { pan: TimelinePanValue }) {
 
   const hitsoundAvailable = isHitsoundViewAvailable(activeMode);
   const [selectedViewMode, setSelectedViewMode] = useState<TimelineViewMode>('structure');
-  const viewMode = useDeferredValue(selectedViewMode);
-  const isViewModePending = selectedViewMode !== viewMode;
+  const effectiveSelectedViewMode =
+    !hitsoundAvailable && selectedViewMode === 'hitsounding' ? 'structure' : selectedViewMode;
+  const viewMode = useDeferredValue(effectiveSelectedViewMode);
+  const isViewModePending = effectiveSelectedViewMode !== viewMode;
   const [hitsoundLayers, setHitsoundLayers] =
     useState<HitsoundLayerVisibility>(DEFAULT_HITSOUND_LAYERS);
 
@@ -100,12 +102,6 @@ function ObjectsTimelineComparisonBody({ pan }: { pan: TimelinePanValue }) {
       pan.stopDragging();
     };
   }, [pan.stopDragging]);
-
-  useEffect(() => {
-    if (!hitsoundAvailable && selectedViewMode === 'hitsounding') {
-      setSelectedViewMode('structure');
-    }
-  }, [hitsoundAvailable, selectedViewMode]);
 
   const rowHeight = viewMode === 'hitsounding' ? HITSOUND_ROW_HEIGHT : ROW_HEIGHT;
 
@@ -133,7 +129,7 @@ function ObjectsTimelineComparisonBody({ pan }: { pan: TimelinePanValue }) {
         <Group gap="xs" wrap="nowrap">
           <SegmentedControl
             size="xs"
-            value={selectedViewMode}
+            value={effectiveSelectedViewMode}
             onChange={(value) => setSelectedViewMode(value as TimelineViewMode)}
             data={[
               { label: 'Structure', value: 'structure' },
@@ -148,7 +144,7 @@ function ObjectsTimelineComparisonBody({ pan }: { pan: TimelinePanValue }) {
         </Group>
       </Tooltip>
     ),
-    [hitsoundAvailable, isViewModePending, selectedViewMode]
+    [hitsoundAvailable, isViewModePending, effectiveSelectedViewMode]
   );
 
   const headerExtra = useMemo(

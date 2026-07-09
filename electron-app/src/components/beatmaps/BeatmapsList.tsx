@@ -1,5 +1,5 @@
 import { Flex, SegmentedControl } from '@mantine/core';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import LazerBeatmapsPanel from './LazerBeatmapsPanel.tsx';
 import StableBeatmapsPanel from './StableBeatmapsPanel.tsx';
 
@@ -11,13 +11,8 @@ interface Props {
 
 export default function BeatmapsList({ songFolder, lazerLookupEnabled, onOpenSettings }: Props) {
   const [lookupMode, setLookupMode] = useState<'stable' | 'lazer'>('stable');
-  const stableEnabled = lookupMode === 'stable';
-
-  useEffect(() => {
-    if (!lazerLookupEnabled && lookupMode === 'lazer') {
-      setLookupMode('stable');
-    }
-  }, [lazerLookupEnabled, lookupMode]);
+  const effectiveLookupMode = !lazerLookupEnabled && lookupMode === 'lazer' ? 'stable' : lookupMode;
+  const stableEnabled = effectiveLookupMode === 'stable';
 
   return (
     <Flex
@@ -36,7 +31,7 @@ export default function BeatmapsList({ songFolder, lazerLookupEnabled, onOpenSet
               { label: 'osu!(stable)', value: 'stable' },
               { label: 'osu!(lazer)', value: 'lazer' },
             ]}
-            value={lookupMode}
+            value={effectiveLookupMode}
             onChange={(value) => setLookupMode(value as 'stable' | 'lazer')}
           />
         </Flex>

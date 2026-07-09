@@ -1,12 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { getDifficultyKey } from '../timelineUtils.ts';
 import type { ObjectsOverviewDifficulty } from '../../../../Types';
 import type { ObjectsModeGroup } from '../types.ts';
 
 export function useDifficultyRowVisibility(groupedDifficulties: ObjectsModeGroup[]) {
   const [visibilityByDifficulty, setVisibilityByDifficulty] = useState<Record<string, boolean>>({});
+  const [prevGroupedDifficulties, setPrevGroupedDifficulties] = useState(groupedDifficulties);
 
-  useEffect(() => {
+  if (groupedDifficulties !== prevGroupedDifficulties) {
+    setPrevGroupedDifficulties(groupedDifficulties);
+
     const allDifficultyKeys = groupedDifficulties.flatMap((group) =>
       group.difficulties.map(getDifficultyKey)
     );
@@ -24,7 +27,7 @@ export function useDifficultyRowVisibility(groupedDifficulties: ObjectsModeGroup
 
       return changed ? next : current;
     });
-  }, [groupedDifficulties]);
+  }
 
   const toggleDifficultyVisibility = (difficulty: ObjectsOverviewDifficulty) => {
     const difficultyKey = getDifficultyKey(difficulty);

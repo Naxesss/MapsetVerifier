@@ -128,7 +128,17 @@ export function ChartHoverFloatingPanel({
   }, [boundsRef, setMoveNode, resetKey]);
 
   useEffect(() => {
-    applyPosition(DEFAULT_POSITION);
+    let cancelled = false;
+
+    void Promise.resolve().then(() => {
+      if (!cancelled) {
+        applyPosition(DEFAULT_POSITION);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [applyPosition, resetKey]);
 
   useLayoutEffect(() => {

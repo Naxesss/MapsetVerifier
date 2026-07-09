@@ -122,8 +122,8 @@ function checkRunDeltaDisabledHint(): PageHint {
     id: 'check-run-delta-disabled',
     content: (
       <>
-        Want to see what changed since your last check run?
-        Enable &quot;Show check changes since last run&quot; in Settings.
+        Want to see what changed since your last check run? Enable &quot;Show check changes since
+        last run&quot; in Settings.
       </>
     ),
   };

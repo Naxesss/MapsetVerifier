@@ -175,9 +175,18 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   }
 
   useEffect(() => {
-    loadSettings().then((savedSongFolder) => {
-      findOsuLocationAndSet(savedSongFolder);
+    let cancelled = false;
+
+    void Promise.resolve().then(() => {
+      if (cancelled) return;
+      loadSettings().then((savedSongFolder) => {
+        if (!cancelled) findOsuLocationAndSet(savedSongFolder);
+      });
     });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
