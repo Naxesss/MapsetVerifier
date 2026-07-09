@@ -11,7 +11,15 @@ import {
   useMantineTheme,
 } from '@mantine/core';
 import { IconArrowsMaximize } from '@tabler/icons-react';
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent,
+} from 'react';
 import {
   DifficultyChartPanel,
   INLINE_PLOT_HEIGHT,
@@ -97,22 +105,33 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
   const [hover, setHover] = useState<ChartHoverPayload | null>(null);
   const [hoverSafeZone, setHoverSafeZone] = useState(false);
   const modalBodyRef = useRef<HTMLDivElement>(null);
-  const lastHoverRef = useRef<ChartHoverPayload | null>(null);
+  const [lastHover, setLastHover] = useState<ChartHoverPayload | null>(null);
   const hoverSafeZoneRef = useRef(false);
 
-  hoverSafeZoneRef.current = hoverSafeZone;
+  useLayoutEffect(() => {
+    hoverSafeZoneRef.current = hoverSafeZone;
+  }, [hoverSafeZone]);
 
   useEffect(() => {
-    setIgnoreLowVolume(true);
-    setModalOpened(false);
-    setHover(null);
-    setHoverSafeZone(false);
-    lastHoverRef.current = null;
+    let cancelled = false;
+
+    void Promise.resolve().then(() => {
+      if (cancelled) return;
+      setIgnoreLowVolume(true);
+      setModalOpened(false);
+      setHover(null);
+      setHoverSafeZone(false);
+      setLastHover(null);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [folder]);
 
   const handleChartHover = useCallback((payload: ChartHoverPayload | null) => {
     if (payload) {
-      lastHoverRef.current = payload;
+      setLastHover(payload);
       setHover(payload);
       return;
     }
@@ -122,7 +141,7 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
     }
   }, []);
 
-  const effectiveHover = hover ?? (hoverSafeZone ? lastHoverRef.current : null);
+  const effectiveHover = hover ?? (hoverSafeZone ? lastHover : null);
 
   const handleModalBodyPointerLeave = useCallback((event: PointerEvent<HTMLDivElement>) => {
     const related = event.relatedTarget;
@@ -132,7 +151,7 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
 
     setHoverSafeZone(false);
     setHover(null);
-    lastHoverRef.current = null;
+    setLastHover(null);
   }, []);
 
   const displayData = useMemo(() => {
@@ -271,7 +290,7 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
           setModalOpened(false);
           setHover(null);
           setHoverSafeZone(false);
-          lastHoverRef.current = null;
+          setLastHover(null);
         }}
         title={chart.title}
         size="100%"

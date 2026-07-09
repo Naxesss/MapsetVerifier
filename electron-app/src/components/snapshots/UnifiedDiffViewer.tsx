@@ -1,6 +1,6 @@
 import { Accordion, Badge, Group, Text, useMantineTheme } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
-import { MouseEvent, useEffect, useMemo, useState } from 'react';
+import { MouseEvent, useMemo, useState } from 'react';
 import SnapshotDiffLine, { getDiffTypeIcon } from './SnapshotDiffLine';
 import { ApiSnapshotCommit, ApiSnapshotSection, ApiSnapshotDiff, DiffType } from '../../Types';
 import { InfoIconTooltip } from '../common/InfoIconTooltip.tsx';
@@ -117,10 +117,12 @@ function UnifiedDiffViewer({ commit }: UnifiedDiffViewerProps) {
   const [expandedSections, setExpandedSections] = useState<string[]>(
     commit.sections.map((section) => section.name)
   );
+  const [prevCommit, setPrevCommit] = useState(commit);
 
-  useEffect(() => {
+  if (commit !== prevCommit) {
+    setPrevCommit(commit);
     setExpandedSections(commit.sections.map((section) => section.name));
-  }, [commit]);
+  }
 
   if (commit.sections.length === 0) {
     return (

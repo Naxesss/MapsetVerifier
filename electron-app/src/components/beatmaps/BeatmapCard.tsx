@@ -25,7 +25,7 @@ function BeatmapCard({
   const { selectedFolder, setSelectedFolder } = useBeatmap();
   const { settings, setSettings } = useSettings();
   const [bgUrl, setBgUrl] = useState<string | undefined>(undefined);
-  const [imageLoading, setImageLoading] = useState(true);
+  const [loadedCandidate, setLoadedCandidate] = useState<string | undefined>(undefined);
   const [isHovered, setIsHovered] = useState(false);
   const { triggerReparse } = useBeatmapReparse();
 
@@ -40,29 +40,26 @@ function BeatmapCard({
     }));
   };
 
-  useEffect(() => {
-    if (!beatmap.folder || beatmap.folder === 'placeholder') {
-      setBgUrl(undefined);
-      setImageLoading(false);
-      return;
-    }
+  const hasFolder = !!beatmap.folder && beatmap.folder !== 'placeholder';
+  const candidate = hasFolder ? buildBeatmapImageUrl(beatmap.folder, { songFolder }) : undefined;
 
-    setImageLoading(true);
-    const candidate = buildBeatmapImageUrl(beatmap.folder, { songFolder });
+  useEffect(() => {
+    if (!candidate) return;
+
     let cancelled = false;
     const img = new Image();
 
     img.onload = () => {
       if (!cancelled) {
         setBgUrl(candidate);
-        setImageLoading(false);
+        setLoadedCandidate(candidate);
       }
     };
 
     img.onerror = () => {
       if (!cancelled) {
         setBgUrl(undefined);
-        setImageLoading(false);
+        setLoadedCandidate(candidate);
       }
     };
 
@@ -71,7 +68,10 @@ function BeatmapCard({
     return () => {
       cancelled = true;
     };
-  }, [beatmap.folder, songFolder]);
+  }, [candidate]);
+
+  const displayedBgUrl = hasFolder && loadedCandidate === candidate ? bgUrl : undefined;
+  const imageLoading = hasFolder && loadedCandidate !== candidate;
 
   const isSelected = isSelectedOverride ?? selectedFolder === beatmap.folder;
 
@@ -183,8 +183,8 @@ function BeatmapCard({
           backgroundRepeat: 'no-repeat',
           borderRadius: 'var(--mantine-radius-md)',
           zIndex: 0,
-          backgroundImage: bgUrl ? `url('${bgUrl}')` : 'none',
-          opacity: bgUrl ? 1 : 0,
+          backgroundImage: displayedBgUrl ? `url('${displayedBgUrl}')` : 'none',
+          opacity: displayedBgUrl ? 1 : 0,
           transform: `scale(${cardVisual.scale})`,
           transformOrigin: 'center center',
           transition: `transform ${transitionMs}, opacity 0.35s ease`,

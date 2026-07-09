@@ -65,6 +65,20 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
 }) => {
   const [levelFilter, setLevelFilter] = React.useState<DisplayLevel | null>(null);
   const [groupUiState, setGroupUiState] = React.useState<Record<number, CheckGroupUiState>>({});
+  const [prevGroupUiToken, setPrevGroupUiToken] = React.useState({
+    levelFilter,
+    selectedCategory,
+    overrideResult,
+  });
+
+  if (
+    prevGroupUiToken.levelFilter !== levelFilter ||
+    prevGroupUiToken.selectedCategory !== selectedCategory ||
+    prevGroupUiToken.overrideResult !== overrideResult
+  ) {
+    setPrevGroupUiToken({ levelFilter, selectedCategory, overrideResult });
+    setGroupUiState({});
+  }
 
   const overrideCategoryResult = overrideResult?.categoryResult;
   const categoryData = React.useMemo(() => {
@@ -154,10 +168,6 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
     overrideCategoryResult && overrideCategoryResult.category === selectedCategory
       ? overrideResult.checks
       : data.checks;
-
-  React.useEffect(() => {
-    setGroupUiState({});
-  }, [levelFilter, selectedCategory, overrideResult]);
 
   const toggleGroupOpen = React.useCallback((id: number) => {
     setGroupUiState((current) => {

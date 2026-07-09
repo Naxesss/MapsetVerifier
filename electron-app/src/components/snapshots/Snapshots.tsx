@@ -9,7 +9,7 @@ import {
   Title,
 } from '@mantine/core';
 import { IconAlertCircle, IconPhotoOff } from '@tabler/icons-react';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useSnapshots } from './hooks/useSnapshots';
 import SnapshotContent from './SnapshotContent';
 import SnapshotGameModeSelector from './SnapshotGameModeSelector';
@@ -45,13 +45,17 @@ function Snapshots() {
   const [selectedMode, setSelectedMode] = useState<Mode | undefined>();
   const [selectedCommitId, setSelectedCommitId] = useState<string | undefined>();
 
-  useEffect(() => {
+  const [prevFolder, setPrevFolder] = useState(folder);
+
+  if (folder !== prevFolder) {
+    setPrevFolder(folder);
+
     // Reset selected difficulty when changing beatmap
     if (folder) {
       setSelectedDifficulty('General');
       setSelectedCommitId(undefined);
     }
-  }, [folder]);
+  }
 
   const { data, isLoading, isError, error } = useSnapshots({
     folder,
@@ -60,9 +64,11 @@ function Snapshots() {
 
   const { bgUrl } = useBeatmapBackground(folder, settings.songFolder);
 
+  const dataDifficulties = data?.difficulties;
+
   // Group difficulties by mode (excluding General which is handled separately)
   const groupedDifficulties = useMemo((): ModeGroup[] => {
-    if (!data?.difficulties) return [];
+    if (!dataDifficulties) return [];
 
     // Group difficulties by mode
     const modeGroups: Record<Mode, ApiSnapshotDifficulty[]> = {
@@ -72,7 +78,7 @@ function Snapshots() {
       Mania: [],
     };
 
-    data.difficulties.forEach((diff) => {
+    dataDifficulties.forEach((diff) => {
       if (!diff.isGeneral && diff.mode) {
         modeGroups[diff.mode].push(diff);
       }
@@ -85,13 +91,11 @@ function Snapshots() {
         mode,
         difficulties: modeGroups[mode],
       }));
-  }, [data?.difficulties]);
+  }, [dataDifficulties]);
 
-  useEffect(() => {
-    if (groupedDifficulties.length > 0 && !selectedMode) {
-      setSelectedMode(groupedDifficulties[0].mode);
-    }
-  }, [groupedDifficulties, selectedMode]);
+  if (groupedDifficulties.length > 0 && !selectedMode) {
+    setSelectedMode(groupedDifficulties[0].mode);
+  }
 
   const selectedGroup =
     groupedDifficulties.find((g) => g.mode === selectedMode) ?? groupedDifficulties[0];
@@ -121,18 +125,22 @@ function Snapshots() {
     return { beatmapSetId, subfolder: String(beatmapId) };
   }, [beatmapInfo?.beatmapSetId, data, isLoading, selectedDifficulty, selectedSnapshotDifficulty]);
 
-  useEffect(() => {
+  const [prevActiveSnapshotHistory, setPrevActiveSnapshotHistory] = useState(activeSnapshotHistory);
+
+  if (activeSnapshotHistory !== prevActiveSnapshotHistory) {
+    setPrevActiveSnapshotHistory(activeSnapshotHistory);
+
     if (!activeSnapshotHistory?.commits.length) {
       setSelectedCommitId(undefined);
-      return;
+    } else {
+      setSelectedCommitId((current) => {
+        if (current && activeSnapshotHistory.commits.some((c) => c.id === current)) {
+          return current;
+        }
+        return activeSnapshotHistory.commits[0].id;
+      });
     }
-    setSelectedCommitId((current) => {
-      if (current && activeSnapshotHistory.commits.some((c) => c.id === current)) {
-        return current;
-      }
-      return activeSnapshotHistory.commits[0].id;
-    });
-  }, [activeSnapshotHistory]);
+  }
 
   if (!folder) {
     return <NoBeatmapsetDisplay />;

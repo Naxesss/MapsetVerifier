@@ -1,7 +1,6 @@
 ﻿using osu.Game.Beatmaps;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Difficulty;
-using osu.Game.Rulesets.Difficulty.Preprocessing;
 using osu.Game.Rulesets.Difficulty.Skills;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Taiko.Difficulty;
@@ -22,11 +21,10 @@ public class ExtendedTaikoDifficultyCalculator(
     protected override DifficultyAttributes CreateDifficultyAttributes(
         IBeatmap beatmap,
         Mod[] mods,
-        Skill[] skills,
-        double clockRate
+        Skill[] skills
     )
     {
         mvBeatmap.Skills = skills;
-        return base.CreateDifficultyAttributes(beatmap, mods, mvBeatmap.Skills, clockRate);
+        return base.CreateDifficultyAttributes(beatmap, mods, mvBeatmap.Skills);
     }
 }
