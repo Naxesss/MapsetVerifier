@@ -14,11 +14,19 @@ import {
   Table,
   Text,
 } from '@mantine/core';
-import { IconAlertTriangle, IconFolder, IconInfoCircle, IconRefresh } from '@tabler/icons-react';
+import {
+  IconAlertTriangle,
+  IconBook,
+  IconFolder,
+  IconInfoCircle,
+  IconRefresh,
+} from '@tabler/icons-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PluginApi from '../../client/PluginApi.ts';
+import { CUSTOM_CHECKS_DOCS_URL } from '../../Constants.ts';
 import { useDocumentation } from '../../context/DocumentationContext.tsx';
 import { useSettings } from '../../context/SettingsContext.tsx';
+import { useOpenExternal } from '../../hooks/useOpenExternal';
 import { ApiPluginReport } from '../../Types.ts';
 
 interface PluginManagerProps {
@@ -28,6 +36,7 @@ interface PluginManagerProps {
 const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
   const { reload: reloadDocumentation } = useDocumentation();
   const { settings, setSettings } = useSettings();
+  const openExternal = useOpenExternal();
   const [report, setReport] = useState<ApiPluginReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -136,7 +145,17 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
           </List.Item>
         </List>
       </Alert>
-      <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+      <Alert
+        icon={<IconAlertTriangle />}
+        title="Plugins built for MapsetVerifier V1"
+        color="orange"
+        variant="light"
+      >
+        Plugins built against the old MapsetVerifier V1 API are not compatible with this version and
+        will fail to load. See the custom checks documentation for the current plugin API and how to
+        update an existing plugin.
+      </Alert>
+      <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="sm">
         <Button
           size="sm"
           variant="light"
@@ -153,6 +172,14 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
           disabled={loading}
         >
           Reload checks
+        </Button>
+        <Button
+          size="sm"
+          variant="light"
+          leftSection={<IconBook size={18} />}
+          onClick={() => void openExternal(CUSTOM_CHECKS_DOCS_URL)}
+        >
+          Custom checks docs
         </Button>
       </SimpleGrid>
       <Group justify="space-between" align="center" wrap="nowrap">
