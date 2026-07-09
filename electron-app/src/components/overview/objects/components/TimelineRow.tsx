@@ -11,6 +11,7 @@ import {
   useTimelineDisplay,
   useTimelinePan,
   useTimelineScale,
+  useTimelineViewport,
 } from '../context/ObjectsTimelineContext.tsx';
 import { type HitsoundLayerVisibility, type TimelineViewMode } from '../hitsoundUtils.ts';
 import {
@@ -152,7 +153,15 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
   const { startTimeMs, endTimeMs, timelineWidth } = useTimelineScale();
   const { isPanningTimeline } = useTimelinePan();
   const { timelineThemeVariant, viewMode, hitsoundLayers } = useTimelineDisplay();
+  const viewport = useTimelineViewport();
   const canvasTiles = useMemo(() => getTimelineCanvasTiles(timelineWidth), [timelineWidth]);
+  const visibleCanvasTiles = useMemo(
+    () =>
+      canvasTiles.filter(
+        (tile) => tile.startX + tile.width > viewport.startX && tile.startX < viewport.endX
+      ),
+    [canvasTiles, viewport.startX, viewport.endX]
+  );
   const rowDrawCache = useMemo(
     () =>
       buildTimelineRowDrawCache(
@@ -266,7 +275,7 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
         transition: `height ${TIMELINE_VIEW_MODE_TRANSITION_MS}ms ${TIMELINE_VIEW_MODE_TRANSITION_EASING}`,
       }}
     >
-      {canvasTiles.map((tile) => (
+      {visibleCanvasTiles.map((tile) => (
         <TimelineCanvasTile
           key={tile.startX}
           tile={tile}

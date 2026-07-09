@@ -20,6 +20,7 @@ import {
   TimelineControllerProvider,
   TimelineFullViewProvider,
   TimelinePanProvider,
+  TimelineViewportProvider,
   useTimelineController,
 } from '../context/ObjectsTimelineContext.tsx';
 import {
@@ -30,6 +31,7 @@ import {
 } from '../hitsoundUtils.ts';
 import { useHorizontalScrollPan } from '../hooks/useHorizontalScrollPan.ts';
 import { useObjectsTimelineController } from '../hooks/useObjectsTimelineController.ts';
+import { useTimelineViewportRange } from '../hooks/useTimelineViewportRange.ts';
 import type { Mode, ObjectsOverviewDifficulty } from '../../../../Types';
 import type { TimelinePanValue } from '../context/types.ts';
 import type { ObjectsModeGroup } from '../types.ts';
@@ -87,6 +89,8 @@ function ObjectsTimelineComparisonBody({ pan }: { pan: TimelinePanValue }) {
   const {
     mode: { activeMode },
   } = controller;
+
+  const viewport = useTimelineViewportRange(pan.scrollRef);
 
   const hitsoundAvailable = isHitsoundViewAvailable(activeMode);
   const [selectedViewMode, setSelectedViewMode] = useState<TimelineViewMode>('structure');
@@ -182,15 +186,17 @@ function ObjectsTimelineComparisonBody({ pan }: { pan: TimelinePanValue }) {
     <Box pos="relative">
       <TimelineFullViewProvider value={fullViewValue}>
         <TimelinePanProvider value={pan}>
-          <ObjectsTimelineComparisonContent
-            showModeSelector
-            showVisibilityControls
-            showThemeControls
-            showZoomControls
-            scrollModeExtra={scrollModeExtra}
-            headerExtra={headerExtra}
-            aboveTimelineExtra={hitsoundAvailable ? <HitsoundStripLegend /> : undefined}
-          />
+          <TimelineViewportProvider value={viewport}>
+            <ObjectsTimelineComparisonContent
+              showModeSelector
+              showVisibilityControls
+              showThemeControls
+              showZoomControls
+              scrollModeExtra={scrollModeExtra}
+              headerExtra={headerExtra}
+              aboveTimelineExtra={hitsoundAvailable ? <HitsoundStripLegend /> : undefined}
+            />
+          </TimelineViewportProvider>
         </TimelinePanProvider>
       </TimelineFullViewProvider>
     </Box>
