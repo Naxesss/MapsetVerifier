@@ -121,9 +121,9 @@ function ChecksResults({
               }}
             >
               <Text size="xs" c="dimmed" lh={2}>
-                Minor issues exist for checks hidden in{' '}
+                Negligible issues exist for checks hidden in{' '}
                 <Text span fw={600} inherit>
-                  Settings → Minor checks filter
+                  Settings → Negligible checks filter
                 </Text>
                 . They are omitted from this list.
               </Text>

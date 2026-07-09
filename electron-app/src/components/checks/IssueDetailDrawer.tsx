@@ -5,6 +5,7 @@ import {
   Button,
   Divider,
   Drawer,
+  Grid,
   Group,
   Loader,
   Paper,
@@ -22,6 +23,7 @@ import {
   ApiDocumentationCheckDetails,
   Level,
 } from '../../Types';
+import { getLevelLabel } from '../../utils/levelLabel';
 import OsuLink from '../common/OsuLink';
 import { buildOsuEditHref, parseOsuLinkSegments } from '../common/osuLinkUtils';
 import DocumentationOutcomeBlockquote from '../documentation/DocumentationOutcomeBlockquote';
@@ -34,15 +36,15 @@ interface IssueDetailDrawerProps {
   issue: ApiCheckResult | null;
   checkName?: string;
   documentationCheck?: ApiDocumentationCheck;
+  onCopyIssue: () => void;
+  groupCount?: number;
+  onCopyAll?: () => void;
+  sameSeverityCount?: number;
+  onCopySameSeverity?: () => void;
 }
 
-function normalizeLevel(level: Level): Exclude<Level, 'Check'> {
+export function normalizeLevel(level: Level): Exclude<Level, 'Check'> {
   return level === 'Check' ? 'Info' : level;
-}
-
-function getIssueCopyText(issue: ApiCheckResult, checkName?: string) {
-  const title = checkName ? `${checkName}` : `Check #${issue.id}`;
-  return `${title}\n${issue.message}`;
 }
 
 function getIssueTimestamps(issue: ApiCheckResult | null) {
@@ -53,7 +55,7 @@ function getIssueTimestamps(issue: ApiCheckResult | null) {
     .map((segment) => segment.value);
 }
 
-async function copyToClipboard(text: string, message: string) {
+export async function copyToClipboard(text: string, message: string) {
   try {
     await navigator.clipboard.writeText(text);
     notifications.show({
@@ -76,6 +78,11 @@ export default function IssueDetailDrawer({
   issue,
   checkName,
   documentationCheck,
+  onCopyIssue,
+  groupCount,
+  onCopyAll,
+  sameSeverityCount,
+  onCopySameSeverity,
 }: IssueDetailDrawerProps) {
   const normalizedLevel = issue ? normalizeLevel(issue.level) : 'Info';
   const timestamps = getIssueTimestamps(issue);
@@ -144,15 +151,46 @@ export default function IssueDetailDrawer({
     >
       {issue ? (
         <Stack gap="lg">
-          <Group justify="space-between" align="center">
-            <Button
-              variant="light"
-              leftSection={<IconCopy size={14} />}
-              onClick={() => copyToClipboard(getIssueCopyText(issue, checkName), 'Issue copied.')}
-            >
-              Copy issue
-            </Button>
-          </Group>
+          <Grid grow>
+            <Grid.Col span={4}>
+              <Button
+                w="100%"
+                variant="light"
+                leftSection={<IconCopy size={14} />}
+                onClick={onCopyIssue}
+              >
+                Copy issue
+              </Button>
+            </Grid.Col>
+            {onCopySameSeverity &&
+              sameSeverityCount &&
+              sameSeverityCount > 1 &&
+              groupCount &&
+              sameSeverityCount < groupCount && (
+                <Grid.Col span={4}>
+                  <Button
+                    w="100%"
+                    variant="light"
+                    leftSection={<IconCopy size={14} />}
+                    onClick={onCopySameSeverity}
+                  >
+                    Copy {getLevelLabel(normalizedLevel)} ({sameSeverityCount})
+                  </Button>
+                </Grid.Col>
+              )}
+            {onCopyAll && groupCount && groupCount > 1 && (
+              <Grid.Col span={4}>
+                <Button
+                  w="100%"
+                  variant="light"
+                  leftSection={<IconCopy size={14} />}
+                  onClick={onCopyAll}
+                >
+                  Copy all ({groupCount})
+                </Button>
+              </Grid.Col>
+            )}
+          </Grid>
 
           <Stack gap="xs">
             <Title order={3}>Full message</Title>

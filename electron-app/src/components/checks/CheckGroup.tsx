@@ -1,9 +1,10 @@
-import { Collapse, Flex, Stack, Text } from '@mantine/core';
-import { IconChevronRight } from '@tabler/icons-react';
+import { Button, Collapse, Flex, Group, Modal, Stack, Text } from '@mantine/core';
+import { IconChevronRight, IconCopy } from '@tabler/icons-react';
 import React, { useMemo, useState } from 'react';
-import IssueDetailDrawer from './IssueDetailDrawer';
+import IssueDetailDrawer, { copyToClipboard, normalizeLevel } from './IssueDetailDrawer';
 import IssueRow from './IssueRow';
 import { ApiCheckResult, Level } from '../../Types';
+import { getLevelLabel } from '../../utils/levelLabel';
 import { useDocumentationChecks } from '../documentation/hooks/useDocumentationChecks';
 import LevelIcon from '../icons/LevelIcon.tsx';
 
@@ -18,6 +19,13 @@ interface CheckGroupProps {
 }
 
 const VISIBLE_COUNT = 5;
+const LARGE_GROUP_THRESHOLD = 25;
+
+export function getGroupCopyText(items: ApiCheckResult[], groupName?: string) {
+  const title = groupName ? groupName : 'Issues';
+  const lines = items.map((item) => `- ${item.message}`);
+  return [title, ...lines].join('\n');
+}
 
 const CheckGroup: React.FC<CheckGroupProps> = ({
   id,
@@ -43,6 +51,10 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
   }, [items]);
 
   const [selectedIssue, setSelectedIssue] = useState<ApiCheckResult | null>(null);
+  const [pendingCopy, setPendingCopy] = useState<{
+    items: ApiCheckResult[];
+    description: string;
+  } | null>(null);
   const { getCheckById } = useDocumentationChecks();
   const documentationCheck = getCheckById(id);
 
@@ -53,6 +65,41 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
       e.preventDefault();
       toggle();
     }
+  };
+
+  const performCopy = (copyItems: ApiCheckResult[]) =>
+    copyToClipboard(getGroupCopyText(copyItems, name), `Copied ${copyItems.length} issues.`);
+
+  const triggerCopy = (copyItems: ApiCheckResult[], description: string) => {
+    if (copyItems.length > LARGE_GROUP_THRESHOLD) {
+      setPendingCopy({ items: copyItems, description });
+    } else {
+      performCopy(copyItems);
+    }
+  };
+
+  const triggerCopyAll = () => triggerCopy(items, `all ${items.length} issues`);
+
+  const triggerCopyIssue = () => {
+    if (!selectedIssue) return;
+    triggerCopy([selectedIssue], '1 issue');
+  };
+
+  const onCopyAllClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    triggerCopyAll();
+  };
+
+  const sameSeverityItems = useMemo(() => {
+    if (!selectedIssue) return [];
+    const level = normalizeLevel(selectedIssue.level);
+    return items.filter((item) => normalizeLevel(item.level) === level);
+  }, [items, selectedIssue]);
+
+  const triggerCopySameSeverity = () => {
+    if (!selectedIssue) return;
+    const level = normalizeLevel(selectedIssue.level);
+    triggerCopy(sameSeverityItems, `${sameSeverityItems.length} ${getLevelLabel(level)} issues`);
   };
 
   const firstItems = items.slice(0, VISIBLE_COUNT);
@@ -85,6 +132,15 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
         <Text size="sm" fw="bold">
           {name}
         </Text>
+        <Button
+          size="compact-xs"
+          variant="subtle"
+          ml="auto"
+          leftSection={<IconCopy size={13} />}
+          onClick={onCopyAllClick}
+        >
+          Copy all ({items.length})
+        </Button>
       </Flex>
 
       <Collapse in={isOpen}>
@@ -125,7 +181,39 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
         issue={selectedIssue}
         checkName={name}
         documentationCheck={documentationCheck}
+        onCopyIssue={triggerCopyIssue}
+        groupCount={items.length}
+        onCopyAll={triggerCopyAll}
+        sameSeverityCount={sameSeverityItems.length}
+        onCopySameSeverity={triggerCopySameSeverity}
       />
+
+      <Modal
+        opened={pendingCopy !== null}
+        onClose={() => setPendingCopy(null)}
+        title="Copy issues?"
+        zIndex={2000}
+      >
+        <Stack gap="md">
+          <Text size="sm">
+            This will copy {pendingCopy?.description} in &quot;{name}&quot; to your clipboard as a
+            single block of text.
+          </Text>
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setPendingCopy(null)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (pendingCopy) performCopy(pendingCopy.items);
+                setPendingCopy(null);
+              }}
+            >
+              Copy
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Stack>
   );
 };
