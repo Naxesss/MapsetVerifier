@@ -12,6 +12,11 @@ type UseTimelineWheelSeekOptions = {
   startTimeMs: number;
   endTimeMs: number;
   snapTicks: number[];
+  /** Bounds `snapTicks` was actually built for — used to clamp seeking once ticks run
+   * out in the seek direction. Defaults to `startTimeMs`/`endTimeMs` when `snapTicks`
+   * covers the full timeline. */
+  snapClampStartMs?: number;
+  snapClampEndMs?: number;
   tickStepCount?: number;
   adjustZoom?: (direction: -1 | 1) => void;
   enabled?: boolean;
@@ -25,6 +30,8 @@ export function useTimelineWheelSeek({
   startTimeMs,
   endTimeMs,
   snapTicks,
+  snapClampStartMs = startTimeMs,
+  snapClampEndMs = endTimeMs,
   tickStepCount = 1,
   adjustZoom,
   enabled = true,
@@ -59,8 +66,8 @@ export function useTimelineWheelSeek({
           candidateTimestamp,
           direction,
           tickStepCount,
-          startTimeMs,
-          endTimeMs
+          snapClampStartMs,
+          snapClampEndMs
         );
 
         if (nextTimestamp === candidateTimestamp) {
@@ -85,8 +92,8 @@ export function useTimelineWheelSeek({
         }
 
         if (
-          (direction === 1 && candidateTimestamp >= endTimeMs) ||
-          (direction === -1 && candidateTimestamp <= startTimeMs)
+          (direction === 1 && candidateTimestamp >= snapClampEndMs) ||
+          (direction === -1 && candidateTimestamp <= snapClampStartMs)
         ) {
           break;
         }
@@ -94,7 +101,16 @@ export function useTimelineWheelSeek({
 
       return false;
     },
-    [endTimeMs, scrollRef, snapTicks, startTimeMs, tickStepCount, timelineWidth]
+    [
+      endTimeMs,
+      scrollRef,
+      snapClampEndMs,
+      snapClampStartMs,
+      snapTicks,
+      startTimeMs,
+      tickStepCount,
+      timelineWidth,
+    ]
   );
 
   useEffect(() => {

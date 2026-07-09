@@ -25,6 +25,7 @@ import {
   useTimelineDisplay,
   useTimelinePan,
   useTimelineScale,
+  useTimelineViewport,
 } from '../context/ObjectsTimelineContext.tsx';
 import { usePreserveTimelineScrollOnZoom } from '../hooks/usePreserveTimelineScrollOnZoom.ts';
 import { useShiftKeyHeld } from '../hooks/useShiftKeyHeld.ts';
@@ -34,7 +35,12 @@ import {
   parseTimelineThemeVariant,
   TIMELINE_THEME_VARIANT_OPTIONS,
 } from '../timelineTheme/selection.ts';
-import { buildTimelineSnapTicks, getDifficultyKey } from '../timelineUtils.ts';
+import {
+  buildAllRoundedEdgeTimes,
+  buildTimelineSnapTicks,
+  getDifficultyKey,
+  getTimelineTimeFromX,
+} from '../timelineUtils.ts';
 
 export type ObjectsTimelineComparisonContentProps = {
   showScrollModeControls?: boolean;
@@ -75,16 +81,44 @@ export default function ObjectsTimelineComparisonContent({
 
   const { tickStep, setTickStep } = useTimelineScrollTickStep();
 
+  const viewport = useTimelineViewport();
+
+  const snapTicksWindow = useMemo(() => {
+    const durationMs = Math.max(1, endTimeMs - startTimeMs);
+    const clampedStartX = Math.max(0, viewport.startX);
+    const clampedEndX = Math.min(timelineWidth, viewport.endX);
+    if (clampedEndX <= clampedStartX) {
+      return { windowStartMs: startTimeMs, windowEndMs: endTimeMs };
+    }
+    return {
+      windowStartMs: getTimelineTimeFromX(clampedStartX, startTimeMs, durationMs, timelineWidth),
+      windowEndMs: getTimelineTimeFromX(clampedEndX, startTimeMs, durationMs, timelineWidth),
+    };
+  }, [endTimeMs, startTimeMs, timelineWidth, viewport.endX, viewport.startX]);
+
+  const visibleDifficultiesForSnapTicks = useMemo(
+    () =>
+      orderedDifficulties.filter(
+        (difficulty) => visibilityByDifficulty[getDifficultyKey(difficulty)] !== false
+      ),
+    [orderedDifficulties, visibilityByDifficulty]
+  );
+
+  // O(objects) — independent of scroll position, so kept out of the (scroll-bound) snapTicks memo.
+  const roundedEdgeTimes = useMemo(
+    () => buildAllRoundedEdgeTimes(visibleDifficultiesForSnapTicks),
+    [visibleDifficultiesForSnapTicks]
+  );
+
   const snapTicks = useMemo(
     () =>
       buildTimelineSnapTicks(
-        orderedDifficulties.filter(
-          (difficulty) => visibilityByDifficulty[getDifficultyKey(difficulty)] !== false
-        ),
-        startTimeMs,
-        endTimeMs
+        visibleDifficultiesForSnapTicks,
+        roundedEdgeTimes,
+        snapTicksWindow.windowStartMs,
+        snapTicksWindow.windowEndMs
       ),
-    [endTimeMs, orderedDifficulties, startTimeMs, visibilityByDifficulty]
+    [visibleDifficultiesForSnapTicks, roundedEdgeTimes, snapTicksWindow]
   );
 
   useTimelineWheelSeek({
@@ -93,6 +127,8 @@ export default function ObjectsTimelineComparisonContent({
     startTimeMs,
     endTimeMs,
     snapTicks,
+    snapClampStartMs: snapTicksWindow.windowStartMs,
+    snapClampEndMs: snapTicksWindow.windowEndMs,
     tickStepCount: tickStep,
     adjustZoom,
   });

@@ -370,19 +370,30 @@ export function buildTimelineRowDrawCache(
 }
 
 /** Visible timing-grid snap ticks (same rules as `drawTimingGrid`). */
-export function buildTimelineSnapTicks(
-  difficulties: ObjectsOverviewDifficulty[],
-  startTimeMs: number,
-  endTimeMs: number
-): number[] {
+/** O(objects) across all difficulties — independent of the visible time window, so callers
+ * should memoize this separately from the (potentially scroll-bound) window passed to
+ * `buildTimelineSnapTicks`. */
+export function buildAllRoundedEdgeTimes(difficulties: ObjectsOverviewDifficulty[]): Set<number> {
   const roundedEdgeTimes = new Set<number>();
-  const tickTimes = new Set<number>();
 
   for (const difficulty of difficulties) {
     for (const edgeTimeMs of buildRoundedEdgeTimes(difficulty.timelineObjects)) {
       roundedEdgeTimes.add(edgeTimeMs);
     }
+  }
 
+  return roundedEdgeTimes;
+}
+
+export function buildTimelineSnapTicks(
+  difficulties: ObjectsOverviewDifficulty[],
+  roundedEdgeTimes: Set<number>,
+  startTimeMs: number,
+  endTimeMs: number
+): number[] {
+  const tickTimes = new Set<number>();
+
+  for (const difficulty of difficulties) {
     for (const segment of difficulty.timingSegments) {
       const sampleStepMs = segment.msPerBeat / TIMING_SAMPLES_PER_BEAT;
       if (sampleStepMs <= 0) {
