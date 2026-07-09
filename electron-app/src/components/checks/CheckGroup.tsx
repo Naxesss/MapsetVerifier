@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import IssueDetailDrawer, { copyToClipboard, normalizeLevel } from './IssueDetailDrawer';
 import IssueRow from './IssueRow';
 import { ApiCheckResult, Level } from '../../Types';
+import { countWord } from '../../utils/countWord';
 import { getLevelLabel } from '../../utils/levelLabel';
 import { useDocumentationChecks } from '../documentation/hooks/useDocumentationChecks';
 import LevelIcon from '../icons/LevelIcon.tsx';
@@ -68,7 +69,10 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
   };
 
   const performCopy = (copyItems: ApiCheckResult[]) =>
-    copyToClipboard(getGroupCopyText(copyItems, name), `Copied ${copyItems.length} issues.`);
+    copyToClipboard(
+      getGroupCopyText(copyItems, name),
+      `Copied ${countWord(copyItems.length, 'issue')}`
+    );
 
   const triggerCopy = (copyItems: ApiCheckResult[], description: string) => {
     if (copyItems.length > LARGE_GROUP_THRESHOLD) {
@@ -78,7 +82,7 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
     }
   };
 
-  const triggerCopyAll = () => triggerCopy(items, `all ${items.length} issues`);
+  const triggerCopyAll = () => triggerCopy(items, countWord(items.length, 'issue'));
 
   const triggerCopyIssue = () => {
     if (!selectedIssue) return;
@@ -99,7 +103,10 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
   const triggerCopySameSeverity = () => {
     if (!selectedIssue) return;
     const level = normalizeLevel(selectedIssue.level);
-    triggerCopy(sameSeverityItems, `${sameSeverityItems.length} ${getLevelLabel(level)} issues`);
+    triggerCopy(
+      sameSeverityItems,
+      countWord(sameSeverityItems.length, `${getLevelLabel(level)} issue`)
+    );
   };
 
   const firstItems = items.slice(0, VISIBLE_COUNT);
