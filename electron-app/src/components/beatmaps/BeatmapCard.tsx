@@ -216,8 +216,8 @@ function BeatmapCard({
               top: 4,
               right: 4,
               zIndex: 3,
-              opacity: isHovered || isSelected ? 1 : 0,
-              pointerEvents: isHovered || isSelected ? 'auto' : 'none',
+              opacity: isHovered || isSelected || isBookmarked ? 1 : 0,
+              pointerEvents: isHovered || isSelected || isBookmarked ? 'auto' : 'none',
               transition: `opacity ${transitionMs}`,
             }}
             onClick={(e) => {
