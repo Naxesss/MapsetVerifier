@@ -39,29 +39,51 @@ namespace MapsetVerifier.Snapshots
 
             foreach (var beatmap in beatmapSet.Beatmaps)
             {
-                var beatmapSetId = beatmap.MetadataSettings.beatmapSetId.ToString();
-                var beatmapId = beatmap.MetadataSettings.beatmapId.ToString();
+                var (beatmapSetId, beatmapId) = GetSnapshotKey(beatmap);
 
                 // If either is null, we can't save snapshots
                 if (beatmapSetId == null || beatmapId == null)
                     continue;
 
+                var isOlderDuplicate = false;
+
                 foreach (var otherBeatmap in beatmapSet.Beatmaps)
+                {
+                    if (ReferenceEquals(otherBeatmap, beatmap))
+                        continue;
+
+                    var (otherBeatmapSetId, otherBeatmapId) = GetSnapshotKey(otherBeatmap);
+
                     if (
-                        otherBeatmap.MetadataSettings.beatmapId
-                            == beatmap.MetadataSettings.beatmapId
+                        otherBeatmapSetId == beatmapSetId
+                        && otherBeatmapId == beatmapId
                         && beatmap.MapPath != null
                         && otherBeatmap.MapPath != null
                     )
                     {
-                        var date = File.GetCreationTimeUtc(beatmap.MapPath);
-                        var otherDate = File.GetCreationTimeUtc(otherBeatmap.MapPath);
+                        // MapPath is relative to SongPath, not an absolute/cwd-relative path -
+                        // resolving it directly here would look up the wrong file (or nothing).
+                        var date = File.GetCreationTimeUtc(
+                            Path.Combine(beatmap.SongPath, beatmap.MapPath)
+                        );
+                        var otherDate = File.GetCreationTimeUtc(
+                            Path.Combine(otherBeatmap.SongPath, otherBeatmap.MapPath)
+                        );
 
                         // We only save the beatmap id, so if we have two of the same beatmap
                         // in the folder, we should only save the newest one.
                         if (date < otherDate)
-                            return;
+                        {
+                            isOlderDuplicate = true;
+                            break;
+                        }
                     }
+                }
+
+                // Skip only this beatmap (e.g. an older duplicate) instead of aborting
+                // the whole snapshot pass, which would also skip SnapshotFiles below.
+                if (isOlderDuplicate)
+                    continue;
 
                 var snapshots = GetSnapshots(beatmapSetId, beatmapId).ToList();
                 var shouldSave = true;
@@ -157,11 +179,44 @@ namespace MapsetVerifier.Snapshots
             File.WriteAllText(filesSnapshotName, fileSnapshotString);
         }
 
-        public static IEnumerable<Snapshot> GetSnapshots(Beatmap beatmap) =>
-            GetSnapshots(
-                beatmap.MetadataSettings.beatmapSetId.ToString(),
-                beatmap.MetadataSettings.beatmapId.ToString()
-            );
+        public static IEnumerable<Snapshot> GetSnapshots(Beatmap beatmap)
+        {
+            var (beatmapSetId, beatmapId) = GetSnapshotKey(beatmap);
+
+            return GetSnapshots(beatmapSetId, beatmapId);
+        }
+
+        /// <summary>
+        /// Resolves the folder key used to store/look up this beatmap's own snapshot history.
+        /// Uses the real beatmap id when submitted; unsubmitted difficulties (beatmapId null)
+        /// otherwise all collapse onto the same key (nullable.ToString() is "" not null, and
+        /// Path.Combine drops empty segments), silently mixing unrelated difficulties' history
+        /// together. Falling back to the sanitized version name keeps them apart instead.
+        /// </summary>
+        private static (string? beatmapSetId, string? beatmapId) GetSnapshotKey(Beatmap beatmap)
+        {
+            var beatmapSetId = beatmap.MetadataSettings.beatmapSetId?.ToString();
+
+            if (beatmapSetId == null)
+                return (null, null);
+
+            var beatmapId =
+                beatmap.MetadataSettings.beatmapId?.ToString()
+                ?? "unsubmitted-" + SanitizeForPath(beatmap.MetadataSettings.version);
+
+            return (beatmapSetId, beatmapId);
+        }
+
+        private static string SanitizeForPath(string value)
+        {
+            var invalidChars = Path.GetInvalidFileNameChars();
+            var sanitized = new StringBuilder(value.Length);
+
+            foreach (var c in value)
+                sanitized.Append(invalidChars.Contains(c) ? '_' : c);
+
+            return sanitized.Length == 0 ? "unnamed" : sanitized.ToString();
+        }
 
         public static IEnumerable<Snapshot> GetSnapshots(string? beatmapSetId, string? beatmapId)
         {
@@ -179,7 +234,11 @@ namespace MapsetVerifier.Snapshots
             if (!Directory.Exists(saveDirectory))
                 yield break;
 
-            var filePaths = Directory.GetFiles(saveDirectory, "*.osu");
+            // Per-difficulty snapshots are saved as ".osu", but the "files"/General history
+            // (see SnapshotFiles) is saved as ".txt" - matching only "*.osu" here would make
+            // GetSnapshots(beatmapSetId, "files") always come back empty.
+            var pattern = beatmapId == "files" ? "*.txt" : "*.osu";
+            var filePaths = Directory.GetFiles(saveDirectory, pattern);
 
             foreach (var path in filePaths)
             {
