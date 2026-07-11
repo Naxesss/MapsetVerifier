@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
 using MapsetVerifier.Snapshots.Objects;
@@ -482,17 +483,102 @@ namespace MapsetVerifier.Snapshots
                     .FirstOrDefault(translator => translator.Section == diffsBySection.Key);
 
                 if (translator != null)
-                    foreach (var diff in translator.Translate(diffsBySection, beatmap))
+                {
+                    var translatedDiffs = translator.Translate(diffsBySection, beatmap).ToList();
+
+                    foreach (var diff in translatedDiffs)
                     {
                         // Since all translators should be able to translate sections, we do that here.
-                        diff.Section = translator.TranslatedSection;
-
-                        yield return diff;
+                        // If the translator already assigned a more specific section itself (e.g.
+                        // FilesTranslator splitting into per-file-type sections), respect that instead.
+                        if (diff.Section == translator.Section)
+                            diff.Section = translator.TranslatedSection;
                     }
+
+                    foreach (var diff in SortDiffs(translatedDiffs, translator.SortMode))
+                        yield return diff;
+                }
                 else
                     foreach (var diff in diffsBySection)
                         yield return diff;
             }
+        }
+
+        private static readonly Regex TimestampRegex = new(
+            @"^(\d+):(\d{2}):(\d{3})\s-\s",
+            RegexOptions.Compiled
+        );
+        private static readonly Regex NegativeTimestampRegex = new(
+            @"^(-\d+(?:\.\d+)?)\s-\s",
+            RegexOptions.Compiled
+        );
+
+        /// <summary>
+        /// Extracts the leading timestamp (in milliseconds) from a diff message formatted by
+        /// <see cref="Timestamp.Get(double)"/>, e.g. "01:23:456 - ...". Returns null if the
+        /// message has no such prefix.
+        /// </summary>
+        private static double? ParseDiffTimestampMs(string message)
+        {
+            var normalMatch = TimestampRegex.Match(message);
+            if (normalMatch.Success)
+            {
+                var minutes = double.Parse(
+                    normalMatch.Groups[1].Value,
+                    CultureInfo.InvariantCulture
+                );
+                var seconds = double.Parse(
+                    normalMatch.Groups[2].Value,
+                    CultureInfo.InvariantCulture
+                );
+                var milliseconds = double.Parse(
+                    normalMatch.Groups[3].Value,
+                    CultureInfo.InvariantCulture
+                );
+                return (minutes * 60_000) + (seconds * 1_000) + milliseconds;
+            }
+
+            var negativeMatch = NegativeTimestampRegex.Match(message);
+            if (negativeMatch.Success)
+                return double.Parse(negativeMatch.Groups[1].Value, CultureInfo.InvariantCulture);
+
+            return null;
+        }
+
+        /// <summary>
+        /// Order in which change types should appear when a section has no inherent timestamp
+        /// to sort by: additions, then updates, then deletes.
+        /// </summary>
+        private static int GetChangeTypeOrder(DiffType diffType) =>
+            diffType switch
+            {
+                DiffType.Added => 0,
+                DiffType.Changed => 1,
+                DiffType.Removed => 2,
+                _ => 3,
+            };
+
+        private static IEnumerable<DiffInstance> SortDiffs(
+            List<DiffInstance> diffs,
+            DiffSortMode sortMode
+        )
+        {
+            if (sortMode == DiffSortMode.Timestamp)
+            {
+                return diffs
+                    .Select(
+                        (diff, index) => (diff, index, timestampMs: ParseDiffTimestampMs(diff.Diff))
+                    )
+                    .OrderBy(entry => entry.timestampMs ?? double.MaxValue)
+                    .ThenBy(entry => entry.index)
+                    .Select(entry => entry.diff);
+            }
+
+            return diffs
+                .Select((diff, index) => (diff, index))
+                .OrderBy(entry => GetChangeTypeOrder(entry.diff.DiffType))
+                .ThenBy(entry => entry.index)
+                .Select(entry => entry.diff);
         }
 
         private static DiffInstance GetTranslatedSettingDiff(
