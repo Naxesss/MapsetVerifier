@@ -15,6 +15,7 @@ import SnapshotContent from './SnapshotContent';
 import SnapshotGameModeSelector from './SnapshotGameModeSelector';
 import {
   difficultyHasChangesAtCommit,
+  difficultyHasSnapshot,
   generalHasChangesAtCommit,
   getSnapshotHistory,
 } from './snapshotHistory';
@@ -177,7 +178,7 @@ function Snapshots() {
             onModeChange={setSelectedMode}
           />
         </Group>
-        {data?.difficulties && selectedGroup && (
+        {data?.difficulties && !data.errorMessage && selectedGroup && (
           <DifficultyTabSelector
             generalLeading={
               <SnapshotDifficultyChangesIcon
@@ -185,17 +186,22 @@ function Snapshots() {
                 size={24}
               />
             }
-            tabs={selectedGroup.difficulties.map((diff) => ({
-              id: diff.name,
-              label: diff.name,
-              starRating: diff.starRating,
-              leading: (
-                <SnapshotDifficultyChangesIcon
-                  hasChanges={difficultyHasChangesAtCommit(data, diff.name, selectedCommitId)}
-                  size={24}
-                />
-              ),
-            }))}
+            tabs={selectedGroup.difficulties.map((diff) => {
+              const hasSnapshot = difficultyHasSnapshot(data, diff.name);
+              return {
+                id: diff.name,
+                label: diff.name,
+                starRating: diff.starRating,
+                leading: hasSnapshot ? (
+                  <SnapshotDifficultyChangesIcon
+                    hasChanges={difficultyHasChangesAtCommit(data, diff.name, selectedCommitId)}
+                    size={24}
+                  />
+                ) : undefined,
+                disabled: !hasSnapshot,
+                disabledTooltip: 'This difficulty has no other snapshots to compare against',
+              };
+            })}
             selectedId={selectedDifficulty}
             onSelect={setSelectedDifficulty}
             sortByStarRating
@@ -210,30 +216,30 @@ function Snapshots() {
           style={{ flex: 1, overflow: 'hidden' }}
           bg="dark.6"
         >
-          <Flex gap="xs" align="center">
-            <SnapshotDifficultyChangesIcon
-              hasChanges={
-                selectedDifficulty === 'General'
-                  ? generalHasChangesAtCommit(data, selectedCommitId)
-                  : difficultyHasChangesAtCommit(data, selectedDifficulty!, selectedCommitId)
-              }
-              size={30}
-            />
-            {selectedSnapshotDifficulty && (
-              <GameModeIcon
-                mode={selectedSnapshotDifficulty.mode ?? 'Standard'}
-                size={28}
-                starRating={selectedSnapshotDifficulty.starRating}
-              />
-            )}
-            <Title order={3}>{selectedDifficulty}</Title>
-          </Flex>
           {data.errorMessage ? (
             <Alert icon={<IconPhotoOff />} color="yellow" title="Snapshots unavailable">
               <Text size="sm">{data.errorMessage}</Text>
             </Alert>
           ) : (
             <>
+              <Flex gap="xs" align="center">
+                <SnapshotDifficultyChangesIcon
+                  hasChanges={
+                    selectedDifficulty === 'General'
+                      ? generalHasChangesAtCommit(data, selectedCommitId)
+                      : difficultyHasChangesAtCommit(data, selectedDifficulty!, selectedCommitId)
+                  }
+                  size={30}
+                />
+                {selectedSnapshotDifficulty && (
+                  <GameModeIcon
+                    mode={selectedSnapshotDifficulty.mode ?? 'Standard'}
+                    size={28}
+                    starRating={selectedSnapshotDifficulty.starRating}
+                  />
+                )}
+                <Title order={3}>{selectedDifficulty}</Title>
+              </Flex>
               <SnapshotContent
                 data={data}
                 selectedDifficulty={selectedDifficulty}
