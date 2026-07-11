@@ -211,7 +211,15 @@ function BeatmapCard({
             variant="subtle"
             color="yellow"
             size="sm"
-            style={{ position: 'absolute', top: 4, right: 4, zIndex: 3 }}
+            style={{
+              position: 'absolute',
+              top: 4,
+              right: 4,
+              zIndex: 3,
+              opacity: isHovered || isSelected || isBookmarked ? 1 : 0,
+              pointerEvents: isHovered || isSelected || isBookmarked ? 'auto' : 'none',
+              transition: `opacity ${transitionMs}`,
+            }}
             onClick={(e) => {
               e.stopPropagation();
               toggleBookmark();
