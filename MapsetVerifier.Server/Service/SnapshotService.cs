@@ -2,6 +2,7 @@
 using MapsetVerifier.Server.Model;
 using MapsetVerifier.Snapshots;
 using MapsetVerifier.Snapshots.Objects;
+using MapsetVerifier.Snapshots.Translators;
 
 namespace MapsetVerifier.Server.Service;
 
@@ -267,7 +268,11 @@ public static class SnapshotService
     )
     {
         var filteredDiffs = diffs
-            .Where(diff => filesOnly ? diff.Section == "Files" : diff.Section != "Files")
+            .Where(diff =>
+                filesOnly
+                    ? FilesTranslator.FileSections.Contains(diff.Section)
+                    : !FilesTranslator.FileSections.Contains(diff.Section)
+            )
             .Where(diff => !string.IsNullOrWhiteSpace(diff.Diff)) // Filter out empty diffs (e.g., empty lines)
             .ToList();
 
@@ -275,8 +280,15 @@ public static class SnapshotService
         var removals = filteredDiffs.Count(d => d.DiffType == Snapshotter.DiffType.Removed);
         var modifications = filteredDiffs.Count(d => d.DiffType == Snapshotter.DiffType.Changed);
 
-        var sections = filteredDiffs
-            .GroupBy(diff => diff.Section)
+        var groupedDiffs = filteredDiffs.GroupBy(diff => diff.Section);
+        if (filesOnly)
+        {
+            groupedDiffs = groupedDiffs.OrderBy(g =>
+                Array.IndexOf(FilesTranslator.FileSections, g.Key)
+            );
+        }
+
+        var sections = groupedDiffs
             .Select(sectionDiffs =>
             {
                 var sectionDiffsList = sectionDiffs.ToList();
