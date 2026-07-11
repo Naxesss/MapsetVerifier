@@ -162,7 +162,12 @@ function SnapshotCommitList({
                       </Group>
                     </Group>
                     <Group gap={4} wrap="nowrap">
-                      {commit.totalChanges === 0 && (
+                      {!commit.hasSnapshot && (
+                        <Badge size="xs" variant="light" color="orange">
+                          No snapshot
+                        </Badge>
+                      )}
+                      {commit.hasSnapshot && commit.totalChanges === 0 && (
                         <Badge size="xs" variant="light" color="gray">
                           No changes
                         </Badge>

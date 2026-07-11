@@ -102,7 +102,8 @@ public readonly struct ApiSnapshotCommit(
     int additions,
     int removals,
     int modifications,
-    IEnumerable<ApiSnapshotSection> sections
+    IEnumerable<ApiSnapshotSection> sections,
+    bool hasSnapshot = true
 )
 {
     /// <summary>
@@ -114,6 +115,14 @@ public readonly struct ApiSnapshotCommit(
     /// Unique identifier for this commit (based on date).
     /// </summary>
     public string Id { get; } = id;
+
+    /// <summary>
+    /// Whether this difficulty/General actually had a recorded snapshot as of this date.
+    /// False means this date exists purely to keep every difficulty's/General's commit list
+    /// aligned to the same set of dates - this difficulty simply didn't exist/have a snapshot
+    /// yet, as opposed to <see cref="TotalChanges"/> being 0 because it existed but was unchanged.
+    /// </summary>
+    public bool HasSnapshot { get; } = hasSnapshot;
 
     /// <summary>
     /// Total number of changes in this commit.

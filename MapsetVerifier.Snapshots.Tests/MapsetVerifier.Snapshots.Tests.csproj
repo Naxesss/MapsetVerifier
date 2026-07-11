@@ -20,5 +20,6 @@
   <ItemGroup>
     <ProjectReference Include="..\MapsetVerifier.Snapshots\MapsetVerifier.Snapshots.csproj" />
     <ProjectReference Include="..\MapsetVerifier.Parser\MapsetVerifier.Parser.csproj" />
+    <ProjectReference Include="..\MapsetVerifier.Server\MapsetVerifier.Server.csproj" />
   </ItemGroup>
 </Project>

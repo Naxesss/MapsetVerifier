@@ -20,6 +20,8 @@ public sealed class SnapshotterTestContext : IDisposable
         this.snapshotRootPath = snapshotRootPath;
     }
 
+    public string SongPath => songPath;
+
     public static SnapshotterTestContext Create()
     {
         var root = Path.Combine(

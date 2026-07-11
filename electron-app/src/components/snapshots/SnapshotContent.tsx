@@ -61,14 +61,20 @@ function SnapshotContent({
         <Box p="xs" bg={theme.colors.dark[6]}>
           <Text fw={600} size="sm" mt="xs" ml="xs">
             {selectedCommit
-              ? selectedCommit.totalChanges === 0
-                ? 'No changes'
-                : `Changes (${selectedCommit.totalChanges} total)`
+              ? !selectedCommit.hasSnapshot
+                ? 'No snapshot'
+                : selectedCommit.totalChanges === 0
+                  ? 'No changes'
+                  : `Changes (${selectedCommit.totalChanges} total)`
               : 'Select a commit to view changes'}
           </Text>
         </Box>
         <Box p="xs">
-          {selectedCommit ? (
+          {selectedCommit && !selectedCommit.hasSnapshot ? (
+            <Text c="dimmed" size="sm" py="md">
+              This difficulty had no snapshot recorded yet at this point in time.
+            </Text>
+          ) : selectedCommit ? (
             <UnifiedDiffViewer commit={selectedCommit} />
           ) : (
             <Text c="dimmed" ta="center" py="xl">
