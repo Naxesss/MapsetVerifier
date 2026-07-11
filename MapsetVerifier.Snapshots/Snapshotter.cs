@@ -179,7 +179,7 @@ namespace MapsetVerifier.Snapshots
             if (!Directory.Exists(saveDirectory))
                 yield break;
 
-            var filePaths = Directory.GetFiles(saveDirectory);
+            var filePaths = Directory.GetFiles(saveDirectory, "*.osu");
 
             foreach (var path in filePaths)
             {
@@ -187,17 +187,27 @@ namespace MapsetVerifier.Snapshots
                 var backSlash = path.LastIndexOf("\\", StringComparison.Ordinal);
 
                 var saveName = path[(Math.Max(forwardSlash, backSlash) + 1)..];
-                var code = File.ReadAllText(path);
 
-                var creationTime = DateTime.SpecifyKind(
-                    DateTime.ParseExact(
-                        saveName.Split('.')[0],
-                        fileNameFormat,
-                        CultureInfo.InvariantCulture,
-                        DateTimeStyles.None
-                    ),
-                    DateTimeKind.Utc
+                bool canFindDate = DateTime.TryParseExact(
+                    saveName.Split('.')[0],
+                    fileNameFormat,
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.None,
+                    out var parsedTime
                 );
+
+                // This can happen when users adjust the files themselves
+                if (!canFindDate)
+                {
+                    Log.Warning(
+                        "Skipping unrecognized snapshot file {Path}, expected a timestamped snapshot file",
+                        path
+                    );
+                    continue;
+                }
+
+                var creationTime = DateTime.SpecifyKind(parsedTime, DateTimeKind.Utc);
+                var code = File.ReadAllText(path);
 
                 yield return new Snapshot(creationTime, beatmapSetId, beatmapId, saveName, code);
             }
