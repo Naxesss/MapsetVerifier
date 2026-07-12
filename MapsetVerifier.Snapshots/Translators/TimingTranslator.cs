@@ -11,6 +11,7 @@ namespace MapsetVerifier.Snapshots.Translators
     {
         public override string Section => "TimingPoints";
         public override string TranslatedSection => "Timing";
+        public override DiffSortMode SortMode => DiffSortMode.Timestamp;
 
         public override IEnumerable<DiffInstance> Translate(
             IEnumerable<DiffInstance> diffs,

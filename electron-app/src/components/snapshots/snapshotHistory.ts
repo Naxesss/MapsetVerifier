@@ -35,3 +35,9 @@ export function difficultyHasChangesAtCommit(
   const history = data.beatmapHistories.find((h) => h.difficultyName === difficultyName);
   return commitHasChanges(history?.commits ?? [], commitId);
 }
+
+/** Whether this beatmap difficulty has any snapshot history at all. */
+export function difficultyHasSnapshot(data: ApiSnapshotResult, difficultyName: string) {
+  const history = data.beatmapHistories.find((h) => h.difficultyName === difficultyName);
+  return !!history?.commits.length;
+}

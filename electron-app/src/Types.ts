@@ -188,6 +188,9 @@ export type ApiSnapshotHistory = {
 export type ApiSnapshotCommit = {
   date: string;
   id: string;
+  /** False when this difficulty/General had no snapshot recorded yet at this date - as opposed
+   * to having one but showing no changes (totalChanges === 0 with hasSnapshot === true). */
+  hasSnapshot: boolean;
   totalChanges: number;
   additions: number;
   removals: number;

@@ -2,6 +2,7 @@
 using MapsetVerifier.Server.Model;
 using MapsetVerifier.Snapshots;
 using MapsetVerifier.Snapshots.Objects;
+using MapsetVerifier.Snapshots.Translators;
 
 namespace MapsetVerifier.Server.Service;
 
@@ -61,12 +62,14 @@ public static class SnapshotService
         // Snapshot the current beatmap before we start comparing with previous snapshots
         SnapshotCurrentBeatmapSet(beatmapSet);
 
-        // Get general/files snapshot history
-        var refSnapshots = Snapshotter.GetSnapshots(beatmapSetId, "files").ToArray();
-        var generalHistory = GetGeneralSnapshotHistory(refSnapshots);
-
-        // Unified timeline so difficulties unchanged in an update still get a commit (issue #98).
+        // Unified timeline so every difficulty (and General) shares the exact same set of
+        // selectable snapshot dates, even for dates where that particular difficulty/General
+        // had no changes (issue #98).
         var globalTimeline = BuildGlobalSnapshotTimeline(beatmapSet, beatmapSetId);
+
+        var refSnapshots = Snapshotter.GetSnapshots(beatmapSetId, "files").ToArray();
+        var generalHistory = GetGeneralSnapshotHistory(refSnapshots, globalTimeline);
+
         var beatmapHistories = beatmapSet
             .Beatmaps.Select(beatmap => GetBeatmapSnapshotHistory(beatmap, globalTimeline))
             .ToList();
@@ -79,37 +82,49 @@ public static class SnapshotService
         );
     }
 
-    private static ApiSnapshotHistory GetGeneralSnapshotHistory(Snapshotter.Snapshot[] snapshots)
+    private static ApiSnapshotHistory GetGeneralSnapshotHistory(
+        Snapshotter.Snapshot[] snapshots,
+        IReadOnlyList<DateTime> globalTimeline
+    )
     {
         if (snapshots.Length == 0)
         {
             return new ApiSnapshotHistory("General", []);
         }
 
-        // Sort snapshots by date (oldest first for comparison, then reverse for display)
         var sortedSnapshots = snapshots.OrderBy(s => s.creationTime).ToArray();
         var commits = new List<ApiSnapshotCommit>();
 
-        // Compare each snapshot to the previous one
-        for (var i = 1; i < sortedSnapshots.Length; i++)
+        // Walk the same unified timeline the per-difficulty histories use, so General shares
+        // the exact same set of selectable dates - including dates where nothing in General
+        // changed (in which case we still emit a zero-change commit instead of dropping it).
+        for (var i = 1; i < globalTimeline.Count; i++)
         {
-            var previousSnapshot = sortedSnapshots[i - 1];
-            var currentSnapshot = sortedSnapshots[i];
+            var tPrev = globalTimeline[i - 1];
+            var tCurr = globalTimeline[i];
+            var snapCurr = GetLatestSnapshotAtOrBefore(sortedSnapshots, tCurr);
 
-            var diffs = Snapshotter.Compare(previousSnapshot, currentSnapshot.code).ToList();
-
-            // TODO null! is not very nice needs quite some refactor in snapshotter logic to avoid
-            var translatedDiffs = Snapshotter.TranslateComparison(diffs, null!).ToList();
-
-            if (translatedDiffs.Count == 0)
+            // Nothing recorded for General yet as of this point in time - still emit a
+            // placeholder so General's dates line up with every difficulty's, rather than
+            // silently starting later than dates other difficulties already have.
+            if (snapCurr is null)
+            {
+                commits.Add(CreateNoSnapshotCommit(tCurr));
                 continue;
+            }
 
-            var commit = CreateCommit(
-                currentSnapshot.creationTime,
-                translatedDiffs,
-                filesOnly: true
-            );
-            commits.Add(commit);
+            var snapPrev = GetLatestSnapshotAtOrBefore(sortedSnapshots, tPrev);
+
+            List<DiffInstance> translatedDiffs = snapPrev is null
+                ? []
+                : Snapshotter
+                    .TranslateComparison(
+                        Snapshotter.Compare(snapPrev.Value, snapCurr.Value.code),
+                        null!
+                    )
+                    .ToList();
+
+            commits.Add(CreateCommit(tCurr, translatedDiffs, filesOnly: true));
         }
 
         // Reverse to show newest first
@@ -178,15 +193,32 @@ public static class SnapshotService
         {
             var tPrev = globalTimeline[i - 1];
             var tCurr = globalTimeline[i];
-            var snapPrev = GetLatestSnapshotAtOrBefore(snapshots, tPrev);
             var snapCurr = GetLatestSnapshotAtOrBefore(snapshots, tCurr);
 
-            // Match legacy behaviour: no commit before this difficulty has any snapshot.
-            if (snapPrev is null || snapCurr is null)
+            // No snapshot recorded for this difficulty yet as of this date - still emit a
+            // placeholder so this difficulty's dates line up with every other difficulty's
+            // (and General's), rather than silently starting later than the rest.
+            if (snapCurr is null)
+            {
+                commits.Add(CreateNoSnapshotCommit(tCurr));
                 continue;
+            }
 
-            var diffs = Snapshotter.Compare(snapPrev.Value, snapCurr.Value.code).ToList();
-            var translatedDiffs = Snapshotter.TranslateComparison(diffs, beatmap).ToList();
+            var snapPrev = GetLatestSnapshotAtOrBefore(snapshots, tPrev);
+
+            // This difficulty's first ever snapshot falls on this date: there's no earlier
+            // state to diff against, so emit a zero-change commit rather than dropping the
+            // date entirely - keeps this difficulty's selectable dates aligned with every
+            // other difficulty's (and General's).
+            List<DiffInstance> translatedDiffs = snapPrev is null
+                ? []
+                : Snapshotter
+                    .TranslateComparison(
+                        Snapshotter.Compare(snapPrev.Value, snapCurr.Value.code),
+                        beatmap
+                    )
+                    .ToList();
+
             commits.Add(CreateCommit(tCurr, translatedDiffs, filesOnly: false));
         }
 
@@ -213,6 +245,22 @@ public static class SnapshotService
         return new ApiSnapshotHistory(beatmap.MetadataSettings.version, commits);
     }
 
+    /// <summary>
+    /// A placeholder commit for a unified-timeline date this difficulty/General had no
+    /// snapshot recorded for yet (as opposed to having one but showing no changes).
+    /// </summary>
+    private static ApiSnapshotCommit CreateNoSnapshotCommit(DateTime date) =>
+        new(
+            date: date,
+            id: date.ToString("yyyyMMddHHmmss"),
+            totalChanges: 0,
+            additions: 0,
+            removals: 0,
+            modifications: 0,
+            sections: [],
+            hasSnapshot: false
+        );
+
     private static ApiSnapshotCommit CreateCommit(
         DateTime date,
         List<DiffInstance> diffs,
@@ -220,7 +268,11 @@ public static class SnapshotService
     )
     {
         var filteredDiffs = diffs
-            .Where(diff => filesOnly ? diff.Section == "Files" : diff.Section != "Files")
+            .Where(diff =>
+                filesOnly
+                    ? FilesTranslator.FileSections.Contains(diff.Section)
+                    : !FilesTranslator.FileSections.Contains(diff.Section)
+            )
             .Where(diff => !string.IsNullOrWhiteSpace(diff.Diff)) // Filter out empty diffs (e.g., empty lines)
             .ToList();
 
@@ -228,8 +280,15 @@ public static class SnapshotService
         var removals = filteredDiffs.Count(d => d.DiffType == Snapshotter.DiffType.Removed);
         var modifications = filteredDiffs.Count(d => d.DiffType == Snapshotter.DiffType.Changed);
 
-        var sections = filteredDiffs
-            .GroupBy(diff => diff.Section)
+        var groupedDiffs = filteredDiffs.GroupBy(diff => diff.Section);
+        if (filesOnly)
+        {
+            groupedDiffs = groupedDiffs.OrderBy(g =>
+                Array.IndexOf(FilesTranslator.FileSections, g.Key)
+            );
+        }
+
+        var sections = groupedDiffs
             .Select(sectionDiffs =>
             {
                 var sectionDiffsList = sectionDiffs.ToList();

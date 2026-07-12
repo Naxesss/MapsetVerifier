@@ -1,4 +1,4 @@
-import { alpha, Button, Flex, Group, Text, useMantineTheme } from '@mantine/core';
+import { alpha, Button, Flex, Group, Text, Tooltip, useMantineTheme } from '@mantine/core';
 import { getDifficultyColor } from './DifficultyColor';
 import DifficultyColorPill from './DifficultyColorPill';
 import LevelIcon from '../icons/LevelIcon';
@@ -14,6 +14,8 @@ export type DifficultyTab = {
   level?: Level;
   levelLoading?: boolean;
   leading?: ReactNode;
+  disabled?: boolean;
+  disabledTooltip?: string;
 };
 
 export interface DifficultyTabSelectorProps {
@@ -111,21 +113,31 @@ function DifficultyTabSelector({
           const isActive = selectedId === tab.id || (activeOnHover && hoveredId === tab.id);
           const srColor = getDifficultyColor(tab.starRating ?? 0);
 
-          return (
+          const button = (
             <Button
               key={tab.id}
-              onClick={() => onSelect(tab.id)}
+              onClick={tab.disabled ? undefined : () => onSelect(tab.id)}
+              disabled={tab.disabled}
               variant="light"
               style={{
                 '--button-bg': diffButtonBg,
                 '--button-hover': alpha(srColor, diffButtonHoverAlpha),
+                opacity: tab.disabled ? 0.45 : undefined,
+                filter: tab.disabled ? 'grayscale(70%)' : undefined,
+                cursor: tab.disabled ? 'not-allowed' : undefined,
               }}
               size="compact-md"
               h="fit-content"
               p="xs"
-              onMouseEnter={activeOnHover ? () => handleHover(tab.id) : undefined}
-              onMouseLeave={activeOnHover ? handleHoverLeave : undefined}
-              bd={isActive ? `1px solid ${srColor}` : '1px solid transparent'}
+              onMouseEnter={activeOnHover && !tab.disabled ? () => handleHover(tab.id) : undefined}
+              onMouseLeave={activeOnHover && !tab.disabled ? handleHoverLeave : undefined}
+              bd={
+                isActive
+                  ? `1px solid ${srColor}`
+                  : tab.disabled
+                    ? `1px dashed ${theme.colors.dark[2]}`
+                    : '1px solid transparent'
+              }
             >
               <Flex gap="xs" align="center">
                 {showLevelIcons && (tab.level != null || tab.levelLoading) && (
@@ -133,12 +145,22 @@ function DifficultyTabSelector({
                 )}
                 {tab.leading}
                 <DifficultyColorPill color={srColor} />
-                <Text c="white" style={labelStyle}>
+                <Text c={tab.disabled ? 'dimmed' : 'white'} style={labelStyle}>
                   {tab.label}
                 </Text>
               </Flex>
             </Button>
           );
+
+          if (tab.disabled && tab.disabledTooltip) {
+            return (
+              <Tooltip key={tab.id} label={tab.disabledTooltip}>
+                <div>{button}</div>
+              </Tooltip>
+            );
+          }
+
+          return button;
         })}
       </Group>
     </Group>
