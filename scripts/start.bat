@@ -5,7 +5,7 @@ REM windows-specific launcher script
 REM builds the sidecar and installs npm dependencies if required
 REM then starts the sidecar and runs the frontend
  
-set "PROJECT_ROOT=%~dp0"
+set "PROJECT_ROOT=%~dp0..\"
 call "%PROJECT_ROOT%scripts\detect-system.bat"
 if errorlevel 1 exit /b 1
 
