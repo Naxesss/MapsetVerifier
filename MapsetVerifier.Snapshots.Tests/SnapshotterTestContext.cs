@@ -1,5 +1,4 @@
 using MapsetVerifier.Parser.Objects;
-using MapsetVerifier.Snapshots;
 
 namespace MapsetVerifier.Snapshots.Tests;
 

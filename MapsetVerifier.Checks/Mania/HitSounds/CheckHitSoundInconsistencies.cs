@@ -1,6 +1,4 @@
-﻿using System.IO;
-using MapsetVerifier.Framework.Objects;
-using MapsetVerifier.Framework.Objects.Attributes;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;

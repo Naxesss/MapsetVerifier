@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using MapsetVerifier.Server.Filter;
+﻿using MapsetVerifier.Server.Filter;
 using MapsetVerifier.Server.Middleware;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;

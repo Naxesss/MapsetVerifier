@@ -1,6 +1,4 @@
 using MapsetVerifier.Checks.AllModes.Timing;
-using MapsetVerifier.Framework.Objects;
-using MapsetVerifier.Parser.Objects;
 using Xunit;
 
 namespace MapsetVerifier.Checks.Tests.AllModes.Timing;

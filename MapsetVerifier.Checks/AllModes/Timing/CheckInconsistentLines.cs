@@ -5,7 +5,6 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
-using MathNet.Numerics;
 
 namespace MapsetVerifier.Checks.AllModes.Timing
 {

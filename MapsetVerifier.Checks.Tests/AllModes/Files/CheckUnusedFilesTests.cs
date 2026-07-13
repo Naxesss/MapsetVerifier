@@ -1,5 +1,4 @@
 using MapsetVerifier.Checks.AllModes.General.Files;
-using MapsetVerifier.Checks.Tests;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Parser.Objects;
 using Xunit;
