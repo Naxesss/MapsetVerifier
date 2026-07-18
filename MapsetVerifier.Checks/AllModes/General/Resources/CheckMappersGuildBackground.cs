@@ -13,6 +13,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
             "mpg",
             "mappers guild",
             "mappers' guild",
+            "mappersguild",
         ];
 
         public override CheckMetadata GetMetadata() =>
