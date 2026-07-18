@@ -1,4 +1,5 @@
-﻿using MapsetVerifier.Framework.Objects;
+using MapsetVerifier.Checks.AllModes.Settings;
+using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -6,16 +7,8 @@ using MapsetVerifier.Parser.Objects;
 namespace MapsetVerifier.Checks.Taiko.Settings;
 
 [Check]
-public class CheckDiffSettings : BeatmapCheck
+public class CheckDiffSettings : DifficultySettingsCheck
 {
-    private readonly Beatmap.Difficulty[] difficulties =
-    [
-        Beatmap.Difficulty.Easy,
-        Beatmap.Difficulty.Normal,
-        Beatmap.Difficulty.Hard,
-        Beatmap.Difficulty.Insane,
-    ];
-
     private static readonly Dictionary<Beatmap.Difficulty, double> RecommendedOd = new()
     {
         { Beatmap.Difficulty.Easy, 3 },
@@ -58,7 +51,13 @@ public class CheckDiffSettings : BeatmapCheck
             Author = "Hivie",
             Category = "Settings",
             Message = "OD/HP values too high/low",
-            Difficulties = difficulties,
+            Difficulties =
+            [
+                Beatmap.Difficulty.Easy,
+                Beatmap.Difficulty.Normal,
+                Beatmap.Difficulty.Hard,
+                Beatmap.Difficulty.Insane,
+            ],
             Modes = [Beatmap.Mode.Taiko],
             Documentation = new Dictionary<string, string>()
             {
@@ -140,56 +139,54 @@ public class CheckDiffSettings : BeatmapCheck
 
     public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
     {
-        double hp = Math.Round(beatmap.DifficultySettings.hpDrain, 2, MidpointRounding.ToEven);
-        double od = Math.Round(
-            beatmap.DifficultySettings.overallDifficulty,
-            2,
-            MidpointRounding.ToEven
-        );
+        var diff = beatmap.GetDifficulty();
 
-        foreach (var diff in difficulties)
+        if (!RecommendedOd.TryGetValue(diff, out var recommendedOd))
+            yield break;
+
+        double hp = Round(beatmap.DifficultySettings.hpDrain);
+        double od = Round(beatmap.DifficultySettings.overallDifficulty);
+
+        double drain = beatmap.GetDrainTime(Beatmap.Mode.Taiko);
+        int drainIndex = GetDrainIndex(drain);
+        double recommendedHp = RecommendedHp[diff][drainIndex];
+
+        if (Math.Abs(hp - recommendedHp) > 1)
         {
-            double drain = beatmap.GetDrainTime(Beatmap.Mode.Taiko);
-            int drainIndex = GetDrainIndex(drain);
-            double recommendedHp = RecommendedHp[diff][drainIndex];
+            yield return new Issue(
+                GetTemplate("hpWarning"),
+                beatmap,
+                recommendedHp,
+                hp
+            ).ForDifficulties(diff);
+        }
+        else if (Math.Abs(hp - recommendedHp) > 0)
+        {
+            yield return new Issue(
+                GetTemplate("hpMinor"),
+                beatmap,
+                recommendedHp,
+                hp
+            ).ForDifficulties(diff);
+        }
 
-            if (Math.Abs(hp - recommendedHp) > 1)
-            {
-                yield return new Issue(
-                    GetTemplate("hpWarning"),
-                    beatmap,
-                    recommendedHp,
-                    hp
-                ).ForDifficulties(diff);
-            }
-            else if (Math.Abs(hp - recommendedHp) > 0)
-            {
-                yield return new Issue(
-                    GetTemplate("hpMinor"),
-                    beatmap,
-                    recommendedHp,
-                    hp
-                ).ForDifficulties(diff);
-            }
-
-            if (Math.Abs(od - RecommendedOd[diff]) > 0.5)
-            {
-                yield return new Issue(
-                    GetTemplate("odWarning"),
-                    beatmap,
-                    RecommendedOd[diff],
-                    od
-                ).ForDifficulties(diff);
-            }
-            else if (Math.Abs(od - RecommendedOd[diff]) > 0)
-            {
-                yield return new Issue(
-                    GetTemplate("odMinor"),
-                    beatmap,
-                    RecommendedOd[diff],
-                    od
-                ).ForDifficulties(diff);
-            }
+        if (Math.Abs(od - recommendedOd) > 0.5)
+        {
+            yield return new Issue(
+                GetTemplate("odWarning"),
+                beatmap,
+                recommendedOd,
+                od
+            ).ForDifficulties(diff);
+        }
+        else if (Math.Abs(od - recommendedOd) > 0)
+        {
+            yield return new Issue(
+                GetTemplate("odMinor"),
+                beatmap,
+                recommendedOd,
+                od
+            ).ForDifficulties(diff);
         }
     }
 }
