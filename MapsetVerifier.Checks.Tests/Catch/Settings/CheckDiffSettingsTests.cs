@@ -34,6 +34,7 @@ public class CheckDiffSettingsTests
         Assert.Equal(Issue.Level.Minor, issue.level);
         Assert.Contains("AR", issue.message);
         Assert.Contains("9 or lower", issue.message);
+        Assert.Contains("Rain", issue.message);
     }
 
     [Fact]

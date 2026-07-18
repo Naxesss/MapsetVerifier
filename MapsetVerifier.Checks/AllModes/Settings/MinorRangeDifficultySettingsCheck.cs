@@ -42,7 +42,7 @@ public abstract class MinorRangeDifficultySettingsCheck : RangeDifficultySetting
             beatmap,
             setting,
             FormatRange(range),
-            difficulty.ToString(),
+            beatmap.GetModeDifficultyName(difficulty),
             current
         ).ForDifficulties(difficulty);
 }

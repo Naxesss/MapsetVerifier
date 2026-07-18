@@ -932,6 +932,44 @@ namespace MapsetVerifier.Parser.Objects
             }
         }
 
+        /// <summary>
+        ///     Returns the canonical difficulty tier name for this beatmap's game mode, for example
+        ///     "Kantan" for a Taiko Easy or "Platter" for a Catch Hard, falling back to the mode-agnostic
+        ///     name (e.g. "Easy") for modes without their own tier names.
+        /// </summary>
+        public string GetModeDifficultyName(Difficulty? difficulty = null)
+        {
+            var diff = difficulty ?? GetDifficulty();
+
+            return GeneralSettings.mode switch
+            {
+                Mode.Taiko => diff switch
+                {
+                    Difficulty.Easy => "Kantan",
+                    Difficulty.Normal => "Futsuu",
+                    Difficulty.Hard => "Muzukashii",
+                    Difficulty.Insane => "Oni",
+                    _ => "Inner Oni",
+                },
+                Mode.Catch => diff switch
+                {
+                    Difficulty.Easy => "Cup",
+                    Difficulty.Normal => "Salad",
+                    Difficulty.Hard => "Platter",
+                    Difficulty.Insane => "Rain",
+                    _ => "Overdose",
+                },
+                _ => diff switch
+                {
+                    Difficulty.Easy => "Easy",
+                    Difficulty.Normal => "Normal",
+                    Difficulty.Hard => "Hard",
+                    Difficulty.Insane => "Insane",
+                    _ => "Expert",
+                },
+            };
+        }
+
         /// <summary> Returns the complete drain time of the beatmap, accounting for breaks. </summary>
         public double GetDrainTime(Mode gamemode)
         {
