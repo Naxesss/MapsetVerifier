@@ -1,5 +1,3 @@
-using MapsetVerifier.Parser.Objects;
-using MapsetVerifier.Snapshots;
 using Xunit;
 
 namespace MapsetVerifier.Snapshots.Tests;

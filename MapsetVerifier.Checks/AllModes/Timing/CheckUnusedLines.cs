@@ -1,4 +1,3 @@
-using MapsetVerifier.Checks.Utils;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;

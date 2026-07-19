@@ -1,5 +1,4 @@
 using MapsetVerifier.Server.Service;
-using MapsetVerifier.Snapshots;
 using Xunit;
 
 namespace MapsetVerifier.Snapshots.Tests;

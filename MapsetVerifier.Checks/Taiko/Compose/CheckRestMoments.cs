@@ -4,7 +4,6 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
-using static MapsetVerifier.Checks.Utils.GeneralUtils;
 using static MapsetVerifier.Checks.Utils.TaikoUtils;
 
 namespace MapsetVerifier.Checks.Taiko.Compose
