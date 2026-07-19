@@ -5,8 +5,8 @@ import { DEFAULT_UI_FONT_FAMILY, parseUiFontFamily, type UiFontFamily } from '..
 import { isSemverPreRelease } from '../utils/isSemverPreRelease';
 import type { TimelineThemeVariant } from '../components/overview/objects/timelineTheme/types.ts';
 
-/** What the Star Rating overview chart shows by default: the cumulative line, the spike overlay, or both. */
-export type DifficultySpikeDisplayMode = 'both' | 'starRatingOnly' | 'spikesOnly';
+/** What the Star Rating overview chart shows by default: the cumulative line, the strain overlay, or both. */
+export type DifficultyStrainDisplayMode = 'both' | 'starRatingOnly' | 'strainOnly';
 
 // Type-safe Settings type
 export type Settings = {
@@ -17,8 +17,8 @@ export type Settings = {
   showGamemodeDifficultyNames: boolean;
   showAdvancedAudioAnalysis: boolean;
   /** What the Star Rating overview chart shows by default. */
-  difficultySpikeDisplayMode: DifficultySpikeDisplayMode;
-  /** Excludes osu!standard's Aim skill(s) from the combined strain spike line. */
+  difficultyStrainDisplayMode: DifficultyStrainDisplayMode;
+  /** Excludes osu!standard's Aim skill(s) from the combined strain line. */
   excludeAimFromCombinedStrain: boolean;
   lazerLookupEnabled: boolean;
   receivePrereleases: boolean;
@@ -56,7 +56,7 @@ const defaultSettings: Settings = {
   hiddenMinorCheckIds: [],
   showGamemodeDifficultyNames: true,
   showAdvancedAudioAnalysis: false,
-  difficultySpikeDisplayMode: 'starRatingOnly',
+  difficultyStrainDisplayMode: 'both',
   excludeAimFromCombinedStrain: false,
   lazerLookupEnabled: false,
   receivePrereleases: false,

@@ -49,7 +49,8 @@ function TimeSeriesLegend({
         style={{ overflow: 'visible' }}
       >
         {legendSeries.map((item) => {
-          const visible = isVisible(item.id);
+          const visibilityId = item.visibilityId ?? item.id;
+          const visible = isVisible(visibilityId);
 
           return (
             <Button
@@ -59,7 +60,7 @@ function TimeSeriesLegend({
               color="gray"
               size="compact-sm"
               justify="flex-start"
-              onClick={() => onToggle(item.id)}
+              onClick={() => onToggle(visibilityId)}
               aria-pressed={visible}
               leftSection={
                 <ColorSwatch

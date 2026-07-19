@@ -39,8 +39,8 @@ export function getDifficultySeriesId(mode: string, label: string): string {
   return `${normalizeMode(mode)}::${label}`;
 }
 
-export function getDifficultySpikeSeriesId(mode: string, label: string): string {
-  return `${getDifficultySeriesId(mode, label)}::spike`;
+export function getDifficultyStrainSeriesId(mode: string, label: string): string {
+  return `${getDifficultySeriesId(mode, label)}::strain`;
 }
 
 export type DifficultyModeGroup = {
@@ -81,7 +81,7 @@ function toChartPoints(samples: DifficultySamplePoint[]): DifficultyChartDataPoi
 }
 
 export type BuildChartsOptions = {
-  /** Excludes osu!standard's Aim skill(s) from the combined strain spike line. */
+  /** Excludes osu!standard's Aim skill(s) from the combined strain line. */
   excludeAimFromCombinedStrain?: boolean;
 };
 
@@ -99,11 +99,11 @@ export function buildCharts(
     .map((difficulty) => buildStarRatingSeries(difficulty))
     .filter((series) => series.points.length > 0);
 
-  const starRatingSpikeSeries = difficulties
-    .map((difficulty) => buildCombinedStrainSpikeSeries(difficulty, options))
+  const starRatingStrainSeries = difficulties
+    .map((difficulty) => buildCombinedStrainSeries(difficulty, options))
     .filter((series) => series.points.length > 0);
 
-  if (starRatingSeries.length > 0 || starRatingSpikeSeries.length > 0) {
+  if (starRatingSeries.length > 0 || starRatingStrainSeries.length > 0) {
     chartSeries.push(
       buildChartDefinition(
         'Star Rating',
@@ -114,7 +114,7 @@ export function buildCharts(
         'line',
         false,
         true,
-        starRatingSpikeSeries,
+        starRatingStrainSeries,
         'fitToData',
         '%' // Each skill is normalized to a % of its own peak before combining, see below.
       )
@@ -202,10 +202,10 @@ function buildStarRatingSeries(difficulty: DifficultyOverviewDifficulty): Diffic
  * Rating (e.g. Aim on a speed-focused map) doesn't get an outsized say just for existing, while a
  * skill that dominates the real rating dominates this line too. Unlike Star Rating - a
  * deliberately compressed, diminishing-returns scale - this isn't bounded/smoothed the same way,
- * so genuine local spikes stand out. Plotted on the chart's secondary axis since it isn't in Star
- * Rating units.
+ * so genuine local difficulty spikes stand out. Plotted on the chart's secondary axis since it
+ * isn't in Star Rating units.
  */
-function buildCombinedStrainSpikeSeries(
+function buildCombinedStrainSeries(
   difficulty: DifficultyOverviewDifficulty,
   options: BuildChartsOptions
 ): DifficultyChartSeries {
@@ -239,8 +239,8 @@ function buildCombinedStrainSpikeSeries(
   });
 
   return {
-    skillName: 'Combined strain (spike)',
-    label: `${difficulty.label} (spike)`,
+    skillName: 'Combined strain',
+    label: `${difficulty.label} (strain)`,
     mode: difficulty.mode,
     difficultyLevel: difficulty.difficultyLevel,
     starRating: difficulty.starRating,
@@ -307,28 +307,28 @@ function buildChartDefinition(
       id,
       key: id,
       color: getGraphColor(item, series.slice(0, index)),
-      // Different series in the same chart can sample at different times (e.g. the fine
-      // cumulative grid vs. the sparser spike windows), so a hovered timestamp may not have a
-      // real point for every series. Forward-fill a hover-only value so every series still shows
-      // "its last known value" instead of going blank when hovering on another series' sample.
+      // Different series in the same chart can sample at different times, so a hovered
+      // timestamp may not have a real point for every series. Forward-fill a hover-only value so
+      // every series still shows "its last known value" instead of going blank when hovering on
+      // another series' sample.
       hoverKey: `${id}__hover`,
     };
   });
 
   const secondaryDisplaySeries = secondarySeries.map((item) => {
-    const originalLabel = item.label.replace(/ \(spike\)$/, '');
+    const originalLabel = item.label.replace(/ \(strain\)$/, '');
     const baseId = getDifficultySeriesId(item.mode, originalLabel);
-    const spikeId = getDifficultySpikeSeriesId(item.mode, originalLabel);
+    const strainId = getDifficultyStrainSeriesId(item.mode, originalLabel);
     const matchingPrimary = displaySeries.find((primary) => primary.id === baseId);
     return {
       ...item,
-      id: spikeId,
-      key: spikeId,
+      id: strainId,
+      key: strainId,
       color: matchingPrimary?.color ?? getGraphColor(item, []),
       dashed: true,
       visibilityId: baseId,
       hideFromLegend: true,
-      hoverKey: `${spikeId}__hover`,
+      hoverKey: `${strainId}__hover`,
       // A different metric on a different scale than the primary series (e.g. raw strain
       // alongside Star Rating) - its own axis and unit label, not the primary's.
       useSecondaryAxis: true,

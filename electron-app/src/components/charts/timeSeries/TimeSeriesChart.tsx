@@ -87,6 +87,7 @@ function TimeSeriesChartInner({
   const dragRef = useRef<DragSelection | null>(null);
   const [drag, setDrag] = useState<DragSelection | null>(null);
 
+  const hasPrimaryAxis = series.some((item) => !item.useSecondaryAxis);
   const hasSecondaryAxis = series.some((item) => item.useSecondaryAxis);
   const margin = hasSecondaryAxis ? MARGIN_WITH_SECONDARY_AXIS : MARGIN;
 
@@ -411,7 +412,7 @@ function TimeSeriesChartInner({
         />
         <Group left={margin.left} top={margin.top} pointerEvents="none">
           <GridRows
-            scale={yScale}
+            scale={hasPrimaryAxis ? yScale : secondaryYScale}
             width={innerWidth}
             stroke={gridStroke}
             strokeOpacity={0.6}
@@ -476,22 +477,24 @@ function TimeSeriesChartInner({
             />
           ) : null}
         </Group>
-        <AxisLeft
-          left={margin.left}
-          top={margin.top}
-          scale={yScale}
-          numTicks={5}
-          tickFormat={(v) => valueFormatter(Number(v))}
-          stroke={axisColor}
-          tickStroke={axisColor}
-          tickLabelProps={{
-            fill: axisColor,
-            fontSize: 10,
-            fontFamily: theme.fontFamily,
-            textAnchor: 'end',
-            dx: -4,
-          }}
-        />
+        {hasPrimaryAxis ? (
+          <AxisLeft
+            left={margin.left}
+            top={margin.top}
+            scale={yScale}
+            numTicks={5}
+            tickFormat={(v) => valueFormatter(Number(v))}
+            stroke={axisColor}
+            tickStroke={axisColor}
+            tickLabelProps={{
+              fill: axisColor,
+              fontSize: 10,
+              fontFamily: theme.fontFamily,
+              textAnchor: 'end',
+              dx: -4,
+            }}
+          />
+        ) : null}
         {hasSecondaryAxis ? (
           <AxisRight
             left={margin.left + innerWidth}

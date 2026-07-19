@@ -35,7 +35,7 @@ export type PeakHoverState = {
     value: number;
     /** Overrides the chart-wide value suffix for this entry (e.g. a secondary-axis series). */
     valueSuffix?: string;
-    /** Value of a companion series (e.g. spike) folded into this row instead of shown on its own. */
+    /** Value of a companion series (e.g. strain) folded into this row instead of shown on its own. */
     secondaryValue?: number;
     /** Suffix for `secondaryValue`, when it's in different units than the primary value. */
     secondaryValueSuffix?: string;

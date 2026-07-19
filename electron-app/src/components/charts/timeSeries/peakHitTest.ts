@@ -59,7 +59,7 @@ export function buildPeakHoverState(
       continue;
     }
 
-    // Companion series (e.g. the spike line) fold into their primary series' row instead of
+    // Companion series (e.g. the strain line) fold into their primary series' row instead of
     // showing up as a separate tooltip line.
     if (item.hideFromLegend && item.visibilityId) {
       const primaryIndex = valueIndexById.get(item.visibilityId);

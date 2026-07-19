@@ -92,7 +92,12 @@ function DifficultyOverview() {
     [folder, selectedDifficulties, selectedGroup?.mode]
   );
 
-  const chartState = useDifficultyChartState(durationMs, selectedDifficulties, chartResetKey);
+  const chartState = useDifficultyChartState(
+    durationMs,
+    selectedDifficulties,
+    chartResetKey,
+    folder ?? ''
+  );
 
   const starRatingChart = charts.find((c) => c.title === 'Star Rating');
   const sliderVelocityChart = charts.find((c) => c.title === 'Slider velocity');

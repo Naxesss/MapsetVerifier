@@ -2,12 +2,12 @@ import { SegmentedControl, Switch } from '@mantine/core';
 import { IconChartAreaLine } from '@tabler/icons-react';
 import { SettingsRow, SettingsSection } from './SettingsSection';
 import { useSettings } from '../../context/SettingsContext';
-import type { DifficultySpikeDisplayMode } from '../../context/SettingsContext';
+import type { DifficultyStrainDisplayMode } from '../../context/SettingsContext';
 
-const DISPLAY_MODE_OPTIONS: { value: DifficultySpikeDisplayMode; label: string }[] = [
+const DISPLAY_MODE_OPTIONS: { value: DifficultyStrainDisplayMode; label: string }[] = [
   { value: 'both', label: 'Both' },
   { value: 'starRatingOnly', label: 'Star Rating only' },
-  { value: 'spikesOnly', label: 'Spikes only' },
+  { value: 'strainOnly', label: 'Strain only' },
 ];
 
 export default function OverviewSettingsSection() {
@@ -21,16 +21,16 @@ export default function OverviewSettingsSection() {
     >
       <SettingsRow
         title="Star Rating chart"
-        description="Whether the Star Rating overview chart shows the cumulative line, the difficulty spike overlay, or both, by default."
+        description="Whether the Star Rating overview chart shows the cumulative line, the difficulty strain overlay, or both, by default."
         control={
           <SegmentedControl
             size="xs"
             data={DISPLAY_MODE_OPTIONS}
-            value={settings.difficultySpikeDisplayMode}
+            value={settings.difficultyStrainDisplayMode}
             onChange={(value) =>
               setSettings((prev) => ({
                 ...prev,
-                difficultySpikeDisplayMode: value as DifficultySpikeDisplayMode,
+                difficultyStrainDisplayMode: value as DifficultyStrainDisplayMode,
               }))
             }
           />
@@ -38,7 +38,7 @@ export default function OverviewSettingsSection() {
       />
       <SettingsRow
         title="Exclude Aim from combined strain (osu!standard)"
-        description="Leaves osu!standard's Aim skill(s) out of the combined strain spike line, since Aim can dominate the line visually even on maps where it barely factors into the real Star Rating."
+        description="Leaves osu!standard's Aim skill(s) out of the combined strain line, since Aim can dominate the line visually even on maps where it barely factors into the real Star Rating."
         control={
           <Switch
             checked={settings.excludeAimFromCombinedStrain}

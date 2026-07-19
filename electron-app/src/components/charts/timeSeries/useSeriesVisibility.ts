@@ -2,11 +2,14 @@ import { useCallback, useMemo, useState } from 'react';
 
 export function useSeriesVisibility(seriesIds: string[], resetKey?: string) {
   const [visibilityById, setVisibilityById] = useState<Record<string, boolean>>({});
-  const [prevToken, setPrevToken] = useState({ resetKey, seriesIds });
+  // Unset ids already default to visible below, so a new `seriesIds` array (e.g. switching game
+  // modes, which uses a different id namespace per mode) doesn't need to wipe anything - only
+  // `resetKey` changing (e.g. switching to a different beatmapset) should forget toggles.
+  const [prevResetKey, setPrevResetKey] = useState(resetKey);
 
-  if (prevToken.resetKey !== resetKey || prevToken.seriesIds !== seriesIds) {
-    setPrevToken({ resetKey, seriesIds });
-    setVisibilityById(Object.fromEntries(seriesIds.map((id) => [id, true])));
+  if (prevResetKey !== resetKey) {
+    setPrevResetKey(resetKey);
+    setVisibilityById({});
   }
 
   const toggleSeries = useCallback((seriesId: string) => {
