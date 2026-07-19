@@ -48,15 +48,28 @@ export function buildPeakHoverState(
   }
 
   const values: PeakHoverState['values'] = [];
+  const valueIndexById = new Map<string, number>();
 
   for (const item of series) {
-    if (!visibleSeriesIds.has(item.id)) {
+    if (!visibleSeriesIds.has(item.visibilityId ?? item.id)) {
       continue;
     }
-    const raw = row[item.key];
+    const raw = row[item.hoverKey ?? item.key];
     if (typeof raw !== 'number') {
       continue;
     }
+
+    // Companion series (e.g. the spike line) fold into their primary series' row instead of
+    // showing up as a separate tooltip line.
+    if (item.hideFromLegend && item.visibilityId) {
+      const primaryIndex = valueIndexById.get(item.visibilityId);
+      if (primaryIndex !== undefined) {
+        values[primaryIndex].secondaryValue = raw;
+        continue;
+      }
+    }
+
+    valueIndexById.set(item.id, values.length);
     values.push({
       seriesId: item.id,
       label: item.label,

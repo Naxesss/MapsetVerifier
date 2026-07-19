@@ -5,6 +5,9 @@ import { DEFAULT_UI_FONT_FAMILY, parseUiFontFamily, type UiFontFamily } from '..
 import { isSemverPreRelease } from '../utils/isSemverPreRelease';
 import type { TimelineThemeVariant } from '../components/overview/objects/timelineTheme/types.ts';
 
+/** What the Star Rating overview chart shows by default: the cumulative line, the spike overlay, or both. */
+export type DifficultySpikeDisplayMode = 'both' | 'starRatingOnly' | 'spikesOnly';
+
 // Type-safe Settings type
 export type Settings = {
   songFolder?: string;
@@ -13,6 +16,8 @@ export type Settings = {
   hiddenMinorCheckIds: number[];
   showGamemodeDifficultyNames: boolean;
   showAdvancedAudioAnalysis: boolean;
+  /** What the Star Rating overview chart shows by default. */
+  difficultySpikeDisplayMode: DifficultySpikeDisplayMode;
   lazerLookupEnabled: boolean;
   receivePrereleases: boolean;
   uiFontFamily: UiFontFamily;
@@ -49,6 +54,7 @@ const defaultSettings: Settings = {
   hiddenMinorCheckIds: [],
   showGamemodeDifficultyNames: true,
   showAdvancedAudioAnalysis: false,
+  difficultySpikeDisplayMode: 'starRatingOnly',
   lazerLookupEnabled: false,
   receivePrereleases: false,
   uiFontFamily: DEFAULT_UI_FONT_FAMILY,

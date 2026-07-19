@@ -33,6 +33,9 @@ function TimeSeriesHoverTooltip({
             </Text>
             {': '}
             {formatAxisMetricValue(entry.value, valueSuffix)}
+            {entry.secondaryValue !== undefined
+              ? ` (${formatAxisMetricValue(entry.secondaryValue, valueSuffix)})`
+              : null}
           </Text>
         ))
       ) : (

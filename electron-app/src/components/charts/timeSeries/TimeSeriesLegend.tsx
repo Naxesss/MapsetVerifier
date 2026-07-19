@@ -18,8 +18,9 @@ function TimeSeriesLegend({
   onUnselectAll,
 }: TimeSeriesLegendProps) {
   const theme = useMantineTheme();
+  const legendSeries = series.filter((item) => !item.hideFromLegend);
 
-  if (series.length <= 1) {
+  if (legendSeries.length <= 1) {
     return null;
   }
 
@@ -47,7 +48,7 @@ function TimeSeriesLegend({
         w="100%"
         style={{ overflow: 'visible' }}
       >
-        {series.map((item) => {
+        {legendSeries.map((item) => {
           const visible = isVisible(item.id);
 
           return (

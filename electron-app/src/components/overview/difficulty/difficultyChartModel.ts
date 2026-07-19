@@ -17,10 +17,24 @@ export type ChartRow = {
   timeMs: number;
   [seriesKey: string]: number | string | null;
 };
-export type ChartDisplaySeries = DifficultyChartSeries & { id: string; key: string; color: string };
+export type ChartDisplaySeries = DifficultyChartSeries & {
+  id: string;
+  key: string;
+  color: string;
+  dashed?: boolean;
+  visibilityId?: string;
+  hideFromLegend?: boolean;
+  /** Row key holding the last-known (forward-filled) value, for hover lookups on sparse series
+   *  that are still rendered as a smooth line (so hovering between samples shows a value). */
+  hoverKey?: string;
+};
 
 export function getDifficultySeriesId(mode: string, label: string): string {
   return `${normalizeMode(mode)}::${label}`;
+}
+
+export function getDifficultySpikeSeriesId(mode: string, label: string): string {
+  return `${getDifficultySeriesId(mode, label)}::spike`;
 }
 
 export type DifficultyModeGroup = {
@@ -67,8 +81,24 @@ export function buildCharts(
     .map((difficulty) => buildStarRatingSeries(difficulty))
     .filter((series) => series.points.length > 0);
 
-  if (starRatingSeries.length > 0) {
-    chartSeries.push(buildChartDefinition('Star Rating', starRatingSeries, msPerPeak, '★'));
+  const starRatingSpikeSeries = difficulties
+    .map((difficulty) => buildStarRatingSpikeSeries(difficulty))
+    .filter((series) => series.points.length > 0);
+
+  if (starRatingSeries.length > 0 || starRatingSpikeSeries.length > 0) {
+    chartSeries.push(
+      buildChartDefinition(
+        'Star Rating',
+        starRatingSeries,
+        msPerPeak,
+        '★',
+        undefined,
+        'line',
+        false,
+        true,
+        starRatingSpikeSeries
+      )
+    );
   }
 
   const sliderVelocitySeries = difficulties
@@ -143,6 +173,19 @@ function buildStarRatingSeries(difficulty: DifficultyOverviewDifficulty): Diffic
   };
 }
 
+function buildStarRatingSpikeSeries(
+  difficulty: DifficultyOverviewDifficulty
+): DifficultyChartSeries {
+  return {
+    skillName: 'Star Rating (spike)',
+    label: `${difficulty.label} (spike)`,
+    mode: difficulty.mode,
+    difficultyLevel: difficulty.difficultyLevel,
+    starRating: difficulty.starRating,
+    points: toChartPoints(difficulty.starRatingSpikeSamples),
+  };
+}
+
 function buildSliderVelocitySeries(
   difficulty: DifficultyOverviewDifficulty
 ): DifficultyChartSeries {
@@ -190,19 +233,47 @@ function buildChartDefinition(
   hideLowValuesThreshold?: number,
   interpolation: ChartInterpolation = 'line',
   showDataPoints = false,
-  showResolution = true
+  showResolution = true,
+  secondarySeries: DifficultyChartSeries[] = []
 ): ChartDefinition {
-  const displaySeries = series.map((item, index) => {
+  const displaySeries: ChartDisplaySeries[] = series.map((item, index) => {
     const id = getDifficultySeriesId(item.mode, item.label);
     return {
       ...item,
       id,
       key: id,
       color: getGraphColor(item, series.slice(0, index)),
+      // Different series in the same chart can sample at different times (e.g. the fine
+      // cumulative grid vs. the sparser spike windows), so a hovered timestamp may not have a
+      // real point for every series. Forward-fill a hover-only value so every series still shows
+      // "its last known value" instead of going blank when hovering on another series' sample.
+      hoverKey: `${id}__hover`,
     };
   });
 
-  const allPoints = displaySeries.flatMap((item) => item.points);
+  const secondaryDisplaySeries = secondarySeries.map((item) => {
+    const originalLabel = item.label.replace(/ \(spike\)$/, '');
+    const baseId = getDifficultySeriesId(item.mode, originalLabel);
+    const spikeId = getDifficultySpikeSeriesId(item.mode, originalLabel);
+    const matchingPrimary = displaySeries.find((primary) => primary.id === baseId);
+    return {
+      ...item,
+      id: spikeId,
+      key: spikeId,
+      color: matchingPrimary?.color ?? getGraphColor(item, []),
+      dashed: true,
+      visibilityId: baseId,
+      hideFromLegend: true,
+      // Samples are sparse relative to the fine cumulative grid; keep the rendered line smooth
+      // between them, but expose a forward-filled hover value so hovering anywhere still shows
+      // "the last computed window" instead of nothing.
+      hoverKey: `${spikeId}__hover`,
+    };
+  });
+
+  const allDisplaySeries = [...displaySeries, ...secondaryDisplaySeries];
+
+  const allPoints = allDisplaySeries.flatMap((item) => item.points);
   const peakPoint = allPoints.reduce<DifficultyChartDataPoint | null>((currentMax, point) => {
     if (!currentMax || point.value > currentMax.value) {
       return point;
@@ -212,11 +283,11 @@ function buildChartDefinition(
   }, null);
 
   const timeMsList = [
-    ...new Set(displaySeries.flatMap((item) => item.points.map((point) => point.timeMs))),
+    ...new Set(allDisplaySeries.flatMap((item) => item.points.map((point) => point.timeMs))),
   ].sort((a, b) => a - b);
 
   const lastValueByKey: Record<string, number | null> = {};
-  for (const item of displaySeries) {
+  for (const item of allDisplaySeries) {
     lastValueByKey[item.key] = null;
   }
 
@@ -226,13 +297,17 @@ function buildChartDefinition(
       timeMs,
     };
 
-    for (const item of displaySeries) {
+    for (const item of allDisplaySeries) {
       const point = item.points.find((p) => p.timeMs === timeMs);
       if (point) {
         lastValueByKey[item.key] = point.value;
       }
       row[item.key] =
         interpolation === 'step' ? (lastValueByKey[item.key] ?? null) : (point?.value ?? null);
+
+      if (item.hoverKey) {
+        row[item.hoverKey] = lastValueByKey[item.key] ?? null;
+      }
     }
 
     return row;
@@ -246,7 +321,7 @@ function buildChartDefinition(
     durationMs,
     msPerPeak,
     data: rawRows,
-    series: displaySeries,
+    series: allDisplaySeries,
     maxValue: peakPoint?.value ?? 0,
     peakTimeSeconds: peakPoint?.timeSeconds ?? 0,
     valueSuffix,

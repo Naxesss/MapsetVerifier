@@ -18,8 +18,10 @@ namespace MapsetVerifier.Server.Service;
 public static class BeatmapAnalysisService
 {
     private const double TimelineMarginMs = 2000;
-    private const int MsPerPeak = 400;
+    private const int MsPerPeak = 1_000;
     private const int MaxSamplePoints = 1500; // Widen the grid on long maps instead of sending thousands of chart points.
+    private const int SpikeWindowMs = 2_500; // Trailing window recomputed in isolation for the spike overlay.
+    private const int MinSpikeStrideMs = 1000;
 
     public static BeatmapAnalysisResult Analyze(string beatmapSetFolder)
     {
@@ -324,6 +326,7 @@ public static class BeatmapAnalysisService
                 pointCount,
                 msPerPeak
             ),
+            StarRatingSpikeSamples = GetStarRatingSpikeSamples(beatmap),
             SliderVelocitySamples = GetSliderVelocitySamples(beatmap),
             VolumeSamples = GetVolumeSamples(beatmap),
             Skills = GetSkillSamples(beatmap, pointCount, msPerPeak),
@@ -405,6 +408,44 @@ public static class BeatmapAnalysisService
                 : 0;
 
         return Math.Max(timingMax, objectsMax);
+    }
+
+    private static int ResolveSpikeStrideMs(double finalTimeMs)
+    {
+        if (finalTimeMs <= 0)
+            return MinSpikeStrideMs;
+
+        var stride = (int)Math.Ceiling(finalTimeMs / (MaxSamplePoints - 1));
+        return Math.Max(MinSpikeStrideMs, stride);
+    }
+
+    /// <summary>
+    ///     Non-cumulative counterpart to <see cref="GetStarRatingSamples" />: recomputes star rating
+    ///     from scratch for isolated trailing windows so a locally hard section shows up as a spike
+    ///     instead of being smoothed into the running total.
+    /// </summary>
+    private static List<DifficultySamplePoint> GetStarRatingSpikeSamples(Beatmap beatmap)
+    {
+        if (beatmap.HitObjects.Count == 0)
+            return [];
+
+        var finalTime = beatmap.HitObjects[^1].GetEndTime();
+        var strideMs = ResolveSpikeStrideMs(finalTime);
+
+        var samples = new WindowedDifficultyCalculator().CalculateWindowedStarRatings(
+            beatmap,
+            SpikeWindowMs,
+            strideMs,
+            MaxSamplePoints
+        );
+
+        return samples
+            .Select(sample => new DifficultySamplePoint
+            {
+                TimeMs = sample.TimeMs,
+                Value = sample.StarRating,
+            })
+            .ToList();
     }
 
     private static double GetFirstStrainSectionEndMs(Beatmap beatmap, int msPerPeak)

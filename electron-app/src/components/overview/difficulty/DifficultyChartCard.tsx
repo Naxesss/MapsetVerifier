@@ -4,6 +4,7 @@ import {
   Group,
   Modal,
   Paper,
+  SegmentedControl,
   SimpleGrid,
   Stack,
   Switch,
@@ -26,10 +27,12 @@ import {
   MODAL_PLOT_HEIGHT,
 } from './DifficultyChartPanel.tsx';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
+import { useSettings } from '../../../context/SettingsContext';
 import { ChartHoverFloatingPanel } from '../../charts/timeSeries/ChartHoverFloatingPanel.tsx';
 import { formatChartTime } from '../../common/TimeAxis.tsx';
 import type { ChartDefinition, ChartRow } from './difficultyChartModel.ts';
 import type { DifficultyChartState } from './hooks/useDifficultyChartState.ts';
+import type { DifficultySpikeDisplayMode } from '../../../context/SettingsContext';
 import type { ChartHoverPayload } from '../../charts/timeSeries/types.ts';
 
 function formatChartDuration(durationMs: number) {
@@ -92,6 +95,12 @@ function formatChartMetricValue(value: number, valueSuffix: string | undefined):
   return `${value.toFixed(2)}${valueSuffix ?? ''}`;
 }
 
+const SPIKE_DISPLAY_MODE_OPTIONS: { value: DifficultySpikeDisplayMode; label: string }[] = [
+  { value: 'both', label: 'Both' },
+  { value: 'starRatingOnly', label: 'Star Rating only' },
+  { value: 'spikesOnly', label: 'Spikes only' },
+];
+
 type DifficultyChartCardProps = {
   chart: ChartDefinition;
   chartState: DifficultyChartState;
@@ -100,7 +109,26 @@ type DifficultyChartCardProps = {
 export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardProps) {
   const theme = useMantineTheme();
   const { selectedFolder: folder } = useBeatmap();
+  const { settings, setSettings } = useSettings();
   const [ignoreLowVolume, setIgnoreLowVolume] = useState(true);
+  // Mirrors settings.difficultySpikeDisplayMode locally so the control responds instantly instead
+  // of waiting on the settings context (shared app-wide and persisted to disk on every change) to
+  // re-render this chart-heavy page. Synced during render (not an effect) when the setting
+  // changes externally, e.g. from the Settings page - see https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes.
+  const [prevSettingValue, setPrevSettingValue] = useState(settings.difficultySpikeDisplayMode);
+  const [displayMode, setDisplayModeLocal] = useState(settings.difficultySpikeDisplayMode);
+  if (prevSettingValue !== settings.difficultySpikeDisplayMode) {
+    setPrevSettingValue(settings.difficultySpikeDisplayMode);
+    setDisplayModeLocal(settings.difficultySpikeDisplayMode);
+  }
+
+  const setDisplayMode = useCallback(
+    (value: DifficultySpikeDisplayMode) => {
+      setDisplayModeLocal(value);
+      setSettings((prev) => ({ ...prev, difficultySpikeDisplayMode: value }));
+    },
+    [setSettings]
+  );
   const [modalOpened, setModalOpened] = useState(false);
   const [hover, setHover] = useState<ChartHoverPayload | null>(null);
   const [hoverSafeZone, setHoverSafeZone] = useState(false);
@@ -154,13 +182,44 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
     setLastHover(null);
   }, []);
 
+  const hasSpikeSeries = useMemo(
+    () => chart.series.some((item) => item.hideFromLegend),
+    [chart.series]
+  );
+
+  const visibleSeries = useMemo(() => {
+    if (!hasSpikeSeries) {
+      return chart.series;
+    }
+
+    switch (displayMode) {
+      case 'starRatingOnly':
+        return chart.series.filter((item) => !item.hideFromLegend);
+      case 'spikesOnly':
+        // Promote the spike companions to first-class series: show them in the legend (using the
+        // same label as the primary line, since it's the only line shown) and let them toggle
+        // independently instead of following the (now-hidden) primary line.
+        return chart.series
+          .filter((item) => item.hideFromLegend)
+          .map((item) => ({
+            ...item,
+            label: item.label.replace(/ \(spike\)$/, ''),
+            hideFromLegend: false,
+            visibilityId: undefined,
+          }));
+      case 'both':
+      default:
+        return chart.series;
+    }
+  }, [chart.series, displayMode, hasSpikeSeries]);
+
   const displayData = useMemo(() => {
     const threshold = chart.hideLowValuesThreshold;
     if (threshold === undefined || !ignoreLowVolume) {
       return chart.data;
     }
 
-    const keys = chart.series.map((item) => item.key);
+    const keys = visibleSeries.map((item) => item.key);
     const carry: Record<string, number | null> = {};
     for (const key of keys) {
       carry[key] = null;
@@ -182,35 +241,40 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
       }
       return next;
     });
-  }, [chart.data, chart.hideLowValuesThreshold, chart.series, ignoreLowVolume]);
+  }, [chart.data, chart.hideLowValuesThreshold, ignoreLowVolume, visibleSeries]);
 
   const seriesConfig = useMemo(
     () =>
-      chart.series.map((item) => ({
+      visibleSeries.map((item) => ({
         id: item.id,
         key: item.key,
         label: item.label,
         color: item.color,
+        dashed: item.dashed,
+        visibilityId: item.visibilityId,
+        hideFromLegend: item.hideFromLegend,
+        hoverKey: item.hoverKey,
       })),
-    [chart.series]
+    [visibleSeries]
   );
 
   const { peakValue, peakAtSeconds } = useMemo(() => {
     const threshold = chart.hideLowValuesThreshold;
-    if (threshold === undefined || !ignoreLowVolume) {
+    if ((threshold === undefined || !ignoreLowVolume) && !hasSpikeSeries) {
       return { peakValue: chart.maxValue, peakAtSeconds: chart.peakTimeSeconds };
     }
 
-    const keys = chart.series.map((item) => item.key);
+    const keys = visibleSeries.map((item) => item.key);
     const { maxValue, peakTimeSeconds } = computePeakFromRows(displayData, keys);
     return { peakValue: maxValue, peakAtSeconds: peakTimeSeconds };
   }, [
     chart.hideLowValuesThreshold,
     chart.maxValue,
     chart.peakTimeSeconds,
-    chart.series,
     displayData,
+    hasSpikeSeries,
     ignoreLowVolume,
+    visibleSeries,
   ]);
 
   const panelProps = {
@@ -231,16 +295,26 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
         <Stack gap="sm">
           <Group justify="space-between" align="center" wrap="nowrap">
             <Text fw={600}>{chart.title}</Text>
-            {chart.data.length > 0 ? (
-              <Button
-                leftSection={<IconArrowsMaximize size={16} />}
-                variant="light"
-                size="sm"
-                onClick={() => setModalOpened(true)}
-              >
-                Full view
-              </Button>
-            ) : null}
+            <Group gap="md" wrap="nowrap">
+              {hasSpikeSeries && (
+                <SegmentedControl
+                  size="xs"
+                  data={SPIKE_DISPLAY_MODE_OPTIONS}
+                  value={displayMode}
+                  onChange={(value) => setDisplayMode(value as DifficultySpikeDisplayMode)}
+                />
+              )}
+              {chart.data.length > 0 ? (
+                <Button
+                  leftSection={<IconArrowsMaximize size={16} />}
+                  variant="light"
+                  size="sm"
+                  onClick={() => setModalOpened(true)}
+                >
+                  Full view
+                </Button>
+              ) : null}
+            </Group>
           </Group>
 
           <SimpleGrid cols={chart.showResolution ? 4 : 3} spacing="md">

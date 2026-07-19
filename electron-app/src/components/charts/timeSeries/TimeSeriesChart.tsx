@@ -95,10 +95,10 @@ function TimeSeriesChartInner({
 
   const buildSeriesPoints = useCallback(
     (rows: TimeSeriesRow[]) => {
-      const paths: { id: string; color: string; points: LinePoint[] }[] = [];
+      const paths: { id: string; color: string; dashed?: boolean; points: LinePoint[] }[] = [];
 
       for (const item of series) {
-        if (!visibleSeriesIds.has(item.id)) {
+        if (!visibleSeriesIds.has(item.visibilityId ?? item.id)) {
           continue;
         }
 
@@ -111,7 +111,7 @@ function TimeSeriesChartInner({
         }
 
         if (points.length > 0) {
-          paths.push({ id: item.id, color: item.color, points });
+          paths.push({ id: item.id, color: item.color, dashed: item.dashed, points });
         }
       }
 
@@ -370,6 +370,7 @@ function TimeSeriesChartInner({
               curve={lineCurve}
               stroke={path.color}
               strokeWidth={2.5}
+              strokeDasharray={path.dashed ? '6,4' : undefined}
               fill="none"
             />
           ))}

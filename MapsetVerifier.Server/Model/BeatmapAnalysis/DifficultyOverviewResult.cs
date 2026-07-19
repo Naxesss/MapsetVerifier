@@ -30,6 +30,7 @@ public class DifficultyOverviewDifficulty
     public string DifficultyLevel { get; set; } = string.Empty;
     public double StarRating { get; set; }
     public List<DifficultySamplePoint> StarRatingSamples { get; set; } = [];
+    public List<DifficultySamplePoint> StarRatingSpikeSamples { get; set; } = [];
     public List<DifficultySamplePoint> SliderVelocitySamples { get; set; } = [];
     public List<DifficultySamplePoint> VolumeSamples { get; set; } = [];
     public List<DifficultySkillData> Skills { get; set; } = [];

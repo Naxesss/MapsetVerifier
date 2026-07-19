@@ -568,6 +568,7 @@ export type DifficultyOverviewDifficulty = {
   difficultyLevel: DifficultyLevel;
   starRating: number;
   starRatingSamples: DifficultySamplePoint[];
+  starRatingSpikeSamples: DifficultySamplePoint[];
   sliderVelocitySamples: DifficultySamplePoint[];
   volumeSamples: DifficultySamplePoint[];
   skills: DifficultySkillData[];
