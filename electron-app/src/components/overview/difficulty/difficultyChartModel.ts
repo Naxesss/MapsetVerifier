@@ -27,6 +27,12 @@ export type ChartDisplaySeries = DifficultyChartSeries & {
   /** Row key holding the last-known (forward-filled) value, for hover lookups on sparse series
    *  that are still rendered as a smooth line (so hovering between samples shows a value). */
   hoverKey?: string;
+  /** Plots against the chart's secondary (right) axis instead of sharing the primary one -
+   *  for series on a fundamentally different scale/unit than the chart's main series. */
+  useSecondaryAxis?: boolean;
+  /** Overrides the chart-wide value suffix for this series only (e.g. '' for a secondary-axis
+   *  series in different units, so it doesn't inherit the primary series' unit label). */
+  valueSuffix?: string;
 };
 
 export function getDifficultySeriesId(mode: string, label: string): string {
@@ -58,6 +64,12 @@ export type ChartDefinition = {
   showDataPoints?: boolean;
   /** Show grid sampling resolution in the card stats (SR/strain only). */
   showResolution?: boolean;
+  /** 'zeroBased' (default) always anchors the axis at 0. 'fitToData' zooms to the visible value
+   *  range instead, so charts whose values stay within a narrow band near the top of the scale
+   *  (e.g. Star Rating, which rarely approaches 0) show relative differences more clearly. */
+  yAxisMode?: 'zeroBased' | 'fitToData';
+  /** Suffix for the secondary (right) axis, when the chart has series plotted against it. */
+  secondaryValueSuffix?: string;
 };
 
 function toChartPoints(samples: DifficultySamplePoint[]): DifficultyChartDataPoint[] {
@@ -68,9 +80,15 @@ function toChartPoints(samples: DifficultySamplePoint[]): DifficultyChartDataPoi
   }));
 }
 
+export type BuildChartsOptions = {
+  /** Excludes osu!standard's Aim skill(s) from the combined strain spike line. */
+  excludeAimFromCombinedStrain?: boolean;
+};
+
 export function buildCharts(
   difficulties: DifficultyOverviewDifficulty[],
-  msPerPeak?: number
+  msPerPeak?: number,
+  options: BuildChartsOptions = {}
 ): ChartDefinition[] {
   if (!msPerPeak || difficulties.length === 0) {
     return [];
@@ -82,7 +100,7 @@ export function buildCharts(
     .filter((series) => series.points.length > 0);
 
   const starRatingSpikeSeries = difficulties
-    .map((difficulty) => buildStarRatingSpikeSeries(difficulty))
+    .map((difficulty) => buildCombinedStrainSpikeSeries(difficulty, options))
     .filter((series) => series.points.length > 0);
 
   if (starRatingSeries.length > 0 || starRatingSpikeSeries.length > 0) {
@@ -96,7 +114,9 @@ export function buildCharts(
         'line',
         false,
         true,
-        starRatingSpikeSeries
+        starRatingSpikeSeries,
+        'fitToData',
+        '%' // Each skill is normalized to a % of its own peak before combining, see below.
       )
     );
   }
@@ -173,16 +193,58 @@ function buildStarRatingSeries(difficulty: DifficultyOverviewDifficulty): Diffic
   };
 }
 
-function buildStarRatingSpikeSeries(
-  difficulty: DifficultyOverviewDifficulty
+/**
+ * Combines every skill's strain at each sample time into a single "how hard is it right now"
+ * line. Skills aren't on comparable scales (e.g. osu!std's Speed can run far higher than its
+ * Aim), so each skill is first normalized to a percentage of its own peak for this map. They're
+ * then combined as a weighted average by each skill's own `difficultyValue` - its real aggregate
+ * contribution to this map's difficulty - so a skill that barely factors into the actual Star
+ * Rating (e.g. Aim on a speed-focused map) doesn't get an outsized say just for existing, while a
+ * skill that dominates the real rating dominates this line too. Unlike Star Rating - a
+ * deliberately compressed, diminishing-returns scale - this isn't bounded/smoothed the same way,
+ * so genuine local spikes stand out. Plotted on the chart's secondary axis since it isn't in Star
+ * Rating units.
+ */
+function buildCombinedStrainSpikeSeries(
+  difficulty: DifficultyOverviewDifficulty,
+  options: BuildChartsOptions
 ): DifficultyChartSeries {
+  const skills = options.excludeAimFromCombinedStrain
+    ? difficulty.skills.filter((skill) => !skill.skillName.startsWith('Aim'))
+    : difficulty.skills;
+
+  const bySkillTimeMs = skills[0]?.strainSamples.map((sample) => sample.timeMs) ?? [];
+
+  const skillPeaks = skills.map((skill) =>
+    skill.strainSamples.reduce((max, sample) => Math.max(max, sample.value), 0)
+  );
+
+  const totalWeight = skills.reduce((sum, skill) => sum + skill.difficultyValue, 0);
+  // If every skill's difficultyValue is 0 (unexpected, but possible for a near-empty map), fall
+  // back to equal weighting instead of dividing by zero.
+  const weights =
+    totalWeight > 0
+      ? skills.map((skill) => skill.difficultyValue / totalWeight)
+      : skills.map(() => 1 / Math.max(skills.length, 1));
+
+  const points: DifficultyChartDataPoint[] = bySkillTimeMs.map((timeMs, index) => {
+    const value = skills.reduce((sum, skill, skillIndex) => {
+      const peak = skillPeaks[skillIndex];
+      const raw = skill.strainSamples[index]?.value ?? 0;
+      const normalized = peak > 0 ? (raw / peak) * 100 : 0;
+      return sum + normalized * weights[skillIndex];
+    }, 0);
+
+    return { timeMs, timeSeconds: timeMs / 1000, value };
+  });
+
   return {
-    skillName: 'Star Rating (spike)',
+    skillName: 'Combined strain (spike)',
     label: `${difficulty.label} (spike)`,
     mode: difficulty.mode,
     difficultyLevel: difficulty.difficultyLevel,
     starRating: difficulty.starRating,
-    points: toChartPoints(difficulty.starRatingSpikeSamples),
+    points,
   };
 }
 
@@ -234,7 +296,9 @@ function buildChartDefinition(
   interpolation: ChartInterpolation = 'line',
   showDataPoints = false,
   showResolution = true,
-  secondarySeries: DifficultyChartSeries[] = []
+  secondarySeries: DifficultyChartSeries[] = [],
+  yAxisMode: 'zeroBased' | 'fitToData' = 'zeroBased',
+  secondaryValueSuffix?: string
 ): ChartDefinition {
   const displaySeries: ChartDisplaySeries[] = series.map((item, index) => {
     const id = getDifficultySeriesId(item.mode, item.label);
@@ -264,10 +328,11 @@ function buildChartDefinition(
       dashed: true,
       visibilityId: baseId,
       hideFromLegend: true,
-      // Samples are sparse relative to the fine cumulative grid; keep the rendered line smooth
-      // between them, but expose a forward-filled hover value so hovering anywhere still shows
-      // "the last computed window" instead of nothing.
       hoverKey: `${spikeId}__hover`,
+      // A different metric on a different scale than the primary series (e.g. raw strain
+      // alongside Star Rating) - its own axis and unit label, not the primary's.
+      useSecondaryAxis: true,
+      valueSuffix: secondaryValueSuffix ?? '',
     };
   });
 
@@ -328,6 +393,8 @@ function buildChartDefinition(
     interpolation,
     showDataPoints,
     showResolution,
+    yAxisMode,
+    secondaryValueSuffix,
     ...(hideLowValuesThreshold !== undefined ? { hideLowValuesThreshold } : {}),
   };
 }

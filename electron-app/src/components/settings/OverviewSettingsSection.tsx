@@ -1,4 +1,4 @@
-import { SegmentedControl } from '@mantine/core';
+import { SegmentedControl, Switch } from '@mantine/core';
 import { IconChartAreaLine } from '@tabler/icons-react';
 import { SettingsRow, SettingsSection } from './SettingsSection';
 import { useSettings } from '../../context/SettingsContext';
@@ -31,6 +31,21 @@ export default function OverviewSettingsSection() {
               setSettings((prev) => ({
                 ...prev,
                 difficultySpikeDisplayMode: value as DifficultySpikeDisplayMode,
+              }))
+            }
+          />
+        }
+      />
+      <SettingsRow
+        title="Exclude Aim from combined strain (osu!standard)"
+        description="Leaves osu!standard's Aim skill(s) out of the combined strain spike line, since Aim can dominate the line visually even on maps where it barely factors into the real Star Rating."
+        control={
+          <Switch
+            checked={settings.excludeAimFromCombinedStrain}
+            onChange={(e) =>
+              setSettings((prev) => ({
+                ...prev,
+                excludeAimFromCombinedStrain: e.currentTarget.checked,
               }))
             }
           />

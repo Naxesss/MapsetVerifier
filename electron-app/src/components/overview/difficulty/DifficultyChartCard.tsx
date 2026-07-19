@@ -254,23 +254,40 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
         visibilityId: item.visibilityId,
         hideFromLegend: item.hideFromLegend,
         hoverKey: item.hoverKey,
+        useSecondaryAxis: item.useSecondaryAxis,
+        valueSuffix: item.valueSuffix,
       })),
     [visibleSeries]
   );
 
-  const { peakValue, peakAtSeconds } = useMemo(() => {
+  const { peakValue, peakAtSeconds, peakValueSuffix } = useMemo(() => {
+    // Peak/Peak at reflect the primary-axis series (e.g. Star Rating) whenever one is visible;
+    // only fall back to the secondary-axis series (e.g. raw strain) when it's all that's shown
+    // ("spikes only"), since the two are on different scales and can't be combined into one max.
+    const primarySeries = visibleSeries.filter((item) => !item.useSecondaryAxis);
+    const peakSeries = primarySeries.length > 0 ? primarySeries : visibleSeries;
+    const usesSecondary =
+      primarySeries.length === 0 && visibleSeries.some((s) => s.useSecondaryAxis);
+    const suffix = usesSecondary ? chart.secondaryValueSuffix : chart.valueSuffix;
+
     const threshold = chart.hideLowValuesThreshold;
     if ((threshold === undefined || !ignoreLowVolume) && !hasSpikeSeries) {
-      return { peakValue: chart.maxValue, peakAtSeconds: chart.peakTimeSeconds };
+      return {
+        peakValue: chart.maxValue,
+        peakAtSeconds: chart.peakTimeSeconds,
+        peakValueSuffix: suffix,
+      };
     }
 
-    const keys = visibleSeries.map((item) => item.key);
+    const keys = peakSeries.map((item) => item.key);
     const { maxValue, peakTimeSeconds } = computePeakFromRows(displayData, keys);
-    return { peakValue: maxValue, peakAtSeconds: peakTimeSeconds };
+    return { peakValue: maxValue, peakAtSeconds: peakTimeSeconds, peakValueSuffix: suffix };
   }, [
     chart.hideLowValuesThreshold,
     chart.maxValue,
     chart.peakTimeSeconds,
+    chart.secondaryValueSuffix,
+    chart.valueSuffix,
     displayData,
     hasSpikeSeries,
     ignoreLowVolume,
@@ -282,8 +299,10 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
     series: seriesConfig,
     durationMs: chart.durationMs,
     valueSuffix: chart.valueSuffix,
+    secondaryValueSuffix: chart.secondaryValueSuffix,
     interpolation: chart.interpolation,
     showDataPoints: chart.showDataPoints,
+    yAxisMode: chart.yAxisMode,
     chartState,
     hover: modalOpened ? effectiveHover : hover,
     onHover: modalOpened ? handleChartHover : setHover,
@@ -318,7 +337,7 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
           </Group>
 
           <SimpleGrid cols={chart.showResolution ? 4 : 3} spacing="md">
-            <MetricStat label="Peak" value={formatChartMetricValue(peakValue, chart.valueSuffix)} />
+            <MetricStat label="Peak" value={formatChartMetricValue(peakValue, peakValueSuffix)} />
             <MetricStat label="Peak at" value={formatSeconds(peakAtSeconds)} />
             <MetricStat label="Duration" value={formatChartDuration(chart.durationMs)} />
             {chart.showResolution ? (

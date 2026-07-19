@@ -32,9 +32,9 @@ function TimeSeriesHoverTooltip({
               {entry.label}
             </Text>
             {': '}
-            {formatAxisMetricValue(entry.value, valueSuffix)}
+            {formatAxisMetricValue(entry.value, entry.valueSuffix ?? valueSuffix)}
             {entry.secondaryValue !== undefined
-              ? ` (${formatAxisMetricValue(entry.secondaryValue, valueSuffix)})`
+              ? ` (${formatAxisMetricValue(entry.secondaryValue, entry.secondaryValueSuffix)})`
               : null}
           </Text>
         ))

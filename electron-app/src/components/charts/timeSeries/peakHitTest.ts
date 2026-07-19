@@ -65,6 +65,7 @@ export function buildPeakHoverState(
       const primaryIndex = valueIndexById.get(item.visibilityId);
       if (primaryIndex !== undefined) {
         values[primaryIndex].secondaryValue = raw;
+        values[primaryIndex].secondaryValueSuffix = item.valueSuffix;
         continue;
       }
     }
@@ -75,6 +76,7 @@ export function buildPeakHoverState(
       label: item.label,
       color: item.color,
       value: raw,
+      valueSuffix: item.valueSuffix,
     });
   }
 

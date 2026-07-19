@@ -568,7 +568,6 @@ export type DifficultyOverviewDifficulty = {
   difficultyLevel: DifficultyLevel;
   starRating: number;
   starRatingSamples: DifficultySamplePoint[];
-  starRatingSpikeSamples: DifficultySamplePoint[];
   sliderVelocitySamples: DifficultySamplePoint[];
   volumeSamples: DifficultySamplePoint[];
   skills: DifficultySkillData[];
@@ -577,6 +576,9 @@ export type DifficultyOverviewDifficulty = {
 export type DifficultySkillData = {
   skillName: string;
   strainSamples: DifficultySamplePoint[];
+  /** This skill's own aggregate difficulty contribution for the map (pre-Star-Rating-curve) -
+   *  how much it actually matters to the map's real difficulty. */
+  difficultyValue: number;
 };
 
 export type DifficultyChartDataPoint = {

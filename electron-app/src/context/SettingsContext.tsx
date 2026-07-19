@@ -18,6 +18,8 @@ export type Settings = {
   showAdvancedAudioAnalysis: boolean;
   /** What the Star Rating overview chart shows by default. */
   difficultySpikeDisplayMode: DifficultySpikeDisplayMode;
+  /** Excludes osu!standard's Aim skill(s) from the combined strain spike line. */
+  excludeAimFromCombinedStrain: boolean;
   lazerLookupEnabled: boolean;
   receivePrereleases: boolean;
   uiFontFamily: UiFontFamily;
@@ -55,6 +57,7 @@ const defaultSettings: Settings = {
   showGamemodeDifficultyNames: true,
   showAdvancedAudioAnalysis: false,
   difficultySpikeDisplayMode: 'starRatingOnly',
+  excludeAimFromCombinedStrain: false,
   lazerLookupEnabled: false,
   receivePrereleases: false,
   uiFontFamily: DEFAULT_UI_FONT_FAMILY,

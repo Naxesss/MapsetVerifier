@@ -19,6 +19,11 @@ export type SeriesConfig = {
   /** Row key holding a forward-filled value, used for hover lookups on sparse series that are
    *  still rendered as a smooth line (so hovering between samples still shows a value). */
   hoverKey?: string;
+  /** Plots against the chart's secondary (right) axis instead of sharing the primary one -
+   *  for series on a fundamentally different scale/unit than the chart's main series. */
+  useSecondaryAxis?: boolean;
+  /** Overrides the chart-wide value suffix for this series only. */
+  valueSuffix?: string;
 };
 
 export type PeakHoverState = {
@@ -28,8 +33,12 @@ export type PeakHoverState = {
     label: string;
     color: string;
     value: number;
+    /** Overrides the chart-wide value suffix for this entry (e.g. a secondary-axis series). */
+    valueSuffix?: string;
     /** Value of a companion series (e.g. spike) folded into this row instead of shown on its own. */
     secondaryValue?: number;
+    /** Suffix for `secondaryValue`, when it's in different units than the primary value. */
+    secondaryValueSuffix?: string;
   }[];
 };
 

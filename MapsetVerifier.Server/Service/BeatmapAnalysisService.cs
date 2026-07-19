@@ -20,8 +20,6 @@ public static class BeatmapAnalysisService
     private const double TimelineMarginMs = 2000;
     private const int MsPerPeak = 1_000;
     private const int MaxSamplePoints = 1500; // Widen the grid on long maps instead of sending thousands of chart points.
-    private const int SpikeWindowMs = 2_500; // Trailing window recomputed in isolation for the spike overlay.
-    private const int MinSpikeStrideMs = 1000;
 
     public static BeatmapAnalysisResult Analyze(string beatmapSetFolder)
     {
@@ -326,7 +324,6 @@ public static class BeatmapAnalysisService
                 pointCount,
                 msPerPeak
             ),
-            StarRatingSpikeSamples = GetStarRatingSpikeSamples(beatmap),
             SliderVelocitySamples = GetSliderVelocitySamples(beatmap),
             VolumeSamples = GetVolumeSamples(beatmap),
             Skills = GetSkillSamples(beatmap, pointCount, msPerPeak),
@@ -408,44 +405,6 @@ public static class BeatmapAnalysisService
                 : 0;
 
         return Math.Max(timingMax, objectsMax);
-    }
-
-    private static int ResolveSpikeStrideMs(double finalTimeMs)
-    {
-        if (finalTimeMs <= 0)
-            return MinSpikeStrideMs;
-
-        var stride = (int)Math.Ceiling(finalTimeMs / (MaxSamplePoints - 1));
-        return Math.Max(MinSpikeStrideMs, stride);
-    }
-
-    /// <summary>
-    ///     Non-cumulative counterpart to <see cref="GetStarRatingSamples" />: recomputes star rating
-    ///     from scratch for isolated trailing windows so a locally hard section shows up as a spike
-    ///     instead of being smoothed into the running total.
-    /// </summary>
-    private static List<DifficultySamplePoint> GetStarRatingSpikeSamples(Beatmap beatmap)
-    {
-        if (beatmap.HitObjects.Count == 0)
-            return [];
-
-        var finalTime = beatmap.HitObjects[^1].GetEndTime();
-        var strideMs = ResolveSpikeStrideMs(finalTime);
-
-        var samples = new WindowedDifficultyCalculator().CalculateWindowedStarRatings(
-            beatmap,
-            SpikeWindowMs,
-            strideMs,
-            MaxSamplePoints
-        );
-
-        return samples
-            .Select(sample => new DifficultySamplePoint
-            {
-                TimeMs = sample.TimeMs,
-                Value = sample.StarRating,
-            })
-            .ToList();
     }
 
     private static double GetFirstStrainSectionEndMs(Beatmap beatmap, int msPerPeak)
@@ -579,23 +538,55 @@ public static class BeatmapAnalysisService
             return [];
 
         return beatmap
-            .Skills.OfType<StrainSkill>()
-            .Select(skill => new DifficultySkillData
+            .Skills.Select(skill => new DifficultySkillData
             {
                 SkillName = GetSkillName(skill, beatmap),
-                StrainSamples = GetStrainSkillSamples(skill, beatmap, pointCount, msPerPeak),
+                StrainSamples = GetSkillDifficultySamples(skill, beatmap, pointCount, msPerPeak),
+                DifficultyValue = skill.DifficultyValue(),
             })
+            // Some skills (e.g. osu!std's newer HarmonicSkill-based ones) only expose per-object
+            // difficulty and no hit objects to anchor it to; nothing meaningful to chart there.
+            .Where(data => data.StrainSamples.Count > 0)
             .ToList();
     }
 
-    private static List<DifficultySamplePoint> GetStrainSkillSamples(
-        StrainSkill skill,
+    /// <summary>
+    ///     Dispatches to the sampling strategy a skill actually supports. Rulesets have been
+    ///     migrating skills off the classic fixed-section <see cref="StrainSkill" /> (e.g. osu!std's
+    ///     Aim now uses <see cref="VariableLengthStrainSkill" />, and Speed/Reading use a
+    ///     HarmonicSkill base with no strain-peaks concept at all) - <see cref="Skill.GetObjectDifficulties" />
+    ///     is the one thing every skill type still exposes, so it's the fallback of last resort.
+    /// </summary>
+    private static List<DifficultySamplePoint> GetSkillDifficultySamples(
+        Skill skill,
+        Beatmap beatmap,
+        int pointCount,
+        int msPerPeak
+    ) =>
+        skill switch
+        {
+            StrainSkill strainSkill => GetFixedSectionPeakSamples(
+                strainSkill.GetCurrentStrainPeaks().ToList(),
+                beatmap,
+                pointCount,
+                msPerPeak
+            ),
+            VariableLengthStrainSkill variableLengthSkill => GetVariableSectionPeakSamples(
+                variableLengthSkill,
+                beatmap,
+                pointCount,
+                msPerPeak
+            ),
+            _ => GetObjectDifficultySamples(skill, beatmap, pointCount, msPerPeak),
+        };
+
+    private static List<DifficultySamplePoint> GetFixedSectionPeakSamples(
+        List<double> peaks,
         Beatmap beatmap,
         int pointCount,
         int msPerPeak
     )
     {
-        var peaks = skill.GetCurrentStrainPeaks().ToList();
         var firstSectionEnd = GetFirstStrainSectionEndMs(beatmap, msPerPeak);
         var samples = new List<DifficultySamplePoint>(pointCount);
 
@@ -613,6 +604,97 @@ public static class BeatmapAnalysisService
             }
 
             samples.Add(new DifficultySamplePoint { TimeMs = sampleTime, Value = currentPeak });
+        }
+
+        return samples;
+    }
+
+    /// <summary>
+    ///     Same idea as <see cref="GetFixedSectionPeakSamples" />, but each peak covers its own
+    ///     <see cref="VariableLengthStrainSkill.StrainPeak.SectionLength" /> instead of a uniform
+    ///     <c>msPerPeak</c>-spaced grid, so section boundaries are accumulated instead of assumed.
+    /// </summary>
+    private static List<DifficultySamplePoint> GetVariableSectionPeakSamples(
+        VariableLengthStrainSkill skill,
+        Beatmap beatmap,
+        int pointCount,
+        int msPerPeak
+    )
+    {
+        if (beatmap.HitObjects.Count == 0)
+            return [];
+
+        var peaks = skill.GetCurrentStrainPeaks().ToList();
+        var sectionStart = beatmap.HitObjects.Min(hitObject => hitObject.time);
+
+        var peakEndTimes = new List<double>(peaks.Count);
+        var cumulative = sectionStart;
+        foreach (var peak in peaks)
+        {
+            cumulative += peak.SectionLength;
+            peakEndTimes.Add(cumulative);
+        }
+
+        var samples = new List<DifficultySamplePoint>(pointCount);
+        var peakIndex = 0;
+        var currentValue = 0d;
+
+        for (var index = 0; index < pointCount; index++)
+        {
+            var sampleTime = index * msPerPeak;
+
+            while (peakIndex < peaks.Count && peakEndTimes[peakIndex] <= sampleTime)
+            {
+                currentValue = peaks[peakIndex].Value;
+                peakIndex++;
+            }
+
+            samples.Add(new DifficultySamplePoint { TimeMs = sampleTime, Value = currentValue });
+        }
+
+        return samples;
+    }
+
+    /// <summary>
+    ///     Fallback for skills with no strain-peaks concept at all: one raw difficulty value per
+    ///     hit object. Difficulty calculators generally need history before they can score an
+    ///     object, so <see cref="Skill.GetObjectDifficulties" /> is usually shorter than the hit
+    ///     object list - align it to the tail of <see cref="Beatmap.HitObjects" /> rather than
+    ///     assuming a fixed skip count, since how many objects get skipped varies per ruleset.
+    ///     Raw per-object values aren't decayed/smoothed like strain peaks, so this reads spikier.
+    /// </summary>
+    private static List<DifficultySamplePoint> GetObjectDifficultySamples(
+        Skill skill,
+        Beatmap beatmap,
+        int pointCount,
+        int msPerPeak
+    )
+    {
+        var difficulties = skill.GetObjectDifficulties();
+        var hitObjects = beatmap.HitObjects;
+        var skipCount = hitObjects.Count - difficulties.Count;
+
+        if (difficulties.Count == 0 || skipCount < 0)
+            return [];
+
+        var samples = new List<DifficultySamplePoint>(pointCount);
+        var objectIndex = 0;
+        var currentValue = 0d;
+
+        for (var index = 0; index < pointCount; index++)
+        {
+            var sampleTime = index * msPerPeak;
+
+            while (
+                objectIndex < difficulties.Count
+                && hitObjects[skipCount + objectIndex].time <= sampleTime
+            )
+            {
+                currentValue = difficulties[objectIndex];
+                objectIndex++;
+            }
+
+            samples.Add(new DifficultySamplePoint { TimeMs = sampleTime, Value = currentValue });
         }
 
         return samples;
