@@ -11,6 +11,12 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
     {
         private readonly char[] collabChars = [',', '&', '|', '/'];
         private readonly Regex possessorRegex = new(@"(.+)(?:'s|(s)')", RegexOptions.IgnoreCase);
+        private readonly Dictionary<char, char> wrappingBrackets = new()
+        {
+            ['('] = ')',
+            ['['] = ']',
+            ['{'] = '}',
+        };
 
         public override CheckMetadata GetMetadata() =>
             new()
@@ -107,7 +113,35 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                 // If e.g. "Naxess' Insane", group 1 is "Naxes" and group 2 is the remaining "s".
                 possessor += match.Groups[2].Value;
 
+            // Strip leading brackets that wrap the whole difficulty name (e.g. "(" in
+            // "(Take's Hard)"), but keep them if unbalanced, since they're then likely part of
+            // a stylized username instead (e.g. "[[[[[['s Easy").
+            possessor = StripWrappingBrackets(possessor, text);
+
             return possessor.Trim();
+        }
+
+        /// <summary>
+        ///     Strips leading bracket characters from <paramref name="possessor" /> as long as
+        ///     they have a matching, balanced closing bracket somewhere in the full <paramref name="text" />.
+        /// </summary>
+        private string StripWrappingBrackets(string possessor, string text)
+        {
+            while (
+                possessor.Length > 0
+                && wrappingBrackets.TryGetValue(possessor[0], out var closeChar)
+            )
+            {
+                var openCount = text.Count(c => c == possessor[0]);
+                var closeCount = text.Count(c => c == closeChar);
+
+                if (openCount != closeCount)
+                    break;
+
+                possessor = possessor[1..];
+            }
+
+            return possessor;
         }
 
         /// <summary>

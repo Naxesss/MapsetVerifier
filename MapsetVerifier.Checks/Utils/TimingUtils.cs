@@ -36,6 +36,27 @@ public static class TimingUtils
     }
 
     /// <summary>
+    ///     Returns whether this timing section overlaps a hit object of the respective type at any point
+    ///     during its duration, not just its start. Unlike <see cref="SectionContainsObject{T}" />, this
+    ///     also counts objects which started before the section but still run into it, e.g. a slider whose
+    ///     ticks, repeats, or tail (each of which use the timing line active at their own time, not the
+    ///     line at the slider's start) fall within this section.
+    /// </summary>
+    public static bool SectionOverlapsObject<T>(Beatmap beatmap, TimingLine line)
+        where T : HitObject
+    {
+        var sectionStart = line.Offset;
+        var nextLine = line.Next(true);
+        var sectionEnd = nextLine?.Offset ?? double.MaxValue;
+
+        return beatmap
+            .HitObjects.OfType<T>()
+            .Any(hitObject =>
+                hitObject.time < sectionEnd && hitObject.GetEndTime() >= sectionStart
+            );
+    }
+
+    /// <summary>
     ///     Returns whether two uninherited lines share the same BPM, meter, and downbeat alignment.
     /// </summary>
     public static bool AreDownbeatsAligned(UninheritedLine line, UninheritedLine otherLine)
