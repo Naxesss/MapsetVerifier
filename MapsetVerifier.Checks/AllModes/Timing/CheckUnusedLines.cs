@@ -93,8 +93,20 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         Issue.Level.Minor,
                         "{0} Inherited line changes {1}.",
                         "timestamp -",
-                        "nothing(, other than SV/sample settings, but affects nothing)"
-                    ).WithCause("An inherited line changes no settings.")
+                        "SV and sample settings, but affects nothing"
+                    ).WithCause(
+                        "An inherited line changes settings, but there are no objects for those changes to affect."
+                    )
+                },
+                {
+                    "Minor Inherited Same Values",
+                    new IssueTemplate(
+                        Issue.Level.Minor,
+                        "{0} Inherited line uses the same values as the previous timing line.",
+                        "timestamp -"
+                    ).WithCause(
+                        "An inherited line changes no settings compared to the previous timing line."
+                    )
                 },
             };
 
@@ -214,17 +226,31 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                 if (IsLineUsed(beatmap, currentLine, previousLine))
                     continue;
 
-                // Avoids confusion in case the line actually does change something from the
-                // previous, but just doesn't apply to anything.
+                // Distinguishes between the line actually changing a value that just doesn't apply to
+                // anything, versus the line not changing anything from the previous line at all.
+                var svChanged = !currentLine.SvMult.AlmostEqual(previousLine.SvMult);
+                var samplesChanged = SamplesDiffer(currentLine, previousLine);
+
+                if (!svChanged && !samplesChanged)
+                {
+                    yield return new Issue(
+                        GetTemplate("Minor Inherited Same Values"),
+                        beatmap,
+                        Timestamp.Get(currentLine.Offset)
+                    );
+
+                    continue;
+                }
+
                 var changesDesc = "";
 
-                if (!UsesSV(beatmap, currentLine, previousLine))
+                if (svChanged)
                     changesDesc += "SV";
 
-                if (!UsesSamples(beatmap, currentLine, previousLine))
+                if (samplesChanged)
                     changesDesc += (changesDesc.Length > 0 ? " and " : "") + "sample settings";
 
-                changesDesc += changesDesc.Length > 0 ? ", but affects nothing" : "nothing";
+                changesDesc += ", but affects nothing";
 
                 yield return new Issue(
                     GetTemplate("Minor Inherited"),
@@ -317,7 +343,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             TimingLine currentLine,
             TimingLine previousLine
         ) =>
-            SectionContainsObject<HitObject>(beatmap, currentLine)
+            SectionOverlapsObject<HitObject>(beatmap, currentLine)
             && SamplesDiffer(currentLine, previousLine);
 
         /// <summary> Returns whether this section changes sample settings (i.e. volume, sampleset, or custom index). </summary>
