@@ -165,6 +165,50 @@ HP:5
         Assert.Equal(Beatmap.Difficulty.Insane, oni.GetDifficulty());
     }
 
+    [Theory]
+    [InlineData(Beatmap.Mode.Taiko, Beatmap.Difficulty.Easy, "Kantan")]
+    [InlineData(Beatmap.Mode.Taiko, Beatmap.Difficulty.Normal, "Futsuu")]
+    [InlineData(Beatmap.Mode.Taiko, Beatmap.Difficulty.Hard, "Muzukashii")]
+    [InlineData(Beatmap.Mode.Taiko, Beatmap.Difficulty.Insane, "Oni")]
+    [InlineData(Beatmap.Mode.Taiko, Beatmap.Difficulty.Expert, "Inner Oni")]
+    [InlineData(Beatmap.Mode.Catch, Beatmap.Difficulty.Easy, "Cup")]
+    [InlineData(Beatmap.Mode.Catch, Beatmap.Difficulty.Normal, "Salad")]
+    [InlineData(Beatmap.Mode.Catch, Beatmap.Difficulty.Hard, "Platter")]
+    [InlineData(Beatmap.Mode.Catch, Beatmap.Difficulty.Insane, "Rain")]
+    [InlineData(Beatmap.Mode.Catch, Beatmap.Difficulty.Expert, "Overdose")]
+    [InlineData(Beatmap.Mode.Standard, Beatmap.Difficulty.Easy, "Easy")]
+    [InlineData(Beatmap.Mode.Standard, Beatmap.Difficulty.Insane, "Insane")]
+    [InlineData(Beatmap.Mode.Mania, Beatmap.Difficulty.Hard, "Hard")]
+    public void GetModeDifficultyName_ReturnsCanonicalModeName(
+        Beatmap.Mode mode,
+        Beatmap.Difficulty difficulty,
+        string expected
+    )
+    {
+        var beatmap = CreateBeatmap("Test", mode);
+
+        var result = beatmap.GetModeDifficultyName(difficulty);
+
+        Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [InlineData(Beatmap.Mode.Taiko, "Inner Oni")]
+    [InlineData(Beatmap.Mode.Catch, "Overdose")]
+    [InlineData(Beatmap.Mode.Standard, "Expert")]
+    [InlineData(Beatmap.Mode.Mania, "Expert")]
+    public void GetModeDifficultyName_Ultra_FallsBackToExpertTierName(
+        Beatmap.Mode mode,
+        string expected
+    )
+    {
+        var beatmap = CreateBeatmap("Test", mode);
+
+        var result = beatmap.GetModeDifficultyName(Beatmap.Difficulty.Ultra);
+
+        Assert.Equal(expected, result);
+    }
+
     private sealed class TemporaryBeatmapSet : IDisposable
     {
         public TemporaryBeatmapSet(string path, BeatmapSet beatmapSet)

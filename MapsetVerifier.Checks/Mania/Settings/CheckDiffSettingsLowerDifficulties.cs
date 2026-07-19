@@ -1,3 +1,4 @@
+using MapsetVerifier.Checks.AllModes.Settings;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
@@ -6,8 +7,39 @@ using MapsetVerifier.Parser.Objects;
 namespace MapsetVerifier.Checks.Mania.Settings
 {
     [Check]
-    public class CheckDiffSettingsLowerDifficulties : BeatmapCheck
+    public class CheckDiffSettingsLowerDifficulties : RangeDifficultySettingsCheck
     {
+        private static readonly Dictionary<Beatmap.Difficulty, SettingRange> HpDrainRanges = new()
+        {
+            { Beatmap.Difficulty.Easy, new SettingRange(null, 7) },
+            { Beatmap.Difficulty.Normal, new SettingRange(null, 7.5) },
+            { Beatmap.Difficulty.Hard, new SettingRange(null, 8) },
+        };
+
+        private static readonly Dictionary<
+            Beatmap.Difficulty,
+            SettingRange
+        > OverallDifficultyRanges = new()
+        {
+            { Beatmap.Difficulty.Easy, new SettingRange(null, 7) },
+            { Beatmap.Difficulty.Normal, new SettingRange(null, 7.5) },
+            { Beatmap.Difficulty.Hard, new SettingRange(null, 8) },
+        };
+
+        protected override IReadOnlyList<SettingDefinition> Settings { get; } =
+        [
+            new SettingDefinition(
+                "HP",
+                beatmap => beatmap.DifficultySettings.hpDrain,
+                HpDrainRanges
+            ),
+            new SettingDefinition(
+                "OD",
+                beatmap => beatmap.DifficultySettings.overallDifficulty,
+                OverallDifficultyRanges
+            ),
+        ];
+
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
@@ -74,66 +106,33 @@ namespace MapsetVerifier.Checks.Mania.Settings
             };
         }
 
-        public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
+        protected override Issue BuildIssue(
+            Beatmap beatmap,
+            string setting,
+            SettingRange range,
+            Beatmap.Difficulty difficulty,
+            double current
+        )
         {
-            // HP/OD Getters
-            var hp = Math.Round(beatmap.DifficultySettings.hpDrain, 2, MidpointRounding.ToEven);
-            var od = Math.Round(
-                beatmap.DifficultySettings.overallDifficulty,
-                2,
-                MidpointRounding.ToEven
-            );
-
-            // Difficulty name getter
             var diffName = beatmap.MetadataSettings.version;
+            var templateKey = setting == "HP" ? "HP Problem" : "OD Problem";
 
-            // Get current diff for the "switch" to evaluate
-            var difficulty = beatmap.GetDifficulty();
+            return new Issue(GetTemplate(templateKey), beatmap, diffName, range.Max, current);
+        }
 
-            switch (difficulty)
-            {
-                case Beatmap.Difficulty.Easy:
-                {
-                    if (hp > 7)
-                        yield return new Issue(GetTemplate("HP Problem"), beatmap, diffName, 7, hp);
-                    if (od > 7)
-                        yield return new Issue(GetTemplate("OD Problem"), beatmap, diffName, 7, od);
-                    break;
-                }
-                case Beatmap.Difficulty.Normal:
-                {
-                    if (hp > 7.5)
-                        yield return new Issue(
-                            GetTemplate("HP Problem"),
-                            beatmap,
-                            diffName,
-                            7.5,
-                            hp
-                        );
-                    if (od > 7.5)
-                        yield return new Issue(
-                            GetTemplate("OD Problem"),
-                            beatmap,
-                            diffName,
-                            7.5,
-                            od
-                        );
-                    break;
-                }
-                case Beatmap.Difficulty.Hard:
-                {
-                    if (hp > 8)
-                        yield return new Issue(GetTemplate("HP Problem"), beatmap, diffName, 8, hp);
-                    if (od > 8)
-                        yield return new Issue(GetTemplate("OD Problem"), beatmap, diffName, 8, od);
-                    break;
-                }
-                case Beatmap.Difficulty.Ultra: // Ambiguous difficulty name case.
-                {
-                    yield return new Issue(GetTemplate("Ambiguous"), beatmap, diffName, hp, od);
-                    break;
-                }
-            }
+        protected override IEnumerable<Issue> GetAdditionalIssues(
+            Beatmap beatmap,
+            Beatmap.Difficulty difficulty
+        )
+        {
+            if (difficulty != Beatmap.Difficulty.Ultra)
+                yield break;
+
+            var diffName = beatmap.MetadataSettings.version;
+            var hp = Round(beatmap.DifficultySettings.hpDrain);
+            var od = Round(beatmap.DifficultySettings.overallDifficulty);
+
+            yield return new Issue(GetTemplate("Ambiguous"), beatmap, diffName, hp, od);
         }
     }
 }
