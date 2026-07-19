@@ -92,6 +92,34 @@ HP:5
     }
 
     [Fact]
+    public void BracketOnlyVersion_DoesNotBreakSectionParsing()
+    {
+        // Regression test for https://github.com/Naxesss/MapsetVerifier/issues/22:
+        // a difficulty named "[ ]" must not be mistaken for a ".osu" section header.
+        var beatmap = CreateBeatmap("[ ]");
+
+        Assert.Equal("[ ]", beatmap.MetadataSettings.version);
+        Assert.Equal(Beatmap.Mode.Standard, beatmap.GeneralSettings.mode);
+        Assert.Null(beatmap.GetDifficultyFromName());
+    }
+
+    [Fact]
+    public void BracketOnlyVersion_LoadsCorrectlyWithinABeatmapSet()
+    {
+        using var beatmapSet = CreateBeatmapSet([
+            (
+                "Artist - Title (Creator) [[ ]].osu",
+                BuildTaikoOsu("[ ]", BuildDenseTaikoObjects(90, 4))
+            ),
+        ]);
+
+        var beatmap = GetBeatmap(beatmapSet, "[ ]");
+
+        Assert.Single(beatmapSet.BeatmapSet.Beatmaps);
+        Assert.Equal("[ ]", beatmap.MetadataSettings.version);
+    }
+
+    [Fact]
     public void CaseInsensitivity_Works()
     {
         var beatmap = CreateBeatmap("kAnTaN", Beatmap.Mode.Taiko);
