@@ -36,11 +36,11 @@ namespace MapsetVerifier.Checks.AllModes.Settings
                         @"
                         Stable stores ScoreV1 as a signed 32-bit integer (max 2,147,483,647). If a perfect HD+HR+DT+FL play
                         would exceed that, it would cause ScoreV2 mod to be automatically enabled for stable, therefore
-                        rendering the map unplayable. This mostly happens on long, high-combo maps.
+                        rendering scores unsubmittable. This mostly happens on long, high-combo maps.
 
                         HD+HR+DT+FL is the highest ScoreV1 mod multiplier product available in osu!, osu!taiko, and osu!catch.
 
-                        To address this, a 'lazer-only' flag can be added to the map, which users can request the NAT to add
+                        To address this, a 'lazer-only' flag should be added to the map, which users should request the NAT to add
                         prior to having the map nominated.
 
                         osu!mania is excluded because its ScoreV1 is already capped at 1,000,000."
