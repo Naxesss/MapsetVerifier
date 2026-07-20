@@ -84,7 +84,7 @@ public class CheckSkinningMania : BeatmapSetCheck
     {
         foreach (var set in Sets)
         {
-            if (!SkinSetUtils.IsSetSkinned(set, beatmapSet))
+            if (!SkinSetUtils.IsSetSkinnedAndRelevant(set, beatmapSet))
                 continue;
 
             var missing = SkinSetUtils.GetMissingRequiredElements(set, beatmapSet).ToList();
