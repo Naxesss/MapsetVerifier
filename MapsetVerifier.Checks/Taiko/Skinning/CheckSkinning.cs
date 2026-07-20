@@ -23,6 +23,12 @@ public class CheckSkinning : BeatmapSetCheck
             && beatmap.HitObjects.Any(hitObject => hitObject is Spinner)
         );
 
+    // sliderscorepoint.png is a shared image with osu!: per the wiki, it "should only be used on
+    // beatmaps without osu! difficulties" — when an osu! difficulty exists, the file is governed by
+    // osu!'s own slider requirements, so its presence shouldn't be attributed to taiko's own skin.
+    private static bool HasStandardDifficulty(BeatmapSet beatmapSet) =>
+        beatmapSet.Beatmaps.Any(beatmap => beatmap.GeneralSettings.mode == Beatmap.Mode.Standard);
+
     private static readonly SkinSet[] Sets =
     [
         new SkinSet(
@@ -31,7 +37,11 @@ public class CheckSkinning : BeatmapSetCheck
             new SkinElement("taikobigcircleoverlay-{n}.png", true),
             new SkinElement("taikohitcircle.png", true),
             new SkinElement("taikohitcircleoverlay-{n}.png", true),
-            new SkinElement("sliderscorepoint.png", true, HasDrumrolls),
+            new SkinElement(
+                "sliderscorepoint.png",
+                true,
+                beatmapSet => HasDrumrolls(beatmapSet) && !HasStandardDifficulty(beatmapSet)
+            ),
             new SkinElement("taiko-roll-middle.png", true, HasDrumrolls),
             new SkinElement("taiko-roll-end.png", true, HasDrumrolls),
             new SkinElement("spinner-warning.png", true, HasSpinners)
@@ -112,7 +122,7 @@ public class CheckSkinning : BeatmapSetCheck
     {
         foreach (var set in Sets)
         {
-            if (!SkinSetUtils.IsSetSkinned(set, beatmapSet))
+            if (!SkinSetUtils.IsSetSkinnedAndRelevant(set, beatmapSet))
                 continue;
 
             var missing = SkinSetUtils.GetMissingRequiredElements(set, beatmapSet).ToList();

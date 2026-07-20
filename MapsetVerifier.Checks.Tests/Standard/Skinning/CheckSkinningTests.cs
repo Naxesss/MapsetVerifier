@@ -256,4 +256,20 @@ public class CheckSkinningTests
             issue => issue.level == Issue.Level.Problem && issue.message.Contains("old and new")
         );
     }
+
+    [Fact]
+    public void SpinnerOsu_EmitsWarning()
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles(
+            [("test.osu", BuildMinimalOsu("256,192,1000,8,0,2000,0:0:0:0:"))],
+            ["audio.mp3", "spinner-osu.png"]
+        );
+
+        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+
+        Assert.Contains(
+            issues,
+            issue => issue.level == Issue.Level.Warning && issue.message.Contains("spinner-osu.png")
+        );
+    }
 }

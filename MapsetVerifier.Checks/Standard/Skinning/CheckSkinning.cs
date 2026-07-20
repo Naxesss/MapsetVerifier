@@ -239,6 +239,16 @@ public class CheckSkinning : BeatmapSetCheck
                 )
             },
             {
+                "Deprecated Spinner Osu",
+                new IssueTemplate(
+                    Issue.Level.Warning,
+                    "\"{0}\" only displays for players using skin version 1.0, which is extremely rare; consider removing it.",
+                    "path"
+                ).WithCause(
+                    "spinner-osu.png only works with skin version 1.0, while essentially all modern user and default skins use version 2.0 or higher."
+                )
+            },
+            {
                 "Non Png",
                 new IssueTemplate(
                     Issue.Level.Warning,
@@ -269,7 +279,7 @@ public class CheckSkinning : BeatmapSetCheck
     {
         foreach (var set in Sets)
         {
-            if (!SkinSetUtils.IsSetSkinned(set, beatmapSet))
+            if (!SkinSetUtils.IsSetSkinnedAndRelevant(set, beatmapSet))
                 continue;
 
             var missing = SkinSetUtils.GetMissingRequiredElements(set, beatmapSet).ToList();
@@ -296,6 +306,21 @@ public class CheckSkinning : BeatmapSetCheck
     {
         if (!HasSpinners(beatmapSet))
             yield break;
+
+        var spinnerOsuFile = beatmapSet.SongFilePaths.FirstOrDefault(path =>
+            string.Equals(
+                PathStatic.CutPath(path),
+                "spinner-osu.png",
+                StringComparison.OrdinalIgnoreCase
+            )
+        );
+
+        if (spinnerOsuFile != null)
+            yield return new Issue(
+                GetTemplate("Deprecated Spinner Osu"),
+                null,
+                PathStatic.CutPath(spinnerOsuFile)
+            );
 
         var oldFile = FindFirst(SpinnerOldExclusive, beatmapSet);
         var newFile = FindFirst(SpinnerNewExclusive, beatmapSet);
