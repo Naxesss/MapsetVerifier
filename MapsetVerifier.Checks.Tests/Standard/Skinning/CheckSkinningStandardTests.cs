@@ -4,7 +4,7 @@ using Xunit;
 
 namespace MapsetVerifier.Checks.Tests.Standard.Skinning;
 
-public class CheckSkinningTests
+public class CheckSkinningStandardTests
 {
     private static string BuildMinimalOsu(
         string hitObject = "256,192,1000,1,0,0:0:0:0:",
@@ -42,7 +42,7 @@ public class CheckSkinningTests
             ["audio.mp3", "cursor.png", "cursortrail.png"]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningStandard>();
 
         Assert.Empty(issues);
     }
@@ -55,7 +55,7 @@ public class CheckSkinningTests
             ["audio.mp3", "cursor.png"]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningStandard>();
 
         Assert.Single(issues, issue => issue.level == Issue.Level.Problem);
         Assert.Contains("Cursor", issues[0].message);
@@ -70,7 +70,7 @@ public class CheckSkinningTests
             ["audio.mp3", "cursor.png", "cursortrail.jpg"]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningStandard>();
 
         Assert.Contains(issues, issue => issue.level == Issue.Level.Warning);
         Assert.DoesNotContain(issues, issue => issue.level == Issue.Level.Problem);
@@ -84,7 +84,7 @@ public class CheckSkinningTests
             ["audio.mp3", "sliderb0.png"]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningStandard>();
 
         Assert.Empty(issues);
     }
@@ -97,7 +97,7 @@ public class CheckSkinningTests
             ["audio.mp3", "sliderb0.png"]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningStandard>();
 
         Assert.Contains(
             issues,
@@ -120,7 +120,7 @@ public class CheckSkinningTests
             ]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningStandard>();
 
         Assert.Empty(issues);
     }
@@ -133,7 +133,7 @@ public class CheckSkinningTests
             ["audio.mp3", "spinner-circle.png", "spinner-bottom.png"]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningStandard>();
 
         Assert.Contains(
             issues,
@@ -153,7 +153,7 @@ public class CheckSkinningTests
             [("hit100.png", "same-content"), ("hit100k.png", "same-content")]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningStandard>();
 
         Assert.Contains(
             issues,
@@ -172,7 +172,7 @@ public class CheckSkinningTests
             ["audio.mp3", "hitcircle.png"]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningStandard>();
 
         Assert.Contains(
             issues,
@@ -188,7 +188,7 @@ public class CheckSkinningTests
             ["audio.mp3", "hitcircle.png"]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningStandard>();
 
         Assert.DoesNotContain(issues, issue => issue.message.Contains("SliderBorder"));
     }
@@ -208,7 +208,7 @@ public class CheckSkinningTests
             ["audio.mp3", "hitcircle.png"]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningStandard>();
 
         Assert.Contains(
             issues,
@@ -231,7 +231,7 @@ public class CheckSkinningTests
             ["audio.mp3", "hitcircle.png"]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningStandard>();
 
         Assert.DoesNotContain(issues, issue => issue.message.Contains("too similar"));
     }
@@ -244,7 +244,7 @@ public class CheckSkinningTests
             ["audio.mp3", "spinner-bottom.png"]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningStandard>();
 
         Assert.Contains(
             issues,

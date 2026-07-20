@@ -5,7 +5,7 @@ using Xunit;
 
 namespace MapsetVerifier.Checks.Tests.Taiko.Settings;
 
-public class CheckDiffSettingsTests
+public class CheckDiffSettingsTaikoTests
 {
     [Fact]
     public void Easy_MatchingRecommendedValues_ProducesNoIssues()
@@ -16,7 +16,7 @@ public class CheckDiffSettingsTests
         var beatmap = context.GetBeatmap("Test");
         beatmap.InterpretedDifficultyOverride = Beatmap.Difficulty.Easy;
 
-        var issues = new CheckDiffSettings().GetIssues(beatmap).ToList();
+        var issues = new CheckDiffSettingsTaiko().GetIssues(beatmap).ToList();
 
         Assert.Empty(issues);
     }
@@ -29,7 +29,7 @@ public class CheckDiffSettingsTests
         var beatmap = context.GetBeatmap("Test");
         beatmap.InterpretedDifficultyOverride = Beatmap.Difficulty.Easy;
 
-        var issues = new CheckDiffSettings().GetIssues(beatmap).ToList();
+        var issues = new CheckDiffSettingsTaiko().GetIssues(beatmap).ToList();
 
         var issue = Assert.Single(issues);
         Assert.Equal(Issue.Level.Minor, issue.level);
@@ -44,7 +44,7 @@ public class CheckDiffSettingsTests
         var beatmap = context.GetBeatmap("Test");
         beatmap.InterpretedDifficultyOverride = Beatmap.Difficulty.Easy;
 
-        var issues = new CheckDiffSettings().GetIssues(beatmap).ToList();
+        var issues = new CheckDiffSettingsTaiko().GetIssues(beatmap).ToList();
 
         var issue = Assert.Single(issues);
         Assert.Equal(Issue.Level.Warning, issue.level);
@@ -59,7 +59,7 @@ public class CheckDiffSettingsTests
         var beatmap = context.GetBeatmap("Test");
         beatmap.InterpretedDifficultyOverride = Beatmap.Difficulty.Easy;
 
-        var issues = new CheckDiffSettings().GetIssues(beatmap).ToList();
+        var issues = new CheckDiffSettingsTaiko().GetIssues(beatmap).ToList();
 
         var issue = Assert.Single(issues);
         Assert.Equal(Issue.Level.Warning, issue.level);
@@ -74,7 +74,7 @@ public class CheckDiffSettingsTests
         var beatmap = context.GetBeatmap("Test");
         beatmap.InterpretedDifficultyOverride = Beatmap.Difficulty.Expert;
 
-        var issues = new CheckDiffSettings().GetIssues(beatmap).ToList();
+        var issues = new CheckDiffSettingsTaiko().GetIssues(beatmap).ToList();
 
         Assert.Empty(issues);
     }

@@ -1,56 +1,57 @@
-using MapsetVerifier.Checks.Standard.Settings;
+using MapsetVerifier.Checks.Catch.Settings;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Parser.Objects;
 using Xunit;
 
-namespace MapsetVerifier.Checks.Tests.Standard.Settings;
+namespace MapsetVerifier.Checks.Tests.Catch.Settings;
 
-public class CheckDiffSettingsTests
+public class CheckDiffSettingsCatchTests
 {
     [Fact]
-    public void Easy_WithinGuidelineRange_ProducesNoIssues()
+    public void Insane_WithinGuidelineRange_ProducesNoIssues()
     {
-        using var context = CreateContext(ar: 5, od: 2, hp: 2, cs: 4);
+        using var context = CreateContext(ar: 9, od: 9, hp: 5, cs: 4);
 
         var beatmap = context.GetBeatmap("Test");
-        beatmap.InterpretedDifficultyOverride = Beatmap.Difficulty.Easy;
+        beatmap.InterpretedDifficultyOverride = Beatmap.Difficulty.Insane;
 
-        var issues = new CheckDiffSettings().GetIssues(beatmap).ToList();
+        var issues = new CheckDiffSettingsCatch().GetIssues(beatmap).ToList();
 
         Assert.Empty(issues);
     }
 
     [Fact]
-    public void Easy_ApproachRateTooHigh_ProducesMinorIssue()
+    public void Insane_ApproachRateTooHigh_ProducesMinorIssue()
     {
-        using var context = CreateContext(ar: 6, od: 2, hp: 2, cs: 4);
+        using var context = CreateContext(ar: 9.5f, od: 9, hp: 5, cs: 4);
 
         var beatmap = context.GetBeatmap("Test");
-        beatmap.InterpretedDifficultyOverride = Beatmap.Difficulty.Easy;
+        beatmap.InterpretedDifficultyOverride = Beatmap.Difficulty.Insane;
 
-        var issues = new CheckDiffSettings().GetIssues(beatmap).ToList();
+        var issues = new CheckDiffSettingsCatch().GetIssues(beatmap).ToList();
 
         var issue = Assert.Single(issues);
         Assert.Equal(Issue.Level.Minor, issue.level);
         Assert.Contains("AR", issue.message);
-        Assert.Contains("5 or lower", issue.message);
+        Assert.Contains("9 or lower", issue.message);
+        Assert.Contains("Rain", issue.message);
     }
 
     [Fact]
     public void Expert_MultipleSettingsOutsideRange_ProducesMultipleIssues()
     {
-        using var context = CreateContext(ar: 7, od: 7, hp: 4, cs: 8);
+        using var context = CreateContext(ar: 8, od: 8, hp: 4, cs: 3);
 
         var beatmap = context.GetBeatmap("Test");
         beatmap.InterpretedDifficultyOverride = Beatmap.Difficulty.Expert;
 
-        var issues = new CheckDiffSettings().GetIssues(beatmap).ToList();
+        var issues = new CheckDiffSettingsCatch().GetIssues(beatmap).ToList();
 
         Assert.Equal(4, issues.Count);
-        Assert.Contains(issues, i => i.message.Contains("AR") && i.message.Contains("8 or higher"));
-        Assert.Contains(issues, i => i.message.Contains("OD") && i.message.Contains("8 or higher"));
+        Assert.Contains(issues, i => i.message.Contains("AR") && i.message.Contains("9 or higher"));
+        Assert.Contains(issues, i => i.message.Contains("OD") && i.message.Contains("9 or higher"));
         Assert.Contains(issues, i => i.message.Contains("HP") && i.message.Contains("5 or higher"));
-        Assert.Contains(issues, i => i.message.Contains("CS") && i.message.Contains("7 or lower"));
+        Assert.Contains(issues, i => i.message.Contains("CS") && i.message.Contains("4 or higher"));
     }
 
     [Fact]
@@ -61,7 +62,7 @@ public class CheckDiffSettingsTests
         var beatmap = context.GetBeatmap("Test");
         beatmap.InterpretedDifficultyOverride = Beatmap.Difficulty.Ultra;
 
-        var issues = new CheckDiffSettings().GetIssues(beatmap).ToList();
+        var issues = new CheckDiffSettingsCatch().GetIssues(beatmap).ToList();
 
         Assert.Empty(issues);
     }
@@ -76,7 +77,7 @@ public class CheckDiffSettingsTests
                         "osu file format v14",
                         "[General]",
                         "AudioFilename:audio.mp3",
-                        $"Mode: {(int)Beatmap.Mode.Standard}",
+                        $"Mode: {(int)Beatmap.Mode.Catch}",
                         "[Metadata]",
                         "Title:Test",
                         "Artist:Tests",

@@ -7,7 +7,7 @@ using Xunit;
 
 namespace MapsetVerifier.Checks.Tests.Catch.Skinning;
 
-public class CheckSkinningTests
+public class CheckSkinningCatchTests
 {
     private static string BuildMinimalOsu(string hitObject = "256,192,1000,1,0,0:0:0:0:") =>
         string.Join(
@@ -49,7 +49,7 @@ public class CheckSkinningTests
             [("skin.ini", SkinIniV2)]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningCatch>();
 
         Assert.Empty(issues);
     }
@@ -63,7 +63,7 @@ public class CheckSkinningTests
             [("skin.ini", SkinIniV2)]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningCatch>();
 
         Assert.Single(issues, issue => issue.level == Issue.Level.Problem);
         Assert.Contains("Catcher", issues[0].message);
@@ -82,7 +82,7 @@ public class CheckSkinningTests
             ]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningCatch>();
 
         Assert.Contains(
             issues,
@@ -104,7 +104,7 @@ public class CheckSkinningTests
             [("skin.ini", "[General]\nVersion: 1")]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningCatch>();
 
         Assert.Contains(
             issues,
@@ -130,7 +130,7 @@ public class CheckSkinningTests
             ]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningCatch>();
 
         Assert.Empty(issues);
     }
@@ -143,7 +143,7 @@ public class CheckSkinningTests
             ["audio.mp3", "fruit-drop.png"]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningCatch>();
 
         Assert.Single(issues, issue => issue.level == Issue.Level.Problem);
         Assert.Contains("Fruits", issues[0].message);
@@ -157,7 +157,7 @@ public class CheckSkinningTests
             ["audio.mp3", "fruit-bananas.png"]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningCatch>();
 
         Assert.Single(issues, issue => issue.level == Issue.Level.Problem);
         Assert.Contains("Fruits", issues[0].message);
@@ -171,7 +171,7 @@ public class CheckSkinningTests
         try
         {
             var beatmapSet = new BeatmapSet(tempPath);
-            var issues = new CheckSkinning().GetIssues(beatmapSet).ToList();
+            var issues = new CheckSkinningCatch().GetIssues(beatmapSet).ToList();
 
             Assert.DoesNotContain(issues, issue => issue.message.Contains("Dimensions"));
         }
@@ -189,7 +189,7 @@ public class CheckSkinningTests
         try
         {
             var beatmapSet = new BeatmapSet(tempPath);
-            var issues = new CheckSkinning().GetIssues(beatmapSet).ToList();
+            var issues = new CheckSkinningCatch().GetIssues(beatmapSet).ToList();
 
             Assert.Contains(
                 issues,

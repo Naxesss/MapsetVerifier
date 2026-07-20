@@ -6,7 +6,7 @@ using MapsetVerifier.Parser.Objects;
 namespace MapsetVerifier.Checks.AllModes.Settings
 {
     [Check]
-    public class CheckDiffSettings : BeatmapCheck
+    public class CheckDiffSettingsAllModes : BeatmapCheck
     {
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata

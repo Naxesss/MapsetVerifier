@@ -3,61 +3,33 @@ using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
-using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
 
-namespace MapsetVerifier.Checks.Taiko.Skinning;
+namespace MapsetVerifier.Checks.Mania.Skinning;
 
 [Check]
-public class CheckSkinning : BeatmapSetCheck
+public class CheckSkinningMania : BeatmapSetCheck
 {
-    private static bool HasDrumrolls(BeatmapSet beatmapSet) =>
-        beatmapSet.Beatmaps.Any(beatmap =>
-            beatmap.GeneralSettings.mode == Beatmap.Mode.Taiko
-            && beatmap.HitObjects.Any(hitObject => hitObject is Slider)
-        );
-
-    private static bool HasSpinners(BeatmapSet beatmapSet) =>
-        beatmapSet.Beatmaps.Any(beatmap =>
-            beatmap.GeneralSettings.mode == Beatmap.Mode.Taiko
-            && beatmap.HitObjects.Any(hitObject => hitObject is Spinner)
-        );
-
+    // Per https://osu.ppy.sh/wiki/en/Skinning/osu!mania, only the hit burst and comboburst sets are
+    // beatmap-skinnable; notes, keys, stage, and lighting elements are user-skin only.
     private static readonly SkinSet[] Sets =
     [
         new SkinSet(
-            "Hit object",
-            new SkinElement("taikobigcircle.png", true),
-            new SkinElement("taikobigcircleoverlay-{n}.png", true),
-            new SkinElement("taikohitcircle.png", true),
-            new SkinElement("taikohitcircleoverlay-{n}.png", true),
-            new SkinElement("sliderscorepoint.png", true, HasDrumrolls),
-            new SkinElement("taiko-roll-middle.png", true, HasDrumrolls),
-            new SkinElement("taiko-roll-end.png", true, HasDrumrolls),
-            new SkinElement("spinner-warning.png", true, HasSpinners)
-        ),
-        new SkinSet(
             "Hitburst",
-            new SkinElement("taiko-hit0-{n}.png", true),
-            new SkinElement("taiko-hit100-{n}.png", true),
-            new SkinElement("taiko-hit100k-{n}.png", true),
-            new SkinElement("taiko-hit300-{n}.png", true),
-            new SkinElement("taiko-hit300k-{n}.png", true)
+            new SkinElement("mania-hit0-{n}.png", true),
+            new SkinElement("mania-hit50-{n}.png", true),
+            new SkinElement("mania-hit100-{n}.png", true),
+            new SkinElement("mania-hit200-{n}.png", true),
+            new SkinElement("mania-hit300-{n}.png", true),
+            new SkinElement("mania-hit300g-{n}.png", true)
         ),
-        new SkinSet(
-            "Pippidon",
-            new SkinElement("pippidonclear{n}.png", true),
-            new SkinElement("pippidonfail{n}.png", true),
-            new SkinElement("pippidonidle{n}.png", true),
-            new SkinElement("pippidonkiai{n}.png", true),
-            new SkinElement("taiko-flower-group-{n}.png", false)
-        ),
+        new SkinSet("Combo burst", new SkinElement("comboburst-mania-{n}.png", false)),
     ];
 
     public override CheckMetadata GetMetadata() =>
         new BeatmapCheckMetadata
         {
-            Modes = [Beatmap.Mode.Taiko],
+            Modes = [Beatmap.Mode.Mania],
             Category = "Skinning",
             Message = "Incomplete or incorrect skin element sets.",
             Author = "Greaper",

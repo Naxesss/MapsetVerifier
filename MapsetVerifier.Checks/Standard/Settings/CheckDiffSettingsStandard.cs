@@ -6,7 +6,7 @@ using MapsetVerifier.Parser.Objects;
 namespace MapsetVerifier.Checks.Standard.Settings;
 
 [Check]
-public class CheckDiffSettings : MinorRangeDifficultySettingsCheck
+public class CheckDiffSettingsStandard : MinorRangeDifficultySettingsCheck
 {
     private static readonly Dictionary<Beatmap.Difficulty, SettingRange> ApproachRateRanges = new()
     {
