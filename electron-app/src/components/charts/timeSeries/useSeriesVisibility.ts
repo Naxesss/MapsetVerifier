@@ -19,6 +19,27 @@ export function useSeriesVisibility(seriesIds: string[], resetKey?: string) {
     }));
   }, []);
 
+  // Grafana-style legend click: isolate the clicked series (hide the rest), or - if it's
+  // already the only visible one - restore everyone. Ctrl/Cmd-click still uses `toggleSeries`
+  // for independent per-series toggling.
+  const toggleIsolateSeries = useCallback(
+    (seriesId: string) => {
+      setVisibilityById((current) => {
+        const isOnlyThisVisible = seriesIds.every((id) => {
+          const visible = current[id] !== false;
+          return id === seriesId ? visible : !visible;
+        });
+
+        const next: Record<string, boolean> = {};
+        for (const id of seriesIds) {
+          next[id] = isOnlyThisVisible ? true : id === seriesId;
+        }
+        return next;
+      });
+    },
+    [seriesIds]
+  );
+
   const setAllVisible = useCallback(
     (visible: boolean) => {
       setVisibilityById((current) => {
@@ -50,6 +71,7 @@ export function useSeriesVisibility(seriesIds: string[], resetKey?: string) {
   return {
     visibilityById,
     toggleSeries,
+    toggleIsolateSeries,
     setAllVisible,
     isVisible,
     visibleSeriesIds,

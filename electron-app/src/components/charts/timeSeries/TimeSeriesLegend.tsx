@@ -6,6 +6,7 @@ type TimeSeriesLegendProps = {
   series: SeriesConfig[];
   isVisible: (seriesId: string) => boolean;
   onToggle: (seriesId: string) => void;
+  onIsolate: (seriesId: string) => void;
   onSelectAll: () => void;
   onUnselectAll: () => void;
 };
@@ -14,6 +15,7 @@ function TimeSeriesLegend({
   series,
   isVisible,
   onToggle,
+  onIsolate,
   onSelectAll,
   onUnselectAll,
 }: TimeSeriesLegendProps) {
@@ -60,8 +62,15 @@ function TimeSeriesLegend({
               color="gray"
               size="compact-sm"
               justify="flex-start"
-              onClick={() => onToggle(visibilityId)}
+              onClick={(event) => {
+                if (event.ctrlKey || event.metaKey) {
+                  onToggle(visibilityId);
+                } else {
+                  onIsolate(visibilityId);
+                }
+              }}
               aria-pressed={visible}
+              title="Click to isolate, Ctrl/Cmd+click to toggle just this one"
               leftSection={
                 <ColorSwatch
                   color={item.color}
