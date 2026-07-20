@@ -7,7 +7,7 @@ using MapsetVerifier.Parser.Objects;
 namespace MapsetVerifier.Checks.Taiko.Settings;
 
 [Check]
-public class CheckDiffSettings : DifficultySettingsCheck
+public class CheckDiffSettingsTaiko : DifficultySettingsCheck
 {
     private static readonly Dictionary<Beatmap.Difficulty, double> RecommendedOd = new()
     {

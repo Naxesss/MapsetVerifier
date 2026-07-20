@@ -11,7 +11,7 @@ using SixLabors.ImageSharp;
 namespace MapsetVerifier.Checks.Catch.Skinning;
 
 [Check]
-public class CheckSkinning : BeatmapSetCheck
+public class CheckSkinningCatch : BeatmapSetCheck
 {
     private static bool HasDroplets(BeatmapSet beatmapSet) =>
         beatmapSet.Beatmaps.Any(beatmap =>

@@ -10,7 +10,7 @@ using MapsetVerifier.Parser.Statics;
 namespace MapsetVerifier.Checks.Standard.Skinning;
 
 [Check]
-public class CheckSkinning : BeatmapSetCheck
+public class CheckSkinningStandard : BeatmapSetCheck
 {
     // A heuristic Euclidean distance (out of a max of ~441) below which two RGB colours are
     // considered too visually similar to tell apart as separate slider elements.

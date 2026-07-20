@@ -4,7 +4,7 @@ using Xunit;
 
 namespace MapsetVerifier.Checks.Tests.Taiko.Skinning;
 
-public class CheckSkinningTests
+public class CheckSkinningTaikoTests
 {
     private static string BuildMinimalOsu(string hitObject = "256,192,1000,1,0,0:0:0:0:") =>
         string.Join(
@@ -73,7 +73,7 @@ public class CheckSkinningTests
             ]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningTaiko>();
 
         Assert.Empty(issues);
     }
@@ -86,7 +86,7 @@ public class CheckSkinningTests
             ["audio.mp3", "taiko-hit0.png"]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningTaiko>();
 
         Assert.Single(issues, issue => issue.level == Issue.Level.Problem);
         Assert.Contains("Hitburst", issues[0].message);
@@ -106,7 +106,7 @@ public class CheckSkinningTests
             ]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningTaiko>();
 
         Assert.Empty(issues);
     }
@@ -119,7 +119,7 @@ public class CheckSkinningTests
             ["audio.mp3", "taiko-roll-middle.png"]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningTaiko>();
 
         Assert.Single(issues, issue => issue.level == Issue.Level.Problem);
         Assert.Contains("Hit object", issues[0].message);
@@ -140,7 +140,7 @@ public class CheckSkinningTests
             ]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningTaiko>();
 
         Assert.Contains(issues, issue => issue.level == Issue.Level.Warning);
     }
@@ -156,7 +156,7 @@ public class CheckSkinningTests
             ["audio.mp3", .. BaseHitObjectElements]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningTaiko>();
 
         Assert.Empty(issues);
     }
@@ -169,7 +169,7 @@ public class CheckSkinningTests
             ["audio.mp3", .. BaseHitObjectElements]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningTaiko>();
 
         Assert.Contains(
             issues,
@@ -191,7 +191,7 @@ public class CheckSkinningTests
             ["audio.mp3", "sliderscorepoint.png"]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningTaiko>();
 
         Assert.Empty(issues);
     }

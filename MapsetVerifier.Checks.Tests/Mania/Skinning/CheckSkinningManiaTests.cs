@@ -4,7 +4,7 @@ using Xunit;
 
 namespace MapsetVerifier.Checks.Tests.Mania.Skinning;
 
-public class CheckSkinningTests
+public class CheckSkinningManiaTests
 {
     private static string BuildMinimalOsu(string hitObject = "256,192,1000,1,0,0:0:0:0:") =>
         string.Join(
@@ -43,7 +43,7 @@ public class CheckSkinningTests
             ]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningMania>();
 
         Assert.Empty(issues);
     }
@@ -56,7 +56,7 @@ public class CheckSkinningTests
             ["audio.mp3", "mania-hit0.png"]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningMania>();
 
         Assert.Single(issues, issue => issue.level == Issue.Level.Problem);
         Assert.Contains("Hitburst", issues[0].message);
@@ -70,7 +70,7 @@ public class CheckSkinningTests
             ["audio.mp3", "mania-stage-left.png", "mania-stage-right.png"]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningMania>();
 
         Assert.Empty(issues);
     }
@@ -91,7 +91,7 @@ public class CheckSkinningTests
             ]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningMania>();
 
         Assert.Contains(issues, issue => issue.level == Issue.Level.Warning);
     }

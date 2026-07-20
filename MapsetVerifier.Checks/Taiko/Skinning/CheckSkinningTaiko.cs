@@ -9,7 +9,7 @@ using MapsetVerifier.Parser.Statics;
 namespace MapsetVerifier.Checks.Taiko.Skinning;
 
 [Check]
-public class CheckSkinning : BeatmapSetCheck
+public class CheckSkinningTaiko : BeatmapSetCheck
 {
     private static bool HasDrumrolls(BeatmapSet beatmapSet) =>
         beatmapSet.Beatmaps.Any(beatmap =>

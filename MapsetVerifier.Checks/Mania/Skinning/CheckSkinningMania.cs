@@ -8,7 +8,7 @@ using MapsetVerifier.Parser.Statics;
 namespace MapsetVerifier.Checks.Mania.Skinning;
 
 [Check]
-public class CheckSkinning : BeatmapSetCheck
+public class CheckSkinningMania : BeatmapSetCheck
 {
     // Per https://osu.ppy.sh/wiki/en/Skinning/osu!mania, only the hit burst and comboburst sets are
     // beatmap-skinnable; notes, keys, stage, and lighting elements are user-skin only.
