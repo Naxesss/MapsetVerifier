@@ -1,5 +1,4 @@
 using MapsetVerifier.Checks.AllModes.Compose;
-using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Parser.Objects;
 using Xunit;
 
@@ -20,12 +19,14 @@ public class CheckInvisibleSliderTests
 
         var issues = context.RunBeatmapCheck<CheckInvisibleSlider>("Test");
 
-        Assert.Single(issues);
+        var issue = Assert.Single(issues);
+        Assert.Contains("no curve points", issue.message);
     }
 
     [Fact]
-    public void SliderWithZeroNodes_Flags()
+    public void SliderWithEmptyCurvePointEntries_Flags()
     {
+        // Empty entries between pipes still resolve to zero actual curve points.
         var hitObjects = new List<string> { "146,189,13070,2,0,L||,1,47.9999985351563" };
 
         using var context = CheckTestContext.CreateFromOsuFiles([
@@ -34,7 +35,8 @@ public class CheckInvisibleSliderTests
 
         var issues = context.RunBeatmapCheck<CheckInvisibleSlider>("Test");
 
-        Assert.Single(issues);
+        var issue = Assert.Single(issues);
+        Assert.Contains("no curve points", issue.message);
     }
 
     [Fact]
