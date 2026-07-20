@@ -265,7 +265,7 @@ public class CheckSkinningStandardTests
             ["audio.mp3", "spinner-osu.png"]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningStandard>();
 
         Assert.Contains(
             issues,

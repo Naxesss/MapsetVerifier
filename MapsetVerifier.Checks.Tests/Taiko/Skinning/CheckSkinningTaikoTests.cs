@@ -156,7 +156,7 @@ public class CheckSkinningTaikoTests
             ["audio.mp3", .. BaseHitObjectElements]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningTaiko>();
 
         Assert.Empty(issues);
     }
@@ -169,7 +169,7 @@ public class CheckSkinningTaikoTests
             ["audio.mp3", .. BaseHitObjectElements]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningTaiko>();
 
         Assert.Contains(
             issues,
@@ -191,7 +191,7 @@ public class CheckSkinningTaikoTests
             ["audio.mp3", "sliderscorepoint.png"]
         );
 
-        var issues = context.RunBeatmapSetCheck<CheckSkinning>();
+        var issues = context.RunBeatmapSetCheck<CheckSkinningTaiko>();
 
         Assert.Empty(issues);
     }
