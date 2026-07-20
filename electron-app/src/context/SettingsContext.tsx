@@ -57,7 +57,7 @@ const defaultSettings: Settings = {
   showGamemodeDifficultyNames: true,
   showAdvancedAudioAnalysis: false,
   difficultyStrainDisplayMode: 'strainOnly',
-  excludeAimFromCombinedStrain: false,
+  excludeAimFromCombinedStrain: true,
   lazerLookupEnabled: false,
   receivePrereleases: false,
   uiFontFamily: DEFAULT_UI_FONT_FAMILY,
