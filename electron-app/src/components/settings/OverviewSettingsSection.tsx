@@ -5,9 +5,9 @@ import { useSettings } from '../../context/SettingsContext';
 import type { DifficultyStrainDisplayMode } from '../../context/SettingsContext';
 
 const DISPLAY_MODE_OPTIONS: { value: DifficultyStrainDisplayMode; label: string }[] = [
+  { value: 'strainOnly', label: 'Strain' },
+  { value: 'starRatingOnly', label: 'SR' },
   { value: 'both', label: 'Both' },
-  { value: 'starRatingOnly', label: 'Star Rating only' },
-  { value: 'strainOnly', label: 'Strain only' },
 ];
 
 export default function OverviewSettingsSection() {

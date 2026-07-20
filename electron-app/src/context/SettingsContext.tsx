@@ -56,7 +56,7 @@ const defaultSettings: Settings = {
   hiddenMinorCheckIds: [],
   showGamemodeDifficultyNames: true,
   showAdvancedAudioAnalysis: false,
-  difficultyStrainDisplayMode: 'both',
+  difficultyStrainDisplayMode: 'strainOnly',
   excludeAimFromCombinedStrain: false,
   lazerLookupEnabled: false,
   receivePrereleases: false,

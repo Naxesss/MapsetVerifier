@@ -96,9 +96,9 @@ function formatChartMetricValue(value: number, valueSuffix: string | undefined):
 }
 
 const STRAIN_DISPLAY_MODE_OPTIONS: { value: DifficultyStrainDisplayMode; label: string }[] = [
+  { value: 'strainOnly', label: 'Strain' },
+  { value: 'starRatingOnly', label: 'SR' },
   { value: 'both', label: 'Both' },
-  { value: 'starRatingOnly', label: 'Star Rating only' },
-  { value: 'strainOnly', label: 'Strain only' },
 ];
 
 type DifficultyChartCardProps = {
