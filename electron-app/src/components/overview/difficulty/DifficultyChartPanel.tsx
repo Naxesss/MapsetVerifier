@@ -64,7 +64,6 @@ export function DifficultyChartPanel({
     isVisible,
     toggleSeries,
     toggleIsolateSeries,
-    setAllVisible,
     isZoomed,
     resetZoom,
   } = chartState;
@@ -207,8 +206,6 @@ export function DifficultyChartPanel({
         isVisible={isVisible}
         onToggle={toggleSeries}
         onIsolate={toggleIsolateSeries}
-        onSelectAll={() => setAllVisible(true)}
-        onUnselectAll={() => setAllVisible(false)}
       />
     </Stack>
   );

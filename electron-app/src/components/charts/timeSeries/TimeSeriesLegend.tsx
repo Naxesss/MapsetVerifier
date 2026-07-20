@@ -7,18 +7,9 @@ type TimeSeriesLegendProps = {
   isVisible: (seriesId: string) => boolean;
   onToggle: (seriesId: string) => void;
   onIsolate: (seriesId: string) => void;
-  onSelectAll: () => void;
-  onUnselectAll: () => void;
 };
 
-function TimeSeriesLegend({
-  series,
-  isVisible,
-  onToggle,
-  onIsolate,
-  onSelectAll,
-  onUnselectAll,
-}: TimeSeriesLegendProps) {
+function TimeSeriesLegend({ series, isVisible, onToggle, onIsolate }: TimeSeriesLegendProps) {
   const theme = useMantineTheme();
   const legendSeries = series.filter((item) => !item.hideFromLegend);
 
@@ -28,20 +19,6 @@ function TimeSeriesLegend({
 
   return (
     <Stack gap="xs" w="100%">
-      <Group gap="xs" wrap="wrap">
-        <Button type="button" variant="light" color="gray" size="compact-xs" onClick={onSelectAll}>
-          Show all
-        </Button>
-        <Button
-          type="button"
-          variant="light"
-          color="gray"
-          size="compact-xs"
-          onClick={onUnselectAll}
-        >
-          Hide all
-        </Button>
-      </Group>
       <Group
         gap="xs"
         wrap="wrap"

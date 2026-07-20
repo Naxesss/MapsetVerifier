@@ -40,19 +40,6 @@ export function useSeriesVisibility(seriesIds: string[], resetKey?: string) {
     [seriesIds]
   );
 
-  const setAllVisible = useCallback(
-    (visible: boolean) => {
-      setVisibilityById((current) => {
-        const next = { ...current };
-        for (const id of seriesIds) {
-          next[id] = visible;
-        }
-        return next;
-      });
-    },
-    [seriesIds]
-  );
-
   const isVisible = useCallback(
     (seriesId: string) => visibilityById[seriesId] !== false,
     [visibilityById]
@@ -72,7 +59,6 @@ export function useSeriesVisibility(seriesIds: string[], resetKey?: string) {
     visibilityById,
     toggleSeries,
     toggleIsolateSeries,
-    setAllVisible,
     isVisible,
     visibleSeriesIds,
   };
