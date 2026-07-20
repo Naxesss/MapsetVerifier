@@ -207,6 +207,9 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
             ...item,
             label: item.label.replace(/ \(strain\)$/, ''),
             hideFromLegend: false,
+            // Dashing exists to tell the strain line apart from its Star Rating counterpart in
+            // "Both" mode; with no counterpart shown here, a dashed line isn't needed
+            dashed: false,
           }));
       case 'both':
       default:
