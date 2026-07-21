@@ -268,6 +268,8 @@ export default function LazerBeatmapsPanel({ lazerDataDir, onOpenSettings }: Pro
       <CurrentBeatmapCard
         current={lazerCurrentResult}
         selectedFolderPath={selectedFolderPath}
+        source="lazer"
+        lazerDataDir={lazerDataDir}
         onSelectFolderPath={(folderPath) => {
           if (folderPath && lazerCurrentResult) {
             setSelectedLazerFolderPath(lazerCurrentResult.beatmap.folder, folderPath);

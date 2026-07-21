@@ -13,6 +13,8 @@ interface CurrentBeatmapCardProps {
   current: CurrentBeatmapData | null;
   selectedFolderPath?: string;
   onSelectFolderPath: (folderPath?: string) => void;
+  source?: 'stable' | 'lazer';
+  lazerDataDir?: string;
 }
 
 const SWAP_DURATION_MS = 220;
@@ -27,6 +29,8 @@ export default function CurrentBeatmapCard({
   current,
   selectedFolderPath,
   onSelectFolderPath,
+  source = 'stable',
+  lazerDataDir,
 }: CurrentBeatmapCardProps) {
   const [renderedCurrent, setRenderedCurrent] = useState<CurrentBeatmapData | null>(null);
   const [visible, setVisible] = useState(false);
@@ -74,6 +78,8 @@ export default function CurrentBeatmapCard({
               <BeatmapCard
                 beatmap={renderedCurrent.beatmap}
                 songFolder={renderedCurrent.lookupRoot}
+                source={source}
+                lazerDataDir={lazerDataDir}
                 isSelectedOverride={selectedFolderPath === renderedCurrent.folderPath}
                 onSelect={() => onSelectFolderPath(renderedCurrent.folderPath)}
               />

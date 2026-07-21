@@ -26,6 +26,14 @@ public static class CurrentBeatmapLookupService
     );
     private static readonly object StickyMetadataLock = new();
     private static readonly Dictionary<OsuClientKind, string> LastDetectedMetadataByClient = new();
+    private static readonly Dictionary<OsuClientKind, DateTime> LastSeenAtByClient = new();
+
+    /// <summary>
+    /// How long a vanished editor title is tolerated before the sticky cache expires. Smooths
+    /// over a single missed poll/brief window-title flicker without making a genuinely closed
+    /// editor keep showing "currently open" forever.
+    /// </summary>
+    private static readonly TimeSpan StickyMetadataGracePeriod = TimeSpan.FromSeconds(4);
 
     public static ApiLazerLookupResult GetCurrentLazerBeatmap() =>
         GetCurrentBeatmap(OsuClientKind.Lazer, null);
@@ -565,6 +573,8 @@ public static class CurrentBeatmapLookupService
         {
             if (!string.IsNullOrWhiteSpace(liveMetadata))
             {
+                LastSeenAtByClient[clientKind] = DateTime.UtcNow;
+
                 if (!LastDetectedMetadataByClient.TryGetValue(clientKind, out var oldValue))
                 {
                     LastDetectedMetadataByClient[clientKind] = liveMetadata;
@@ -576,6 +586,16 @@ public static class CurrentBeatmapLookupService
                     if (!string.Equals(normalizedCurrent, normalizedOld, StringComparison.Ordinal))
                         LastDetectedMetadataByClient[clientKind] = liveMetadata;
                 }
+            }
+            else if (
+                LastSeenAtByClient.TryGetValue(clientKind, out var lastSeenAt)
+                && DateTime.UtcNow - lastSeenAt > StickyMetadataGracePeriod
+            )
+            {
+                // The editor title has been gone for longer than a brief flicker - treat it as
+                // genuinely closed instead of sticking with a beatmap that's no longer open.
+                LastDetectedMetadataByClient.Remove(clientKind);
+                LastSeenAtByClient.Remove(clientKind);
             }
 
             return LastDetectedMetadataByClient.TryGetValue(clientKind, out var cached)
