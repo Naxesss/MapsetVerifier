@@ -5,6 +5,9 @@ import { DEFAULT_UI_FONT_FAMILY, parseUiFontFamily, type UiFontFamily } from '..
 import { isSemverPreRelease } from '../utils/isSemverPreRelease';
 import type { TimelineThemeVariant } from '../components/overview/objects/timelineTheme/types.ts';
 
+/** What the Star Rating overview chart shows by default: the cumulative line, the strain overlay, or both. */
+export type DifficultyStrainDisplayMode = 'both' | 'starRatingOnly' | 'strainOnly';
+
 // Type-safe Settings type
 export type Settings = {
   songFolder?: string;
@@ -13,6 +16,10 @@ export type Settings = {
   hiddenMinorCheckIds: number[];
   showGamemodeDifficultyNames: boolean;
   showAdvancedAudioAnalysis: boolean;
+  /** What the Star Rating overview chart shows by default. */
+  difficultyStrainDisplayMode: DifficultyStrainDisplayMode;
+  /** Excludes osu!standard's Aim skill(s) from the combined strain line. */
+  excludeAimFromCombinedStrain: boolean;
   lazerLookupEnabled: boolean;
   receivePrereleases: boolean;
   uiFontFamily: UiFontFamily;
@@ -49,6 +56,8 @@ const defaultSettings: Settings = {
   hiddenMinorCheckIds: [],
   showGamemodeDifficultyNames: true,
   showAdvancedAudioAnalysis: false,
+  difficultyStrainDisplayMode: 'strainOnly',
+  excludeAimFromCombinedStrain: true,
   lazerLookupEnabled: false,
   receivePrereleases: false,
   uiFontFamily: DEFAULT_UI_FONT_FAMILY,

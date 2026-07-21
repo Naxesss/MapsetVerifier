@@ -6,39 +6,19 @@ type TimeSeriesLegendProps = {
   series: SeriesConfig[];
   isVisible: (seriesId: string) => boolean;
   onToggle: (seriesId: string) => void;
-  onSelectAll: () => void;
-  onUnselectAll: () => void;
+  onIsolate: (seriesId: string) => void;
 };
 
-function TimeSeriesLegend({
-  series,
-  isVisible,
-  onToggle,
-  onSelectAll,
-  onUnselectAll,
-}: TimeSeriesLegendProps) {
+function TimeSeriesLegend({ series, isVisible, onToggle, onIsolate }: TimeSeriesLegendProps) {
   const theme = useMantineTheme();
+  const legendSeries = series.filter((item) => !item.hideFromLegend);
 
-  if (series.length <= 1) {
+  if (legendSeries.length <= 1) {
     return null;
   }
 
   return (
     <Stack gap="xs" w="100%">
-      <Group gap="xs" wrap="wrap">
-        <Button type="button" variant="light" color="gray" size="compact-xs" onClick={onSelectAll}>
-          Show all
-        </Button>
-        <Button
-          type="button"
-          variant="light"
-          color="gray"
-          size="compact-xs"
-          onClick={onUnselectAll}
-        >
-          Hide all
-        </Button>
-      </Group>
       <Group
         gap="xs"
         wrap="wrap"
@@ -47,8 +27,9 @@ function TimeSeriesLegend({
         w="100%"
         style={{ overflow: 'visible' }}
       >
-        {series.map((item) => {
-          const visible = isVisible(item.id);
+        {legendSeries.map((item) => {
+          const visibilityId = item.visibilityId ?? item.id;
+          const visible = isVisible(visibilityId);
 
           return (
             <Button
@@ -58,8 +39,15 @@ function TimeSeriesLegend({
               color="gray"
               size="compact-sm"
               justify="flex-start"
-              onClick={() => onToggle(item.id)}
+              onClick={(event) => {
+                if (event.ctrlKey || event.metaKey) {
+                  onToggle(visibilityId);
+                } else {
+                  onIsolate(visibilityId);
+                }
+              }}
               aria-pressed={visible}
+              title="Click to isolate, Ctrl/Cmd+click to toggle just this one"
               leftSection={
                 <ColorSwatch
                   color={item.color}

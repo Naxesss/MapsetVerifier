@@ -576,6 +576,9 @@ export type DifficultyOverviewDifficulty = {
 export type DifficultySkillData = {
   skillName: string;
   strainSamples: DifficultySamplePoint[];
+  /** This skill's own aggregate difficulty contribution for the map (pre-Star-Rating-curve) -
+   *  how much it actually matters to the map's real difficulty. */
+  difficultyValue: number;
 };
 
 export type DifficultyChartDataPoint = {

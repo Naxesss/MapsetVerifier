@@ -5,6 +5,7 @@ import CheckSettingsSection from './CheckSettingsSection';
 import DeveloperSettingsSection from './DeveloperSettingsSection';
 import ExperimentalSettingsSection from './ExperimentalSettingsSection';
 import GeneralSettingsSection from './GeneralSettingsSection';
+import OverviewSettingsSection from './OverviewSettingsSection';
 import PluginSettingsSection from './PluginSettingsSection';
 import { resolveSettingsSection, type SettingsSectionId } from './settingsSections';
 import UpdateSettingsSection from './UpdateSettingsSection';
@@ -15,6 +16,8 @@ function renderSettingsSection(section: SettingsSectionId) {
       return <GeneralSettingsSection />;
     case 'checks':
       return <CheckSettingsSection />;
+    case 'overview':
+      return <OverviewSettingsSection />;
     case 'experimental':
       return <ExperimentalSettingsSection />;
     case 'plugins':

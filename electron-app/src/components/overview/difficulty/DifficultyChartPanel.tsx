@@ -23,8 +23,10 @@ export type DifficultyChartPanelProps = {
   series: SeriesConfig[];
   durationMs: number;
   valueSuffix: string | undefined;
+  secondaryValueSuffix?: string;
   interpolation?: ChartInterpolation;
   showDataPoints?: boolean;
+  yAxisMode?: 'zeroBased' | 'fitToData';
   plotHeight?: number;
   chartState: DifficultyChartState;
   hover: ChartHoverPayload | null;
@@ -39,8 +41,10 @@ export function DifficultyChartPanel({
   series,
   durationMs,
   valueSuffix,
+  secondaryValueSuffix,
   interpolation = 'line',
   showDataPoints = false,
+  yAxisMode = 'zeroBased',
   plotHeight = INLINE_PLOT_HEIGHT,
   chartState,
   hover,
@@ -59,7 +63,7 @@ export function DifficultyChartPanel({
     visibleSeriesIds,
     isVisible,
     toggleSeries,
-    setAllVisible,
+    toggleIsolateSeries,
     isZoomed,
     resetZoom,
   } = chartState;
@@ -74,6 +78,11 @@ export function DifficultyChartPanel({
   const axisValueFormatter = useCallback(
     (value: number) => formatAxisMetricValue(value, valueSuffix),
     [valueSuffix]
+  );
+
+  const secondaryAxisValueFormatter = useCallback(
+    (value: number) => formatAxisMetricValue(value, secondaryValueSuffix),
+    [secondaryValueSuffix]
   );
 
   const handleContextMenuPeak = useCallback((payload: ChartHoverPayload) => {
@@ -164,6 +173,8 @@ export function DifficultyChartPanel({
           valueFormatter={axisValueFormatter}
           interpolation={interpolation}
           showDataPoints={showDataPoints}
+          yAxisMode={yAxisMode}
+          secondaryValueFormatter={secondaryAxisValueFormatter}
           hover={hover?.peak ?? null}
           onHover={onHover}
           onDragZoom={applyDragZoom}
@@ -194,8 +205,7 @@ export function DifficultyChartPanel({
         series={series}
         isVisible={isVisible}
         onToggle={toggleSeries}
-        onSelectAll={() => setAllVisible(true)}
-        onUnselectAll={() => setAllVisible(false)}
+        onIsolate={toggleIsolateSeries}
       />
     </Stack>
   );

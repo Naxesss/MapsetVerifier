@@ -4,6 +4,7 @@ import {
   Group,
   Modal,
   Paper,
+  SegmentedControl,
   SimpleGrid,
   Stack,
   Switch,
@@ -26,10 +27,12 @@ import {
   MODAL_PLOT_HEIGHT,
 } from './DifficultyChartPanel.tsx';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
+import { useSettings } from '../../../context/SettingsContext';
 import { ChartHoverFloatingPanel } from '../../charts/timeSeries/ChartHoverFloatingPanel.tsx';
 import { formatChartTime } from '../../common/TimeAxis.tsx';
 import type { ChartDefinition, ChartRow } from './difficultyChartModel.ts';
 import type { DifficultyChartState } from './hooks/useDifficultyChartState.ts';
+import type { DifficultyStrainDisplayMode } from '../../../context/SettingsContext';
 import type { ChartHoverPayload } from '../../charts/timeSeries/types.ts';
 
 function formatChartDuration(durationMs: number) {
@@ -92,6 +95,12 @@ function formatChartMetricValue(value: number, valueSuffix: string | undefined):
   return `${value.toFixed(2)}${valueSuffix ?? ''}`;
 }
 
+const STRAIN_DISPLAY_MODE_OPTIONS: { value: DifficultyStrainDisplayMode; label: string }[] = [
+  { value: 'strainOnly', label: 'Strain' },
+  { value: 'starRatingOnly', label: 'SR' },
+  { value: 'both', label: 'Both' },
+];
+
 type DifficultyChartCardProps = {
   chart: ChartDefinition;
   chartState: DifficultyChartState;
@@ -100,7 +109,26 @@ type DifficultyChartCardProps = {
 export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardProps) {
   const theme = useMantineTheme();
   const { selectedFolder: folder } = useBeatmap();
+  const { settings, setSettings } = useSettings();
   const [ignoreLowVolume, setIgnoreLowVolume] = useState(true);
+  // Mirrors settings.difficultyStrainDisplayMode locally so the control responds instantly instead
+  // of waiting on the settings context (shared app-wide and persisted to disk on every change) to
+  // re-render this chart-heavy page. Synced during render (not an effect) when the setting
+  // changes externally, e.g. from the Settings page - see https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes.
+  const [prevSettingValue, setPrevSettingValue] = useState(settings.difficultyStrainDisplayMode);
+  const [displayMode, setDisplayModeLocal] = useState(settings.difficultyStrainDisplayMode);
+  if (prevSettingValue !== settings.difficultyStrainDisplayMode) {
+    setPrevSettingValue(settings.difficultyStrainDisplayMode);
+    setDisplayModeLocal(settings.difficultyStrainDisplayMode);
+  }
+
+  const setDisplayMode = useCallback(
+    (value: DifficultyStrainDisplayMode) => {
+      setDisplayModeLocal(value);
+      setSettings((prev) => ({ ...prev, difficultyStrainDisplayMode: value }));
+    },
+    [setSettings]
+  );
   const [modalOpened, setModalOpened] = useState(false);
   const [hover, setHover] = useState<ChartHoverPayload | null>(null);
   const [hoverSafeZone, setHoverSafeZone] = useState(false);
@@ -154,13 +182,48 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
     setLastHover(null);
   }, []);
 
+  const hasStrainSeries = useMemo(
+    () => chart.series.some((item) => item.hideFromLegend),
+    [chart.series]
+  );
+
+  const visibleSeries = useMemo(() => {
+    if (!hasStrainSeries) {
+      return chart.series;
+    }
+
+    switch (displayMode) {
+      case 'starRatingOnly':
+        return chart.series.filter((item) => !item.hideFromLegend);
+      case 'strainOnly':
+        // Promote the strain companions to first-class series: show them in the legend (using
+        // the same label as the primary line, since it's the only line shown). Keep their
+        // existing visibilityId (the primary line's id) rather than clearing it, so toggling a
+        // difficulty here shows/hides the same selection as "both"/"Star Rating only" instead of
+        // tracking an independent toggle state per mode.
+        return chart.series
+          .filter((item) => item.hideFromLegend)
+          .map((item) => ({
+            ...item,
+            label: item.label.replace(/ \(strain\)$/, ''),
+            hideFromLegend: false,
+            // Dashing exists to tell the strain line apart from its Star Rating counterpart in
+            // "Both" mode; with no counterpart shown here, a dashed line isn't needed
+            dashed: false,
+          }));
+      case 'both':
+      default:
+        return chart.series;
+    }
+  }, [chart.series, displayMode, hasStrainSeries]);
+
   const displayData = useMemo(() => {
     const threshold = chart.hideLowValuesThreshold;
     if (threshold === undefined || !ignoreLowVolume) {
       return chart.data;
     }
 
-    const keys = chart.series.map((item) => item.key);
+    const keys = visibleSeries.map((item) => item.key);
     const carry: Record<string, number | null> = {};
     for (const key of keys) {
       carry[key] = null;
@@ -182,35 +245,57 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
       }
       return next;
     });
-  }, [chart.data, chart.hideLowValuesThreshold, chart.series, ignoreLowVolume]);
+  }, [chart.data, chart.hideLowValuesThreshold, ignoreLowVolume, visibleSeries]);
 
   const seriesConfig = useMemo(
     () =>
-      chart.series.map((item) => ({
+      visibleSeries.map((item) => ({
         id: item.id,
         key: item.key,
         label: item.label,
         color: item.color,
+        dashed: item.dashed,
+        visibilityId: item.visibilityId,
+        hideFromLegend: item.hideFromLegend,
+        hoverKey: item.hoverKey,
+        useSecondaryAxis: item.useSecondaryAxis,
+        valueSuffix: item.valueSuffix,
       })),
-    [chart.series]
+    [visibleSeries]
   );
 
-  const { peakValue, peakAtSeconds } = useMemo(() => {
+  const { peakValue, peakAtSeconds, peakValueSuffix } = useMemo(() => {
+    // Peak/Peak at reflect the primary-axis series (e.g. Star Rating) whenever one is visible;
+    // only fall back to the secondary-axis series (e.g. raw strain) when it's all that's shown
+    // ("strain only"), since the two are on different scales and can't be combined into one max.
+    const primarySeries = visibleSeries.filter((item) => !item.useSecondaryAxis);
+    const peakSeries = primarySeries.length > 0 ? primarySeries : visibleSeries;
+    const usesSecondary =
+      primarySeries.length === 0 && visibleSeries.some((s) => s.useSecondaryAxis);
+    const suffix = usesSecondary ? chart.secondaryValueSuffix : chart.valueSuffix;
+
     const threshold = chart.hideLowValuesThreshold;
-    if (threshold === undefined || !ignoreLowVolume) {
-      return { peakValue: chart.maxValue, peakAtSeconds: chart.peakTimeSeconds };
+    if ((threshold === undefined || !ignoreLowVolume) && !hasStrainSeries) {
+      return {
+        peakValue: chart.maxValue,
+        peakAtSeconds: chart.peakTimeSeconds,
+        peakValueSuffix: suffix,
+      };
     }
 
-    const keys = chart.series.map((item) => item.key);
+    const keys = peakSeries.map((item) => item.key);
     const { maxValue, peakTimeSeconds } = computePeakFromRows(displayData, keys);
-    return { peakValue: maxValue, peakAtSeconds: peakTimeSeconds };
+    return { peakValue: maxValue, peakAtSeconds: peakTimeSeconds, peakValueSuffix: suffix };
   }, [
     chart.hideLowValuesThreshold,
     chart.maxValue,
     chart.peakTimeSeconds,
-    chart.series,
+    chart.secondaryValueSuffix,
+    chart.valueSuffix,
     displayData,
+    hasStrainSeries,
     ignoreLowVolume,
+    visibleSeries,
   ]);
 
   const panelProps = {
@@ -218,8 +303,10 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
     series: seriesConfig,
     durationMs: chart.durationMs,
     valueSuffix: chart.valueSuffix,
+    secondaryValueSuffix: chart.secondaryValueSuffix,
     interpolation: chart.interpolation,
     showDataPoints: chart.showDataPoints,
+    yAxisMode: chart.yAxisMode,
     chartState,
     hover: modalOpened ? effectiveHover : hover,
     onHover: modalOpened ? handleChartHover : setHover,
@@ -231,20 +318,30 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
         <Stack gap="sm">
           <Group justify="space-between" align="center" wrap="nowrap">
             <Text fw={600}>{chart.title}</Text>
-            {chart.data.length > 0 ? (
-              <Button
-                leftSection={<IconArrowsMaximize size={16} />}
-                variant="light"
-                size="sm"
-                onClick={() => setModalOpened(true)}
-              >
-                Full view
-              </Button>
-            ) : null}
+            <Group gap="md" wrap="nowrap">
+              {hasStrainSeries && (
+                <SegmentedControl
+                  size="xs"
+                  data={STRAIN_DISPLAY_MODE_OPTIONS}
+                  value={displayMode}
+                  onChange={(value) => setDisplayMode(value as DifficultyStrainDisplayMode)}
+                />
+              )}
+              {chart.data.length > 0 ? (
+                <Button
+                  leftSection={<IconArrowsMaximize size={16} />}
+                  variant="light"
+                  size="sm"
+                  onClick={() => setModalOpened(true)}
+                >
+                  Full view
+                </Button>
+              ) : null}
+            </Group>
           </Group>
 
           <SimpleGrid cols={chart.showResolution ? 4 : 3} spacing="md">
-            <MetricStat label="Peak" value={formatChartMetricValue(peakValue, chart.valueSuffix)} />
+            <MetricStat label="Peak" value={formatChartMetricValue(peakValue, peakValueSuffix)} />
             <MetricStat label="Peak at" value={formatSeconds(peakAtSeconds)} />
             <MetricStat label="Duration" value={formatChartDuration(chart.durationMs)} />
             {chart.showResolution ? (

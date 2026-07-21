@@ -1,7 +1,7 @@
 import { Box, Button, useMantineTheme } from '@mantine/core';
 import { useResizeObserver } from '@mantine/hooks';
 import { IconZoomReset } from '@tabler/icons-react';
-import { AxisBottom, AxisLeft } from '@visx/axis';
+import { AxisBottom, AxisLeft, AxisRight } from '@visx/axis';
 import { curveStepAfter } from '@visx/curve';
 import { GridColumns, GridRows } from '@visx/grid';
 import { Group } from '@visx/group';
@@ -22,6 +22,7 @@ import type {
 } from './types.ts';
 
 const MARGIN = { top: 8, right: 16, bottom: 32, left: 52 };
+const MARGIN_WITH_SECONDARY_AXIS = { ...MARGIN, right: 48 };
 const MAX_FULL_RES_RENDER_ROWS = 1000;
 const MAX_PEAK_DOTS = 100;
 
@@ -38,6 +39,11 @@ type TimeSeriesChartProps = {
   interpolation?: ChartInterpolation;
   /** Draw circles at each sample when the viewport has at most MAX_PEAK_DOTS rows. */
   showDataPoints?: boolean;
+  /** 'zeroBased' (default) always anchors the axis at 0. 'fitToData' zooms to the visible value
+   *  range instead, for charts whose values stay within a narrow band near the top of the scale. */
+  yAxisMode?: 'zeroBased' | 'fitToData';
+  /** Formats ticks for the secondary (right) axis, used by series with `useSecondaryAxis`. */
+  secondaryValueFormatter?: (value: number) => string;
   hover: PeakHoverState | null;
   onHover: (payload: ChartHoverPayload | null) => void;
   onDragZoom: (startMs: number, endMs: number) => void;
@@ -63,6 +69,8 @@ function TimeSeriesChartInner({
   valueFormatter,
   interpolation = 'line',
   showDataPoints = false,
+  yAxisMode = 'zeroBased',
+  secondaryValueFormatter,
   hover,
   onHover,
   onDragZoom,
@@ -79,8 +87,12 @@ function TimeSeriesChartInner({
   const dragRef = useRef<DragSelection | null>(null);
   const [drag, setDrag] = useState<DragSelection | null>(null);
 
-  const innerWidth = Math.max(0, width - MARGIN.left - MARGIN.right);
-  const innerHeight = Math.max(0, plotHeight - MARGIN.top - MARGIN.bottom);
+  const hasPrimaryAxis = series.some((item) => !item.useSecondaryAxis);
+  const hasSecondaryAxis = series.some((item) => item.useSecondaryAxis);
+  const margin = hasSecondaryAxis ? MARGIN_WITH_SECONDARY_AXIS : MARGIN;
+
+  const innerWidth = Math.max(0, width - margin.left - margin.right);
+  const innerHeight = Math.max(0, plotHeight - margin.top - margin.bottom);
 
   const viewportRows = useMemo(
     () => filterRowsInViewport(data, viewMin, viewMax),
@@ -95,10 +107,16 @@ function TimeSeriesChartInner({
 
   const buildSeriesPoints = useCallback(
     (rows: TimeSeriesRow[]) => {
-      const paths: { id: string; color: string; points: LinePoint[] }[] = [];
+      const paths: {
+        id: string;
+        color: string;
+        dashed?: boolean;
+        useSecondaryAxis?: boolean;
+        points: LinePoint[];
+      }[] = [];
 
       for (const item of series) {
-        if (!visibleSeriesIds.has(item.id)) {
+        if (!visibleSeriesIds.has(item.visibilityId ?? item.id)) {
           continue;
         }
 
@@ -111,7 +129,13 @@ function TimeSeriesChartInner({
         }
 
         if (points.length > 0) {
-          paths.push({ id: item.id, color: item.color, points });
+          paths.push({
+            id: item.id,
+            color: item.color,
+            dashed: item.dashed,
+            useSecondaryAxis: item.useSecondaryAxis,
+            points,
+          });
         }
       }
 
@@ -121,6 +145,14 @@ function TimeSeriesChartInner({
   );
 
   const seriesPaths = useMemo(() => buildSeriesPoints(renderRows), [buildSeriesPoints, renderRows]);
+  const primaryPaths = useMemo(
+    () => seriesPaths.filter((path) => !path.useSecondaryAxis),
+    [seriesPaths]
+  );
+  const secondaryPaths = useMemo(
+    () => seriesPaths.filter((path) => path.useSecondaryAxis),
+    [seriesPaths]
+  );
 
   const showDots = showDataPoints && viewportRows.length <= MAX_PEAK_DOTS;
   const dotPaths = useMemo(
@@ -128,17 +160,39 @@ function TimeSeriesChartInner({
     [buildSeriesPoints, showDots, viewportRows]
   );
 
-  const yMax = useMemo(() => {
+  function computeYDomain(
+    paths: { points: LinePoint[] }[],
+    mode: 'zeroBased' | 'fitToData'
+  ): [number, number] {
+    let min = Infinity;
     let max = 0;
-    for (const path of seriesPaths) {
+    for (const path of paths) {
       for (const point of path.points) {
-        if (point.value > max) {
-          max = point.value;
-        }
+        if (point.value > max) max = point.value;
+        if (point.value < min) min = point.value;
       }
     }
-    return max > 0 ? max * 1.05 : 1;
-  }, [seriesPaths]);
+
+    if (mode !== 'fitToData' || !Number.isFinite(min)) {
+      return [0, max > 0 ? max * 1.05 : 1];
+    }
+
+    const range = max - min;
+    const padding = range > 0 ? range * 0.1 : Math.max(max * 0.1, 1);
+    return [Math.max(0, min - padding), max + padding];
+  }
+
+  const [yMin, yMax] = useMemo(
+    () => computeYDomain(primaryPaths, yAxisMode),
+    [primaryPaths, yAxisMode]
+  );
+
+  // The secondary axis (e.g. raw strain) is always zoomed to its own data, same as the
+  // standalone skill-strain charts elsewhere in the app.
+  const [secondaryYMin, secondaryYMax] = useMemo(
+    () => computeYDomain(secondaryPaths, 'fitToData'),
+    [secondaryPaths]
+  );
 
   const xScale = useMemo(
     () =>
@@ -153,11 +207,21 @@ function TimeSeriesChartInner({
   const yScale = useMemo(
     () =>
       scaleLinear<number>({
-        domain: [0, yMax],
+        domain: [yMin, yMax],
         range: [innerHeight, 0],
         nice: true,
       }),
-    [innerHeight, yMax]
+    [innerHeight, yMax, yMin]
+  );
+
+  const secondaryYScale = useMemo(
+    () =>
+      scaleLinear<number>({
+        domain: [secondaryYMin, secondaryYMax],
+        range: [innerHeight, 0],
+        nice: true,
+      }),
+    [innerHeight, secondaryYMax, secondaryYMin]
   );
 
   const xTicks = useMemo(() => buildMsTicks(viewMin, viewMax, spanMs), [spanMs, viewMax, viewMin]);
@@ -174,17 +238,17 @@ function TimeSeriesChartInner({
     (peak: PeakHoverState, _clientX: number, clientY: number): ChartHoverPayload => {
       const plotX = xScale(peak.timeMs) ?? 0;
       const bounds = wrapRef.current?.getBoundingClientRect();
-      const cursorY = bounds ? clientY - bounds.top : MARGIN.top;
+      const cursorY = bounds ? clientY - bounds.top : margin.top;
 
       return {
         peak,
         anchor: {
-          x: MARGIN.left + plotX,
+          x: margin.left + plotX,
           y: cursorY,
         },
         tooltipAnchor: {
-          x: MARGIN.left + plotX,
-          y: MARGIN.top,
+          x: margin.left + plotX,
+          y: margin.top,
         },
         cursorY,
       };
@@ -340,15 +404,15 @@ function TimeSeriesChartInner({
       <svg width={width} height={plotHeight} style={{ display: 'block', overflow: 'visible' }}>
         <rect
           data-chart-plot=""
-          x={MARGIN.left}
-          y={MARGIN.top}
+          x={margin.left}
+          y={margin.top}
           width={innerWidth}
           height={innerHeight}
           fill={plotBg}
         />
-        <Group left={MARGIN.left} top={MARGIN.top} pointerEvents="none">
+        <Group left={margin.left} top={margin.top} pointerEvents="none">
           <GridRows
-            scale={yScale}
+            scale={hasPrimaryAxis ? yScale : secondaryYScale}
             width={innerWidth}
             stroke={gridStroke}
             strokeOpacity={0.6}
@@ -366,10 +430,11 @@ function TimeSeriesChartInner({
               key={path.id}
               data={path.points}
               x={(d) => xScale(d.timeMs) ?? 0}
-              y={(d) => yScale(d.value) ?? 0}
+              y={(d) => (path.useSecondaryAxis ? secondaryYScale(d.value) : yScale(d.value)) ?? 0}
               curve={lineCurve}
               stroke={path.color}
               strokeWidth={2.5}
+              strokeDasharray={path.dashed ? '6,4' : undefined}
               fill="none"
             />
           ))}
@@ -379,7 +444,11 @@ function TimeSeriesChartInner({
                   <circle
                     key={`${path.id}-${point.timeMs}`}
                     cx={xScale(point.timeMs) ?? 0}
-                    cy={yScale(point.value) ?? 0}
+                    cy={
+                      (path.useSecondaryAxis
+                        ? secondaryYScale(point.value)
+                        : yScale(point.value)) ?? 0
+                    }
                     r={3.5}
                     fill={path.color}
                     stroke={theme.colors.dark[7]}
@@ -408,25 +477,45 @@ function TimeSeriesChartInner({
             />
           ) : null}
         </Group>
-        <AxisLeft
-          left={MARGIN.left}
-          top={MARGIN.top}
-          scale={yScale}
-          numTicks={5}
-          tickFormat={(v) => valueFormatter(Number(v))}
-          stroke={axisColor}
-          tickStroke={axisColor}
-          tickLabelProps={{
-            fill: axisColor,
-            fontSize: 10,
-            fontFamily: theme.fontFamily,
-            textAnchor: 'end',
-            dx: -4,
-          }}
-        />
+        {hasPrimaryAxis ? (
+          <AxisLeft
+            left={margin.left}
+            top={margin.top}
+            scale={yScale}
+            numTicks={5}
+            tickFormat={(v) => valueFormatter(Number(v))}
+            stroke={axisColor}
+            tickStroke={axisColor}
+            tickLabelProps={{
+              fill: axisColor,
+              fontSize: 10,
+              fontFamily: theme.fontFamily,
+              textAnchor: 'end',
+              dx: -4,
+            }}
+          />
+        ) : null}
+        {hasSecondaryAxis ? (
+          <AxisRight
+            left={margin.left + innerWidth}
+            top={margin.top}
+            scale={secondaryYScale}
+            numTicks={5}
+            tickFormat={(v) => (secondaryValueFormatter ?? String)(Number(v))}
+            stroke={axisColor}
+            tickStroke={axisColor}
+            tickLabelProps={{
+              fill: axisColor,
+              fontSize: 10,
+              fontFamily: theme.fontFamily,
+              textAnchor: 'start',
+              dx: 4,
+            }}
+          />
+        ) : null}
         <AxisBottom
-          top={MARGIN.top + innerHeight}
-          left={MARGIN.left}
+          top={margin.top + innerHeight}
+          left={margin.left}
           scale={xScale}
           tickValues={xTicks}
           tickFormat={(v) => formatAxisTickMs(Number(v), spanMs)}

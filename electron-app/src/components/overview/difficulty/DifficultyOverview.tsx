@@ -78,8 +78,11 @@ function DifficultyOverview() {
     groupedDifficulties.find((group) => group.mode === selectedMode) ?? groupedDifficulties[0];
   const selectedDifficulties = selectedGroup?.difficulties ?? EMPTY_DIFFICULTIES;
   const charts = useMemo(
-    () => buildCharts(selectedDifficulties, data?.msPerPeak),
-    [data?.msPerPeak, selectedDifficulties]
+    () =>
+      buildCharts(selectedDifficulties, data?.msPerPeak, {
+        excludeAimFromCombinedStrain: settings.excludeAimFromCombinedStrain,
+      }),
+    [data?.msPerPeak, selectedDifficulties, settings.excludeAimFromCombinedStrain]
   );
 
   const durationMs = charts[0]?.durationMs ?? data?.msPerPeak ?? 0;
@@ -89,7 +92,12 @@ function DifficultyOverview() {
     [folder, selectedDifficulties, selectedGroup?.mode]
   );
 
-  const chartState = useDifficultyChartState(durationMs, selectedDifficulties, chartResetKey);
+  const chartState = useDifficultyChartState(
+    durationMs,
+    selectedDifficulties,
+    chartResetKey,
+    folder ?? ''
+  );
 
   const starRatingChart = charts.find((c) => c.title === 'Star Rating');
   const sliderVelocityChart = charts.find((c) => c.title === 'Slider velocity');

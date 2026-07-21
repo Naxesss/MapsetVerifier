@@ -1,6 +1,7 @@
 import {
   IconAdjustments,
   IconAnalyze,
+  IconChartAreaLine,
   IconCode,
   IconInfoCircle,
   IconPackage,
@@ -11,6 +12,7 @@ import {
 export type SettingsSectionId =
   | 'general'
   | 'checks'
+  | 'overview'
   | 'experimental'
   | 'plugins'
   | 'updates'
@@ -37,6 +39,12 @@ export const settingsSections: SettingsNavEntry[] = [
     label: 'Checks',
     description: 'Result display and check-run behavior',
     icon: IconAdjustments,
+  },
+  {
+    id: 'overview',
+    label: 'Overview',
+    description: 'What the beatmap overview page displays',
+    icon: IconChartAreaLine,
   },
   {
     id: 'experimental',
