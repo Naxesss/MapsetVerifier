@@ -1,5 +1,5 @@
-import { Alert, Button, Group, List, Modal, Stack, Text } from '@mantine/core';
-import { IconAlertTriangle, IconInfoCircle } from '@tabler/icons-react';
+import { Alert, Button, Group, List, Modal, Stack } from '@mantine/core';
+import { IconAlertTriangle } from '@tabler/icons-react';
 import React from 'react';
 
 interface LazerLookupWarningModalProps {
@@ -34,15 +34,6 @@ const LazerLookupWarningModal: React.FC<LazerLookupWarningModalProps> = ({
               Because it is experimental, unexpected behavior or issues may occur.
             </List.Item>
           </List>
-        </Alert>
-
-        <Alert icon={<IconInfoCircle />} color="blue" variant="light" title="How this works">
-          <Text size="sm">
-            Mapset Verifier reads your osu!(lazer) library directly, so your mapsets are always
-            browsable in the sidebar — no need to keep the editor open. Opening the editor normally
-            (not &quot;Edit externally&quot;) also lets MV highlight whichever map you currently
-            have open, as a shortcut.
-          </Text>
         </Alert>
 
         <Group justify="flex-end">
