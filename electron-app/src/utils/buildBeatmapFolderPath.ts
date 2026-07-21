@@ -34,3 +34,15 @@ export function buildBeatmapImageUrl(
   if (options?.songFolder) params.set('songsFolder', options.songFolder);
   return `${BACKEND_BASE_URL}/beatmap/image?${params.toString()}`;
 }
+
+/** Query string for GET /beatmap/lazer/image — resolves a lazer beatmapset's background directly from its content-addressed file, keyed by the realm beatmapset id (passed as `folder`). */
+export function buildLazerBeatmapImageUrl(
+  beatmapSetId: string,
+  options?: { original?: boolean; lazerDataDir?: string }
+): string {
+  const params = new URLSearchParams();
+  params.set('id', beatmapSetId);
+  if (options?.original) params.set('original', 'true');
+  if (options?.lazerDataDir) params.set('lazerDataDir', options.lazerDataDir);
+  return `${BACKEND_BASE_URL}/beatmap/lazer/image?${params.toString()}`;
+}

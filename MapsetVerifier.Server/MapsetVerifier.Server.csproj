@@ -15,6 +15,7 @@
     <ProjectReference Include="..\MapsetVerifier.Logging\MapsetVerifier.Logging.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Realm" Version="20.1.0" />
     <PackageReference Include="Serilog" Version="4.3.1" />
     <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />

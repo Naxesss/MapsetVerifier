@@ -5,11 +5,17 @@ import StableBeatmapsPanel from './StableBeatmapsPanel.tsx';
 
 interface Props {
   songFolder?: string;
+  lazerDataDir?: string;
   lazerLookupEnabled: boolean;
   onOpenSettings: () => void;
 }
 
-export default function BeatmapsList({ songFolder, lazerLookupEnabled, onOpenSettings }: Props) {
+export default function BeatmapsList({
+  songFolder,
+  lazerDataDir,
+  lazerLookupEnabled,
+  onOpenSettings,
+}: Props) {
   const [lookupMode, setLookupMode] = useState<'stable' | 'lazer'>('stable');
   const effectiveLookupMode = !lazerLookupEnabled && lookupMode === 'lazer' ? 'stable' : lookupMode;
   const stableEnabled = effectiveLookupMode === 'stable';
@@ -39,7 +45,7 @@ export default function BeatmapsList({ songFolder, lazerLookupEnabled, onOpenSet
       {stableEnabled ? (
         <StableBeatmapsPanel songFolder={songFolder} onOpenSettings={onOpenSettings} />
       ) : (
-        <LazerBeatmapsPanel />
+        <LazerBeatmapsPanel lazerDataDir={lazerDataDir} onOpenSettings={onOpenSettings} />
       )}
     </Flex>
   );

@@ -38,9 +38,10 @@ const LazerLookupWarningModal: React.FC<LazerLookupWarningModalProps> = ({
 
         <Alert icon={<IconInfoCircle />} color="blue" variant="light" title="How this works">
           <Text size="sm">
-            Mapset Verifier detects beatmaps that you open from the osu! editor via{' '}
-            <strong>Files → Edit externally</strong>, then loads that beatmap directly in the
-            sidebar.
+            Mapset Verifier reads your osu!(lazer) library directly, so your mapsets are always
+            browsable in the sidebar — no need to keep the editor open. Opening the editor normally
+            (not &quot;Edit externally&quot;) also lets MV highlight whichever map you currently
+            have open, as a shortcut.
           </Text>
         </Alert>
 

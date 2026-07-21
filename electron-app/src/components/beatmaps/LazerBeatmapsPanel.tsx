@@ -1,107 +1,386 @@
-import { Alert, Flex, Text, ActionIcon, Tooltip } from '@mantine/core';
-import { IconAlertCircle, IconInfoCircle, IconListDetails, IconRefresh } from '@tabler/icons-react';
-import { useQuery } from '@tanstack/react-query';
+import {
+  Alert,
+  CloseButton,
+  Collapse,
+  Divider,
+  Flex,
+  TextInput,
+  Button,
+  Text,
+  ScrollArea,
+  ActionIcon,
+  Tooltip,
+} from '@mantine/core';
+import { useDebouncedValue } from '@mantine/hooks';
+import {
+  IconAlertCircle,
+  IconListDetails,
+  IconPin,
+  IconPinFilled,
+  IconRefresh,
+  IconSearchOff,
+  IconSettings,
+} from '@tabler/icons-react';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import BeatmapCard from './BeatmapCard.tsx';
+import CurrentBeatmapCard, { CurrentBeatmapData } from './CurrentBeatmapCard.tsx';
+import PlaceholderBeatmapCard from './PlaceholderBeatmapCard.tsx';
 import { FetchError } from '../../client/ApiHelper.ts';
 import BeatmapApi from '../../client/BeatmapApi.ts';
 import { useBeatmap } from '../../context/BeatmapContext.tsx';
-import { ApiLazerLookupResult } from '../../Types.ts';
+import { useSettings } from '../../context/SettingsContext.tsx';
+import { ApiBeatmapPage, ApiLazerLookupResult, Beatmap } from '../../Types.ts';
 
-export default function LazerBeatmapsPanel() {
+interface Props {
+  lazerDataDir?: string;
+  onOpenSettings: () => void;
+}
+
+export default function LazerBeatmapsPanel({ lazerDataDir, onOpenSettings }: Props) {
   const { selectedFolderPath, setSelectedFolderPath } = useBeatmap();
+  const { settings } = useSettings();
+  const [search, setSearch] = useState('');
+  const [debouncedSearch] = useDebouncedValue(search, 300);
+  const [bookmarkedOnly, setBookmarkedOnly] = useState(false);
+  const [selectedLazerSetId, setSelectedLazerSetId] = useState<string | undefined>(undefined);
+  const [materializingSetId, setMaterializingSetId] = useState<string | undefined>(undefined);
+  const [materializeError, setMaterializeError] = useState<string | undefined>(undefined);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const queryClient = useQueryClient();
+  const stepSize = 16;
 
-  const lazerQuery = useQuery<ApiLazerLookupResult, FetchError>({
+  const bookmarkedFolders = settings.bookmarkedFolders;
+  const filterByBookmarks = bookmarkedOnly && settings.bookmarksEnabled;
+  const hasNoBookmarks = filterByBookmarks && bookmarkedFolders.length === 0;
+
+  const { data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } =
+    useInfiniteQuery<ApiBeatmapPage, FetchError>({
+      queryKey: [
+        'lazer-beatmaps',
+        lazerDataDir,
+        debouncedSearch,
+        stepSize,
+        filterByBookmarks ? bookmarkedFolders : null,
+      ],
+      enabled: !hasNoBookmarks,
+      initialPageParam: 0,
+      queryFn: async ({ pageParam }) => {
+        const params = new URLSearchParams();
+        if (lazerDataDir) params.append('lazerDataDir', lazerDataDir);
+        if (debouncedSearch) params.append('search', debouncedSearch);
+        params.append('page', String(pageParam));
+        params.append('pageSize', stepSize.toString());
+        try {
+          const page = await BeatmapApi.getLazerList(params);
+          if (filterByBookmarks) {
+            return {
+              ...page,
+              items: page.items.filter((bm) => bookmarkedFolders.includes(bm.folder)),
+            };
+          }
+          return page;
+        } catch (err) {
+          if (err instanceof FetchError && err.res?.status === 404) {
+            return { items: [], page: Number(pageParam), pageSize: stepSize, hasMore: false };
+          }
+          throw err;
+        }
+      },
+      getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.page + 1 : undefined),
+      staleTime: Infinity,
+      retry: (failureCount, queryError) => {
+        if (queryError.res?.status === 404) return false;
+        return failureCount < 2;
+      },
+    });
+
+  const lazerCurrentQuery = useQuery<ApiLazerLookupResult, FetchError>({
     queryKey: ['lazer-current'],
     queryFn: () => BeatmapApi.getLazerCurrent(),
     enabled: true,
     refetchOnWindowFocus: false,
-    refetchInterval: (query) => {
-      const status = query.state.data?.status;
-      return status === 'folder_found' ? 5000 : 1500;
-    },
+    refetchInterval: (query) => (query.state.data?.status === 'folder_found' ? 5000 : 1500),
     retry: false,
   });
 
-  const renderPanel = () => {
-    if (lazerQuery.isLoading) {
+  const beatmaps: Beatmap[] = data?.pages.flatMap((p) => p.items) ?? [];
+  const firstPageLoaded = data?.pages?.[0];
+  const noResults = !isFetching && !isFetchingNextPage && beatmaps.length === 0 && !error;
+  const lastPage = data?.pages[data.pages.length - 1];
+  const showNextPagePlaceholder =
+    isFetchingNextPage || (lastPage && lastPage.items.length === 0 && lastPage.hasMore);
+
+  const lazerCurrentResult: CurrentBeatmapData | null = useMemo(() => {
+    if (
+      lazerCurrentQuery.data &&
+      lazerCurrentQuery.data.status === 'folder_found' &&
+      lazerCurrentQuery.data.beatmap &&
+      lazerCurrentQuery.data.folderPath &&
+      lazerCurrentQuery.data.lookupRoot
+    ) {
+      return {
+        beatmap: lazerCurrentQuery.data.beatmap,
+        folderPath: lazerCurrentQuery.data.folderPath,
+        lookupRoot: lazerCurrentQuery.data.lookupRoot,
+      };
+    }
+
+    return null;
+  }, [lazerCurrentQuery.data]);
+
+  useEffect(() => {
+    if (!lastPage) return;
+    if (lastPage.items.length === 0 && lastPage.hasMore && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [lastPage, isFetchingNextPage, fetchNextPage]);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !hasNextPage) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { root: null, rootMargin: '200px', threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+  }, [debouncedSearch]);
+
+  const selectLazerBeatmap = async (setId: string) => {
+    if (materializingSetId) return;
+
+    setMaterializeError(undefined);
+    setMaterializingSetId(setId);
+    try {
+      const result = await BeatmapApi.materializeLazer(setId, lazerDataDir);
+      if (result.success && result.folderPath) {
+        setSelectedLazerSetId(setId);
+        setSelectedFolderPath(result.folderPath);
+      } else {
+        setMaterializeError(result.errorMessage ?? 'Failed to open this beatmapset.');
+      }
+    } catch (err) {
+      setMaterializeError(
+        err instanceof FetchError ? err.message : 'Failed to open this beatmapset.'
+      );
+    } finally {
+      setMaterializingSetId(undefined);
+    }
+  };
+
+  const renderTopStatus = () => {
+    if (materializeError) {
+      return (
+        <Alert icon={<IconAlertCircle />} color="red" title="Could not open beatmapset" mt="xs">
+          <Text>{materializeError}</Text>
+        </Alert>
+      );
+    }
+
+    if (lazerCurrentQuery.data?.status === 'lazer_data_dir_not_found') {
       return (
         <Alert
-          icon={<IconRefresh />}
-          color="blue"
-          title="Detecting current osu! map"
+          icon={<IconAlertCircle />}
+          color="yellow"
+          title="Lazer data folder not found"
           mt="xs"
           variant="light"
         >
-          Waiting for osu! editor window metadata...
+          <Text size="sm" mb="xs">
+            {lazerCurrentQuery.data?.message ?? 'Could not detect your osu!(lazer) data folder.'}
+          </Text>
+          <Button
+            size="xs"
+            variant="light"
+            color="gray"
+            leftSection={<IconSettings />}
+            onClick={onOpenSettings}
+          >
+            Open settings
+          </Button>
         </Alert>
       );
     }
 
-    if (lazerQuery.error) {
+    if (showNextPagePlaceholder) return null;
+
+    if (hasNoBookmarks) {
+      return (
+        <Alert icon={<IconPin />} color="gray" title="No bookmarks yet" mt="xs" variant="light">
+          Pin a beatmapset from the list to find it here quickly.
+        </Alert>
+      );
+    }
+
+    if (error) {
+      const status = error.res?.status;
+      const msg =
+        status === 404
+          ? debouncedSearch
+            ? 'The search yielded no results.'
+            : filterByBookmarks
+              ? 'None of your bookmarks match the current filters.'
+              : 'No mapsets could be found in your lazer library.'
+          : error.message || 'Failed to load beatmaps.';
       return (
         <Alert icon={<IconAlertCircle />} color="red" title="Error" mt="xs">
-          <Text>{lazerQuery.error.message || 'Failed to detect the current lazer map.'}</Text>
+          <Text>{msg}</Text>
+          <Button size="xs" variant="light" color="red" onClick={() => refetch()}>
+            Retry
+          </Button>
         </Alert>
       );
     }
 
-    const result = lazerQuery.data;
-    if (!result) {
-      return null;
+    if (noResults) {
+      return (
+        <Alert icon={<IconSearchOff />} color="gray" title="No results" mt="xs" variant="light">
+          {debouncedSearch
+            ? 'The search yielded no results.'
+            : filterByBookmarks
+              ? 'None of your bookmarks match the current filters.'
+              : 'No mapsets could be found in your lazer library.'}
+        </Alert>
+      );
     }
 
-    const metadata = result.detectedMetadata ?? 'Not detected yet';
-    const infoColor =
-      result.status === 'folder_found'
-        ? 'green'
-        : result.status === 'unsupported_platform'
-          ? 'yellow'
-          : 'blue';
-
-    return (
-      <Flex direction="column" gap="sm">
-        <Alert icon={<IconInfoCircle />} color="blue" title="Instructions" variant="light">
-          In the editor, go to <strong>File → Edit externally</strong>. This allows MV to detect and
-          parse the current map.
-        </Alert>
-        <Alert
-          icon={<IconListDetails />}
-          color={infoColor}
-          title="Detected beatmap"
-          variant="light"
-        >
-          <Text size="sm">{metadata}</Text>
-          {result.message && (
-            <Text size="xs" c="dimmed" mt={4}>
-              {result.message}
-            </Text>
-          )}
-        </Alert>
-        {result.status === 'folder_found' &&
-          result.beatmap &&
-          result.folderPath &&
-          result.lookupRoot && (
-            <BeatmapCard
-              beatmap={result.beatmap}
-              songFolder={result.lookupRoot}
-              isSelectedOverride={selectedFolderPath === result.folderPath}
-              onSelect={() => setSelectedFolderPath(result.folderPath ?? undefined)}
-            />
-          )}
-      </Flex>
-    );
+    return null;
   };
 
+  const renderLazerCurrentMap = () => (
+    <Collapse in={!!lazerCurrentResult}>
+      <Text size="xs" fw={500} my="sm" ml="sm" c="dimmed">
+        Currently open in the editor
+      </Text>
+      <CurrentBeatmapCard
+        current={lazerCurrentResult}
+        selectedFolderPath={selectedFolderPath}
+        onSelectFolderPath={setSelectedFolderPath}
+      />
+      <Divider my="sm" />
+    </Collapse>
+  );
+
   return (
-    <Flex direction="column" gap="sm" p="xs">
-      <Flex justify="flex-end" align="center">
-        <Tooltip label="Refresh beatmap search">
-          <ActionIcon variant="default" onClick={() => lazerQuery.refetch()} size="36">
-            <IconRefresh />
-          </ActionIcon>
-        </Tooltip>
+    <>
+      <Flex direction="column" gap="sm" p="xs">
+        <Flex gap="sm" direction="row" justify="space-between">
+          <TextInput
+            placeholder="Search beatmaps..."
+            value={search}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === '' && search !== '') {
+                scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+              }
+              setSearch(value);
+            }}
+            rightSectionPointerEvents="all"
+            rightSection={
+              <CloseButton
+                aria-label="Clear input"
+                onClick={() => {
+                  if (search !== '') {
+                    scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+                  }
+                  setSearch('');
+                }}
+                style={{ display: search ? undefined : 'none' }}
+              />
+            }
+          />
+          {settings.bookmarksEnabled && (
+            <Tooltip label={bookmarkedOnly ? 'Show all beatmapsets' : 'Show bookmarked only'}>
+              <ActionIcon
+                variant={bookmarkedOnly ? 'light' : 'default'}
+                color="yellow"
+                onClick={() => setBookmarkedOnly((prev) => !prev)}
+                size="36"
+                aria-label={bookmarkedOnly ? 'Show all beatmapsets' : 'Show bookmarked only'}
+              >
+                {bookmarkedOnly ? <IconPinFilled /> : <IconPin />}
+              </ActionIcon>
+            </Tooltip>
+          )}
+          <Tooltip label="Refresh beatmap search">
+            <ActionIcon
+              variant="default"
+              onClick={() => {
+                queryClient.resetQueries({ queryKey: ['lazer-beatmaps'] });
+                lazerCurrentQuery.refetch();
+              }}
+              size="36"
+            >
+              <IconRefresh />
+            </ActionIcon>
+          </Tooltip>
+        </Flex>
+        {renderTopStatus()}
       </Flex>
-      {renderPanel()}
-    </Flex>
+      {!error && !hasNoBookmarks && (
+        <>
+          <Divider />
+          <ScrollArea
+            type="always"
+            scrollbars="y"
+            offsetScrollbars="y"
+            viewportRef={scrollRef}
+            p="xs"
+            style={{ flex: '1 1 auto' }}
+          >
+            <Flex direction="column" gap="xs" w="100%" style={{ justifyContent: 'center' }}>
+              {renderLazerCurrentMap()}
+              {!firstPageLoaded &&
+                Array.from({ length: 6 }).map((_, i) => <PlaceholderBeatmapCard key={i} />)}
+              {beatmaps.map((bm, i) => (
+                <BeatmapCard
+                  key={bm.folder + bm.title}
+                  beatmap={bm}
+                  source="lazer"
+                  lazerDataDir={lazerDataDir}
+                  isSelectedOverride={selectedLazerSetId === bm.folder}
+                  onSelect={() => selectLazerBeatmap(bm.folder)}
+                  enterIndex={i}
+                />
+              ))}
+              <div ref={sentinelRef} style={{ height: 1 }} />
+              {showNextPagePlaceholder && <PlaceholderBeatmapCard />}
+              {beatmaps.length > 0 &&
+                !hasNextPage &&
+                !isFetchingNextPage &&
+                !error &&
+                !filterByBookmarks && (
+                  <Alert
+                    icon={<IconListDetails />}
+                    color="gray"
+                    title="No more beatmaps"
+                    variant="light"
+                  >
+                    You have reached the last available beatmap.
+                    <Button
+                      size="xs"
+                      mt="xs"
+                      variant="default"
+                      onClick={() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+                    >
+                      Back to top
+                    </Button>
+                  </Alert>
+                )}
+            </Flex>
+          </ScrollArea>
+        </>
+      )}
+    </>
   );
 }

@@ -32,6 +32,7 @@ export default function Beatmaps() {
   return (
     <BeatmapsList
       songFolder={settings.songFolder}
+      lazerDataDir={settings.lazerDataDir}
       lazerLookupEnabled={lazerLookupEnabled}
       onOpenSettings={() => navigate('/settings', { viewTransition: true })}
     />

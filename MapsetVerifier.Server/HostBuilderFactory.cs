@@ -1,5 +1,6 @@
 ﻿using MapsetVerifier.Server.Filter;
 using MapsetVerifier.Server.Middleware;
+using MapsetVerifier.Server.Service.OsuRuntime;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +16,9 @@ public static class HostBuilderFactory
         try
         {
             Log.Information("Host build initiated. Args: {Args}", args);
+
+            LazerBeatmapMaterializer.SweepOnStartup();
+            Log.Information("Lazer materialization temp folder swept");
 
             var host = Host.CreateDefaultBuilder(args)
                 .UseSerilog()

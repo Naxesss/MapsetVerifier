@@ -40,6 +40,7 @@ export type LazerLookupStatus =
   | 'ambiguous_client'
   | 'no_editor_title'
   | 'songs_folder_not_found'
+  | 'lazer_data_dir_not_found'
   | 'metadata_detected'
   | 'folder_found';
 
@@ -53,6 +54,12 @@ export type ApiLazerLookupResult = {
 };
 
 export type ApiStableLookupResult = ApiLazerLookupResult;
+
+export type ApiLazerMaterializeResult = {
+  success: boolean;
+  folderPath: string | null;
+  errorMessage: string | null;
+};
 
 export type ApiBeatmapInfo = {
   title: string | null;
