@@ -35,15 +35,16 @@ public static class CurrentBeatmapLookupService
     /// </summary>
     private static readonly TimeSpan StickyMetadataGracePeriod = TimeSpan.FromSeconds(4);
 
-    public static ApiLazerLookupResult GetCurrentLazerBeatmap() =>
-        GetCurrentBeatmap(OsuClientKind.Lazer, null);
+    public static ApiLazerLookupResult GetCurrentLazerBeatmap(
+        string? lazerDataDirOverride = null
+    ) => GetCurrentBeatmap(OsuClientKind.Lazer, lazerDataDirOverride);
 
     public static ApiLazerLookupResult GetCurrentStableBeatmap(string? songsFolderOverride) =>
         GetCurrentBeatmap(OsuClientKind.Stable, songsFolderOverride);
 
     private static ApiLazerLookupResult GetCurrentBeatmap(
         OsuClientKind clientKind,
-        string? songsFolderOverride
+        string? pathOverride
     )
     {
         if (!OperatingSystem.IsWindows())
@@ -68,7 +69,7 @@ public static class CurrentBeatmapLookupService
             );
 
         if (clientKind == OsuClientKind.Stable)
-            return GetCurrentStableBeatmapFromAllOsuProcesses(processes, songsFolderOverride);
+            return GetCurrentStableBeatmapFromAllOsuProcesses(processes, pathOverride);
 
         var targetProcesses = processes.Where(p => p.ClientKind == clientKind).ToList();
         if (targetProcesses.Count == 0)
@@ -114,7 +115,7 @@ public static class CurrentBeatmapLookupService
                 null
             );
 
-        return ResolveLazerCurrentMap(metadata, liveMetadata);
+        return ResolveLazerCurrentMap(metadata, liveMetadata, pathOverride);
     }
 
     private static ApiLazerLookupResult GetCurrentStableBeatmapFromAllOsuProcesses(
@@ -275,10 +276,11 @@ public static class CurrentBeatmapLookupService
     /// </summary>
     private static ApiLazerLookupResult ResolveLazerCurrentMap(
         string metadata,
-        string? liveMetadata
+        string? liveMetadata,
+        string? lazerDataDirOverride = null
     )
     {
-        var dataDir = LazerRealmService.ResolveLazerDataDirectory(null);
+        var dataDir = LazerRealmService.ResolveLazerDataDirectory(lazerDataDirOverride);
         if (string.IsNullOrWhiteSpace(dataDir))
             return new ApiLazerLookupResult(
                 "lazer_data_dir_not_found",

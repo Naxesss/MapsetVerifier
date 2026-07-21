@@ -71,8 +71,9 @@ public static class BeatmapService
         return DetectSongsFolder();
     }
 
-    public static ApiLazerLookupResult GetCurrentLazerBeatmap() =>
-        CurrentBeatmapLookupService.GetCurrentLazerBeatmap();
+    public static ApiLazerLookupResult GetCurrentLazerBeatmap(
+        string? lazerDataDirOverride = null
+    ) => CurrentBeatmapLookupService.GetCurrentLazerBeatmap(lazerDataDirOverride);
 
     public static ApiLazerLookupResult GetCurrentStableBeatmap(string? songsFolderOverride) =>
         CurrentBeatmapLookupService.GetCurrentStableBeatmap(songsFolderOverride);

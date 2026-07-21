@@ -95,8 +95,15 @@ const BeatmapApi = {
       }
     });
   },
-  getLazerCurrent: async function getLazerCurrent() {
-    return apiFetch('/beatmap/lazer/current').then(async (response) => {
+  getLazerCurrent: async function getLazerCurrent(lazerDataDir?: string) {
+    const params = new URLSearchParams();
+    if (lazerDataDir) {
+      params.set('lazerDataDir', lazerDataDir);
+    }
+
+    const query = params.toString();
+    const path = query ? `/beatmap/lazer/current?${query}` : '/beatmap/lazer/current';
+    return apiFetch(path).then(async (response) => {
       const data = await response.json();
 
       if (response.ok) {

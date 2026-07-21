@@ -156,9 +156,11 @@ public class BeatmapController : ControllerBase
     }
 
     [HttpGet("lazer/current")]
-    public ActionResult<ApiLazerLookupResult> GetCurrentLazerBeatmap()
+    public ActionResult<ApiLazerLookupResult> GetCurrentLazerBeatmap(
+        [FromQuery] string? lazerDataDir = null
+    )
     {
-        var result = BeatmapService.GetCurrentLazerBeatmap();
+        var result = BeatmapService.GetCurrentLazerBeatmap(lazerDataDir);
         return Ok(result);
     }
 

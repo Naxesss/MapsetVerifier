@@ -101,8 +101,8 @@ export default function LazerBeatmapsPanel({ lazerDataDir, onOpenSettings }: Pro
     });
 
   const lazerCurrentQuery = useQuery<ApiLazerLookupResult, FetchError>({
-    queryKey: ['lazer-current'],
-    queryFn: () => BeatmapApi.getLazerCurrent(),
+    queryKey: ['lazer-current', lazerDataDir || 'auto'],
+    queryFn: () => BeatmapApi.getLazerCurrent(lazerDataDir),
     enabled: true,
     refetchOnWindowFocus: false,
     refetchInterval: (query) => (query.state.data?.status === 'folder_found' ? 5000 : 1500),
@@ -263,7 +263,7 @@ export default function LazerBeatmapsPanel({ lazerDataDir, onOpenSettings }: Pro
   const renderLazerCurrentMap = () => (
     <Collapse in={!!lazerCurrentResult}>
       <Text size="xs" fw={500} my="sm" ml="sm" c="dimmed">
-        Currently open in the editor
+        Current mapset
       </Text>
       <CurrentBeatmapCard
         current={lazerCurrentResult}
