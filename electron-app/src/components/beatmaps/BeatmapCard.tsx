@@ -8,6 +8,7 @@ import { Beatmap } from '../../Types.ts';
 import {
   buildBeatmapImageUrl,
   buildLazerBeatmapImageUrl,
+  lazerBackgroundVersion,
 } from '../../utils/buildBeatmapFolderPath.ts';
 
 interface BeatmapCardProps {
@@ -51,7 +52,10 @@ function BeatmapCard({
   const hasFolder = !!beatmap.folder && beatmap.folder !== 'placeholder';
   const candidate = hasFolder
     ? source === 'lazer'
-      ? buildLazerBeatmapImageUrl(beatmap.folder, { lazerDataDir })
+      ? buildLazerBeatmapImageUrl(beatmap.folder, {
+          lazerDataDir,
+          version: lazerBackgroundVersion(beatmap.backgroundPath),
+        })
       : buildBeatmapImageUrl(beatmap.folder, { songFolder })
     : undefined;
 
@@ -162,7 +166,8 @@ function BeatmapCard({
           : {}),
       }}
       onClick={() => {
-        if (beatmap.folder === selectedFolder) {
+        // Prefer isSelected so lazer cards (GUID vs temp path) and current-map overrides still reparse.
+        if (isSelected) {
           return triggerReparse();
         }
 

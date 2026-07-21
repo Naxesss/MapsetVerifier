@@ -342,7 +342,11 @@ public static class CurrentBeatmapLookupService
                 null
             );
 
-        var backgroundUrl = $"/beatmap/lazer/image?id={Uri.EscapeDataString(match.Value.SetId)}";
+        // Prefer the same cache-bust token the list uses (latest local update), falling back to
+        // a cheap files-signature hash so Current and list cards stay visually in sync.
+        var versionToken = LazerRealmService.GetBeatmapSetVersionToken(dataDir, match.Value.SetId);
+        var backgroundUrl =
+            $"/beatmap/lazer/image?id={Uri.EscapeDataString(match.Value.SetId)}&v={versionToken}";
         var beatmap = new ApiBeatmap(
             match.Value.SetId,
             match.Value.Title,

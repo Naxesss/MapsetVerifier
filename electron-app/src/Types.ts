@@ -32,6 +32,8 @@ export type Beatmap = {
   creator: string;
   beatmapID: string;
   beatmapSetID: string;
+  /** Relative lazer/stable image path from the API; may include a cache-bust `v` query. */
+  backgroundPath?: string;
 };
 
 export type LazerLookupStatus =

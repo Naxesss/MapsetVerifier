@@ -31,10 +31,21 @@ import BeatmapApi from '../../client/BeatmapApi.ts';
 import { useBeatmap } from '../../context/BeatmapContext.tsx';
 import { useSettings } from '../../context/SettingsContext.tsx';
 import { ApiBeatmapPage, ApiLazerLookupResult, Beatmap } from '../../Types.ts';
+import { lazerBackgroundVersion } from '../../utils/buildBeatmapFolderPath.ts';
 
 interface Props {
   lazerDataDir?: string;
   onOpenSettings: () => void;
+}
+
+function backgroundVersionTicks(backgroundPath?: string): bigint | null {
+  const version = lazerBackgroundVersion(backgroundPath);
+  if (!version) return null;
+  try {
+    return BigInt(`0x${version}`);
+  } catch {
+    return null;
+  }
 }
 
 export default function LazerBeatmapsPanel({ lazerDataDir, onOpenSettings }: Props) {
@@ -93,7 +104,9 @@ export default function LazerBeatmapsPanel({ lazerDataDir, onOpenSettings }: Pro
         }
       },
       getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.page + 1 : undefined),
-      staleTime: Infinity,
+      // List metadata is refreshed on card click / F5 / focus — not on a slow timer.
+      staleTime: 0,
+      refetchOnWindowFocus: true,
       retry: (failureCount, queryError) => {
         if (queryError.res?.status === 404) return false;
         return failureCount < 2;
@@ -134,6 +147,47 @@ export default function LazerBeatmapsPanel({ lazerDataDir, onOpenSettings }: Pro
     return null;
   }, [lazerCurrentQuery.data]);
 
+  // Keep the matching list card in sync with Current as soon as the poll sees a change.
+  useEffect(() => {
+    const currentBeatmap = lazerCurrentResult?.beatmap;
+    if (!currentBeatmap) return;
+
+    queryClient.setQueriesData<{ pages: ApiBeatmapPage[]; pageParams: unknown[] }>(
+      { queryKey: ['lazer-beatmaps'] },
+      (old) => {
+        if (!old?.pages) return old;
+
+        let changed = false;
+        const pages = old.pages.map((page) => {
+          const items = page.items.map((bm) => {
+            if (bm.folder !== currentBeatmap.folder) return bm;
+
+            const listVersion = backgroundVersionTicks(bm.backgroundPath);
+            const currentVersion = backgroundVersionTicks(currentBeatmap.backgroundPath);
+            // Never let a stale Current poll regress a fresher list card (e.g. right after F5).
+            if (listVersion != null && currentVersion != null && currentVersion < listVersion) {
+              return bm;
+            }
+
+            if (
+              bm.title === currentBeatmap.title &&
+              bm.artist === currentBeatmap.artist &&
+              bm.creator === currentBeatmap.creator &&
+              bm.backgroundPath === currentBeatmap.backgroundPath
+            ) {
+              return bm;
+            }
+            changed = true;
+            return { ...bm, ...currentBeatmap };
+          });
+          return items === page.items ? page : { ...page, items };
+        });
+
+        return changed ? { ...old, pages } : old;
+      }
+    );
+  }, [lazerCurrentResult?.beatmap, queryClient]);
+
   useEffect(() => {
     if (!lastPage) return;
     if (lastPage.items.length === 0 && lastPage.hasMore && !isFetchingNextPage) {
@@ -160,15 +214,29 @@ export default function LazerBeatmapsPanel({ lazerDataDir, onOpenSettings }: Pro
     scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
   }, [debouncedSearch]);
 
+  const refreshLazerList = () =>
+    queryClient.invalidateQueries({ queryKey: ['lazer-beatmaps'], refetchType: 'active' });
+
   const selectLazerBeatmap = async (setId: string) => {
     if (materializingSetId) return;
 
     setMaterializeError(undefined);
     setMaterializingSetId(setId);
     try {
+      // Pull fresh list metadata immediately on open so the card matches realm/Current.
+      void refreshLazerList();
+
       const result = await BeatmapApi.materializeLazer(setId, lazerDataDir);
       if (result.success && result.folderPath) {
         setSelectedLazerFolderPath(setId, result.folderPath);
+        // Path is stable across rematerializes, so invalidate so checks/overview refetch.
+        await queryClient.invalidateQueries({
+          predicate: (query) =>
+            Array.isArray(query.queryKey) &&
+            query.queryKey.length >= 2 &&
+            query.queryKey[1] === result.folderPath,
+          refetchType: 'all',
+        });
       } else {
         setMaterializeError(result.errorMessage ?? 'Failed to open this beatmapset.');
       }
@@ -272,7 +340,8 @@ export default function LazerBeatmapsPanel({ lazerDataDir, onOpenSettings }: Pro
         lazerDataDir={lazerDataDir}
         onSelectFolderPath={(folderPath) => {
           if (folderPath && lazerCurrentResult) {
-            setSelectedLazerFolderPath(lazerCurrentResult.beatmap.folder, folderPath);
+            // Rematerialize instead of trusting the poll's cached folder path.
+            void selectLazerBeatmap(lazerCurrentResult.beatmap.folder);
           } else {
             setSelectedFolderPath(folderPath);
           }

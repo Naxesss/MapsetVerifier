@@ -65,6 +65,17 @@ export function BeatmapReparseProvider({ children }: { children: ReactNode }) {
         if (!result.success) {
           throw new Error(result.errorMessage ?? 'Failed to re-sync this beatmapset from lazer.');
         }
+
+        // Refresh Current before the list so the live patch effect cannot overwrite the list
+        // with a stale poll result after F5.
+        await queryClient.invalidateQueries({
+          queryKey: ['lazer-current'],
+          refetchType: 'all',
+        });
+        await queryClient.invalidateQueries({
+          queryKey: ['lazer-beatmaps'],
+          refetchType: 'all',
+        });
       }
 
       const sideEffects = [...sideEffectHandlersRef.current];

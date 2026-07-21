@@ -108,7 +108,19 @@ public static class LazerRealmService
                 var beatmapSetOnlineId = Convert.ToInt64(set.OnlineID);
                 var beatmapOnlineId = Convert.ToInt64(firstBeatmap.OnlineID);
 
-                var backgroundUrl = $"/beatmap/lazer/image?id={Uri.EscapeDataString(id)}";
+                DateTimeOffset dateAdded = set.DateAdded;
+                // DateAdded only reflects when the set entered the library, not when it was last
+                // edited — a saved change in the editor bumps LastLocalUpdate on the difficulty
+                // instead, so use whichever is more recent to sort "latest" correctly.
+                var sortTime =
+                    latestLocalUpdate != null && latestLocalUpdate > dateAdded
+                        ? latestLocalUpdate.Value
+                        : dateAdded;
+
+                // `v` busts the 24h browser cache on /lazer/image when the set is updated
+                // (URL is otherwise only keyed by set id).
+                var backgroundUrl =
+                    $"/beatmap/lazer/image?id={Uri.EscapeDataString(id)}&v={sortTime.UtcTicks:x}";
 
                 var apiBeatmap = new ApiBeatmap(
                     folder: id,
@@ -125,14 +137,6 @@ public static class LazerRealmService
                 if (!MatchesSearch(apiBeatmap, search))
                     continue;
 
-                DateTimeOffset dateAdded = set.DateAdded;
-                // DateAdded only reflects when the set entered the library, not when it was last
-                // edited — a saved change in the editor bumps LastLocalUpdate on the difficulty
-                // instead, so use whichever is more recent to sort "latest" correctly.
-                var sortTime =
-                    latestLocalUpdate != null && latestLocalUpdate > dateAdded
-                        ? latestLocalUpdate.Value
-                        : dateAdded;
                 mapped.Add((apiBeatmap, sortTime));
             }
         }
@@ -153,6 +157,57 @@ public static class LazerRealmService
         var hasMore = pageItems.Count > pageSize;
 
         return new ApiBeatmapPage(pageItems.Take(pageSize), page, pageSize, hasMore);
+    }
+
+    /// <summary>
+    /// Stable cache-bust token for lazer background URLs. Matches the list's sort key
+    /// (max of DateAdded / LastLocalUpdate) so Current and list cards share the same <c>v</c>.
+    /// </summary>
+    public static string GetBeatmapSetVersionToken(string dataDirectory, string beatmapSetId)
+    {
+        if (!Guid.TryParse(beatmapSetId, out var guid))
+            return "0";
+
+        try
+        {
+            using var realm = OpenRealm(dataDirectory);
+            dynamic sets = realm.DynamicApi.All("BeatmapSet");
+            foreach (dynamic set in sets)
+            {
+                Guid id = set.ID;
+                if (id != guid)
+                    continue;
+
+                DateTimeOffset? latestLocalUpdate = null;
+                foreach (dynamic beatmap in set.Beatmaps)
+                {
+                    DateTimeOffset? localUpdate = beatmap.LastLocalUpdate;
+                    if (
+                        localUpdate != null
+                        && (latestLocalUpdate == null || localUpdate > latestLocalUpdate)
+                    )
+                        latestLocalUpdate = localUpdate;
+                }
+
+                DateTimeOffset dateAdded = set.DateAdded;
+                var sortTime =
+                    latestLocalUpdate != null && latestLocalUpdate > dateAdded
+                        ? latestLocalUpdate.Value
+                        : dateAdded;
+                return sortTime.UtcTicks.ToString("x");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(
+                ex,
+                "Failed to read lazer beatmap set version for {BeatmapSetId} from {DataDirectory}",
+                beatmapSetId,
+                dataDirectory
+            );
+        }
+
+        return "0";
     }
 
     /// <summary>
