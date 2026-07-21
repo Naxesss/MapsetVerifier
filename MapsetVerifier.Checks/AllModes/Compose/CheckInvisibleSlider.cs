@@ -49,6 +49,14 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                     ).WithCause("A slider has no nodes.")
                 },
                 {
+                    "Single Node",
+                    new IssueTemplate(
+                        Issue.Level.Problem,
+                        "{0} has no curve points, only its start node, and so has no visible path.",
+                        "timestamp -"
+                    ).WithCause("A slider has only its start node and no other curve points.")
+                },
+                {
                     "Negative Length",
                     new IssueTemplate(
                         Issue.Level.Problem,
@@ -62,17 +70,29 @@ namespace MapsetVerifier.Checks.AllModes.Compose
         {
             foreach (var slider in beatmap.HitObjects.OfType<Slider>())
                 if (slider.NodePositions.Count == 0)
+                {
                     yield return new Issue(
                         GetTemplate("Zero Nodes"),
                         beatmap,
                         Timestamp.Get(slider)
                     );
+                }
+                else if (slider.NodePositions.Count == 1)
+                {
+                    yield return new Issue(
+                        GetTemplate("Single Node"),
+                        beatmap,
+                        Timestamp.Get(slider)
+                    );
+                }
                 else if (slider.PixelLength < 0)
+                {
                     yield return new Issue(
                         GetTemplate("Negative Length"),
                         beatmap,
                         Timestamp.Get(slider)
                     );
+                }
         }
     }
 }
