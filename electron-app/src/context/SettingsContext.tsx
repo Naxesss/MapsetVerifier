@@ -23,6 +23,8 @@ export type Settings = {
   /** Excludes osu!standard's Aim skill(s) from the combined strain line. */
   excludeAimFromCombinedStrain: boolean;
   lazerLookupEnabled: boolean;
+  /** Last selected stable/lazer tab on the beatmaps list. Ignored when lazerLookupEnabled is off. */
+  beatmapLookupMode: 'stable' | 'lazer';
   receivePrereleases: boolean;
   uiFontFamily: UiFontFamily;
   /** Objects overview timeline circle style (synced across game modes). */
@@ -62,6 +64,7 @@ const defaultSettings: Settings = {
   difficultyStrainDisplayMode: 'strainOnly',
   excludeAimFromCombinedStrain: true,
   lazerLookupEnabled: false,
+  beatmapLookupMode: 'stable',
   receivePrereleases: false,
   uiFontFamily: DEFAULT_UI_FONT_FAMILY,
   timelineThemeVariant: 'default',
@@ -141,6 +144,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         bookmarkedFolders: Array.isArray(loaded?.bookmarkedFolders)
           ? loaded.bookmarkedFolders
           : defaultSettings.bookmarkedFolders,
+        beatmapLookupMode: loaded?.beatmapLookupMode === 'lazer' ? 'lazer' : 'stable',
         uiFontFamily: parseUiFontFamily(loaded?.uiFontFamily),
         timelineThemeVariant: parseTimelineThemeVariant(loaded?.timelineThemeVariant ?? null),
       });
