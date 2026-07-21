@@ -124,13 +124,6 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
       const loaded = JSON.parse(text);
 
-      if (
-        loaded?.lazerLookupEnabled === undefined &&
-        loaded?.experimentalLazerLookup !== undefined
-      ) {
-        loaded.lazerLookupEnabled = loaded.experimentalLazerLookup;
-      }
-
       if (loaded?.receivePrereleases === undefined) {
         loaded.receivePrereleases = inferredReceivePrereleases;
       }

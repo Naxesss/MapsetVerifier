@@ -32,7 +32,12 @@ function queryKeyMatchesBeatmapFolderPath(queryKey: unknown, beatmapFolderPath: 
 }
 
 export function BeatmapReparseProvider({ children }: { children: ReactNode }) {
-  const { beatmapFolderPath, lazerSourceSetId } = useBeatmap();
+  const {
+    beatmapFolderPath,
+    lazerSourceSetId,
+    lazerSourceOnlineSetId,
+    setSelectedLazerFolderPath,
+  } = useBeatmap();
   const { settings } = useSettings();
   const queryClient = useQueryClient();
   const sideEffectHandlersRef = useRef(new Set<BeatmapRefreshSideEffect>());
@@ -60,18 +65,18 @@ export function BeatmapReparseProvider({ children }: { children: ReactNode }) {
     });
 
     try {
+      let checksFolderPath = beatmapFolderPath;
+
       if (lazerSourceSetId) {
         const result = await BeatmapApi.materializeLazer(lazerSourceSetId, settings.lazerDataDir);
-        if (!result.success) {
+        if (!result.success || !result.folderPath) {
           throw new Error(result.errorMessage ?? 'Failed to re-sync this beatmapset from lazer.');
         }
 
-        // Refresh Current before the list so the live patch effect cannot overwrite the list
-        // with a stale poll result after F5.
-        await queryClient.invalidateQueries({
-          queryKey: ['lazer-current'],
-          refetchType: 'all',
-        });
+        const resolvedSetId = result.beatmapSetId || lazerSourceSetId;
+        checksFolderPath = result.folderPath;
+        setSelectedLazerFolderPath(resolvedSetId, result.folderPath, lazerSourceOnlineSetId);
+
         await queryClient.invalidateQueries({
           queryKey: ['lazer-beatmaps'],
           refetchType: 'all',
@@ -81,8 +86,12 @@ export function BeatmapReparseProvider({ children }: { children: ReactNode }) {
       const sideEffects = [...sideEffectHandlersRef.current];
       await Promise.all(sideEffects.map((fn) => Promise.resolve(fn())));
 
+      const pathsToInvalidate = new Set([beatmapFolderPath, checksFolderPath]);
       await queryClient.invalidateQueries({
-        predicate: (query) => queryKeyMatchesBeatmapFolderPath(query.queryKey, beatmapFolderPath),
+        predicate: (query) =>
+          [...pathsToInvalidate].some((path) =>
+            queryKeyMatchesBeatmapFolderPath(query.queryKey, path)
+          ),
         refetchType: 'all',
       });
 
@@ -107,7 +116,14 @@ export function BeatmapReparseProvider({ children }: { children: ReactNode }) {
         withCloseButton: true,
       });
     }
-  }, [beatmapFolderPath, lazerSourceSetId, settings.lazerDataDir, queryClient]);
+  }, [
+    beatmapFolderPath,
+    lazerSourceSetId,
+    lazerSourceOnlineSetId,
+    setSelectedLazerFolderPath,
+    settings.lazerDataDir,
+    queryClient,
+  ]);
 
   const f5Hotkeys = useMemo<HotkeyItem[]>(
     () => [['F5', () => void triggerReparse(), { preventDefault: true }]],

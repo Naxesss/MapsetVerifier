@@ -61,6 +61,8 @@ export type ApiLazerMaterializeResult = {
   success: boolean;
   folderPath: string | null;
   errorMessage: string | null;
+  /** Realm set id actually materialized; may differ after delete+redownload. */
+  beatmapSetId?: string | null;
 };
 
 export type ApiBeatmapInfo = {

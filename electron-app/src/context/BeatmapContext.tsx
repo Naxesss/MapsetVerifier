@@ -14,7 +14,9 @@ interface BeatmapContextType {
   /** Set alongside selectedFolderPath when the selection was materialized from a lazer
    *  beatmapset, so reparse can re-sync from lazer before re-running checks. */
   lazerSourceSetId: string | undefined;
-  setSelectedLazerFolderPath: (setId: string, folderPath: string) => void;
+  /** osu! online beatmapset id — survives delete+redownload when the realm GUID changes. */
+  lazerSourceOnlineSetId: string | undefined;
+  setSelectedLazerFolderPath: (setId: string, folderPath: string, onlineSetId?: string) => void;
   activeSongFolder: string | undefined;
   beatmapFolderPath: string | undefined;
   beatmapInfo: ApiBeatmapInfo | undefined;
@@ -31,6 +33,9 @@ export const BeatmapProvider = ({ children }: { children: ReactNode }) => {
   const [selectedFolderPath, setSelectedFolderPath] = useState<string | undefined>(undefined);
   const [selectedSongFolder, setSelectedSongFolder] = useState<string | undefined>(undefined);
   const [lazerSourceSetId, setLazerSourceSetId] = useState<string | undefined>(undefined);
+  const [lazerSourceOnlineSetId, setLazerSourceOnlineSetId] = useState<string | undefined>(
+    undefined
+  );
 
   const activeSongFolder = selectedSongFolder ?? settings.songFolder;
 
@@ -61,11 +66,13 @@ export const BeatmapProvider = ({ children }: { children: ReactNode }) => {
           setSelectedFolderPath(undefined);
           setSelectedSongFolder(undefined);
           setLazerSourceSetId(undefined);
+          setLazerSourceOnlineSetId(undefined);
         },
         selectedFolderPath,
         setSelectedFolderPath: (folderPath) => {
           setSelectedFolderPath(folderPath);
           setLazerSourceSetId(undefined);
+          setLazerSourceOnlineSetId(undefined);
           if (folderPath) {
             setSelectedFolder(folderPath);
             setSelectedSongFolder(undefined);
@@ -74,11 +81,13 @@ export const BeatmapProvider = ({ children }: { children: ReactNode }) => {
           setSelectedSongFolder(undefined);
         },
         lazerSourceSetId,
-        setSelectedLazerFolderPath: (setId, folderPath) => {
+        lazerSourceOnlineSetId,
+        setSelectedLazerFolderPath: (setId, folderPath, onlineSetId) => {
           setSelectedFolderPath(folderPath);
           setSelectedFolder(folderPath);
           setSelectedSongFolder(undefined);
           setLazerSourceSetId(setId);
+          setLazerSourceOnlineSetId(onlineSetId || undefined);
         },
         activeSongFolder,
         beatmapFolderPath,

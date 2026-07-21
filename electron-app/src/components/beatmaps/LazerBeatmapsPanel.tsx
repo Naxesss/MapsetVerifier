@@ -31,27 +31,17 @@ import BeatmapApi from '../../client/BeatmapApi.ts';
 import { useBeatmap } from '../../context/BeatmapContext.tsx';
 import { useSettings } from '../../context/SettingsContext.tsx';
 import { ApiBeatmapPage, ApiLazerLookupResult, Beatmap } from '../../Types.ts';
-import { lazerBackgroundVersion } from '../../utils/buildBeatmapFolderPath.ts';
 
 interface Props {
   lazerDataDir?: string;
   onOpenSettings: () => void;
 }
 
-function backgroundVersionTicks(backgroundPath?: string): bigint | null {
-  const version = lazerBackgroundVersion(backgroundPath);
-  if (!version) return null;
-  try {
-    return BigInt(`0x${version}`);
-  } catch {
-    return null;
-  }
-}
-
 export default function LazerBeatmapsPanel({ lazerDataDir, onOpenSettings }: Props) {
   const {
     selectedFolderPath,
     lazerSourceSetId,
+    lazerSourceOnlineSetId,
     setSelectedFolderPath,
     setSelectedLazerFolderPath,
   } = useBeatmap();
@@ -104,8 +94,8 @@ export default function LazerBeatmapsPanel({ lazerDataDir, onOpenSettings }: Pro
         }
       },
       getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.page + 1 : undefined),
-      // List metadata is refreshed on card click / F5 / focus — not on a slow timer.
-      staleTime: 0,
+      // Refreshed on card click / F5 / focus — not polled continuously.
+      staleTime: 30_000,
       refetchOnWindowFocus: true,
       retry: (failureCount, queryError) => {
         if (queryError.res?.status === 404) return false;
@@ -147,47 +137,6 @@ export default function LazerBeatmapsPanel({ lazerDataDir, onOpenSettings }: Pro
     return null;
   }, [lazerCurrentQuery.data]);
 
-  // Keep the matching list card in sync with Current as soon as the poll sees a change.
-  useEffect(() => {
-    const currentBeatmap = lazerCurrentResult?.beatmap;
-    if (!currentBeatmap) return;
-
-    queryClient.setQueriesData<{ pages: ApiBeatmapPage[]; pageParams: unknown[] }>(
-      { queryKey: ['lazer-beatmaps'] },
-      (old) => {
-        if (!old?.pages) return old;
-
-        let changed = false;
-        const pages = old.pages.map((page) => {
-          const items = page.items.map((bm) => {
-            if (bm.folder !== currentBeatmap.folder) return bm;
-
-            const listVersion = backgroundVersionTicks(bm.backgroundPath);
-            const currentVersion = backgroundVersionTicks(currentBeatmap.backgroundPath);
-            // Never let a stale Current poll regress a fresher list card (e.g. right after F5).
-            if (listVersion != null && currentVersion != null && currentVersion < listVersion) {
-              return bm;
-            }
-
-            if (
-              bm.title === currentBeatmap.title &&
-              bm.artist === currentBeatmap.artist &&
-              bm.creator === currentBeatmap.creator &&
-              bm.backgroundPath === currentBeatmap.backgroundPath
-            ) {
-              return bm;
-            }
-            changed = true;
-            return { ...bm, ...currentBeatmap };
-          });
-          return items === page.items ? page : { ...page, items };
-        });
-
-        return changed ? { ...old, pages } : old;
-      }
-    );
-  }, [lazerCurrentResult?.beatmap, queryClient]);
-
   useEffect(() => {
     if (!lastPage) return;
     if (lastPage.items.length === 0 && lastPage.hasMore && !isFetchingNextPage) {
@@ -217,7 +166,7 @@ export default function LazerBeatmapsPanel({ lazerDataDir, onOpenSettings }: Pro
   const refreshLazerList = () =>
     queryClient.invalidateQueries({ queryKey: ['lazer-beatmaps'], refetchType: 'active' });
 
-  const selectLazerBeatmap = async (setId: string) => {
+  const selectLazerBeatmap = async (setId: string, onlineSetId?: string) => {
     if (materializingSetId) return;
 
     setMaterializeError(undefined);
@@ -228,7 +177,8 @@ export default function LazerBeatmapsPanel({ lazerDataDir, onOpenSettings }: Pro
 
       const result = await BeatmapApi.materializeLazer(setId, lazerDataDir);
       if (result.success && result.folderPath) {
-        setSelectedLazerFolderPath(setId, result.folderPath);
+        const resolvedSetId = result.beatmapSetId || setId;
+        setSelectedLazerFolderPath(resolvedSetId, result.folderPath, onlineSetId);
         // Path is stable across rematerializes, so invalidate so checks/overview refetch.
         await queryClient.invalidateQueries({
           predicate: (query) =>
@@ -341,7 +291,10 @@ export default function LazerBeatmapsPanel({ lazerDataDir, onOpenSettings }: Pro
         onSelectFolderPath={(folderPath) => {
           if (folderPath && lazerCurrentResult) {
             // Rematerialize instead of trusting the poll's cached folder path.
-            void selectLazerBeatmap(lazerCurrentResult.beatmap.folder);
+            void selectLazerBeatmap(
+              lazerCurrentResult.beatmap.folder,
+              lazerCurrentResult.beatmap.beatmapSetID
+            );
           } else {
             setSelectedFolderPath(folderPath);
           }
@@ -428,8 +381,13 @@ export default function LazerBeatmapsPanel({ lazerDataDir, onOpenSettings }: Pro
                   beatmap={bm}
                   source="lazer"
                   lazerDataDir={lazerDataDir}
-                  isSelectedOverride={lazerSourceSetId === bm.folder}
-                  onSelect={() => selectLazerBeatmap(bm.folder)}
+                  isSelectedOverride={
+                    lazerSourceSetId === bm.folder ||
+                    (!!lazerSourceOnlineSetId &&
+                      !!bm.beatmapSetID &&
+                      bm.beatmapSetID === lazerSourceOnlineSetId)
+                  }
+                  onSelect={() => selectLazerBeatmap(bm.folder, bm.beatmapSetID)}
                   enterIndex={i}
                 />
               ))}

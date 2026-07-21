@@ -64,9 +64,12 @@ public static class LazerBeatmapMaterializer
         if (!Guid.TryParse(beatmapSetId, out _))
             return ApiLazerMaterializeResult.Error("Invalid beatmapset id.");
 
-        var gate = LocksBySetId.GetOrAdd(beatmapSetId, static _ => new object());
+        var liveSetId =
+            LazerRealmService.ResolveLiveBeatmapSetId(dataDirectory, beatmapSetId) ?? beatmapSetId;
+
+        var gate = LocksBySetId.GetOrAdd(liveSetId, static _ => new object());
         lock (gate)
-            return MaterializeLocked(dataDirectory, beatmapSetId);
+            return MaterializeLocked(dataDirectory, liveSetId);
     }
 
     private static ApiLazerMaterializeResult MaterializeLocked(
@@ -161,7 +164,7 @@ public static class LazerBeatmapMaterializer
                     : "No files could be materialized for this beatmapset."
             );
 
-        return ApiLazerMaterializeResult.SuccessResult(targetDir);
+        return ApiLazerMaterializeResult.SuccessResult(targetDir, beatmapSetId);
     }
 
     private static bool TryCopyFile(string sourcePath, string destPath)

@@ -7,8 +7,7 @@ import { useSettings } from '../../context/SettingsContext';
 import { Beatmap } from '../../Types.ts';
 import {
   buildBeatmapImageUrl,
-  buildLazerBeatmapImageUrl,
-  lazerBackgroundVersion,
+  resolveLazerBeatmapImageUrl,
 } from '../../utils/buildBeatmapFolderPath.ts';
 
 interface BeatmapCardProps {
@@ -52,10 +51,7 @@ function BeatmapCard({
   const hasFolder = !!beatmap.folder && beatmap.folder !== 'placeholder';
   const candidate = hasFolder
     ? source === 'lazer'
-      ? buildLazerBeatmapImageUrl(beatmap.folder, {
-          lazerDataDir,
-          version: lazerBackgroundVersion(beatmap.backgroundPath),
-        })
+      ? resolveLazerBeatmapImageUrl(beatmap, lazerDataDir)
       : buildBeatmapImageUrl(beatmap.folder, { songFolder })
     : undefined;
 

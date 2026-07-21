@@ -160,57 +160,6 @@ public static class LazerRealmService
     }
 
     /// <summary>
-    /// Stable cache-bust token for lazer background URLs. Matches the list's sort key
-    /// (max of DateAdded / LastLocalUpdate) so Current and list cards share the same <c>v</c>.
-    /// </summary>
-    public static string GetBeatmapSetVersionToken(string dataDirectory, string beatmapSetId)
-    {
-        if (!Guid.TryParse(beatmapSetId, out var guid))
-            return "0";
-
-        try
-        {
-            using var realm = OpenRealm(dataDirectory);
-            dynamic sets = realm.DynamicApi.All("BeatmapSet");
-            foreach (dynamic set in sets)
-            {
-                Guid id = set.ID;
-                if (id != guid)
-                    continue;
-
-                DateTimeOffset? latestLocalUpdate = null;
-                foreach (dynamic beatmap in set.Beatmaps)
-                {
-                    DateTimeOffset? localUpdate = beatmap.LastLocalUpdate;
-                    if (
-                        localUpdate != null
-                        && (latestLocalUpdate == null || localUpdate > latestLocalUpdate)
-                    )
-                        latestLocalUpdate = localUpdate;
-                }
-
-                DateTimeOffset dateAdded = set.DateAdded;
-                var sortTime =
-                    latestLocalUpdate != null && latestLocalUpdate > dateAdded
-                        ? latestLocalUpdate.Value
-                        : dateAdded;
-                return sortTime.UtcTicks.ToString("x");
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(
-                ex,
-                "Failed to read lazer beatmap set version for {BeatmapSetId} from {DataDirectory}",
-                beatmapSetId,
-                dataDirectory
-            );
-        }
-
-        return "0";
-    }
-
-    /// <summary>
     /// Resolves the filename + content hash of every file tracked for a beatmapset, without
     /// materializing anything to disk. Used by both the background-image endpoint (single file)
     /// and <see cref="LazerBeatmapMaterializer"/> (whole set).
@@ -233,6 +182,10 @@ public static class LazerRealmService
                 if (id != guid)
                     continue;
 
+                bool deletePending = set.DeletePending;
+                if (deletePending)
+                    return null;
+
                 var result = new List<(string, string)>();
                 foreach (dynamic namedFile in set.Files)
                 {
@@ -251,6 +204,67 @@ public static class LazerRealmService
             Log.Warning(
                 ex,
                 "Failed to read lazer beatmap set files for {BeatmapSetId} from {DataDirectory}",
+                beatmapSetId,
+                dataDirectory
+            );
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// After delete+redownload, lazer often keeps the old set as DeletePending and imports a new
+    /// GUID with the same OnlineID. Map a stale/deleted set id onto the live replacement when
+    /// possible so materialize/F5 still work.
+    /// </summary>
+    public static string? ResolveLiveBeatmapSetId(string dataDirectory, string beatmapSetId)
+    {
+        if (!Guid.TryParse(beatmapSetId, out var guid))
+            return null;
+
+        try
+        {
+            using var realm = OpenRealm(dataDirectory);
+            dynamic sets = realm.DynamicApi.All("BeatmapSet");
+
+            long onlineId = 0;
+            var foundRequested = false;
+
+            foreach (dynamic set in sets)
+            {
+                Guid id = set.ID;
+                if (id != guid)
+                    continue;
+
+                foundRequested = true;
+                bool deletePending = set.DeletePending;
+                if (!deletePending)
+                    return beatmapSetId;
+
+                onlineId = Convert.ToInt64(set.OnlineID);
+                break;
+            }
+
+            if (!foundRequested || onlineId <= 0)
+                return null;
+
+            foreach (dynamic set in sets)
+            {
+                bool deletePending = set.DeletePending;
+                if (deletePending)
+                    continue;
+
+                if (Convert.ToInt64(set.OnlineID) != onlineId)
+                    continue;
+
+                return ((Guid)set.ID).ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(
+                ex,
+                "Failed to resolve live lazer beatmap set for {BeatmapSetId} from {DataDirectory}",
                 beatmapSetId,
                 dataDirectory
             );
@@ -309,7 +323,8 @@ public static class LazerRealmService
     /// Matches the editor window title's parsed metadata against the realm library to resolve
     /// the "currently open" beatmap without needing the map exported to a temp folder. Title
     /// must match exactly (normalized); artist/creator/version each add confidence so the best
-    /// candidate wins when multiple sets share a title.
+    /// candidate wins when multiple sets share a title. VersionToken matches the list's
+    /// background cache-bust <c>v</c> (max of DateAdded / LastLocalUpdate ticks).
     /// </summary>
     public static (
         string SetId,
@@ -317,7 +332,8 @@ public static class LazerRealmService
         string BeatmapSetId,
         string Title,
         string Artist,
-        string Creator
+        string Creator,
+        string VersionToken
     )? FindBestMatchingBeatmap(
         string dataDirectory,
         string? artist,
@@ -344,7 +360,8 @@ public static class LazerRealmService
                 string BeatmapSetId,
                 string Title,
                 string Artist,
-                string Creator
+                string Creator,
+                string VersionToken
             )? best = null;
             var bestScore = 0;
 
@@ -354,6 +371,24 @@ public static class LazerRealmService
                 bool deletePending = set.DeletePending;
                 if (deletePending)
                     continue;
+
+                DateTimeOffset? latestLocalUpdate = null;
+                foreach (dynamic beatmap in set.Beatmaps)
+                {
+                    DateTimeOffset? localUpdate = beatmap.LastLocalUpdate;
+                    if (
+                        localUpdate != null
+                        && (latestLocalUpdate == null || localUpdate > latestLocalUpdate)
+                    )
+                        latestLocalUpdate = localUpdate;
+                }
+
+                DateTimeOffset dateAdded = set.DateAdded;
+                var sortTime =
+                    latestLocalUpdate != null && latestLocalUpdate > dateAdded
+                        ? latestLocalUpdate.Value
+                        : dateAdded;
+                var versionToken = sortTime.UtcTicks.ToString("x");
 
                 foreach (dynamic beatmap in set.Beatmaps)
                 {
@@ -401,7 +436,8 @@ public static class LazerRealmService
                         beatmapSetOnlineId > 0 ? beatmapSetOnlineId.ToString() : string.Empty,
                         bmTitle,
                         bmArtist,
-                        bmCreator
+                        bmCreator,
+                        versionToken
                     );
                 }
             }
