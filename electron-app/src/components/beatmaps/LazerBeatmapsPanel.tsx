@@ -38,12 +38,16 @@ interface Props {
 }
 
 export default function LazerBeatmapsPanel({ lazerDataDir, onOpenSettings }: Props) {
-  const { selectedFolderPath, setSelectedFolderPath } = useBeatmap();
+  const {
+    selectedFolderPath,
+    lazerSourceSetId,
+    setSelectedFolderPath,
+    setSelectedLazerFolderPath,
+  } = useBeatmap();
   const { settings } = useSettings();
   const [search, setSearch] = useState('');
   const [debouncedSearch] = useDebouncedValue(search, 300);
   const [bookmarkedOnly, setBookmarkedOnly] = useState(false);
-  const [selectedLazerSetId, setSelectedLazerSetId] = useState<string | undefined>(undefined);
   const [materializingSetId, setMaterializingSetId] = useState<string | undefined>(undefined);
   const [materializeError, setMaterializeError] = useState<string | undefined>(undefined);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -164,8 +168,7 @@ export default function LazerBeatmapsPanel({ lazerDataDir, onOpenSettings }: Pro
     try {
       const result = await BeatmapApi.materializeLazer(setId, lazerDataDir);
       if (result.success && result.folderPath) {
-        setSelectedLazerSetId(setId);
-        setSelectedFolderPath(result.folderPath);
+        setSelectedLazerFolderPath(setId, result.folderPath);
       } else {
         setMaterializeError(result.errorMessage ?? 'Failed to open this beatmapset.');
       }
@@ -265,7 +268,13 @@ export default function LazerBeatmapsPanel({ lazerDataDir, onOpenSettings }: Pro
       <CurrentBeatmapCard
         current={lazerCurrentResult}
         selectedFolderPath={selectedFolderPath}
-        onSelectFolderPath={setSelectedFolderPath}
+        onSelectFolderPath={(folderPath) => {
+          if (folderPath && lazerCurrentResult) {
+            setSelectedLazerFolderPath(lazerCurrentResult.beatmap.folder, folderPath);
+          } else {
+            setSelectedFolderPath(folderPath);
+          }
+        }}
       />
       <Divider my="sm" />
     </Collapse>
@@ -348,7 +357,7 @@ export default function LazerBeatmapsPanel({ lazerDataDir, onOpenSettings }: Pro
                   beatmap={bm}
                   source="lazer"
                   lazerDataDir={lazerDataDir}
-                  isSelectedOverride={selectedLazerSetId === bm.folder}
+                  isSelectedOverride={lazerSourceSetId === bm.folder}
                   onSelect={() => selectLazerBeatmap(bm.folder)}
                   enterIndex={i}
                 />

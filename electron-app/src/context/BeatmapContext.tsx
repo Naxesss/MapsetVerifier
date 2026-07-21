@@ -11,6 +11,10 @@ interface BeatmapContextType {
   setSelectedFolder: (folder: string | undefined) => void;
   selectedFolderPath: string | undefined;
   setSelectedFolderPath: (folderPath: string | undefined) => void;
+  /** Set alongside selectedFolderPath when the selection was materialized from a lazer
+   *  beatmapset, so reparse can re-sync from lazer before re-running checks. */
+  lazerSourceSetId: string | undefined;
+  setSelectedLazerFolderPath: (setId: string, folderPath: string) => void;
   activeSongFolder: string | undefined;
   beatmapFolderPath: string | undefined;
   beatmapInfo: ApiBeatmapInfo | undefined;
@@ -26,6 +30,7 @@ export const BeatmapProvider = ({ children }: { children: ReactNode }) => {
   const [selectedFolder, setSelectedFolder] = useState<string | undefined>(undefined);
   const [selectedFolderPath, setSelectedFolderPath] = useState<string | undefined>(undefined);
   const [selectedSongFolder, setSelectedSongFolder] = useState<string | undefined>(undefined);
+  const [lazerSourceSetId, setLazerSourceSetId] = useState<string | undefined>(undefined);
 
   const activeSongFolder = selectedSongFolder ?? settings.songFolder;
 
@@ -55,16 +60,25 @@ export const BeatmapProvider = ({ children }: { children: ReactNode }) => {
           setSelectedFolder(folder);
           setSelectedFolderPath(undefined);
           setSelectedSongFolder(undefined);
+          setLazerSourceSetId(undefined);
         },
         selectedFolderPath,
         setSelectedFolderPath: (folderPath) => {
           setSelectedFolderPath(folderPath);
+          setLazerSourceSetId(undefined);
           if (folderPath) {
             setSelectedFolder(folderPath);
             setSelectedSongFolder(undefined);
             return;
           }
           setSelectedSongFolder(undefined);
+        },
+        lazerSourceSetId,
+        setSelectedLazerFolderPath: (setId, folderPath) => {
+          setSelectedFolderPath(folderPath);
+          setSelectedFolder(folderPath);
+          setSelectedSongFolder(undefined);
+          setLazerSourceSetId(setId);
         },
         activeSongFolder,
         beatmapFolderPath,

@@ -12,6 +12,8 @@ import {
   type ReactNode,
 } from 'react';
 import { useBeatmap } from './BeatmapContext.tsx';
+import { useSettings } from './SettingsContext.tsx';
+import BeatmapApi from '../client/BeatmapApi.ts';
 
 /** Runs before all beatmap-scoped queries are invalidated (e.g. clear checks override state). */
 export type BeatmapRefreshSideEffect = () => void | Promise<void>;
@@ -30,7 +32,8 @@ function queryKeyMatchesBeatmapFolderPath(queryKey: unknown, beatmapFolderPath: 
 }
 
 export function BeatmapReparseProvider({ children }: { children: ReactNode }) {
-  const { beatmapFolderPath } = useBeatmap();
+  const { beatmapFolderPath, lazerSourceSetId } = useBeatmap();
+  const { settings } = useSettings();
   const queryClient = useQueryClient();
   const sideEffectHandlersRef = useRef(new Set<BeatmapRefreshSideEffect>());
 
@@ -57,6 +60,13 @@ export function BeatmapReparseProvider({ children }: { children: ReactNode }) {
     });
 
     try {
+      if (lazerSourceSetId) {
+        const result = await BeatmapApi.materializeLazer(lazerSourceSetId, settings.lazerDataDir);
+        if (!result.success) {
+          throw new Error(result.errorMessage ?? 'Failed to re-sync this beatmapset from lazer.');
+        }
+      }
+
       const sideEffects = [...sideEffectHandlersRef.current];
       await Promise.all(sideEffects.map((fn) => Promise.resolve(fn())));
 
@@ -86,7 +96,7 @@ export function BeatmapReparseProvider({ children }: { children: ReactNode }) {
         withCloseButton: true,
       });
     }
-  }, [beatmapFolderPath, queryClient]);
+  }, [beatmapFolderPath, lazerSourceSetId, settings.lazerDataDir, queryClient]);
 
   const f5Hotkeys = useMemo<HotkeyItem[]>(
     () => [['F5', () => void triggerReparse(), { preventDefault: true }]],

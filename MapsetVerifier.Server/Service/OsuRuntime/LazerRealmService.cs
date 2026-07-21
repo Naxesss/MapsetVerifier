@@ -63,7 +63,7 @@ public static class LazerRealmService
         int pageSize
     )
     {
-        List<(ApiBeatmap Beatmap, DateTimeOffset DateAdded)> mapped;
+        List<(ApiBeatmap Beatmap, DateTimeOffset SortTime)> mapped;
 
         try
         {
@@ -78,10 +78,17 @@ public static class LazerRealmService
                     continue;
 
                 dynamic? firstBeatmap = null;
+                DateTimeOffset? latestLocalUpdate = null;
                 foreach (dynamic beatmap in set.Beatmaps)
                 {
-                    firstBeatmap = beatmap;
-                    break;
+                    firstBeatmap ??= beatmap;
+
+                    DateTimeOffset? localUpdate = beatmap.LastLocalUpdate;
+                    if (
+                        localUpdate != null
+                        && (latestLocalUpdate == null || localUpdate > latestLocalUpdate)
+                    )
+                        latestLocalUpdate = localUpdate;
                 }
                 if (firstBeatmap == null)
                     continue;
@@ -119,7 +126,14 @@ public static class LazerRealmService
                     continue;
 
                 DateTimeOffset dateAdded = set.DateAdded;
-                mapped.Add((apiBeatmap, dateAdded));
+                // DateAdded only reflects when the set entered the library, not when it was last
+                // edited — a saved change in the editor bumps LastLocalUpdate on the difficulty
+                // instead, so use whichever is more recent to sort "latest" correctly.
+                var sortTime =
+                    latestLocalUpdate != null && latestLocalUpdate > dateAdded
+                        ? latestLocalUpdate.Value
+                        : dateAdded;
+                mapped.Add((apiBeatmap, sortTime));
             }
         }
         catch (Exception ex)
@@ -132,7 +146,7 @@ public static class LazerRealmService
             return new ApiBeatmapPage([], page, pageSize, false);
         }
 
-        var ordered = mapped.OrderByDescending(m => m.DateAdded).Select(m => m.Beatmap).ToList();
+        var ordered = mapped.OrderByDescending(m => m.SortTime).Select(m => m.Beatmap).ToList();
 
         var skipped = page * pageSize;
         var pageItems = ordered.Skip(skipped).Take(pageSize + 1).ToList();

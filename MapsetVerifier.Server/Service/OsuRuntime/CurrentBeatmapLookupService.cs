@@ -255,6 +255,7 @@ public static class CurrentBeatmapLookupService
 
     private static readonly object MaterializeCacheLock = new();
     private static string? _lastMaterializedLazerSetId;
+    private static string? _lastMaterializedLazerSignature;
     private static string? _lastMaterializedLazerFolderPath;
 
     /// <summary>
@@ -353,16 +354,30 @@ public static class CurrentBeatmapLookupService
     }
 
     /// <summary>
-    /// Materialization is a real file copy, so avoid redoing it on every 1.5-5s poll from the
-    /// frontend "current map" panel — only re-materialize when the matched beatmapset changes,
-    /// or when the previously materialized folder has disappeared.
+    /// Materialization is a real file copy, so avoid blindly redoing it on every 1.5-5s poll from
+    /// the frontend "current map" panel. Instead, cheaply re-read the set's current file/hash
+    /// manifest from realm (no file I/O) on every call and only re-copy when that manifest
+    /// actually changed since the last materialize — e.g. the user saved new changes in the
+    /// editor. This keeps the shortcut correct without paying for a full re-copy on every poll.
     /// </summary>
     private static string? GetOrMaterializeCached(string dataDir, string setId)
     {
+        var files = LazerRealmService.GetBeatmapSetFiles(dataDir, setId);
+        if (files == null)
+            return null;
+
+        var signature = string.Join(
+            '|',
+            files
+                .OrderBy(f => f.Filename, StringComparer.Ordinal)
+                .Select(f => $"{f.Filename}:{f.Hash}")
+        );
+
         lock (MaterializeCacheLock)
         {
             if (
                 _lastMaterializedLazerSetId == setId
+                && _lastMaterializedLazerSignature == signature
                 && !string.IsNullOrWhiteSpace(_lastMaterializedLazerFolderPath)
                 && Directory.Exists(_lastMaterializedLazerFolderPath)
             )
@@ -376,6 +391,7 @@ public static class CurrentBeatmapLookupService
         lock (MaterializeCacheLock)
         {
             _lastMaterializedLazerSetId = setId;
+            _lastMaterializedLazerSignature = signature;
             _lastMaterializedLazerFolderPath = result.FolderPath;
         }
 

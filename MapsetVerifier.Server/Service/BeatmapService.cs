@@ -89,7 +89,10 @@ public static class BeatmapService
             return new ApiBeatmapPage([], page, pageSize, false);
 
         var dirInfo = new DirectoryInfo(songsFolder);
-        var folders = dirInfo.GetDirectories().OrderByDescending(d => d.LastWriteTimeUtc).ToList();
+        var folders = dirInfo
+            .GetDirectories()
+            .OrderByDescending(GetEffectiveLastWriteTimeUtc)
+            .ToList();
 
         if (bookmarkedFolders is { Count: > 0 })
             folders = folders.Where(f => bookmarkedFolders.Contains(f.Name)).ToList();
@@ -131,6 +134,30 @@ public static class BeatmapService
         }
         var hasMore = pageFolders.Count > pageSize;
         return new ApiBeatmapPage(results, page, pageSize, hasMore);
+    }
+
+    /// <summary>
+    /// A folder's own LastWriteTimeUtc isn't updated by NTFS when an existing file inside it is
+    /// edited in place (only file creation/deletion/rename bumps it), so sorting "most recently
+    /// changed" purely on folder mtime misses in-place edits. Fall back to the newest top-level
+    /// file's mtime when it's more recent than the folder's own.
+    /// </summary>
+    private static DateTime GetEffectiveLastWriteTimeUtc(DirectoryInfo folder)
+    {
+        var latest = folder.LastWriteTimeUtc;
+        try
+        {
+            foreach (var file in folder.EnumerateFiles())
+            {
+                if (file.LastWriteTimeUtc > latest)
+                    latest = file.LastWriteTimeUtc;
+            }
+        }
+        catch (Exception)
+        {
+            // Ignore inaccessible folders; fall back to the folder's own timestamp.
+        }
+        return latest;
     }
 
     public static ApiBeatmapInfo? GetBeatmapInfo(string beatmapSetFolder)
