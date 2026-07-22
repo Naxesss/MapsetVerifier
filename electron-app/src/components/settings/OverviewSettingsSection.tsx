@@ -42,12 +42,13 @@ export default function OverviewSettingsSection() {
         control={
           <Switch
             checked={settings.excludeAimFromCombinedStrain}
-            onChange={(e) =>
+            onChange={(e) => {
+              const checked = e.currentTarget.checked;
               setSettings((prev) => ({
                 ...prev,
-                excludeAimFromCombinedStrain: e.currentTarget.checked,
-              }))
-            }
+                excludeAimFromCombinedStrain: checked,
+              }));
+            }}
           />
         }
       />

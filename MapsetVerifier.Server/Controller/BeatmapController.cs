@@ -3,6 +3,7 @@ using MapsetVerifier.Framework;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Server.Model;
 using MapsetVerifier.Server.Service;
+using MapsetVerifier.Server.Service.OsuRuntime;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 
@@ -79,10 +80,87 @@ public class BeatmapController : ControllerBase
         return Ok(new { songsFolder = folder });
     }
 
-    [HttpGet("lazer/current")]
-    public ActionResult<ApiLazerLookupResult> GetCurrentLazerBeatmap()
+    [HttpGet("lazer")]
+    public ActionResult<ApiBeatmapPage> GetLazerBeatmaps(
+        [FromQuery] string? search,
+        [FromQuery] int page = 0,
+        [FromQuery] int pageSize = 16,
+        [FromQuery] string? lazerDataDir = null
+    )
     {
-        var result = BeatmapService.GetCurrentLazerBeatmap();
+        if (page < 0)
+            page = 0;
+        if (pageSize <= 0)
+            pageSize = 16;
+        if (pageSize > 100)
+            pageSize = 100; // safety cap
+
+        var pageResult = BeatmapService.GetLazerBeatmaps(search, page, pageSize, lazerDataDir);
+
+        if (pageResult.Items.Any())
+            return Ok(pageResult);
+
+        if (page == 0 && !pageResult.HasMore)
+            return NotFound(
+                new ApiError(
+                    search != null
+                        ? "The search yielded no results."
+                        : "No mapsets could be found in the lazer library.",
+                    null
+                )
+            );
+
+        return Ok(pageResult);
+    }
+
+    [HttpGet("lazer/dataDir")]
+    public ActionResult GetLazerDataDir()
+    {
+        var folder = LazerRealmService.DetectLazerDataDirectory();
+        if (string.IsNullOrWhiteSpace(folder))
+            return NotFound(new ApiError("Lazer data folder could not be detected.", null));
+        return Ok(new { lazerDataDir = folder });
+    }
+
+    [HttpPost("lazer/materialize")]
+    public ActionResult<ApiLazerMaterializeResult> MaterializeLazerBeatmap(
+        [FromBody] MaterializeLazerBeatmapRequest request
+    )
+    {
+        try
+        {
+            var result = BeatmapService.MaterializeLazerBeatmap(
+                request.BeatmapSetId,
+                request.LazerDataDir
+            );
+            if (!result.Success)
+                return NotFound(new ApiError(result.ErrorMessage ?? "Beatmapset not found.", null));
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(
+                ex,
+                "Failed to materialize lazer beatmapset {BeatmapSetId}",
+                request.BeatmapSetId
+            );
+            return StatusCode(
+                500,
+                ApiErrorFactory.FromException(
+                    ex,
+                    "An error occurred while materializing the lazer beatmapset."
+                )
+            );
+        }
+    }
+
+    [HttpGet("lazer/current")]
+    public ActionResult<ApiLazerLookupResult> GetCurrentLazerBeatmap(
+        [FromQuery] string? lazerDataDir = null
+    )
+    {
+        var result = BeatmapService.GetCurrentLazerBeatmap(lazerDataDir);
         return Ok(result);
     }
 
@@ -119,6 +197,32 @@ public class BeatmapController : ControllerBase
             // Return the in-memory resized image
             return File(result.DataStream, result.MimeType!);
         }
+
+        var stream = System.IO.File.OpenRead(result.ImagePath!);
+        return File(stream, result.MimeType!);
+    }
+
+    [HttpGet("lazer/image")]
+    public ActionResult GetLazerBeatmapImage(
+        [FromQuery] string id,
+        [FromQuery] bool original = false,
+        [FromQuery] string? lazerDataDir = null
+    )
+    {
+        var result = BeatmapService.GetLazerBeatmapImage(id, original, lazerDataDir);
+        if (!result.Success)
+            return NotFound(new ApiError(result.ErrorMessage ?? "Image not found", null));
+
+        Response.Headers.CacheControl = "public, max-age=86400";
+        if (!string.IsNullOrWhiteSpace(result.ETag))
+        {
+            Response.Headers.ETag = result.ETag;
+            if (Request.Headers.TryGetValue("If-None-Match", out var inm) && inm == result.ETag)
+                return StatusCode(304);
+        }
+
+        if (result.DataStream != null)
+            return File(result.DataStream, result.MimeType!);
 
         var stream = System.IO.File.OpenRead(result.ImagePath!);
         return File(stream, result.MimeType!);

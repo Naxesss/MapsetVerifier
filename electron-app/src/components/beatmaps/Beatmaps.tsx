@@ -9,9 +9,8 @@ export default function Beatmaps() {
   const navigate = useNavigate();
 
   const songFolder = settings.songFolder;
-  const lazerLookupEnabled = settings.lazerLookupEnabled;
 
-  if (!songFolder && !lazerLookupEnabled) {
+  if (settings.beatmapViewMode === 'stable' && !songFolder) {
     return (
       <Alert icon={<IconAlertTriangle />} title="Song folder not set" color="yellow">
         <Text size="sm" mb="sm">
@@ -32,7 +31,7 @@ export default function Beatmaps() {
   return (
     <BeatmapsList
       songFolder={settings.songFolder}
-      lazerLookupEnabled={lazerLookupEnabled}
+      lazerDataDir={settings.lazerDataDir}
       onOpenSettings={() => navigate('/settings', { viewTransition: true })}
     />
   );

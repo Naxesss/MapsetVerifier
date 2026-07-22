@@ -32,6 +32,8 @@ export type Beatmap = {
   creator: string;
   beatmapID: string;
   beatmapSetID: string;
+  /** Relative lazer/stable image path from the API; may include a cache-bust `v` query. */
+  backgroundPath?: string;
 };
 
 export type LazerLookupStatus =
@@ -40,6 +42,7 @@ export type LazerLookupStatus =
   | 'ambiguous_client'
   | 'no_editor_title'
   | 'songs_folder_not_found'
+  | 'lazer_data_dir_not_found'
   | 'metadata_detected'
   | 'folder_found';
 
@@ -53,6 +56,14 @@ export type ApiLazerLookupResult = {
 };
 
 export type ApiStableLookupResult = ApiLazerLookupResult;
+
+export type ApiLazerMaterializeResult = {
+  success: boolean;
+  folderPath: string | null;
+  errorMessage: string | null;
+  /** Realm set id actually materialized; may differ after delete+redownload. */
+  beatmapSetId?: string | null;
+};
 
 export type ApiBeatmapInfo = {
   title: string | null;

@@ -5,10 +5,6 @@ using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Server.Model;
 using MapsetVerifier.Server.Service.OsuRuntime;
 using Serilog;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.Processing;
 
 namespace MapsetVerifier.Server.Service;
 
@@ -18,12 +14,6 @@ public static class BeatmapService
         "0,0,\"(?<file>[^\"]+)\"",
         RegexOptions.Compiled
     );
-    private static readonly string[] SupportedImageExtensions = [".jpg", ".jpeg", ".png", ".gif"];
-
-    /// <summary>
-    /// Desired thumbnail height
-    /// </summary>
-    private const int MaxImageHeight = 126;
 
     public static string? DetectSongsFolder()
     {
@@ -81,8 +71,9 @@ public static class BeatmapService
         return DetectSongsFolder();
     }
 
-    public static ApiLazerLookupResult GetCurrentLazerBeatmap() =>
-        CurrentBeatmapLookupService.GetCurrentLazerBeatmap();
+    public static ApiLazerLookupResult GetCurrentLazerBeatmap(
+        string? lazerDataDirOverride = null
+    ) => CurrentBeatmapLookupService.GetCurrentLazerBeatmap(lazerDataDirOverride);
 
     public static ApiLazerLookupResult GetCurrentStableBeatmap(string? songsFolderOverride) =>
         CurrentBeatmapLookupService.GetCurrentStableBeatmap(songsFolderOverride);
@@ -99,7 +90,10 @@ public static class BeatmapService
             return new ApiBeatmapPage([], page, pageSize, false);
 
         var dirInfo = new DirectoryInfo(songsFolder);
-        var folders = dirInfo.GetDirectories().OrderByDescending(d => d.LastWriteTimeUtc).ToList();
+        var folders = dirInfo
+            .GetDirectories()
+            .OrderByDescending(GetEffectiveLastWriteTimeUtc)
+            .ToList();
 
         if (bookmarkedFolders is { Count: > 0 })
             folders = folders.Where(f => bookmarkedFolders.Contains(f.Name)).ToList();
@@ -141,6 +135,30 @@ public static class BeatmapService
         }
         var hasMore = pageFolders.Count > pageSize;
         return new ApiBeatmapPage(results, page, pageSize, hasMore);
+    }
+
+    /// <summary>
+    /// A folder's own LastWriteTimeUtc isn't updated by NTFS when an existing file inside it is
+    /// edited in place (only file creation/deletion/rename bumps it), so sorting "most recently
+    /// changed" purely on folder mtime misses in-place edits. Fall back to the newest top-level
+    /// file's mtime when it's more recent than the folder's own.
+    /// </summary>
+    private static DateTime GetEffectiveLastWriteTimeUtc(DirectoryInfo folder)
+    {
+        var latest = folder.LastWriteTimeUtc;
+        try
+        {
+            foreach (var file in folder.EnumerateFiles())
+            {
+                if (file.LastWriteTimeUtc > latest)
+                    latest = file.LastWriteTimeUtc;
+            }
+        }
+        catch (Exception)
+        {
+            // Ignore inaccessible folders; fall back to the folder's own timestamp.
+        }
+        return latest;
     }
 
     public static ApiBeatmapInfo? GetBeatmapInfo(string beatmapSetFolder)
@@ -240,7 +258,6 @@ public static class BeatmapService
         string? songsFolderOverride = null
     )
     {
-        const int maxHeight = MaxImageHeight; // use constant
         var songsFolder = ResolveSongsFolder(songsFolderOverride);
         if (string.IsNullOrWhiteSpace(songsFolder))
             return BeatmapImageResult.Error("Songs folder could not be detected.");
@@ -252,64 +269,71 @@ public static class BeatmapService
         if (imagePath == null)
             return BeatmapImageResult.Error("No background image found.");
 
-        var extLower = Path.GetExtension(imagePath).ToLowerInvariant();
+        return BeatmapImageProcessing.BuildResult(imagePath, original);
+    }
 
-        var fi = new FileInfo(imagePath);
-        var baseEtagCore = fi.Exists
-            ? $"{fi.LastWriteTimeUtc.Ticks:x}-{fi.Length:x}"
-            : Path.GetFileName(imagePath);
+    /// <summary>
+    /// Resolves and streams a lazer beatmapset's background image directly from its
+    /// content-addressed file, without materializing the whole set to disk.
+    /// </summary>
+    public static BeatmapImageResult GetLazerBeatmapImage(
+        string beatmapSetId,
+        bool original = false,
+        string? lazerDataDirOverride = null
+    )
+    {
+        var dataDir = LazerRealmService.ResolveLazerDataDirectory(lazerDataDirOverride);
+        if (string.IsNullOrWhiteSpace(dataDir))
+            return BeatmapImageResult.Error("Lazer data folder could not be detected.");
 
-        var originalHeight = 0;
-        try
-        {
-            var info = Image.Identify(imagePath);
-            originalHeight = info.Height;
-        }
-        catch (Exception)
-        {
-            // ignore identify errors
-        }
+        var backgroundFile = LazerRealmService.GetBackgroundFilename(dataDir, beatmapSetId);
+        if (string.IsNullOrWhiteSpace(backgroundFile))
+            return BeatmapImageResult.Error("No background image found.");
 
-        var needsResize = !original && originalHeight > maxHeight;
+        var extension = Path.GetExtension(backgroundFile);
+        if (!BeatmapImageProcessing.IsSupportedImageFile(backgroundFile))
+            return BeatmapImageResult.Error("No background image found.");
 
-        if (!needsResize)
-        {
-            var mimeOriginal = extLower == ".png" ? "image/png" : "image/jpeg";
-            var etagOriginal = '"' + baseEtagCore + '"';
-            return BeatmapImageResult.SuccessResult(imagePath, mimeOriginal, etagOriginal);
-        }
+        var files = LazerRealmService.GetBeatmapSetFiles(dataDir, beatmapSetId);
+        var hash = files
+            ?.FirstOrDefault(f =>
+                string.Equals(f.Filename, backgroundFile, StringComparison.OrdinalIgnoreCase)
+            )
+            .Hash;
+        if (string.IsNullOrWhiteSpace(hash))
+            return BeatmapImageResult.Error("Background image file could not be resolved.");
 
-        // Perform in-memory resize
-        try
-        {
-            using var img = Image.Load(imagePath);
-            var ratio = (double)maxHeight / img.Height;
-            var targetW = Math.Max(1, (int)Math.Round(img.Width * ratio));
-            var targetH = maxHeight;
-            img.Mutate(c =>
-                c.Resize(
-                    new ResizeOptions
-                    {
-                        Mode = ResizeMode.Max,
-                        Size = new Size(targetW, targetH),
-                        Sampler = KnownResamplers.Lanczos3,
-                    }
-                )
-            );
-            var ms = new MemoryStream();
-            if (extLower == ".png")
-                img.Save(ms, new PngEncoder());
-            else
-                img.Save(ms, new JpegEncoder { Quality = 85 });
-            ms.Position = 0; // reset for reading
-            var mime = extLower == ".png" ? "image/png" : "image/jpeg";
-            var etag = '"' + baseEtagCore + $"-h{maxHeight}" + '"';
-            return BeatmapImageResult.SuccessStreamResult(ms, mime, etag);
-        }
-        catch (Exception ex)
-        {
-            return BeatmapImageResult.Error("Failed to resize image: " + ex.Message);
-        }
+        var imagePath = LazerRealmService.ResolveFilePathFromHash(dataDir, hash);
+        if (!File.Exists(imagePath))
+            return BeatmapImageResult.Error("Background image file is missing on disk.");
+
+        return BeatmapImageProcessing.BuildResult(imagePath, original, extension);
+    }
+
+    public static ApiBeatmapPage GetLazerBeatmaps(
+        string? search,
+        int page,
+        int pageSize,
+        string? lazerDataDirOverride = null
+    )
+    {
+        var dataDir = LazerRealmService.ResolveLazerDataDirectory(lazerDataDirOverride);
+        if (string.IsNullOrWhiteSpace(dataDir))
+            return new ApiBeatmapPage([], page, pageSize, false);
+
+        return LazerRealmService.GetBeatmapSets(dataDir, search, page, pageSize);
+    }
+
+    public static ApiLazerMaterializeResult MaterializeLazerBeatmap(
+        string beatmapSetId,
+        string? lazerDataDirOverride = null
+    )
+    {
+        var dataDir = LazerRealmService.ResolveLazerDataDirectory(lazerDataDirOverride);
+        if (string.IsNullOrWhiteSpace(dataDir))
+            return ApiLazerMaterializeResult.Error("Lazer data folder could not be detected.");
+
+        return LazerBeatmapMaterializer.Materialize(dataDir, beatmapSetId);
     }
 
     private static string? GetConfiguredBackgroundImagePath(string beatmapSetFolder)
@@ -326,7 +350,10 @@ public static class BeatmapService
                 var beatmap = new Beatmap(code, beatmapSetFolder, Path.GetFileName(osuFile));
                 var backgroundPath = beatmap.GetBackgroundFilePath();
 
-                if (backgroundPath != null && IsSupportedImageFile(backgroundPath))
+                if (
+                    backgroundPath != null
+                    && BeatmapImageProcessing.IsSupportedImageFile(backgroundPath)
+                )
                     return backgroundPath;
             }
             catch (Exception)
@@ -337,9 +364,6 @@ public static class BeatmapService
 
         return null;
     }
-
-    private static bool IsSupportedImageFile(string filePath) =>
-        SupportedImageExtensions.Contains(Path.GetExtension(filePath).ToLowerInvariant());
 
     public static ApiBeatmapStructure GetBeatmapSetStructure(string beatmapSetFolder)
     {

@@ -1,5 +1,5 @@
-import { Alert, Switch, Text } from '@mantine/core';
-import { IconCode, IconNote } from '@tabler/icons-react';
+import { Alert, Button, Switch, Text } from '@mantine/core';
+import { IconCode, IconNote, IconRotateClockwise2 } from '@tabler/icons-react';
 import { SettingsRow, SettingsSection } from './SettingsSection';
 import { useSettings } from '../../context/SettingsContext';
 
@@ -18,10 +18,25 @@ export default function DeveloperSettingsSection() {
         control={
           <Switch
             checked={settings.gateInDev}
-            onChange={(e) =>
-              setSettings((prev) => ({ ...prev, gateInDev: e.currentTarget.checked }))
-            }
+            onChange={(e) => {
+              const checked = e.currentTarget.checked;
+              setSettings((prev) => ({ ...prev, gateInDev: checked }));
+            }}
           />
+        }
+      />
+      <SettingsRow
+        title="Replay first-launch setup"
+        description="Resets the setup wizard so it shows again immediately."
+        control={
+          <Button
+            size="sm"
+            variant="light"
+            leftSection={<IconRotateClockwise2 size={18} />}
+            onClick={() => setSettings((prev) => ({ ...prev, hasCompletedSetup: false }))}
+          >
+            Reset
+          </Button>
         }
       />
       <Alert icon={<IconNote />} title="Note" color="yellow" variant="light">

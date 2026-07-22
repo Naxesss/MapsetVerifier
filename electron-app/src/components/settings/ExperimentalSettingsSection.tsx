@@ -2,7 +2,6 @@ import { Badge, Group, Switch, Text, Tooltip } from '@mantine/core';
 import { IconAlertTriangle, IconAnalyze } from '@tabler/icons-react';
 import { useState } from 'react';
 import AdvancedAudioWarningModal from './AdvancedAudioWarningModal';
-import LazerLookupWarningModal from './LazerLookupWarningModal';
 import { SettingsRow, SettingsSection } from './SettingsSection';
 import { useSettings } from '../../context/SettingsContext';
 
@@ -27,7 +26,6 @@ function ExperimentalLabel({ children }: { children: React.ReactNode }) {
 
 export default function ExperimentalSettingsSection() {
   const { settings, setSettings } = useSettings();
-  const [lazerWarningOpened, setLazerWarningOpened] = useState(false);
   const [advancedAudioConfirmOpened, setAdvancedAudioConfirmOpened] = useState(false);
 
   return (
@@ -58,46 +56,19 @@ export default function ExperimentalSettingsSection() {
           }
         />
         <SettingsRow
-          title={<ExperimentalLabel>osu!(lazer) support</ExperimentalLabel>}
-          description="Detects beatmaps opened from the lazer editor when supported."
-          control={
-            <Switch
-              checked={settings.lazerLookupEnabled}
-              onChange={(e) => {
-                const checked = e.currentTarget.checked;
-                if (!checked) {
-                  setSettings((prev) => ({ ...prev, lazerLookupEnabled: false }));
-                  return;
-                }
-
-                if (!settings.lazerLookupEnabled) {
-                  setLazerWarningOpened(true);
-                }
-              }}
-            />
-          }
-        />
-        <SettingsRow
           title={<ExperimentalLabel>Bookmark beatmapsets</ExperimentalLabel>}
           description="Pin beatmapsets for quick lookup in the sidebar, without scrolling to find them."
           control={
             <Switch
               checked={settings.bookmarksEnabled}
               onChange={(e) => {
-                setSettings((prev) => ({ ...prev, bookmarksEnabled: e.currentTarget.checked }));
+                const checked = e.currentTarget.checked;
+                setSettings((prev) => ({ ...prev, bookmarksEnabled: checked }));
               }}
             />
           }
         />
       </SettingsSection>
-      <LazerLookupWarningModal
-        opened={lazerWarningOpened}
-        onCancel={() => setLazerWarningOpened(false)}
-        onConfirm={() => {
-          setSettings((prev) => ({ ...prev, lazerLookupEnabled: true }));
-          setLazerWarningOpened(false);
-        }}
-      />
       <AdvancedAudioWarningModal
         opened={advancedAudioConfirmOpened}
         onCancel={() => setAdvancedAudioConfirmOpened(false)}

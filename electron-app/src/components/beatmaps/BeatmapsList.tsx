@@ -1,17 +1,19 @@
 import { Flex, SegmentedControl } from '@mantine/core';
-import { useState } from 'react';
 import LazerBeatmapsPanel from './LazerBeatmapsPanel.tsx';
 import StableBeatmapsPanel from './StableBeatmapsPanel.tsx';
+import { useSettings } from '../../context/SettingsContext';
 
 interface Props {
   songFolder?: string;
-  lazerLookupEnabled: boolean;
+  lazerDataDir?: string;
   onOpenSettings: () => void;
 }
 
-export default function BeatmapsList({ songFolder, lazerLookupEnabled, onOpenSettings }: Props) {
-  const [lookupMode, setLookupMode] = useState<'stable' | 'lazer'>('stable');
-  const effectiveLookupMode = !lazerLookupEnabled && lookupMode === 'lazer' ? 'stable' : lookupMode;
+export default function BeatmapsList({ songFolder, lazerDataDir, onOpenSettings }: Props) {
+  const { settings, setSettings } = useSettings();
+  const viewMode = settings.beatmapViewMode;
+  const showModeSwitch = viewMode === 'both';
+  const effectiveLookupMode = showModeSwitch ? settings.beatmapLookupMode : viewMode;
   const stableEnabled = effectiveLookupMode === 'stable';
 
   return (
@@ -23,7 +25,7 @@ export default function BeatmapsList({ songFolder, lazerLookupEnabled, onOpenSet
         position: 'relative',
       }}
     >
-      {lazerLookupEnabled && (
+      {showModeSwitch && (
         <Flex direction="column" gap="sm" p="xs">
           <SegmentedControl
             fullWidth
@@ -32,14 +34,19 @@ export default function BeatmapsList({ songFolder, lazerLookupEnabled, onOpenSet
               { label: 'osu!(lazer)', value: 'lazer' },
             ]}
             value={effectiveLookupMode}
-            onChange={(value) => setLookupMode(value as 'stable' | 'lazer')}
+            onChange={(value) =>
+              setSettings((prev) => ({
+                ...prev,
+                beatmapLookupMode: value as 'stable' | 'lazer',
+              }))
+            }
           />
         </Flex>
       )}
       {stableEnabled ? (
         <StableBeatmapsPanel songFolder={songFolder} onOpenSettings={onOpenSettings} />
       ) : (
-        <LazerBeatmapsPanel />
+        <LazerBeatmapsPanel lazerDataDir={lazerDataDir} onOpenSettings={onOpenSettings} />
       )}
     </Flex>
   );

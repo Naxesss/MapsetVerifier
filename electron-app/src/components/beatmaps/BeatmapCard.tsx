@@ -5,11 +5,17 @@ import { useBeatmap } from '../../context/BeatmapContext';
 import { useBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
 import { useSettings } from '../../context/SettingsContext';
 import { Beatmap } from '../../Types.ts';
-import { buildBeatmapImageUrl } from '../../utils/buildBeatmapFolderPath.ts';
+import {
+  buildBeatmapImageUrl,
+  resolveLazerBeatmapImageUrl,
+} from '../../utils/buildBeatmapFolderPath.ts';
 
 interface BeatmapCardProps {
   beatmap: Beatmap;
   songFolder?: string;
+  /** 'lazer' resolves the background via the realm-backed CAS image endpoint instead of a Songs-folder path. */
+  source?: 'stable' | 'lazer';
+  lazerDataDir?: string;
   onSelect?: () => void;
   isSelectedOverride?: boolean;
   enterIndex?: number;
@@ -18,6 +24,8 @@ interface BeatmapCardProps {
 function BeatmapCard({
   beatmap,
   songFolder,
+  source = 'stable',
+  lazerDataDir,
   onSelect,
   isSelectedOverride,
   enterIndex,
@@ -41,7 +49,11 @@ function BeatmapCard({
   };
 
   const hasFolder = !!beatmap.folder && beatmap.folder !== 'placeholder';
-  const candidate = hasFolder ? buildBeatmapImageUrl(beatmap.folder, { songFolder }) : undefined;
+  const candidate = hasFolder
+    ? source === 'lazer'
+      ? resolveLazerBeatmapImageUrl(beatmap, lazerDataDir)
+      : buildBeatmapImageUrl(beatmap.folder, { songFolder })
+    : undefined;
 
   useEffect(() => {
     if (!candidate) return;
@@ -150,7 +162,8 @@ function BeatmapCard({
           : {}),
       }}
       onClick={() => {
-        if (beatmap.folder === selectedFolder) {
+        // Prefer isSelected so lazer cards (GUID vs temp path) and current-map overrides still reparse.
+        if (isSelected) {
           return triggerReparse();
         }
 

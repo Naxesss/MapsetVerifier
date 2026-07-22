@@ -8,9 +8,14 @@ import type { TimelineThemeVariant } from '../components/overview/objects/timeli
 /** What the Star Rating overview chart shows by default: the cumulative line, the strain overlay, or both. */
 export type DifficultyStrainDisplayMode = 'both' | 'starRatingOnly' | 'strainOnly';
 
+/** Which beatmap library/libraries the sidebar reads from. */
+export type BeatmapViewMode = 'stable' | 'lazer' | 'both';
+
 // Type-safe Settings type
 export type Settings = {
   songFolder?: string;
+  /** osu!(lazer) data folder (contains client.realm). Auto-detected when unset. */
+  lazerDataDir?: string;
   showMinor: boolean;
   /** When showMinor is on, Minor results for these check ids are hidden. When showMinor is off, ignored. */
   hiddenMinorCheckIds: number[];
@@ -20,7 +25,10 @@ export type Settings = {
   difficultyStrainDisplayMode: DifficultyStrainDisplayMode;
   /** Excludes osu!standard's Aim skill(s) from the combined strain line. */
   excludeAimFromCombinedStrain: boolean;
-  lazerLookupEnabled: boolean;
+  /** Which beatmap library/libraries the sidebar reads from. */
+  beatmapViewMode: BeatmapViewMode;
+  /** Last selected stable/lazer tab on the beatmaps list. Only used when beatmapViewMode is 'both'. */
+  beatmapLookupMode: 'stable' | 'lazer';
   receivePrereleases: boolean;
   uiFontFamily: UiFontFamily;
   /** Objects overview timeline circle style (synced across game modes). */
@@ -41,6 +49,8 @@ export type Settings = {
   bookmarkedFolders: string[];
   // DEV-only: whether to gate Backend in development mode
   gateInDev: boolean;
+  /** Whether the user has completed the first-launch setup wizard. */
+  hasCompletedSetup: boolean;
 };
 
 // Context type includes settings and setter
@@ -52,13 +62,15 @@ interface SettingsContextType {
 
 const defaultSettings: Settings = {
   songFolder: undefined,
+  lazerDataDir: undefined,
   showMinor: false,
   hiddenMinorCheckIds: [],
   showGamemodeDifficultyNames: true,
   showAdvancedAudioAnalysis: false,
   difficultyStrainDisplayMode: 'strainOnly',
   excludeAimFromCombinedStrain: true,
-  lazerLookupEnabled: false,
+  beatmapViewMode: 'stable',
+  beatmapLookupMode: 'stable',
   receivePrereleases: false,
   uiFontFamily: DEFAULT_UI_FONT_FAMILY,
   timelineThemeVariant: 'default',
@@ -70,6 +82,7 @@ const defaultSettings: Settings = {
   bookmarksEnabled: false,
   bookmarkedFolders: [],
   gateInDev: false,
+  hasCompletedSetup: false,
 };
 
 async function resolveDefaultReceivePrereleases() {
@@ -90,7 +103,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [loaded, setLoaded] = useState(false);
   const [settings, setSettings] = useState<Settings>(defaultSettings);
 
-  async function loadSettings(): Promise<string | undefined> {
+  async function loadSettings(): Promise<{
+    savedSongFolder?: string;
+    savedLazerDataDir?: string;
+  }> {
     const api = window.electronAPI;
     const inferredReceivePrereleases = await resolveDefaultReceivePrereleases();
 
@@ -100,7 +116,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         receivePrereleases: inferredReceivePrereleases,
       });
       setLoaded(true);
-      return undefined;
+      return {};
     }
 
     try {
@@ -110,20 +126,25 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
           ...defaultSettings,
           receivePrereleases: inferredReceivePrereleases,
         });
-        return undefined;
+        return {};
       }
 
       const loaded = JSON.parse(text);
 
-      if (
-        loaded?.lazerLookupEnabled === undefined &&
-        loaded?.experimentalLazerLookup !== undefined
-      ) {
-        loaded.lazerLookupEnabled = loaded.experimentalLazerLookup;
-      }
-
       if (loaded?.receivePrereleases === undefined) {
         loaded.receivePrereleases = inferredReceivePrereleases;
+      }
+
+      let beatmapViewMode: BeatmapViewMode = defaultSettings.beatmapViewMode;
+      if (
+        loaded?.beatmapViewMode === 'stable' ||
+        loaded?.beatmapViewMode === 'lazer' ||
+        loaded?.beatmapViewMode === 'both'
+      ) {
+        beatmapViewMode = loaded.beatmapViewMode;
+      } else if (typeof loaded?.lazerLookupEnabled === 'boolean') {
+        // Migrated from the old experimental toggle: enabled meant both libraries were browsable.
+        beatmapViewMode = loaded.lazerLookupEnabled ? 'both' : 'stable';
       }
 
       setSettings({
@@ -135,20 +156,27 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         bookmarkedFolders: Array.isArray(loaded?.bookmarkedFolders)
           ? loaded.bookmarkedFolders
           : defaultSettings.bookmarkedFolders,
+        beatmapViewMode,
+        beatmapLookupMode: loaded?.beatmapLookupMode === 'lazer' ? 'lazer' : 'stable',
         uiFontFamily: parseUiFontFamily(loaded?.uiFontFamily),
         timelineThemeVariant: parseTimelineThemeVariant(loaded?.timelineThemeVariant ?? null),
       });
 
       const savedSongFolder =
         typeof loaded?.songFolder === 'string' ? loaded.songFolder.trim() : undefined;
-      return savedSongFolder || undefined;
+      const savedLazerDataDir =
+        typeof loaded?.lazerDataDir === 'string' ? loaded.lazerDataDir.trim() : undefined;
+      return {
+        savedSongFolder: savedSongFolder || undefined,
+        savedLazerDataDir: savedLazerDataDir || undefined,
+      };
     } catch (e) {
       console.error('[Settings] Error loading settings. Using defaults.', e);
       setSettings({
         ...defaultSettings,
         receivePrereleases: inferredReceivePrereleases,
       });
-      return undefined;
+      return {};
     } finally {
       setLoaded(true);
     }
@@ -183,13 +211,33 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
+  async function findLazerDataDirAndSet(savedLazerDataDir?: string) {
+    if (savedLazerDataDir) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`${BACKEND_BASE_URL}/beatmap/lazer/dataDir`);
+
+      if (res.ok) {
+        const data = await res.json();
+        const lazerDataDir = data.lazerDataDir;
+        setSettings((prev) => ({ ...prev, lazerDataDir }));
+      }
+    } catch (e) {
+      console.error('[Settings] Error finding lazer data folder:', e);
+    }
+  }
+
   useEffect(() => {
     let cancelled = false;
 
     void Promise.resolve().then(() => {
       if (cancelled) return;
-      loadSettings().then((savedSongFolder) => {
-        if (!cancelled) findOsuLocationAndSet(savedSongFolder);
+      loadSettings().then(({ savedSongFolder, savedLazerDataDir }) => {
+        if (cancelled) return;
+        findOsuLocationAndSet(savedSongFolder);
+        findLazerDataDirAndSet(savedLazerDataDir);
       });
     });
 

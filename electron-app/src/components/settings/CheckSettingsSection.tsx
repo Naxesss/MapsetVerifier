@@ -60,9 +60,10 @@ export default function CheckSettingsSection() {
           control={
             <Switch
               checked={settings.showMinor}
-              onChange={(e) =>
-                setSettings((prev) => ({ ...prev, showMinor: e.currentTarget.checked }))
-              }
+              onChange={(e) => {
+                const checked = e.currentTarget.checked;
+                setSettings((prev) => ({ ...prev, showMinor: checked }));
+              }}
             />
           }
         />
@@ -123,12 +124,13 @@ export default function CheckSettingsSection() {
           control={
             <Switch
               checked={settings.showGamemodeDifficultyNames}
-              onChange={(e) =>
+              onChange={(e) => {
+                const checked = e.currentTarget.checked;
                 setSettings((prev) => ({
                   ...prev,
-                  showGamemodeDifficultyNames: e.currentTarget.checked,
-                }))
-              }
+                  showGamemodeDifficultyNames: checked,
+                }));
+              }}
             />
           }
         />
@@ -138,12 +140,13 @@ export default function CheckSettingsSection() {
           control={
             <Switch
               checked={settings.goToChecksOnMapsetSwitch}
-              onChange={(e) =>
+              onChange={(e) => {
+                const checked = e.currentTarget.checked;
                 setSettings((prev) => ({
                   ...prev,
-                  goToChecksOnMapsetSwitch: e.currentTarget.checked,
-                }))
-              }
+                  goToChecksOnMapsetSwitch: checked,
+                }));
+              }}
             />
           }
         />
@@ -153,12 +156,13 @@ export default function CheckSettingsSection() {
           control={
             <Switch
               checked={settings.autoCreateSnapshotOnCheckRun}
-              onChange={(e) =>
+              onChange={(e) => {
+                const checked = e.currentTarget.checked;
                 setSettings((prev) => ({
                   ...prev,
-                  autoCreateSnapshotOnCheckRun: e.currentTarget.checked,
-                }))
-              }
+                  autoCreateSnapshotOnCheckRun: checked,
+                }));
+              }}
             />
           }
         />
@@ -168,9 +172,10 @@ export default function CheckSettingsSection() {
           control={
             <Switch
               checked={settings.showCheckRunDelta}
-              onChange={(e) =>
-                setSettings((prev) => ({ ...prev, showCheckRunDelta: e.currentTarget.checked }))
-              }
+              onChange={(e) => {
+                const checked = e.currentTarget.checked;
+                setSettings((prev) => ({ ...prev, showCheckRunDelta: checked }));
+              }}
             />
           }
         />
@@ -181,12 +186,13 @@ export default function CheckSettingsSection() {
             control={
               <Switch
                 checked={settings.checkRunDeltaShowUnchanged}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const checked = e.currentTarget.checked;
                   setSettings((prev) => ({
                     ...prev,
-                    checkRunDeltaShowUnchanged: e.currentTarget.checked,
-                  }))
-                }
+                    checkRunDeltaShowUnchanged: checked,
+                  }));
+                }}
               />
             }
           />
