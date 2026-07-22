@@ -18,9 +18,10 @@ export default function DeveloperSettingsSection() {
         control={
           <Switch
             checked={settings.gateInDev}
-            onChange={(e) =>
-              setSettings((prev) => ({ ...prev, gateInDev: e.currentTarget.checked }))
-            }
+            onChange={(e) => {
+              const checked = e.currentTarget.checked;
+              setSettings((prev) => ({ ...prev, gateInDev: checked }));
+            }}
           />
         }
       />

@@ -62,7 +62,8 @@ export default function ExperimentalSettingsSection() {
             <Switch
               checked={settings.bookmarksEnabled}
               onChange={(e) => {
-                setSettings((prev) => ({ ...prev, bookmarksEnabled: e.currentTarget.checked }));
+                const checked = e.currentTarget.checked;
+                setSettings((prev) => ({ ...prev, bookmarksEnabled: checked }));
               }}
             />
           }
