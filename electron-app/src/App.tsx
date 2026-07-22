@@ -9,6 +9,7 @@ import ErrorBoundary from './components/common/ErrorBoundary.tsx';
 import RouteErrorBoundary from './components/common/RouteErrorBoundary.tsx';
 import NavBars from './components/navbar/NavBars.tsx';
 import UpdaterModal from './components/settings/UpdaterModal';
+import SetupWizardGate from './components/setup/SetupWizardGate.tsx';
 import WindowBar from './components/window/WindowBar.tsx';
 import { BeatmapProvider, useBeatmap } from './context/BeatmapContext.tsx';
 import { BeatmapReparseProvider } from './context/BeatmapReparseRegistry.tsx';
@@ -63,46 +64,48 @@ function AppContent() {
           <BeatmapProvider>
             <PageHintsProvider>
               <BackendGate>
-                <DocumentationProvider>
-                  <AppShell
-                    header={{ height: 92 }}
-                    navbar={{
-                      width: '256',
-                      breakpoint: 'xs',
-                      collapsed: {
-                        desktop: !isNavbarOpened,
-                        mobile: false,
-                      },
-                    }}
-                  >
-                    <BeatmapReparseProvider>
-                      {!isSettingsRoute && <BeatmapSelectionNavigator />}
-                      <NavBars
-                        desktopOpened={isNavbarOpened}
-                        showBeatmapSidebar={!isSettingsRoute}
-                        toggleDesktop={isSettingsRoute ? undefined : toggleDesktop}
-                      />
-                      <AppShell.Main pb={isSettingsRoute ? 0 : undefined}>
-                        <ScrollArea
-                          offsetScrollbars
-                          type="always"
-                          scrollbars={isSettingsRoute ? 'y' : undefined}
-                          h="calc(100vh - var(--app-shell-header-offset, 0rem) + var(--app-shell-padding))"
-                        >
-                          <Container
-                            py={isSettingsRoute ? 0 : 'sm'}
-                            px={isSettingsRoute ? 0 : 'sm'}
-                            fluid
+                <SetupWizardGate>
+                  <DocumentationProvider>
+                    <AppShell
+                      header={{ height: 92 }}
+                      navbar={{
+                        width: '256',
+                        breakpoint: 'xs',
+                        collapsed: {
+                          desktop: !isNavbarOpened,
+                          mobile: false,
+                        },
+                      }}
+                    >
+                      <BeatmapReparseProvider>
+                        {!isSettingsRoute && <BeatmapSelectionNavigator />}
+                        <NavBars
+                          desktopOpened={isNavbarOpened}
+                          showBeatmapSidebar={!isSettingsRoute}
+                          toggleDesktop={isSettingsRoute ? undefined : toggleDesktop}
+                        />
+                        <AppShell.Main pb={isSettingsRoute ? 0 : undefined}>
+                          <ScrollArea
+                            offsetScrollbars
+                            type="always"
+                            scrollbars={isSettingsRoute ? 'y' : undefined}
+                            h="calc(100vh - var(--app-shell-header-offset, 0rem) + var(--app-shell-padding))"
                           >
-                            <RouteErrorBoundary>
-                              <BeatmapKeyedOutlet />
-                            </RouteErrorBoundary>
-                          </Container>
-                        </ScrollArea>
-                      </AppShell.Main>
-                    </BeatmapReparseProvider>
-                  </AppShell>
-                </DocumentationProvider>
+                            <Container
+                              py={isSettingsRoute ? 0 : 'sm'}
+                              px={isSettingsRoute ? 0 : 'sm'}
+                              fluid
+                            >
+                              <RouteErrorBoundary>
+                                <BeatmapKeyedOutlet />
+                              </RouteErrorBoundary>
+                            </Container>
+                          </ScrollArea>
+                        </AppShell.Main>
+                      </BeatmapReparseProvider>
+                    </AppShell>
+                  </DocumentationProvider>
+                </SetupWizardGate>
               </BackendGate>
             </PageHintsProvider>
           </BeatmapProvider>

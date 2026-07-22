@@ -49,6 +49,8 @@ export type Settings = {
   bookmarkedFolders: string[];
   // DEV-only: whether to gate Backend in development mode
   gateInDev: boolean;
+  /** Whether the user has completed the first-launch setup wizard. */
+  hasCompletedSetup: boolean;
 };
 
 // Context type includes settings and setter
@@ -80,6 +82,7 @@ const defaultSettings: Settings = {
   bookmarksEnabled: false,
   bookmarkedFolders: [],
   gateInDev: false,
+  hasCompletedSetup: false,
 };
 
 async function resolveDefaultReceivePrereleases() {
