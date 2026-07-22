@@ -8,6 +8,9 @@ import type { TimelineThemeVariant } from '../components/overview/objects/timeli
 /** What the Star Rating overview chart shows by default: the cumulative line, the strain overlay, or both. */
 export type DifficultyStrainDisplayMode = 'both' | 'starRatingOnly' | 'strainOnly';
 
+/** Which beatmap library/libraries the sidebar reads from. */
+export type BeatmapViewMode = 'stable' | 'lazer' | 'both';
+
 // Type-safe Settings type
 export type Settings = {
   songFolder?: string;
@@ -22,8 +25,9 @@ export type Settings = {
   difficultyStrainDisplayMode: DifficultyStrainDisplayMode;
   /** Excludes osu!standard's Aim skill(s) from the combined strain line. */
   excludeAimFromCombinedStrain: boolean;
-  lazerLookupEnabled: boolean;
-  /** Last selected stable/lazer tab on the beatmaps list. Ignored when lazerLookupEnabled is off. */
+  /** Which beatmap library/libraries the sidebar reads from. */
+  beatmapViewMode: BeatmapViewMode;
+  /** Last selected stable/lazer tab on the beatmaps list. Only used when beatmapViewMode is 'both'. */
   beatmapLookupMode: 'stable' | 'lazer';
   receivePrereleases: boolean;
   uiFontFamily: UiFontFamily;
@@ -63,7 +67,7 @@ const defaultSettings: Settings = {
   showAdvancedAudioAnalysis: false,
   difficultyStrainDisplayMode: 'strainOnly',
   excludeAimFromCombinedStrain: true,
-  lazerLookupEnabled: false,
+  beatmapViewMode: 'stable',
   beatmapLookupMode: 'stable',
   receivePrereleases: false,
   uiFontFamily: DEFAULT_UI_FONT_FAMILY,
@@ -128,6 +132,18 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         loaded.receivePrereleases = inferredReceivePrereleases;
       }
 
+      let beatmapViewMode: BeatmapViewMode = defaultSettings.beatmapViewMode;
+      if (
+        loaded?.beatmapViewMode === 'stable' ||
+        loaded?.beatmapViewMode === 'lazer' ||
+        loaded?.beatmapViewMode === 'both'
+      ) {
+        beatmapViewMode = loaded.beatmapViewMode;
+      } else if (typeof loaded?.lazerLookupEnabled === 'boolean') {
+        // Migrated from the old experimental toggle: enabled meant both libraries were browsable.
+        beatmapViewMode = loaded.lazerLookupEnabled ? 'both' : 'stable';
+      }
+
       setSettings({
         ...defaultSettings,
         ...loaded,
@@ -137,6 +153,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         bookmarkedFolders: Array.isArray(loaded?.bookmarkedFolders)
           ? loaded.bookmarkedFolders
           : defaultSettings.bookmarkedFolders,
+        beatmapViewMode,
         beatmapLookupMode: loaded?.beatmapLookupMode === 'lazer' ? 'lazer' : 'stable',
         uiFontFamily: parseUiFontFamily(loaded?.uiFontFamily),
         timelineThemeVariant: parseTimelineThemeVariant(loaded?.timelineThemeVariant ?? null),

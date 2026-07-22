@@ -6,19 +6,14 @@ import { useSettings } from '../../context/SettingsContext';
 interface Props {
   songFolder?: string;
   lazerDataDir?: string;
-  lazerLookupEnabled: boolean;
   onOpenSettings: () => void;
 }
 
-export default function BeatmapsList({
-  songFolder,
-  lazerDataDir,
-  lazerLookupEnabled,
-  onOpenSettings,
-}: Props) {
+export default function BeatmapsList({ songFolder, lazerDataDir, onOpenSettings }: Props) {
   const { settings, setSettings } = useSettings();
-  const lookupMode = settings.beatmapLookupMode;
-  const effectiveLookupMode = !lazerLookupEnabled ? 'stable' : lookupMode;
+  const viewMode = settings.beatmapViewMode;
+  const showModeSwitch = viewMode === 'both';
+  const effectiveLookupMode = showModeSwitch ? settings.beatmapLookupMode : viewMode;
   const stableEnabled = effectiveLookupMode === 'stable';
 
   return (
@@ -30,7 +25,7 @@ export default function BeatmapsList({
         position: 'relative',
       }}
     >
-      {lazerLookupEnabled && (
+      {showModeSwitch && (
         <Flex direction="column" gap="sm" p="xs">
           <SegmentedControl
             fullWidth
