@@ -81,9 +81,20 @@ function registerIpc(getMainWindow) {
       throw e;
     }
   });
-  ipcMain.handle('settings:write', async (_e, text) => {
-    await ensureConfigDir();
-    await fs.writeFile(settingsPath(), typeof text === 'string' ? text : JSON.stringify(text, null, 2), 'utf-8');
+  let settingsWriteQueue = Promise.resolve();
+  ipcMain.handle('settings:write', (_e, text) => {
+    const payload = typeof text === 'string' ? text : JSON.stringify(text, null, 2);
+    // Chain onto the previous write so concurrent invokes can't land out of order
+    // and silently revert an earlier save with a stale snapshot (see issue #122).
+    settingsWriteQueue = settingsWriteQueue
+      .then(async () => {
+        await ensureConfigDir();
+        await fs.writeFile(settingsPath(), payload, 'utf-8');
+      })
+      .catch((e) => {
+        console.error('[Settings] Error writing settings:', e);
+      });
+    return settingsWriteQueue;
   });
 
   ipcMain.handle('backend:status', () => ({
