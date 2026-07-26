@@ -259,7 +259,8 @@ public class BeatmapController : ControllerBase
             var result = BeatmapService.RunBeatmapSetChecks(
                 request.Folder,
                 includeCheckRunDelta: request.IncludeCheckRunDelta,
-                createSnapshot: request.CreateSnapshot
+                createSnapshot: request.CreateSnapshot,
+                includeCheckTimings: request.IncludeCheckTimings
             );
             return Ok(result);
         }
@@ -325,7 +326,8 @@ public class BeatmapController : ControllerBase
                         beatmapSet,
                         progress,
                         request.IncludeCheckRunDelta,
-                        request.CreateSnapshot
+                        request.CreateSnapshot,
+                        request.IncludeCheckTimings
                     );
                     channel.Writer.TryWrite(("complete", result));
                 }

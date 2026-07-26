@@ -383,18 +383,26 @@ public static class BeatmapService
         string beatmapSetFolder,
         IProgress<CheckProgress>? progress = null,
         bool includeCheckRunDelta = true,
-        bool createSnapshot = true
+        bool createSnapshot = true,
+        bool includeCheckTimings = false
     )
     {
         var (beatmapSet, _) = ParseBeatmapSet(beatmapSetFolder);
-        return RunBeatmapSetChecks(beatmapSet, progress, includeCheckRunDelta, createSnapshot);
+        return RunBeatmapSetChecks(
+            beatmapSet,
+            progress,
+            includeCheckRunDelta,
+            createSnapshot,
+            includeCheckTimings
+        );
     }
 
     public static ApiBeatmapSetCheckResult RunBeatmapSetChecks(
         BeatmapSet beatmapSet,
         IProgress<CheckProgress>? progress = null,
         bool includeCheckRunDelta = true,
-        bool createSnapshot = true
+        bool createSnapshot = true,
+        bool includeCheckTimings = false
     )
     {
         if (createSnapshot)
@@ -409,7 +417,12 @@ public static class BeatmapService
             }
         }
 
-        var issues = Checker.GetBeatmapSetIssues(beatmapSet, progress);
+        var issues = Checker.GetBeatmapSetIssues(
+            beatmapSet,
+            progress,
+            includeCheckTimings,
+            out var checkTimings
+        );
         var result = BuildBeatmapSetCheckResult(beatmapSet, issues);
         var delta = includeCheckRunDelta
             ? CheckRunHistoryService.BuildDeltaAndRememberCurrent(beatmapSet, result)
@@ -419,7 +432,8 @@ public static class BeatmapService
             general: result.General,
             difficulties: result.Difficulties,
             checks: result.Checks,
-            checkRunDelta: delta
+            checkRunDelta: delta,
+            checkTimings: checkTimings
         );
     }
 

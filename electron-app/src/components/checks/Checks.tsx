@@ -65,6 +65,7 @@ function Checks() {
     songFolder: settings.songFolder,
     includeCheckRunDelta: settings.showCheckRunDelta,
     createSnapshot: settings.autoCreateSnapshotOnCheckRun,
+    includeCheckTimings: settings.showCheckSpeedStats,
   });
   const areCheckResultsExpanded = !!data && !isLoading && !isFetching;
   const levelIconsLoading = isLoading;
@@ -131,6 +132,7 @@ function Checks() {
     checkRunDeltaShowUnchanged: settings.checkRunDeltaShowUnchanged,
     beatmapFolderPath,
     onCheckRunHistoryCleared: handleCheckRunHistoryCleared,
+    showCheckSpeedStats: settings.showCheckSpeedStats,
   };
 
   const categoryHighestLevels = useMemo(() => {

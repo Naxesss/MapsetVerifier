@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Reflection;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
@@ -74,6 +75,17 @@ namespace MapsetVerifier.Framework
         public static List<Issue> GetBeatmapSetIssues(
             BeatmapSet beatmapSet,
             IProgress<CheckProgress>? progress = null
+        ) => GetBeatmapSetIssues(beatmapSet, progress, collectTimings: false, out _);
+
+        /// <summary>
+        ///     Same as the other overload, except optionally collects how long each check invocation took
+        ///     (per difficulty for beatmap-wise checks), meant for developer-facing performance diagnostics.
+        /// </summary>
+        public static List<Issue> GetBeatmapSetIssues(
+            BeatmapSet beatmapSet,
+            IProgress<CheckProgress>? progress,
+            bool collectTimings,
+            out CheckTimingReport? timingReport
         )
         {
             var issueBag = new ConcurrentBag<Issue>();
@@ -85,6 +97,9 @@ namespace MapsetVerifier.Framework
                 tracker = new CheckProgressTracker(total, progress);
                 progress.Report(new CheckProgress(0, total, []));
             }
+
+            var timings = collectTimings ? new ConcurrentBag<CheckTiming>() : null;
+            var totalStopwatch = collectTimings ? Stopwatch.StartNew() : null;
 
             TryGetIssuesParallel(
                 CheckerRegistry.GetGeneralChecks(),
@@ -99,6 +114,7 @@ namespace MapsetVerifier.Framework
                         issueBag.Add(issue.WithOrigin(generalCheck));
                 },
                 tracker,
+                timings,
                 check => check.GetMetadata().Message
             );
 
@@ -121,8 +137,9 @@ namespace MapsetVerifier.Framework
                                 issueBag.Add(issue.WithOrigin(beatmapCheck));
                         },
                         tracker,
-                        check =>
-                            $"{check.GetMetadata().Message} [{beatmap.MetadataSettings.version}]"
+                        timings,
+                        check => check.GetMetadata().Message,
+                        _ => beatmap.MetadataSettings.version
                     );
                 }
             );
@@ -140,8 +157,17 @@ namespace MapsetVerifier.Framework
                         issueBag.Add(issue.WithOrigin(beatmapSetCheck));
                 },
                 tracker,
+                timings,
                 check => check.GetMetadata().Message
             );
+
+            timingReport = collectTimings
+                ? new CheckTimingReport
+                {
+                    Checks = timings!.OrderByDescending(timing => timing.ElapsedMs).ToList(),
+                    TotalElapsedMs = totalStopwatch!.ElapsedMilliseconds,
+                }
+                : null;
 
             return issueBag.OrderByDescending(issue => issue.level).ToList();
         }
@@ -184,15 +210,20 @@ namespace MapsetVerifier.Framework
             IEnumerable<T> checks,
             Action<T> action,
             CheckProgressTracker? tracker,
-            Func<T, string>? getLabel = null
+            ConcurrentBag<CheckTiming>? timings,
+            Func<T, string>? getName = null,
+            Func<T, string?>? getDifficulty = null
         )
             where T : Check =>
             Parallel.ForEach(
                 checks,
                 check =>
                 {
-                    var label = getLabel?.Invoke(check) ?? check.GetMetadata().Message;
+                    var name = getName?.Invoke(check) ?? check.GetMetadata().Message;
+                    var difficulty = getDifficulty?.Invoke(check);
+                    var label = difficulty != null ? $"{name} [{difficulty}]" : name;
                     var taskId = tracker?.ReportStarted(label);
+                    var stopwatch = timings != null ? Stopwatch.StartNew() : null;
 
                     try
                     {
@@ -208,6 +239,11 @@ namespace MapsetVerifier.Framework
                     {
                         if (taskId.HasValue)
                             tracker?.ReportCompleted(taskId.Value);
+
+                        if (stopwatch != null)
+                            timings!.Add(
+                                new CheckTiming(name, difficulty, stopwatch.ElapsedMilliseconds)
+                            );
                     }
                 }
             );

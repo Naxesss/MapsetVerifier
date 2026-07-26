@@ -39,6 +39,19 @@ export default function DeveloperSettingsSection() {
           </Button>
         }
       />
+      <SettingsRow
+        title="Show check speed stats"
+        description="Shows how long each check took to run, plus the combined check run time, on the checks tab."
+        control={
+          <Switch
+            checked={settings.showCheckSpeedStats}
+            onChange={(e) => {
+              const checked = e.currentTarget.checked;
+              setSettings((prev) => ({ ...prev, showCheckSpeedStats: checked }));
+            }}
+          />
+        }
+      />
       <Alert icon={<IconNote />} title="Note" color="yellow" variant="light">
         <Text size="sm">
           This requires the sidecar to be built beforehand and available in{' '}
