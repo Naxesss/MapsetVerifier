@@ -417,47 +417,61 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             var sortedEdgeTimes = edgeTimes.OrderBy(time => time).ToList();
 
             // Edges with no counterpart within 3 ms in the other diff — computed once per direction.
-            var missingEdgeTimes = GetMissingEdgeTimes(edgeTimes, sortedOtherEdgeTimes);
-            var otherMissingEdgeTimes = GetMissingEdgeTimes(otherEdgeTimes, sortedEdgeTimes);
+            // Kept sorted so matching below can binary-search a narrow time window instead of scanning everything.
+            var missingEdgeTimes = GetMissingEdgeTimes(edgeTimes, sortedOtherEdgeTimes)
+                .OrderBy(time => time)
+                .ToList();
+            var otherMissingEdgeTimes = GetMissingEdgeTimes(otherEdgeTimes, sortedEdgeTimes)
+                .OrderBy(time => time)
+                .ToList();
 
             // Pair up nearby missing edges that could be mistaken for each other (see GetConsistencyRange).
             foreach (var missingEdgeTime in missingEdgeTimes)
-            foreach (var otherMissingEdgeTime in otherMissingEdgeTimes)
             {
-                var timeDifference = Math.Abs(missingEdgeTime - otherMissingEdgeTime);
-
-                if (timeDifference <= EdgeMatchToleranceMs)
-                    // If both maps somehow claim they have an object the other does not at the same time, we skip that case.
-                    continue;
-
                 var line = otherBeatmap.GetTimingLine<UninheritedLine>(missingEdgeTime);
                 if (line == null)
-                {
                     continue;
-                }
 
                 var msPerBeat = line.msPerBeat;
 
-                if (timeDifference >= msPerBeat)
-                    // Edges a beat apart or more should not be flagged as inconsistent, so skip those cases.
-                    continue;
+                // Only otherMissingEdgeTimes within one beat can ever satisfy the `timeDifference >= msPerBeat` check
+                // below, so we only need to scan that narrow window instead of every missing edge in the other diff.
+                var startIndex = LowerBound(otherMissingEdgeTimes, missingEdgeTime - msPerBeat);
 
-                var consistencyRange = GetConsistencyRange(
-                    otherBeatmap,
-                    missingEdgeTime,
-                    msPerBeat,
-                    otherMissingEdgeTime
-                );
+                for (var index = startIndex; index < otherMissingEdgeTimes.Count; index++)
+                {
+                    var otherMissingEdgeTime = otherMissingEdgeTimes[index];
 
-                if (
-                    missingEdgeTime + consistencyRange > otherMissingEdgeTime
-                    && missingEdgeTime - consistencyRange < otherMissingEdgeTime
-                )
-                    yield return new Inconsistency(
+                    if (otherMissingEdgeTime >= missingEdgeTime + msPerBeat)
+                        break;
+
+                    var timeDifference = Math.Abs(missingEdgeTime - otherMissingEdgeTime);
+
+                    if (timeDifference <= EdgeMatchToleranceMs)
+                        // If both maps somehow claim they have an object the other does not at the same time, we skip that case.
+                        continue;
+
+                    if (timeDifference >= msPerBeat)
+                        // Edges a beat apart or more should not be flagged as inconsistent, so skip those cases.
+                        continue;
+
+                    var consistencyRange = GetConsistencyRange(
+                        otherBeatmap,
                         missingEdgeTime,
-                        otherMissingEdgeTime,
-                        otherBeatmap
+                        msPerBeat,
+                        otherMissingEdgeTime
                     );
+
+                    if (
+                        missingEdgeTime + consistencyRange > otherMissingEdgeTime
+                        && missingEdgeTime - consistencyRange < otherMissingEdgeTime
+                    )
+                        yield return new Inconsistency(
+                            missingEdgeTime,
+                            otherMissingEdgeTime,
+                            otherBeatmap
+                        );
+                }
             }
         }
 
