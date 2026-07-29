@@ -43,6 +43,54 @@ namespace MapsetVerifier.Framework.Objects.Resources
 
         private static void FreeStream(int stream) => Bass.StreamFree(stream);
 
+        /// <summary>
+        ///     Bundles the format, channel count, duration and bitrate of an audio file, all of which
+        ///     can be read from a single stream open, given the full path.
+        /// </summary>
+        public readonly record struct AudioMetadata(
+            ChannelType Format,
+            int Channels,
+            double DurationMs,
+            double Bitrate
+        );
+
+        /// <summary>
+        ///     Returns the format, channel count, duration and bitrate of the audio file in a single
+        ///     stream open, given the full path. Prefer this over the individual getters below when more
+        ///     than one of these properties is needed for the same file.
+        /// </summary>
+        public static AudioMetadata GetMetadata(string filePath)
+        {
+            lock (locks.GetOrAdd(filePath, new object()))
+            {
+                var stream = CreateStream(filePath);
+
+                Bass.ChannelGetInfo(stream, out var channelInfo);
+                var bitrate = Bass.ChannelGetAttribute(stream, ChannelAttribute.Bitrate);
+
+                var length = Bass.ChannelGetLength(stream);
+                var durationMs = 0d;
+
+                // ChannelGetLength/ChannelBytes2Seconds return -1 on error (e.g. empty files).
+                if (length >= 0)
+                {
+                    var seconds = Bass.ChannelBytes2Seconds(stream, length);
+
+                    if (seconds >= 0)
+                        durationMs = seconds * 1000;
+                }
+
+                FreeStream(stream);
+
+                return new AudioMetadata(
+                    channelInfo.ChannelType,
+                    channelInfo.Channels,
+                    durationMs,
+                    bitrate
+                );
+            }
+        }
+
         /// <summary> Returns the format of the audio file (e.g. mp3, wav, etc), given the full path. </summary>
         public static ChannelType GetFormat(string filePath)
         {

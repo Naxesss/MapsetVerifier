@@ -75,7 +75,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
                 try
                 {
-                    duration = AudioBASS.GetDuration(hsPath);
+                    duration = AudioFileCache.GetDuration(hsPath);
                 }
                 catch (Exception ex)
                 {

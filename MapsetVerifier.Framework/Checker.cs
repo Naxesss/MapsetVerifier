@@ -4,6 +4,7 @@ using System.Reflection;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
+using MapsetVerifier.Framework.Objects.Resources;
 using MapsetVerifier.Parser.Objects;
 using Serilog;
 
@@ -88,6 +89,11 @@ namespace MapsetVerifier.Framework
             out CheckTimingReport? timingReport
         )
         {
+            // Scopes the audio decode cache to a single run, so checks inspecting the same
+            // audio files (e.g. hit sound checks) share decoded data without leaking memory
+            // across runs in a long-running session (GUI/server).
+            AudioFileCache.Clear();
+
             var issueBag = new ConcurrentBag<Issue>();
             var total = CountCheckTasks(beatmapSet);
             CheckProgressTracker? tracker = null;
