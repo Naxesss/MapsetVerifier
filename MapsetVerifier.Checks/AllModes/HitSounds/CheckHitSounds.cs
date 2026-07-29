@@ -102,6 +102,10 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
 
             var issues = new List<Issue>();
 
+            // Cached once so the spinner lookup below doesn't rescan every hit object in the beatmap
+            // each time it's called, which made this check quadratic in the number of hit objects.
+            var spinners = beatmap.HitObjects.OfType<Spinner>().ToList();
+
             void ApplyFeedbackUpdate(
                 HitObject.HitSounds hitSound,
                 HitSample.SamplesetType sampleset,
@@ -144,11 +148,9 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
                         otherBreak.endTime > prevTime && otherBreak.endTime < hitObject.time
                     );
 
-                    var spinner = beatmap
-                        .HitObjects.OfType<Spinner>()
-                        .FirstOrDefault(otherSpinner =>
-                            otherSpinner.endTime > prevTime && otherSpinner.endTime < hitObject.time
-                        );
+                    var spinner = spinners.FirstOrDefault(otherSpinner =>
+                        otherSpinner.endTime > prevTime && otherSpinner.endTime < hitObject.time
+                    );
 
                     var excludeStart = @break?.time ?? (spinner?.time ?? -1);
                     var excludeEnd = @break?.endTime ?? (spinner?.endTime ?? -1);

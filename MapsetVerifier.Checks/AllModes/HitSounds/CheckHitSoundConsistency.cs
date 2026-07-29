@@ -107,13 +107,20 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
 
             var events = beatmaps.ToDictionary(beatmap => beatmap, GetHitSoundEvents);
 
-            var (comparable, unique) = SplitByConsistency(beatmaps, events);
+            // Looking up the event at a given time in another difficulty used to be a linear scan
+            // repeated for every event and every other difficulty, which made this check scale with
+            // the square of both the object count and the difficulty count. Bucketing each difficulty's
+            // events by time (matching the +-2 ms tolerance windows below) turns those lookups from
+            // O(events) into an O(1) average dictionary lookup.
+            var lookups = events.ToDictionary(kv => kv.Key, kv => new EventLookup(kv.Value));
+
+            var (comparable, unique) = SplitByConsistency(beatmaps, events, lookups);
 
             foreach (var beatmap in unique)
                 yield return new Issue(GetTemplate("Unique Hit Sounds"), beatmap);
 
             foreach (var beatmap in comparable)
-            foreach (var issue in GetMissingHitSoundIssues(beatmap, comparable, events))
+            foreach (var issue in GetMissingHitSoundIssues(beatmap, comparable, events, lookups))
                 yield return issue;
 
             foreach (var beatmap in beatmaps)
@@ -150,10 +157,58 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
                 HitObject.HitSounds.Clap,
             }.Where(addition => !from.HasFlag(addition) && to.HasFlag(addition));
 
-        private static HitSoundEvent? FindEventAtTime(
-            IEnumerable<HitSoundEvent> events,
-            double time
-        ) => events.FirstOrDefault(other => Math.Abs(other.Time - time) < 2);
+        /// <summary>
+        ///     Time-bucketed index over a difficulty's hit sound events, so events within the +-2 ms
+        ///     tolerance window of a given time can be found without scanning the whole list.
+        /// </summary>
+        private sealed class EventLookup
+        {
+            private const double ToleranceMs = 2;
+
+            private readonly Dictionary<long, List<(int Index, HitSoundEvent Event)>> _buckets =
+                new();
+
+            public EventLookup(List<HitSoundEvent> events)
+            {
+                for (var i = 0; i < events.Count; ++i)
+                {
+                    var bucket = BucketOf(events[i].Time);
+                    if (!_buckets.TryGetValue(bucket, out var candidates))
+                        _buckets[bucket] = candidates = [];
+
+                    candidates.Add((i, events[i]));
+                }
+            }
+
+            private static long BucketOf(double time) => (long)Math.Floor(time / ToleranceMs);
+
+            /// <summary> Returns the first (by original list order) event within tolerance of the given time, if any. </summary>
+            public HitSoundEvent? FindFirst(double time)
+            {
+                var minBucket = BucketOf(time - ToleranceMs);
+                var maxBucket = BucketOf(time + ToleranceMs);
+
+                var bestIndex = int.MaxValue;
+                HitSoundEvent? best = null;
+
+                for (var bucket = minBucket; bucket <= maxBucket; ++bucket)
+                {
+                    if (!_buckets.TryGetValue(bucket, out var candidates))
+                        continue;
+
+                    foreach (var (index, ev) in candidates)
+                    {
+                        if (Math.Abs(ev.Time - time) >= ToleranceMs || index >= bestIndex)
+                            continue;
+
+                        bestIndex = index;
+                        best = ev;
+                    }
+                }
+
+                return best;
+            }
+        }
 
         /// <summary>
         ///     Roughly measures how inconsistent each beatmap's hit sounds are compared to the rest of the set,
@@ -169,12 +224,13 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
 
         private static (List<Beatmap> Comparable, List<Beatmap> Unique) SplitByConsistency(
             List<Beatmap> beatmaps,
-            Dictionary<Beatmap, List<HitSoundEvent>> events
+            Dictionary<Beatmap, List<HitSoundEvent>> events,
+            Dictionary<Beatmap, EventLookup> lookups
         )
         {
             var inconsistencies = beatmaps.ToDictionary(
                 beatmap => beatmap,
-                beatmap => CountInconsistencies(beatmap, beatmaps, events)
+                beatmap => CountInconsistencies(beatmap, beatmaps, events, lookups)
             );
 
             var minInconsistency = inconsistencies.Values.Min();
@@ -206,7 +262,8 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
         private static int CountInconsistencies(
             Beatmap beatmap,
             List<Beatmap> otherBeatmaps,
-            Dictionary<Beatmap, List<HitSoundEvent>> events
+            Dictionary<Beatmap, List<HitSoundEvent>> events,
+            Dictionary<Beatmap, EventLookup> lookups
         )
         {
             var count = 0;
@@ -214,7 +271,7 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
             foreach (var ev in events[beatmap])
             foreach (var other in otherBeatmaps.Where(other => other != beatmap))
             {
-                var otherEvent = FindEventAtTime(events[other], ev.Time);
+                var otherEvent = lookups[other].FindFirst(ev.Time);
 
                 if (otherEvent != null && otherEvent.HitSound != ev.HitSound)
                     ++count;
@@ -226,7 +283,8 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
         private IEnumerable<Issue> GetMissingHitSoundIssues(
             Beatmap beatmap,
             List<Beatmap> comparable,
-            Dictionary<Beatmap, List<HitSoundEvent>> events
+            Dictionary<Beatmap, List<HitSoundEvent>> events,
+            Dictionary<Beatmap, EventLookup> lookups
         )
         {
             var otherBeatmaps = comparable.Where(other => other != beatmap).ToList();
@@ -238,7 +296,7 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
 
                 foreach (var other in otherBeatmaps)
                 {
-                    var otherEvent = FindEventAtTime(events[other], ev.Time);
+                    var otherEvent = lookups[other].FindFirst(ev.Time);
 
                     if (otherEvent == null)
                         continue;

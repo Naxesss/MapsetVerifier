@@ -78,13 +78,19 @@ namespace MapsetVerifier.Checks.Standard.Compose
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
         {
-            var observedDistances = new List<ObservedDistance>();
-
             const double ratioProblemThreshold = 15.0;
             const double ratioWarningThreshold = 4.0;
             const double ratioMinorThreshold = 2.0;
 
             const double snapLeniencyMs = 5;
+
+            // Bucket previously observed distances by delta time (rounded down to the nearest leniency
+            // window) and slider/circle-ness, the two things the lookup below filters on. Looking a
+            // distance up then only needs to check the handful of objects in nearby buckets instead of
+            // rescanning every hit object seen so far in the map, which made this check quadratic.
+            var buckets = new Dictionary<(long, bool), List<ObservedDistance>>();
+
+            long BucketOf(double dt) => (long)Math.Floor(dt / snapLeniencyMs);
 
             double deltaTime;
 
@@ -107,17 +113,34 @@ namespace MapsetVerifier.Checks.Standard.Compose
                 if (distance < 20)
                     distance = 20;
 
-                var sameSnappedDistances = observedDistances.FindAll(observedDistance =>
-                    deltaTime <= observedDistance.deltaTime + snapLeniencyMs
-                    && deltaTime >= observedDistance.deltaTime - snapLeniencyMs
-                    &&
-                    // Count the distances of sliders separately, as these have leniency unlike circles.
-                    observedDistance.hitObject is Slider
-                        == hitObject is Slider
-                );
+                // Count the distances of sliders separately, as these have leniency unlike circles.
+                var isSlider = hitObject is Slider;
+
+                var sameSnappedDistances = new List<ObservedDistance>();
+
+                var minBucket = BucketOf(deltaTime - snapLeniencyMs);
+                var maxBucket = BucketOf(deltaTime + snapLeniencyMs);
+
+                for (var bucket = minBucket; bucket <= maxBucket; ++bucket)
+                {
+                    if (!buckets.TryGetValue((bucket, isSlider), out var candidates))
+                        continue;
+
+                    foreach (var observedDistanceCandidate in candidates)
+                        if (
+                            deltaTime <= observedDistanceCandidate.deltaTime + snapLeniencyMs
+                            && deltaTime >= observedDistanceCandidate.deltaTime - snapLeniencyMs
+                        )
+                            sameSnappedDistances.Add(observedDistanceCandidate);
+                }
 
                 var observedDistance = new ObservedDistance(deltaTime, distance, hitObject);
-                observedDistances.Add(observedDistance);
+
+                var bucketKey = (BucketOf(deltaTime), isSlider);
+                if (!buckets.TryGetValue(bucketKey, out var bucketList))
+                    buckets[bucketKey] = bucketList = [];
+
+                bucketList.Add(observedDistance);
 
                 if (
                     !sameSnappedDistances.Any()
