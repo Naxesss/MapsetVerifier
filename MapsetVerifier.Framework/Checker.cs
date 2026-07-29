@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
@@ -89,13 +90,15 @@ namespace MapsetVerifier.Framework
             out CheckTimingReport? timingReport
         )
         {
-            // Scopes the audio decode cache to a single run, so checks inspecting the same
-            // audio files (e.g. hit sound checks) share decoded data without leaking memory
-            // across runs in a long-running session (GUI/server).
-            AudioFileCache.Clear();
+            var timings = collectTimings ? new ConcurrentBag<CheckTiming>() : null;
+            var totalStopwatch = collectTimings ? Stopwatch.StartNew() : null;
+
+            var hitSoundPaths = beatmapSet
+                .HitSoundFiles.Select(hsFile => Path.Combine(beatmapSet.SongPath, hsFile))
+                .ToList();
 
             var issueBag = new ConcurrentBag<Issue>();
-            var total = CountCheckTasks(beatmapSet);
+            var total = CountCheckTasks(beatmapSet) + hitSoundPaths.Count;
             CheckProgressTracker? tracker = null;
 
             if (progress != null)
@@ -104,8 +107,32 @@ namespace MapsetVerifier.Framework
                 progress.Report(new CheckProgress(0, total, []));
             }
 
-            var timings = collectTimings ? new ConcurrentBag<CheckTiming>() : null;
-            var totalStopwatch = collectTimings ? Stopwatch.StartNew() : null;
+            // Scopes the audio decode cache to a single run, so checks inspecting the same
+            // audio files (e.g. hit sound checks) share decoded data without leaking memory
+            // across runs in a long-running session (GUI/server).
+            AudioFileCache.Clear();
+
+            // Decoding hit sound audio is genuine, unavoidable CPU work once per file per run, and
+            // several checks need it (format, bitrate, length, delay, imbalance, silence). Warm the
+            // cache with full CPU parallelism across files up front, rather than relying on however
+            // many of those checks happen to be running concurrently to spread the decode work out.
+            // Reported as its own progress item (rather than one of the regular check tasks) so the
+            // UI shows something is happening while it's the only thing running.
+            var warmUpStopwatch = collectTimings ? Stopwatch.StartNew() : null;
+            var warmUpTaskId = tracker?.ReportStarted("Loading audio files");
+
+            AudioFileCache.WarmUp(
+                hitSoundPaths,
+                onFileWarmed: () => tracker?.ReportItemCompleted()
+            );
+
+            if (warmUpTaskId.HasValue)
+                tracker!.ReportLabelFinished(warmUpTaskId.Value);
+
+            if (warmUpStopwatch != null)
+                timings!.Add(
+                    new CheckTiming("Audio preload.", null, warmUpStopwatch.ElapsedMilliseconds)
+                );
 
             TryGetIssuesParallel(
                 CheckerRegistry.GetGeneralChecks(),
