@@ -5,6 +5,7 @@ import BeatmapOverview from './beatmap/BeatmapOverview.tsx';
 import DifficultyOverview from './difficulty/DifficultyOverview.tsx';
 import MetadataOverview from './metadata/MetadataOverview.tsx';
 import ObjectsOverview from './objects/ObjectsOverview.tsx';
+import VideoOverview from './video/VideoOverview.tsx';
 import { useBeatmap } from '../../context/BeatmapContext.tsx';
 import { useBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
 import { usePageHints } from '../../context/PageHintsContext.tsx';
@@ -14,7 +15,7 @@ import { useBeatmapBackground } from '../checks/hooks/useBeatmapBackground.ts';
 import BeatmapHeader from '../common/BeatmapHeader.tsx';
 import type { OverviewTab } from '../navbar/pageHints.tsx';
 
-const TABS: OverviewTab[] = ['Metadata', 'Objects', 'Beatmap', 'Difficulty', 'Audio'];
+const TABS: OverviewTab[] = ['Metadata', 'Objects', 'Beatmap', 'Difficulty', 'Audio', 'Video'];
 
 function Overview() {
   const theme = useMantineTheme();
@@ -71,6 +72,7 @@ function Overview() {
         {activeTab === 'Beatmap' && <BeatmapOverview />}
         {activeTab === 'Difficulty' && <DifficultyOverview />}
         {activeTab === 'Audio' && <AudioOverview />}
+        {activeTab === 'Video' && <VideoOverview />}
         {activeTab === 'Objects' && <ObjectsOverview />}
       </Box>
     </Box>

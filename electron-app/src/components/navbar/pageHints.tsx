@@ -4,7 +4,7 @@ import { getActiveNavRoute } from './navConfig.ts';
 import MinorIcon from '../icons/MinorIcon.tsx';
 import type { ReactNode } from 'react';
 
-export type OverviewTab = 'Metadata' | 'Beatmap' | 'Difficulty' | 'Audio' | 'Objects';
+export type OverviewTab = 'Metadata' | 'Beatmap' | 'Difficulty' | 'Audio' | 'Video' | 'Objects';
 
 export type PageHint = {
   id: string;
@@ -153,7 +153,7 @@ export function getPageHints(
   }
 
   if (route === '/overview') {
-    if (overviewTab === 'Audio' || overviewTab === 'Metadata') {
+    if (overviewTab === 'Audio' || overviewTab === 'Video' || overviewTab === 'Metadata') {
       return [refreshBeatmapHint()];
     }
 

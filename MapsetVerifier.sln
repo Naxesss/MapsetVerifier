@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapsetVerifier.Exports", "M
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapsetVerifier.Snapshots.Tests", "MapsetVerifier.Snapshots.Tests\MapsetVerifier.Snapshots.Tests.csproj", "{464E485F-4966-4BFE-9A23-F4377297A4F0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapsetVerifier.Framework.Tests", "MapsetVerifier.Framework.Tests\MapsetVerifier.Framework.Tests.csproj", "{45342482-E1D7-482D-B320-6ACD9A87BC50}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -163,6 +165,18 @@ Global
 		{464E485F-4966-4BFE-9A23-F4377297A4F0}.Release|x64.Build.0 = Release|Any CPU
 		{464E485F-4966-4BFE-9A23-F4377297A4F0}.Release|x86.ActiveCfg = Release|Any CPU
 		{464E485F-4966-4BFE-9A23-F4377297A4F0}.Release|x86.Build.0 = Release|Any CPU
+		{45342482-E1D7-482D-B320-6ACD9A87BC50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45342482-E1D7-482D-B320-6ACD9A87BC50}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45342482-E1D7-482D-B320-6ACD9A87BC50}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{45342482-E1D7-482D-B320-6ACD9A87BC50}.Debug|x64.Build.0 = Debug|Any CPU
+		{45342482-E1D7-482D-B320-6ACD9A87BC50}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{45342482-E1D7-482D-B320-6ACD9A87BC50}.Debug|x86.Build.0 = Debug|Any CPU
+		{45342482-E1D7-482D-B320-6ACD9A87BC50}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45342482-E1D7-482D-B320-6ACD9A87BC50}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45342482-E1D7-482D-B320-6ACD9A87BC50}.Release|x64.ActiveCfg = Release|Any CPU
+		{45342482-E1D7-482D-B320-6ACD9A87BC50}.Release|x64.Build.0 = Release|Any CPU
+		{45342482-E1D7-482D-B320-6ACD9A87BC50}.Release|x86.ActiveCfg = Release|Any CPU
+		{45342482-E1D7-482D-B320-6ACD9A87BC50}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
