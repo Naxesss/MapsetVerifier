@@ -98,6 +98,10 @@ public class VideoInfo
     public double DurationMs { get; set; }
     public string DurationFormatted { get; set; } = string.Empty;
     public int OffsetMs { get; set; }
+    public string? Codec { get; set; }
+    public double? FrameRate { get; set; }
+    public bool HasAudioTrack { get; set; }
+    public double BitrateKbps { get; set; }
     public List<string> UsedByDifficulties { get; set; } = [];
 }
 

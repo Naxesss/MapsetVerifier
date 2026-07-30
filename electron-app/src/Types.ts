@@ -511,7 +511,49 @@ export type VideoInfo = {
   durationMs: number;
   durationFormatted: string;
   offsetMs: number;
+  codec: string | null;
+  frameRate: number | null;
+  hasAudioTrack: boolean;
+  bitrateKbps: number;
   usedByDifficulties: string[];
+};
+
+export type VideoAnalysisResult = {
+  success: boolean;
+  errorMessage: string | null;
+  videos: VideoAnalysisEntry[];
+  complianceIssues: string[];
+  isCompliant: boolean;
+};
+
+export type VideoAnalysisEntry = {
+  fileName: string;
+  exists: boolean;
+  fileSizeBytes: number;
+  fileSizeFormatted: string;
+  container: string;
+  videoCodec: string | null;
+  videoCodecProfile: string | null;
+  width: number;
+  height: number;
+  resolution: string;
+  frameRate: number | null;
+  isVariableFrameRate: boolean;
+  videoBitrateKbps: number | null;
+  overallBitrateKbps: number;
+  hasAudioTrack: boolean;
+  audioCodec: string | null;
+  audioChannels: number;
+  audioSampleRate: number;
+  durationMs: number;
+  durationFormatted: string;
+  offsetMs: number;
+  usedByDifficulties: string[];
+  isCompliant: boolean;
+  complianceIssues: string[];
+  badgeType: string;
+  canPreview: boolean;
+  warnings: string[];
 };
 
 export type StoryboardInfo = {

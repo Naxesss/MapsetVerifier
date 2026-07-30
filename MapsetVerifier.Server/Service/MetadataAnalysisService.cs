@@ -208,39 +208,7 @@ public static class MetadataAnalysisService
                         OffsetMs = video.offset,
                         UsedByDifficulties = [],
                     };
-                    var fullPath = Path.Combine(beatmapSet.SongPath, video.path);
-
-                    if (File.Exists(fullPath))
-                    {
-                        try
-                        {
-                            var fileInfo = new FileInfo(fullPath);
-                            videoInfo.FileSizeBytes = fileInfo.Length;
-                            videoInfo.FileSizeFormatted = FormatFileSize(fileInfo.Length);
-                            var tagFile = new FileAbstraction(fullPath).GetTagFile();
-
-                            if (tagFile != null)
-                            {
-                                videoInfo.Width = tagFile.Properties.VideoWidth;
-                                videoInfo.Height = tagFile.Properties.VideoHeight;
-                                videoInfo.Resolution = $"{videoInfo.Width} × {videoInfo.Height}";
-                                videoInfo.DurationMs = tagFile
-                                    .Properties
-                                    .Duration
-                                    .TotalMilliseconds;
-                            }
-                            else
-                            {
-                                throw new Exception("Unsupported file format for video");
-                            }
-
-                            videoInfo.DurationFormatted = Timestamp.Get(videoInfo.DurationMs);
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Warning(ex, "Failed to get video info for {File}", video.path);
-                        }
-                    }
+                    PopulateVideoInfo(beatmapSet, videoInfo);
                     videos[video.path] = videoInfo;
                 }
                 videoInfo.UsedByDifficulties.Add(beatmap.MetadataSettings.version);
@@ -261,39 +229,47 @@ public static class MetadataAnalysisService
                     OffsetMs = video.offset,
                     UsedByDifficulties = ["(Storyboard)"],
                 };
-                var fullPath = Path.Combine(beatmapSet.SongPath, video.path);
-
-                if (File.Exists(fullPath))
-                {
-                    try
-                    {
-                        var fileInfo = new FileInfo(fullPath);
-                        videoInfo.FileSizeBytes = fileInfo.Length;
-                        videoInfo.FileSizeFormatted = FormatFileSize(fileInfo.Length);
-                        var tagFile = new FileAbstraction(fullPath).GetTagFile();
-                        if (tagFile != null)
-                        {
-                            videoInfo.Width = tagFile.Properties.VideoWidth;
-                            videoInfo.Height = tagFile.Properties.VideoHeight;
-                            videoInfo.Resolution = $"{videoInfo.Width} × {videoInfo.Height}";
-                            videoInfo.DurationMs = tagFile.Properties.Duration.TotalMilliseconds;
-                        }
-                        else
-                        {
-                            throw new Exception("Unsupported file format for video");
-                        }
-                        videoInfo.DurationFormatted = Timestamp.Get(videoInfo.DurationMs);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Warning(ex, "Failed to get video info for {File}", video.path);
-                    }
-                }
+                PopulateVideoInfo(beatmapSet, videoInfo);
                 videos[video.path] = videoInfo;
             }
         }
 
         return videos.Values.ToList();
+    }
+
+    /// <summary>
+    /// Fills in what the container headers tell us about a video, leaving the defaults in place when
+    /// the file is missing or unreadable.
+    /// </summary>
+    private static void PopulateVideoInfo(BeatmapSet beatmapSet, VideoInfo videoInfo)
+    {
+        var fullPath = Path.Combine(beatmapSet.SongPath, videoInfo.FileName);
+
+        if (!File.Exists(fullPath))
+            return;
+
+        try
+        {
+            var metadata = VideoMetadataReader.Read(fullPath);
+
+            videoInfo.FileSizeBytes = metadata.FileSizeBytes;
+            videoInfo.FileSizeFormatted = FormatFileSize(metadata.FileSizeBytes);
+            videoInfo.Width = metadata.Width;
+            videoInfo.Height = metadata.Height;
+            videoInfo.Resolution = $"{metadata.Width} × {metadata.Height}";
+            videoInfo.DurationMs = metadata.DurationMs;
+            videoInfo.DurationFormatted = DurationFormatter.Format(metadata.DurationMs);
+            videoInfo.Codec = metadata.VideoCodec;
+            videoInfo.FrameRate = metadata.FrameRate.HasValue
+                ? Math.Round(metadata.FrameRate.Value, 3)
+                : null;
+            videoInfo.HasAudioTrack = metadata.HasAudioTrack;
+            videoInfo.BitrateKbps = metadata.OverallBitrateBps / 1000.0;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to get video info for {File}", videoInfo.FileName);
+        }
     }
 
     private static StoryboardInfo GetStoryboardInfo(BeatmapSet beatmapSet)
@@ -455,14 +431,5 @@ public static class MetadataAnalysisService
         return totalSize;
     }
 
-    private static string FormatFileSize(long bytes)
-    {
-        if (bytes >= 1024 * 1024 * 1024)
-            return $"{bytes / (1024.0 * 1024.0 * 1024.0):0.##} GB";
-        if (bytes >= 1024 * 1024)
-            return $"{bytes / (1024.0 * 1024.0):0.##} MB";
-        if (bytes >= 1024)
-            return $"{bytes / 1024.0:0.##} KB";
-        return $"{bytes} B";
-    }
+    private static string FormatFileSize(long bytes) => FileSizeFormatter.Format(bytes);
 }
