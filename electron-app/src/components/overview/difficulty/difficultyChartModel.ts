@@ -80,15 +80,9 @@ function toChartPoints(samples: DifficultySamplePoint[]): DifficultyChartDataPoi
   }));
 }
 
-export type BuildChartsOptions = {
-  /** Excludes osu!standard's Aim skill(s) from the combined strain line. */
-  excludeAimFromCombinedStrain?: boolean;
-};
-
 export function buildCharts(
   difficulties: DifficultyOverviewDifficulty[],
-  msPerPeak?: number,
-  options: BuildChartsOptions = {}
+  msPerPeak?: number
 ): ChartDefinition[] {
   if (!msPerPeak || difficulties.length === 0) {
     return [];
@@ -100,7 +94,7 @@ export function buildCharts(
     .filter((series) => series.points.length > 0);
 
   const starRatingStrainSeries = difficulties
-    .map((difficulty) => buildCombinedStrainSeries(difficulty, options))
+    .map((difficulty) => buildCombinedStrainSeries(difficulty))
     .filter((series) => series.points.length > 0);
 
   if (starRatingSeries.length > 0 || starRatingStrainSeries.length > 0) {
@@ -206,12 +200,9 @@ function buildStarRatingSeries(difficulty: DifficultyOverviewDifficulty): Diffic
  * isn't in Star Rating units.
  */
 function buildCombinedStrainSeries(
-  difficulty: DifficultyOverviewDifficulty,
-  options: BuildChartsOptions
+  difficulty: DifficultyOverviewDifficulty
 ): DifficultyChartSeries {
-  const skills = options.excludeAimFromCombinedStrain
-    ? difficulty.skills.filter((skill) => !skill.skillName.startsWith('Aim'))
-    : difficulty.skills;
+  const skills = difficulty.skills;
 
   const bySkillTimeMs = skills[0]?.strainSamples.map((sample) => sample.timeMs) ?? [];
 

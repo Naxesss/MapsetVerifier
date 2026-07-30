@@ -2,6 +2,7 @@
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Catch.Difficulty;
 using osu.Game.Rulesets.Difficulty;
+using osu.Game.Rulesets.Difficulty.Preprocessing;
 using osu.Game.Rulesets.Difficulty.Skills;
 using osu.Game.Rulesets.Mods;
 using Beatmap = MapsetVerifier.Parser.Objects.Beatmap;
@@ -27,4 +28,8 @@ public class ExtendedCatchDifficultyCalculator(
         mvBeatmap.Skills = skills;
         return base.CreateDifficultyAttributes(beatmap, mods, mvBeatmap.Skills);
     }
+
+    protected override IEnumerable<DifficultyHitObject> SortObjects(
+        IEnumerable<DifficultyHitObject> input
+    ) => DifficultyObjectTimingCapture.Capture(base.SortObjects(input), mvBeatmap);
 }

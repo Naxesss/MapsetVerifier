@@ -23,8 +23,6 @@ export type Settings = {
   showAdvancedAudioAnalysis: boolean;
   /** What the Star Rating overview chart shows by default. */
   difficultyStrainDisplayMode: DifficultyStrainDisplayMode;
-  /** Excludes osu!standard's Aim skill(s) from the combined strain line. */
-  excludeAimFromCombinedStrain: boolean;
   /** Which beatmap library/libraries the sidebar reads from. */
   beatmapViewMode: BeatmapViewMode;
   /** Last selected stable/lazer tab on the beatmaps list. Only used when beatmapViewMode is 'both'. */
@@ -70,7 +68,6 @@ const defaultSettings: Settings = {
   showGamemodeDifficultyNames: true,
   showAdvancedAudioAnalysis: false,
   difficultyStrainDisplayMode: 'strainOnly',
-  excludeAimFromCombinedStrain: true,
   beatmapViewMode: 'stable',
   beatmapLookupMode: 'stable',
   receivePrereleases: false,

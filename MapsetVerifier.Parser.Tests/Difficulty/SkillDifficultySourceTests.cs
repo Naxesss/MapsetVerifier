@@ -1,3 +1,4 @@
+using MapsetVerifier.Parser.Difficulty;
 using MapsetVerifier.Parser.Objects;
 using osu.Game.Rulesets.Difficulty.Skills;
 using Xunit;
@@ -5,12 +6,11 @@ using Xunit;
 namespace MapsetVerifier.Parser.Tests.Difficulty;
 
 /// <summary>
-///     Canary for BeatmapAnalysisService's skill-sampling dispatch (GetSkillDifficultySamples):
-///     every skill must expose either GetCurrentStrainPeaks (StrainSkill/VariableLengthStrainSkill)
-///     or GetObjectDifficulties (all skills) so the overview charts have something to show. Rulesets
-///     have previously moved skills off StrainSkill (e.g. osu!std's Speed/Reading onto a
-///     HarmonicSkill base with no strain-peaks concept) without warning; this catches a future skill
-///     type that loses both.
+///     Canary for <see cref="SkillStrainTimeline" />: every skill must expose either section strain
+///     peaks (<see cref="StrainSkill" />) or per-object difficulties (all skills) so the overview
+///     charts have something to show. Rulesets have previously moved skills off
+///     <see cref="StrainSkill" /> (e.g. osu!std's Speed/Reading onto a HarmonicSkill base with no
+///     strain-peaks concept) without warning; this catches a future skill type that loses both.
 /// </summary>
 public class SkillDifficultySourceTests
 {
@@ -29,13 +29,13 @@ public class SkillDifficultySourceTests
 
         foreach (var skill in beatmap.Skills)
         {
-            var hasStrainPeaks = skill is StrainSkill or VariableLengthStrainSkill;
+            var hasStrainPeaks = skill is StrainSkill;
             var hasObjectDifficulties = skill.GetObjectDifficulties().Count > 0;
 
             Assert.True(
                 hasStrainPeaks || hasObjectDifficulties,
                 $"Skill {skill.GetType().FullName} exposes neither strain peaks nor object difficulties - "
-                    + "BeatmapAnalysisService.GetSkillDifficultySamples would silently show nothing for it."
+                    + "SkillStrainTimeline would silently show nothing for it."
             );
         }
     }
