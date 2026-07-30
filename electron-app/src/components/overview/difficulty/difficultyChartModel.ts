@@ -1,11 +1,10 @@
-import { clampColor, hexToRgb } from '../../../utils/color.ts';
+import { clampColor, parseColor } from '../../../utils/color.ts';
 import { MODE_ORDER, normalizeMode } from '../../../utils/gameMode.ts';
-import { getDifficultyLevelColor } from '../../common/DifficultyColor.ts';
+import { getDifficultyColor } from '../../common/DifficultyColor.ts';
 import { formatChartTime } from '../../common/TimeAxis.tsx';
 import type {
   DifficultyChartDataPoint,
   DifficultyChartSeries,
-  DifficultyLevel,
   DifficultyOverviewDifficulty,
   DifficultySamplePoint,
   Mode,
@@ -394,17 +393,19 @@ function getGraphColor(
   series: DifficultyChartSeries,
   previousSeries: DifficultyChartSeries[]
 ): string {
-  const baseColor = hexToRgb(getDifficultyLevelColor(series.difficultyLevel));
-  const difficultyLevel = normalizeDifficultyLevel(series.difficultyLevel);
-  const sameDifficultyCount = previousSeries.filter(
-    (item) => normalizeDifficultyLevel(item.difficultyLevel) === difficultyLevel
+  const baseValue = getDifficultyColor(series.starRating);
+  const baseColor = parseColor(baseValue);
+  const sameColorCount = previousSeries.filter(
+    (item) => getDifficultyColor(item.starRating) === baseValue
   ).length;
 
   let red = baseColor.r;
   let green = baseColor.g;
   let blue = baseColor.b;
 
-  for (let index = 0; index < sameDifficultyCount; index += 1) {
+  const dominant = Math.max(baseColor.r, baseColor.g, baseColor.b);
+
+  for (let index = 0; index < sameColorCount; index += 1) {
     const mult = 0.7;
     const multInverse = 1 / mult;
 
@@ -412,26 +413,12 @@ function getGraphColor(
     green *= mult;
     blue *= mult;
 
-    switch (difficultyLevel) {
-      case 'Easy':
-        green *= multInverse;
-        break;
-      case 'Normal':
-        blue *= multInverse;
-        break;
-      case 'Hard':
-      case 'Insane':
-      case 'Expert':
-        red *= multInverse;
-        break;
-    }
+    if (baseColor.r === dominant) red *= multInverse;
+    else if (baseColor.g === dominant) green *= multInverse;
+    else blue *= multInverse;
   }
 
   return `rgb(${clampColor(red)}, ${clampColor(green)}, ${clampColor(blue)})`;
-}
-
-function normalizeDifficultyLevel(level: DifficultyLevel): DifficultyLevel {
-  return level === 'Ultra' ? 'Expert' : level;
 }
 
 export { MODE_ORDER, normalizeMode };
