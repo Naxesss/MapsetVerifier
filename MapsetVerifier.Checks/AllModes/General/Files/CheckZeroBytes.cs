@@ -61,6 +61,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
         {
             foreach (var filePath in beatmapSet.SongFilePaths)
             {
+                // Empty .osu files are excluded from the beatmap set entirely and flagged by
+                // CheckEmptyDifficultyFile instead, with a message relevant to difficulty files.
+                if (filePath.EndsWith(".osu"))
+                    continue;
+
                 Issue? errorIssue = null;
                 FileInfo? file = null;
 
