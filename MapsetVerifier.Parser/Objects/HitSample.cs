@@ -128,9 +128,17 @@ namespace MapsetVerifier.Parser.Objects
             }
         }
 
+        private string? _cachedFileName;
+        private bool _fileNameComputed;
+
         /// <summary> Returns the file name of this sample without extension, or null if no file is associated. </summary>
         public string? GetFileName()
         {
+            // The sample is immutable after construction, so the result never changes; cache it since
+            // this can otherwise be called (and rebuild strings) once per hit object being compared against.
+            if (_fileNameComputed)
+                return _cachedFileName;
+
             var taikoString = Taiko ? "taiko-" : "";
             var samplesetString = Sampleset?.ToString().ToLower();
             string? hitSoundString = null;
@@ -151,10 +159,14 @@ namespace MapsetVerifier.Parser.Objects
 
             var customIndexString = CustomIndex <= 1 ? "" : CustomIndex.ToString();
 
-            if (hitSoundString != null && samplesetString != null)
-                return $"{taikoString}{samplesetString}-{hitSoundString}{customIndexString}";
+            _cachedFileName =
+                hitSoundString != null && samplesetString != null
+                    ? $"{taikoString}{samplesetString}-{hitSoundString}{customIndexString}"
+                    : null;
 
-            return null;
+            _fileNameComputed = true;
+
+            return _cachedFileName;
         }
 
         /// <summary>
@@ -162,6 +174,9 @@ namespace MapsetVerifier.Parser.Objects
         ///     Ignores case sensitivity.
         /// </summary>
         public bool SameFileName(string fileNameWithExtension) =>
-            fileNameWithExtension.ToLower().StartsWith(GetFileName() + ".");
+            fileNameWithExtension.StartsWith(
+                GetFileName() + ".",
+                StringComparison.OrdinalIgnoreCase
+            );
     }
 }

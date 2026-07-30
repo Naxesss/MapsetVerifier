@@ -49,11 +49,7 @@ public static class TimingUtils
         var nextLine = line.Next(true);
         var sectionEnd = nextLine?.Offset ?? double.MaxValue;
 
-        return beatmap
-            .HitObjects.OfType<T>()
-            .Any(hitObject =>
-                hitObject.time < sectionEnd && hitObject.GetEndTime() >= sectionStart
-            );
+        return beatmap.HasHitObjectOverlapping<T>(sectionStart, sectionEnd);
     }
 
     /// <summary>

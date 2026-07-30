@@ -85,7 +85,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
             try
             {
-                actualFormat = AudioBASS.GetFormat(audioPath);
+                actualFormat = AudioFileCache.GetFormat(audioPath);
             }
             catch (Exception ex)
             {

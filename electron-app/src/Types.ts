@@ -78,6 +78,22 @@ export type ApiBeatmapSetCheckResult = {
   difficulties: ApiCategoryCheckResult[];
   checks: Record<number, ApiCheckDefinition>;
   checkRunDelta?: ApiCheckRunDelta | null;
+  /** Populated only when the request opts in via `includeCheckTimings`. */
+  checkTimings?: ApiCheckTimingReport | null;
+};
+
+export type ApiCheckTimingReport = {
+  checks: ApiCheckTiming[];
+  /** Actual wall-clock duration of the whole check run; checks run in parallel, so the sum of
+   *  individual `elapsedMs` values will generally exceed this. */
+  totalElapsedMs: number;
+};
+
+export type ApiCheckTiming = {
+  checkName: string;
+  /** Null for general/beatmapset-wide checks that aren't tied to one difficulty. */
+  difficulty: string | null;
+  elapsedMs: number;
 };
 
 export type ApiBeatmapStructureDifficulty = {

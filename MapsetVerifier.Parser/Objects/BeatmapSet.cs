@@ -274,52 +274,148 @@ namespace MapsetVerifier.Parser.Objects
                 || IsExtensionlessStoryboardReference(parsedPath, strippedPath);
         }
 
+        // Built once per instance instead of re-enumerating every sprite/video/background/sample/
+        // animation reference (across every beatmap and the .osb) on every IsFileUsed call - for
+        // storyboard-heavy mapsets this was the dominant cost, since it's an O(storyboard element
+        // count) scan repeated once per song file.
+        private HashSet<string>? storyboardPathsExcludingAnimations;
+        private HashSet<string>? storyboardPathsIncludingAnimations;
+
+        private void EnsureStoryboardPathSets()
+        {
+            if (storyboardPathsExcludingAnimations != null)
+                return;
+
+            var excludingAnimations = new HashSet<string>();
+            var animationsOnly = new HashSet<string>();
+
+            void AddParsedPaths(IEnumerable<string?> paths, HashSet<string> target)
+            {
+                foreach (var path in paths)
+                {
+                    var parsed = PathStatic.ParsePath(path);
+
+                    if (parsed != null)
+                        target.Add(parsed);
+                }
+            }
+
+            foreach (var beatmap in Beatmaps)
+            {
+                AddParsedPaths(GetStoryboardPaths(beatmap, false), excludingAnimations);
+                AddParsedPaths(
+                    beatmap.Animations.Select(animation => animation.path),
+                    animationsOnly
+                );
+            }
+
+            if (Osb != null)
+            {
+                AddParsedPaths(GetStoryboardPaths(Osb, false), excludingAnimations);
+                AddParsedPaths(Osb.animations.Select(animation => animation.path), animationsOnly);
+            }
+
+            storyboardPathsExcludingAnimations = excludingAnimations;
+            storyboardPathsIncludingAnimations = [.. excludingAnimations, .. animationsOnly];
+        }
+
         private bool IsExactStoryboardReference(string? parsedPath)
         {
-            return parsedPath != null
-                && (
-                    Beatmaps.Any(beatmap =>
-                        GetStoryboardPaths(beatmap, true).Any(path => IsSamePath(path, parsedPath))
-                    )
-                    || (
-                        Osb != null
-                        && GetStoryboardPaths(Osb, true).Any(path => IsSamePath(path, parsedPath))
-                    )
-                );
+            if (parsedPath == null)
+                return false;
+
+            EnsureStoryboardPathSets();
+
+            return storyboardPathsIncludingAnimations!.Contains(parsedPath);
         }
 
         private bool IsExtensionlessStoryboardReference(string? parsedPath, string? strippedPath)
         {
-            return parsedPath != null
-                && strippedPath != null
-                && parsedPath == GetLastMatchingFilePathWithStrippedPath(strippedPath)
-                && (
-                    Beatmaps.Any(beatmap =>
-                        GetStoryboardPaths(beatmap, false)
-                            .Any(path => IsExtensionlessReference(path, strippedPath))
-                    )
-                    || (
-                        Osb != null
-                        && GetStoryboardPaths(Osb, false)
-                            .Any(path => IsExtensionlessReference(path, strippedPath))
-                    )
-                );
+            if (
+                parsedPath == null
+                || strippedPath == null
+                || parsedPath != GetLastMatchingFilePathWithStrippedPath(strippedPath)
+            )
+                return false;
+
+            EnsureStoryboardPathSets();
+
+            return storyboardPathsExcludingAnimations!.Contains(strippedPath);
         }
+
+        // Built once per instance instead of scanning all SongFilePaths on every call.
+        private Dictionary<string, string>? lastMatchingPathByStrippedPath;
+
+        private string? GetLastMatchingFilePathWithStrippedPath(string? strippedPath)
+        {
+            if (strippedPath == null)
+                return null;
+
+            if (lastMatchingPathByStrippedPath == null)
+            {
+                lastMatchingPathByStrippedPath = new Dictionary<string, string>();
+
+                foreach (var path in SongFilePaths)
+                {
+                    var relativePath = PathStatic.RelativePath(path, SongPath);
+                    var stripped = PathStatic.ParsePath(relativePath, true);
+
+                    if (stripped == null)
+                        continue;
+
+                    var parsed = PathStatic.ParsePath(relativePath);
+
+                    if (parsed != null)
+                        // Later entries overwrite earlier ones, matching the original
+                        // SongFilePaths.LastOrDefault(...) semantics.
+                        lastMatchingPathByStrippedPath[stripped] = parsed;
+                }
+            }
+
+            return lastMatchingPathByStrippedPath.GetValueOrDefault(strippedPath);
+        }
+
+        private HashSet<string>? hitObjectSampleFileNames;
 
         private bool IsHitObjectSampleFile(string? strippedPath)
         {
-            return strippedPath != null
-                && Beatmaps.Any(beatmap =>
-                    beatmap.HitObjects.Any(hitObject =>
-                        PathStatic.ParsePath(hitObject.filename, true) == strippedPath
-                    )
-                );
+            if (strippedPath == null)
+                return false;
+
+            // Built once per instance instead of rescanning every beatmap's hit objects on every
+            // call - IsFileUsed (and therefore this) gets called once per song file, so without
+            // this the whole hit object list gets walked once per file in the folder.
+            hitObjectSampleFileNames ??=
+            [
+                .. Beatmaps
+                    .SelectMany(beatmap => beatmap.HitObjects)
+                    .Select(hitObject => PathStatic.ParsePath(hitObject.filename, true))
+                    .Where(path => path != null)
+                    .Select(path => path!),
+            ];
+
+            return hitObjectSampleFileNames.Contains(strippedPath);
         }
+
+        private HashSet<string>? hitSoundFileParsedPaths;
 
         private bool IsHitSoundFile(string? parsedPath)
         {
-            return parsedPath != null
-                && HitSoundFiles.Any(hsPath => PathStatic.ParsePath(hsPath) == parsedPath);
+            if (parsedPath == null)
+                return false;
+
+            // Built once per instance instead of rescanning all HitSoundFiles on every call -
+            // IsFileUsed (and therefore this) gets called once per song file, so without this a
+            // mapset with N hit sound files does an O(N) scan for every one of those N files.
+            hitSoundFileParsedPaths ??=
+            [
+                .. HitSoundFiles
+                    .Select(hsPath => PathStatic.ParsePath(hsPath))
+                    .Where(path => path != null)
+                    .Select(path => path!),
+            ];
+
+            return hitSoundFileParsedPaths.Contains(parsedPath);
         }
 
         private bool IsUsedOsbFile(string fileName)
@@ -331,11 +427,6 @@ namespace MapsetVerifier.Parser.Objects
         {
             return Beatmaps.Any(beatmap => IsAnimationPathUsed(parsedPath, beatmap.Animations))
                 || (Osb != null && IsAnimationPathUsed(parsedPath, Osb.animations));
-        }
-
-        private static bool IsSamePath(string? referencePath, string? parsedPath)
-        {
-            return parsedPath != null && PathStatic.ParsePath(referencePath) == parsedPath;
         }
 
         private static IEnumerable<string?> GetStoryboardPaths(
@@ -399,28 +490,6 @@ namespace MapsetVerifier.Parser.Objects
             }
 
             return false;
-        }
-
-        private string? GetLastMatchingFilePathWithStrippedPath(string? strippedPath)
-        {
-            if (strippedPath == null)
-                return null;
-
-            var lastMatchingPath = SongFilePaths.LastOrDefault(path =>
-                PathStatic.ParsePath(PathStatic.RelativePath(path, SongPath), true) == strippedPath
-            );
-
-            return lastMatchingPath == null
-                ? null
-                : PathStatic.ParsePath(PathStatic.RelativePath(lastMatchingPath, SongPath));
-        }
-
-        private static bool IsExtensionlessReference(string? referencePath, string? strippedPath)
-        {
-            if (referencePath == null || strippedPath == null)
-                return false;
-
-            return PathStatic.ParsePath(referencePath) == strippedPath;
         }
 
         /// <summary> Returns the beatmapset as a string in the format "Artist - Title (Creator)". </summary>

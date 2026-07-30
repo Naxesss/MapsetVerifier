@@ -102,9 +102,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
+            var activeHitObjectByFile = GetActiveHitObjectByFile(beatmapSet);
+
             foreach (var hsFile in beatmapSet.HitSoundFiles)
             {
-                var hitObjectActiveAt = GetHitObjectActiveAt(beatmapSet, hsFile);
+                activeHitObjectByFile.TryGetValue(GetBaseName(hsFile), out var hitObjectActiveAt);
 
                 if (hitObjectActiveAt == null)
                     // Hit sound is never active, so delay does not matter.
@@ -117,7 +119,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
                 try
                 {
-                    peaks = AudioBASS.GetPeaks(hsPath);
+                    peaks = AudioFileCache.GetPeaks(hsPath);
                 }
                 catch (Exception ex)
                 {
@@ -189,8 +191,16 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             }
         }
 
-        private static HitObject? GetHitObjectActiveAt(BeatmapSet beatmapSet, string hitSoundFile)
+        /// <summary>
+        ///     Builds a lookup from hit sound base file name (no extension, matching
+        ///     <see cref="HitSample.GetFileName" />) to the first active hit object using it, in a
+        ///     single pass over every beatmap's hit objects - avoids rescanning the whole hit object
+        ///     list once per hit sound file, which for large mapsets/marathon maps dominates runtime.
+        /// </summary>
+        private static Dictionary<string, HitObject> GetActiveHitObjectByFile(BeatmapSet beatmapSet)
         {
+            var result = new Dictionary<string, HitObject>();
+
             foreach (var beatmap in beatmapSet.Beatmaps)
             foreach (var hitObject in beatmap.HitObjects)
             {
@@ -198,17 +208,35 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                     continue;
 
                 // Only the edge at which the object is clicked is considered active.
-                if (
-                    hitObject.usedHitSamples.Any(sample =>
-                        sample.Time.AlmostEqual(hitObject.time)
-                        && sample.HitSource == HitSample.HitSourceType.Edge
-                        && sample.SameFileName(hitSoundFile)
+                foreach (var sample in hitObject.usedHitSamples)
+                {
+                    if (
+                        sample.HitSource != HitSample.HitSourceType.Edge
+                        || !sample.Time.AlmostEqual(hitObject.time)
                     )
-                )
-                    return hitObject;
+                        continue;
+
+                    var fileName = sample.GetFileName();
+
+                    if (fileName != null)
+                        result.TryAdd(fileName, hitObject);
+                }
             }
 
-            return null;
+            return result;
+        }
+
+        /// <summary>
+        ///     Returns the part of a hit sound file name before its extension, matching what
+        ///     <see cref="HitSample.SameFileName" /> compares against (<see cref="HitSample.GetFileName" />
+        ///     never contains a dot, so splitting at the first dot is exact).
+        /// </summary>
+        private static string GetBaseName(string hitSoundFile)
+        {
+            var lower = hitSoundFile.ToLower();
+            var dotIndex = lower.IndexOf('.');
+
+            return dotIndex < 0 ? lower : lower[..dotIndex];
         }
     }
 }

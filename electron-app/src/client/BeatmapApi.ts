@@ -139,6 +139,7 @@ const BeatmapApi = {
     options?: {
       includeCheckRunDelta?: boolean;
       createSnapshot?: boolean;
+      includeCheckTimings?: boolean;
       signal?: AbortSignal;
       onProgress?: (progress: CheckProgress) => void;
       onStructure?: (structure: ApiBeatmapStructure) => void;
@@ -160,6 +161,7 @@ const BeatmapApi = {
         folder,
         includeCheckRunDelta: options?.includeCheckRunDelta ?? true,
         createSnapshot: options?.createSnapshot ?? true,
+        includeCheckTimings: options?.includeCheckTimings ?? false,
       }),
       signal,
     });

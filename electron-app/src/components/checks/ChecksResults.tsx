@@ -8,6 +8,7 @@ import {
   hasMinorResultsHiddenByUserFilter,
 } from './checkResultVisibility';
 import ChecksDeltaSummary from './ChecksDeltaSummary.tsx';
+import CheckSpeedStatsPanel from './CheckSpeedStatsPanel.tsx';
 import { FetchError } from '../../client/ApiHelper';
 import {
   ApiBeatmapSetCheckResult,
@@ -30,6 +31,7 @@ interface ChecksResultsProps {
   checkRunDeltaShowUnchanged?: boolean;
   beatmapFolderPath?: string;
   onCheckRunHistoryCleared?: () => void;
+  showCheckSpeedStats?: boolean;
 }
 
 function ChecksResults({
@@ -46,6 +48,7 @@ function ChecksResults({
   checkRunDeltaShowUnchanged = false,
   beatmapFolderPath,
   onCheckRunHistoryCleared,
+  showCheckSpeedStats = false,
 }: ChecksResultsProps) {
   const rawForCategory = useMemo(
     () =>
@@ -95,6 +98,9 @@ function ChecksResults({
 
       {data && (
         <Stack gap="xs">
+          {showCheckSpeedStats && data.checkTimings ? (
+            <CheckSpeedStatsPanel report={data.checkTimings} />
+          ) : null}
           {showCheckRunDelta ? (
             <ChecksDeltaSummary
               delta={data.checkRunDelta}

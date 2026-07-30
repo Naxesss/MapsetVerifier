@@ -107,7 +107,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
             try
             {
-                audioFormat = AudioBASS.GetFormat(audioPath);
+                audioFormat = AudioFileCache.GetFormat(audioPath);
             }
             catch (Exception exception)
             {
@@ -125,7 +125,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             var upperBitrateLimit = audioFormat == ChannelType.OGG ? 208 : 192;
 
             // `Audio.GetBitrate` has a < 0.1 kbps error margin, so we should round this.
-            var bitrate = Math.Round(AudioBASS.GetBitrate(audioPath));
+            var bitrate = Math.Round(AudioFileCache.GetBitrate(audioPath));
 
             if (bitrate >= 128 && bitrate <= upperBitrateLimit)
                 yield break;
@@ -152,7 +152,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
                 try
                 {
-                    hitSoundFormat = AudioBASS.GetFormat(hitSoundPath);
+                    hitSoundFormat = AudioFileCache.GetFormat(hitSoundPath);
                 }
                 catch (Exception exception)
                 {
@@ -174,7 +174,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                 if (hitSoundFormat is not (ChannelType.OGG or ChannelType.MP3))
                     continue;
 
-                var bitrate = Math.Round(AudioBASS.GetBitrate(hitSoundPath));
+                var bitrate = Math.Round(AudioFileCache.GetBitrate(hitSoundPath));
 
                 // Hit sounds only need to follow the lower limit for quality requirements, as Wave
                 // (which is the most used hit sound format currently) is otherwise uncompressed anyway.

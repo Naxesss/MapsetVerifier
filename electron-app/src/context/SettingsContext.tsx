@@ -51,6 +51,8 @@ export type Settings = {
   gateInDev: boolean;
   /** Whether the user has completed the first-launch setup wizard. */
   hasCompletedSetup: boolean;
+  /** Developer option: show per-check timing stats alongside check results. */
+  showCheckSpeedStats: boolean;
 };
 
 // Context type includes settings and setter
@@ -83,6 +85,7 @@ const defaultSettings: Settings = {
   bookmarkedFolders: [],
   gateInDev: false,
   hasCompletedSetup: false,
+  showCheckSpeedStats: false,
 };
 
 async function resolveDefaultReceivePrereleases() {

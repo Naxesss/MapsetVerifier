@@ -78,7 +78,7 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
 
                     // 0-byte files are reported by CheckZeroBytes, and the official blank.wav is exactly 44 bytes.
                     if (length != 0 && length != BlankHitSoundSize)
-                        peaks = AudioBASS.GetPeaks(hsPath);
+                        peaks = AudioFileCache.GetPeaks(hsPath);
                 }
                 catch (Exception ex)
                 {

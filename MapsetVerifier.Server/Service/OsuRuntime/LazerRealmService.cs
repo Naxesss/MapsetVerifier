@@ -15,6 +15,158 @@ public static class LazerRealmService
 {
     private const string RealmFileName = "client.realm";
 
+    private sealed record LazerBeatmapInfo(
+        string BeatmapId,
+        string DifficultyName,
+        string Title,
+        string Artist,
+        string Creator,
+        long OnlineId,
+        DateTimeOffset? LastLocalUpdate,
+        string? BackgroundFile
+    );
+
+    private sealed record LazerBeatmapSetInfo(
+        Guid Id,
+        bool DeletePending,
+        long OnlineId,
+        DateTimeOffset SortTime,
+        string Title,
+        string Artist,
+        string Creator,
+        long FirstBeatmapOnlineId,
+        List<(string Filename, string Hash)> Files,
+        List<LazerBeatmapInfo> Beatmaps
+    );
+
+    private static readonly object SnapshotLock = new();
+    private static string? _cachedDataDirectory;
+    private static DateTime _cachedRealmWriteTimeUtc;
+    private static List<LazerBeatmapSetInfo>? _cachedSets;
+
+    /// <summary>
+    /// A full library scan through the dynamic Realm API is expensive (every set + every
+    /// difficulty, dynamic-dispatch property reads), so instead of re-scanning on every page
+    /// load / search keystroke / image request, the scan result is cached and only rebuilt when
+    /// `client.realm`'s own write time changes (i.e. the lazer library actually changed).
+    /// </summary>
+    private static List<LazerBeatmapSetInfo> GetSnapshot(string dataDirectory)
+    {
+        var realmPath = Path.Combine(dataDirectory, RealmFileName);
+        var writeTimeUtc = File.GetLastWriteTimeUtc(realmPath);
+
+        // The lock spans the whole rescan (not just the cache check) so that concurrent cold
+        // callers — e.g. the beatmap list load and the "currently open beatmap" poller both
+        // firing on mount — block and share one scan instead of each running their own duplicate
+        // full-library scan against the same realm file at the same time.
+        lock (SnapshotLock)
+        {
+            if (
+                _cachedSets != null
+                && _cachedDataDirectory == dataDirectory
+                && _cachedRealmWriteTimeUtc == writeTimeUtc
+            )
+                return _cachedSets;
+
+            var sets = BuildSnapshot(dataDirectory);
+
+            _cachedDataDirectory = dataDirectory;
+            _cachedRealmWriteTimeUtc = writeTimeUtc;
+            _cachedSets = sets;
+
+            return sets;
+        }
+    }
+
+    private static List<LazerBeatmapSetInfo> BuildSnapshot(string dataDirectory)
+    {
+        var sets = new List<LazerBeatmapSetInfo>();
+        using (var realm = OpenRealm(dataDirectory))
+        {
+            dynamic dynamicSets = realm.DynamicApi.All("BeatmapSet");
+            foreach (dynamic set in dynamicSets)
+            {
+                bool deletePending = set.DeletePending;
+
+                var beatmaps = new List<LazerBeatmapInfo>();
+                DateTimeOffset? latestLocalUpdate = null;
+                foreach (dynamic beatmap in set.Beatmaps)
+                {
+                    dynamic metadata = beatmap.Metadata;
+                    string bmTitle = metadata?.Title ?? string.Empty;
+                    string bmArtist = metadata?.Artist ?? string.Empty;
+                    dynamic? author = metadata?.Author;
+                    string bmCreator =
+                        author != null ? (string)(author.Username ?? string.Empty) : string.Empty;
+                    string bmVersion = beatmap.DifficultyName ?? string.Empty;
+                    var bmOnlineId = Convert.ToInt64(beatmap.OnlineID);
+                    DateTimeOffset? localUpdate = beatmap.LastLocalUpdate;
+                    string? backgroundFile = metadata?.BackgroundFile;
+
+                    if (
+                        localUpdate != null
+                        && (latestLocalUpdate == null || localUpdate > latestLocalUpdate)
+                    )
+                        latestLocalUpdate = localUpdate;
+
+                    beatmaps.Add(
+                        new LazerBeatmapInfo(
+                            BeatmapId: bmOnlineId > 0 ? bmOnlineId.ToString() : string.Empty,
+                            DifficultyName: bmVersion,
+                            Title: bmTitle,
+                            Artist: bmArtist,
+                            Creator: bmCreator,
+                            OnlineId: bmOnlineId,
+                            LastLocalUpdate: localUpdate,
+                            BackgroundFile: backgroundFile
+                        )
+                    );
+                }
+
+                if (beatmaps.Count == 0)
+                    continue;
+
+                var firstBeatmap = beatmaps[0];
+
+                var files = new List<(string, string)>();
+                foreach (dynamic namedFile in set.Files)
+                {
+                    string filename = namedFile.Filename;
+                    dynamic file = namedFile.File;
+                    string hash = file.Hash;
+                    if (!string.IsNullOrWhiteSpace(filename) && !string.IsNullOrWhiteSpace(hash))
+                        files.Add((filename, hash));
+                }
+
+                DateTimeOffset dateAdded = set.DateAdded;
+                // DateAdded only reflects when the set entered the library, not when it was last
+                // edited — a saved change in the editor bumps LastLocalUpdate on the difficulty
+                // instead, so use whichever is more recent to sort "latest" correctly.
+                var sortTime =
+                    latestLocalUpdate != null && latestLocalUpdate > dateAdded
+                        ? latestLocalUpdate.Value
+                        : dateAdded;
+
+                sets.Add(
+                    new LazerBeatmapSetInfo(
+                        Id: (Guid)set.ID,
+                        DeletePending: deletePending,
+                        OnlineId: Convert.ToInt64(set.OnlineID),
+                        SortTime: sortTime,
+                        Title: firstBeatmap.Title,
+                        Artist: firstBeatmap.Artist,
+                        Creator: firstBeatmap.Creator,
+                        FirstBeatmapOnlineId: firstBeatmap.OnlineId,
+                        Files: files,
+                        Beatmaps: beatmaps
+                    )
+                );
+            }
+        }
+
+        return sets;
+    }
+
     public static string? DetectLazerDataDirectory()
     {
         if (!OperatingSystem.IsWindows())
@@ -63,82 +215,11 @@ public static class LazerRealmService
         int pageSize
     )
     {
-        List<(ApiBeatmap Beatmap, DateTimeOffset SortTime)> mapped;
+        List<LazerBeatmapSetInfo> snapshot;
 
         try
         {
-            using var realm = OpenRealm(dataDirectory);
-            mapped = new List<(ApiBeatmap, DateTimeOffset)>();
-
-            dynamic sets = realm.DynamicApi.All("BeatmapSet");
-            foreach (dynamic set in sets)
-            {
-                bool deletePending = set.DeletePending;
-                if (deletePending)
-                    continue;
-
-                dynamic? firstBeatmap = null;
-                DateTimeOffset? latestLocalUpdate = null;
-                foreach (dynamic beatmap in set.Beatmaps)
-                {
-                    firstBeatmap ??= beatmap;
-
-                    DateTimeOffset? localUpdate = beatmap.LastLocalUpdate;
-                    if (
-                        localUpdate != null
-                        && (latestLocalUpdate == null || localUpdate > latestLocalUpdate)
-                    )
-                        latestLocalUpdate = localUpdate;
-                }
-                if (firstBeatmap == null)
-                    continue;
-
-                dynamic metadata = firstBeatmap.Metadata;
-                if (metadata == null)
-                    continue;
-
-                var id = ((Guid)set.ID).ToString();
-                string title = metadata.Title ?? string.Empty;
-                string artist = metadata.Artist ?? string.Empty;
-
-                dynamic author = metadata.Author;
-                string creator =
-                    author != null ? (string)(author.Username ?? string.Empty) : string.Empty;
-
-                var beatmapSetOnlineId = Convert.ToInt64(set.OnlineID);
-                var beatmapOnlineId = Convert.ToInt64(firstBeatmap.OnlineID);
-
-                DateTimeOffset dateAdded = set.DateAdded;
-                // DateAdded only reflects when the set entered the library, not when it was last
-                // edited — a saved change in the editor bumps LastLocalUpdate on the difficulty
-                // instead, so use whichever is more recent to sort "latest" correctly.
-                var sortTime =
-                    latestLocalUpdate != null && latestLocalUpdate > dateAdded
-                        ? latestLocalUpdate.Value
-                        : dateAdded;
-
-                // `v` busts the 24h browser cache on /lazer/image when the set is updated
-                // (URL is otherwise only keyed by set id).
-                var backgroundUrl =
-                    $"/beatmap/lazer/image?id={Uri.EscapeDataString(id)}&v={sortTime.UtcTicks:x}";
-
-                var apiBeatmap = new ApiBeatmap(
-                    folder: id,
-                    title: title,
-                    artist: artist,
-                    creator: creator,
-                    beatmapId: beatmapOnlineId > 0 ? beatmapOnlineId.ToString() : string.Empty,
-                    beatmapSetId: beatmapSetOnlineId > 0
-                        ? beatmapSetOnlineId.ToString()
-                        : string.Empty,
-                    backgroundPath: backgroundUrl
-                );
-
-                if (!MatchesSearch(apiBeatmap, search))
-                    continue;
-
-                mapped.Add((apiBeatmap, sortTime));
-            }
+            snapshot = GetSnapshot(dataDirectory);
         }
         catch (Exception ex)
         {
@@ -148,6 +229,37 @@ public static class LazerRealmService
                 dataDirectory
             );
             return new ApiBeatmapPage([], page, pageSize, false);
+        }
+
+        var mapped = new List<(ApiBeatmap Beatmap, DateTimeOffset SortTime)>();
+        foreach (var set in snapshot)
+        {
+            if (set.DeletePending)
+                continue;
+
+            var id = set.Id.ToString();
+
+            // `v` busts the 24h browser cache on /lazer/image when the set is updated
+            // (URL is otherwise only keyed by set id).
+            var backgroundUrl =
+                $"/beatmap/lazer/image?id={Uri.EscapeDataString(id)}&v={set.SortTime.UtcTicks:x}";
+
+            var apiBeatmap = new ApiBeatmap(
+                folder: id,
+                title: set.Title,
+                artist: set.Artist,
+                creator: set.Creator,
+                beatmapId: set.FirstBeatmapOnlineId > 0
+                    ? set.FirstBeatmapOnlineId.ToString()
+                    : string.Empty,
+                beatmapSetId: set.OnlineId > 0 ? set.OnlineId.ToString() : string.Empty,
+                backgroundPath: backgroundUrl
+            );
+
+            if (!MatchesSearch(apiBeatmap, search))
+                continue;
+
+            mapped.Add((apiBeatmap, set.SortTime));
         }
 
         var ordered = mapped.OrderByDescending(m => m.SortTime).Select(m => m.Beatmap).ToList();
@@ -174,30 +286,9 @@ public static class LazerRealmService
 
         try
         {
-            using var realm = OpenRealm(dataDirectory);
-            dynamic sets = realm.DynamicApi.All("BeatmapSet");
-            foreach (dynamic set in sets)
-            {
-                Guid id = set.ID;
-                if (id != guid)
-                    continue;
-
-                bool deletePending = set.DeletePending;
-                if (deletePending)
-                    return null;
-
-                var result = new List<(string, string)>();
-                foreach (dynamic namedFile in set.Files)
-                {
-                    string filename = namedFile.Filename;
-                    dynamic file = namedFile.File;
-                    string hash = file.Hash;
-                    if (!string.IsNullOrWhiteSpace(filename) && !string.IsNullOrWhiteSpace(hash))
-                        result.Add((filename, hash));
-                }
-
-                return result;
-            }
+            var snapshot = GetSnapshot(dataDirectory);
+            var match = snapshot.FirstOrDefault(s => s.Id == guid);
+            return match is { DeletePending: false } ? match.Files : null;
         }
         catch (Exception ex)
         {
@@ -224,41 +315,20 @@ public static class LazerRealmService
 
         try
         {
-            using var realm = OpenRealm(dataDirectory);
-            dynamic sets = realm.DynamicApi.All("BeatmapSet");
+            var snapshot = GetSnapshot(dataDirectory);
 
-            long onlineId = 0;
-            var foundRequested = false;
-
-            foreach (dynamic set in sets)
-            {
-                Guid id = set.ID;
-                if (id != guid)
-                    continue;
-
-                foundRequested = true;
-                bool deletePending = set.DeletePending;
-                if (!deletePending)
-                    return beatmapSetId;
-
-                onlineId = Convert.ToInt64(set.OnlineID);
-                break;
-            }
-
-            if (!foundRequested || onlineId <= 0)
+            var requested = snapshot.FirstOrDefault(s => s.Id == guid);
+            if (requested == null)
+                return null;
+            if (!requested.DeletePending)
+                return beatmapSetId;
+            if (requested.OnlineId <= 0)
                 return null;
 
-            foreach (dynamic set in sets)
-            {
-                bool deletePending = set.DeletePending;
-                if (deletePending)
-                    continue;
-
-                if (Convert.ToInt64(set.OnlineID) != onlineId)
-                    continue;
-
-                return ((Guid)set.ID).ToString();
-            }
+            var replacement = snapshot.FirstOrDefault(s =>
+                !s.DeletePending && s.OnlineId == requested.OnlineId
+            );
+            return replacement?.Id.ToString();
         }
         catch (Exception ex)
         {
@@ -284,27 +354,14 @@ public static class LazerRealmService
 
         try
         {
-            using var realm = OpenRealm(dataDirectory);
-            dynamic sets = realm.DynamicApi.All("BeatmapSet");
-            foreach (dynamic set in sets)
-            {
-                Guid id = set.ID;
-                if (id != guid)
-                    continue;
-
-                foreach (dynamic beatmap in set.Beatmaps)
-                {
-                    dynamic metadata = beatmap.Metadata;
-                    if (metadata == null)
-                        continue;
-
-                    string? backgroundFile = metadata.BackgroundFile;
-                    if (!string.IsNullOrWhiteSpace(backgroundFile))
-                        return backgroundFile;
-                }
-
+            var snapshot = GetSnapshot(dataDirectory);
+            var set = snapshot.FirstOrDefault(s => s.Id == guid);
+            if (set == null)
                 return null;
-            }
+
+            return set
+                .Beatmaps.Select(b => b.BackgroundFile)
+                .FirstOrDefault(f => !string.IsNullOrWhiteSpace(f));
         }
         catch (Exception ex)
         {
@@ -352,7 +409,7 @@ public static class LazerRealmService
 
         try
         {
-            using var realm = OpenRealm(dataDirectory);
+            var snapshot = GetSnapshot(dataDirectory);
 
             (
                 string SetId,
@@ -365,61 +422,32 @@ public static class LazerRealmService
             )? best = null;
             var bestScore = 0;
 
-            dynamic sets = realm.DynamicApi.All("BeatmapSet");
-            foreach (dynamic set in sets)
+            foreach (var set in snapshot)
             {
-                bool deletePending = set.DeletePending;
-                if (deletePending)
+                if (set.DeletePending)
                     continue;
 
-                DateTimeOffset? latestLocalUpdate = null;
-                foreach (dynamic beatmap in set.Beatmaps)
+                var versionToken = set.SortTime.UtcTicks.ToString("x");
+
+                foreach (var beatmap in set.Beatmaps)
                 {
-                    DateTimeOffset? localUpdate = beatmap.LastLocalUpdate;
-                    if (
-                        localUpdate != null
-                        && (latestLocalUpdate == null || localUpdate > latestLocalUpdate)
-                    )
-                        latestLocalUpdate = localUpdate;
-                }
-
-                DateTimeOffset dateAdded = set.DateAdded;
-                var sortTime =
-                    latestLocalUpdate != null && latestLocalUpdate > dateAdded
-                        ? latestLocalUpdate.Value
-                        : dateAdded;
-                var versionToken = sortTime.UtcTicks.ToString("x");
-
-                foreach (dynamic beatmap in set.Beatmaps)
-                {
-                    dynamic metadata = beatmap.Metadata;
-                    if (metadata == null)
+                    if (NormalizeForMatch(beatmap.Title) != normTitle)
                         continue;
-
-                    string bmTitle = metadata.Title ?? string.Empty;
-                    if (NormalizeForMatch(bmTitle) != normTitle)
-                        continue;
-
-                    string bmArtist = metadata.Artist ?? string.Empty;
-                    dynamic author = metadata.Author;
-                    string bmCreator =
-                        author != null ? (string)(author.Username ?? string.Empty) : string.Empty;
-                    string bmVersion = beatmap.DifficultyName ?? string.Empty;
 
                     var score = 40;
                     if (
                         !string.IsNullOrEmpty(normArtist)
-                        && NormalizeForMatch(bmArtist) == normArtist
+                        && NormalizeForMatch(beatmap.Artist) == normArtist
                     )
                         score += 25;
                     if (
                         !string.IsNullOrEmpty(normCreator)
-                        && NormalizeForMatch(bmCreator) == normCreator
+                        && NormalizeForMatch(beatmap.Creator) == normCreator
                     )
                         score += 20;
                     if (
                         !string.IsNullOrEmpty(normVersion)
-                        && NormalizeForMatch(bmVersion) == normVersion
+                        && NormalizeForMatch(beatmap.DifficultyName) == normVersion
                     )
                         score += 15;
 
@@ -427,16 +455,13 @@ public static class LazerRealmService
                         continue;
 
                     bestScore = score;
-                    var setId = ((Guid)set.ID).ToString();
-                    var beatmapSetOnlineId = Convert.ToInt64(set.OnlineID);
-                    var beatmapOnlineId = Convert.ToInt64(beatmap.OnlineID);
                     best = (
-                        setId,
-                        beatmapOnlineId > 0 ? beatmapOnlineId.ToString() : string.Empty,
-                        beatmapSetOnlineId > 0 ? beatmapSetOnlineId.ToString() : string.Empty,
-                        bmTitle,
-                        bmArtist,
-                        bmCreator,
+                        set.Id.ToString(),
+                        beatmap.OnlineId > 0 ? beatmap.OnlineId.ToString() : string.Empty,
+                        set.OnlineId > 0 ? set.OnlineId.ToString() : string.Empty,
+                        beatmap.Title,
+                        beatmap.Artist,
+                        beatmap.Creator,
                         versionToken
                     );
                 }

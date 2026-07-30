@@ -106,8 +106,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
                 try
                 {
-                    channels = AudioBASS.GetChannels(hsPath);
-                    peaks = AudioBASS.GetPeaks(hsPath);
+                    channels = AudioFileCache.GetChannels(hsPath);
+                    peaks = AudioFileCache.GetPeaks(hsPath);
                 }
                 catch (Exception ex)
                 {

@@ -1,8 +1,11 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
+using MapsetVerifier.Framework.Objects.Resources;
 using MapsetVerifier.Parser.Objects;
 using Serilog;
 
@@ -74,10 +77,28 @@ namespace MapsetVerifier.Framework
         public static List<Issue> GetBeatmapSetIssues(
             BeatmapSet beatmapSet,
             IProgress<CheckProgress>? progress = null
+        ) => GetBeatmapSetIssues(beatmapSet, progress, collectTimings: false, out _);
+
+        /// <summary>
+        ///     Same as the other overload, except optionally collects how long each check invocation took
+        ///     (per difficulty for beatmap-wise checks), meant for developer-facing performance diagnostics.
+        /// </summary>
+        public static List<Issue> GetBeatmapSetIssues(
+            BeatmapSet beatmapSet,
+            IProgress<CheckProgress>? progress,
+            bool collectTimings,
+            out CheckTimingReport? timingReport
         )
         {
+            var timings = collectTimings ? new ConcurrentBag<CheckTiming>() : null;
+            var totalStopwatch = collectTimings ? Stopwatch.StartNew() : null;
+
+            var hitSoundPaths = beatmapSet
+                .HitSoundFiles.Select(hsFile => Path.Combine(beatmapSet.SongPath, hsFile))
+                .ToList();
+
             var issueBag = new ConcurrentBag<Issue>();
-            var total = CountCheckTasks(beatmapSet);
+            var total = CountCheckTasks(beatmapSet) + hitSoundPaths.Count;
             CheckProgressTracker? tracker = null;
 
             if (progress != null)
@@ -85,6 +106,33 @@ namespace MapsetVerifier.Framework
                 tracker = new CheckProgressTracker(total, progress);
                 progress.Report(new CheckProgress(0, total, []));
             }
+
+            // Scopes the audio decode cache to a single run, so checks inspecting the same
+            // audio files (e.g. hit sound checks) share decoded data without leaking memory
+            // across runs in a long-running session (GUI/server).
+            AudioFileCache.Clear();
+
+            // Decoding hit sound audio is genuine, unavoidable CPU work once per file per run, and
+            // several checks need it (format, bitrate, length, delay, imbalance, silence). Warm the
+            // cache with full CPU parallelism across files up front, rather than relying on however
+            // many of those checks happen to be running concurrently to spread the decode work out.
+            // Reported as its own progress item (rather than one of the regular check tasks) so the
+            // UI shows something is happening while it's the only thing running.
+            var warmUpStopwatch = collectTimings ? Stopwatch.StartNew() : null;
+            var warmUpTaskId = tracker?.ReportStarted("Loading audio files");
+
+            AudioFileCache.WarmUp(
+                hitSoundPaths,
+                onFileWarmed: () => tracker?.ReportItemCompleted()
+            );
+
+            if (warmUpTaskId.HasValue)
+                tracker!.ReportLabelFinished(warmUpTaskId.Value);
+
+            if (warmUpStopwatch != null)
+                timings!.Add(
+                    new CheckTiming("Audio preload.", null, warmUpStopwatch.ElapsedMilliseconds)
+                );
 
             TryGetIssuesParallel(
                 CheckerRegistry.GetGeneralChecks(),
@@ -99,6 +147,7 @@ namespace MapsetVerifier.Framework
                         issueBag.Add(issue.WithOrigin(generalCheck));
                 },
                 tracker,
+                timings,
                 check => check.GetMetadata().Message
             );
 
@@ -121,8 +170,9 @@ namespace MapsetVerifier.Framework
                                 issueBag.Add(issue.WithOrigin(beatmapCheck));
                         },
                         tracker,
-                        check =>
-                            $"{check.GetMetadata().Message} [{beatmap.MetadataSettings.version}]"
+                        timings,
+                        check => check.GetMetadata().Message,
+                        _ => beatmap.MetadataSettings.version
                     );
                 }
             );
@@ -140,8 +190,17 @@ namespace MapsetVerifier.Framework
                         issueBag.Add(issue.WithOrigin(beatmapSetCheck));
                 },
                 tracker,
+                timings,
                 check => check.GetMetadata().Message
             );
+
+            timingReport = collectTimings
+                ? new CheckTimingReport
+                {
+                    Checks = timings!.OrderByDescending(timing => timing.ElapsedMs).ToList(),
+                    TotalElapsedMs = totalStopwatch!.ElapsedMilliseconds,
+                }
+                : null;
 
             return issueBag.OrderByDescending(issue => issue.level).ToList();
         }
@@ -184,15 +243,20 @@ namespace MapsetVerifier.Framework
             IEnumerable<T> checks,
             Action<T> action,
             CheckProgressTracker? tracker,
-            Func<T, string>? getLabel = null
+            ConcurrentBag<CheckTiming>? timings,
+            Func<T, string>? getName = null,
+            Func<T, string?>? getDifficulty = null
         )
             where T : Check =>
             Parallel.ForEach(
                 checks,
                 check =>
                 {
-                    var label = getLabel?.Invoke(check) ?? check.GetMetadata().Message;
+                    var name = getName?.Invoke(check) ?? check.GetMetadata().Message;
+                    var difficulty = getDifficulty?.Invoke(check);
+                    var label = difficulty != null ? $"{name} [{difficulty}]" : name;
                     var taskId = tracker?.ReportStarted(label);
+                    var stopwatch = timings != null ? Stopwatch.StartNew() : null;
 
                     try
                     {
@@ -208,6 +272,11 @@ namespace MapsetVerifier.Framework
                     {
                         if (taskId.HasValue)
                             tracker?.ReportCompleted(taskId.Value);
+
+                        if (stopwatch != null)
+                            timings!.Add(
+                                new CheckTiming(name, difficulty, stopwatch.ElapsedMilliseconds)
+                            );
                     }
                 }
             );

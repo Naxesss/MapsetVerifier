@@ -78,6 +78,13 @@ public static class BeatmapService
     public static ApiLazerLookupResult GetCurrentStableBeatmap(string? songsFolderOverride) =>
         CurrentBeatmapLookupService.GetCurrentStableBeatmap(songsFolderOverride);
 
+    private static readonly object FolderScanLock = new();
+    private static string? _cachedSongsFolder;
+    private static int _cachedFolderCount;
+    private static DateTime _cachedFolderScanAtUtc;
+    private static List<DirectoryInfo>? _cachedSortedFolders;
+    private static readonly TimeSpan FolderScanTtl = TimeSpan.FromSeconds(5);
+
     public static ApiBeatmapPage GetBeatmaps(
         string songsFolder,
         string? search,
@@ -90,10 +97,7 @@ public static class BeatmapService
             return new ApiBeatmapPage([], page, pageSize, false);
 
         var dirInfo = new DirectoryInfo(songsFolder);
-        var folders = dirInfo
-            .GetDirectories()
-            .OrderByDescending(GetEffectiveLastWriteTimeUtc)
-            .ToList();
+        var folders = GetSortedFolders(dirInfo);
 
         if (bookmarkedFolders is { Count: > 0 })
             folders = folders.Where(f => bookmarkedFolders.Contains(f.Name)).ToList();
@@ -138,17 +142,61 @@ public static class BeatmapService
     }
 
     /// <summary>
+    /// Computing the effective mtime for every folder (<see cref="GetEffectiveLastWriteTimeUtc"/>)
+    /// walks each folder's top-level files, which gets expensive across a large library when
+    /// repeated on every request (debounced search keystrokes, quick page flips). Cache the sorted
+    /// result, invalidating immediately when the folder count changes (a set was added/removed)
+    /// and otherwise bounding staleness with a short TTL — in-place file edits don't bump a
+    /// folder's own mtime, so they can only be picked up by actually rescanning.
+    /// </summary>
+    private static List<DirectoryInfo> GetSortedFolders(DirectoryInfo dirInfo)
+    {
+        var currentDirs = dirInfo.GetDirectories();
+
+        // The lock spans the whole scan (not just the cache check) so that concurrent cold
+        // callers block and share one scan instead of each running their own duplicate pass over
+        // the same library. The scan itself is still parallelized internally (AsParallel) since
+        // it's I/O-bound and independent per folder.
+        lock (FolderScanLock)
+        {
+            if (
+                _cachedSortedFolders != null
+                && _cachedSongsFolder == dirInfo.FullName
+                && _cachedFolderCount == currentDirs.Length
+                && DateTime.UtcNow - _cachedFolderScanAtUtc < FolderScanTtl
+            )
+                return _cachedSortedFolders;
+
+            var sorted = currentDirs
+                .AsParallel()
+                .Select(d => (Dir: d, Mtime: GetEffectiveLastWriteTimeUtc(d)))
+                .OrderByDescending(x => x.Mtime)
+                .Select(x => x.Dir)
+                .ToList();
+
+            _cachedSongsFolder = dirInfo.FullName;
+            _cachedFolderCount = currentDirs.Length;
+            _cachedFolderScanAtUtc = DateTime.UtcNow;
+            _cachedSortedFolders = sorted;
+
+            return sorted;
+        }
+    }
+
+    /// <summary>
     /// A folder's own LastWriteTimeUtc isn't updated by NTFS when an existing file inside it is
     /// edited in place (only file creation/deletion/rename bumps it), so sorting "most recently
     /// changed" purely on folder mtime misses in-place edits. Fall back to the newest top-level
-    /// file's mtime when it's more recent than the folder's own.
+    /// file's mtime when it's more recent than the folder's own. Only `.osu` files are checked —
+    /// those are what the editor rewrites on every save, and a mapset folder can otherwise contain
+    /// far more (audio/video/image/hitsound) files that would multiply the scan cost for no benefit.
     /// </summary>
     private static DateTime GetEffectiveLastWriteTimeUtc(DirectoryInfo folder)
     {
         var latest = folder.LastWriteTimeUtc;
         try
         {
-            foreach (var file in folder.EnumerateFiles())
+            foreach (var file in folder.EnumerateFiles("*.osu"))
             {
                 if (file.LastWriteTimeUtc > latest)
                     latest = file.LastWriteTimeUtc;
@@ -383,18 +431,26 @@ public static class BeatmapService
         string beatmapSetFolder,
         IProgress<CheckProgress>? progress = null,
         bool includeCheckRunDelta = true,
-        bool createSnapshot = true
+        bool createSnapshot = true,
+        bool includeCheckTimings = false
     )
     {
         var (beatmapSet, _) = ParseBeatmapSet(beatmapSetFolder);
-        return RunBeatmapSetChecks(beatmapSet, progress, includeCheckRunDelta, createSnapshot);
+        return RunBeatmapSetChecks(
+            beatmapSet,
+            progress,
+            includeCheckRunDelta,
+            createSnapshot,
+            includeCheckTimings
+        );
     }
 
     public static ApiBeatmapSetCheckResult RunBeatmapSetChecks(
         BeatmapSet beatmapSet,
         IProgress<CheckProgress>? progress = null,
         bool includeCheckRunDelta = true,
-        bool createSnapshot = true
+        bool createSnapshot = true,
+        bool includeCheckTimings = false
     )
     {
         if (createSnapshot)
@@ -409,7 +465,12 @@ public static class BeatmapService
             }
         }
 
-        var issues = Checker.GetBeatmapSetIssues(beatmapSet, progress);
+        var issues = Checker.GetBeatmapSetIssues(
+            beatmapSet,
+            progress,
+            includeCheckTimings,
+            out var checkTimings
+        );
         var result = BuildBeatmapSetCheckResult(beatmapSet, issues);
         var delta = includeCheckRunDelta
             ? CheckRunHistoryService.BuildDeltaAndRememberCurrent(beatmapSet, result)
@@ -419,7 +480,8 @@ public static class BeatmapService
             general: result.General,
             difficulties: result.Difficulties,
             checks: result.Checks,
-            checkRunDelta: delta
+            checkRunDelta: delta,
+            checkTimings: checkTimings
         );
     }
 

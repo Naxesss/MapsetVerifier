@@ -19,6 +19,7 @@ import {
 } from '../../context/BeatmapReparseRegistry.tsx';
 import { useSettings } from '../../context/SettingsContext';
 import { ApiCategoryCheckResult, Level, Mode } from '../../Types';
+import { resolveDevOnlySetting } from '../../utils/devSettings';
 import StackTraceMessage from '../common/StackTraceMessage.tsx';
 
 function Checks() {
@@ -26,6 +27,7 @@ function Checks() {
   const { selectedFolder: folder, beatmapInfo } = useBeatmap();
   const { triggerReparse } = useBeatmapReparse();
   const { settings } = useSettings();
+  const showCheckSpeedStats = resolveDevOnlySetting(settings.showCheckSpeedStats);
   const [selectedCategory, setSelectedCategory] = React.useState<string | undefined>('General');
   const [displayedCategory, setDisplayedCategory] = React.useState<string | undefined>('General');
   const [isDifficultyContentVisible, setIsDifficultyContentVisible] = React.useState(true);
@@ -65,6 +67,7 @@ function Checks() {
     songFolder: settings.songFolder,
     includeCheckRunDelta: settings.showCheckRunDelta,
     createSnapshot: settings.autoCreateSnapshotOnCheckRun,
+    includeCheckTimings: showCheckSpeedStats,
   });
   const areCheckResultsExpanded = !!data && !isLoading && !isFetching;
   const levelIconsLoading = isLoading;
@@ -131,6 +134,7 @@ function Checks() {
     checkRunDeltaShowUnchanged: settings.checkRunDeltaShowUnchanged,
     beatmapFolderPath,
     onCheckRunHistoryCleared: handleCheckRunHistoryCleared,
+    showCheckSpeedStats,
   };
 
   const categoryHighestLevels = useMemo(() => {

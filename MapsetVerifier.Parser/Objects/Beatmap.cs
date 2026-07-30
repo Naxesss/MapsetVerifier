@@ -363,6 +363,12 @@ namespace MapsetVerifier.Parser.Objects
             ThreadSafeCacheHelper<Slider>.cache.Clear();
             ThreadSafeCacheHelper<Spinner>.cache.Clear();
             ThreadSafeCacheHelper<HoldNote>.cache.Clear();
+
+            PrefixMaxEndTimeCacheHelper<HitObject>.cache.Clear();
+            PrefixMaxEndTimeCacheHelper<Circle>.cache.Clear();
+            PrefixMaxEndTimeCacheHelper<Slider>.cache.Clear();
+            PrefixMaxEndTimeCacheHelper<Spinner>.cache.Clear();
+            PrefixMaxEndTimeCacheHelper<HoldNote>.cache.Clear();
         }
 
         /// <summary>
@@ -386,6 +392,12 @@ namespace MapsetVerifier.Parser.Objects
             ClearCacheEntriesWhere<Slider>(normalizedSongPath, IsUnderSongPath);
             ClearCacheEntriesWhere<Spinner>(normalizedSongPath, IsUnderSongPath);
             ClearCacheEntriesWhere<HoldNote>(normalizedSongPath, IsUnderSongPath);
+
+            ClearPrefixMaxEndTimeCacheEntriesWhere<HitObject>(normalizedSongPath, IsUnderSongPath);
+            ClearPrefixMaxEndTimeCacheEntriesWhere<Circle>(normalizedSongPath, IsUnderSongPath);
+            ClearPrefixMaxEndTimeCacheEntriesWhere<Slider>(normalizedSongPath, IsUnderSongPath);
+            ClearPrefixMaxEndTimeCacheEntriesWhere<Spinner>(normalizedSongPath, IsUnderSongPath);
+            ClearPrefixMaxEndTimeCacheEntriesWhere<HoldNote>(normalizedSongPath, IsUnderSongPath);
         }
 
         private static void ClearCacheEntriesWhere<T>(
@@ -397,6 +409,18 @@ namespace MapsetVerifier.Parser.Objects
             {
                 if (isUnderSongPath(key.Item1, normalizedSongPathPrefix))
                     ThreadSafeCacheHelper<T>.cache.TryRemove(key, out _);
+            }
+        }
+
+        private static void ClearPrefixMaxEndTimeCacheEntriesWhere<T>(
+            string normalizedSongPathPrefix,
+            Func<string, string, bool> isUnderSongPath
+        )
+        {
+            foreach (var key in PrefixMaxEndTimeCacheHelper<T>.cache.Keys)
+            {
+                if (isUnderSongPath(key.Item1, normalizedSongPathPrefix))
+                    PrefixMaxEndTimeCacheHelper<T>.cache.TryRemove(key, out _);
             }
         }
 
@@ -757,6 +781,59 @@ namespace MapsetVerifier.Parser.Objects
                 return null;
 
             return list[index + 1];
+        }
+
+        /// <summary>
+        ///     Returns whether any object of type T starts before <paramref name="end" /> and ends at or after
+        ///     <paramref name="start" />, i.e. whether its duration overlaps the given time range at any point,
+        ///     O(logn).
+        /// </summary>
+        public bool HasHitObjectOverlapping<T>(double start, double end)
+            where T : HitObject
+        {
+            var list = GetOrAdd(typeof(T), () => HitObjects.OfType<T>().ToList());
+
+            if (list.Count == 0)
+                return false;
+
+            var prefixMaxEndTime = GetOrAddPrefixMaxEndTime(typeof(T), list);
+
+            // Find the last object starting before `end` (BinaryTimeSearch allows equality, so back up
+            // past any objects starting exactly at `end`, since those shouldn't count).
+            var index = BinaryTimeSearch(list, obj => obj.time, end);
+
+            while (index >= 0 && list[index].time >= end)
+                --index;
+
+            if (index < 0)
+                return false;
+
+            // Since prefixMaxEndTime is a running maximum, this tells us whether any object up to and
+            // including `index` ends at or after `start`.
+            return prefixMaxEndTime[index] >= start;
+        }
+
+        private List<double> GetOrAddPrefixMaxEndTime<T>(Type t, List<T> list)
+            where T : HitObject
+        {
+            (string, Type) key = (GetCacheKey(), t);
+
+            return PrefixMaxEndTimeCacheHelper<T>.cache.GetOrAdd(
+                key,
+                _ =>
+                {
+                    var prefixMaxEndTime = new List<double>(list.Count);
+                    var maxEndTime = double.MinValue;
+
+                    foreach (var hitObject in list)
+                    {
+                        maxEndTime = Math.Max(maxEndTime, hitObject.GetEndTime());
+                        prefixMaxEndTime.Add(maxEndTime);
+                    }
+
+                    return prefixMaxEndTime;
+                }
+            );
         }
 
         /// <summary> Returns the unsnap in ms of notes unsnapped by 2 ms or more, otherwise null. </summary>
@@ -1496,6 +1573,13 @@ namespace MapsetVerifier.Parser.Objects
         {
             // Works under the assumption that hit objects and timing lines are immutable per beatmap id, which is the case.
             internal static readonly ConcurrentDictionary<(string, Type), List<T>> cache = new();
+        }
+
+        private static class PrefixMaxEndTimeCacheHelper<T>
+        {
+            // Works under the assumption that hit objects are immutable per beatmap id, which is the case.
+            internal static readonly ConcurrentDictionary<(string, Type), List<double>> cache =
+                new();
         }
 
         [GeneratedRegex(@"^\s*\w+'s\s+")]
