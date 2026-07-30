@@ -26,11 +26,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
                         "Reasoning",
                         @"
                         A .osu file with no content at all is not a usable difficulty; it has no metadata, no
-                        hit objects, and cannot be loaded by the game or by a difficulty calculator. This can
-                        happen if the file was corrupted or wiped, for example through an interrupted save.
-
-                        Since this file cannot represent a real difficulty, it is excluded entirely rather than
-                        being listed as a broken difficulty with no name, no star rating, and no hit objects."
+                        hit objects, and cannot be loaded by the game."
                     },
                 },
             };
@@ -41,8 +37,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
                 {
                     "Empty",
                     new IssueTemplate(Issue.Level.Problem, "\"{0}\" is empty.", "path").WithCause(
-                        "A .osu file in the song folder contains no data, and was excluded from the set of "
-                            + "difficulties as a result."
+                        "A .osu file in the song folder contains no data."
                     )
                 },
             };
