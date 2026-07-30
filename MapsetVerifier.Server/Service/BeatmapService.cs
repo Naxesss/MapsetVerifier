@@ -112,7 +112,7 @@ public static class BeatmapService
                 var osuFiles = Directory.GetFiles(folder.FullName, "*.osu");
                 if (osuFiles.Length == 0)
                     continue;
-                var content = File.ReadAllText(osuFiles[0]);
+                var content = ReadFirstNonEmptyOsuContent(osuFiles) ?? string.Empty;
                 var meta = ParseBeatmapMetadata(folder.FullName, content);
                 if (MatchesSearch(meta, search))
                 {
@@ -214,11 +214,11 @@ public static class BeatmapService
         if (!Directory.Exists(beatmapSetFolder))
             return null;
 
-        var osuFile = Directory.GetFiles(beatmapSetFolder, "*.osu").FirstOrDefault();
-        if (string.IsNullOrWhiteSpace(osuFile))
+        var osuFiles = Directory.GetFiles(beatmapSetFolder, "*.osu");
+        if (osuFiles.Length == 0)
             return null;
 
-        var content = File.ReadAllText(osuFile);
+        var content = ReadFirstNonEmptyOsuContent(osuFiles) ?? string.Empty;
         var meta = ParseBeatmapMetadata(beatmapSetFolder, content);
 
         ulong? beatmapId = null;
@@ -255,6 +255,24 @@ public static class BeatmapService
         var searchable =
             $"{meta.title} - {meta.artist} | {meta.creator} ({meta.beatmapId} {meta.beatmapSetId})";
         return searchable.Contains(search, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Directory.GetFiles returns files in an arbitrary/filesystem order (typically alphabetical on
+    /// Windows), which doesn't correlate with which difficulty has valid data. A corrupted/empty
+    /// .osu file that happens to sort first would otherwise blank out the title/artist for the
+    /// whole set. Returns null only if every file is empty.
+    /// </summary>
+    private static string? ReadFirstNonEmptyOsuContent(string[] osuFiles)
+    {
+        foreach (var osuFile in osuFiles)
+        {
+            var content = File.ReadAllText(osuFile);
+            if (!string.IsNullOrWhiteSpace(content))
+                return content;
+        }
+
+        return null;
     }
 
     private static (
