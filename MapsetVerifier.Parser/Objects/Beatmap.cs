@@ -230,6 +230,14 @@ namespace MapsetVerifier.Parser.Objects
 
         public Skill[] Skills { get; set; } = [];
 
+        /// <summary>
+        ///     Start/end times of the <c>DifficultyHitObject</c>s the ruleset actually processed, in
+        ///     processing order. Rulesets skip and reorder objects (and merge/split them, e.g. catch),
+        ///     so this is the only reliable way to anchor a skill's per-object difficulties - which are
+        ///     index-aligned with this list, see <c>Skill.GetObjectDifficulties</c> - to a timeline.
+        /// </summary>
+        public IReadOnlyList<DifficultyObjectTiming> DifficultyObjectTimings { get; set; } = [];
+
         // Settings
         public GeneralSettings GeneralSettings { get; }
         public MetadataSettings MetadataSettings { get; }
