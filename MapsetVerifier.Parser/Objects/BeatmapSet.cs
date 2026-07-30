@@ -14,6 +14,12 @@ namespace MapsetVerifier.Parser.Objects
         public Osb? Osb { get; private set; }
         public List<string> SongFilePaths { get; } = new();
 
+        /// <summary>
+        ///     Relative paths of .osu files that contained no data and were excluded from
+        ///     <see cref="Beatmaps" /> entirely, rather than being treated as a (broken) difficulty.
+        /// </summary>
+        public List<string> EmptyBeatmapFiles { get; } = new();
+
         public string SongPath { get; }
 
         public BeatmapSet(string beatmapSetPath)
@@ -118,6 +124,13 @@ namespace MapsetVerifier.Parser.Objects
 
                 var fileName = filePath.Substring(SongPath.Length + 1);
                 var code = File.ReadAllText(filePath);
+
+                if (string.IsNullOrWhiteSpace(code))
+                {
+                    EmptyBeatmapFiles.Add(fileName);
+
+                    continue;
+                }
 
                 beatmapFiles.Add(new BeatmapFile(fileName, code));
             }

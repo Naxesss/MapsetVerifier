@@ -92,9 +92,14 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
                 if (!fileName.EndsWith(".osu"))
                     continue;
 
-                var beatmap = beatmapSet.Beatmaps.First(otherBeatmap =>
+                // Empty .osu files have no corresponding Beatmap; they're flagged separately by
+                // CheckEmptyDifficultyFile instead.
+                var beatmap = beatmapSet.Beatmaps.FirstOrDefault(otherBeatmap =>
                     otherBeatmap.MapPath == filePath
                 );
+
+                if (beatmap == null)
+                    continue;
 
                 if (beatmap.GetOsuFileName().ToLower() != fileName.ToLower())
                     yield return new Issue(

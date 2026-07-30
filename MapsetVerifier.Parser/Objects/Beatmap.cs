@@ -203,6 +203,12 @@ namespace MapsetVerifier.Parser.Objects
         private bool _attributesCalculated;
         private bool _timedCalculated;
 
+        /// <summary>
+        ///     Set if the underlying difficulty calculator could not process this beatmap's file
+        ///     (e.g. a corrupted or empty .osu file). Star rating then falls back to 0 instead of throwing.
+        /// </summary>
+        public Exception? DifficultyCalculationError { get; private set; }
+
         // Star Rating: calculated lazily on first access (see EnsureAttributesCalculated).
         public double StarRating
         {
@@ -320,9 +326,19 @@ namespace MapsetVerifier.Parser.Objects
                 if (_attributesCalculated)
                     return;
 
-                var attributes = new LocalDifficultyCalculator().CalculateAttributes(this);
-                _difficultyAttributes = attributes;
-                _starRating = attributes.StarRating;
+                try
+                {
+                    var attributes = new LocalDifficultyCalculator().CalculateAttributes(this);
+                    _difficultyAttributes = attributes;
+                    _starRating = attributes.StarRating;
+                }
+                catch (Exception exception)
+                {
+                    DifficultyCalculationError = exception;
+                    _difficultyAttributes = null;
+                    _starRating = 0;
+                }
+
                 _attributesCalculated = true;
             }
         }
@@ -338,16 +354,30 @@ namespace MapsetVerifier.Parser.Objects
                 if (_timedCalculated)
                     return _timedAttributes!;
 
-                _timedAttributes = new LocalDifficultyCalculator().CalculateTimedAttributes(this);
-                _timedCalculated = true;
-
-                // Timed calc already produces final attributes/skills; skip a separate Calculate() pass.
-                if (_timedAttributes.Count > 0)
+                try
                 {
-                    _difficultyAttributes = _timedAttributes[^1].Attributes;
-                    _starRating = _difficultyAttributes.StarRating;
+                    _timedAttributes = new LocalDifficultyCalculator().CalculateTimedAttributes(
+                        this
+                    );
+
+                    // Timed calc already produces final attributes/skills; skip a separate Calculate() pass.
+                    if (_timedAttributes.Count > 0)
+                    {
+                        _difficultyAttributes = _timedAttributes[^1].Attributes;
+                        _starRating = _difficultyAttributes.StarRating;
+                        _attributesCalculated = true;
+                    }
+                }
+                catch (Exception exception)
+                {
+                    DifficultyCalculationError = exception;
+                    _timedAttributes = [];
+                    _difficultyAttributes = null;
+                    _starRating = 0;
                     _attributesCalculated = true;
                 }
+
+                _timedCalculated = true;
 
                 return _timedAttributes;
             }
