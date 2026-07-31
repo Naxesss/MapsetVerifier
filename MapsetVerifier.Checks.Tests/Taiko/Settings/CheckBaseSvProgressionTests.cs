@@ -82,7 +82,7 @@ public class CheckBaseSvProgressionTests
             "Base SV 1.10x breaks the set's progression from 1.40x on Kantan",
             issue.message
         );
-        Assert.Contains("Ensure this makes sense", issue.message);
+        Assert.Contains("Ensure this is intentional", issue.message);
     }
 
     [Fact]
