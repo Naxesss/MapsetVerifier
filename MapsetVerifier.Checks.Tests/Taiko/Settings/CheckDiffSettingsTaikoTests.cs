@@ -80,34 +80,14 @@ public class CheckDiffSettingsTaikoTests
     }
 
     private static CheckTestContext CreateContext(float od, float hp) =>
-        CheckTestContext.CreateFromOsuFiles(
-            [
-                (
-                    "test.osu",
-                    string.Join(
-                        "\n",
-                        "osu file format v14",
-                        "[General]",
-                        "AudioFilename:audio.mp3",
-                        $"Mode: {(int)Beatmap.Mode.Taiko}",
-                        "[Metadata]",
-                        "Title:Test",
-                        "Artist:Tests",
-                        "Creator:Tests",
-                        "Version:Test",
-                        "[Difficulty]",
-                        "CircleSize:4",
-                        $"HPDrainRate:{hp}",
-                        $"OverallDifficulty:{od}",
-                        "ApproachRate:5",
-                        "SliderMultiplier:1.4",
-                        "SliderTickRate:1",
-                        "[Events]",
-                        "[TimingPoints]",
-                        "[HitObjects]"
-                    )
-                ),
-            ],
+        CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Mode(Beatmap.Mode.Taiko)
+                .Title("Test")
+                .Artist("Tests")
+                .Creator("Tests")
+                .HP(hp)
+                .OD(od),
             extraFiles: ["audio.mp3"]
         );
 }

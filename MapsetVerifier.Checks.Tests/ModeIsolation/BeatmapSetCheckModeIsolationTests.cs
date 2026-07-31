@@ -155,34 +155,14 @@ public class BeatmapSetCheckModeIsolationTests
         float circleSize = 4,
         IEnumerable<string>? timingPoints = null,
         IEnumerable<string>? hitObjects = null
-    )
-    {
-        var lines = new List<string>
-        {
-            "osu file format v14",
-            "[General]",
-            "AudioFilename: audio.mp3",
-            $"Mode: {(int)mode}",
-            "[Metadata]",
-            "Title:Mode Isolation",
-            "Artist:MapsetVerifier",
-            "Creator:Tests",
-            $"Version:{version}",
-            "[Difficulty]",
-            $"CircleSize:{circleSize}",
-            "HPDrainRate:5",
-            "OverallDifficulty:5",
-            "ApproachRate:5",
-            "SliderMultiplier:1.4",
-            "SliderTickRate:1",
-            "[Events]",
-            "[TimingPoints]",
-        };
-
-        lines.AddRange(timingPoints ?? ["0,500,4,2,0,100,1,0"]);
-        lines.Add("[HitObjects]");
-        lines.AddRange(hitObjects ?? ["256,192,1000,1,0,0:0:0:0:"]);
-
-        return string.Join("\n", lines);
-    }
+    ) =>
+        new OsuBuilder()
+            .Mode(mode)
+            .Title("Mode Isolation")
+            .Artist("MapsetVerifier")
+            .Version(version)
+            .CircleSize(circleSize)
+            .TimingPoints(timingPoints ?? [OsuBuilder.DefaultTimingPoint])
+            .HitObjects(hitObjects ?? [OsuBuilder.DefaultHitObject])
+            .Build();
 }

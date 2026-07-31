@@ -1,31 +1,22 @@
 using MapsetVerifier.Checks.Mania.Skinning;
 using MapsetVerifier.Framework.Objects;
+using MapsetVerifier.Parser.Objects;
 using Xunit;
 
 namespace MapsetVerifier.Checks.Tests.Mania.Skinning;
 
 public class CheckSkinningManiaTests
 {
-    private static string BuildMinimalOsu(string hitObject = "256,192,1000,1,0,0:0:0:0:") =>
-        string.Join(
-            "\n",
-            "osu file format v14",
-            "[General]",
-            "AudioFilename: audio.mp3",
-            "Mode: 3",
-            "[Metadata]",
-            "Title:Title",
-            "Artist:Artist",
-            "Creator:Creator",
-            "Version:Test",
-            "[Difficulty]",
-            "StackLeniency:0.7",
-            "CircleSize:4",
-            "[TimingPoints]",
-            "0,500,4,2,0,100,1,0",
-            "[HitObjects]",
-            hitObject
-        );
+    private static string BuildMinimalOsu(string hitObject = OsuBuilder.DefaultHitObject) =>
+        new OsuBuilder()
+            .Mode(Beatmap.Mode.Mania)
+            .Title("Title")
+            .Artist("Artist")
+            .Creator("Creator")
+            .StackLeniency(0.7f)
+            .WithDefaultTiming()
+            .HitObjects(hitObject)
+            .Build();
 
     [Fact]
     public void CompleteHitburstSet_NoIssues()

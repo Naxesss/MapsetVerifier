@@ -1,6 +1,5 @@
 using MapsetVerifier.Checks.Standard.Compose;
 using MapsetVerifier.Framework.Objects;
-using MapsetVerifier.Parser.Objects;
 using Xunit;
 
 namespace MapsetVerifier.Checks.Tests.Standard.Compose;
@@ -15,9 +14,12 @@ public class CheckSliderOnlySectionsTests
             hitObjects.Add(Slider(time));
         hitObjects.Add(Circle(9000));
 
-        using var context = CheckTestContext.CreateFromOsuFiles([
-            ("test.osu", BuildOsu(hitObjects)),
-        ]);
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Title("Slider Only Sections")
+                .WithDefaultTiming()
+                .HitObjects(hitObjects)
+        );
 
         var issues = context.RunBeatmapCheck<CheckSliderOnlySections>("Test");
 
@@ -33,9 +35,12 @@ public class CheckSliderOnlySectionsTests
         for (var time = 0; time <= 7000; time += 1000)
             hitObjects.Add(Slider(time));
 
-        using var context = CheckTestContext.CreateFromOsuFiles([
-            ("test.osu", BuildOsu(hitObjects)),
-        ]);
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Title("Slider Only Sections")
+                .WithDefaultTiming()
+                .HitObjects(hitObjects)
+        );
 
         var issues = context.RunBeatmapCheck<CheckSliderOnlySections>("Test");
 
@@ -50,9 +55,12 @@ public class CheckSliderOnlySectionsTests
             hitObjects.Add(Slider(time));
         hitObjects.Add(Circle(6000));
 
-        using var context = CheckTestContext.CreateFromOsuFiles([
-            ("test.osu", BuildOsu(hitObjects)),
-        ]);
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Title("Slider Only Sections")
+                .WithDefaultTiming()
+                .HitObjects(hitObjects)
+        );
 
         var issues = context.RunBeatmapCheck<CheckSliderOnlySections>("Test");
 
@@ -67,9 +75,12 @@ public class CheckSliderOnlySectionsTests
             hitObjects.Add(Slider(time));
         hitObjects.Add(Circle(1000));
 
-        using var context = CheckTestContext.CreateFromOsuFiles([
-            ("test.osu", BuildOsu(hitObjects)),
-        ]);
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Title("Slider Only Sections")
+                .WithDefaultTiming()
+                .HitObjects(hitObjects)
+        );
 
         var issues = context.RunBeatmapCheck<CheckSliderOnlySections>("Test");
 
@@ -87,9 +98,12 @@ public class CheckSliderOnlySectionsTests
             hitObjects.Add(Slider(time));
         hitObjects.Add(Circle(9000));
 
-        using var context = CheckTestContext.CreateFromOsuFiles([
-            ("test.osu", BuildOsu(hitObjects)),
-        ]);
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Title("Slider Only Sections")
+                .WithDefaultTiming()
+                .HitObjects(hitObjects)
+        );
 
         var issues = context.RunBeatmapCheck<CheckSliderOnlySections>("Test");
 
@@ -100,35 +114,4 @@ public class CheckSliderOnlySectionsTests
         $"256,192,{time},2,0,L|256:300,1,100,0|0,0:0|0:0,0:0:0:0:";
 
     private static string Circle(int time) => $"256,192,{time},1,0,0:0:0:0:";
-
-    private static string BuildOsu(IEnumerable<string> hitObjects)
-    {
-        var lines = new List<string>
-        {
-            "osu file format v14",
-            "[General]",
-            "AudioFilename: audio.mp3",
-            $"Mode: {(int)Beatmap.Mode.Standard}",
-            "[Metadata]",
-            "Title:Slider Only Sections",
-            "Artist:MapsetVerifier",
-            "Creator:Tests",
-            "Version:Test",
-            "[Difficulty]",
-            "CircleSize:4",
-            "HPDrainRate:5",
-            "OverallDifficulty:5",
-            "ApproachRate:5",
-            "SliderMultiplier:1.4",
-            "SliderTickRate:1",
-            "[Events]",
-            "[TimingPoints]",
-            "0,500,4,2,0,100,1,0",
-            "[HitObjects]",
-        };
-
-        lines.AddRange(hitObjects);
-
-        return string.Join("\n", lines);
-    }
 }

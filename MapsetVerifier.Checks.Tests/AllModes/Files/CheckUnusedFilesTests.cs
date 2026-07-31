@@ -7,33 +7,22 @@ namespace MapsetVerifier.Checks.Tests.AllModes.Files;
 
 public class CheckUnusedFilesTests
 {
-    private static string BuildMinimalOsu(
+    private static OsuBuilder BuildMinimalOsu(
         int countdown = 0,
         Beatmap.Mode mode = Beatmap.Mode.Standard,
         IEnumerable<string>? events = null,
         string hitObject = "256,192,1000,1,0,0:0:0:0:"
     ) =>
-        string.Join(
-            "\n",
-            "osu file format v14",
-            "[General]",
-            "AudioFilename: audio.mp3",
-            "Mode: " + (int)mode,
-            "Countdown: " + countdown,
-            "[Metadata]",
-            "Title:Title",
-            "Artist:Artist",
-            "Creator:Creator",
-            "Version:Test",
-            "[Difficulty]",
-            "StackLeniency:0.7",
-            "[Events]",
-            string.Join("\n", events ?? []),
-            "[TimingPoints]",
-            "0,500,4,2,0,100,1,0",
-            "[HitObjects]",
-            hitObject
-        );
+        new OsuBuilder()
+            .Mode(mode)
+            .Countdown(countdown)
+            .Title("Title")
+            .Artist("Artist")
+            .Creator("Creator")
+            .StackLeniency(0.7f)
+            .Events(events ?? [])
+            .WithDefaultTiming()
+            .HitObjects(hitObject);
 
     private const string ExpectedOsbFileName = "Artist - Title (Creator).osb";
 
@@ -59,9 +48,9 @@ public class CheckUnusedFilesTests
     [Fact]
     public void LazerOnlySkinFile_EmitsInfoNotProblem()
     {
-        using var context = CheckTestContext.CreateFromOsuFiles(
-            [("test.osu", BuildMinimalOsu())],
-            ["audio.mp3", "fountain-shoot.wav"]
+        using var context = CheckTestContext.CreateFromOsu(
+            BuildMinimalOsu(),
+            extraFiles: ["audio.mp3", "fountain-shoot.wav"]
         );
 
         var issues = context.RunGeneralCheck<CheckUnusedFiles>();
@@ -74,9 +63,9 @@ public class CheckUnusedFilesTests
     [Fact]
     public void TrulyUnusedFile_EmitsProblem()
     {
-        using var context = CheckTestContext.CreateFromOsuFiles(
-            [("test.osu", BuildMinimalOsu())],
-            ["audio.mp3", "random-unused.bin"]
+        using var context = CheckTestContext.CreateFromOsu(
+            BuildMinimalOsu(),
+            extraFiles: ["audio.mp3", "random-unused.bin"]
         );
 
         var issues = context.RunGeneralCheck<CheckUnusedFiles>();
@@ -88,9 +77,9 @@ public class CheckUnusedFilesTests
     [Fact]
     public void AudioFile_NoUnusedIssue()
     {
-        using var context = CheckTestContext.CreateFromOsuFiles(
-            [("test.osu", BuildMinimalOsu())],
-            ["audio.mp3"]
+        using var context = CheckTestContext.CreateFromOsu(
+            BuildMinimalOsu(),
+            extraFiles: ["audio.mp3"]
         );
 
         AssertNoUnusedIssues(context);
@@ -99,14 +88,9 @@ public class CheckUnusedFilesTests
     [Fact]
     public void ExactStoryboardReferenceInOsu_NoUnusedIssue()
     {
-        using var context = CheckTestContext.CreateFromOsuFiles(
-            [
-                (
-                    "test.osu",
-                    BuildMinimalOsu(events: ["Sprite,Foreground,Centre,\"SB\\white.png\",320,200"])
-                ),
-            ],
-            ["audio.mp3", "SB/white.png"]
+        using var context = CheckTestContext.CreateFromOsu(
+            BuildMinimalOsu(events: ["Sprite,Foreground,Centre,\"SB\\white.png\",320,200"]),
+            extraFiles: ["audio.mp3", "SB/white.png"]
         );
 
         AssertNoUnusedIssues(context);
@@ -115,10 +99,16 @@ public class CheckUnusedFilesTests
     [Fact]
     public void ExactStoryboardReferenceInOsb_NoUnusedIssue()
     {
-        using var context = CheckTestContext.CreateFromOsuFiles(
-            [("test.osu", BuildMinimalOsu())],
-            ["audio.mp3", "SB/white.png"],
-            [(ExpectedOsbFileName, "[Events]\nSprite,Foreground,Centre,\"SB\\white.png\",320,200")]
+        using var context = CheckTestContext.CreateFromOsu(
+            BuildMinimalOsu(),
+            extraFiles: ["audio.mp3", "SB/white.png"],
+            extraFileContents:
+            [
+                (
+                    ExpectedOsbFileName,
+                    "[Events]\nSprite,Foreground,Centre,\"SB\\white.png\",320,200"
+                ),
+            ]
         );
 
         AssertNoUnusedIssues(context);
@@ -127,14 +117,9 @@ public class CheckUnusedFilesTests
     [Fact]
     public void ExtensionlessStoryboardReference_UsesMatchingFile()
     {
-        using var context = CheckTestContext.CreateFromOsuFiles(
-            [
-                (
-                    "test.osu",
-                    BuildMinimalOsu(events: ["Sprite,Foreground,Centre,\"SB\\white\",320,200"])
-                ),
-            ],
-            ["audio.mp3", "SB/white.png"]
+        using var context = CheckTestContext.CreateFromOsu(
+            BuildMinimalOsu(events: ["Sprite,Foreground,Centre,\"SB\\white\",320,200"]),
+            extraFiles: ["audio.mp3", "SB/white.png"]
         );
 
         AssertNoUnusedIssues(context);
@@ -143,9 +128,10 @@ public class CheckUnusedFilesTests
     [Fact]
     public void StoryboardReferenceWithDifferentExtension_EmitsProblem()
     {
-        using var context = CheckTestContext.CreateFromOsuFiles(
-            [("test.osu", BuildMinimalOsu())],
-            ["audio.mp3", "SB/white.png"],
+        using var context = CheckTestContext.CreateFromOsu(
+            BuildMinimalOsu(),
+            extraFiles: ["audio.mp3", "SB/white.png"],
+            extraFileContents:
             [
                 (
                     ExpectedOsbFileName,
@@ -168,9 +154,9 @@ public class CheckUnusedFilesTests
     [Fact]
     public void HitObjectCustomSampleFile_NoUnusedIssue()
     {
-        using var context = CheckTestContext.CreateFromOsuFiles(
-            [("test.osu", BuildMinimalOsu(hitObject: "256,192,1000,1,0,0:0:0:0:custom.wav"))],
-            ["audio.mp3", "custom.wav"]
+        using var context = CheckTestContext.CreateFromOsu(
+            BuildMinimalOsu(hitObject: "256,192,1000,1,0,0:0:0:0:custom.wav"),
+            extraFiles: ["audio.mp3", "custom.wav"]
         );
 
         AssertNoUnusedIssues(context);
@@ -179,9 +165,9 @@ public class CheckUnusedFilesTests
     [Fact]
     public void GeneratedHitSoundFile_NoUnusedIssue()
     {
-        using var context = CheckTestContext.CreateFromOsuFiles(
-            [("test.osu", BuildMinimalOsu(hitObject: "256,192,1000,1,2,0:0:1:0:"))],
-            ["audio.mp3", "soft-hitwhistle.wav"]
+        using var context = CheckTestContext.CreateFromOsu(
+            BuildMinimalOsu(hitObject: "256,192,1000,1,2,0:0:1:0:"),
+            extraFiles: ["audio.mp3", "soft-hitwhistle.wav"]
         );
 
         AssertNoUnusedIssues(context);
@@ -190,9 +176,10 @@ public class CheckUnusedFilesTests
     [Fact]
     public void UsedOsbFile_NoUnusedIssue()
     {
-        using var context = CheckTestContext.CreateFromOsuFiles(
-            [("test.osu", BuildMinimalOsu())],
-            ["audio.mp3"],
+        using var context = CheckTestContext.CreateFromOsu(
+            BuildMinimalOsu(),
+            extraFiles: ["audio.mp3"],
+            extraFileContents:
             [
                 (
                     ExpectedOsbFileName,
@@ -207,9 +194,9 @@ public class CheckUnusedFilesTests
     [Fact]
     public void EmptyOsbFile_EmitsProblem()
     {
-        using var context = CheckTestContext.CreateFromOsuFiles(
-            [("test.osu", BuildMinimalOsu())],
-            ["audio.mp3", ExpectedOsbFileName]
+        using var context = CheckTestContext.CreateFromOsu(
+            BuildMinimalOsu(),
+            extraFiles: ["audio.mp3", ExpectedOsbFileName]
         );
 
         AssertProblemFor(context, ExpectedOsbFileName);
@@ -218,19 +205,11 @@ public class CheckUnusedFilesTests
     [Fact]
     public void AnimationFrameFile_NoUnusedIssue()
     {
-        using var context = CheckTestContext.CreateFromOsuFiles(
-            [
-                (
-                    "test.osu",
-                    BuildMinimalOsu(
-                        events:
-                        [
-                            "Animation,Foreground,Centre,\"SB\\frame.png\",320,200,2,100,LoopOnce",
-                        ]
-                    )
-                ),
-            ],
-            ["audio.mp3", "SB/frame0.png", "SB/frame1.png"]
+        using var context = CheckTestContext.CreateFromOsu(
+            BuildMinimalOsu(
+                events: ["Animation,Foreground,Centre,\"SB\\frame.png\",320,200,2,100,LoopOnce"]
+            ),
+            extraFiles: ["audio.mp3", "SB/frame0.png", "SB/frame1.png"]
         );
 
         AssertNoUnusedIssues(context);
@@ -239,9 +218,9 @@ public class CheckUnusedFilesTests
     [Fact]
     public void CountWav_WithCountdown_NoUnusedIssue()
     {
-        using var context = CheckTestContext.CreateFromOsuFiles(
-            [("test.osu", BuildMinimalOsu(countdown: 1))],
-            ["audio.mp3", "count.wav"]
+        using var context = CheckTestContext.CreateFromOsu(
+            BuildMinimalOsu(countdown: 1),
+            extraFiles: ["audio.mp3", "count.wav"]
         );
 
         var issues = context.RunGeneralCheck<CheckUnusedFiles>();
@@ -252,9 +231,9 @@ public class CheckUnusedFilesTests
     [Fact]
     public void ApplauseWav_StableSkin_NoUnusedIssue()
     {
-        using var context = CheckTestContext.CreateFromOsuFiles(
-            [("test.osu", BuildMinimalOsu())],
-            ["audio.mp3", "applause.wav"]
+        using var context = CheckTestContext.CreateFromOsu(
+            BuildMinimalOsu(),
+            extraFiles: ["audio.mp3", "applause.wav"]
         );
 
         var issues = context.RunGeneralCheck<CheckUnusedFiles>();
@@ -265,9 +244,9 @@ public class CheckUnusedFilesTests
     [Fact]
     public void LazerSliderMissOnManiaOnlySet_EmitsProblemNotInfo()
     {
-        using var context = CheckTestContext.CreateFromOsuFiles(
-            [("test.osu", BuildMinimalOsu(mode: Beatmap.Mode.Mania))],
-            ["audio.mp3", "sliderendmiss.png"]
+        using var context = CheckTestContext.CreateFromOsu(
+            BuildMinimalOsu(mode: Beatmap.Mode.Mania),
+            extraFiles: ["audio.mp3", "sliderendmiss.png"]
         );
 
         var issues = context.RunGeneralCheck<CheckUnusedFiles>();

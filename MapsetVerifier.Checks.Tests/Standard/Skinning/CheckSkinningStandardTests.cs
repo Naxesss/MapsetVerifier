@@ -7,28 +7,23 @@ namespace MapsetVerifier.Checks.Tests.Standard.Skinning;
 public class CheckSkinningStandardTests
 {
     private static string BuildMinimalOsu(
-        string hitObject = "256,192,1000,1,0,0:0:0:0:",
+        string hitObject = OsuBuilder.DefaultHitObject,
         string? colours = null
-    ) =>
-        string.Join(
-            "\n",
-            "osu file format v14",
-            "[General]",
-            "AudioFilename: audio.mp3",
-            "Mode: 0",
-            "[Metadata]",
-            "Title:Title",
-            "Artist:Artist",
-            "Creator:Creator",
-            "Version:Test",
-            "[Difficulty]",
-            "StackLeniency:0.7",
-            "[TimingPoints]",
-            "0,500,4,2,0,100,1,0",
-            colours == null ? "" : "[Colours]\n" + colours,
-            "[HitObjects]",
-            hitObject
-        );
+    )
+    {
+        var builder = new OsuBuilder()
+            .Title("Title")
+            .Artist("Artist")
+            .Creator("Creator")
+            .StackLeniency(0.7f)
+            .WithDefaultTiming()
+            .HitObjects(hitObject);
+
+        if (colours != null)
+            builder.Colours(colours.Split('\n'));
+
+        return builder.Build();
+    }
 
     private const string CircleHitObject = "256,192,1000,1,0,0:0:0:0:";
 

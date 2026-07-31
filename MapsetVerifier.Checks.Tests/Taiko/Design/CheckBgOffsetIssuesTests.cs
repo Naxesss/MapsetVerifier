@@ -108,34 +108,14 @@ public class CheckBgOffsetIssuesTests
     private static string BuildTaikoOsu(string version, string backgroundLine) =>
         BuildOsu(Beatmap.Mode.Taiko, version, backgroundLine);
 
-    private static string BuildOsu(Beatmap.Mode mode, string version, string backgroundLine)
-    {
-        return string.Join(
-            "\n",
-            [
-                "osu file format v14",
-                "[General]",
-                "AudioFilename: audio.mp3",
-                $"Mode: {(int)mode}",
-                "[Metadata]",
-                "Title:Background Offset Test",
-                "Artist:MapsetVerifier",
-                "Creator:Tests",
-                $"Version:{version}",
-                "[Difficulty]",
-                "HPDrainRate:5",
-                "CircleSize:4",
-                "OverallDifficulty:5",
-                "ApproachRate:5",
-                "SliderMultiplier:1.4",
-                "SliderTickRate:1",
-                "[Events]",
-                backgroundLine,
-                "[TimingPoints]",
-                "0,500,4,2,0,100,1,0",
-                "[HitObjects]",
-                "256,192,1000,1,0,0:0:0:0:",
-            ]
-        );
-    }
+    private static string BuildOsu(Beatmap.Mode mode, string version, string backgroundLine) =>
+        new OsuBuilder()
+            .Mode(mode)
+            .Title("Background Offset Test")
+            .Artist("MapsetVerifier")
+            .Version(version)
+            .Events(backgroundLine)
+            .WithDefaultTiming()
+            .WithDefaultHitObject()
+            .Build();
 }

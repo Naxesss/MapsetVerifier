@@ -11,8 +11,24 @@ public class CheckHitSoundConsistencyTests
     public void MissingAddition_FlaggedAsWarning_WhenMajorityOfOtherDiffsHaveIt()
     {
         using var context = CheckTestContext.CreateFromOsuFiles([
-            ("a.osu", BuildOsu(Beatmap.Mode.Standard, "A", ["256,192,1000,1,8,0:0:0:0:"])),
-            ("b.osu", BuildOsu(Beatmap.Mode.Standard, "B", ["256,192,1000,1,0,0:0:0:0:"])),
+            (
+                "a.osu",
+                new OsuBuilder()
+                    .Title("Hit Sound Consistency")
+                    .Version("A")
+                    .WithDefaultTiming()
+                    .HitObjects("256,192,1000,1,8,0:0:0:0:")
+                    .Build()
+            ),
+            (
+                "b.osu",
+                new OsuBuilder()
+                    .Title("Hit Sound Consistency")
+                    .Version("B")
+                    .WithDefaultTiming()
+                    .HitObjects("256,192,1000,1,0,0:0:0:0:")
+                    .Build()
+            ),
         ]);
 
         var issues = context.RunBeatmapSetCheck<CheckHitSoundConsistency>();
@@ -27,9 +43,34 @@ public class CheckHitSoundConsistencyTests
     public void MissingAddition_FlaggedAsMinor_WhenMinorityOfOtherDiffsHaveIt()
     {
         using var context = CheckTestContext.CreateFromOsuFiles([
-            ("a.osu", BuildOsu(Beatmap.Mode.Standard, "A", ["256,192,1000,1,8,0:0:0:0:"])),
-            ("b.osu", BuildOsu(Beatmap.Mode.Standard, "B", ["256,192,1000,1,0,0:0:0:0:"])),
-            ("c.osu", BuildOsu(Beatmap.Mode.Catch, "C", ["256,192,1000,1,0,0:0:0:0:"])),
+            (
+                "a.osu",
+                new OsuBuilder()
+                    .Title("Hit Sound Consistency")
+                    .Version("A")
+                    .WithDefaultTiming()
+                    .HitObjects("256,192,1000,1,8,0:0:0:0:")
+                    .Build()
+            ),
+            (
+                "b.osu",
+                new OsuBuilder()
+                    .Title("Hit Sound Consistency")
+                    .Version("B")
+                    .WithDefaultTiming()
+                    .HitObjects("256,192,1000,1,0,0:0:0:0:")
+                    .Build()
+            ),
+            (
+                "c.osu",
+                new OsuBuilder()
+                    .Mode(Beatmap.Mode.Catch)
+                    .Title("Hit Sound Consistency")
+                    .Version("C")
+                    .WithDefaultTiming()
+                    .HitObjects("256,192,1000,1,0,0:0:0:0:")
+                    .Build()
+            ),
         ]);
 
         var issues = context.RunBeatmapSetCheck<CheckHitSoundConsistency>();
@@ -44,8 +85,25 @@ public class CheckHitSoundConsistencyTests
     public void ConsistentHitSounds_ProducesNoIssues()
     {
         using var context = CheckTestContext.CreateFromOsuFiles([
-            ("a.osu", BuildOsu(Beatmap.Mode.Standard, "A", ["256,192,1000,1,8,0:0:0:0:"])),
-            ("b.osu", BuildOsu(Beatmap.Mode.Catch, "B", ["256,192,1000,1,8,0:0:0:0:"])),
+            (
+                "a.osu",
+                new OsuBuilder()
+                    .Title("Hit Sound Consistency")
+                    .Version("A")
+                    .WithDefaultTiming()
+                    .HitObjects("256,192,1000,1,8,0:0:0:0:")
+                    .Build()
+            ),
+            (
+                "b.osu",
+                new OsuBuilder()
+                    .Mode(Beatmap.Mode.Catch)
+                    .Title("Hit Sound Consistency")
+                    .Version("B")
+                    .WithDefaultTiming()
+                    .HitObjects("256,192,1000,1,8,0:0:0:0:")
+                    .Build()
+            ),
         ]);
 
         var issues = context.RunBeatmapSetCheck<CheckHitSoundConsistency>();
@@ -59,13 +117,22 @@ public class CheckHitSoundConsistencyTests
         using var context = CheckTestContext.CreateFromOsuFiles([
             (
                 "a.osu",
-                BuildOsu(
-                    Beatmap.Mode.Standard,
-                    "A",
-                    ["256,192,1000,2,2,L|256:300,1,120,0|0,0:0|0:0,0:0:0:0:"]
-                )
+                new OsuBuilder()
+                    .Title("Hit Sound Consistency")
+                    .Version("A")
+                    .WithDefaultTiming()
+                    .HitObjects("256,192,1000,2,2,L|256:300,1,120,0|0,0:0|0:0,0:0:0:0:")
+                    .Build()
             ),
-            ("b.osu", BuildOsu(Beatmap.Mode.Standard, "B", ["256,192,1000,1,0,0:0:0:0:"])),
+            (
+                "b.osu",
+                new OsuBuilder()
+                    .Title("Hit Sound Consistency")
+                    .Version("B")
+                    .WithDefaultTiming()
+                    .HitObjects("256,192,1000,1,0,0:0:0:0:")
+                    .Build()
+            ),
         ]);
 
         var issues = context.RunBeatmapSetCheck<CheckHitSoundConsistency>();
@@ -84,11 +151,51 @@ public class CheckHitSoundConsistencyTests
         var divergentObjects = times.Select(time => $"256,192,{time},1,0,0:0:0:0:").ToArray();
 
         using var context = CheckTestContext.CreateFromOsuFiles([
-            ("c0.osu", BuildOsu(Beatmap.Mode.Standard, "C0", consistentObjects)),
-            ("c1.osu", BuildOsu(Beatmap.Mode.Standard, "C1", consistentObjects)),
-            ("c2.osu", BuildOsu(Beatmap.Mode.Standard, "C2", consistentObjects)),
-            ("c3.osu", BuildOsu(Beatmap.Mode.Standard, "C3", consistentObjects)),
-            ("d.osu", BuildOsu(Beatmap.Mode.Standard, "D", divergentObjects)),
+            (
+                "c0.osu",
+                new OsuBuilder()
+                    .Title("Hit Sound Consistency")
+                    .Version("C0")
+                    .WithDefaultTiming()
+                    .HitObjects(consistentObjects)
+                    .Build()
+            ),
+            (
+                "c1.osu",
+                new OsuBuilder()
+                    .Title("Hit Sound Consistency")
+                    .Version("C1")
+                    .WithDefaultTiming()
+                    .HitObjects(consistentObjects)
+                    .Build()
+            ),
+            (
+                "c2.osu",
+                new OsuBuilder()
+                    .Title("Hit Sound Consistency")
+                    .Version("C2")
+                    .WithDefaultTiming()
+                    .HitObjects(consistentObjects)
+                    .Build()
+            ),
+            (
+                "c3.osu",
+                new OsuBuilder()
+                    .Title("Hit Sound Consistency")
+                    .Version("C3")
+                    .WithDefaultTiming()
+                    .HitObjects(consistentObjects)
+                    .Build()
+            ),
+            (
+                "d.osu",
+                new OsuBuilder()
+                    .Title("Hit Sound Consistency")
+                    .Version("D")
+                    .WithDefaultTiming()
+                    .HitObjects(divergentObjects)
+                    .Build()
+            ),
         ]);
 
         var issues = context.RunBeatmapSetCheck<CheckHitSoundConsistency>();
@@ -103,50 +210,29 @@ public class CheckHitSoundConsistencyTests
     public void SingleRelevantDifficulty_ProducesNoIssues()
     {
         using var context = CheckTestContext.CreateFromOsuFiles([
-            ("mania.osu", BuildOsu(Beatmap.Mode.Mania, "Main", ["256,192,1000,1,8,0:0:0:0:"])),
+            (
+                "mania.osu",
+                new OsuBuilder()
+                    .Mode(Beatmap.Mode.Mania)
+                    .Title("Hit Sound Consistency")
+                    .Version("Main")
+                    .WithDefaultTiming()
+                    .HitObjects("256,192,1000,1,8,0:0:0:0:")
+                    .Build()
+            ),
             (
                 "standard.osu",
-                BuildOsu(Beatmap.Mode.Standard, "Easy", ["256,192,1000,1,0,0:0:0:0:"])
+                new OsuBuilder()
+                    .Title("Hit Sound Consistency")
+                    .Version("Easy")
+                    .WithDefaultTiming()
+                    .HitObjects("256,192,1000,1,0,0:0:0:0:")
+                    .Build()
             ),
         ]);
 
         var issues = context.RunBeatmapSetCheck<CheckHitSoundConsistency>();
 
         Assert.Empty(issues);
-    }
-
-    private static string BuildOsu(
-        Beatmap.Mode mode,
-        string version,
-        IEnumerable<string> hitObjects
-    )
-    {
-        var lines = new List<string>
-        {
-            "osu file format v14",
-            "[General]",
-            "AudioFilename: audio.mp3",
-            $"Mode: {(int)mode}",
-            "[Metadata]",
-            "Title:Hit Sound Consistency",
-            "Artist:MapsetVerifier",
-            "Creator:Tests",
-            $"Version:{version}",
-            "[Difficulty]",
-            "CircleSize:4",
-            "HPDrainRate:5",
-            "OverallDifficulty:5",
-            "ApproachRate:5",
-            "SliderMultiplier:1.4",
-            "SliderTickRate:1",
-            "[Events]",
-            "[TimingPoints]",
-            "0,500,4,2,0,100,1,0",
-            "[HitObjects]",
-        };
-
-        lines.AddRange(hitObjects);
-
-        return string.Join("\n", lines);
     }
 }

@@ -39,6 +39,18 @@ public sealed class CheckTestContext : IDisposable
         return new CheckTestContext(tempPath);
     }
 
+    public static CheckTestContext CreateFromOsu(
+        OsuBuilder builder,
+        IEnumerable<string>? extraFiles = null,
+        IEnumerable<(string FileName, string Content)>? extraFileContents = null
+    ) => CreateFromOsu(builder.Build(), extraFiles, extraFileContents);
+
+    public static CheckTestContext CreateFromOsu(
+        string osuContent,
+        IEnumerable<string>? extraFiles = null,
+        IEnumerable<(string FileName, string Content)>? extraFileContents = null
+    ) => CreateFromOsuFiles([("test.osu", osuContent)], extraFiles, extraFileContents);
+
     public static CheckTestContext CreateFromOsuFiles(
         IEnumerable<(string FileName, string Content)> osuFiles,
         IEnumerable<string>? extraFiles = null,

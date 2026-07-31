@@ -38,32 +38,7 @@ public class CheckGuestTagsTests
     }
 
     private static CheckTestContext CreateContext(string version, string tags = "") =>
-        CheckTestContext.CreateFromOsuFiles([
-            (
-                "test.osu",
-                string.Join(
-                    "\n",
-                    "osu file format v14",
-                    "[General]",
-                    "AudioFilename:audio.mp3",
-                    "Mode: 0",
-                    "[Metadata]",
-                    "Title:Song",
-                    "Artist:Tests",
-                    "Creator:Host",
-                    $"Version:{version}",
-                    $"Tags:{tags}",
-                    "[Difficulty]",
-                    "CircleSize:4",
-                    "HPDrainRate:5",
-                    "OverallDifficulty:5",
-                    "ApproachRate:5",
-                    "SliderMultiplier:1.4",
-                    "SliderTickRate:1",
-                    "[Events]",
-                    "[TimingPoints]",
-                    "[HitObjects]"
-                )
-            ),
-        ]);
+        CheckTestContext.CreateFromOsu(
+            new OsuBuilder().Title("Song").Creator("Host").Version(version).Tags(tags)
+        );
 }

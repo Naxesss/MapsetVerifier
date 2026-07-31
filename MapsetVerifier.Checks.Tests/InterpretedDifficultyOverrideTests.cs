@@ -1,5 +1,6 @@
 using MapsetVerifier.Checks.Mania.Spread;
 using MapsetVerifier.Checks.Standard.Spread;
+using MapsetVerifier.Checks.Tests.Mania;
 using MapsetVerifier.Parser.Objects;
 using Xunit;
 
@@ -29,7 +30,7 @@ public class InterpretedDifficultyOverrideTests
             [
                 (
                     "mania.osu",
-                    BuildManiaOsu(
+                    ManiaOsu.Build(
                         version: "Another",
                         timingPoints: ["0,500,4,2,0,100,1,0"],
                         hitObjects: sameTimeChord.Concat(fillerNotes)
@@ -73,14 +74,25 @@ public class InterpretedDifficultyOverrideTests
             [
                 (
                     "easy.osu",
-                    BuildStandardOsu(
-                        version: "Easy",
-                        hitObjects: ["100,100,0,1,0,0:0:0:0:", "250,100,100,1,0,0:0:0:0:"]
-                    )
+                    new OsuBuilder()
+                        .AudioFilename("a.mp3")
+                        .Title("CloseOverlapOverride")
+                        .Artist("MapsetVerifier")
+                        .Version("Easy")
+                        .TimingPoints("0,500,4,2,1,100,0,0")
+                        .HitObjects("100,100,0,1,0,0:0:0:0:", "250,100,100,1,0,0:0:0:0:")
+                        .Build()
                 ),
                 (
                     "normal.osu",
-                    BuildStandardOsu(version: "Normal", hitObjects: ["300,100,0,1,0,0:0:0:0:"])
+                    new OsuBuilder()
+                        .AudioFilename("a.mp3")
+                        .Title("CloseOverlapOverride")
+                        .Artist("MapsetVerifier")
+                        .Version("Normal")
+                        .TimingPoints("0,500,4,2,1,100,0,0")
+                        .HitObjects("300,100,0,1,0,0:0:0:0:")
+                        .Build()
                 ),
             ],
             extraFiles: ["a.mp3"]
@@ -93,69 +105,5 @@ public class InterpretedDifficultyOverrideTests
         context.BeatmapSet.ApplyInterpretedDifficultyOverride(easy, Beatmap.Difficulty.Hard);
         var issuesOverridden = context.RunBeatmapSetCheck<CheckCloseOverlap>();
         Assert.Empty(issuesOverridden);
-    }
-
-    private static string BuildManiaOsu(
-        string version,
-        IEnumerable<string> timingPoints,
-        IEnumerable<string> hitObjects
-    )
-    {
-        var lines = new List<string>
-        {
-            "osu file format v14",
-            "[General]",
-            "AudioFilename: audio.mp3",
-            $"Mode: {(int)Beatmap.Mode.Mania}",
-            "[Metadata]",
-            "Title:OverrideTest",
-            "Artist:MapsetVerifier",
-            "Creator:Tests",
-            $"Version:{version}",
-            "[Difficulty]",
-            "CircleSize:4",
-            "HPDrainRate:5",
-            "OverallDifficulty:5",
-            "ApproachRate:5",
-            "SliderMultiplier:1.4",
-            "SliderTickRate:1",
-            "[Events]",
-            "[TimingPoints]",
-        };
-
-        lines.AddRange(timingPoints);
-        lines.Add("[HitObjects]");
-        lines.AddRange(hitObjects);
-
-        return string.Join("\n", lines);
-    }
-
-    private static string BuildStandardOsu(string version, IReadOnlyList<string> hitObjects)
-    {
-        var lines = new List<string>
-        {
-            "osu file format v14",
-            "[General]",
-            "AudioFilename: a.mp3",
-            $"Mode: {(int)Beatmap.Mode.Standard}",
-            "[Metadata]",
-            "Title:CloseOverlapOverride",
-            "Artist:MapsetVerifier",
-            "Creator:Tests",
-            $"Version:{version}",
-            "[Difficulty]",
-            "HPDrainRate:5",
-            "CircleSize:4",
-            "OverallDifficulty:5",
-            "ApproachRate:5",
-            "SliderMultiplier:1.4",
-            "SliderTickRate:1",
-            "[Events]",
-            "[TimingPoints]",
-            "0,500,4,2,1,100,0,0",
-            "[HitObjects]",
-        };
-        lines.AddRange(hitObjects);
-        return string.Join("\n", lines);
     }
 }

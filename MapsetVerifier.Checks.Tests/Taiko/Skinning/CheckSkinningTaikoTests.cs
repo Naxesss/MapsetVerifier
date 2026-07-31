@@ -1,50 +1,33 @@
 using MapsetVerifier.Checks.Taiko.Skinning;
 using MapsetVerifier.Framework.Objects;
+using MapsetVerifier.Parser.Objects;
 using Xunit;
 
 namespace MapsetVerifier.Checks.Tests.Taiko.Skinning;
 
 public class CheckSkinningTaikoTests
 {
-    private static string BuildMinimalOsu(string hitObject = "256,192,1000,1,0,0:0:0:0:") =>
-        string.Join(
-            "\n",
-            "osu file format v14",
-            "[General]",
-            "AudioFilename: audio.mp3",
-            "Mode: 1",
-            "[Metadata]",
-            "Title:Title",
-            "Artist:Artist",
-            "Creator:Creator",
-            "Version:Test",
-            "[Difficulty]",
-            "StackLeniency:0.7",
-            "[TimingPoints]",
-            "0,500,4,2,0,100,1,0",
-            "[HitObjects]",
-            hitObject
-        );
+    private static string BuildMinimalOsu(string hitObject = OsuBuilder.DefaultHitObject) =>
+        new OsuBuilder()
+            .Mode(Beatmap.Mode.Taiko)
+            .Title("Title")
+            .Artist("Artist")
+            .Creator("Creator")
+            .StackLeniency(0.7f)
+            .WithDefaultTiming()
+            .HitObjects(hitObject)
+            .Build();
 
     private static string BuildMinimalStandardOsu() =>
-        string.Join(
-            "\n",
-            "osu file format v14",
-            "[General]",
-            "AudioFilename: audio.mp3",
-            "Mode: 0",
-            "[Metadata]",
-            "Title:Title",
-            "Artist:Artist",
-            "Creator:Creator",
-            "Version:StandardDiff",
-            "[Difficulty]",
-            "StackLeniency:0.7",
-            "[TimingPoints]",
-            "0,500,4,2,0,100,1,0",
-            "[HitObjects]",
-            "256,192,1000,1,0,0:0:0:0:"
-        );
+        new OsuBuilder()
+            .Title("Title")
+            .Artist("Artist")
+            .Creator("Creator")
+            .Version("StandardDiff")
+            .StackLeniency(0.7f)
+            .WithDefaultTiming()
+            .WithDefaultHitObject()
+            .Build();
 
     private const string DrumrollHitObject = "256,192,1000,2,0,B|300:200,1,50,0|0,0:0|0:0,0:0:0:0:";
 
