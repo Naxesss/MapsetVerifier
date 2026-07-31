@@ -11,7 +11,7 @@ public class CheckUnusedFilesTests
         int countdown = 0,
         Beatmap.Mode mode = Beatmap.Mode.Standard,
         IEnumerable<string>? events = null,
-        string hitObject = "256,192,1000,1,0,0:0:0:0:"
+        string? hitObject = null
     ) =>
         new OsuBuilder()
             .Mode(mode)
@@ -22,7 +22,7 @@ public class CheckUnusedFilesTests
             .StackLeniency(0.7f)
             .Events(events ?? [])
             .WithDefaultTiming()
-            .HitObjects(hitObject);
+            .HitObjects(hitObject ?? OsuBuilder.DefaultHitObject);
 
     private const string ExpectedOsbFileName = "Artist - Title (Creator).osb";
 

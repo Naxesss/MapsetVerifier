@@ -11,8 +11,8 @@ public class CheckSliderOnlySectionsTests
     {
         var hitObjects = new List<string>();
         for (var time = 0; time <= 7000; time += 1000)
-            hitObjects.Add(Slider(time));
-        hitObjects.Add(Circle(9000));
+            hitObjects.Add(TestHitObjects.Slider(time));
+        hitObjects.Add(TestHitObjects.Circle(9000));
 
         using var context = CheckTestContext.CreateFromOsu(
             new OsuBuilder()
@@ -33,7 +33,7 @@ public class CheckSliderOnlySectionsTests
     {
         var hitObjects = new List<string>();
         for (var time = 0; time <= 7000; time += 1000)
-            hitObjects.Add(Slider(time));
+            hitObjects.Add(TestHitObjects.Slider(time));
 
         using var context = CheckTestContext.CreateFromOsu(
             new OsuBuilder()
@@ -52,8 +52,8 @@ public class CheckSliderOnlySectionsTests
     {
         var hitObjects = new List<string>();
         for (var time = 0; time <= 4000; time += 1000)
-            hitObjects.Add(Slider(time));
-        hitObjects.Add(Circle(6000));
+            hitObjects.Add(TestHitObjects.Slider(time));
+        hitObjects.Add(TestHitObjects.Circle(6000));
 
         using var context = CheckTestContext.CreateFromOsu(
             new OsuBuilder()
@@ -72,8 +72,8 @@ public class CheckSliderOnlySectionsTests
     {
         var hitObjects = new List<string>();
         for (var time = 0; time <= 700; time += 100)
-            hitObjects.Add(Slider(time));
-        hitObjects.Add(Circle(1000));
+            hitObjects.Add(TestHitObjects.Slider(time));
+        hitObjects.Add(TestHitObjects.Circle(1000));
 
         using var context = CheckTestContext.CreateFromOsu(
             new OsuBuilder()
@@ -92,11 +92,11 @@ public class CheckSliderOnlySectionsTests
     {
         var hitObjects = new List<string>();
         for (var time = 0; time <= 3000; time += 1000)
-            hitObjects.Add(Slider(time));
-        hitObjects.Add(Circle(4000));
+            hitObjects.Add(TestHitObjects.Slider(time));
+        hitObjects.Add(TestHitObjects.Circle(4000));
         for (var time = 5000; time <= 8000; time += 1000)
-            hitObjects.Add(Slider(time));
-        hitObjects.Add(Circle(9000));
+            hitObjects.Add(TestHitObjects.Slider(time));
+        hitObjects.Add(TestHitObjects.Circle(9000));
 
         using var context = CheckTestContext.CreateFromOsu(
             new OsuBuilder()
@@ -109,9 +109,4 @@ public class CheckSliderOnlySectionsTests
 
         Assert.Empty(issues);
     }
-
-    private static string Slider(int time) =>
-        $"256,192,{time},2,0,L|256:300,1,100,0|0,0:0|0:0,0:0:0:0:";
-
-    private static string Circle(int time) => $"256,192,{time},1,0,0:0:0:0:";
 }

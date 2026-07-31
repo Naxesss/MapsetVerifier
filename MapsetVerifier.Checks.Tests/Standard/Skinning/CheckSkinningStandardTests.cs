@@ -22,9 +22,10 @@ public class CheckSkinningStandardTests
         return builder.Build();
     }
 
-    private const string CircleHitObject = "256,192,1000,1,0,0:0:0:0:";
+    private static string CircleHitObject => TestHitObjects.Circle(1000);
 
-    private const string SliderHitObject = "256,192,1000,2,0,B|300:200,1,50,0|0,0:0|0:0,0:0:0:0:";
+    private static string SliderHitObject =>
+        TestHitObjects.Slider(1000, curveType: "B", curvePoints: "300:200", length: 50);
 
     [Fact]
     public void CompleteCursorSet_NoIssues()

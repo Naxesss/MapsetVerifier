@@ -32,7 +32,7 @@ public class InterpretedDifficultyOverrideTests
                     "mania.osu",
                     ManiaOsu.Build(
                         version: "Another",
-                        timingPoints: ["0,500,4,2,0,100,1,0"],
+                        timingPoints: [OsuBuilder.DefaultTimingPoint],
                         hitObjects: sameTimeChord.Concat(fillerNotes)
                     )
                 ),

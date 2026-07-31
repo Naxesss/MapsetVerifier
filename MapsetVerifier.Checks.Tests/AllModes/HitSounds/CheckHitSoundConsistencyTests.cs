@@ -17,7 +17,7 @@ public class CheckHitSoundConsistencyTests
                     .Title("Hit Sound Consistency")
                     .Version("A")
                     .WithDefaultTiming()
-                    .HitObjects("256,192,1000,1,8,0:0:0:0:")
+                    .HitObjects(TestHitObjects.Circle(1000, hitSound: 8))
                     .Build()
             ),
             (
@@ -26,7 +26,7 @@ public class CheckHitSoundConsistencyTests
                     .Title("Hit Sound Consistency")
                     .Version("B")
                     .WithDefaultTiming()
-                    .HitObjects("256,192,1000,1,0,0:0:0:0:")
+                    .HitObjects(TestHitObjects.Circle(1000))
                     .Build()
             ),
         ]);
@@ -49,7 +49,7 @@ public class CheckHitSoundConsistencyTests
                     .Title("Hit Sound Consistency")
                     .Version("A")
                     .WithDefaultTiming()
-                    .HitObjects("256,192,1000,1,8,0:0:0:0:")
+                    .HitObjects(TestHitObjects.Circle(1000, hitSound: 8))
                     .Build()
             ),
             (
@@ -58,7 +58,7 @@ public class CheckHitSoundConsistencyTests
                     .Title("Hit Sound Consistency")
                     .Version("B")
                     .WithDefaultTiming()
-                    .HitObjects("256,192,1000,1,0,0:0:0:0:")
+                    .HitObjects(TestHitObjects.Circle(1000))
                     .Build()
             ),
             (
@@ -68,7 +68,7 @@ public class CheckHitSoundConsistencyTests
                     .Title("Hit Sound Consistency")
                     .Version("C")
                     .WithDefaultTiming()
-                    .HitObjects("256,192,1000,1,0,0:0:0:0:")
+                    .HitObjects(TestHitObjects.Circle(1000))
                     .Build()
             ),
         ]);
@@ -91,7 +91,7 @@ public class CheckHitSoundConsistencyTests
                     .Title("Hit Sound Consistency")
                     .Version("A")
                     .WithDefaultTiming()
-                    .HitObjects("256,192,1000,1,8,0:0:0:0:")
+                    .HitObjects(TestHitObjects.Circle(1000, hitSound: 8))
                     .Build()
             ),
             (
@@ -101,7 +101,7 @@ public class CheckHitSoundConsistencyTests
                     .Title("Hit Sound Consistency")
                     .Version("B")
                     .WithDefaultTiming()
-                    .HitObjects("256,192,1000,1,8,0:0:0:0:")
+                    .HitObjects(TestHitObjects.Circle(1000, hitSound: 8))
                     .Build()
             ),
         ]);
@@ -130,7 +130,7 @@ public class CheckHitSoundConsistencyTests
                     .Title("Hit Sound Consistency")
                     .Version("B")
                     .WithDefaultTiming()
-                    .HitObjects("256,192,1000,1,0,0:0:0:0:")
+                    .HitObjects(TestHitObjects.Circle(1000))
                     .Build()
             ),
         ]);
@@ -147,8 +147,10 @@ public class CheckHitSoundConsistencyTests
     public void DivergentDifficulty_ExcludedAndFlaggedAsUniqueHitSounds()
     {
         var times = new[] { 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000 };
-        var consistentObjects = times.Select(time => $"256,192,{time},1,2,0:0:0:0:").ToArray();
-        var divergentObjects = times.Select(time => $"256,192,{time},1,0,0:0:0:0:").ToArray();
+        var consistentObjects = times
+            .Select(time => TestHitObjects.Circle(time, hitSound: 2))
+            .ToArray();
+        var divergentObjects = times.Select(time => TestHitObjects.Circle(time)).ToArray();
 
         using var context = CheckTestContext.CreateFromOsuFiles([
             (
@@ -217,7 +219,7 @@ public class CheckHitSoundConsistencyTests
                     .Title("Hit Sound Consistency")
                     .Version("Main")
                     .WithDefaultTiming()
-                    .HitObjects("256,192,1000,1,8,0:0:0:0:")
+                    .HitObjects(TestHitObjects.Circle(1000, hitSound: 8))
                     .Build()
             ),
             (
@@ -226,7 +228,7 @@ public class CheckHitSoundConsistencyTests
                     .Title("Hit Sound Consistency")
                     .Version("Easy")
                     .WithDefaultTiming()
-                    .HitObjects("256,192,1000,1,0,0:0:0:0:")
+                    .HitObjects(TestHitObjects.Circle(1000))
                     .Build()
             ),
         ]);

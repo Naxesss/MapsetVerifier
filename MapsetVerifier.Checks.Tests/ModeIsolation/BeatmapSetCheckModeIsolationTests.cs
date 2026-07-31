@@ -37,7 +37,11 @@ public class BeatmapSetCheckModeIsolationTests
                     Beatmap.Mode.Mania,
                     "Easy",
                     circleSize: 4,
-                    timingPoints: ["0,500,4,2,0,100,1,0", "0,-100,4,2,0,100,0,0"]
+                    timingPoints:
+                    [
+                        OsuBuilder.DefaultTimingPoint,
+                        TestTimingPoints.Inherited(0, -100),
+                    ]
                 )
             ),
             (
@@ -46,7 +50,11 @@ public class BeatmapSetCheckModeIsolationTests
                     Beatmap.Mode.Standard,
                     "Easy",
                     circleSize: 5,
-                    timingPoints: ["0,500,4,2,0,100,1,0", "0,-25,4,2,0,100,0,0"]
+                    timingPoints:
+                    [
+                        OsuBuilder.DefaultTimingPoint,
+                        TestTimingPoints.Inherited(0, -25),
+                    ]
                 )
             ),
         ]);
@@ -62,7 +70,7 @@ public class BeatmapSetCheckModeIsolationTests
         using var context = CheckTestContext.CreateFromOsuFiles([
             (
                 "taiko.osu",
-                BuildOsu(Beatmap.Mode.Taiko, "Oni", timingPoints: ["0,500,4,2,0,100,1,0"])
+                BuildOsu(Beatmap.Mode.Taiko, "Oni", timingPoints: [OsuBuilder.DefaultTimingPoint])
             ),
             (
                 "standard.osu",
@@ -71,9 +79,9 @@ public class BeatmapSetCheckModeIsolationTests
                     "Hard",
                     timingPoints:
                     [
-                        "0,500,4,2,0,100,1,0",
-                        "1000,500,4,2,0,100,1,1",
-                        "2000,500,4,2,0,100,1,0",
+                        OsuBuilder.DefaultTimingPoint,
+                        TestTimingPoints.Uninherited(1000, 500, effects: 1),
+                        TestTimingPoints.Uninherited(2000, 500),
                     ]
                 )
             ),
@@ -95,9 +103,9 @@ public class BeatmapSetCheckModeIsolationTests
                     "Oni",
                     hitObjects:
                     [
-                        "256,192,1000,1,0,0:0:0:0:",
-                        "256,192,1800,1,0,0:0:0:0:",
-                        "256,192,2600,1,0,0:0:0:0:",
+                        TestHitObjects.Circle(1000),
+                        TestHitObjects.Circle(1800),
+                        TestHitObjects.Circle(2600),
                     ]
                 )
             ),

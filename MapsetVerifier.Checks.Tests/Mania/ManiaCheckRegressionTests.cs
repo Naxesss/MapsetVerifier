@@ -17,7 +17,11 @@ public class ManiaCheckRegressionTests
                 "mania.osu",
                 ManiaOsu.Build(
                     "Hard",
-                    timingPoints: ["0,500,4,2,0,100,1,0", "0,-100,4,2,0,100,0,0"]
+                    timingPoints:
+                    [
+                        OsuBuilder.DefaultTimingPoint,
+                        TestTimingPoints.Inherited(0, -100),
+                    ]
                 )
             ),
         ]);

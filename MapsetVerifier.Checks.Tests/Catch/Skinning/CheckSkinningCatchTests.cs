@@ -20,9 +20,10 @@ public class CheckSkinningCatchTests
             .HitObjects(hitObject ?? OsuBuilder.DefaultHitObject)
             .Build();
 
-    private const string DropletHitObject = "256,192,1000,2,0,B|300:200,1,50,0|0,0:0|0:0,0:0:0:0:";
+    private static string DropletHitObject =>
+        TestHitObjects.Slider(1000, curveType: "B", curvePoints: "300:200", length: 50);
 
-    private const string SpinnerHitObject = "256,192,1000,8,0,2000,0:0:0:0:";
+    private static string SpinnerHitObject => TestHitObjects.Spinner(1000, 2000);
 
     private const string SkinIniV2 = "[General]\nVersion: 2";
 
