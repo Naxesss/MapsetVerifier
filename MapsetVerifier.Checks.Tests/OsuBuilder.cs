@@ -6,8 +6,8 @@ namespace MapsetVerifier.Checks.Tests;
 /// <summary> Fluent builder for minimal <c>.osu</c> files used by check tests. </summary>
 public sealed class OsuBuilder
 {
-    public const string DefaultTimingPoint = "0,500,4,2,0,100,1,0";
-    public const string DefaultHitObject = "256,192,1000,1,0,0:0:0:0:";
+    public static string DefaultTimingPoint => TestTimingPoints.Uninherited(0, 500);
+    public static string DefaultHitObject => TestHitObjects.Circle(1000);
 
     private string? rawContent;
 

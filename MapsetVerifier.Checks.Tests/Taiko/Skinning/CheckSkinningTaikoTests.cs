@@ -7,7 +7,7 @@ namespace MapsetVerifier.Checks.Tests.Taiko.Skinning;
 
 public class CheckSkinningTaikoTests
 {
-    private static string BuildMinimalOsu(string hitObject = OsuBuilder.DefaultHitObject) =>
+    private static string BuildMinimalOsu(string? hitObject = null) =>
         new OsuBuilder()
             .Mode(Beatmap.Mode.Taiko)
             .Title("Title")
@@ -15,7 +15,7 @@ public class CheckSkinningTaikoTests
             .Creator("Creator")
             .StackLeniency(0.7f)
             .WithDefaultTiming()
-            .HitObjects(hitObject)
+            .HitObjects(hitObject ?? OsuBuilder.DefaultHitObject)
             .Build();
 
     private static string BuildMinimalStandardOsu() =>

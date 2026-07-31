@@ -7,7 +7,7 @@ namespace MapsetVerifier.Checks.Tests.Mania.Skinning;
 
 public class CheckSkinningManiaTests
 {
-    private static string BuildMinimalOsu(string hitObject = OsuBuilder.DefaultHitObject) =>
+    private static string BuildMinimalOsu(string? hitObject = null) =>
         new OsuBuilder()
             .Mode(Beatmap.Mode.Mania)
             .Title("Title")
@@ -15,7 +15,7 @@ public class CheckSkinningManiaTests
             .Creator("Creator")
             .StackLeniency(0.7f)
             .WithDefaultTiming()
-            .HitObjects(hitObject)
+            .HitObjects(hitObject ?? OsuBuilder.DefaultHitObject)
             .Build();
 
     [Fact]

@@ -6,10 +6,7 @@ namespace MapsetVerifier.Checks.Tests.Standard.Skinning;
 
 public class CheckSkinningStandardTests
 {
-    private static string BuildMinimalOsu(
-        string hitObject = OsuBuilder.DefaultHitObject,
-        string? colours = null
-    )
+    private static string BuildMinimalOsu(string? hitObject = null, string? colours = null)
     {
         var builder = new OsuBuilder()
             .Title("Title")
@@ -17,7 +14,7 @@ public class CheckSkinningStandardTests
             .Creator("Creator")
             .StackLeniency(0.7f)
             .WithDefaultTiming()
-            .HitObjects(hitObject);
+            .HitObjects(hitObject ?? OsuBuilder.DefaultHitObject);
 
         if (colours != null)
             builder.Colours(colours.Split('\n'));

@@ -9,7 +9,7 @@ namespace MapsetVerifier.Checks.Tests.Catch.Skinning;
 
 public class CheckSkinningCatchTests
 {
-    private static string BuildMinimalOsu(string hitObject = OsuBuilder.DefaultHitObject) =>
+    private static string BuildMinimalOsu(string? hitObject = null) =>
         new OsuBuilder()
             .Mode(Beatmap.Mode.Catch)
             .Title("Title")
@@ -17,7 +17,7 @@ public class CheckSkinningCatchTests
             .Creator("Creator")
             .StackLeniency(0.7f)
             .WithDefaultTiming()
-            .HitObjects(hitObject)
+            .HitObjects(hitObject ?? OsuBuilder.DefaultHitObject)
             .Build();
 
     private const string DropletHitObject = "256,192,1000,2,0,B|300:200,1,50,0|0,0:0|0:0,0:0:0:0:";

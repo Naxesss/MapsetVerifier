@@ -12,7 +12,7 @@ internal static class ManiaOsu
     public const int Column4 = 448;
 
     /// <summary> A timing line without a custom index, using the normal sampleset. </summary>
-    public const string NormalTimingPoint = "0,500,4,1,0,100,1,0";
+    public static string NormalTimingPoint => TestTimingPoints.Uninherited(0, 500, sampleSet: 1);
 
     public static string Build(
         string version = "Insane",
