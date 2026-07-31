@@ -52,18 +52,18 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                     Minor,
                     new IssueTemplate(
                         Issue.Level.Minor,
-                        "{0} Kiai flash (1/{1}).",
+                        "{0} Kiai flash ({1}).",
                         "timestamp -",
-                        "X"
+                        "1/X"
                     ).WithCause("A kiai flash exists, but is not too drastic")
                 },
                 {
                     Warning,
                     new IssueTemplate(
                         Issue.Level.Warning,
-                        "{0} Kiai flash (1/{1}).",
+                        "{0} Kiai flash ({1}).",
                         "timestamp -",
-                        "X"
+                        "1/X"
                     ).WithCause("A kiai flash that's too drastic exists")
                 },
             };
@@ -88,7 +88,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                     var normalizedMsPerBeat = timing.GetNormalizedMsPerBeat();
                     var kiaiToggle = kiaiToggles[nextIndex];
                     double gap = kiaiToggle.Offset - toggle.Offset;
-                    var divisor = TimingUtils.GetClosestSnapDivisor(gap, normalizedMsPerBeat);
+                    var snap = TimingUtils.FormatClosestBeatSnap(gap, normalizedMsPerBeat);
 
                     if (gap <= Math.Ceiling(normalizedMsPerBeat / 3))
                     {
@@ -96,7 +96,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                             GetTemplate(Warning),
                             beatmap,
                             Timestamp.Get(toggle.Offset),
-                            divisor
+                            snap
                         );
                     }
                     else if (gap <= Math.Ceiling(normalizedMsPerBeat / 2))
@@ -105,7 +105,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                             GetTemplate(Minor),
                             beatmap,
                             Timestamp.Get(toggle.Offset),
-                            divisor
+                            snap
                         );
                     }
                 }
