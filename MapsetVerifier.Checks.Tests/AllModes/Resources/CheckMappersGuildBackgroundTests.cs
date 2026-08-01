@@ -37,32 +37,7 @@ public class CheckMappersGuildBackgroundTests
     }
 
     private static CheckTestContext CreateContext(string tags) =>
-        CheckTestContext.CreateFromOsuFiles([
-            (
-                "test.osu",
-                string.Join(
-                    "\n",
-                    "osu file format v14",
-                    "[General]",
-                    "AudioFilename:audio.mp3",
-                    "Mode: 0",
-                    "[Metadata]",
-                    "Title:Test",
-                    "Artist:Tests",
-                    "Creator:Tests",
-                    "Version:Test",
-                    $"Tags:{tags}",
-                    "[Difficulty]",
-                    "CircleSize:4",
-                    "HPDrainRate:5",
-                    "OverallDifficulty:5",
-                    "ApproachRate:5",
-                    "SliderMultiplier:1.4",
-                    "SliderTickRate:1",
-                    "[Events]",
-                    "[TimingPoints]",
-                    "[HitObjects]"
-                )
-            ),
-        ]);
+        CheckTestContext.CreateFromOsu(
+            new OsuBuilder().Title("Test").Artist("Tests").Creator("Tests").Tags(tags)
+        );
 }

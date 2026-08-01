@@ -14,17 +14,15 @@ public class CheckInvalidVolumeTests
     [InlineData(4)]
     public void FlagsVolumeOutsideEditorRange(float volume)
     {
-        using var context = CheckTestContext.CreateFromOsuFiles([
-            (
-                "test.osu",
-                BuildOsu(
-                    timingPoints:
-                    [
-                        $"0,500,4,2,0,{volume.ToString(System.Globalization.CultureInfo.InvariantCulture)},1,0",
-                    ]
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Title("Invalid Volume")
+                .Artist("Tests")
+                .AudioFilename("")
+                .TimingPoints(
+                    $"0,500,4,2,0,{volume.ToString(System.Globalization.CultureInfo.InvariantCulture)},1,0"
                 )
-            ),
-        ]);
+        );
 
         var issues = context.RunBeatmapCheck<CheckInvalidVolume>("Test");
 
@@ -42,17 +40,15 @@ public class CheckInvalidVolumeTests
     [InlineData(50)]
     public void DoesNotFlagValidVolume(float volume)
     {
-        using var context = CheckTestContext.CreateFromOsuFiles([
-            (
-                "test.osu",
-                BuildOsu(
-                    timingPoints:
-                    [
-                        $"0,500,4,2,0,{volume.ToString(System.Globalization.CultureInfo.InvariantCulture)},1,0",
-                    ]
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Title("Invalid Volume")
+                .Artist("Tests")
+                .AudioFilename("")
+                .TimingPoints(
+                    $"0,500,4,2,0,{volume.ToString(System.Globalization.CultureInfo.InvariantCulture)},1,0"
                 )
-            ),
-        ]);
+        );
 
         var issues = context.RunBeatmapCheck<CheckInvalidVolume>("Test");
 
@@ -62,47 +58,20 @@ public class CheckInvalidVolumeTests
     [Fact]
     public void FlagsEachInvalidLine()
     {
-        using var context = CheckTestContext.CreateFromOsuFiles([
-            (
-                "test.osu",
-                BuildOsu(
-                    timingPoints:
-                    [
-                        "0,500,4,2,0,100,1,0",
-                        "1000,500,4,2,0,105,0,0",
-                        "2000,500,4,2,0,-5,0,0",
-                    ]
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Title("Invalid Volume")
+                .Artist("Tests")
+                .AudioFilename("")
+                .TimingPoints(
+                    "0,500,4,2,0,100,1,0",
+                    "1000,500,4,2,0,105,0,0",
+                    "2000,500,4,2,0,-5,0,0"
                 )
-            ),
-        ]);
+        );
 
         var issues = context.RunBeatmapCheck<CheckInvalidVolume>("Test");
 
         Assert.Equal(2, issues.Count);
     }
-
-    private static string BuildOsu(IEnumerable<string> timingPoints) =>
-        string.Join(
-            "\n",
-            "osu file format v14",
-            "[General]",
-            "AudioFilename:",
-            "Mode: 0",
-            "[Metadata]",
-            "Title:Invalid Volume",
-            "Artist:Tests",
-            "Creator:Tests",
-            "Version:Test",
-            "[Difficulty]",
-            "CircleSize:4",
-            "HPDrainRate:5",
-            "OverallDifficulty:5",
-            "ApproachRate:5",
-            "SliderMultiplier:1.4",
-            "SliderTickRate:1",
-            "[Events]",
-            "[TimingPoints]",
-            string.Join('\n', timingPoints),
-            "[HitObjects]"
-        );
 }

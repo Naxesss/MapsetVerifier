@@ -68,34 +68,16 @@ public class CheckDiffSettingsCatchTests
     }
 
     private static CheckTestContext CreateContext(float ar, float od, float hp, float cs) =>
-        CheckTestContext.CreateFromOsuFiles(
-            [
-                (
-                    "test.osu",
-                    string.Join(
-                        "\n",
-                        "osu file format v14",
-                        "[General]",
-                        "AudioFilename:audio.mp3",
-                        $"Mode: {(int)Beatmap.Mode.Catch}",
-                        "[Metadata]",
-                        "Title:Test",
-                        "Artist:Tests",
-                        "Creator:Tests",
-                        "Version:Test",
-                        "[Difficulty]",
-                        $"CircleSize:{cs}",
-                        $"HPDrainRate:{hp}",
-                        $"OverallDifficulty:{od}",
-                        $"ApproachRate:{ar}",
-                        "SliderMultiplier:1.4",
-                        "SliderTickRate:1",
-                        "[Events]",
-                        "[TimingPoints]",
-                        "[HitObjects]"
-                    )
-                ),
-            ],
+        CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Mode(Beatmap.Mode.Catch)
+                .Title("Test")
+                .Artist("Tests")
+                .Creator("Tests")
+                .CircleSize(cs)
+                .HP(hp)
+                .OD(od)
+                .AR(ar),
             extraFiles: ["audio.mp3"]
         );
 }

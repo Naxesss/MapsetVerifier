@@ -208,28 +208,13 @@ public class CheckLowDiffScrollSpeedTests
         IEnumerable<string> timingPoints,
         IEnumerable<string>? hitObjects = null
     ) =>
-        string.Join(
-            "\n",
-            "osu file format v14",
-            "[General]",
-            "AudioFilename:",
-            "Mode: 1",
-            "[Metadata]",
-            "Title:Easy Scroll Speed",
-            "Artist:Tests",
-            "Creator:Tests",
-            $"Version:{version}",
-            "[Difficulty]",
-            "CircleSize:4",
-            "HPDrainRate:5",
-            "OverallDifficulty:5",
-            "ApproachRate:5",
-            "SliderMultiplier:1.4",
-            "SliderTickRate:1",
-            "[Events]",
-            "[TimingPoints]",
-            string.Join('\n', timingPoints),
-            "[HitObjects]",
-            string.Join('\n', hitObjects ?? ["256,192,1000,1,0,0:0:0:0:"])
-        );
+        new OsuBuilder()
+            .Mode(Beatmap.Mode.Taiko)
+            .AudioFilename("")
+            .Title("Easy Scroll Speed")
+            .Artist("Tests")
+            .Version(version)
+            .TimingPoints(timingPoints)
+            .HitObjects(hitObjects ?? [OsuBuilder.DefaultHitObject])
+            .Build();
 }

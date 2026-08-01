@@ -344,34 +344,13 @@ public class CheckTitleMarkersTests
     [Fact]
     public void DoesNotFlagStylisedCombinedTempoMarkersOnUnicodeTitle()
     {
-        using var context = CheckTestContext.CreateFromOsuFiles([
-            (
-                "test.osu",
-                string.Join(
-                    "\n",
-                    "osu file format v14",
-                    "[General]",
-                    "AudioFilename:audio.mp3",
-                    "Mode: 0",
-                    "[Metadata]",
-                    "Title:SLYOZY (ANTVN BOOTLEG) (SPED UP & CUT VER.)",
-                    "TitleUnicode:СЛЁЗЫ (ANTVN BOOTLEG) (SPED UP & CUT VER.)",
-                    "Artist:Tests",
-                    "Creator:Tests",
-                    "Version:Test",
-                    "[Difficulty]",
-                    "CircleSize:4",
-                    "HPDrainRate:5",
-                    "OverallDifficulty:5",
-                    "ApproachRate:5",
-                    "SliderMultiplier:1.4",
-                    "SliderTickRate:1",
-                    "[Events]",
-                    "[TimingPoints]",
-                    "[HitObjects]"
-                )
-            ),
-        ]);
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Title("SLYOZY (ANTVN BOOTLEG) (SPED UP & CUT VER.)")
+                .TitleUnicode("СЛЁЗЫ (ANTVN BOOTLEG) (SPED UP & CUT VER.)")
+                .Artist("Tests")
+                .Creator("Tests")
+        );
 
         var issues = context.RunGeneralCheck<CheckTitleMarkers>();
 
@@ -383,63 +362,17 @@ public class CheckTitleMarkersTests
         string titleUnicode,
         string tags = ""
     ) =>
-        CheckTestContext.CreateFromOsuFiles([
-            (
-                "test.osu",
-                string.Join(
-                    "\n",
-                    "osu file format v14",
-                    "[General]",
-                    "AudioFilename:audio.mp3",
-                    "Mode: 0",
-                    "[Metadata]",
-                    $"Title:{title}",
-                    $"TitleUnicode:{titleUnicode}",
-                    "Artist:Tests",
-                    "Creator:Tests",
-                    "Version:Test",
-                    $"Tags:{tags}",
-                    "[Difficulty]",
-                    "CircleSize:4",
-                    "HPDrainRate:5",
-                    "OverallDifficulty:5",
-                    "ApproachRate:5",
-                    "SliderMultiplier:1.4",
-                    "SliderTickRate:1",
-                    "[Events]",
-                    "[TimingPoints]",
-                    "[HitObjects]"
-                )
-            ),
-        ]);
+        CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Title(title)
+                .TitleUnicode(titleUnicode)
+                .Artist("Tests")
+                .Creator("Tests")
+                .Tags(tags)
+        );
 
     private static CheckTestContext CreateContext(string title, string tags = "") =>
-        CheckTestContext.CreateFromOsuFiles([
-            (
-                "test.osu",
-                string.Join(
-                    "\n",
-                    "osu file format v14",
-                    "[General]",
-                    "AudioFilename:audio.mp3",
-                    "Mode: 0",
-                    "[Metadata]",
-                    $"Title:{title}",
-                    "Artist:Tests",
-                    "Creator:Tests",
-                    "Version:Test",
-                    $"Tags:{tags}",
-                    "[Difficulty]",
-                    "CircleSize:4",
-                    "HPDrainRate:5",
-                    "OverallDifficulty:5",
-                    "ApproachRate:5",
-                    "SliderMultiplier:1.4",
-                    "SliderTickRate:1",
-                    "[Events]",
-                    "[TimingPoints]",
-                    "[HitObjects]"
-                )
-            ),
-        ]);
+        CheckTestContext.CreateFromOsu(
+            new OsuBuilder().Title(title).Artist("Tests").Creator("Tests").Tags(tags)
+        );
 }

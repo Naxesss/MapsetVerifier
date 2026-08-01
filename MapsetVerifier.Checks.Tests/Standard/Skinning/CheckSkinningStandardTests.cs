@@ -6,33 +6,26 @@ namespace MapsetVerifier.Checks.Tests.Standard.Skinning;
 
 public class CheckSkinningStandardTests
 {
-    private static string BuildMinimalOsu(
-        string hitObject = "256,192,1000,1,0,0:0:0:0:",
-        string? colours = null
-    ) =>
-        string.Join(
-            "\n",
-            "osu file format v14",
-            "[General]",
-            "AudioFilename: audio.mp3",
-            "Mode: 0",
-            "[Metadata]",
-            "Title:Title",
-            "Artist:Artist",
-            "Creator:Creator",
-            "Version:Test",
-            "[Difficulty]",
-            "StackLeniency:0.7",
-            "[TimingPoints]",
-            "0,500,4,2,0,100,1,0",
-            colours == null ? "" : "[Colours]\n" + colours,
-            "[HitObjects]",
-            hitObject
-        );
+    private static string BuildMinimalOsu(string? hitObject = null, string? colours = null)
+    {
+        var builder = new OsuBuilder()
+            .Title("Title")
+            .Artist("Artist")
+            .Creator("Creator")
+            .StackLeniency(0.7f)
+            .WithDefaultTiming()
+            .HitObjects(hitObject ?? OsuBuilder.DefaultHitObject);
 
-    private const string CircleHitObject = "256,192,1000,1,0,0:0:0:0:";
+        if (colours != null)
+            builder.Colours(colours.Split('\n'));
 
-    private const string SliderHitObject = "256,192,1000,2,0,B|300:200,1,50,0|0,0:0|0:0,0:0:0:0:";
+        return builder.Build();
+    }
+
+    private static string CircleHitObject => TestHitObjects.Circle(1000);
+
+    private static string SliderHitObject =>
+        TestHitObjects.Slider(1000, curveType: "B", curvePoints: "300:200", length: 50);
 
     [Fact]
     public void CompleteCursorSet_NoIssues()

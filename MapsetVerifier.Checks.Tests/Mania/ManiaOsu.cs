@@ -12,42 +12,20 @@ internal static class ManiaOsu
     public const int Column4 = 448;
 
     /// <summary> A timing line without a custom index, using the normal sampleset. </summary>
-    public const string NormalTimingPoint = "0,500,4,1,0,100,1,0";
+    public static string NormalTimingPoint => TestTimingPoints.Uninherited(0, 500, sampleSet: 1);
 
     public static string Build(
         string version = "Insane",
         IEnumerable<string>? timingPoints = null,
         IEnumerable<string>? hitObjects = null
-    )
-    {
-        var lines = new List<string>
-        {
-            "osu file format v14",
-            "[General]",
-            "AudioFilename: audio.mp3",
-            $"Mode: {(int)Beatmap.Mode.Mania}",
-            "[Metadata]",
-            "Title:Hit Sounds",
-            "Artist:MapsetVerifier",
-            "Creator:Tests",
-            $"Version:{version}",
-            "[Difficulty]",
-            "CircleSize:4",
-            "HPDrainRate:5",
-            "OverallDifficulty:5",
-            "ApproachRate:5",
-            "SliderMultiplier:1.4",
-            "SliderTickRate:1",
-            "[Events]",
-            "[TimingPoints]",
-        };
-
-        lines.AddRange(timingPoints ?? [NormalTimingPoint]);
-        lines.Add("[HitObjects]");
-        lines.AddRange(hitObjects ?? [Note(1000)]);
-
-        return string.Join("\n", lines);
-    }
+    ) =>
+        new OsuBuilder()
+            .Mode(Beatmap.Mode.Mania)
+            .Title("Hit Sounds")
+            .Version(version)
+            .TimingPoints(timingPoints ?? [NormalTimingPoint])
+            .HitObjects(hitObjects ?? [Note(1000)])
+            .Build();
 
     /// <summary> A mania note, i.e. <c>x,y,time,type,hitSound,sampleset:addition:index:volume:filename</c>. </summary>
     public static string Note(
