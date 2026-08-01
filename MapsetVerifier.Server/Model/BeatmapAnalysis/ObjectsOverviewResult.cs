@@ -79,6 +79,9 @@ public class ObjectsTimelineSample
     public int CustomIndex { get; set; }
     public string? PartName { get; set; }
     public string? ObjectType { get; set; }
+
+    /// <summary> Whether this is the edge's own hitnormal, i.e. the sample defining the edge's sample bank. </summary>
+    public bool IsBaseHitNormal { get; set; }
 }
 
 public class ObjectsHitsoundGapPeriod

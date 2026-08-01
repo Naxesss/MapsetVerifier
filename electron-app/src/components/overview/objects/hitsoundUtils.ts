@@ -205,12 +205,17 @@ function findPrimaryBodySampleInRange(
   return fallback;
 }
 
-/** Prefer the base hitnormal sample; osu! emits separate samples per addition at the same edge. */
+/**
+ * Prefer the base hitnormal sample; osu! emits separate samples per addition at the same edge,
+ * and an addition-banked hitnormal is indistinguishable from the real one by hit sound alone.
+ */
 export function getPrimaryEdgeSample(
   samples: ObjectsTimelineSample[],
   edgeTimeMs: number,
   toleranceMs = 2
 ): ObjectsTimelineSample | null {
+  let bestHitNormal: ObjectsTimelineSample | null = null;
+  let bestHitNormalDistance = Number.POSITIVE_INFINITY;
   let bestBase: ObjectsTimelineSample | null = null;
   let bestBaseDistance = Number.POSITIVE_INFINITY;
   let bestAny: ObjectsTimelineSample | null = null;
@@ -235,9 +240,14 @@ export function getPrimaryEdgeSample(
       bestBaseDistance = distance;
       bestBase = sample;
     }
+
+    if (sample.isBaseHitNormal && distance < bestHitNormalDistance) {
+      bestHitNormalDistance = distance;
+      bestHitNormal = sample;
+    }
   }
 
-  return bestBase ?? bestAny;
+  return bestHitNormal ?? bestBase ?? bestAny;
 }
 
 export type PrimaryEdgeMarker = {
