@@ -794,6 +794,7 @@ export type ObjectsTimelineSample = {
   customIndex: number;
   partName: string | null;
   objectType: string | null;
+  isBaseHitNormal?: boolean;
 };
 
 export type ObjectsHitsoundGapPeriod = {

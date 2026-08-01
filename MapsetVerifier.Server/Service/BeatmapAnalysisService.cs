@@ -974,17 +974,32 @@ public static class BeatmapAnalysisService
     {
         var objectType = hitObject.GetObjectType();
         var edgeTimes = hitObject.GetEdgeTimes().ToList();
+        var isTaikoMap = hitObject.beatmap.GeneralSettings.mode == Beatmap.Mode.Taiko;
 
         foreach (var sample in hitObject.usedHitSamples)
         {
+            // Standard objects also emit taiko conversion samples. Those use the object-level sampleset
+            // and the timing line offset rather than the edge's own sampleset and time, so they would
+            // masquerade as edge samples here and mask the real ones
+            if (sample.Taiko && !isTaikoMap)
+                continue;
+
             string? partName = null;
+            var isBaseHitNormal = false;
+
             if (sample.HitSource == HitSample.HitSourceType.Edge)
             {
-                var matchedEdge = edgeTimes.FirstOrDefault(edgeTime =>
-                    IsClose(edgeTime, sample.Time)
-                );
-                if (edgeTimes.Any(edgeTime => IsClose(edgeTime, sample.Time)))
-                    partName = hitObject.GetPartName(matchedEdge);
+                var matchedEdge = edgeTimes
+                    .Select(edgeTime => (double?)edgeTime)
+                    .FirstOrDefault(edgeTime => IsClose(edgeTime!.Value, sample.Time));
+
+                if (matchedEdge is { } edgeTime)
+                {
+                    partName = hitObject.GetPartName(edgeTime);
+                    isBaseHitNormal =
+                        sample.HitSound == HitObject.HitSounds.Normal
+                        && sample.Sampleset == GetEdgeSampleset(hitObject, edgeTime);
+                }
             }
 
             yield return new ObjectsTimelineSample
@@ -996,8 +1011,43 @@ public static class BeatmapAnalysisService
                 CustomIndex = sample.CustomIndex,
                 PartName = partName,
                 ObjectType = objectType,
+                IsBaseHitNormal = isBaseHitNormal,
             };
         }
+    }
+
+    /// <summary>
+    ///     Returns the hitnormal sampleset of the given edge (i.e. ignoring the addition, which never
+    ///     affects hitnormal). Returns null if the time does not line up with an edge.
+    /// </summary>
+    private static HitSample.SamplesetType? GetEdgeSampleset(HitObject hitObject, double edgeTime)
+    {
+        if (hitObject is Slider slider)
+        {
+            if (IsClose(hitObject.time, edgeTime))
+                return slider.GetStartSampleset();
+
+            if (IsClose(slider.EndTime, edgeTime))
+                return slider.GetEndSampleset();
+
+            var curveDuration = slider.GetCurveDuration();
+            for (var i = 0; i < slider.ReverseHitSounds.Count; i++)
+            {
+                var reverseTime = hitObject.time + curveDuration * (i + 1);
+                if (IsClose(reverseTime, edgeTime))
+                    return slider.GetReverseSampleset(i);
+            }
+
+            return null;
+        }
+
+        if (IsClose(hitObject.time, edgeTime))
+            return hitObject.GetStartSampleset();
+
+        if (IsClose(hitObject.GetEndTime(), edgeTime))
+            return hitObject.GetEndSampleset();
+
+        return null;
     }
 
     private static string? FormatHitSound(HitObject.HitSounds? hitSound)
