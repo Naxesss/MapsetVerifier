@@ -1,0 +1,19 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="MapsetVerifier.Checks.Tests/MapsetVerifier.Checks.Tests.csproj" />
+  <Project Path="MapsetVerifier.Checks/MapsetVerifier.Checks.csproj" />
+  <Project Path="MapsetVerifier.Exports/MapsetVerifier.Exports.csproj" />
+  <Project Path="MapsetVerifier.Framework.Tests/MapsetVerifier.Framework.Tests.csproj" />
+  <Project Path="MapsetVerifier.Framework/MapsetVerifier.Framework.csproj" />
+  <Project Path="MapsetVerifier.Logging/MapsetVerifier.Logging.csproj" />
+  <Project Path="MapsetVerifier.Parser.Tests/MapsetVerifier.Parser.Tests.csproj" />
+  <Project Path="MapsetVerifier.Parser/MapsetVerifier.Parser.csproj" />
+  <Project Path="MapsetVerifier.Server/MapsetVerifier.Server.csproj" />
+  <Project Path="MapsetVerifier.Snapshots.Tests/MapsetVerifier.Snapshots.Tests.csproj" />
+  <Project Path="MapsetVerifier.Snapshots/MapsetVerifier.Snapshots.csproj" />
+  <Project Path="src/MapsetVerifier.csproj" />
+</Solution>
