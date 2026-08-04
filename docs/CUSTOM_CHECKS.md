@@ -20,7 +20,7 @@ This guide covers how to **install** existing plugins and how to **create** new 
 > [!WARNING]
 > **Plugins built for MV 1.x (pre-2.0) will not work on MV 2.0.**
 >
-> Old plugin DLLs are **not compatible** with the current app. MV 2.0 targets **.NET 9** (1.x used .NET Core 3.1), references renamed assemblies (`MapsetVerifier.Framework`, `MapsetVerifier.Parser`), and loads plugins from **`CustomChecks`** instead of the old `checks` folder.
+> Old plugin DLLs are **not compatible** with the current app. MV 2.0 targets **.NET 10** (1.x used .NET Core 3.1), references renamed assemblies (`MapsetVerifier.Framework`, `MapsetVerifier.Parser`), and loads plugins from **`CustomChecks`** instead of the old `checks` folder.
 >
 > Dropping legacy DLLs into the folder will not load your checks — they must be **rebuilt from source** against this repository. Many former plugins (osu!taiko, osu!catch, osu!mania checks) are now **built into MV 2.0** and no longer need to be installed separately.
 
@@ -28,7 +28,7 @@ This guide covers how to **install** existing plugins and how to **create** new 
 
 ## Quick start: loading a plugin
 
-1. Build or obtain a check plugin `.dll` targeting **.NET 9** and built against the current `MapsetVerifier.Framework` API.
+1. Build or obtain a check plugin `.dll` targeting **.NET 10** and built against the current `MapsetVerifier.Framework` API.
 2. Copy **only the plugin `.dll`** into the custom checks folder (see paths below). Do not copy `MapsetVerifier.Framework.dll`, `MapsetVerifier.Parser.dll`, or other assemblies that MV already ships — duplicate copies can prevent checks from loading correctly.
 3. Open the plugin manager and use **Reload checks**, or restart Mapset Verifier.
 4. Open a beatmapset and verify your check appears in the issues/documentation UI.
@@ -101,7 +101,7 @@ There is no published NuGet package for the check API. Reference the projects fr
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -119,7 +119,7 @@ There is no published NuGet package for the check API. Reference the projects fr
 </Project>
 ```
 
-Use the same **.NET 9** target as the main application. Plugins built for MV 1.x (.NET Core 3.1) must be **rebuilt** for MV 2.0.
+Use the same **.NET 10** target as the main application. Plugins built for MV 1.x (.NET Core 3.1) must be **rebuilt** for MV 2.0.
 
 ### 2. Implement one or more check classes
 
@@ -137,7 +137,7 @@ See [built-in checks](../MapsetVerifier.Checks/) for many real examples.
 dotnet build -c Release
 ```
 
-Copy the resulting plugin `.dll` from `bin/Release/net9.0/` into the `CustomChecks` folder. Use **Reload checks** in the plugin manager, or restart MV.
+Copy the resulting plugin `.dll` from `bin/Release/net10.0/` into the `CustomChecks` folder. Use **Reload checks** in the plugin manager, or restart MV.
 
 ---
 
@@ -324,9 +324,9 @@ MV 2.0 changed several things that affect older plugins:
 
 | MV 1.x | MV 2.0 |
 | :-- | :-- |
-| .NET Core 3.1 | .NET 9 |
+| .NET Core 3.1 | .NET 10 |
 | `%APPDATA%\...\checks` | `%APPDATA%\...\CustomChecks` |
 | `MapsetVerifierFramework.dll` / `MapsetParser.dll` | `MapsetVerifier.Framework.dll` / `MapsetVerifier.Parser.dll` |
 | osu!taiko / osu!catch / osu!mania checks as plugins | Built into [`MapsetVerifier.Checks`](../MapsetVerifier.Checks/) |
 
-Repoint project references to this repository, retarget `net9.0`, update namespaces and API usages as needed, rebuild, and deploy to `CustomChecks`.
+Repoint project references to this repository, retarget `net10.0`, update namespaces and API usages as needed, rebuild, and deploy to `CustomChecks`.
