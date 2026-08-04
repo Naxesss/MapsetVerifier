@@ -8,7 +8,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
-if (-not (Test-Path (Join-Path $RepoRoot "MapsetVerifier.sln"))) {
+if (-not (Test-Path (Join-Path $RepoRoot "MapsetVerifier.slnx"))) {
     $RepoRoot = Get-Location
 }
 
