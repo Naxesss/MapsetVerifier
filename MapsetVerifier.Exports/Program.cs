@@ -59,7 +59,7 @@ internal static class Program
         }
     }
 
-    /// <summary>Finds the repository root by walking up until MapsetVerifier.sln or .git is found.</summary>
+    /// <summary>Finds the repository root by walking up until MapsetVerifier.slnx or .git is found.</summary>
     private static string FindRepoRoot()
     {
         var dir = AppContext.BaseDirectory;
@@ -69,7 +69,7 @@ internal static class Program
         for (var d = new DirectoryInfo(dir); d != null; d = d.Parent)
         {
             if (
-                File.Exists(Path.Combine(d.FullName, "MapsetVerifier.sln"))
+                File.Exists(Path.Combine(d.FullName, "MapsetVerifier.slnx"))
                 || Directory.Exists(Path.Combine(d.FullName, ".git"))
             )
                 return d.FullName;

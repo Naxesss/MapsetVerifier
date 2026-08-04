@@ -12,7 +12,7 @@
   },
   "main": "electron-app/electron/main.cjs",
   "scripts": {
-    "dev:all": "concurrently -k -n app,api -c cyan,yellow \"npm:dev\" \".\\\\src\\\\bin\\\\Debug\\\\net9.0\\\\MapsetVerifier.exe --urls=http://localhost:5005\"",
+    "dev:all": "concurrently -k -n app,api -c cyan,yellow \"npm:dev\" \".\\\\src\\\\bin\\\\Debug\\\\net10.0\\\\MapsetVerifier.exe --urls=http://localhost:5005\"",
     "dev:frontend": "npm --prefix electron-app run dev",
     "dev:electron": "cross-env VITE_DEV_SERVER_URL=http://localhost:1420 electron .",
     "dev": "concurrently -k -n vite,electron -c cyan,magenta \"npm:dev:frontend\" \"wait-on http://localhost:1420 && npm run dev:electron\"",

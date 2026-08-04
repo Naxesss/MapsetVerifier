@@ -10,7 +10,7 @@ For release automation and tagging, see [RELEASES.md](RELEASES.md). For custom c
 
 You will need:
 
-- [.NET SDK 9](https://dotnet.microsoft.com/download)
+- [.NET SDK 10](https://dotnet.microsoft.com/download)
 - [Node.js](https://nodejs.org/) (LTS recommended)
 
 ## Git hooks
@@ -89,7 +89,7 @@ Available runtimes:
 
 MV 2.0 is an [Electron](https://www.electronjs.org/) desktop app with a **React + TypeScript** frontend ([Vite](https://vitejs.dev/), [Mantine](https://mantine.dev/)) under `electron-app/`.
 
-The backend is a **.NET 9** [ASP.NET Core](https://dotnet.microsoft.com/en-us/apps/aspnet) sidecar (`src/MapsetVerifier.csproj`) spawned by Electron on startup. The UI talks to the backend over HTTP; real-time updates use [SignalR](https://dotnet.microsoft.com/en-us/apps/aspnet/signalr).
+The backend is a **.NET 10** [ASP.NET Core](https://dotnet.microsoft.com/en-us/apps/aspnet) sidecar (`src/MapsetVerifier.csproj`) spawned by Electron on startup. The UI talks to the backend over HTTP; real-time updates use [SignalR](https://dotnet.microsoft.com/en-us/apps/aspnet/signalr).
 
 Check logic lives in `MapsetVerifier.Checks/` on top of `MapsetVerifier.Framework/` and `MapsetVerifier.Parser/`. Built-in check metadata is exported for the frontend via `MapsetVerifier.Exports/`.
 
@@ -100,7 +100,7 @@ Packaged builds place platform-specific backend binaries in `resources/bin/serve
 ## Technical overview (MV 1.x)
 
 > [!WARNING]
-> **This section describes the old 1.x architecture and is outdated.** MV 2.0 replaced the jQuery frontend with React/TypeScript, retargeted the backend to .NET 9, and reworked how checks and plugins are loaded. Keep this here only as historical context for the 1.x release line.
+> **This section describes the old 1.x architecture and is outdated.** MV 2.0 replaced the jQuery frontend with React/TypeScript, retargeted the backend to .NET 10, and reworked how checks and plugins are loaded. Keep this here only as historical context for the 1.x release line.
 
 The backend was written in [C#/.NET](https://dotnet.microsoft.com/), with a simple [ASP.NET Core](https://dotnet.microsoft.com/en-us/apps/aspnet) server. The frontend was an [Electron](https://www.electronjs.org/) desktop application written in HTML, CSS, and [JS/jQuery](https://jquery.com/). The server-client communication was done with [SignalR](https://dotnet.microsoft.com/en-us/apps/aspnet/signalr). Upon selecting a mapset, the frontend requested tabs to be rendered, and the backend returned HTML.
 
