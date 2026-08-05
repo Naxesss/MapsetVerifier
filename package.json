@@ -47,6 +47,9 @@
     "appId": "mapsetverifier",
     "productName": "Mapset Verifier",
     "asar": true,
+    "electronLanguages": [
+      "en-US"
+    ],
     "files": [
       "electron-app/electron/**/*",
       "electron-app/dist/**/*",
@@ -54,12 +57,21 @@
     ],
     "extraResources": [
       {
-        "from": "bin/server/dist",
-        "to": "bin/server/dist"
+        "from": "bin/server/dist/${os}-${arch}",
+        "to": "bin/server/dist/${os}-${arch}",
+        "filter": [
+          "**/*",
+          "!**/*.pdb"
+        ]
       },
       {
         "from": "assets/icons",
-        "to": "icons"
+        "to": "icons",
+        "filter": [
+          "**/*",
+          "!dev/**",
+          "!prerelease/lol/**"
+        ]
       }
     ],
     "publish": [
