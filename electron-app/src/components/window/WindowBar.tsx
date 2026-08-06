@@ -2,7 +2,7 @@ import { Group, ActionIcon, useMantineTheme, useMantineColorScheme, Badge } from
 import { IconMinus, IconSquare, IconX } from '@tabler/icons-react';
 import React, { useEffect, useState } from 'react';
 import iconUrl from '../../assets/icon.png';
-import { isSemverPreRelease } from '../../utils/isSemverPreRelease';
+import { isDevVersion, isSemverPreRelease } from '../../utils/isSemverPreRelease';
 
 const dragStyle = { WebkitAppRegion: 'drag' } as React.CSSProperties;
 const noDragStyle = { WebkitAppRegion: 'no-drag' } as React.CSSProperties;
@@ -16,16 +16,15 @@ const WindowBar: React.FC = () => {
   const barHeight = 32;
 
   const [version, setVersion] = useState<string>('unknown');
-  const [isPrerelease, setIsPrerelease] = useState<boolean>(false);
-  const isDev = import.meta.env.DEV;
+
+  // A `-dev` version marks a dev build even once packaged, so it outranks the Vite-only DEV flag.
+  const isDev = import.meta.env.DEV || isDevVersion(version);
+  const isPrerelease = !isDev && isSemverPreRelease(version);
 
   useEffect(() => {
     window.electronAPI
       ?.getVersion()
-      .then((version) => {
-        setVersion(version);
-        setIsPrerelease(isSemverPreRelease(version));
-      })
+      .then((version) => setVersion(version))
       .catch(() => setVersion('unknown'));
   }, []);
 
