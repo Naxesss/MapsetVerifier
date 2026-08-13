@@ -126,8 +126,8 @@ public class CheckHasEdgeDash : BeatmapCheck
                 break;
             }
 
-            // We are only interested in dashes
-            if (current.MovementType == CatchMovementType.Hyperdash)
+            // We are only interested in dashes, walks are never close to becoming a hyper
+            if (current.MovementType != CatchMovementType.Dash)
             {
                 continue;
             }
@@ -143,7 +143,8 @@ public class CheckHasEdgeDash : BeatmapCheck
 
             var timeToNext = next.Time - current.Time;
 
-            var edgeDashDistance = bpmScale * GetCurvedDistance(ms: timeToNext, maxDistance: 10f);
+            var edgeDashDistance =
+                bpmScale * CatchExtensions.GetCurvedDistance(ms: timeToNext, maxDistance: 10f);
 
             if (pixelsUntilHyper <= edgeDashDistance)
             {
@@ -176,7 +177,7 @@ public class CheckHasEdgeDash : BeatmapCheck
             else
             {
                 var strongDashDistance =
-                    bpmScale * GetCurvedDistance(ms: timeToNext, maxDistance: 50f);
+                    bpmScale * CatchExtensions.GetCurvedDistance(ms: timeToNext, maxDistance: 50f);
 
                 if (pixelsUntilHyper <= strongDashDistance)
                 {
@@ -194,23 +195,5 @@ public class CheckHasEdgeDash : BeatmapCheck
                 }
             }
         }
-    }
-
-    /// <summary>
-    /// At 300ms, returns the max distance in pixels
-    /// At 180ms returns around half the pixels
-    /// At 0ms, returns 0 pixels
-    /// Applies a curve to make shorter time between objects result in less distance
-    /// </summary>
-    /// <param name="ms">The time between the two objects we want to get the curved distance for</param>
-    /// <param name="maxDistance">The maximum distance we want to return</param>
-    /// <returns></returns>
-    private static float GetCurvedDistance(double ms, float maxDistance)
-    {
-        // Clamp x to 0–300 range
-        var x = MathF.Max(0f, MathF.Min((float)ms, 300f));
-
-        // Apply curve
-        return (int)Math.Round(maxDistance * (1f - MathF.Pow(1f - (x / 300f), 0.75f)));
     }
 }
