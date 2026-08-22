@@ -1,6 +1,6 @@
 @font-face {
   font-family: 'Nunito';
-  src: url('../assets/fonts/Nunito-Light.ttf') format('truetype');
+  src: url('../assets/fonts/Nunito-Light.woff2') format('woff2');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
@@ -8,7 +8,7 @@
 
 @font-face {
   font-family: 'Nunito';
-  src: url('../assets/fonts/Nunito-LightItalic.ttf') format('truetype');
+  src: url('../assets/fonts/Nunito-LightItalic.woff2') format('woff2');
   font-weight: 300;
   font-style: italic;
   font-display: swap;
@@ -16,7 +16,7 @@
 
 @font-face {
   font-family: 'Nunito';
-  src: url('../assets/fonts/Nunito-Regular.ttf') format('truetype');
+  src: url('../assets/fonts/Nunito-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -24,7 +24,7 @@
 
 @font-face {
   font-family: 'Nunito';
-  src: url('../assets/fonts/Nunito-Italic.ttf') format('truetype');
+  src: url('../assets/fonts/Nunito-Italic.woff2') format('woff2');
   font-weight: 400;
   font-style: italic;
   font-display: swap;
@@ -32,7 +32,7 @@
 
 @font-face {
   font-family: 'Nunito';
-  src: url('../assets/fonts/Nunito-Medium.ttf') format('truetype');
+  src: url('../assets/fonts/Nunito-Medium.woff2') format('woff2');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -40,7 +40,7 @@
 
 @font-face {
   font-family: 'Nunito';
-  src: url('../assets/fonts/Nunito-MediumItalic.ttf') format('truetype');
+  src: url('../assets/fonts/Nunito-MediumItalic.woff2') format('woff2');
   font-weight: 500;
   font-style: italic;
   font-display: swap;
@@ -48,7 +48,7 @@
 
 @font-face {
   font-family: 'Nunito';
-  src: url('../assets/fonts/Nunito-SemiBold.ttf') format('truetype');
+  src: url('../assets/fonts/Nunito-SemiBold.woff2') format('woff2');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
@@ -56,7 +56,7 @@
 
 @font-face {
   font-family: 'Nunito';
-  src: url('../assets/fonts/Nunito-SemiBoldItalic.ttf') format('truetype');
+  src: url('../assets/fonts/Nunito-SemiBoldItalic.woff2') format('woff2');
   font-weight: 600;
   font-style: italic;
   font-display: swap;
@@ -64,7 +64,7 @@
 
 @font-face {
   font-family: 'Nunito';
-  src: url('../assets/fonts/Nunito-Bold.ttf') format('truetype');
+  src: url('../assets/fonts/Nunito-Bold.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -72,7 +72,7 @@
 
 @font-face {
   font-family: 'Nunito';
-  src: url('../assets/fonts/Nunito-BoldItalic.ttf') format('truetype');
+  src: url('../assets/fonts/Nunito-BoldItalic.woff2') format('woff2');
   font-weight: 700;
   font-style: italic;
   font-display: swap;
@@ -80,7 +80,7 @@
 
 @font-face {
   font-family: 'Noto Sans';
-  src: url('../assets/fonts/NotoSans-Light.ttf') format('truetype');
+  src: url('../assets/fonts/NotoSans-Light.woff2') format('woff2');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
@@ -88,7 +88,7 @@
 
 @font-face {
   font-family: 'Noto Sans';
-  src: url('../assets/fonts/NotoSans-LightItalic.ttf') format('truetype');
+  src: url('../assets/fonts/NotoSans-LightItalic.woff2') format('woff2');
   font-weight: 300;
   font-style: italic;
   font-display: swap;
@@ -96,7 +96,7 @@
 
 @font-face {
   font-family: 'Noto Sans';
-  src: url('../assets/fonts/NotoSans-Regular.ttf') format('truetype');
+  src: url('../assets/fonts/NotoSans-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -104,7 +104,7 @@
 
 @font-face {
   font-family: 'Noto Sans';
-  src: url('../assets/fonts/NotoSans-Italic.ttf') format('truetype');
+  src: url('../assets/fonts/NotoSans-Italic.woff2') format('woff2');
   font-weight: 400;
   font-style: italic;
   font-display: swap;
@@ -112,7 +112,7 @@
 
 @font-face {
   font-family: 'Noto Sans';
-  src: url('../assets/fonts/NotoSans-Medium.ttf') format('truetype');
+  src: url('../assets/fonts/NotoSans-Medium.woff2') format('woff2');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -120,7 +120,7 @@
 
 @font-face {
   font-family: 'Noto Sans';
-  src: url('../assets/fonts/NotoSans-MediumItalic.ttf') format('truetype');
+  src: url('../assets/fonts/NotoSans-MediumItalic.woff2') format('woff2');
   font-weight: 500;
   font-style: italic;
   font-display: swap;
@@ -128,7 +128,7 @@
 
 @font-face {
   font-family: 'Noto Sans';
-  src: url('../assets/fonts/NotoSans-SemiBold.ttf') format('truetype');
+  src: url('../assets/fonts/NotoSans-SemiBold.woff2') format('woff2');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
@@ -136,7 +136,7 @@
 
 @font-face {
   font-family: 'Noto Sans';
-  src: url('../assets/fonts/NotoSans-SemiBoldItalic.ttf') format('truetype');
+  src: url('../assets/fonts/NotoSans-SemiBoldItalic.woff2') format('woff2');
   font-weight: 600;
   font-style: italic;
   font-display: swap;
@@ -144,7 +144,7 @@
 
 @font-face {
   font-family: 'Noto Sans';
-  src: url('../assets/fonts/NotoSans-Bold.ttf') format('truetype');
+  src: url('../assets/fonts/NotoSans-Bold.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -152,7 +152,7 @@
 
 @font-face {
   font-family: 'Noto Sans';
-  src: url('../assets/fonts/NotoSans-BoldItalic.ttf') format('truetype');
+  src: url('../assets/fonts/NotoSans-BoldItalic.woff2') format('woff2');
   font-weight: 700;
   font-style: italic;
   font-display: swap;
@@ -160,7 +160,7 @@
 
 @font-face {
   font-family: 'Torus';
-  src: url('../assets/fonts/Torus-Regular.otf') format('opentype');
+  src: url('../assets/fonts/Torus-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
