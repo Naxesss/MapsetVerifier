@@ -37,7 +37,7 @@ namespace MapsetVerifier.Checks.Mania.Compose
             return new Dictionary<string, IssueTemplate>
             {
                 {
-                    "Underused column warning",
+                    "Underused column",
                     new IssueTemplate(
                         Issue.Level.Warning,
                         "Column {0} is underused",
@@ -45,28 +45,12 @@ namespace MapsetVerifier.Checks.Mania.Compose
                     ).WithCause("A column is being underused.")
                 },
                 {
-                    "Overused column warning",
+                    "Overused column",
                     new IssueTemplate(
                         Issue.Level.Warning,
                         "Column {0} is overused",
                         "column"
                     ).WithCause("A column is being overused.")
-                },
-                {
-                    "Underused column problem",
-                    new IssueTemplate(
-                        Issue.Level.Problem,
-                        "Column {0} is severely underused",
-                        "column"
-                    ).WithCause("A column is being severely underused.")
-                },
-                {
-                    "Overused column problem",
-                    new IssueTemplate(
-                        Issue.Level.Problem,
-                        "Column {0} is severely overused",
-                        "column"
-                    ).WithCause("A column is being severely overused.")
                 },
                 {
                     "Unused column",
@@ -100,8 +84,6 @@ namespace MapsetVerifier.Checks.Mania.Compose
                 int averageNotes = totalNotes / keys;
                 int belowAverageNotes = (int)(averageNotes * 0.8);
                 int aboveAverageNotes = (int)(averageNotes * 1.2);
-                int sigBelowAverageNotes = (int)(averageNotes * 0.65);
-                int sigAboveAverageNotes = (int)(averageNotes * 1.35);
 
                 for (int i = 0; i < columnDistribution.Length; i++)
                 {
@@ -111,35 +93,11 @@ namespace MapsetVerifier.Checks.Mania.Compose
                     }
                     else if (columnDistribution[i] >= aboveAverageNotes)
                     {
-                        yield return new Issue(
-                            GetTemplate("Overused column warning"),
-                            beatmap,
-                            i + 1
-                        );
+                        yield return new Issue(GetTemplate("Overused column"), beatmap, i + 1);
                     }
                     else if (columnDistribution[i] <= belowAverageNotes)
                     {
-                        yield return new Issue(
-                            GetTemplate("Underused column warning"),
-                            beatmap,
-                            i + 1
-                        );
-                    }
-                    else if (columnDistribution[i] >= sigAboveAverageNotes)
-                    {
-                        yield return new Issue(
-                            GetTemplate("Overused column problem"),
-                            beatmap,
-                            i + 1
-                        );
-                    }
-                    else if (columnDistribution[i] <= sigBelowAverageNotes)
-                    {
-                        yield return new Issue(
-                            GetTemplate("Underused column problem"),
-                            beatmap,
-                            i + 1
-                        );
+                        yield return new Issue(GetTemplate("Underused column"), beatmap, i + 1);
                     }
                 }
             }
