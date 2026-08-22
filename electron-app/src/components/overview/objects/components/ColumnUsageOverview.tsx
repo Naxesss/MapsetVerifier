@@ -12,13 +12,11 @@ import type { CSSProperties } from 'react';
 
 /** Mirrors the thresholds of the mania "Column usage" check (CheckColumnDistribution). */
 const WARNING_DEVIATION = 0.2;
-const PROBLEM_DEVIATION = 0.35;
 
-type UsageStatus = 'unused' | 'problem' | 'warning' | 'ok';
+type UsageStatus = 'unused' | 'warning' | 'ok';
 
 const STATUS_COLORS: Record<Exclude<UsageStatus, 'ok'>, string> = {
   unused: 'red',
-  problem: 'red',
   warning: 'orange',
 };
 
@@ -27,17 +25,7 @@ function getUsageStatus(count: number, average: number): UsageStatus {
     return 'unused';
   }
 
-  const deviation = Math.abs(count / average - 1);
-
-  if (deviation >= PROBLEM_DEVIATION) {
-    return 'problem';
-  }
-
-  if (deviation >= WARNING_DEVIATION) {
-    return 'warning';
-  }
-
-  return 'ok';
+  return Math.abs(count / average - 1) >= WARNING_DEVIATION ? 'warning' : 'ok';
 }
 
 function usageCellStyle(theme: MantineTheme, status: UsageStatus): CSSProperties | undefined {
@@ -168,10 +156,7 @@ export default function ColumnUsageOverview({
             color="orange"
             label={`Over/underused (${WARNING_DEVIATION * 100}% off average)`}
           />
-          <LegendSwatch
-            color="red"
-            label={`Severe (${PROBLEM_DEVIATION * 100}% off average) or unused`}
-          />
+          <LegendSwatch color="red" label="Unused column" />
         </Group>
 
         <AppTable highlightOnHover={false}>
