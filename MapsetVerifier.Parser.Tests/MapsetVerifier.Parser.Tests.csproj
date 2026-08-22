@@ -20,4 +20,9 @@
   <ItemGroup>
     <ProjectReference Include="..\MapsetVerifier.Parser\MapsetVerifier.Parser.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="TestData\Beatmaps\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

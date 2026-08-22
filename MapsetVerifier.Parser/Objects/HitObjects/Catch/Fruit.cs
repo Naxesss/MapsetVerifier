@@ -4,6 +4,7 @@ public class Fruit(string[] args, Beatmap beatmap) : Circle(args, beatmap), ICat
 {
     public double Time => time;
     public float DistanceToHyper { get; set; } = float.PositiveInfinity;
+    public float DistanceToDash { get; set; } = float.PositiveInfinity;
     public CatchMovementType MovementType { get; set; }
     public CatchNoteDirection NoteDirection { get; set; }
 
