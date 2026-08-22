@@ -42,6 +42,16 @@ public class ObjectsOverviewDifficulty
     public List<double> UnsnappedEdgeTimesMs { get; set; } = [];
     public List<ObjectsTimelineSample> TimelineSamples { get; set; } = [];
     public List<ObjectsHitsoundGapPeriod> HitsoundGapPeriods { get; set; } = [];
+    public List<ObjectsColumnUsage>? ColumnUsage { get; set; } // null for non-Mania
+}
+
+public class ObjectsColumnUsage
+{
+    public int Column { get; set; }
+    public int NoteCount { get; set; }
+    public int HoldNoteCount { get; set; }
+    public int TotalCount { get; set; }
+    public double Percentage { get; set; }
 }
 
 public class ObjectsBreakPeriod
