@@ -42,8 +42,11 @@
     <ProjectReference Include="..\MapsetVerifier.Logging\MapsetVerifier.Logging.csproj" />
     <ProjectReference Include="..\MapsetVerifier.Checks\MapsetVerifier.Checks.csproj" />
   </ItemGroup>
-  <Target Name="PruneSidecarPublishOutput" AfterTargets="ComputeResolvedFilesToPublishList"
-          Condition="'$(SelfContained)' == 'true'">
+  <Target
+    Name="PruneSidecarPublishOutput"
+    AfterTargets="ComputeResolvedFilesToPublishList"
+    Condition="'$(SelfContained)' == 'true'"
+  >
     <ItemGroup>
       <!--
         Removed, confirmed safe via smoke-testing the published exe (health, difficulty/analyze, runChecks):
@@ -56,10 +59,12 @@
         Do NOT add osuTK.dll, Commons.Music.Midi.dll, or SharpCompress.dll here - removing them breaks
         osu.Game.Beatmaps.Formats.Decoder's static initializer and silently zeroes out star rating.
       -->
-      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+      <ResolvedFileToPublish
+        Remove="@(ResolvedFileToPublish)"
         Condition="$([System.Text.RegularExpressions.Regex]::IsMatch(
           '%(ResolvedFileToPublish.Filename)%(ResolvedFileToPublish.Extension)',
-          '^(osu\.Game\.Resources\.dll|(lib)?SDL[23]\.(dll|so|dylib.*)|libveldrid-spirv\.(dll|so|dylib)|(lib)?(avcodec|avformat|avutil|avdevice|avfilter|swscale|swresample)[-.].*|(lib)?mscordaccore(_.*)?\.(dll|so|dylib)|(lib)?mscordbi\.(dll|so|dylib)|(lib)?clretwrc\.(dll|so|dylib)|createdump(\.exe)?|Microsoft\.DiaSymReader\.Native\..*\.dll|Microsoft\.AspNetCore\.Components.*\.dll|Microsoft\.AspNetCore\.Identity\.dll|Microsoft\.Extensions\.Identity\.(Core|Stores)\.dll|Microsoft\.AspNetCore\.Server\.HttpSys\.dll)$'))" />
+          '^(osu\.Game\.Resources\.dll|(lib)?SDL[23]\.(dll|so|dylib.*)|libveldrid-spirv\.(dll|so|dylib)|(lib)?(avcodec|avformat|avutil|avdevice|avfilter|swscale|swresample)[-.].*|(lib)?mscordaccore(_.*)?\.(dll|so|dylib)|(lib)?mscordbi\.(dll|so|dylib)|(lib)?clretwrc\.(dll|so|dylib)|createdump(\.exe)?|Microsoft\.DiaSymReader\.Native\..*\.dll|Microsoft\.AspNetCore\.Components.*\.dll|Microsoft\.AspNetCore\.Identity\.dll|Microsoft\.Extensions\.Identity\.(Core|Stores)\.dll|Microsoft\.AspNetCore\.Server\.HttpSys\.dll)$'))"
+      />
     </ItemGroup>
   </Target>
 </Project>
