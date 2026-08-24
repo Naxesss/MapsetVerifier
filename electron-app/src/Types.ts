@@ -745,6 +745,16 @@ export type ObjectsOverviewDifficulty = {
   hitsoundGapPeriods?: ObjectsHitsoundGapPeriod[];
   /** Populated by server analysis; omit if using an older API. */
   objectTypes?: ObjectsTypeBucket[];
+  /** Mania only; null or omitted for other modes. */
+  columnUsage?: ObjectsColumnUsage[] | null;
+};
+
+export type ObjectsColumnUsage = {
+  column: number;
+  noteCount: number;
+  holdNoteCount: number;
+  totalCount: number;
+  percentage: number;
 };
 
 export type ObjectsTypeBucket = {

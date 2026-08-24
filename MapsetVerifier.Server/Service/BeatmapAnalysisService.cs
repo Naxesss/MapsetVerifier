@@ -729,6 +729,7 @@ public static class BeatmapAnalysisService
 
         var totalSnapPoints = Math.Max(1, edgeCount);
         var objectTypes = BuildObjectTypeBreakdown(beatmap);
+        var columnUsage = BuildColumnUsage(beatmap);
 
         return new ObjectsOverviewDifficulty
         {
@@ -757,7 +758,50 @@ public static class BeatmapAnalysisService
                 })
                 .ToList(),
             ObjectTypes = objectTypes,
+            ColumnUsage = columnUsage,
         };
+    }
+
+    /// <summary> Per-column object counts for mania, mirroring what the column usage check evaluates. </summary>
+    private static List<ObjectsColumnUsage>? BuildColumnUsage(Beatmap beatmap)
+    {
+        if (beatmap.GeneralSettings.mode != Beatmap.Mode.Mania)
+            return null;
+
+        var keys = (int)beatmap.DifficultySettings.circleSize;
+
+        if (keys <= 0)
+            return null;
+
+        var noteCounts = new int[keys];
+        var holdNoteCounts = new int[keys];
+
+        foreach (var hitObject in beatmap.HitObjects)
+        {
+            var column = ManiaExtensions.GetColumn(hitObject, keys);
+
+            if (column < 0 || column >= keys)
+                continue;
+
+            if (hitObject is HoldNote)
+                holdNoteCounts[column]++;
+            else
+                noteCounts[column]++;
+        }
+
+        var total = Math.Max(1, beatmap.HitObjects.Count);
+
+        return Enumerable
+            .Range(0, keys)
+            .Select(column => new ObjectsColumnUsage
+            {
+                Column = column + 1,
+                NoteCount = noteCounts[column],
+                HoldNoteCount = holdNoteCounts[column],
+                TotalCount = noteCounts[column] + holdNoteCounts[column],
+                Percentage = (noteCounts[column] + holdNoteCounts[column]) * 100d / total,
+            })
+            .ToList();
     }
 
     private static List<ObjectsTypeBucket> BuildObjectTypeBreakdown(Beatmap beatmap)
