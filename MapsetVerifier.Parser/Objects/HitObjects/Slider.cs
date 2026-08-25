@@ -719,6 +719,7 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
                 // Calculate how long this curve (not the whole thing, just from anchor to anchor) will be.
                 var prevPoint = points.First();
                 double curvePixelLength = 0;
+                var sampledThisSegment = false;
 
                 for (double k = 0.0f; k < 1.0f + STEP_LENGTH; k += STEP_LENGTH)
                     if (totalLength <= fullLength)
@@ -732,15 +733,28 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
                             totalLength += curvePixelLength;
                             curvePixelLength = 0;
                             tempBezierPoints.Add(currentPoint);
+                            sampledThisSegment = true;
                         }
                     }
 
                 // As long as we haven't reached the last path between anchors, keep track of the length of the path.
                 // Ensures that we can switch from one anchor path to another.
-                if (tteration <= sliderPoints.Count)
-                    totalLength += curvePixelLength;
-                else
-                    tempBezierPoints.Add(currentPoint);
+                totalLength += curvePixelLength;
+
+                if (totalLength > fullLength)
+                    continue;
+
+                // The last control point of a segment lies on the curve itself, and for sharp anchors it is
+                // often the most extreme point of the whole path, which the sampling above cuts the corner of
+                // since it only adds points at fixed intervals. Move the last sample of the segment onto the
+                // anchor rather than adding a point next to it, as points nearly on top of each other make
+                // the path useless to anything looking at the angles between its points.
+                var anchorPoint = points.Last();
+
+                if (sampledThisSegment)
+                    tempBezierPoints[^1] = anchorPoint;
+                else if (GetDistance(tempBezierPoints.Last(), anchorPoint) >= pixelsPerMs)
+                    tempBezierPoints.Add(anchorPoint);
             }
 
             return tempBezierPoints;
