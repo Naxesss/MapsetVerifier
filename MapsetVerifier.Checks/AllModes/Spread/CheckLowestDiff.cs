@@ -73,6 +73,7 @@ namespace MapsetVerifier.Checks.AllModes.Spread
                 {
                     case Beatmap.Mode.Taiko:
                     case Beatmap.Mode.Catch:
+                    case Beatmap.Mode.Standard:
                         hardThreshold = CreateThreshold(2, 30);
                         insaneThreshold = CreateThreshold(3, 15);
                         expertThreshold = CreateThreshold(4, 0);
@@ -83,12 +84,9 @@ namespace MapsetVerifier.Checks.AllModes.Spread
                         insaneThreshold = CreateThreshold(2, 45);
                         expertThreshold = CreateThreshold(3, 30);
                         break;
-                    case Beatmap.Mode.Standard:
+
                     default:
-                        hardThreshold = CreateThreshold(3, 30);
-                        insaneThreshold = CreateThreshold(4, 15);
-                        expertThreshold = CreateThreshold(5, 0);
-                        break;
+                        throw new ArgumentOutOfRangeException(nameof(mode));
                 }
 
                 var modeBeatmaps = modeBeatmapGroup.ToList();
