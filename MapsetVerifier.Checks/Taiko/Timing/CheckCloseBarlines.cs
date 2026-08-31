@@ -14,7 +14,6 @@ namespace MapsetVerifier.Checks.Taiko.Timing
     {
         private const string Problem = nameof(Issue.Level.Problem);
         private const string Warning = nameof(Issue.Level.Warning);
-        private const string RoundingErrorWarning = "Rounding Error";
 
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata()
@@ -63,14 +62,6 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         "Red line is within one metronome of a downbeat from the previous red line."
                     )
                 },
-                {
-                    RoundingErrorWarning,
-                    new IssueTemplate(
-                        Issue.Level.Warning,
-                        "{0} Potential double barline due to rounding error, doublecheck manually.",
-                        "timestamp -"
-                    ).WithCause("Rounding error.")
-                },
             };
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
@@ -99,15 +90,14 @@ namespace MapsetVerifier.Checks.Taiko.Timing
 
                 var rest = distance % barlineGap;
 
-                if (rest - barlineGap > -Common.ROUNDING_ERROR_MARGIN)
-                {
-                    yield return new Issue(
-                        GetTemplate(RoundingErrorWarning),
-                        beatmap,
-                        Timestamp.Get(next.Offset)
-                    );
-                }
-                else if (rest > 0)
+                // Truncated BPM values (e.g. 260 BPM stored as 230.769230769231)
+                // plus integer red-line offsets routinely land a fraction of a
+                // millisecond short of a complete measure. The previous downbeat
+                // is then a full measure away, not a close barline.
+                if (barlineGap - rest <= Common.MS_EPSILON)
+                    continue;
+
+                if (rest > 0)
                 {
                     var snap = TimingUtils.FormatClosestBeatSnap(rest, current.msPerBeat);
 

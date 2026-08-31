@@ -65,6 +65,33 @@ public class CheckCloseBarlinesTests
     }
 
     [Fact]
+    public void DoesNotFlagWhenJustShyOfCompleteMeasureDueToBpmRounding()
+    {
+        // 1ms short of 4/4: last downbeat is a full measure away, not a close barline.
+        var issues = RunCheck(timingPoints: ["0,500,4,2,0,100,1,0", "3999,500,4,2,0,100,1,0"]);
+
+        Assert.Empty(issues);
+    }
+
+    [Fact]
+    public void DoesNotFlagYobanashiDeceiveRedLineResets()
+    {
+        // 260 BPM stored as 230.769230769231; integer red lines land 0.15–0.85ms
+        // short of a complete 4/4 measure (JIN - Yobanashi Deceive).
+        var issues = RunCheck(
+            timingPoints:
+            [
+                "212,230.769230769231,4,2,0,100,1,0",
+                "86981,230.769230769231,4,2,0,100,1,0",
+                "157134,461.538461538462,4,2,0,100,1,0",
+                "158980,230.769230769231,4,2,0,100,1,0",
+            ]
+        );
+
+        Assert.Empty(issues);
+    }
+
+    [Fact]
     public void SkipsWhenNextRedOmitsBarline()
     {
         // Would be Problem (rest = 400) without omit; effects 8 = OmitBarLine
