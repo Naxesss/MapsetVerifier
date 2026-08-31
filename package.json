@@ -131,7 +131,9 @@
       "uninstallDisplayName": "${productName} Uninstaller.exe",
       "artifactName": "${productName} Installer.exe",
       "installerIcon": "assets/icons/prod/icon.ico",
-      "installerHeaderIcon": "assets/icons/prod/icon.ico"
+      "installerHeaderIcon": "assets/icons/prod/icon.ico",
+      "differentialPackage": true,
+      "useZip": true
     }
   }
 }

@@ -1,6 +1,84 @@
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const { ipcMain, app } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const { isSemverPreRelease } = require('./semverPrerelease.cjs');
+
+const UPDATER_CACHE_DIR_NAME = 'mapsetverifier-updater';
+const UPDATER_LOG_MAX_BYTES = 512 * 1024;
+
+function createUpdaterLogger() {
+  const write = (level, args) => {
+    const message = args
+      .map((arg) => {
+        if (arg instanceof Error) return arg.stack || arg.message;
+        if (typeof arg === 'string') return arg;
+        try {
+          return JSON.stringify(arg);
+        } catch {
+          return String(arg);
+        }
+      })
+      .join(' ');
+    const line = `[${new Date().toISOString()}] [${level}] ${message}\n`;
+    try {
+      const logFile = path.join(app.getPath('userData'), 'updater.log');
+      if (fs.existsSync(logFile) && fs.statSync(logFile).size > UPDATER_LOG_MAX_BYTES) {
+        fs.renameSync(logFile, `${logFile}.old`);
+      }
+      fs.appendFileSync(logFile, line);
+    } catch {
+      // Logging must never break updates.
+    }
+    const consoleMethod = level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'info';
+    console[consoleMethod]('[Updater]', message);
+  };
+
+  return {
+    info: (...args) => write('info', args),
+    warn: (...args) => write('warn', args),
+    error: (...args) => write('error', args),
+    debug: (...args) => write('debug', args),
+  };
+}
+
+function cachedInstallerPath() {
+  const cacheRoot =
+    process.platform === 'win32'
+      ? process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local')
+      : process.platform === 'darwin'
+        ? path.join(os.homedir(), 'Library', 'Caches')
+        : process.env.XDG_CACHE_HOME || path.join(os.homedir(), '.cache');
+  return path.join(cacheRoot, UPDATER_CACHE_DIR_NAME, 'installer.exe');
+}
+
+function logCachedInstaller() {
+  if (process.platform !== 'win32') return;
+  const installerPath = cachedInstallerPath();
+  try {
+    const { size } = fs.statSync(installerPath);
+    autoUpdater.logger.info(`Cached installer present (${size} bytes): ${installerPath}`);
+  } catch {
+    autoUpdater.logger.warn(
+      `Cached installer missing (first update will be a full download): ${installerPath}`
+    );
+  }
+}
+
+function configureDifferentialUpdates() {
+  autoUpdater.logger = createUpdaterLogger();
+  // Classic NSIS, not nsis-web. Avoids the "set disableWebInstaller" warning
+  // and keeps the updater on the installer+blockmap path.
+  autoUpdater.disableWebInstaller = true;
+
+  if (process.platform === 'win32') {
+    // GitHub's "latest" asset URLs do not contain the old version, so the
+    // default blockmap rewrite cannot find the previous release's .blockmap.
+    autoUpdater.previousBlockmapBaseUrlOverride =
+      `https://github.com/Naxesss/MapsetVerifier/releases/download/v${app.getVersion()}/`;
+  }
+}
 
 function forwardingEnabled(getMainWindow) {
   return () => {
@@ -42,6 +120,7 @@ function registerUpdater(getMainWindow) {
   // Never auto-download; the renderer drives the flow via installUpdate().
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = true;
+  configureDifferentialUpdates();
   applyUpdatePreferences();
 
   const send = (channel, payload) => {
@@ -101,6 +180,7 @@ function registerUpdater(getMainWindow) {
   }
   ipcMain.handle('updater:download', async () => {
     try {
+      logCachedInstaller();
       await autoUpdater.downloadUpdate();
       return true;
     } catch (e) {
