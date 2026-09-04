@@ -43,7 +43,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             ["Conlang"],
             ["Hindi"],
             ["Arabic"],
-            ["Portugese"],
+            ["Portuguese"],
             ["Turkish"],
             ["Vietnamese"],
             ["Persian"],
