@@ -29,6 +29,8 @@ export function useOpenOsuTimestamp() {
         url,
         target,
         path,
+        stablePath: settings.timestampOpenStablePath,
+        lazerPath: settings.timestampOpenLazerPath,
         songsFolder: settings.songFolder,
       });
 

@@ -121,6 +121,75 @@ async function detectOsuExecutable({ client, songsFolder } = {}) {
   return null;
 }
 
+function classifyOsuProcess(name, exePath) {
+  const hay = `${name || ''} ${exePath || ''}`.toLowerCase().replace(/\\/g, '/');
+  if (!hay.includes('osu')) return null;
+  if (hay.includes('mapsetverifier') || hay.includes('mapset verifier')) return null;
+
+  if (
+    hay.includes('osulazer') ||
+    hay.includes('osu!lazer') ||
+    hay.includes('osu!.lazer') ||
+    hay.includes('/lazer/') ||
+    hay.includes('osu.appimage') ||
+    hay.includes('osu-lazer')
+  ) {
+    return 'lazer';
+  }
+
+  if (hay.includes('osu-wine')) return 'stable';
+  if (hay.includes('osu!.app')) return 'lazer';
+  if (hay.includes('osu!.exe') && !hay.includes('lazer')) return 'stable';
+  return null;
+}
+
+async function listWindowsOsuProcesses() {
+  try {
+    const { stdout } = await execFileAsync(
+      'wmic',
+      ['process', 'where', "name like '%osu%'", 'get', 'Name,ExecutablePath', '/format:csv'],
+      { windowsHide: true, timeout: 4000 }
+    );
+    const entries = [];
+    for (const line of stdout.split(/\r?\n/)) {
+      const columns = line.split(',').map((part) => part.trim());
+      if (columns.length < 3 || columns[1] === 'Name') continue;
+      entries.push({ name: columns[1], path: columns[2] || '' });
+    }
+    return entries;
+  } catch {
+    return [];
+  }
+}
+
+async function listUnixOsuProcesses() {
+  try {
+    const { stdout } = await execFileAsync('ps', ['-ax', '-o', 'args='], { timeout: 3000 });
+    return stdout
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => /osu/i.test(line))
+      .map((line) => ({ name: line, path: line }));
+  } catch {
+    return [];
+  }
+}
+
+async function detectRunningClient() {
+  const entries =
+    process.platform === 'win32' ? await listWindowsOsuProcesses() : await listUnixOsuProcesses();
+  let stable = false;
+  let lazer = false;
+  for (const entry of entries) {
+    const kind = classifyOsuProcess(entry.name, entry.path);
+    if (kind === 'stable') stable = true;
+    if (kind === 'lazer') lazer = true;
+  }
+  if (stable && !lazer) return 'stable';
+  if (lazer && !stable) return 'lazer';
+  return 'system';
+}
+
 function splitCommand(command) {
   const tokens = [];
   let current = '';
@@ -200,19 +269,30 @@ function clientLabel(target) {
   return 'osu!';
 }
 
-async function openOsuUrl({ url, target, path: userPath, songsFolder } = {}, electronShell) {
+async function openOsuUrl(
+  { url, target, path: userPath, stablePath, lazerPath, songsFolder } = {},
+  electronShell
+) {
   if (typeof url !== 'string' || !OSU_URL.test(url)) {
     return { ok: false, error: 'Invalid osu! link.' };
   }
 
   try {
-    if (!target || target === 'system') {
+    let resolvedTarget = target;
+    let resolvedPath = userPath;
+
+    if (target === 'current') {
+      resolvedTarget = await detectRunningClient();
+      resolvedPath = resolvedTarget === 'stable' ? stablePath : resolvedTarget === 'lazer' ? lazerPath : undefined;
+    }
+
+    if (!resolvedTarget || resolvedTarget === 'system') {
       await electronShell.openExternal(url);
       return { ok: true };
     }
 
-    if (target === 'custom') {
-      const command = typeof userPath === 'string' ? userPath.trim() : '';
+    if (resolvedTarget === 'custom') {
+      const command = typeof resolvedPath === 'string' ? resolvedPath.trim() : '';
       if (!command) {
         return { ok: false, error: 'Set a custom timestamp command in Settings.' };
       }
@@ -221,18 +301,30 @@ async function openOsuUrl({ url, target, path: userPath, songsFolder } = {}, ele
     }
 
     const resolved =
-      (typeof userPath === 'string' && userPath.trim()) ||
-      (await detectOsuExecutable({ client: target, songsFolder }));
+      (typeof resolvedPath === 'string' && resolvedPath.trim()) ||
+      (await detectOsuExecutable({ client: resolvedTarget, songsFolder }));
     if (!resolved) {
+      if (target === 'current') {
+        await electronShell.openExternal(url);
+        return { ok: true };
+      }
       return {
         ok: false,
-        error: `Could not find ${clientLabel(target)}. Set a path in Settings.`,
+        error: `Could not find ${clientLabel(resolvedTarget)}. Set a path in Settings.`,
       };
     }
 
     await launchApp(resolved, url);
     return { ok: true };
   } catch (error) {
+    if (target === 'current') {
+      try {
+        await electronShell.openExternal(url);
+        return { ok: true };
+      } catch {
+        // Keep the original error below.
+      }
+    }
     return { ok: false, error: error.message || `Could not open ${clientLabel(target)}.` };
   }
 }

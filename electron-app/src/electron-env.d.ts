@@ -26,12 +26,14 @@ export interface BackendStartOptions {
 
 export type Unsubscribe = () => void;
 
-export type TimestampOpenTarget = 'system' | 'stable' | 'lazer' | 'custom';
+export type TimestampOpenTarget = 'current' | 'stable' | 'lazer' | 'custom';
 
 export interface OpenOsuUrlOptions {
   url: string;
   target: TimestampOpenTarget;
   path?: string;
+  stablePath?: string;
+  lazerPath?: string;
   songsFolder?: string;
 }
 

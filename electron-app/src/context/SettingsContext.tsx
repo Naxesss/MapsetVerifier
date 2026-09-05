@@ -15,7 +15,7 @@ export type BeatmapViewMode = 'stable' | 'lazer' | 'both';
 export type { TimestampOpenTarget };
 
 const TIMESTAMP_OPEN_TARGETS = new Set<TimestampOpenTarget>([
-  'system',
+  'current',
   'stable',
   'lazer',
   'custom',
@@ -24,7 +24,7 @@ const TIMESTAMP_OPEN_TARGETS = new Set<TimestampOpenTarget>([
 export function parseTimestampOpenTarget(value: unknown): TimestampOpenTarget {
   return TIMESTAMP_OPEN_TARGETS.has(value as TimestampOpenTarget)
     ? (value as TimestampOpenTarget)
-    : 'system';
+    : 'current';
 }
 
 // Type-safe Settings type
@@ -41,7 +41,7 @@ export type Settings = {
   difficultyStrainDisplayMode: DifficultyStrainDisplayMode;
   /** Which beatmap library/libraries the sidebar reads from. */
   beatmapViewMode: BeatmapViewMode;
-  /** Which client timestamp clicks launch. System default uses the osu:// handler. */
+  /** Which client timestamp clicks launch. Currently open client falls back to the osu:// handler. */
   timestampOpenTarget: TimestampOpenTarget;
   timestampOpenStablePath?: string;
   timestampOpenLazerPath?: string;
@@ -91,7 +91,7 @@ const defaultSettings: Settings = {
   difficultyStrainDisplayMode: 'strainOnly',
   beatmapViewMode: 'stable',
   beatmapLookupMode: 'stable',
-  timestampOpenTarget: 'system',
+  timestampOpenTarget: 'current',
   timestampOpenStablePath: undefined,
   timestampOpenLazerPath: undefined,
   timestampOpenCustomCommand: undefined,

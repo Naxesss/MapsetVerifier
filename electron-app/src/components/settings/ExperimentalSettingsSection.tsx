@@ -7,14 +7,14 @@ import { parseTimestampOpenTarget, useSettings } from '../../context/SettingsCon
 import type { TimestampOpenTarget } from '../../electron-env';
 
 const TIMESTAMP_OPEN_OPTIONS: { label: string; value: TimestampOpenTarget }[] = [
-  { label: 'System default', value: 'system' },
+  { label: 'Currently open client', value: 'current' },
   { label: 'osu!(stable)', value: 'stable' },
   { label: 'osu!(lazer)', value: 'lazer' },
   { label: 'Custom command', value: 'custom' },
 ];
 
 function timestampPathKey(
-  target: Exclude<TimestampOpenTarget, 'system'>
+  target: Exclude<TimestampOpenTarget, 'current'>
 ): 'timestampOpenStablePath' | 'timestampOpenLazerPath' | 'timestampOpenCustomCommand' {
   if (target === 'stable') return 'timestampOpenStablePath';
   if (target === 'lazer') return 'timestampOpenLazerPath';
@@ -52,7 +52,7 @@ export default function ExperimentalSettingsSection() {
         : (settings.timestampOpenCustomCommand ?? '');
 
   const pickTimestampPath = async () => {
-    if (timestampTarget === 'system') return;
+    if (timestampTarget === 'current') return;
     try {
       const result = await window.electronAPI?.dialog.openFile();
       if (typeof result !== 'string') return;
@@ -131,13 +131,13 @@ export default function ExperimentalSettingsSection() {
         />
         <SettingsRow
           title={<ExperimentalLabel>Open timestamps with</ExperimentalLabel>}
-          description="Which client timestamp clicks launch. System default uses the same osu:// handler as the osu! website."
+          description="Which client timestamp clicks launch. Currently open client uses the running osu!, and falls back to the system osu:// handler if both or neither are open."
           control={
             <Select
               data={TIMESTAMP_OPEN_OPTIONS}
               value={timestampTarget}
               allowDeselect={false}
-              w={200}
+              w={220}
               onChange={(value) =>
                 setSettings((prev) => ({
                   ...prev,
@@ -147,7 +147,7 @@ export default function ExperimentalSettingsSection() {
             />
           }
         />
-        {timestampTarget !== 'system' && (
+        {timestampTarget !== 'current' && (
           <Group align="flex-end" gap="sm" wrap="nowrap">
             <TextInput
               label={timestampTarget === 'custom' ? 'Custom command' : 'Client path'}
