@@ -139,7 +139,7 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
                   )}
                   {video.frameRate && (
                     <Text size="xs" c="dimmed">
-                      {Number(video.frameRate.toFixed(3))} fps
+                      {Number(video.frameRate.toFixed(3))} FPS
                     </Text>
                   )}
                   <Text size="xs" c="dimmed">

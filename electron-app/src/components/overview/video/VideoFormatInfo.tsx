@@ -37,7 +37,7 @@ function getBadgeColor(badgeType: string): string {
 
 function formatFrameRate(frameRate: number | null): string {
   if (!frameRate) return 'Unknown';
-  return `${Number(frameRate.toFixed(3))} fps`;
+  return `${Number(frameRate.toFixed(3))} FPS`;
 }
 
 function formatBitrate(kbps: number | null): string {
