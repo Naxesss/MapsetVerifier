@@ -1,5 +1,6 @@
 import { Box, Group, Stack, Text, useMantineTheme } from '@mantine/core';
 import React, { useState } from 'react';
+import { useSettings } from '../../context/SettingsContext';
 import { ApiCheckResult } from '../../Types';
 import OsuLink from '../common/OsuLink';
 import LevelIcon from '../icons/LevelIcon';
@@ -12,8 +13,9 @@ interface IssueRowProps {
 
 const IssueRow: React.FC<IssueRowProps> = ({ item, onOpen, prefix }) => {
   const theme = useMantineTheme();
+  const { settings } = useSettings();
   const [hovered, setHovered] = useState(false);
-  const isInteractive = Boolean(onOpen);
+  const isInteractive = Boolean(onOpen) && settings.displayIssueDetails;
 
   const handleOpen = (event: React.MouseEvent) => {
     const target = event.target;

@@ -119,6 +119,19 @@ export default function CheckSettingsSection() {
           </Stack>
         )}
         <SettingsRow
+          title="Display issue details"
+          description="Opens a details drawer when you click a check issue."
+          control={
+            <Switch
+              checked={settings.displayIssueDetails}
+              onChange={(e) => {
+                const checked = e.currentTarget.checked;
+                setSettings((prev) => ({ ...prev, displayIssueDetails: checked }));
+              }}
+            />
+          }
+        />
+        <SettingsRow
           title="Use difficulty names from corresponding game modes"
           description="Shows mode-specific difficulty names where available."
           control={
