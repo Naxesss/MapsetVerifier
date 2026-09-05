@@ -26,6 +26,7 @@ import {
 import { getLevelLabel } from '../../utils/levelLabel';
 import OsuLink from '../common/OsuLink';
 import { buildOsuEditHref, parseOsuLinkSegments } from '../common/osuLinkUtils';
+import { useOpenOsuTimestamp } from '../../hooks/useOpenOsuTimestamp';
 import DocumentationOutcomeBlockquote from '../documentation/DocumentationOutcomeBlockquote';
 import MantineMarkdown from '../documentation/MantineMarkdown';
 import LevelIcon from '../icons/LevelIcon';
@@ -98,6 +99,7 @@ export default function IssueDetailDrawer({
 
   const relatedOutcomes =
     data?.outcomes.filter((outcome) => normalizeLevel(outcome.level) === normalizedLevel) ?? [];
+  const openOsuTimestamp = useOpenOsuTimestamp();
 
   return (
     <Drawer
@@ -211,6 +213,11 @@ export default function IssueDetailDrawer({
                       href={buildOsuEditHref(timestamp)}
                       size="sm"
                       style={{ fontFamily: 'var(--mantine-font-family-monospace)' }}
+                      onClick={(event) => {
+                        if (!window.electronAPI?.shell.openOsuUrl) return;
+                        event.preventDefault();
+                        void openOsuTimestamp(timestamp);
+                      }}
                     >
                       {timestamp}
                     </Anchor>

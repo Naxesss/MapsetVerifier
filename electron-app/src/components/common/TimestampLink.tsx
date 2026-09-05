@@ -1,6 +1,7 @@
 import { Anchor, Box, Text, useMantineTheme } from '@mantine/core';
 import { IconCopy } from '@tabler/icons-react';
 import React from 'react';
+import { useOpenOsuTimestamp } from '../../hooks/useOpenOsuTimestamp.ts';
 import { buildOsuEditHref, getTimestampChipStyles, isCopyModifierClick } from './osuLinkUtils.ts';
 import { useFadeUpCopyFeedback } from './useFadeUpCopyFeedback.ts';
 
@@ -12,19 +13,26 @@ const TimestampLink: React.FC<TimestampLinkProps> = ({ displayTimestamp }) => {
   const theme = useMantineTheme();
   const { baseBg, hoverBg, textColor, chip } = getTimestampChipStyles(theme);
   const { showCopied, copiedAnimating, triggerCopyFeedback } = useFadeUpCopyFeedback();
+  const openOsuTimestamp = useOpenOsuTimestamp();
 
   const handleClick = async (event: React.MouseEvent<HTMLAnchorElement>) => {
-    if (!isCopyModifierClick(event)) return;
+    if (isCopyModifierClick(event)) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      try {
+        await navigator.clipboard.writeText(displayTimestamp);
+        triggerCopyFeedback();
+      } catch {
+        // Clipboard may be unavailable; ignore.
+      }
+      return;
+    }
+
+    if (!window.electronAPI?.shell.openOsuUrl) return;
 
     event.preventDefault();
-    event.stopPropagation();
-
-    try {
-      await navigator.clipboard.writeText(displayTimestamp);
-      triggerCopyFeedback();
-    } catch {
-      // Clipboard may be unavailable; ignore.
-    }
+    await openOsuTimestamp(displayTimestamp);
   };
 
   return (
