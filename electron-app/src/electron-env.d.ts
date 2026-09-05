@@ -26,6 +26,22 @@ export interface BackendStartOptions {
 
 export type Unsubscribe = () => void;
 
+export type TimestampOpenTarget = 'current' | 'stable' | 'lazer' | 'custom';
+
+export interface OpenOsuUrlOptions {
+  url: string;
+  target: TimestampOpenTarget;
+  path?: string;
+  stablePath?: string;
+  lazerPath?: string;
+  songsFolder?: string;
+}
+
+export interface OpenOsuUrlResult {
+  ok: boolean;
+  error?: string;
+}
+
 export interface ElectronAPI {
   platform: NodeJS.Platform;
   getVersion(): Promise<string>;
@@ -50,10 +66,16 @@ export interface ElectronAPI {
   shell: {
     openPath(path: string): Promise<string>;
     openExternal(url: string): Promise<void>;
+    openOsuUrl(options: OpenOsuUrlOptions): Promise<OpenOsuUrlResult>;
+    detectOsuExecutable(options: {
+      client: 'stable' | 'lazer';
+      songsFolder?: string;
+    }): Promise<string | null>;
   };
 
   dialog: {
     openFolder(): Promise<string | null>;
+    openFile(): Promise<string | null>;
   };
 
   settings: {

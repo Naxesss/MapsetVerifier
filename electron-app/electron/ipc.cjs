@@ -2,6 +2,7 @@ const { ipcMain, shell, dialog, BrowserWindow, app } = require('electron');
 const fs = require('fs/promises');
 const path = require('path');
 const sidecar = require('./sidecar.cjs');
+const osuLauncher = require('./osuLauncher.cjs');
 
 const SETTINGS_FILE = 'settings.json';
 const EXTERNALS_FOLDER_NAME = 'Mapset Verifier Externals';
@@ -53,11 +54,32 @@ function registerIpc(getMainWindow) {
     if (!url || typeof url !== 'string') return;
     await shell.openExternal(url);
   });
+  ipcMain.handle('shell:openOsuUrl', async (_e, options) => {
+    return osuLauncher.openOsuUrl(options, shell);
+  });
+  ipcMain.handle('shell:detectOsuExecutable', async (_e, options) => {
+    return osuLauncher.detectOsuExecutable(options);
+  });
 
   ipcMain.handle('dialog:openFolder', async (e) => {
     const w = focusedWindow(e);
     const result = await dialog.showOpenDialog(w || undefined, {
       properties: ['openDirectory'],
+    });
+    if (result.canceled || !result.filePaths.length) return null;
+    return result.filePaths[0];
+  });
+  ipcMain.handle('dialog:openFile', async (e) => {
+    const w = focusedWindow(e);
+    const filters =
+      process.platform === 'win32'
+        ? [{ name: 'Executables', extensions: ['exe', 'cmd', 'bat'] }]
+        : process.platform === 'darwin'
+          ? [{ name: 'Applications', extensions: ['app'] }]
+          : undefined;
+    const result = await dialog.showOpenDialog(w || undefined, {
+      properties: ['openFile'],
+      filters,
     });
     if (result.canceled || !result.filePaths.length) return null;
     return result.filePaths[0];
