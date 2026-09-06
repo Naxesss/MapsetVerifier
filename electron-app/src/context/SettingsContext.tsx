@@ -4,12 +4,28 @@ import { BACKEND_BASE_URL } from '../Constants.ts';
 import { DEFAULT_UI_FONT_FAMILY, parseUiFontFamily, type UiFontFamily } from '../theme/fonts';
 import { isSemverPreRelease } from '../utils/isSemverPreRelease';
 import type { TimelineThemeVariant } from '../components/overview/objects/timelineTheme/types.ts';
+import type { TimestampOpenTarget } from '../electron-env';
 
 /** What the Star Rating overview chart shows by default: the cumulative line, the strain overlay, or both. */
 export type DifficultyStrainDisplayMode = 'both' | 'starRatingOnly' | 'strainOnly';
 
 /** Which beatmap library/libraries the sidebar reads from. */
 export type BeatmapViewMode = 'stable' | 'lazer' | 'both';
+
+export type { TimestampOpenTarget };
+
+const TIMESTAMP_OPEN_TARGETS = new Set<TimestampOpenTarget>([
+  'current',
+  'stable',
+  'lazer',
+  'custom',
+]);
+
+export function parseTimestampOpenTarget(value: unknown): TimestampOpenTarget {
+  return TIMESTAMP_OPEN_TARGETS.has(value as TimestampOpenTarget)
+    ? (value as TimestampOpenTarget)
+    : 'current';
+}
 
 // Type-safe Settings type
 export type Settings = {
@@ -25,6 +41,11 @@ export type Settings = {
   difficultyStrainDisplayMode: DifficultyStrainDisplayMode;
   /** Which beatmap library/libraries the sidebar reads from. */
   beatmapViewMode: BeatmapViewMode;
+  /** Which client timestamp clicks launch. Currently open client falls back to the osu:// handler. */
+  timestampOpenTarget: TimestampOpenTarget;
+  timestampOpenStablePath?: string;
+  timestampOpenLazerPath?: string;
+  timestampOpenCustomCommand?: string;
   /** Last selected stable/lazer tab on the beatmaps list. Only used when beatmapViewMode is 'both'. */
   beatmapLookupMode: 'stable' | 'lazer';
   receivePrereleases: boolean;
@@ -70,6 +91,10 @@ const defaultSettings: Settings = {
   difficultyStrainDisplayMode: 'strainOnly',
   beatmapViewMode: 'stable',
   beatmapLookupMode: 'stable',
+  timestampOpenTarget: 'current',
+  timestampOpenStablePath: undefined,
+  timestampOpenLazerPath: undefined,
+  timestampOpenCustomCommand: undefined,
   receivePrereleases: false,
   uiFontFamily: DEFAULT_UI_FONT_FAMILY,
   timelineThemeVariant: 'default',
@@ -158,6 +183,19 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
           : defaultSettings.bookmarkedFolders,
         beatmapViewMode,
         beatmapLookupMode: loaded?.beatmapLookupMode === 'lazer' ? 'lazer' : 'stable',
+        timestampOpenTarget: parseTimestampOpenTarget(loaded?.timestampOpenTarget),
+        timestampOpenStablePath:
+          typeof loaded?.timestampOpenStablePath === 'string'
+            ? loaded.timestampOpenStablePath
+            : undefined,
+        timestampOpenLazerPath:
+          typeof loaded?.timestampOpenLazerPath === 'string'
+            ? loaded.timestampOpenLazerPath
+            : undefined,
+        timestampOpenCustomCommand:
+          typeof loaded?.timestampOpenCustomCommand === 'string'
+            ? loaded.timestampOpenCustomCommand
+            : undefined,
         uiFontFamily: parseUiFontFamily(loaded?.uiFontFamily),
         timelineThemeVariant: parseTimelineThemeVariant(loaded?.timelineThemeVariant ?? null),
       });

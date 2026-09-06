@@ -38,6 +38,7 @@ import {
 import type { ObjectsOverviewDifficulty } from '../../../../Types';
 import type { TimelineThemeVariant } from '../timelineTheme/types.ts';
 import type { MantineTheme } from '@mantine/core';
+import { useOpenOsuTimestamp } from '../../../../hooks/useOpenOsuTimestamp.ts';
 
 interface TimelineRowProps {
   difficulty: ObjectsOverviewDifficulty;
@@ -157,6 +158,7 @@ const TimelineCanvasTile = memo(function TimelineCanvasTile({
 });
 
 function TimelineRow({ difficulty, height }: TimelineRowProps) {
+  const openOsuTimestamp = useOpenOsuTimestamp();
   const theme = useMantineTheme();
   const { startTimeMs, endTimeMs, timelineWidth } = useTimelineScale();
   const { isPanningTimeline } = useTimelinePan();
@@ -275,7 +277,7 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
   const goToObject = () => {
     if (!contextMenuState) return;
     const timestamp = formatEditorTimestamp(contextMenuState.timestampMs);
-    window.location.href = `osu://edit/${timestamp}`;
+    void openOsuTimestamp(timestamp);
     setContextMenuState(null);
   };
 

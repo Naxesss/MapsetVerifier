@@ -6,6 +6,7 @@ import TimeSeriesHoverTooltip from '../../charts/timeSeries/TimeSeriesHoverToolt
 import TimeSeriesLegend from '../../charts/timeSeries/TimeSeriesLegend.tsx';
 import { TimestampContextMenu } from '../../charts/timeSeries/TimestampContextMenu.tsx';
 import { formatEditorTimestamp } from '../objects/timelineUtils.ts';
+import { useOpenOsuTimestamp } from '../../../hooks/useOpenOsuTimestamp.ts';
 import type { DifficultyChartState } from './hooks/useDifficultyChartState.ts';
 import type {
   ChartHoverPayload,
@@ -95,6 +96,8 @@ export function DifficultyChartPanel({
     });
   }, []);
 
+  const openOsuTimestamp = useOpenOsuTimestamp();
+
   const copyTimestamp = async () => {
     if (!contextMenu) return;
     await navigator.clipboard.writeText(formatEditorTimestamp(contextMenu.timeMs));
@@ -103,7 +106,7 @@ export function DifficultyChartPanel({
 
   const goToTimestamp = () => {
     if (!contextMenu) return;
-    window.location.href = `osu://edit/${formatEditorTimestamp(contextMenu.timeMs)}`;
+    void openOsuTimestamp(formatEditorTimestamp(contextMenu.timeMs));
     setContextMenu(null);
   };
 

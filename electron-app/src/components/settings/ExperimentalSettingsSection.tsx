@@ -1,9 +1,25 @@
-import { Badge, Group, Switch, Text, Tooltip } from '@mantine/core';
-import { IconAlertTriangle, IconAnalyze } from '@tabler/icons-react';
+import { Badge, Button, Group, Select, Switch, Text, TextInput, Tooltip } from '@mantine/core';
+import { IconAlertTriangle, IconAnalyze, IconFolder, IconSearch } from '@tabler/icons-react';
 import { useState } from 'react';
 import AdvancedAudioWarningModal from './AdvancedAudioWarningModal';
 import { SettingsRow, SettingsSection } from './SettingsSection';
-import { useSettings } from '../../context/SettingsContext';
+import { parseTimestampOpenTarget, useSettings } from '../../context/SettingsContext';
+import type { TimestampOpenTarget } from '../../electron-env';
+
+const TIMESTAMP_OPEN_OPTIONS: { label: string; value: TimestampOpenTarget }[] = [
+  { label: 'Currently open client', value: 'current' },
+  { label: 'osu!(stable)', value: 'stable' },
+  { label: 'osu!(lazer)', value: 'lazer' },
+  { label: 'Custom command', value: 'custom' },
+];
+
+function timestampPathKey(
+  target: Exclude<TimestampOpenTarget, 'current'>
+): 'timestampOpenStablePath' | 'timestampOpenLazerPath' | 'timestampOpenCustomCommand' {
+  if (target === 'stable') return 'timestampOpenStablePath';
+  if (target === 'lazer') return 'timestampOpenLazerPath';
+  return 'timestampOpenCustomCommand';
+}
 
 function ExperimentalLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -27,6 +43,51 @@ function ExperimentalLabel({ children }: { children: React.ReactNode }) {
 export default function ExperimentalSettingsSection() {
   const { settings, setSettings } = useSettings();
   const [advancedAudioConfirmOpened, setAdvancedAudioConfirmOpened] = useState(false);
+  const timestampTarget = settings.timestampOpenTarget;
+  const timestampPath =
+    timestampTarget === 'stable'
+      ? (settings.timestampOpenStablePath ?? '')
+      : timestampTarget === 'lazer'
+        ? (settings.timestampOpenLazerPath ?? '')
+        : (settings.timestampOpenCustomCommand ?? '');
+
+  const pickTimestampPath = async () => {
+    if (timestampTarget === 'current') return;
+    try {
+      const result = await window.electronAPI?.dialog.openFile();
+      if (typeof result !== 'string') return;
+      const key = timestampPathKey(timestampTarget);
+      setSettings((prev) => ({ ...prev, [key]: result }));
+    } catch (e: any) {
+      console.error('[Settings] File pick failed:', e);
+      const msg = typeof e === 'string' ? e : e?.message || 'Unknown error';
+      alert('File picker failed: ' + msg);
+    }
+  };
+
+  const detectTimestampPath = async () => {
+    if (timestampTarget !== 'stable' && timestampTarget !== 'lazer') return;
+    try {
+      const result = await window.electronAPI?.shell.detectOsuExecutable({
+        client: timestampTarget,
+        songsFolder: settings.songFolder,
+      });
+      if (typeof result === 'string' && result) {
+        const key = timestampPathKey(timestampTarget);
+        setSettings((prev) => ({ ...prev, [key]: result }));
+        return;
+      }
+      alert(
+        timestampTarget === 'stable'
+          ? 'Could not find osu!(stable). Browse to osu!.exe, or osu-wine on Linux.'
+          : 'Could not find osu!(lazer). Browse to the Lazer executable or app.'
+      );
+    } catch (e: any) {
+      console.error('[Settings] Client detect failed:', e);
+      const msg = typeof e === 'string' ? e : e?.message || 'Unknown error';
+      alert('Could not detect the client: ' + msg);
+    }
+  };
 
   return (
     <>
@@ -68,6 +129,67 @@ export default function ExperimentalSettingsSection() {
             />
           }
         />
+        <SettingsRow
+          title={<ExperimentalLabel>Open timestamps with</ExperimentalLabel>}
+          description="Which client timestamp clicks launch. Currently open client uses the running osu!, and falls back to the system osu:// handler if both or neither are open."
+          control={
+            <Select
+              data={TIMESTAMP_OPEN_OPTIONS}
+              value={timestampTarget}
+              allowDeselect={false}
+              w={220}
+              onChange={(value) =>
+                setSettings((prev) => ({
+                  ...prev,
+                  timestampOpenTarget: parseTimestampOpenTarget(value),
+                }))
+              }
+            />
+          }
+        />
+        {timestampTarget !== 'current' && (
+          <Group align="flex-end" gap="sm" wrap="nowrap">
+            <TextInput
+              label={timestampTarget === 'custom' ? 'Custom command' : 'Client path'}
+              description={
+                timestampTarget === 'custom'
+                  ? 'Use {url} for the timestamp link, or it is appended.'
+                  : 'Leave empty to auto-detect. Browse to pin a path.'
+              }
+              placeholder={
+                timestampTarget === 'custom'
+                  ? 'osu-wine --osuhandler {url}'
+                  : timestampTarget === 'stable'
+                    ? 'osu!.exe or osu-wine'
+                    : 'osu! Lazer executable or app'
+              }
+              value={timestampPath}
+              style={{ flex: 1, minWidth: 0 }}
+              onChange={(event) => {
+                const key = timestampPathKey(timestampTarget);
+                setSettings((prev) => ({ ...prev, [key]: event.currentTarget.value }));
+              }}
+            />
+            <Button
+              size="sm"
+              variant="light"
+              leftSection={<IconFolder size={18} />}
+              onClick={pickTimestampPath}
+            >
+              Browse
+            </Button>
+            {timestampTarget !== 'custom' && (
+              <Button
+                size="sm"
+                variant="light"
+                leftSection={<IconSearch size={18} />}
+                onClick={() => void detectTimestampPath()}
+              >
+                Detect
+              </Button>
+            )}
+          </Group>
+        )}
       </SettingsSection>
       <AdvancedAudioWarningModal
         opened={advancedAudioConfirmOpened}

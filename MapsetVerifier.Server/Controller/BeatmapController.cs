@@ -173,6 +173,13 @@ public class BeatmapController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("runningClients")]
+    public ActionResult<ApiRunningOsuClients> GetRunningClients()
+    {
+        var clients = OsuProcessClassifier.GetRunningClients();
+        return Ok(new ApiRunningOsuClients(clients.Stable, clients.Lazer));
+    }
+
     [HttpGet("image")]
     public ActionResult GetBeatmapImage(
         [FromQuery] string folder,

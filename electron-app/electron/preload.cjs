@@ -29,10 +29,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   shell: {
     openPath: (p) => ipcRenderer.invoke('shell:openPath', p),
     openExternal: (url) => ipcRenderer.invoke('shell:openExternal', url),
+    openOsuUrl: (options) => ipcRenderer.invoke('shell:openOsuUrl', options),
+    detectOsuExecutable: (options) => ipcRenderer.invoke('shell:detectOsuExecutable', options),
   },
 
   dialog: {
     openFolder: () => ipcRenderer.invoke('dialog:openFolder'),
+    openFile: () => ipcRenderer.invoke('dialog:openFile'),
   },
 
   settings: {
