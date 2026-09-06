@@ -31,9 +31,9 @@ export type TimestampOpenTarget = 'current' | 'stable' | 'lazer' | 'custom';
 export interface OpenOsuUrlOptions {
   url: string;
   target: TimestampOpenTarget;
-  path?: string;
   stablePath?: string;
   lazerPath?: string;
+  customCommand?: string;
   songsFolder?: string;
 }
 

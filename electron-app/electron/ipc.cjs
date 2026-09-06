@@ -55,7 +55,7 @@ function registerIpc(getMainWindow) {
     await shell.openExternal(url);
   });
   ipcMain.handle('shell:openOsuUrl', async (_e, options) => {
-    return osuLauncher.openOsuUrl(options, shell);
+    return osuLauncher.openOsuUrl(options);
   });
   ipcMain.handle('shell:detectOsuExecutable', async (_e, options) => {
     return osuLauncher.detectOsuExecutable(options);

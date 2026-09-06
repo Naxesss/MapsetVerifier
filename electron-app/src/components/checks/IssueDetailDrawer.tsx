@@ -25,7 +25,7 @@ import {
 } from '../../Types';
 import { getLevelLabel } from '../../utils/levelLabel';
 import OsuLink from '../common/OsuLink';
-import { buildOsuEditHref, parseOsuLinkSegments } from '../common/osuLinkUtils';
+import { buildOsuEditHref, parseOsuLinkSegments, shouldInterceptOsuOpen } from '../common/osuLinkUtils';
 import { useOpenOsuTimestamp } from '../../hooks/useOpenOsuTimestamp';
 import DocumentationOutcomeBlockquote from '../documentation/DocumentationOutcomeBlockquote';
 import MantineMarkdown from '../documentation/MantineMarkdown';
@@ -214,7 +214,12 @@ export default function IssueDetailDrawer({
                       size="sm"
                       style={{ fontFamily: 'var(--mantine-font-family-monospace)' }}
                       onClick={(event) => {
-                        if (!window.electronAPI?.shell.openOsuUrl) return;
+                        if (!shouldInterceptOsuOpen(event)) return;
+                        event.preventDefault();
+                        void openOsuTimestamp(timestamp);
+                      }}
+                      onAuxClick={(event) => {
+                        if (!shouldInterceptOsuOpen(event)) return;
                         event.preventDefault();
                         void openOsuTimestamp(timestamp);
                       }}

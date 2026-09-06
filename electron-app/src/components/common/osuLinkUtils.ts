@@ -16,6 +16,10 @@ export function isCopyModifierClick(event: MouseEvent) {
   return event.button === 0 && (event.ctrlKey || event.metaKey);
 }
 
+export function shouldInterceptOsuOpen(event: MouseEvent) {
+  return Boolean(window.electronAPI?.shell.openOsuUrl) && (event.button === 0 || event.button === 1);
+}
+
 export function getTimestampChipStyles(theme: MantineTheme) {
   const baseBg = theme.colors.dark?.[5];
 

@@ -2,7 +2,12 @@ import { Anchor, Box, Text, useMantineTheme } from '@mantine/core';
 import { IconCopy } from '@tabler/icons-react';
 import React from 'react';
 import { useOpenOsuTimestamp } from '../../hooks/useOpenOsuTimestamp.ts';
-import { buildOsuEditHref, getTimestampChipStyles, isCopyModifierClick } from './osuLinkUtils.ts';
+import {
+  buildOsuEditHref,
+  getTimestampChipStyles,
+  isCopyModifierClick,
+  shouldInterceptOsuOpen,
+} from './osuLinkUtils.ts';
 import { useFadeUpCopyFeedback } from './useFadeUpCopyFeedback.ts';
 
 interface TimestampLinkProps {
@@ -29,7 +34,7 @@ const TimestampLink: React.FC<TimestampLinkProps> = ({ displayTimestamp }) => {
       return;
     }
 
-    if (!window.electronAPI?.shell.openOsuUrl) return;
+    if (!shouldInterceptOsuOpen(event)) return;
 
     event.preventDefault();
     await openOsuTimestamp(displayTimestamp);
@@ -49,6 +54,7 @@ const TimestampLink: React.FC<TimestampLinkProps> = ({ displayTimestamp }) => {
           transition: 'background-color 120ms, box-shadow 120ms',
         }}
         onClick={handleClick}
+        onAuxClick={handleClick}
         onMouseEnter={(e) => {
           e.currentTarget.style.backgroundColor = hoverBg ?? '';
         }}

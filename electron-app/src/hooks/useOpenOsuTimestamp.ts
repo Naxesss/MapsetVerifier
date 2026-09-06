@@ -15,22 +15,12 @@ export function useOpenOsuTimestamp() {
         return;
       }
 
-      const target = settings.timestampOpenTarget;
-      const path =
-        target === 'stable'
-          ? settings.timestampOpenStablePath
-          : target === 'lazer'
-            ? settings.timestampOpenLazerPath
-            : target === 'custom'
-              ? settings.timestampOpenCustomCommand
-              : undefined;
-
       const result = await openOsuUrl({
         url,
-        target,
-        path,
+        target: settings.timestampOpenTarget,
         stablePath: settings.timestampOpenStablePath,
         lazerPath: settings.timestampOpenLazerPath,
+        customCommand: settings.timestampOpenCustomCommand,
         songsFolder: settings.songFolder,
       });
 
