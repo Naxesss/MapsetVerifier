@@ -9,6 +9,7 @@ import {
 } from 'react';
 import TimelineObjectContextMenu from './TimelineObjectContextMenu.tsx';
 import TimelineObjectHeadHovercard from './TimelineObjectHeadHovercard.tsx';
+import { useOpenOsuTimestamp } from '../../../../hooks/useOpenOsuTimestamp.ts';
 import AutoResizeCanvas from '../../../common/AutoResizeCanvas.tsx';
 import {
   TIMELINE_VIEW_MODE_TRANSITION_EASING,
@@ -157,6 +158,7 @@ const TimelineCanvasTile = memo(function TimelineCanvasTile({
 });
 
 function TimelineRow({ difficulty, height }: TimelineRowProps) {
+  const openOsuTimestamp = useOpenOsuTimestamp();
   const theme = useMantineTheme();
   const { startTimeMs, endTimeMs, timelineWidth } = useTimelineScale();
   const { isPanningTimeline } = useTimelinePan();
@@ -275,7 +277,7 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
   const goToObject = () => {
     if (!contextMenuState) return;
     const timestamp = formatEditorTimestamp(contextMenuState.timestampMs);
-    window.location.href = `osu://edit/${timestamp}`;
+    void openOsuTimestamp(timestamp);
     setContextMenuState(null);
   };
 

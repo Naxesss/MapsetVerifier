@@ -1,5 +1,6 @@
 import { Box, Stack, Text } from '@mantine/core';
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { useOpenOsuTimestamp } from '../../../hooks/useOpenOsuTimestamp.ts';
 import { formatAxisMetricValue } from '../../charts/timeSeries/sampleFormat.ts';
 import TimeSeriesChart from '../../charts/timeSeries/TimeSeriesChart.tsx';
 import TimeSeriesHoverTooltip from '../../charts/timeSeries/TimeSeriesHoverTooltip.tsx';
@@ -95,6 +96,8 @@ export function DifficultyChartPanel({
     });
   }, []);
 
+  const openOsuTimestamp = useOpenOsuTimestamp();
+
   const copyTimestamp = async () => {
     if (!contextMenu) return;
     await navigator.clipboard.writeText(formatEditorTimestamp(contextMenu.timeMs));
@@ -103,7 +106,7 @@ export function DifficultyChartPanel({
 
   const goToTimestamp = () => {
     if (!contextMenu) return;
-    window.location.href = `osu://edit/${formatEditorTimestamp(contextMenu.timeMs)}`;
+    void openOsuTimestamp(formatEditorTimestamp(contextMenu.timeMs));
     setContextMenu(null);
   };
 
