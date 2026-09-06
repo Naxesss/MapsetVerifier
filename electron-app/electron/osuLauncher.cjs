@@ -68,16 +68,14 @@ function songsSiblingExe(songsFolder) {
 }
 
 async function detectStableExecutable(songsFolder) {
-  const sibling = songsSiblingExe(songsFolder);
-  if (exists(sibling)) return sibling;
-
   if (process.platform === 'win32') {
+    const sibling = songsSiblingExe(songsFolder);
     const local = path.join(process.env.LOCALAPPDATA || '', 'osu!', 'osu!.exe');
     const fromRegistry =
       (await queryWindowsExe('HKCR\\osu!\\shell\\open\\command')) ||
       (await queryWindowsExe('HKCR\\osu!\\DefaultIcon')) ||
       (await queryWindowsExe('HKCU\\Software\\Classes\\osu!\\shell\\open\\command'));
-    return firstExisting([fromRegistry, local]);
+    return firstExisting([sibling, fromRegistry, local]);
   }
 
   if (process.platform === 'linux') {
