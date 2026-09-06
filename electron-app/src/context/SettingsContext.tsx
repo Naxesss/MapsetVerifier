@@ -35,6 +35,8 @@ export type Settings = {
   showMinor: boolean;
   /** When showMinor is on, Minor results for these check ids are hidden. When showMinor is off, ignored. */
   hiddenMinorCheckIds: number[];
+  /** Opens the issue details drawer and enables issue-row hover when clicking a check. */
+  displayIssueDetails: boolean;
   showGamemodeDifficultyNames: boolean;
   showAdvancedAudioAnalysis: boolean;
   /** What the Star Rating overview chart shows by default. */
@@ -86,6 +88,7 @@ const defaultSettings: Settings = {
   lazerDataDir: undefined,
   showMinor: false,
   hiddenMinorCheckIds: [],
+  displayIssueDetails: true,
   showGamemodeDifficultyNames: true,
   showAdvancedAudioAnalysis: false,
   difficultyStrainDisplayMode: 'strainOnly',

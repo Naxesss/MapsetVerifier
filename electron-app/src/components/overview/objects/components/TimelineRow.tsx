@@ -9,6 +9,7 @@ import {
 } from 'react';
 import TimelineObjectContextMenu from './TimelineObjectContextMenu.tsx';
 import TimelineObjectHeadHovercard from './TimelineObjectHeadHovercard.tsx';
+import { useOpenOsuTimestamp } from '../../../../hooks/useOpenOsuTimestamp.ts';
 import AutoResizeCanvas from '../../../common/AutoResizeCanvas.tsx';
 import {
   TIMELINE_VIEW_MODE_TRANSITION_EASING,
@@ -38,7 +39,6 @@ import {
 import type { ObjectsOverviewDifficulty } from '../../../../Types';
 import type { TimelineThemeVariant } from '../timelineTheme/types.ts';
 import type { MantineTheme } from '@mantine/core';
-import { useOpenOsuTimestamp } from '../../../../hooks/useOpenOsuTimestamp.ts';
 
 interface TimelineRowProps {
   difficulty: ObjectsOverviewDifficulty;

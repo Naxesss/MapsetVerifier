@@ -17,6 +17,7 @@ import { notifications } from '@mantine/notifications';
 import { IconAlertCircle, IconBook, IconCheck, IconCopy } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import DocumentationApi from '../../client/DocumentationApi';
+import { useOpenOsuTimestamp } from '../../hooks/useOpenOsuTimestamp';
 import {
   ApiCheckResult,
   ApiDocumentationCheck,
@@ -25,8 +26,11 @@ import {
 } from '../../Types';
 import { getLevelLabel } from '../../utils/levelLabel';
 import OsuLink from '../common/OsuLink';
-import { buildOsuEditHref, parseOsuLinkSegments, shouldInterceptOsuOpen } from '../common/osuLinkUtils';
-import { useOpenOsuTimestamp } from '../../hooks/useOpenOsuTimestamp';
+import {
+  buildOsuEditHref,
+  parseOsuLinkSegments,
+  shouldInterceptOsuOpen,
+} from '../common/osuLinkUtils';
 import DocumentationOutcomeBlockquote from '../documentation/DocumentationOutcomeBlockquote';
 import MantineMarkdown from '../documentation/MantineMarkdown';
 import LevelIcon from '../icons/LevelIcon';

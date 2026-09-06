@@ -1,7 +1,6 @@
 import { Anchor, Box, Text, useMantineTheme } from '@mantine/core';
 import { IconCopy } from '@tabler/icons-react';
 import React from 'react';
-import { useOpenOsuTimestamp } from '../../hooks/useOpenOsuTimestamp.ts';
 import {
   buildOsuEditHref,
   getTimestampChipStyles,
@@ -9,6 +8,7 @@ import {
   shouldInterceptOsuOpen,
 } from './osuLinkUtils.ts';
 import { useFadeUpCopyFeedback } from './useFadeUpCopyFeedback.ts';
+import { useOpenOsuTimestamp } from '../../hooks/useOpenOsuTimestamp.ts';
 
 interface TimestampLinkProps {
   displayTimestamp: string;
