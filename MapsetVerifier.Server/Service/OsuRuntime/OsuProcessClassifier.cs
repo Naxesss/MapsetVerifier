@@ -95,11 +95,7 @@ public static class OsuProcessClassifier
             return OsuClientKind.Stable;
         }
 
-        if (
-            !OperatingSystem.IsWindows()
-            && !isWine
-            && NativeOsuBinaryRegex.IsMatch(hay)
-        )
+        if (!OperatingSystem.IsWindows() && !isWine && NativeOsuBinaryRegex.IsMatch(hay))
         {
             return OsuClientKind.Lazer;
         }
