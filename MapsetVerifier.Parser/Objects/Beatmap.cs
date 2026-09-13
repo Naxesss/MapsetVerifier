@@ -1325,11 +1325,46 @@ namespace MapsetVerifier.Parser.Objects
         }
 
         /// <summary>
+        ///     Returns where the given time would sit were it snapped to the given divisor, relative to the given
+        ///     uninherited line.
+        ///     <para />
+        ///     Derived from the beat grid rather than as <c>time - theoreticalUnsnap</c>. The two are the same number
+        ///     mathematically, but that subtraction cancels away every significant digit, so a time we computed
+        ///     ourselves (slider edges above all, which carry noise from the float pixel length) lands a fraction of a
+        ///     nanosecond off the grid point instead of on it. Truncating that turns a perfectly snapped edge into a
+        ///     full 1 ms unsnap.
+        /// </summary>
+        private double GetSnappedTime(double time, int divisor, UninheritedLine line)
+        {
+            // Derived exactly as in GetTheoreticalUnsnap, so both agree on which grid point is the closest one.
+            var beatOffset = GetOffsetIntoBeat(time, line);
+            var currentFraction = beatOffset / line.msPerBeat;
+
+            var beat = (float)Math.Floor((time - line.Offset) / line.msPerBeat);
+
+            // Counting whole divisions from the line and dividing once at the very end leaves the grid point exact
+            // for every timing where it can be exact, instead of rounding once per term and landing beside it.
+            var divisions = beat * divisor + Math.Round(currentFraction * divisor);
+
+            return line.Offset + divisions * line.msPerBeat / divisor;
+        }
+
+        /// <summary>
         ///     Same as <see cref="GetTheoreticalUnsnap(double, int, UninheritedLine)" />, except accounts for the way
         ///     the game rounds ms times.
         /// </summary>
-        public double GetPracticalUnsnap(double time, int divisor, UninheritedLine? line = null) =>
-            time - Timestamp.Round(time - GetTheoreticalUnsnap(time, divisor, line));
+        public double GetPracticalUnsnap(double time, int divisor, UninheritedLine? line = null)
+        {
+            line ??= GetTimingLine<UninheritedLine>(time);
+            if (line == null)
+            {
+                throw new Exception($"No uninherited line found at {time}.");
+            }
+
+            // The game truncates ms times rather than rounding them, which is exactly why 1 ms unsnaps are so
+            // common in ranked maps, so we truncate too.
+            return time - Timestamp.Round(GetSnappedTime(time, divisor, line));
+        }
 
         /// <summary> Returns the combo number (the number you see on the notes), of a given hit object. </summary>
         public int GetCombo(HitObject hitObject)
