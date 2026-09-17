@@ -332,7 +332,7 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
                 _ => new Vector2(0, 0),
             };
 
-        /// <summary> Returns the speed of any slider starting from the given time in px/ms. Caps SV within range 0.1-10. </summary>
+        /// <summary> Returns the speed of any slider starting from the given time in px/ms. </summary>
         public double GetSliderSpeed(double time)
         {
             if (CachedSliderSpeed != null)
