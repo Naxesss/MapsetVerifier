@@ -11,14 +11,78 @@ const OSU_URL = /^osu:/i;
 const FLATPAK_LAZER_IDS = ['sh.ppy.osu', 'sh.ppy.osulazer', 'com.github.ppy.osu'];
 const UNIX_PATH_DIRS = [path.join(os.homedir(), '.local', 'bin'), '/usr/bin', '/usr/local/bin'];
 
+// How long a launcher has to stay alive before we call the launch successful.
+const LAUNCH_GRACE_MS = 1500;
+const LAUNCH_LOG_TAIL = 600;
+
+// The Linux build ships as an AppImage, whose AppRun points the dynamic loader
+// and various toolkit lookups inside the mounted squashfs. Children inherit all
+// of it, which breaks anything that loads its own runtime - osu-wine goes
+// through yawl/pressure-vessel, and that dies instantly on a foreign
+// LD_LIBRARY_PATH. Drop the AppImage-only variables before spawning.
+const APPIMAGE_ONLY_ENV = [
+  'APPDIR',
+  'APPIMAGE',
+  'APPIMAGE_UUID',
+  'ARGV0',
+  'OWD',
+  'LD_PRELOAD',
+  'PYTHONHOME',
+  'PYTHONPATH',
+  'PERLLIB',
+  'GCONV_PATH',
+  'GIO_MODULE_DIR',
+  'GDK_PIXBUF_MODULE_FILE',
+  'GDK_PIXBUF_MODULEDIR',
+  'GSETTINGS_SCHEMA_DIR',
+  'GST_PLUGIN_SYSTEM_PATH',
+  'GST_PLUGIN_SYSTEM_PATH_1_0',
+  'QT_PLUGIN_PATH',
+  'CHROME_DESKTOP',
+];
+
+// Variables that hold a list of directories and may have AppDir entries mixed in
+// with the user's real ones, so they get filtered instead of dropped.
+const APPIMAGE_PATH_LIST_ENV = ['LD_LIBRARY_PATH', 'XDG_DATA_DIRS', 'XDG_CONFIG_DIRS'];
+
 let cachedFlatpakLazer = undefined;
+
+function withoutAppDirEntries(value, appDir) {
+  return value
+    .split(path.delimiter)
+    .filter((entry) => entry && !entry.startsWith(appDir))
+    .join(path.delimiter);
+}
 
 function spawnEnv() {
   if (process.platform === 'win32') return process.env;
-  return {
-    ...process.env,
-    PATH: [...UNIX_PATH_DIRS, process.env.PATH || ''].join(path.delimiter),
-  };
+
+  const env = { ...process.env };
+  const appDir = env.APPDIR;
+  // Only scrub when we are actually running from an AppImage, so a plain Linux
+  // or macOS run keeps whatever the user set up themselves.
+  const insideAppImage = Boolean(appDir && env.APPIMAGE);
+
+  if (insideAppImage) {
+    for (const key of APPIMAGE_ONLY_ENV) {
+      delete env[key];
+    }
+
+    for (const key of APPIMAGE_PATH_LIST_ENV) {
+      if (!env[key]) continue;
+      const remaining = withoutAppDirEntries(env[key], appDir);
+      // An empty LD_LIBRARY_PATH is not the same as an unset one, so remove it.
+      if (remaining) env[key] = remaining;
+      else delete env[key];
+    }
+  }
+
+  const basePath = insideAppImage
+    ? withoutAppDirEntries(process.env.PATH || '', appDir)
+    : process.env.PATH || '';
+  env.PATH = [...UNIX_PATH_DIRS, basePath].join(path.delimiter);
+
+  return env;
 }
 
 function exists(filePath) {
@@ -38,10 +102,9 @@ function firstExisting(candidates) {
 
 function resolveOnPath(name) {
   const extensions = process.platform === 'win32' ? ['.exe', '.cmd', '.bat', ''] : [''];
-  const dirs = [
-    ...(process.env.PATH || '').split(path.delimiter),
-    ...(process.platform === 'win32' ? [] : UNIX_PATH_DIRS),
-  ];
+  // Resolve against the same PATH the child will get, so we never pick a binary
+  // out of the AppImage mount that the child could not load anyway.
+  const dirs = (spawnEnv().PATH || '').split(path.delimiter);
   for (const dir of dirs) {
     if (!dir) continue;
     for (const extension of extensions) {
@@ -98,7 +161,11 @@ async function detectFlatpakLazer() {
   }
   for (const id of FLATPAK_LAZER_IDS) {
     try {
-      await execFileAsync(flatpak, ['info', id], { timeout: 4000, env: spawnEnv(), windowsHide: true });
+      await execFileAsync(flatpak, ['info', id], {
+        timeout: 4000,
+        env: spawnEnv(),
+        windowsHide: true,
+      });
       cachedFlatpakLazer = `flatpak:${id}`;
       return cachedFlatpakLazer;
     } catch {
@@ -189,18 +256,110 @@ function splitCommand(command) {
   return tokens;
 }
 
+// Capture the launcher's output to a temp file rather than a pipe: the child is
+// detached and long-lived, and closing a pipe on it later would hand it EPIPE.
+function openLaunchLog() {
+  if (process.platform === 'win32') return null;
+  try {
+    const logPath = path.join(
+      os.tmpdir(),
+      `mapsetverifier-launch-${process.pid}-${Date.now()}.log`
+    );
+    return { path: logPath, fd: fs.openSync(logPath, 'a') };
+  } catch {
+    return null;
+  }
+}
+
+function readLaunchLog(log) {
+  if (!log) return '';
+  try {
+    const text = fs.readFileSync(log.path, 'utf8').trim();
+    if (!text) return '';
+    return text.slice(-LAUNCH_LOG_TAIL).replace(/\s+/g, ' ').trim();
+  } catch {
+    return '';
+  }
+}
+
+function closeLaunchLog(log) {
+  if (!log) return;
+  try {
+    fs.closeSync(log.fd);
+  } catch {
+    // Already closed.
+  }
+  try {
+    fs.unlinkSync(log.path);
+  } catch {
+    // The child may still hold it open; on unix the name is gone either way.
+  }
+}
+
+function describeExit(command, code, signal, details) {
+  const name = path.basename(command);
+  const reason = signal ? `was killed by ${signal}` : `exited with code ${code}`;
+  return details ? `${name} ${reason}: ${details}` : `${name} ${reason}.`;
+}
+
 function spawnDetached(command, args) {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
-      detached: true,
-      stdio: 'ignore',
-      windowsHide: true,
-      env: spawnEnv(),
+    const log = openLaunchLog();
+    let child;
+
+    try {
+      child = spawn(command, args, {
+        detached: true,
+        stdio: log ? ['ignore', log.fd, log.fd] : 'ignore',
+        windowsHide: true,
+        env: spawnEnv(),
+      });
+    } catch (error) {
+      closeLaunchLog(log);
+      reject(error);
+      return;
+    }
+
+    let settled = false;
+    let timer = null;
+
+    const settle = (error) => {
+      if (settled) return;
+      settled = true;
+      if (timer) clearTimeout(timer);
+      if (error) reject(error);
+      else resolve();
+    };
+
+    child.once('error', (error) => {
+      closeLaunchLog(log);
+      settle(error);
     });
-    child.once('error', reject);
+
+    // A launcher that hands the link off and dies within the grace period has
+    // failed, and its output is the only clue as to why. Without this the
+    // renderer is told the launch succeeded and the user sees nothing at all.
+    child.once('exit', (code, signal) => {
+      const details = readLaunchLog(log);
+      closeLaunchLog(log);
+      if (code === 0 && !signal) {
+        settle();
+        return;
+      }
+      const message = describeExit(command, code, signal, details);
+      console.error('[OsuLauncher]', message);
+      settle(new Error(message));
+    });
+
     child.once('spawn', () => {
       child.unref();
-      resolve();
+      // Deliberately not unref'd: the child is detached and the promise must
+      // still settle once the grace period is up.
+      timer = setTimeout(() => {
+        // Still running, so the handoff worked - stop watching it.
+        closeLaunchLog(log);
+        settle();
+      }, LAUNCH_GRACE_MS);
     });
   });
 }
@@ -285,14 +444,7 @@ function missingClientError(target, resolvedTarget) {
   return `Could not find ${label}. Set a path in Settings.`;
 }
 
-async function openOsuUrl({
-  url,
-  target,
-  stablePath,
-  lazerPath,
-  customCommand,
-  songsFolder,
-} = {}) {
+async function openOsuUrl({ url, target, stablePath, lazerPath, customCommand, songsFolder } = {}) {
   if (typeof url !== 'string' || !OSU_URL.test(url)) {
     return { ok: false, error: 'Invalid osu! link.' };
   }
@@ -301,6 +453,18 @@ async function openOsuUrl({
     const resolvedTarget = target === 'current' ? await detectRunningClient() : target;
 
     if (resolvedTarget !== 'stable' && resolvedTarget !== 'lazer' && resolvedTarget !== 'custom') {
+      // Detection was inconclusive (neither client recognised, or both running).
+      // If the user configured exactly one client, honour that instead of
+      // handing the link to the desktop's osu:// handler, which on Linux is
+      // whichever client registered itself last.
+      const configured = [stablePath, lazerPath].filter(
+        (candidate) => typeof candidate === 'string' && candidate.trim()
+      );
+      if (configured.length === 1) {
+        await launchApp(configured[0].trim(), url);
+        return { ok: true };
+      }
+
       await shell.openExternal(url);
       return { ok: true };
     }
