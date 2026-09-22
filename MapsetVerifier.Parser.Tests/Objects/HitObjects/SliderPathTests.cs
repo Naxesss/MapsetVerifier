@@ -1,6 +1,7 @@
 using System.Numerics;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
+using osu.Framework.Utils;
 using Xunit;
 
 namespace MapsetVerifier.Parser.Tests.Objects.HitObjects;
@@ -93,6 +94,85 @@ SliderTickRate:1
     }
 
     [Fact]
+    public void BSpline_IsParsedWithItsDegree()
+    {
+        // Lazer-exclusive curve type, written as "B" followed by its polynomial degree. Its nodes are
+        // written with decimals, unlike the whole numbers stable is limited to.
+        var slider = CreateSlider(
+            "170.45354,78.15354,14777.777777777777,2,0,B4|169.4865:182.20056,2,100,0|0|0,1:0|1:0|1:0,1:0:0:0:"
+        );
+
+        Assert.Equal(Slider.Curve.BSpline, slider.CurveType);
+        Assert.Equal(4, slider.CurveDegree);
+
+        Assert.Equal(
+            new[] { new Vector2(170.45354f, 78.15354f), new Vector2(169.4865f, 182.20056f) },
+            slider.NodePositions
+        );
+    }
+
+    [Fact]
+    public void BSplineWithoutDegree_IsParsedAsBezier()
+    {
+        var slider = CreateSlider("150,39,57338,6,0,B|144:-23|173:105,1,180,0|0,0:0|0:0,0:0:0:0:");
+
+        Assert.Equal(Slider.Curve.Bezier, slider.CurveType);
+        Assert.Equal(0, slider.CurveDegree);
+    }
+
+    [Fact]
+    public void BSplinePath_FollowsTheSplineRatherThanItsNodes()
+    {
+        // Unlike a bezier, a b-spline only passes through its first and last node, so the path has to
+        // be converted into beziers before being sampled rather than being followed as one.
+        var slider = CreateSlider(
+            "100,100,57338,6,0,B3|200:50|300:150|400:50|500:150,1,250,0|0,0:0|0:0,0:0:0:0:"
+        );
+
+        var spline = PathApproximator.BSplineToPiecewiseLinear(
+            slider.NodePositions.Select(node => new osuTK.Vector2(node.X, node.Y)).ToArray(),
+            slider.CurveDegree
+        );
+
+        foreach (var position in slider.PathPxPositions)
+        {
+            var distance = DistanceToPath(position, spline);
+
+            Assert.True(
+                distance < 2,
+                $"Sampled position {position} was {distance} px off the spline."
+            );
+        }
+
+        // The second node is the sharpest part of the control polygon, which the spline rounds off by
+        // a wide margin. Following the nodes as a bezier would not stray nearly as far from it.
+        var closestToNode = slider.PathPxPositions.Min(position =>
+            Vector2.Distance(position, slider.NodePositions[1])
+        );
+
+        Assert.True(closestToNode > 10, $"Path came within {closestToNode} px of the second node.");
+    }
+
+    [Fact]
+    public void BSplineWithRedAnchor_IsSplitIntoSeparateSplines()
+    {
+        // A duplicated node both ends one segment and starts the next, so the path is made up of two
+        // splines meeting at the anchor, which means the anchor itself is passed through.
+        var slider = CreateSlider(
+            "100,100,57338,6,0,B3|200:50|250:150|250:150|350:50|400:150,1,300,0|0,0:0|0:0,0:0:0:0:"
+        );
+
+        var closest = slider.PathPxPositions.Min(position =>
+            Vector2.Distance(position, new Vector2(250, 150))
+        );
+
+        Assert.True(
+            closest < 1,
+            $"Closest sampled position to the red anchor was {closest} px off."
+        );
+    }
+
+    [Fact]
     public void SampledPath_StaysWithinPixelLength()
     {
         var slider = CreateSlider(
@@ -105,5 +185,30 @@ SliderTickRate:1
 
         // The path is sampled, so it is a little shorter than the curve it approximates, never longer.
         Assert.InRange(length, 170, 181);
+    }
+
+    /// <summary> Returns how far the given position is from the closest point on the given path. </summary>
+    private static double DistanceToPath(Vector2 position, List<osuTK.Vector2> path)
+    {
+        var distance = double.MaxValue;
+
+        for (var i = 1; i < path.Count; ++i)
+        {
+            var start = new Vector2(path[i - 1].X, path[i - 1].Y);
+            var end = new Vector2(path[i].X, path[i].Y);
+
+            var segment = end - start;
+            var lengthSquared = segment.LengthSquared();
+
+            // Project the position onto the segment, clamping to stay between its two ends.
+            var fraction =
+                lengthSquared == 0
+                    ? 0
+                    : Math.Clamp(Vector2.Dot(position - start, segment) / lengthSquared, 0, 1);
+
+            distance = Math.Min(distance, Vector2.Distance(position, start + segment * fraction));
+        }
+
+        return distance;
     }
 }
