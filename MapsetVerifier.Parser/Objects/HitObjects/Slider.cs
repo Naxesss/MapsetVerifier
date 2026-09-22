@@ -3,6 +3,7 @@ using System.Numerics;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
 using MathNet.Numerics;
+using osu.Framework.Utils;
 
 namespace MapsetVerifier.Parser.Objects.HitObjects
 {
@@ -15,6 +16,9 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             Passthrough,
             Bezier,
             Catmull,
+
+            /// <summary> Lazer-only curve type, written as "B" followed by its polynomial degree. </summary>
+            BSpline,
         }
 
         // 319,179,1392,6,0,L|389:160,2,62.5,2|0|0,0:0|0:0|0:0,0:0:0:0:
@@ -23,6 +27,10 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
         private const double STEP_LENGTH = 0.0005;
 
         public Curve CurveType { get; }
+
+        /// <summary> The polynomial degree of the curve, only applicable to b-splines (0 otherwise). </summary>
+        public int CurveDegree { get; }
+
         public int EdgeAmount { get; }
         public HitSample.SamplesetType EndAddition { get; }
 
@@ -55,7 +63,7 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
         public Slider(string[] args, Beatmap beatmap)
             : base(args, beatmap)
         {
-            CurveType = GetSliderType(args);
+            (CurveType, CurveDegree) = GetSliderType(args);
             NodePositions = GetNodes(args).ToList();
             EdgeAmount = GetEdgeAmount(args);
             PixelLength = GetPixelLength(args);
@@ -103,14 +111,33 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
          *  Parsing
          */
 
-        private static Curve GetSliderType(IReadOnlyList<string> args)
+        private static (Curve curve, int degree) GetSliderType(IReadOnlyList<string> args)
         {
             var type = args[5].Split('|')[0];
 
-            return type == "L" ? Curve.Linear
-                : type == "P" ? Curve.Passthrough
-                : type == "B" ? Curve.Bezier
-                : Curve.Catmull; // Catmull is the default curve type.
+            // Lazer writes b-splines as "B" followed by their polynomial degree (e.g. "B4"), which is
+            // the only curve type carrying anything beyond a single letter.
+            if (type.Length > 1 && type[0] == 'B')
+            {
+                var isDegree = int.TryParse(
+                    type[1..],
+                    NumberStyles.None,
+                    CultureInfo.InvariantCulture,
+                    out var degree
+                );
+
+                // Degrees below 1 would make the curve piecewise-constant, which has no path to follow.
+                if (isDegree && degree >= 1)
+                    return (Curve.BSpline, degree);
+            }
+
+            return type switch
+            {
+                "L" => (Curve.Linear, 0),
+                "P" => (Curve.Passthrough, 0),
+                "B" => (Curve.Bezier, 0),
+                _ => (Curve.Catmull, 0), // Catmull is the default curve type.
+            };
         }
 
         private IEnumerable<Vector2> GetNodes(IReadOnlyList<string> args)
@@ -118,17 +145,21 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             // The first position is also a node in the editor, so we count that too.
             yield return Position;
 
-            var sliderPath = args[5];
+            // Parses node format (e.g. P|128:50|172:291), where the first part is the curve type.
+            var sliderPath = args[5].Split('|');
 
-            foreach (var node in sliderPath.Split('|'))
-                // Parses node format (e.g. P|128:50|172:291).
-                if (node.Length > 1)
-                {
-                    var x = float.Parse(node.Split(':')[0]);
-                    var y = float.Parse(node.Split(':')[1]);
+            for (var i = 1; i < sliderPath.Length; ++i)
+            {
+                var node = sliderPath[i].Split(':');
 
-                    yield return new Vector2(x, y);
-                }
+                if (node.Length < 2)
+                    continue;
+
+                var x = float.Parse(node[0], CultureInfo.InvariantCulture);
+                var y = float.Parse(node[1], CultureInfo.InvariantCulture);
+
+                yield return new Vector2(x, y);
+            }
         }
 
         private static int GetEdgeAmount(IReadOnlyList<string> args) => int.Parse(args[6]);
@@ -328,6 +359,8 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
                 Curve.Linear => GetLinearPathPosition(time),
                 Curve.Passthrough => GetPassthroughPathPosition(time),
                 Curve.Bezier => GetBezierPathPosition(time),
+                // B-splines are converted into a series of beziers, so they follow the same path.
+                Curve.BSpline => GetBezierPathPosition(time),
                 Curve.Catmull => GetCatmullPathPosition(time),
                 _ => new Vector2(0, 0),
             };
@@ -683,10 +716,57 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             return new Vector2((float)x, (float)y);
         }
 
+        /// <summary> Returns the control points of the bezier curve(s) making up the path. </summary>
+        private List<Vector2> GetCurveControlPoints()
+        {
+            if (CurveType != Curve.BSpline)
+                return NodePositions.ToList();
+
+            // B-splines are followed by converting them into a series of beziers, same as the game does,
+            // which leaves the sampling below with the kind of path it already knows how to follow.
+            var controlPoints = new List<Vector2>();
+
+            foreach (var segment in GetNodeSegments())
+            {
+                var splinePoints = segment
+                    .Select(node => new osuTK.Vector2(node.X, node.Y))
+                    .ToArray();
+
+                controlPoints.AddRange(
+                    PathApproximator
+                        .BSplineToBezier(splinePoints, CurveDegree)
+                        .Select(point => new Vector2(point.X, point.Y))
+                );
+            }
+
+            return controlPoints;
+        }
+
+        /// <summary> Returns the nodes split into segments, where a duplicated node (i.e. a red anchor)
+        /// both ends the previous segment and starts the next, as each segment is its own curve. </summary>
+        private IEnumerable<List<Vector2>> GetNodeSegments()
+        {
+            var segment = new List<Vector2>();
+
+            foreach (var node in NodePositions)
+            {
+                if (segment.Count > 0 && segment[^1] == node)
+                {
+                    yield return segment;
+                    segment = [];
+                }
+
+                segment.Add(node);
+            }
+
+            if (segment.Count > 0)
+                yield return segment;
+        }
+
         private List<Vector2> GetBezierPoints()
         {
             // Include the first point in the total slider points.
-            var sliderPoints = NodePositions.ToList();
+            var sliderPoints = GetCurveControlPoints();
 
             var currentPoint = Position;
             var tempBezierPoints = new List<Vector2> { currentPoint };
