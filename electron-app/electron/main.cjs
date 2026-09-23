@@ -53,6 +53,23 @@ function createWindow() {
     },
   });
 
+  // The default menu binds zoom in to CmdOrCtrl+Plus, which only fires with Shift held
+  // (Ctrl+Shift+=). Handle Ctrl+= and the numpad keys here instead, and swallow the
+  // shifted variant so it mirrors Ctrl+Shift+-, which doesn't zoom either.
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.type !== 'keyDown' || !(input.control || input.meta) || input.alt) return;
+
+    let delta = 0;
+    if (input.key === '=' || input.key === '+' || input.code === 'NumpadAdd') delta = 0.5;
+    else if (input.code === 'NumpadSubtract') delta = -0.5;
+    if (delta === 0) return;
+
+    event.preventDefault();
+    if (input.shift) return;
+    const { webContents } = mainWindow;
+    webContents.setZoomLevel(webContents.getZoomLevel() + delta);
+  });
+
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
   });
