@@ -3,6 +3,7 @@ const fs = require('fs/promises');
 const path = require('path');
 const sidecar = require('./sidecar.cjs');
 const osuLauncher = require('./osuLauncher.cjs');
+const zoom = require('./zoom.cjs');
 
 const SETTINGS_FILE = 'settings.json';
 const EXTERNALS_FOLDER_NAME = 'Mapset Verifier Externals';
@@ -45,6 +46,7 @@ function registerIpc(getMainWindow) {
     const w = focusedWindow(e);
     return w ? w.isMaximized() : false;
   });
+  ipcMain.handle('window:setDefaultZoom', (e, percent) => zoom.setDefaultZoom(e.sender, percent));
 
   ipcMain.handle('shell:openPath', async (_e, p) => {
     if (!p || typeof p !== 'string') return 'invalid path';
@@ -156,4 +158,4 @@ function registerIpc(getMainWindow) {
   });
 }
 
-module.exports = { registerIpc };
+module.exports = { registerIpc, settingsPath };

@@ -7,6 +7,7 @@ import {
   MantineProvider,
   Paper,
   SegmentedControl,
+  Select,
   Stack,
   Stepper,
   Switch,
@@ -20,6 +21,7 @@ import logoUrl from '../../assets/logo.svg';
 import { BeatmapViewMode, useSettings } from '../../context/SettingsContext.tsx';
 import { cssVarResolver } from '../../theme/cssVarResolver';
 import { useAppTheme } from '../../theme/useAppTheme';
+import { UI_ZOOM_OPTIONS, parseUiZoomPercent } from '../../theme/zoom';
 import MinorIcon from '../icons/MinorIcon';
 import { SettingsRow } from '../settings/SettingsSection.tsx';
 
@@ -177,6 +179,22 @@ export default function SetupWizardGate({ children }: SetupWizardGateProps) {
 
             {step === 2 && (
               <Stack gap="sm">
+                <SettingsRow
+                  title="Zoom"
+                  description="Interface scale. Increase it if everything looks small on a high-resolution screen."
+                  control={
+                    <Select
+                      data={UI_ZOOM_OPTIONS}
+                      value={String(settings.uiZoomPercent)}
+                      allowDeselect={false}
+                      w={160}
+                      onChange={(value) => {
+                        const uiZoomPercent = parseUiZoomPercent(value);
+                        setSettings((prev) => ({ ...prev, uiZoomPercent }));
+                      }}
+                    />
+                  }
+                />
                 <SettingsRow
                   title={
                     <Group gap="xs" align="center" wrap="nowrap">

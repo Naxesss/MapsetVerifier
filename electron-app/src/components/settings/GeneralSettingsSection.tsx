@@ -7,6 +7,7 @@ import {
   UI_FONT_FAMILY_OPTIONS,
   parseUiFontFamily,
 } from '../../theme/fonts';
+import { UI_ZOOM_OPTIONS, parseUiZoomPercent } from '../../theme/zoom';
 
 export default function GeneralSettingsSection() {
   const { settings, setSettings } = useSettings();
@@ -114,6 +115,22 @@ export default function GeneralSettingsSection() {
             onChange={(value) => {
               const font = parseUiFontFamily(value ?? DEFAULT_UI_FONT_FAMILY);
               setSettings((prev) => ({ ...prev, uiFontFamily: font }));
+            }}
+          />
+        }
+      />
+      <SettingsRow
+        title="Zoom"
+        description="Default interface scale, useful on high-resolution screens. Ctrl+= and Ctrl+- adjust it temporarily; Ctrl+0 returns to this value."
+        control={
+          <Select
+            data={UI_ZOOM_OPTIONS}
+            value={String(settings.uiZoomPercent)}
+            allowDeselect={false}
+            w={220}
+            onChange={(value) => {
+              const uiZoomPercent = parseUiZoomPercent(value);
+              setSettings((prev) => ({ ...prev, uiZoomPercent }));
             }}
           />
         }

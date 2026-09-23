@@ -24,6 +24,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     toggleMaximize: () => ipcRenderer.invoke('window:toggleMaximize'),
     close: () => ipcRenderer.invoke('window:close'),
     isMaximized: () => ipcRenderer.invoke('window:isMaximized'),
+    setDefaultZoom: (percent) => ipcRenderer.invoke('window:setDefaultZoom', percent),
   },
 
   shell: {
