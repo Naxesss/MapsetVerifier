@@ -12,6 +12,9 @@ namespace MapsetVerifier.Checks.AllModes.Settings;
 /// </summary>
 public abstract class MinorRangeDifficultySettingsCheck : RangeDifficultySettingsCheck
 {
+    /// <summary> The difficulty setting guidelines of the subclass's mode, see <see cref="IssueTemplate.WithRule" />. </summary>
+    protected virtual string[] RuleIds => [];
+
     public override Dictionary<string, IssueTemplate> GetTemplates() =>
         new()
         {
@@ -24,9 +27,11 @@ public abstract class MinorRangeDifficultySettingsCheck : RangeDifficultySetting
                     "range",
                     "difficulty",
                     "current"
-                ).WithCause(
-                    "A difficulty setting is outside of the recommended guideline range for this difficulty's name."
                 )
+                    .WithCause(
+                        "A difficulty setting is outside of the recommended guideline range for this difficulty's name."
+                    )
+                    .WithRule(RuleIds)
             },
         };
 

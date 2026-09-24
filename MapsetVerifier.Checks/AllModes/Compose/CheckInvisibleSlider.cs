@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.Compose
 {
@@ -46,7 +47,15 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                         Issue.Level.Problem,
                         "{0} has no slider nodes.",
                         "timestamp -"
-                    ).WithCause("A slider has no nodes.")
+                    )
+                        .WithCause("A slider has no nodes.")
+                        .WithRule(
+                            RC.Osu.Easy_SliderClearVisiblePathMovement,
+                            RC.Osu.Normal_SliderClearVisiblePathMovement,
+                            RC.Osu.Hard_SliderClearVisiblePathMovement,
+                            RC.Osu.Insane_SliderClearVisiblePathMovement,
+                            RC.Osu.Expert_SliderClearVisiblePathMovement
+                        )
                 },
                 {
                     "Single Node",
@@ -54,7 +63,15 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                         Issue.Level.Problem,
                         "{0} has no curve points, only its start node, and so has no visible path.",
                         "timestamp -"
-                    ).WithCause("A slider has only its start node and no other curve points.")
+                    )
+                        .WithCause("A slider has only its start node and no other curve points.")
+                        .WithRule(
+                            RC.Osu.Easy_SliderClearVisiblePathMovement,
+                            RC.Osu.Normal_SliderClearVisiblePathMovement,
+                            RC.Osu.Hard_SliderClearVisiblePathMovement,
+                            RC.Osu.Insane_SliderClearVisiblePathMovement,
+                            RC.Osu.Expert_SliderClearVisiblePathMovement
+                        )
                 },
                 {
                     "Negative Length",
@@ -62,7 +79,15 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                         Issue.Level.Problem,
                         "{0} has negative pixel length.",
                         "timestamp -"
-                    ).WithCause("A slider has a negative pixel length.")
+                    )
+                        .WithCause("A slider has a negative pixel length.")
+                        .WithRule(
+                            RC.Osu.Easy_SliderClearVisiblePathMovement,
+                            RC.Osu.Normal_SliderClearVisiblePathMovement,
+                            RC.Osu.Hard_SliderClearVisiblePathMovement,
+                            RC.Osu.Insane_SliderClearVisiblePathMovement,
+                            RC.Osu.Expert_SliderClearVisiblePathMovement
+                        )
                 },
             };
 

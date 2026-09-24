@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Settings;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.General.Metadata
 {
@@ -61,9 +62,16 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         "Romanized/unicode",
                         "artist/title",
                         "field"
-                    ).WithCause(
-                        "The artist or title field of a difficulty includes an incorrect format of \"CV:\", \"vs.\" or \"feat.\"."
                     )
+                        .WithCause(
+                            "The artist or title field of a difficulty includes an incorrect format of \"CV:\", \"vs.\" or \"feat.\"."
+                        )
+                        .WithRule(RC.Metadata.Artist_UseTrailingSpaceMarkersVs)
+                        .WithRule(
+                            RC.Metadata.Artist_VsFormVsVersusVs,
+                            RC.Metadata.Artist_FeatFormFeatFtFeaturing,
+                            RC.Metadata.Artist_CharacterCvVoiceActorCharacter
+                        )
                 },
             };
 

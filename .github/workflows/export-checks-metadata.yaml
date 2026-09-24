@@ -1,8 +1,13 @@
 name: Export Checks Metadata
 
 on:
-#    push:
-#        branches: [main]
+    push:
+        branches: [main]
+        paths:
+            - "MapsetVerifier.Checks/**"
+            - "MapsetVerifier.Framework/**"
+            - "MapsetVerifier.RankingCriteria/**"
+            - "MapsetVerifier.Exports/**"
     workflow_dispatch:
 
 jobs:
@@ -34,4 +39,5 @@ jobs:
                   name: checks-metadata
                   path: scripts/checks-metadata.json
 
-## TODO: make use of the json artifact somewhere for the website, and enable trigger on push to main probably
+## TODO: make use of the json artifact on the website. It includes the ranking criteria snapshot and each template's
+## ruleIds, which is enough to show rule coverage there too.

@@ -5,6 +5,7 @@ using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using static MapsetVerifier.Checks.Utils.GeneralUtils;
 using static MapsetVerifier.Checks.Utils.TaikoUtils;
 
@@ -68,9 +69,18 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                         Issue.Level.Minor,
                         "{0} Note is very close to spinner. Ensure there are no readability issues.",
                         "timestamp -"
-                    ).WithCause(
-                        "The note is very close to the spinner, risking readability issues in certain cases."
                     )
+                        .WithCause(
+                            "The note is very close to the spinner, risking readability issues in certain cases."
+                        )
+                        .WithRule(
+                            RC.Taiko.AvoidVisuallyObstructingNotesPlayfield,
+                            RC.Taiko.Kantan_Least12DistanceBetween,
+                            RC.Taiko.Futsuu_Least12DistanceBetween,
+                            RC.Taiko.Muzukashii_Least12DistanceBetween,
+                            RC.Taiko.Oni_Least14DistanceBetween,
+                            RC.Taiko.InnerOni_Least14DistanceBetween
+                        )
                 },
             };
 

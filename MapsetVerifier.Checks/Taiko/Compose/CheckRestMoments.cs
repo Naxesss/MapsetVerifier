@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using static MapsetVerifier.Checks.Utils.TaikoUtils;
 
 namespace MapsetVerifier.Checks.Taiko.Compose
@@ -72,7 +73,11 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                         "end",
                         "break",
                         "length"
-                    ).WithCause("Chain length is surpassing the RC guideline, but not excessively")
+                    )
+                        .WithCause(
+                            "Chain length is surpassing the RC guideline, but not excessively"
+                        )
+                        .WithRule(RC.Taiko.DifficultySpecific_DifficultyFollowRespectiveRestMoment)
                 },
                 {
                     Warning,
@@ -83,7 +88,9 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                         "end",
                         "break",
                         "length"
-                    ).WithCause("Chain length is excessively surpassing the RC guideline")
+                    )
+                        .WithCause("Chain length is excessively surpassing the RC guideline")
+                        .WithRule(RC.Taiko.DifficultySpecific_DifficultyFollowRespectiveRestMoment)
                 },
             };
 

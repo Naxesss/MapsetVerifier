@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Standard.Spread
 {
@@ -48,7 +49,11 @@ namespace MapsetVerifier.Checks.Standard.Spread
                         "timestamp -",
                         "duration",
                         "threshold"
-                    ).WithCause("A slider in an Easy difficulty is less than 125 ms (240 bpm 1/2).")
+                    )
+                        .WithCause(
+                            "A slider in an Easy difficulty is less than 125 ms (240 bpm 1/2)."
+                        )
+                        .WithRule(RC.Osu.Easy_AvoidUsingSlidersShorter1)
                 },
             };
 

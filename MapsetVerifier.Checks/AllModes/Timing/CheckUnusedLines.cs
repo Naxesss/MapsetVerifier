@@ -5,6 +5,7 @@ using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using MathNet.Numerics;
 using static MapsetVerifier.Checks.Utils.TimingUtils;
 
@@ -50,9 +51,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         Issue.Level.Problem,
                         "{0} Uninherited line changes nothing.",
                         "timestamp -"
-                    ).WithCause(
-                        "An uninherited line is placed on a multiple of 4 downbeats away from the previous uninherited line, and changes no settings."
                     )
+                        .WithCause(
+                            "An uninherited line is placed on a multiple of 4 downbeats away from the previous uninherited line, and changes no settings."
+                        )
+                        .WithRule(RC.General.Timing_UninheritedTimingPointsOnlyUsed)
                 },
                 {
                     "Problem Can Be Replaced By Inherited",
@@ -60,9 +63,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         Issue.Level.Problem,
                         "{0} Uninherited line changes nothing that can't be changed with an inherited line.",
                         "timestamp -"
-                    ).WithCause(
-                        "Same as the first check, but changes volume, sampleset, or another setting that an inherited line could change instead."
                     )
+                        .WithCause(
+                            "Same as the first check, but changes volume, sampleset, or another setting that an inherited line could change instead."
+                        )
+                        .WithRule(RC.General.Timing_UninheritedTimingPointsOnlyUsed)
                 },
                 {
                     "Warning",
@@ -71,9 +76,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "{0} Uninherited line only {1}, ensure this makes sense, otherwise remove the line.",
                         "timestamp -",
                         "something not immediately obvious"
-                    ).WithCause(
-                        "Same as the first check, but changes something that inherited lines cannot, yet isn't immediately obvious, i.e. omitting barline, correcting an omitted barline, or nightcore cymbals."
                     )
+                        .WithCause(
+                            "Same as the first check, but changes something that inherited lines cannot, yet isn't immediately obvious, i.e. omitting barline, correcting an omitted barline, or nightcore cymbals."
+                        )
+                        .WithRule(RC.General.Timing_UninheritedTimingPointsOnlyUsed)
                 },
                 {
                     "Warning Can Be Replaced By Inherited",
@@ -82,9 +89,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "{0} Uninherited line only {1}, ensure this makes sense, otherwise replace with an inherited line",
                         "timestamp -",
                         "something not immediately obvious"
-                    ).WithCause(
-                        "Same as the second check, but changes something that inherited lines cannot, yet isn't immediately obvious, i.e. omitting barline, correcting an omitted barline, or nightcore cymbals."
                     )
+                        .WithCause(
+                            "Same as the second check, but changes something that inherited lines cannot, yet isn't immediately obvious, i.e. omitting barline, correcting an omitted barline, or nightcore cymbals."
+                        )
+                        .WithRule(RC.General.Timing_UninheritedTimingPointsOnlyUsed)
                 },
                 {
                     "Minor Inherited",

@@ -5,6 +5,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using static MapsetVerifier.Checks.Utils.TaikoUtils;
 using static MapsetVerifier.Checks.Utils.TimingUtils;
 
@@ -53,9 +54,14 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         "timestamp -",
                         "currentMultiplier",
                         "dominantMultiplier"
-                    ).WithCause(
-                        "An inherited timing line changes scroll speed away from the speed used for most of the beatmap."
                     )
+                        .WithCause(
+                            "An inherited timing line changes scroll speed away from the speed used for most of the beatmap."
+                        )
+                        .WithRule(
+                            RC.Taiko.Kantan_SliderVelocityChangesUsedCautiously,
+                            RC.Taiko.Futsuu_SliderVelocityChangesUsedCautiously
+                        )
                 },
             };
 

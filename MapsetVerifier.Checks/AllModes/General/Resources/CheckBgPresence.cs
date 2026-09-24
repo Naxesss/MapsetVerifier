@@ -2,6 +2,7 @@
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.General.Resources
 {
@@ -41,15 +42,15 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                     new IssueTemplate(
                         Issue.Level.Problem,
                         "All difficulties are missing backgrounds."
-                    ).WithCause("None of the difficulties have a background present.")
+                    )
+                        .WithCause("None of the difficulties have a background present.")
+                        .WithRule(RC.General.VideoAndBackground_BackgroundImageDifficultyBeatmap)
                 },
                 {
                     "One",
-                    new IssueTemplate(
-                        Issue.Level.Problem,
-                        "{0} has no background.",
-                        "difficulty"
-                    ).WithCause("One or more difficulties are missing backgrounds, but not all.")
+                    new IssueTemplate(Issue.Level.Problem, "{0} has no background.", "difficulty")
+                        .WithCause("One or more difficulties are missing backgrounds, but not all.")
+                        .WithRule(RC.General.VideoAndBackground_BackgroundImageDifficultyBeatmap)
                 },
                 {
                     "Missing",
@@ -58,9 +59,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                         "{0} is missing its background file, \"{1}\".",
                         "difficulty",
                         "path"
-                    ).WithCause(
-                        "A background file path is present, but no file exists where it is pointing."
                     )
+                        .WithCause(
+                            "A background file path is present, but no file exists where it is pointing."
+                        )
+                        .WithRule(RC.General.VideoAndBackground_BackgroundImageDifficultyBeatmap)
                 },
             };
 

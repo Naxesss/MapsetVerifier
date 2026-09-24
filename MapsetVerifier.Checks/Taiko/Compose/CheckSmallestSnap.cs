@@ -5,6 +5,7 @@ using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using static MapsetVerifier.Checks.Utils.GeneralUtils;
 using static MapsetVerifier.Checks.Utils.TaikoUtils;
 
@@ -55,7 +56,15 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                         Issue.Level.Warning,
                         "{0} abnormally small gap, ensure it makes sense",
                         "timestamp -"
-                    ).WithCause("Gap between notes may be too small")
+                    )
+                        .WithCause("Gap between notes may be too small")
+                        .WithRule(
+                            RC.Taiko.Kantan_NotesLeast12Beat,
+                            RC.Taiko.Futsuu_NotesLeast13Beat,
+                            RC.Taiko.Futsuu_NotesLeast12Beat,
+                            RC.Taiko.Muzukashii_NotesLeast16Beat,
+                            RC.Taiko.Oni_NotesLeast18Beat
+                        )
                 },
             };
 

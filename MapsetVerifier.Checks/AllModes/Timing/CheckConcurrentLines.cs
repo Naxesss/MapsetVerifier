@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using MathNet.Numerics;
 
 namespace MapsetVerifier.Checks.AllModes.Timing
@@ -50,9 +51,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "{0} Concurrent {1} lines.",
                         "timestamp -",
                         "inherited/uninherited"
-                    ).WithCause(
-                        "Two inherited or uninherited timing lines exist at the same point in time."
                     )
+                        .WithCause(
+                            "Two inherited or uninherited timing lines exist at the same point in time."
+                        )
+                        .WithRule(RC.General.Timing_NoTwoUninheritedTwoInherited)
                 },
                 {
                     "Conflicting",

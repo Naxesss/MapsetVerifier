@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Mania.Compose
 {
@@ -48,7 +49,9 @@ namespace MapsetVerifier.Checks.Mania.Compose
                         "{0} Long note held for only ({1} ms)",
                         "timestamp",
                         "current length"
-                    ).WithCause("The long note is a bit shorter than recommended.")
+                    )
+                        .WithCause("The long note is a bit shorter than recommended.")
+                        .WithRule(RC.Mania.LongNotesHeldLeast1)
                 },
                 {
                     "Problem",
@@ -57,7 +60,9 @@ namespace MapsetVerifier.Checks.Mania.Compose
                         "{0} Long note held for only ({1} ms)",
                         "timestamp",
                         "current length"
-                    ).WithCause("The long note is much shorter than recommended.")
+                    )
+                        .WithCause("The long note is much shorter than recommended.")
+                        .WithRule(RC.Mania.LongNotesHeldLeast1)
                 },
             };
         }

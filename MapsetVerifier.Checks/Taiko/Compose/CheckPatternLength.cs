@@ -5,6 +5,7 @@ using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using static MapsetVerifier.Checks.Utils.GeneralUtils;
 using static MapsetVerifier.Checks.Utils.TaikoUtils;
 
@@ -58,7 +59,18 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                         "end",
                         "snap",
                         "number"
-                    ).WithCause("Pattern length is equal to the RC guideline")
+                    )
+                        .WithCause("Pattern length is equal to the RC guideline")
+                        .WithRule(
+                            RC.Taiko.Kantan_11PatternsNotLonger,
+                            RC.Taiko.Futsuu_12PatternsNotLonger,
+                            RC.Taiko.Futsuu_12PatternsNotLonger2,
+                            RC.Taiko.Futsuu_13PatternsNotLonger,
+                            RC.Taiko.Muzukashii_14PatternsNotLonger,
+                            RC.Taiko.Muzukashii_16PatternsNotLonger,
+                            RC.Taiko.Oni_14PatternsNotLonger,
+                            RC.Taiko.Oni_18PatternsNotLonger
+                        )
                 },
                 {
                     Warning,
@@ -69,7 +81,18 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                         "end",
                         "snap",
                         "number"
-                    ).WithCause("Pattern length is surpassing the RC guideline.")
+                    )
+                        .WithCause("Pattern length is surpassing the RC guideline.")
+                        .WithRule(
+                            RC.Taiko.Kantan_11PatternsNotLonger,
+                            RC.Taiko.Futsuu_12PatternsNotLonger,
+                            RC.Taiko.Futsuu_12PatternsNotLonger2,
+                            RC.Taiko.Futsuu_13PatternsNotLonger,
+                            RC.Taiko.Muzukashii_14PatternsNotLonger,
+                            RC.Taiko.Muzukashii_16PatternsNotLonger,
+                            RC.Taiko.Oni_14PatternsNotLonger,
+                            RC.Taiko.Oni_18PatternsNotLonger
+                        )
                 },
             };
 

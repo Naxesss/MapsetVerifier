@@ -1,4 +1,11 @@
-import { IconBook, IconCamera, IconCheck, IconHome, IconTimeline } from '@tabler/icons-react';
+import {
+  IconBook,
+  IconCamera,
+  IconCheck,
+  IconGavel,
+  IconHome,
+  IconTimeline,
+} from '@tabler/icons-react';
 
 export interface NavEntry {
   to: string;
@@ -17,6 +24,11 @@ export const navItems: NavEntry[] = [
     to: '/documentation',
     icon: IconBook,
     label: 'Documentation',
+  },
+  {
+    to: '/ranking-criteria',
+    icon: IconGavel,
+    label: 'Ranking criteria',
   },
   {
     to: '/checks',

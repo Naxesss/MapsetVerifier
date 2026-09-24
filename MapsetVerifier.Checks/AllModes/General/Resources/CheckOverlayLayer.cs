@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.Events;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.General.Resources
 {
@@ -50,7 +51,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                         "\"{0}\" Check the {1} to see where it appears.",
                         "file name",
                         ".osu/.osb"
-                    ).WithCause("A storyboard sprite or animation is using the overlay layer.")
+                    )
+                        .WithCause("A storyboard sprite or animation is using the overlay layer.")
+                        .WithRule(RC.General.Storyboarding_AvoidHavingSpritesBackgroundDifficulty)
                 },
             };
 

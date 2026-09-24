@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using static MapsetVerifier.Checks.Utils.TaikoUtils;
 
 namespace MapsetVerifier.Checks.Taiko.Timing
@@ -46,7 +47,9 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         "{0} Barline is snapped {1} ms before a line which would modify its slider velocity.",
                         "timestamp -",
                         "unsnap"
-                    ).WithCause("The spinner/slider end is unsnapped 1ms early.")
+                    )
+                        .WithCause("The spinner/slider end is unsnapped 1ms early.")
+                        .WithRule(RC.Taiko.SliderVelocity_SliderVelocityChangesUseCorrespond)
                 },
                 {
                     RoundingErrorWarning,
@@ -54,7 +57,9 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         Issue.Level.Warning,
                         "{0} Barline may not have slider velocity properly applied due to rounding error. Double-check manually.",
                         "timestamp -"
-                    ).WithCause("Rounding error.")
+                    )
+                        .WithCause("Rounding error.")
+                        .WithRule(RC.Taiko.SliderVelocity_SliderVelocityChangesUseCorrespond)
                 },
             };
 

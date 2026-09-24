@@ -5,6 +5,7 @@ using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.Timing
 {
@@ -52,9 +53,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "timestamp -",
                         "object",
                         "unsnap"
-                    ).WithCause(
-                        "A hit object is snapped 5 ms or less behind a timing line which would otherwise modify its slider velocity. For standard and catch this only looks at slider heads."
                     )
+                        .WithCause(
+                            "A hit object is snapped 5 ms or less behind a timing line which would otherwise modify its slider velocity. For standard and catch this only looks at slider heads."
+                        )
+                        .WithRule(RC.Taiko.SliderVelocity_SliderVelocityChangesUseCorrespond)
                 },
                 {
                     "After",
@@ -64,9 +67,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "timestamp -",
                         "object",
                         "unsnap"
-                    ).WithCause(
-                        "Same as the other check, except after instead of before. Only applies to taiko."
                     )
+                        .WithCause(
+                            "Same as the other check, except after instead of before. Only applies to taiko."
+                        )
+                        .WithRule(RC.Taiko.SliderVelocity_SliderVelocityChangesUseCorrespond)
                 },
             };
 

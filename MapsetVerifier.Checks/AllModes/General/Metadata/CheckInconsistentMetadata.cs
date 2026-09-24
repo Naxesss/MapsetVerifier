@@ -2,6 +2,7 @@
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.General.Metadata
 {
@@ -46,10 +47,12 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         "difficulty",
                         "difficulty",
                         "difference"
-                    ).WithCause(
-                        "A tag is present in one difficulty but missing in another.\n"
-                            + "> Does not care which order the tags are written in or about duplicate tags, simply that the tags themselves are consistent."
                     )
+                        .WithCause(
+                            "A tag is present in one difficulty but missing in another.\n"
+                                + "> Does not care which order the tags are written in or about duplicate tags, simply that the tags themselves are consistent."
+                        )
+                        .WithRule(RC.Metadata.DifficultiesBeatmapSetIdenticalTitle)
                 },
                 {
                     "Other Field",
@@ -61,7 +64,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         "difficulty",
                         "field",
                         "field"
-                    ).WithCause("A metadata field is not consistent between all difficulties.")
+                    )
+                        .WithCause("A metadata field is not consistent between all difficulties.")
+                        .WithRule(RC.Metadata.DifficultiesBeatmapSetIdenticalTitle)
                 },
             };
 

@@ -6,6 +6,7 @@ using MapsetVerifier.Framework.Objects.Resources;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using MathNet.Numerics;
 using Serilog;
 
@@ -55,7 +56,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         "path",
                         "timestamp -",
                         "beatmap"
-                    ).WithCause("A hit sound file is using the MP3 format.")
+                    )
+                        .WithCause("A hit sound file is using the MP3 format.")
+                        .WithRule(RC.General.Audio_UsesUncompressedWavWavOgg)
                 },
                 {
                     "Unexpected Format",
@@ -64,9 +67,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         "\"{0}\" is using an unexpected format: \"{1}\".",
                         "path",
                         "actual format"
-                    ).WithCause(
-                        "A hit sound file is using a format which is neither OGG, Wave, or MP3."
                     )
+                        .WithCause(
+                            "A hit sound file is using a format which is neither OGG, Wave, or MP3."
+                        )
+                        .WithRule(RC.General.Audio_UsesUncompressedWavWavOgg)
                 },
                 {
                     "Incorrect Extension",

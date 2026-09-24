@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.General.Metadata
 {
@@ -48,9 +49,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         "something",
                         "field",
                         "field content"
-                    ).WithCause(
-                        "Some whitespace or parameter is missing from the artist or title fields where only alphabetic and numerical characters are involved."
                     )
+                        .WithCause(
+                            "Some whitespace or parameter is missing from the artist or title fields where only alphabetic and numerical characters are involved."
+                        )
+                        .WithRule(RC.Metadata.Artist_UseTrailingSpaceMarkersVs)
                 },
                 {
                     "Warning",
@@ -60,7 +63,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         "something",
                         "field",
                         "field content"
-                    ).WithCause("Same as the other check, but can involve any type of characters.")
+                    )
+                        .WithCause(
+                            "Same as the other check, but can involve any type of characters."
+                        )
+                        .WithRule(RC.Metadata.Artist_UseTrailingSpaceMarkersVs)
                 },
             };
 

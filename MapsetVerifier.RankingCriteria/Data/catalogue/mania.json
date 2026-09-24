@@ -1,0 +1,1814 @@
+{
+  "page": "mania",
+  "statements": [
+    {
+      "id": "mania/auto-mod-able-achieve-full",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "The `Auto` mod must be able to achieve the full score (1,000,000) in all difficulties.",
+        "fingerprint": "the auto mod must be able to achieve the full score 1 000 000 in all difficulties",
+        "bodyHash": "59717c16f6ce6759",
+        "anchor": "general",
+        "startLine": 66,
+        "endLine": 66,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/two-notes-placed-single-column",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "Two notes cannot be placed in a single column at the same timestamp.",
+        "fingerprint": "two notes cannot be placed in a single column at the same timestamp",
+        "bodyHash": "5cf1425c8fe85085",
+        "anchor": "general",
+        "startLine": 67,
+        "endLine": 67,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/no-column-left-empty",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "No column can be left empty.",
+        "fingerprint": "no column can be left empty",
+        "bodyHash": "197e65e546a7e638",
+        "anchor": "general",
+        "startLine": 68,
+        "endLine": 68,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/not-more-6-notes-pressed",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "There must not be more than 6 notes pressed at any given moment in Insane or lower difficulties.",
+        "fingerprint": "there must not be more than 6 notes pressed at any given moment in insane or lower difficulties",
+        "bodyHash": "51d9ab1ac9525c5c",
+        "anchor": "general",
+        "startLine": 69,
+        "endLine": 69,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/beatmaps-only-use-4-10",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "Beatmaps can only use 4–10, 12, 14, 16, or 18 keys.",
+        "fingerprint": "beatmaps can only use 4 10 12 14 16 or 18 keys",
+        "bodyHash": "e09179ba89bb81a8",
+        "anchor": "general",
+        "startLine": 70,
+        "endLine": 70,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/key-counts-above-10-playstyle",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "For key counts above 10, the playstyle must be one of 10K2S, DP, EZ2AC, 10K8K, or 9K9K.",
+        "fingerprint": "for key counts above 10 the playstyle must be one of 10k2s dp ez2ac 10k8k or 9k9k",
+        "bodyHash": "f2b3aaba56394996",
+        "anchor": "general",
+        "startLine": 71,
+        "endLine": 71,
+        "parent": "mania/beatmaps-only-use-4-10",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/beatmap-includes-key-counts-above",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "If the beatmap includes any key counts above 10, or multiple key modes or playstyles, each difficulty's name must denote its key mode or playstyle. Otherwise, all difficulty names must not denote key modes or playstyles.",
+        "fingerprint": "if the beatmap includes any key counts above 10 or multiple key modes or playstyles each difficulty s name must denote its key mode or playstyle otherwise all difficulty names must not denote key modes or playstyles",
+        "bodyHash": "a01580cd6d1a882a",
+        "anchor": "general",
+        "startLine": 72,
+        "endLine": 72,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/non-standard-playstyle-present-beatmap",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "Each non-standard playstyle present in a beatmap must be denoted in the beatmap's tags.",
+        "fingerprint": "each non standard playstyle present in a beatmap must be denoted in the beatmap s tags",
+        "bodyHash": "8a6b4e9b3e5cdb47",
+        "anchor": "general",
+        "startLine": 73,
+        "endLine": 73,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/difficulties-using-n-1-playstyle",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "Difficulties using an N+1 playstyle must enable the `Use special style (N+1 style) for mania` option under the `Advanced` tab of the `Song Setup` window. The beatmap must also include the \"N+1\" tag.",
+        "fingerprint": "difficulties using an n 1 playstyle must enable the use special style n 1 style for mania option under the advanced tab of the song setup window the beatmap must also include the n 1 tag",
+        "bodyHash": "8f0b62734b5a6fdd",
+        "anchor": "general",
+        "startLine": 74,
+        "endLine": 74,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/note-correlate-sound-present-music",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Every note should correlate to a sound present in the music.",
+        "fingerprint": "every note should correlate to a sound present in the music",
+        "bodyHash": "4cbc8d267cc866b6",
+        "anchor": "general",
+        "startLine": 78,
+        "endLine": 81,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/long-notes-held-least-1",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Long notes should be held for at least 1/12 of a beat.",
+        "fingerprint": "long notes should be held for at least 1 12 of a beat",
+        "bodyHash": "5e96cc65c0683293",
+        "anchor": "general",
+        "startLine": 82,
+        "endLine": 82,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/avoid-using-storyboard-sampled-hitsounds",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid using storyboard sampled hitsounds with similar volume to hitsounds on notes.",
+        "fingerprint": "avoid using storyboard sampled hitsounds with similar volume to hitsounds on notes",
+        "bodyHash": "3e6f6b43c3c556de",
+        "anchor": "general",
+        "startLine": 83,
+        "endLine": 83,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/not-use-keysounds-without-hitnormal",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Do not use keysounds without hitnormal support.",
+        "fingerprint": "do not use keysounds without hitnormal support",
+        "bodyHash": "ad97f904864a6489",
+        "anchor": "general",
+        "startLine": 84,
+        "endLine": 84,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/avoid-using-same-hitsound-multiple",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid using the same hitsound for multiple notes in a chord.",
+        "fingerprint": "avoid using the same hitsound for multiple notes in a chord",
+        "bodyHash": "93aca3a6013af1f6",
+        "anchor": "general",
+        "startLine": 85,
+        "endLine": 85,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/timing-changes-unified-scroll-speed",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Timing changes should have a unified scroll speed by adjusting slider velocity.",
+        "fingerprint": "timing changes should have a unified scroll speed by adjusting slider velocity",
+        "bodyHash": "218525d556ea4349",
+        "anchor": "general",
+        "startLine": 86,
+        "endLine": 86,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/slider-velocity-changes-follow-general",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Slider velocity changes should follow the general intensity of the song.",
+        "fingerprint": "slider velocity changes should follow the general intensity of the song",
+        "bodyHash": "2b6cc692c675c945",
+        "anchor": "general",
+        "startLine": 87,
+        "endLine": 87,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "mania/slider-velocity-changes-snapped-according",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Slider velocity changes should be snapped according to the song's beat structure.",
+        "fingerprint": "slider velocity changes should be snapped according to the song s beat structure",
+        "bodyHash": "71e2930af76ea707",
+        "anchor": "general",
+        "startLine": 88,
+        "endLine": 88,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/avoid-spamming-short-kiai-time",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid spamming short kiai time segments.",
+        "fingerprint": "avoid spamming short kiai time segments",
+        "bodyHash": "1423b22ee0be3a1a",
+        "anchor": "general",
+        "startLine": 89,
+        "endLine": 89,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/breaks-only-used-section-music",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Breaks should only be used when a section of music is extremely calm or silent.",
+        "fingerprint": "breaks should only be used when a section of music is extremely calm or silent",
+        "bodyHash": "7d37cef9e91fea8b",
+        "anchor": "general",
+        "startLine": 90,
+        "endLine": 90,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "mania/spread/drain-time-difficulty",
+      "upstream": {
+        "path": [
+          "Overall",
+          "Spread"
+        ],
+        "kind": "rule",
+        "lead": "If the drain time of any difficulty is...",
+        "fingerprint": "if the drain time of any difficulty is",
+        "bodyHash": "84edc04c9d30dd8e",
+        "anchor": "spread",
+        "startLine": 96,
+        "endLine": 96,
+        "intro": true,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/spread/lower-2-00-key-mode",
+      "upstream": {
+        "path": [
+          "Overall",
+          "Spread"
+        ],
+        "kind": "rule",
+        "lead": "...lower than 2:00, each key mode and playstyle must either include a difficulty at Normal or lower, or provide a proper spread containing at least 4 difficulties.",
+        "fingerprint": "lower than 2 00 each key mode and playstyle must either include a difficulty at normal or lower or provide a proper spread containing at least 4 difficulties",
+        "bodyHash": "9f9ed141fc2a6cac",
+        "anchor": "spread",
+        "startLine": 97,
+        "endLine": 97,
+        "parent": "mania/spread/drain-time-difficulty",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/spread/between-2-00-2-45",
+      "upstream": {
+        "path": [
+          "Overall",
+          "Spread"
+        ],
+        "kind": "rule",
+        "lead": "...between 2:00 and 2:45, each key mode and playstyle must either include a difficulty at Hard or lower, or provide a proper spread containing at least 3 difficulties.",
+        "fingerprint": "between 2 00 and 2 45 each key mode and playstyle must either include a difficulty at hard or lower or provide a proper spread containing at least 3 difficulties",
+        "bodyHash": "dac51ad7a4abebab",
+        "anchor": "spread",
+        "startLine": 98,
+        "endLine": 98,
+        "parent": "mania/spread/drain-time-difficulty",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/spread/between-2-45-3-30",
+      "upstream": {
+        "path": [
+          "Overall",
+          "Spread"
+        ],
+        "kind": "rule",
+        "lead": "...between 2:45 and 3:30, each key mode and playstyle must either include a difficulty at Insane or lower, or provide a proper spread containing at least 2 difficulties.",
+        "fingerprint": "between 2 45 and 3 30 each key mode and playstyle must either include a difficulty at insane or lower or provide a proper spread containing at least 2 difficulties",
+        "bodyHash": "22726f7af192d65e",
+        "anchor": "spread",
+        "startLine": 99,
+        "endLine": 99,
+        "parent": "mania/spread/drain-time-difficulty",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/easy/slider-velocity-changes-alter-scrolling",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "rule",
+        "lead": "Slider velocity changes that alter the scrolling speed of the beatmap are disallowed.",
+        "fingerprint": "slider velocity changes that alter the scrolling speed of the beatmap are disallowed",
+        "bodyHash": "c244c0fe6a78c3ac",
+        "anchor": "easy",
+        "startLine": 111,
+        "endLine": 111,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/easy/scroll-normalisation-done-beatmaps-variable",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "rule",
+        "lead": "Scroll normalisation must be done in beatmaps with variable BPM.",
+        "fingerprint": "scroll normalisation must be done in beatmaps with variable bpm",
+        "bodyHash": "b042d84d6d5a7aca",
+        "anchor": "easy",
+        "startLine": 112,
+        "endLine": 112,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/easy/hp-od-values-not-higher",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "HP and OD values should not be higher than 7.",
+        "fingerprint": "hp and od values should not be higher than 7",
+        "bodyHash": "171db49d62fbd334",
+        "anchor": "easy",
+        "startLine": 116,
+        "endLine": 116,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/easy/note-snappings-consecutive-1-4",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Note snappings of consecutive 1/4 and higher should not be used.",
+        "fingerprint": "note snappings of consecutive 1 4 and higher should not be used",
+        "bodyHash": "0e8c0b9aa95dbc29",
+        "anchor": "easy",
+        "startLine": 117,
+        "endLine": 117,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/easy/long-notes-held-least-one",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Long notes should be held for at least one beat.",
+        "fingerprint": "long notes should be held for at least one beat",
+        "bodyHash": "2d82bdfa301fe306",
+        "anchor": "easy",
+        "startLine": 118,
+        "endLine": 118,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/easy/long-note-releases-least-one",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Long note releases should be at least one beat apart from each other.",
+        "fingerprint": "long note releases should be at least one beat apart from each other",
+        "bodyHash": "f35b3e0d81fc1bab",
+        "anchor": "easy",
+        "startLine": 119,
+        "endLine": 119,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/easy/objects-not-placed-during-1",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Objects should not be placed during a 1/1 long note's hold duration.",
+        "fingerprint": "objects should not be placed during a 1 1 long note s hold duration",
+        "bodyHash": "df6a0804e96b6d71",
+        "anchor": "easy",
+        "startLine": 120,
+        "endLine": 120,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/easy/note-density-consist-mostly-1",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Note density should consist of mostly 1/1, occasional 1/2, or slower rhythms.",
+        "fingerprint": "note density should consist of mostly 1 1 occasional 1 2 or slower rhythms",
+        "bodyHash": "2ed20d6637b6d3fe",
+        "anchor": "easy",
+        "startLine": 121,
+        "endLine": 121,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "mania/easy/avoid-using-more-5-consecutive",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid using more than 5 consecutive 1/2 notes.",
+        "fingerprint": "avoid using more than 5 consecutive 1 2 notes",
+        "bodyHash": "97117947293b7db6",
+        "anchor": "easy",
+        "startLine": 122,
+        "endLine": 122,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/easy/avoid-using-chords-during-consecutive",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid using chords during consecutive 1/2 note patterns.",
+        "fingerprint": "avoid using chords during consecutive 1 2 note patterns",
+        "bodyHash": "5af1861b9e5ec0bf",
+        "anchor": "easy",
+        "startLine": 123,
+        "endLine": 123,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/easy/avoid-chords-more-2-notes",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid chords with more than 2 notes.",
+        "fingerprint": "avoid chords with more than 2 notes",
+        "bodyHash": "f6bdfd44d6cd6da9",
+        "anchor": "easy",
+        "startLine": 124,
+        "endLine": 124,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/normal/slider-velocity-changes-alter-scrolling",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "rule",
+        "lead": "Slider velocity changes that alter the scrolling speed of the beatmap are disallowed.",
+        "fingerprint": "slider velocity changes that alter the scrolling speed of the beatmap are disallowed",
+        "bodyHash": "c244c0fe6a78c3ac",
+        "anchor": "normal",
+        "startLine": 132,
+        "endLine": 132,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/normal/scroll-normalisation-done-beatmaps-variable",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "rule",
+        "lead": "Scroll normalisation must be done in beatmaps with variable BPM.",
+        "fingerprint": "scroll normalisation must be done in beatmaps with variable bpm",
+        "bodyHash": "b042d84d6d5a7aca",
+        "anchor": "normal",
+        "startLine": 133,
+        "endLine": 133,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/normal/hp-od-values-not-higher",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "HP and OD values should not be higher than 7.5.",
+        "fingerprint": "hp and od values should not be higher than 7 5",
+        "bodyHash": "834c831336557e8d",
+        "anchor": "normal",
+        "startLine": 137,
+        "endLine": 137,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/normal/note-snappings-consecutive-1-6",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Note snappings of consecutive 1/6 and above should not be used.",
+        "fingerprint": "note snappings of consecutive 1 6 and above should not be used",
+        "bodyHash": "afe84b1c882cd965",
+        "anchor": "normal",
+        "startLine": 138,
+        "endLine": 138,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/normal/long-notes-held-least-1",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Long notes should be held for at least 1/2 of a beat.",
+        "fingerprint": "long notes should be held for at least 1 2 of a beat",
+        "bodyHash": "56eacc1cbd0ad8b5",
+        "anchor": "normal",
+        "startLine": 139,
+        "endLine": 139,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/normal/long-note-releases-least-1",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Long note releases should be at least 1/2 of a beat apart from each other.",
+        "fingerprint": "long note releases should be at least 1 2 of a beat apart from each other",
+        "bodyHash": "dc6612f0938fb3e9",
+        "anchor": "normal",
+        "startLine": 140,
+        "endLine": 140,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/normal/objects-not-placed-during-1",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Objects should not be placed during a 1/2 long note's hold duration.",
+        "fingerprint": "objects should not be placed during a 1 2 long note s hold duration",
+        "bodyHash": "c60fe202ec48624d",
+        "anchor": "normal",
+        "startLine": 141,
+        "endLine": 141,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/normal/avoid-rhythms-faster-1-2",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid rhythms faster than 1/2 during a 1/1 long note's hold duration.",
+        "fingerprint": "avoid rhythms faster than 1 2 during a 1 1 long note s hold duration",
+        "bodyHash": "904bbfba7e38d650",
+        "anchor": "normal",
+        "startLine": 142,
+        "endLine": 142,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/normal/avoid-using-form-1-4",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid using any form of 1/4 shield pattern.",
+        "fingerprint": "avoid using any form of 1 4 shield pattern",
+        "bodyHash": "454c6bca3e28605b",
+        "anchor": "normal",
+        "startLine": 143,
+        "endLine": 143,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/normal/note-density-consist-mostly-1",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Note density should consist of mostly 1/1 and 1/2, occasional 1/4, or slower rhythms.",
+        "fingerprint": "note density should consist of mostly 1 1 and 1 2 occasional 1 4 or slower rhythms",
+        "bodyHash": "b3a9535f32aa7bfa",
+        "anchor": "normal",
+        "startLine": 144,
+        "endLine": 144,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "mania/normal/avoid-using-more-5-consecutive",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid using more than 5 consecutive 1/4 notes.",
+        "fingerprint": "avoid using more than 5 consecutive 1 4 notes",
+        "bodyHash": "519819ce244c664a",
+        "anchor": "normal",
+        "startLine": 145,
+        "endLine": 145,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/normal/long-streams-1-2-notes",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Long streams of 1/2 notes should include, at minimum, a 1/1 pause where natural to implement after every musical phrase, as these can become too physically demanding for players at this level.",
+        "fingerprint": "long streams of 1 2 notes should include at minimum a 1 1 pause where natural to implement after every musical phrase as these can become too physically demanding for players at this level",
+        "bodyHash": "67af680f7814a185",
+        "anchor": "normal",
+        "startLine": 146,
+        "endLine": 146,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/normal/avoid-using-chords-during-consecutive",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid using chords during consecutive 1/4 note patterns.",
+        "fingerprint": "avoid using chords during consecutive 1 4 note patterns",
+        "bodyHash": "1df19f84f16f3ba9",
+        "anchor": "normal",
+        "startLine": 147,
+        "endLine": 147,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/normal/avoid-anchors-consisting-three-more",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid anchors consisting of three or more notes.",
+        "fingerprint": "avoid anchors consisting of three or more notes",
+        "bodyHash": "1838d1bf18a094ed",
+        "anchor": "normal",
+        "startLine": 148,
+        "endLine": 148,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/normal/avoid-using-1-4-minijacks",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid using 1/4 minijacks or other jack patterns.",
+        "fingerprint": "avoid using 1 4 minijacks or other jack patterns",
+        "bodyHash": "6b04481d2e476159",
+        "anchor": "normal",
+        "startLine": 149,
+        "endLine": 149,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/normal/manipulating-slider-velocity-discouraged",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Manipulating slider velocity is discouraged.",
+        "fingerprint": "manipulating slider velocity is discouraged",
+        "bodyHash": "2055bd4bc361d452",
+        "anchor": "normal",
+        "startLine": 150,
+        "endLine": 150,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/normal/long-term-slider-velocity-changes",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Long-term slider velocity changes should be between 0.90x and 1.05x.",
+        "fingerprint": "long term slider velocity changes should be between 0 90x and 1 05x",
+        "bodyHash": "b3d5043d640e8b3a",
+        "anchor": "normal",
+        "startLine": 151,
+        "endLine": 151,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/normal/avoid-chords-more-2-notes",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid chords with more than 2 notes.",
+        "fingerprint": "avoid chords with more than 2 notes",
+        "bodyHash": "bd3bfe747e17d007",
+        "anchor": "normal",
+        "startLine": 155,
+        "endLine": 155,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/normal/avoid-chords-more-3-notes",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid chords with more than 3 notes.",
+        "fingerprint": "avoid chords with more than 3 notes",
+        "bodyHash": "cd7a1387a3b073c6",
+        "anchor": "normal",
+        "startLine": 159,
+        "endLine": 159,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/normal/avoid-1-4-bracket-patterns",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid 1/4 bracket patterns.",
+        "fingerprint": "avoid 1 4 bracket patterns",
+        "bodyHash": "d9db6474de3d1b2e",
+        "anchor": "normal",
+        "startLine": 160,
+        "endLine": 160,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/normal/long-notes-played-adjacent-keys",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Long notes played with adjacent keys that are held simultaneously should be released at the same time.",
+        "fingerprint": "long notes played with adjacent keys that are held simultaneously should be released at the same time",
+        "bodyHash": "6a12ff38fafd7395",
+        "anchor": "normal",
+        "startLine": 161,
+        "endLine": 161,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/hard/hp-od-values-not-higher",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "HP and OD values should not be higher than 8.",
+        "fingerprint": "hp and od values should not be higher than 8",
+        "bodyHash": "264a746835602459",
+        "anchor": "hard",
+        "startLine": 167,
+        "endLine": 167,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/hard/note-snappings-consecutive-1-8",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "Note snappings of consecutive 1/8 and higher should not be used.",
+        "fingerprint": "note snappings of consecutive 1 8 and higher should not be used",
+        "bodyHash": "ea61e2082aebcf04",
+        "anchor": "hard",
+        "startLine": 168,
+        "endLine": 168,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/hard/long-streams-1-4-notes",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "Long streams of 1/4 notes should include, at minimum, a 1/2 pause where natural to implement after every musical phrase.",
+        "fingerprint": "long streams of 1 4 notes should include at minimum a 1 2 pause where natural to implement after every musical phrase",
+        "bodyHash": "f07096ec62dddb25",
+        "anchor": "hard",
+        "startLine": 169,
+        "endLine": 169,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/hard/chords-within-1-4-streams",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "Chords within 1/4 streams should be at least 1/1 beat apart from each other.",
+        "fingerprint": "chords within 1 4 streams should be at least 1 1 beat apart from each other",
+        "bodyHash": "8e46b7ac710e1af2",
+        "anchor": "hard",
+        "startLine": 170,
+        "endLine": 170,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/hard/avoid-using-chords-middle-1",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid using chords in the middle of 1/6 streams.",
+        "fingerprint": "avoid using chords in the middle of 1 6 streams",
+        "bodyHash": "605410676ba16ead",
+        "anchor": "hard",
+        "startLine": 171,
+        "endLine": 171,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/hard/avoid-anchors-consisting-five-more",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid anchors consisting of five or more notes.",
+        "fingerprint": "avoid anchors consisting of five or more notes",
+        "bodyHash": "601e3110ea4ff915",
+        "anchor": "hard",
+        "startLine": 172,
+        "endLine": 172,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/hard/1-4-jack-usage-discouraged",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "1/4 Jack usage is discouraged.",
+        "fingerprint": "1 4 jack usage is discouraged",
+        "bodyHash": "33413980422c4c59",
+        "anchor": "hard",
+        "startLine": 173,
+        "endLine": 173,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/hard/avoid-using-more-9-consecutive",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid using more than 9 consecutive notes in a trill.",
+        "fingerprint": "avoid using more than 9 consecutive notes in a trill",
+        "bodyHash": "c9ba7fab4bdd7c05",
+        "anchor": "hard",
+        "startLine": 174,
+        "endLine": 174,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/hard/long-notes-held-least-1",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "Long notes should be held for at least 1/4 of a beat.",
+        "fingerprint": "long notes should be held for at least 1 4 of a beat",
+        "bodyHash": "19c639c8d21cabe1",
+        "anchor": "hard",
+        "startLine": 175,
+        "endLine": 175,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/hard/objects-directly-after-short-term",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "Objects directly after short-term slider velocity changes should appear at the beatmap's normal scroll speed.",
+        "fingerprint": "objects directly after short term slider velocity changes should appear at the beatmap s normal scroll speed",
+        "bodyHash": "f465feacbb5a1ba8",
+        "anchor": "hard",
+        "startLine": 176,
+        "endLine": 176,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/hard/long-term-slider-velocity-changes",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "Long-term slider velocity changes should be between 0.8x and 1.10x.",
+        "fingerprint": "long term slider velocity changes should be between 0 8x and 1 10x",
+        "bodyHash": "7c739937415a9ba6",
+        "anchor": "hard",
+        "startLine": 177,
+        "endLine": 177,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/hard/slider-velocity-gimmicks-reactable-within",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "Slider Velocity gimmicks should be reactable within 1/2 of a beat or more.",
+        "fingerprint": "slider velocity gimmicks should be reactable within 1 2 of a beat or more",
+        "bodyHash": "a1a7e3a0af0bb2b2",
+        "anchor": "hard",
+        "startLine": 178,
+        "endLine": 178,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/hard/avoid-chords-more-3-notes",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid chords with more than 3 notes.",
+        "fingerprint": "avoid chords with more than 3 notes",
+        "bodyHash": "332b9b82482f1d60",
+        "anchor": "hard",
+        "startLine": 182,
+        "endLine": 182,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/hard/avoid-chords-more-4-notes",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid chords with more than 4 notes.",
+        "fingerprint": "avoid chords with more than 4 notes",
+        "bodyHash": "e3b6d758d2e85d8d",
+        "anchor": "hard",
+        "startLine": 186,
+        "endLine": 186,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/hard/occasional-hands-used-streams-long",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "Occasional hands can be used in streams, so long as they are separated by at least one measure (4 beats).",
+        "fingerprint": "occasional hands can be used in streams so long as they are separated by at least one measure 4 beats",
+        "bodyHash": "75c8e41f82567b5a",
+        "anchor": "hard",
+        "startLine": 187,
+        "endLine": 187,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/hard/middle-long-chordstream-chords-least",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "In the middle of a long chordstream, chords should be at least 1/1 beat apart from each other.",
+        "fingerprint": "in the middle of a long chordstream chords should be at least 1 1 beat apart from each other",
+        "bodyHash": "b33c4958baaef205",
+        "anchor": "hard",
+        "startLine": 188,
+        "endLine": 188,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/insane/avoid-unjustified-spikes-difficulty",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Insane"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid unjustified spikes in difficulty.",
+        "fingerprint": "avoid unjustified spikes in difficulty",
+        "bodyHash": "8a57481e41bb5e32",
+        "anchor": "insane",
+        "startLine": 194,
+        "endLine": 194,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "mania/insane/avoid-using-split-rolls-kind",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Insane"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid using split rolls or any kind of complicated 1/8 streams lasting longer than 4 beats.",
+        "fingerprint": "avoid using split rolls or any kind of complicated 1 8 streams lasting longer than 4 beats",
+        "bodyHash": "221a462efa1f1af2",
+        "anchor": "insane",
+        "startLine": 195,
+        "endLine": 195,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/insane/avoid-using-1-6-higher",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Insane"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid using 1/6 or higher snap long note streams.",
+        "fingerprint": "avoid using 1 6 or higher snap long note streams",
+        "bodyHash": "a8fb8f2d48ee9d8a",
+        "anchor": "insane",
+        "startLine": 196,
+        "endLine": 196,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/insane/long-term-slider-velocity-changes",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Insane"
+        ],
+        "kind": "guideline",
+        "lead": "Long-term slider velocity changes should be between 0.70x and 1.10x.",
+        "fingerprint": "long term slider velocity changes should be between 0 70x and 1 10x",
+        "bodyHash": "60d0ee7a0b13453e",
+        "anchor": "insane",
+        "startLine": 197,
+        "endLine": 197,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/insane/slider-velocity-gimmicks-reactable-within",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Insane"
+        ],
+        "kind": "guideline",
+        "lead": "Slider Velocity gimmicks should be reactable within 1/4 of a beat or more when unnormalised and 1/2 of a beat or more when normalised.",
+        "fingerprint": "slider velocity gimmicks should be reactable within 1 4 of a beat or more when unnormalised and 1 2 of a beat or more when normalised",
+        "bodyHash": "7f610dbfe569bd57",
+        "anchor": "insane",
+        "startLine": 198,
+        "endLine": 198,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/insane/avoid-using-chords-middle-1",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Insane"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid using chords in the middle of 1/8 streams.",
+        "fingerprint": "avoid using chords in the middle of 1 8 streams",
+        "bodyHash": "28ffab23d51cc135",
+        "anchor": "insane",
+        "startLine": 202,
+        "endLine": 202,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/insane/using-split-jumptrills-2-beats",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Insane"
+        ],
+        "kind": "guideline",
+        "lead": "Using split-jumptrills for 2+ beats that leads to a hand is discouraged.",
+        "fingerprint": "using split jumptrills for 2 beats that leads to a hand is discouraged",
+        "bodyHash": "a6a5e4d97278eb7d",
+        "anchor": "insane",
+        "startLine": 203,
+        "endLine": 203,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/insane/avoid-using-more-9-note",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Insane"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid using more than 9-note split-jumptrills.",
+        "fingerprint": "avoid using more than 9 note split jumptrills",
+        "bodyHash": "c6b62e838457660a",
+        "anchor": "insane",
+        "startLine": 204,
+        "endLine": 204,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/insane/avoid-using-1-4-jacks",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Insane"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid using 1/4 jacks with 3+ notes in the middle of chordstream.",
+        "fingerprint": "avoid using 1 4 jacks with 3 notes in the middle of chordstream",
+        "bodyHash": "8c5597ab8f62fa33",
+        "anchor": "insane",
+        "startLine": 208,
+        "endLine": 208,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/insane/middle-long-chordstream-avoid-exceeding",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Insane"
+        ],
+        "kind": "guideline",
+        "lead": "In the middle of a long chordstream, avoid exceeding an average of 7 notes per beat.",
+        "fingerprint": "in the middle of a long chordstream avoid exceeding an average of 7 notes per beat",
+        "bodyHash": "74fbd9d1a1a624ac",
+        "anchor": "insane",
+        "startLine": 209,
+        "endLine": 209,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/insane/bracket-streams-used-sparingly",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Insane"
+        ],
+        "kind": "guideline",
+        "lead": "Bracket streams should be used sparingly.",
+        "fingerprint": "bracket streams should be used sparingly",
+        "bodyHash": "cb40d958bca90e84",
+        "anchor": "insane",
+        "startLine": 210,
+        "endLine": 210,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "mania/expert/avoid-unjustified-spikes-difficulty",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Expert"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid unjustified spikes in difficulty.",
+        "fingerprint": "avoid unjustified spikes in difficulty",
+        "bodyHash": "8a57481e41bb5e32",
+        "anchor": "expert",
+        "startLine": 216,
+        "endLine": 216,
+        "difficulties": [
+          "expert",
+          "ultra"
+        ]
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "mania/expert/long-term-slider-velocity-changes",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Expert"
+        ],
+        "kind": "guideline",
+        "lead": "Long-term slider velocity changes should be between 0.60x and 1.10x.",
+        "fingerprint": "long term slider velocity changes should be between 0 60x and 1 10x",
+        "bodyHash": "529d20f9f872354d",
+        "anchor": "expert",
+        "startLine": 217,
+        "endLine": 217,
+        "difficulties": [
+          "expert",
+          "ultra"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    }
+  ]
+}

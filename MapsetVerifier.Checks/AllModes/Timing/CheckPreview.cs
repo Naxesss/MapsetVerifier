@@ -2,6 +2,7 @@
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.Timing
 {
@@ -41,9 +42,9 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             {
                 {
                     "Not Set",
-                    new IssueTemplate(Issue.Level.Problem, "Preview time is not set.").WithCause(
-                        "The preview time of a beatmap is missing."
-                    )
+                    new IssueTemplate(Issue.Level.Problem, "Preview time is not set.")
+                        .WithCause("The preview time of a beatmap is missing.")
+                        .WithRule(RC.General.Audio_PreviewPointsSetConsistentBetween)
                 },
                 {
                     "Inconsistent",
@@ -51,9 +52,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         Issue.Level.Problem,
                         "Preview time is inconsistent, see {0}.",
                         "difficulty"
-                    ).WithCause(
-                        "The preview time of a beatmap is different from the reference beatmap."
                     )
+                        .WithCause(
+                            "The preview time of a beatmap is different from the reference beatmap."
+                        )
+                        .WithRule(RC.General.Audio_PreviewPointsSetConsistentBetween)
                 },
             };
 

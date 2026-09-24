@@ -1,0 +1,1990 @@
+{
+  "page": "general",
+  "statements": [
+    {
+      "id": "general/no-two-hit-objects-placed",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "No two hit objects can be placed on the same tick.",
+        "fingerprint": "no two hit objects can be placed on the same tick",
+        "bodyHash": "84ede3829ff8ead2",
+        "anchor": "general",
+        "startLine": 63,
+        "endLine": 63,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/least-10-milliseconds-between-hit",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "There must be at least 10 milliseconds between a hit circle and the next object, and at least 20 milliseconds between the end of a slider and the next object.",
+        "fingerprint": "there must be at least 10 milliseconds between a hit circle and the next object and at least 20 milliseconds between the end of a slider and the next object",
+        "bodyHash": "3baa763c35c58cdd",
+        "anchor": "general",
+        "startLine": 64,
+        "endLine": 64,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/beatmap-content-cleared-regarding-content",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "All beatmap content must be cleared regarding content usage permissions.",
+        "fingerprint": "all beatmap content must be cleared regarding content usage permissions",
+        "bodyHash": "cf5a5c74fd7c5d89",
+        "anchor": "general",
+        "startLine": 65,
+        "endLine": 65,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/creators-visual-media-used-beatmap",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "Creators of visual media used in a beatmap must be credited in the beatmap's description.",
+        "fingerprint": "creators of visual media used in a beatmap must be credited in the beatmap s description",
+        "bodyHash": "571e0864c445fda0",
+        "anchor": "general",
+        "startLine": 66,
+        "endLine": 69,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/not-obscene-imagery-background-storyboard",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "There must not be any obscene imagery in the background/storyboard/video content.",
+        "fingerprint": "there must not be any obscene imagery in the background storyboard video content",
+        "bodyHash": "84518be9929d5f36",
+        "anchor": "general",
+        "startLine": 70,
+        "endLine": 70,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/difficulties-contain-repetitive-strobes-pulsing",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "Difficulties that contain repetitive strobes, pulsing images, or rapid changes in contrast, brightness or colour in the storyboard or video must use an epilepsy warning.",
+        "fingerprint": "difficulties that contain repetitive strobes pulsing images or rapid changes in contrast brightness or colour in the storyboard or video must use an epilepsy warning",
+        "bodyHash": "1eaf9c6f19417cba",
+        "anchor": "general",
+        "startLine": 71,
+        "endLine": 71,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/not-unused-files-0-byte",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "There must not be any unused files or 0-byte files in the beatmap's folder.",
+        "fingerprint": "there must not be any unused files or 0 byte files in the beatmap s folder",
+        "bodyHash": "8b3425a9abcfe5a0",
+        "anchor": "general",
+        "startLine": 72,
+        "endLine": 72,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/break-times-inserted-restrictions-beatmap",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "Break times must be inserted with the restrictions of the beatmap editor.",
+        "fingerprint": "break times must be inserted with the restrictions of the beatmap editor",
+        "bodyHash": "d834b5f305c896f3",
+        "anchor": "general",
+        "startLine": 73,
+        "endLine": 73,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/difficulty-settings-not-use-more",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "Difficulty settings must not use more precision than is possible in the beatmap editor.",
+        "fingerprint": "difficulty settings must not use more precision than is possible in the beatmap editor",
+        "bodyHash": "2f5b2b20a1dfff95",
+        "anchor": "general",
+        "startLine": 74,
+        "endLine": 74,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/letterbox-during-breaks-setting-consistent",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "The `Letterbox during breaks` setting must be consistent between difficulties of the same mode if they contain break periods and if included, the same storyboard.",
+        "fingerprint": "the letterbox during breaks setting must be consistent between difficulties of the same mode if they contain break periods and if included the same storyboard",
+        "bodyHash": "bc6a47725ffaa5b7",
+        "anchor": "general",
+        "startLine": 75,
+        "endLine": 75,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/beatmaps-containing-spoilers-other-media",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "Beatmaps containing spoilers for other media must be marked with a spoiler warning in the beatmap's description.",
+        "fingerprint": "beatmaps containing spoilers for other media must be marked with a spoiler warning in the beatmap s description",
+        "bodyHash": "c9318da84b6746e9",
+        "anchor": "general",
+        "startLine": 76,
+        "endLine": 76,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/directly-re-using-own-ranked",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Directly re-using your own Ranked or Loved difficulties in other Ranked beatmaps is discouraged.",
+        "fingerprint": "directly re using your own ranked or loved difficulties in other ranked beatmaps is discouraged",
+        "bodyHash": "d8b0486f8cae4758",
+        "anchor": "general",
+        "startLine": 80,
+        "endLine": 80,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/slider-tick-rate-not-modified",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Slider tick rate should not be modified through the `.osu` file.",
+        "fingerprint": "slider tick rate should not be modified through the osu file",
+        "bodyHash": "4d4df1c684983eec",
+        "anchor": "general",
+        "startLine": 81,
+        "endLine": 81,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/kiai-start-sound-music",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Kiai should start on a sound in the music.",
+        "fingerprint": "kiai should start on a sound in the music",
+        "bodyHash": "29681f7d311c0a5f",
+        "anchor": "general",
+        "startLine": 82,
+        "endLine": 82,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/enable-countdown-setting-consistent-between",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "The `Enable countdown` setting should be consistent between difficulties of the same mode.",
+        "fingerprint": "the enable countdown setting should be consistent between difficulties of the same mode",
+        "bodyHash": "0af9fc4eec78d905",
+        "anchor": "general",
+        "startLine": 83,
+        "endLine": 83,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/backgrounds-videos-storyboards-created-osu",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "allowance",
+        "lead": "Backgrounds, videos, and storyboards created for osu!",
+        "fingerprint": "backgrounds videos and storyboards created for osu",
+        "bodyHash": "44c8e739cc21c83c",
+        "anchor": "general",
+        "startLine": 87,
+        "endLine": 87,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/beatmap/game-modes-within-beatmap-form",
+      "upstream": {
+        "path": [
+          "Beatmap"
+        ],
+        "kind": "rule",
+        "lead": "All game modes within a beatmap must form a spread starting from the lowest difficulty level dictated by the song's drain time.",
+        "fingerprint": "all game modes within a beatmap must form a spread starting from the lowest difficulty level dictated by the song s drain time",
+        "bodyHash": "1baad14875055fb9",
+        "anchor": "beatmap",
+        "startLine": 98,
+        "endLine": 98,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/beatmap/difficulty-comply-mode-difficulty-specific",
+      "upstream": {
+        "path": [
+          "Beatmap"
+        ],
+        "kind": "rule",
+        "lead": "Each difficulty must comply with its mode's difficulty-specific ranking criteria.",
+        "fingerprint": "each difficulty must comply with its mode s difficulty specific ranking criteria",
+        "bodyHash": "1aeb711275aba9c2",
+        "anchor": "beatmap",
+        "startLine": 99,
+        "endLine": 99,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/beatmap/difficulty-beatmap-minimum-drain-time",
+      "upstream": {
+        "path": [
+          "Beatmap"
+        ],
+        "kind": "rule",
+        "lead": "Every difficulty of a beatmap must have a minimum drain time of 30 seconds.",
+        "fingerprint": "every difficulty of a beatmap must have a minimum drain time of 30 seconds",
+        "bodyHash": "c6c4be9fd4ef8e63",
+        "anchor": "beatmap",
+        "startLine": 100,
+        "endLine": 100,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/beatmap/beatmap-2-songs-combined-together",
+      "upstream": {
+        "path": [
+          "Beatmap"
+        ],
+        "kind": "rule",
+        "lead": "A beatmap of 2 songs combined together must follow the minimum spread requirements corresponding to the length of the longer song.",
+        "fingerprint": "a beatmap of 2 songs combined together must follow the minimum spread requirements corresponding to the length of the longer song",
+        "bodyHash": "77011f8fa25a944b",
+        "anchor": "beatmap",
+        "startLine": 101,
+        "endLine": 101,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/beatmap/difficulty-names-beatmap-clearly-progressive",
+      "upstream": {
+        "path": [
+          "Beatmap"
+        ],
+        "kind": "rule",
+        "lead": "Difficulty names in a beatmap must be clearly progressive and accurately indicating of their respective difficulties, excluding:",
+        "fingerprint": "difficulty names in a beatmap must be clearly progressive and accurately indicating of their respective difficulties excluding",
+        "bodyHash": "f4dcbb62a283d1eb",
+        "anchor": "beatmap",
+        "startLine": 102,
+        "endLine": 104,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/beatmap/beatmap-custom-difficulty-naming-follow",
+      "upstream": {
+        "path": [
+          "Beatmap"
+        ],
+        "kind": "rule",
+        "lead": "A beatmap's custom difficulty naming must follow a common theme or pattern related to the song or difficulty and must not be misrepresentative.",
+        "fingerprint": "a beatmap s custom difficulty naming must follow a common theme or pattern related to the song or difficulty and must not be misrepresentative",
+        "bodyHash": "44c825ab8b07d378",
+        "anchor": "beatmap",
+        "startLine": 105,
+        "endLine": 105,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/beatmap/beatmap-host-beatmapped-equal-more",
+      "upstream": {
+        "path": [
+          "Beatmap"
+        ],
+        "kind": "rule",
+        "lead": "A beatmap host must have beatmapped equal or more difficulties than any guest difficulty creator.",
+        "fingerprint": "a beatmap host must have beatmapped equal or more difficulties than any guest difficulty creator",
+        "bodyHash": "9455982b8fdb0aaf",
+        "anchor": "beatmap",
+        "startLine": 106,
+        "endLine": 106,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/beatmap/beatmap-host-guest-difficulty-creators",
+      "upstream": {
+        "path": [
+          "Beatmap"
+        ],
+        "kind": "rule",
+        "lead": "A beatmap host and guest difficulty creators can make changes to their respective difficulties as they wish.",
+        "fingerprint": "a beatmap host and guest difficulty creators can make changes to their respective difficulties as they wish",
+        "bodyHash": "f770ccaa582cbec6",
+        "anchor": "beatmap",
+        "startLine": 107,
+        "endLine": 107,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/beatmap/beatmaps-contain-significant-portions-difficulties",
+      "upstream": {
+        "path": [
+          "Beatmap"
+        ],
+        "kind": "rule",
+        "lead": "Beatmaps cannot contain significant portions of difficulties belonging to other users without their explicit involvement or permission.",
+        "fingerprint": "beatmaps cannot contain significant portions of difficulties belonging to other users without their explicit involvement or permission",
+        "bodyHash": "eff4815e4c7120b3",
+        "anchor": "beatmap",
+        "startLine": 108,
+        "endLine": 108,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/beatmap/highest-difficulty-beatmap-correspond-general",
+      "upstream": {
+        "path": [
+          "Beatmap"
+        ],
+        "kind": "guideline",
+        "lead": "The highest difficulty of a beatmap should correspond to the general feel of the song.",
+        "fingerprint": "the highest difficulty of a beatmap should correspond to the general feel of the song",
+        "bodyHash": "9937b5657a11af0b",
+        "anchor": "beatmap",
+        "startLine": 112,
+        "endLine": 112,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/beatmap/difficulty-names-not-misleading",
+      "upstream": {
+        "path": [
+          "Beatmap"
+        ],
+        "kind": "guideline",
+        "lead": "Difficulty names should not be misleading.",
+        "fingerprint": "difficulty names should not be misleading",
+        "bodyHash": "e9a9ae627a31024e",
+        "anchor": "beatmap",
+        "startLine": 113,
+        "endLine": 113,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/beatmap/descriptive-difficulty-names-relation-song",
+      "upstream": {
+        "path": [
+          "Beatmap"
+        ],
+        "kind": "guideline",
+        "lead": "Descriptive difficulty names should have a relation to the song.",
+        "fingerprint": "descriptive difficulty names should have a relation to the song",
+        "bodyHash": "af896c3a60f02dec",
+        "anchor": "beatmap",
+        "startLine": 114,
+        "endLine": 114,
+        "parent": "general/beatmap/difficulty-names-not-misleading",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/beatmap/combining-multiple-usernames-single-collaborator",
+      "upstream": {
+        "path": [
+          "Beatmap"
+        ],
+        "kind": "guideline",
+        "lead": "When combining multiple usernames into a single collaborator name for a guest difficulty, make sure the name remains comprehensible.",
+        "fingerprint": "when combining multiple usernames into a single collaborator name for a guest difficulty make sure the name remains comprehensible",
+        "bodyHash": "8ffc19c6b48825a9",
+        "anchor": "beatmap",
+        "startLine": 115,
+        "endLine": 115,
+        "parent": "general/beatmap/difficulty-names-not-misleading",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/beatmap/usernames-indicating-possession-guest-difficulty",
+      "upstream": {
+        "path": [
+          "Beatmap"
+        ],
+        "kind": "guideline",
+        "lead": "Usernames indicating possession of a guest difficulty should be consistent between multiple beatmaps.",
+        "fingerprint": "usernames indicating possession of a guest difficulty should be consistent between multiple beatmaps",
+        "bodyHash": "91042eee202a4887",
+        "anchor": "beatmap",
+        "startLine": 116,
+        "endLine": 116,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/beatmap/avoid-non-alphanumeric-unicode-characters",
+      "upstream": {
+        "path": [
+          "Beatmap"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid non-alphanumeric unicode characters in a difficulty's name.",
+        "fingerprint": "avoid non alphanumeric unicode characters in a difficulty s name",
+        "bodyHash": "f612cb1f842ae769",
+        "anchor": "beatmap",
+        "startLine": 117,
+        "endLine": 117,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/timing/uninherited-timing-points-used-accurately",
+      "upstream": {
+        "path": [
+          "Timing"
+        ],
+        "kind": "rule",
+        "lead": "Uninherited timing points must be used to accurately beatmap the song's time signatures.",
+        "fingerprint": "uninherited timing points must be used to accurately beatmap the song s time signatures",
+        "bodyHash": "54d6f27a895dd611",
+        "anchor": "timing",
+        "startLine": 123,
+        "endLine": 123,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/timing/beatmaps-perfectly-timed",
+      "upstream": {
+        "path": [
+          "Timing"
+        ],
+        "kind": "rule",
+        "lead": "Beatmaps must be perfectly timed.",
+        "fingerprint": "beatmaps must be perfectly timed",
+        "bodyHash": "609ba9857833abf9",
+        "anchor": "timing",
+        "startLine": 124,
+        "endLine": 124,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/timing/uninherited-timing-points-same-difficulty",
+      "upstream": {
+        "path": [
+          "Timing"
+        ],
+        "kind": "rule",
+        "lead": "Uninherited timing points must be the same in every difficulty of a beatmap.",
+        "fingerprint": "uninherited timing points must be the same in every difficulty of a beatmap",
+        "bodyHash": "939b9e9d4d4f7662",
+        "anchor": "timing",
+        "startLine": 125,
+        "endLine": 125,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/timing/uninherited-timing-points-only-used",
+      "upstream": {
+        "path": [
+          "Timing"
+        ],
+        "kind": "rule",
+        "lead": "Uninherited timing points should only be used when required for timing purposes.",
+        "fingerprint": "uninherited timing points should only be used when required for timing purposes",
+        "bodyHash": "bd1114e754a17381",
+        "anchor": "timing",
+        "startLine": 126,
+        "endLine": 128,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/timing/no-two-uninherited-two-inherited",
+      "upstream": {
+        "path": [
+          "Timing"
+        ],
+        "kind": "rule",
+        "lead": "No two uninherited or two inherited timing points can be placed at the same point.",
+        "fingerprint": "no two uninherited or two inherited timing points can be placed at the same point",
+        "bodyHash": "a7dcafd2b3f5bd12",
+        "anchor": "timing",
+        "startLine": 129,
+        "endLine": 129,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/timing/inherited-timing-point-placed-before",
+      "upstream": {
+        "path": [
+          "Timing"
+        ],
+        "kind": "rule",
+        "lead": "An inherited timing point cannot be placed before the first uninherited timing point.",
+        "fingerprint": "an inherited timing point cannot be placed before the first uninherited timing point",
+        "bodyHash": "56dbdf8ad66afeb5",
+        "anchor": "timing",
+        "startLine": 130,
+        "endLine": 130,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/timing/beatmap-first-uninherited-timing-point",
+      "upstream": {
+        "path": [
+          "Timing"
+        ],
+        "kind": "rule",
+        "lead": "A beatmap's first uninherited timing point cannot be used to toggle kiai.",
+        "fingerprint": "a beatmap s first uninherited timing point cannot be used to toggle kiai",
+        "bodyHash": "9510b823fe31b679",
+        "anchor": "timing",
+        "startLine": 131,
+        "endLine": 131,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/timing/hit-objects-snapped-within-less",
+      "upstream": {
+        "path": [
+          "Timing"
+        ],
+        "kind": "rule",
+        "lead": "Hit objects must be snapped within less than 2 ms of any timeline tick.",
+        "fingerprint": "hit objects must be snapped within less than 2 ms of any timeline tick",
+        "bodyHash": "cd6205190517f441",
+        "anchor": "timing",
+        "startLine": 132,
+        "endLine": 134,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/timing/object-wrongly-snapped-due-passing",
+      "upstream": {
+        "path": [
+          "Timing"
+        ],
+        "kind": "rule",
+        "lead": "An object which is wrongly snapped due to passing through or ending slightly before a new uninherited timing point must be snapped within the new timing section.",
+        "fingerprint": "an object which is wrongly snapped due to passing through or ending slightly before a new uninherited timing point must be snapped within the new timing section",
+        "bodyHash": "9e59b015b91aa2e7",
+        "anchor": "timing",
+        "startLine": 135,
+        "endLine": 138,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/audio/audio-file-beatmap",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "rule",
+        "lead": "The audio file of a beatmap must...",
+        "fingerprint": "the audio file of a beatmap must",
+        "bodyHash": "7e417e97bfffdeaf",
+        "anchor": "audio",
+        "startLine": 144,
+        "endLine": 144,
+        "intro": true,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/audio/encoded-mp3-mp3-ogg-vorbis",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "rule",
+        "lead": "...be encoded in MP3 (`.mp3`) or Ogg Vorbis (`.ogg`).",
+        "fingerprint": "be encoded in mp3 mp3 or ogg vorbis ogg",
+        "bodyHash": "b27dbaef807344d6",
+        "anchor": "audio",
+        "startLine": 145,
+        "endLine": 145,
+        "parent": "general/audio/audio-file-beatmap",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/audio/average-bit-rate-no-greater",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "rule",
+        "lead": "...have an average bit rate no greater than 192 kbps for MP3 files, or 208 kbps for Ogg Vorbis files.",
+        "fingerprint": "have an average bit rate no greater than 192 kbps for mp3 files or 208 kbps for ogg vorbis files",
+        "bodyHash": "0bb9dbe8ac74ba0d",
+        "anchor": "audio",
+        "startLine": 146,
+        "endLine": 146,
+        "parent": "general/audio/audio-file-beatmap",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/audio/sampling-rate-no-larger-48",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "rule",
+        "lead": "...have a sampling rate no larger than 48 kHz.",
+        "fingerprint": "have a sampling rate no larger than 48 khz",
+        "bodyHash": "fed21aa4d9ee09f5",
+        "anchor": "audio",
+        "startLine": 147,
+        "endLine": 147,
+        "parent": "general/audio/audio-file-beatmap",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/audio/average-bit-rate-no-lower",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "rule",
+        "lead": "...have an average bit rate no lower than 128 kbps, if such a source exists.",
+        "fingerprint": "have an average bit rate no lower than 128 kbps if such a source exists",
+        "bodyHash": "be6b4c6e6b347206",
+        "anchor": "audio",
+        "startLine": 148,
+        "endLine": 148,
+        "parent": "general/audio/audio-file-beatmap",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/audio/not-encoded-upwards-lower-bitrate",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "rule",
+        "lead": "...not be encoded upwards from a lower bitrate or sampling rate.",
+        "fingerprint": "not be encoded upwards from a lower bitrate or sampling rate",
+        "bodyHash": "1c83d5dfa72f8ecb",
+        "anchor": "audio",
+        "startLine": 149,
+        "endLine": 149,
+        "parent": "general/audio/audio-file-beatmap",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/audio/beatmap-only-contain-one-song",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "rule",
+        "lead": "A beatmap may only contain one song file used by all difficulties.",
+        "fingerprint": "a beatmap may only contain one song file used by all difficulties",
+        "bodyHash": "fdc027eadeb13de3",
+        "anchor": "audio",
+        "startLine": 150,
+        "endLine": 150,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/audio/beatmaps-hitsounded",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "rule",
+        "lead": "Beatmaps must be hitsounded.",
+        "fingerprint": "beatmaps must be hitsounded",
+        "bodyHash": "2950bcdf29d6cbe9",
+        "anchor": "audio",
+        "startLine": 151,
+        "endLine": 151,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/audio/osu-mania-beatmaps-not-require",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "rule",
+        "lead": "osu!mania beatmaps do not require hitsound additions.",
+        "fingerprint": "osu mania beatmaps do not require hitsound additions",
+        "bodyHash": "52320cab763c0f8f",
+        "anchor": "audio",
+        "startLine": 152,
+        "endLine": 152,
+        "parent": "general/audio/beatmaps-hitsounded",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/audio/clicked-parts-objects-least-one",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "rule",
+        "lead": "All clicked parts of objects must have at least one hitsound which both...",
+        "fingerprint": "all clicked parts of objects must have at least one hitsound which both",
+        "bodyHash": "a441da62919c66b7",
+        "anchor": "audio",
+        "startLine": 153,
+        "endLine": 156,
+        "intro": true,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/audio/clear-impact-whose-peak-delayed",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "rule",
+        "lead": "...has a clear impact, whose peak is delayed no more than 5 milliseconds.",
+        "fingerprint": "has a clear impact whose peak is delayed no more than 5 milliseconds",
+        "bodyHash": "061867be601a194a",
+        "anchor": "audio",
+        "startLine": 154,
+        "endLine": 154,
+        "parent": "general/audio/clicked-parts-objects-least-one",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/audio/uses-uncompressed-wav-wav-ogg",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "rule",
+        "lead": "...uses the uncompressed WAV (`.wav`) or Ogg Vorbis (`.ogg`) file format.",
+        "fingerprint": "uses the uncompressed wav wav or ogg vorbis ogg file format",
+        "bodyHash": "f5d5d3cdd9af9c4e",
+        "anchor": "audio",
+        "startLine": 155,
+        "endLine": 155,
+        "parent": "general/audio/clicked-parts-objects-least-one",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/audio/hitsounds-audible",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "rule",
+        "lead": "Hitsounds must be audible.",
+        "fingerprint": "hitsounds must be audible",
+        "bodyHash": "22011dbcd25cde0a",
+        "anchor": "audio",
+        "startLine": 157,
+        "endLine": 157,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/audio/preview-points-set-consistent-between",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "rule",
+        "lead": "Preview points must be set and consistent between all difficulties of a beatmap.",
+        "fingerprint": "preview points must be set and consistent between all difficulties of a beatmap",
+        "bodyHash": "c50296b227eced04",
+        "anchor": "audio",
+        "startLine": 158,
+        "endLine": 158,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/audio/hitsound-file-least-25ms-long",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "rule",
+        "lead": "Every hitsound file must be at least 25ms long.",
+        "fingerprint": "every hitsound file must be at least 25ms long",
+        "bodyHash": "07826dcb76309d95",
+        "anchor": "audio",
+        "startLine": 159,
+        "endLine": 159,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/audio/completely-silent-sound-files-use",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "rule",
+        "lead": "Completely silent sound files must use this 44-byte file.",
+        "fingerprint": "completely silent sound files must use this 44 byte file",
+        "bodyHash": "ebf4b8159f7a4151",
+        "anchor": "audio",
+        "startLine": 160,
+        "endLine": 160,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/audio/storyboarded-hitsounds-used-replacements-active",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "rule",
+        "lead": "Storyboarded hitsounds cannot be used as replacements for active hitsounds.",
+        "fingerprint": "storyboarded hitsounds cannot be used as replacements for active hitsounds",
+        "bodyHash": "1afb640663e8d3fd",
+        "anchor": "audio",
+        "startLine": 161,
+        "endLine": 161,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/audio/audio-file-hitsound-files-beatmap",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "guideline",
+        "lead": "The audio file and hitsound files of a beatmap should not feature any audible and unwarranted sound distortions, like clipping, muffling, or crackling that is clearly not intended by the artist or part of the song's identity.",
+        "fingerprint": "the audio file and hitsound files of a beatmap should not feature any audible and unwarranted sound distortions like clipping muffling or crackling that is clearly not intended by the artist or part of the song s identity",
+        "bodyHash": "ed47aeb685dbf3e3",
+        "anchor": "audio",
+        "startLine": 165,
+        "endLine": 165,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/audio/audio-file-song-not-artificially",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "guideline",
+        "lead": "The audio file of a song should not be artificially extended in order to meet a time limitation in the beatmap section of this criteria.",
+        "fingerprint": "the audio file of a song should not be artificially extended in order to meet a time limitation in the beatmap section of this criteria",
+        "bodyHash": "06660809ffa90216",
+        "anchor": "audio",
+        "startLine": 166,
+        "endLine": 166,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/audio/not-map-last-20-beatmap",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "guideline",
+        "lead": "If you do not map the last 20% of your beatmap's audio file, it should be cut.",
+        "fingerprint": "if you do not map the last 20 of your beatmap s audio file it should be cut",
+        "bodyHash": "9e3fe65ee35fbef7",
+        "anchor": "audio",
+        "startLine": 167,
+        "endLine": 170,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/audio/song-compilations-other-medley-style",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "guideline",
+        "lead": "Song compilations or other medley-style tracks should aim to be cleanly mixed with proper transitions, and should not include abrupt breaks or long fades between different songs.",
+        "fingerprint": "song compilations or other medley style tracks should aim to be cleanly mixed with proper transitions and should not include abrupt breaks or long fades between different songs",
+        "bodyHash": "becbe7237aa56eb3",
+        "anchor": "audio",
+        "startLine": 171,
+        "endLine": 171,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/audio/combinations-2-songs-clearly-closely",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "guideline",
+        "lead": "Combinations of 2 songs should be clearly and closely related.",
+        "fingerprint": "combinations of 2 songs should be clearly and closely related",
+        "bodyHash": "f7bc448be8258c02",
+        "anchor": "audio",
+        "startLine": 172,
+        "endLine": 172,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/audio/cut-songs-maintain-general-impression",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "guideline",
+        "lead": "Cut songs should maintain the general impression and intensity of the full song.",
+        "fingerprint": "cut songs should maintain the general impression and intensity of the full song",
+        "bodyHash": "1197c9deb00ae2e5",
+        "anchor": "audio",
+        "startLine": 173,
+        "endLine": 173,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/audio/gameplay-sounds-excluding-active-hitsounds",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "guideline",
+        "lead": "Gameplay sounds excluding active hitsounds should use the MP3 (`.mp3`) or Ogg Vorbis (`.ogg`) file format.",
+        "fingerprint": "gameplay sounds excluding active hitsounds should use the mp3 mp3 or ogg vorbis ogg file format",
+        "bodyHash": "c9810bb2bde4ba77",
+        "anchor": "audio",
+        "startLine": 174,
+        "endLine": 174,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/audio/avoid-replacing-hit-finish-soft",
+      "upstream": {
+        "path": [
+          "Audio"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid replacing the hit finish in soft/normal samplesets with frequently used custom hitsound samples.",
+        "fingerprint": "avoid replacing the hit finish in soft normal samplesets with frequently used custom hitsound samples",
+        "bodyHash": "8743d690369b9e81",
+        "anchor": "audio",
+        "startLine": 175,
+        "endLine": 175,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/video-and-background/background-image-difficulty-beatmap",
+      "upstream": {
+        "path": [
+          "Video and background"
+        ],
+        "kind": "rule",
+        "lead": "You must have a background image on every difficulty of your beatmap.",
+        "fingerprint": "you must have a background image on every difficulty of your beatmap",
+        "bodyHash": "6dcdeb445a48d9aa",
+        "anchor": "video-and-background",
+        "startLine": 181,
+        "endLine": 181,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/video-and-background/following-requirements-background-images",
+      "upstream": {
+        "path": [
+          "Video and background"
+        ],
+        "kind": "rule",
+        "lead": "The following are requirements for background images:",
+        "fingerprint": "the following are requirements for background images",
+        "bodyHash": "fba223633c6463ed",
+        "anchor": "video-and-background",
+        "startLine": 182,
+        "endLine": 182,
+        "intro": true,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/video-and-background/minimum-width-160px",
+      "upstream": {
+        "path": [
+          "Video and background"
+        ],
+        "kind": "rule",
+        "lead": "Minimum width: 160px",
+        "fingerprint": "minimum width 160px",
+        "bodyHash": "d77257898c91e8d4",
+        "anchor": "video-and-background",
+        "startLine": 183,
+        "endLine": 183,
+        "parent": "general/video-and-background/following-requirements-background-images",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/video-and-background/minimum-height-120px",
+      "upstream": {
+        "path": [
+          "Video and background"
+        ],
+        "kind": "rule",
+        "lead": "Minimum height: 120px",
+        "fingerprint": "minimum height 120px",
+        "bodyHash": "13e97ec88d5d9eec",
+        "anchor": "video-and-background",
+        "startLine": 184,
+        "endLine": 184,
+        "parent": "general/video-and-background/following-requirements-background-images",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/video-and-background/maximum-width-2560px",
+      "upstream": {
+        "path": [
+          "Video and background"
+        ],
+        "kind": "rule",
+        "lead": "Maximum width: 2560px",
+        "fingerprint": "maximum width 2560px",
+        "bodyHash": "c77f2e8ab2fb1f84",
+        "anchor": "video-and-background",
+        "startLine": 185,
+        "endLine": 185,
+        "parent": "general/video-and-background/following-requirements-background-images",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/video-and-background/maximum-height-1440px",
+      "upstream": {
+        "path": [
+          "Video and background"
+        ],
+        "kind": "rule",
+        "lead": "Maximum height: 1440px",
+        "fingerprint": "maximum height 1440px",
+        "bodyHash": "84d3282b64131d81",
+        "anchor": "video-and-background",
+        "startLine": 186,
+        "endLine": 186,
+        "parent": "general/video-and-background/following-requirements-background-images",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/video-and-background/maximum-file-size-2-5mb",
+      "upstream": {
+        "path": [
+          "Video and background"
+        ],
+        "kind": "rule",
+        "lead": "Maximum file size: 2.5MB",
+        "fingerprint": "maximum file size 2 5mb",
+        "bodyHash": "c80df9fecea81974",
+        "anchor": "video-and-background",
+        "startLine": 187,
+        "endLine": 187,
+        "parent": "general/video-and-background/following-requirements-background-images",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/video-and-background/video-dimensions-not-exceed-width",
+      "upstream": {
+        "path": [
+          "Video and background"
+        ],
+        "kind": "rule",
+        "lead": "A video's dimensions must not exceed a width of 1280 and a height of 720 pixels.",
+        "fingerprint": "a video s dimensions must not exceed a width of 1280 and a height of 720 pixels",
+        "bodyHash": "1b39d7221fe3bf9c",
+        "anchor": "video-and-background",
+        "startLine": 188,
+        "endLine": 188,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/video-and-background/video-encoded-h-264",
+      "upstream": {
+        "path": [
+          "Video and background"
+        ],
+        "kind": "rule",
+        "lead": "A video must be encoded in H.264.",
+        "fingerprint": "a video must be encoded in h 264",
+        "bodyHash": "cb8ad1e9dc4cd972",
+        "anchor": "video-and-background",
+        "startLine": 189,
+        "endLine": 189,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/video-and-background/video-offset-correct-synchronizes-song",
+      "upstream": {
+        "path": [
+          "Video and background"
+        ],
+        "kind": "rule",
+        "lead": "A video's offset must be correct if it synchronizes with the song.",
+        "fingerprint": "a video s offset must be correct if it synchronizes with the song",
+        "bodyHash": "3661383b7f84e4e8",
+        "anchor": "video-and-background",
+        "startLine": 190,
+        "endLine": 190,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/video-and-background/video-audio-track-removed-video",
+      "upstream": {
+        "path": [
+          "Video and background"
+        ],
+        "kind": "rule",
+        "lead": "A video's audio track must be removed from the video file.",
+        "fingerprint": "a video s audio track must be removed from the video file",
+        "bodyHash": "49015becba5deb52",
+        "anchor": "video-and-background",
+        "startLine": 191,
+        "endLine": 192,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/video-and-background/background-images-videos-beatmap-reasonable",
+      "upstream": {
+        "path": [
+          "Video and background"
+        ],
+        "kind": "guideline",
+        "lead": "Background images and videos in a beatmap should be of reasonable quality.",
+        "fingerprint": "background images and videos in a beatmap should be of reasonable quality",
+        "bodyHash": "c39f70deea20a39b",
+        "anchor": "video-and-background",
+        "startLine": 196,
+        "endLine": 196,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/skinning/using-elements-created-another-community",
+      "upstream": {
+        "path": [
+          "Skinning"
+        ],
+        "kind": "rule",
+        "lead": "If you are using any elements created by another community member, ask permission beforehand.",
+        "fingerprint": "if you are using any elements created by another community member ask permission beforehand",
+        "bodyHash": "b480c805cefba274",
+        "anchor": "skinning",
+        "startLine": 202,
+        "endLine": 202,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/skinning/gameplay-elements-visible",
+      "upstream": {
+        "path": [
+          "Skinning"
+        ],
+        "kind": "rule",
+        "lead": "Gameplay elements must be visible.",
+        "fingerprint": "gameplay elements must be visible",
+        "bodyHash": "bae4f2c165347717",
+        "anchor": "skinning",
+        "startLine": 203,
+        "endLine": 203,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/skinning/skinned-elements-cropped-cleanly-not",
+      "upstream": {
+        "path": [
+          "Skinning"
+        ],
+        "kind": "rule",
+        "lead": "Skinned elements must be cropped cleanly so they do not have pixelated artifacts around them or half-cropped shadows.",
+        "fingerprint": "skinned elements must be cropped cleanly so they do not have pixelated artifacts around them or half cropped shadows",
+        "bodyHash": "ed80fefc5bde68f3",
+        "anchor": "skinning",
+        "startLine": 204,
+        "endLine": 204,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/skinning/skinned-elements-exceed-dimensions-point",
+      "upstream": {
+        "path": [
+          "Skinning"
+        ],
+        "kind": "rule",
+        "lead": "Skinned elements cannot exceed dimensions to the point where they overlap other skin elements which they would not normally overlap in the default skin.",
+        "fingerprint": "skinned elements cannot exceed dimensions to the point where they overlap other skin elements which they would not normally overlap in the default skin",
+        "bodyHash": "160f9958da14075b",
+        "anchor": "skinning",
+        "startLine": 205,
+        "endLine": 205,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/skinning/skinning-gameplay-elements-complete-sets",
+      "upstream": {
+        "path": [
+          "Skinning"
+        ],
+        "kind": "rule",
+        "lead": "When skinning gameplay elements, complete sets of elements need to be skinned in order to avoid conflicts between user-specific and beatmap-specific skins.",
+        "fingerprint": "when skinning gameplay elements complete sets of elements need to be skinned in order to avoid conflicts between user specific and beatmap specific skins",
+        "bodyHash": "a327829f1cf491c9",
+        "anchor": "skinning",
+        "startLine": 206,
+        "endLine": 206,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/skinning/skinned-elements-kept-png-format",
+      "upstream": {
+        "path": [
+          "Skinning"
+        ],
+        "kind": "guideline",
+        "lead": "Skinned elements should be kept in `.png` format if they utilise transparency.",
+        "fingerprint": "skinned elements should be kept in png format if they utilise transparency",
+        "bodyHash": "0b6f4c866607ece5",
+        "anchor": "skinning",
+        "startLine": 210,
+        "endLine": 210,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/storyboarding/storyboarded-images-not-exceed-area",
+      "upstream": {
+        "path": [
+          "Storyboarding"
+        ],
+        "kind": "rule",
+        "lead": "Storyboarded images must not exceed an area of 17,000,000 pixels to keep loading times of large images within reasonable ranges for most computers to handle.",
+        "fingerprint": "storyboarded images must not exceed an area of 17 000 000 pixels to keep loading times of large images within reasonable ranges for most computers to handle",
+        "bodyHash": "f6f80317892db254",
+        "anchor": "storyboarding",
+        "startLine": 227,
+        "endLine": 227,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/storyboarding/difficulty-not-throw-parsing-errors",
+      "upstream": {
+        "path": [
+          "Storyboarding"
+        ],
+        "kind": "rule",
+        "lead": "The difficulty must not throw parsing errors upon loading.",
+        "fingerprint": "the difficulty must not throw parsing errors upon loading",
+        "bodyHash": "32ffcde7d000caae",
+        "anchor": "storyboarding",
+        "startLine": 228,
+        "endLine": 228,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/storyboarding/widescreen-support-setting-consistent-between",
+      "upstream": {
+        "path": [
+          "Storyboarding"
+        ],
+        "kind": "rule",
+        "lead": "The `Widescreen support` setting must be consistent between storyboarded difficulties in a beatmap, unless difficulty-specific storyboards are designed for different aspect ratios.",
+        "fingerprint": "the widescreen support setting must be consistent between storyboarded difficulties in a beatmap unless difficulty specific storyboards are designed for different aspect ratios",
+        "bodyHash": "1b6217dad57b24a2",
+        "anchor": "storyboarding",
+        "startLine": 229,
+        "endLine": 229,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/storyboarding/no-active-sprites-commands-after",
+      "upstream": {
+        "path": [
+          "Storyboarding"
+        ],
+        "kind": "guideline",
+        "lead": "There should be no active sprites and commands after the end of the song.",
+        "fingerprint": "there should be no active sprites and commands after the end of the song",
+        "bodyHash": "9edf3bf9ca55b5b9",
+        "anchor": "storyboarding",
+        "startLine": 233,
+        "endLine": 233,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/storyboarding/consider-leaving-one-pixel-border",
+      "upstream": {
+        "path": [
+          "Storyboarding"
+        ],
+        "kind": "guideline",
+        "lead": "Consider leaving a one pixel border of transparency around storyboard images of rotated sprites for interpolation to work properly.",
+        "fingerprint": "consider leaving a one pixel border of transparency around storyboard images of rotated sprites for interpolation to work properly",
+        "bodyHash": "c4c5a8b745412eb7",
+        "anchor": "storyboarding",
+        "startLine": 234,
+        "endLine": 234,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/storyboarding/avoid-noticeable-performance-issues-much",
+      "upstream": {
+        "path": [
+          "Storyboarding"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid any noticeable performance issues as much as possible. Even being optimised, having consistent frame rates is crucial for the playing experience of the difficulty.",
+        "fingerprint": "avoid any noticeable performance issues as much as possible even being optimised having consistent frame rates is crucial for the playing experience of the difficulty",
+        "bodyHash": "441a2301582dde9e",
+        "anchor": "storyboarding",
+        "startLine": 235,
+        "endLine": 235,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/storyboarding/refrain-usage-storyboard-sound-samples",
+      "upstream": {
+        "path": [
+          "Storyboarding"
+        ],
+        "kind": "guideline",
+        "lead": "Refrain from usage of storyboard sound samples in ways that are easily confused with hitsounds during gameplay.",
+        "fingerprint": "refrain from usage of storyboard sound samples in ways that are easily confused with hitsounds during gameplay",
+        "bodyHash": "28e0ba821aaaa401",
+        "anchor": "storyboarding",
+        "startLine": 236,
+        "endLine": 236,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/storyboarding/avoid-illogical-conflicting-obsolete-commands",
+      "upstream": {
+        "path": [
+          "Storyboarding"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid illogical, conflicting and obsolete commands.",
+        "fingerprint": "avoid illogical conflicting and obsolete commands",
+        "bodyHash": "c042f97bc532d79a",
+        "anchor": "storyboarding",
+        "startLine": 237,
+        "endLine": 237,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/storyboarding/widescreen-support-setting-turned-difficulty",
+      "upstream": {
+        "path": [
+          "Storyboarding"
+        ],
+        "kind": "guideline",
+        "lead": "The `Widescreen support` setting should be turned on if the difficulty contains a widescreen storyboard.",
+        "fingerprint": "the widescreen support setting should be turned on if the difficulty contains a widescreen storyboard",
+        "bodyHash": "0442d91d0985aa1a",
+        "anchor": "storyboarding",
+        "startLine": 238,
+        "endLine": 238,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/storyboarding/make-sure-storyboard-optimised-much",
+      "upstream": {
+        "path": [
+          "Storyboarding"
+        ],
+        "kind": "guideline",
+        "lead": "Make sure the storyboard is optimised as much as possible, within practical means.",
+        "fingerprint": "make sure the storyboard is optimised as much as possible within practical means",
+        "bodyHash": "7a115f272d1a7eba",
+        "anchor": "storyboarding",
+        "startLine": 239,
+        "endLine": 239,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/storyboarding/avoid-having-sprites-background-difficulty",
+      "upstream": {
+        "path": [
+          "Storyboarding"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid having sprites, or the background of the difficulty, completely visually obstructed while rendered.",
+        "fingerprint": "avoid having sprites or the background of the difficulty completely visually obstructed while rendered",
+        "bodyHash": "6b7689bd45275f0f",
+        "anchor": "storyboarding",
+        "startLine": 240,
+        "endLine": 240,
+        "parent": "general/storyboarding/make-sure-storyboard-optimised-much",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/storyboarding/avoid-sprites-being-partially-off",
+      "upstream": {
+        "path": [
+          "Storyboarding"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid sprites being partially off-screen or visually obstructed for the entire time they are used.",
+        "fingerprint": "avoid sprites being partially off screen or visually obstructed for the entire time they are used",
+        "bodyHash": "886989d24cc18803",
+        "anchor": "storyboarding",
+        "startLine": 241,
+        "endLine": 241,
+        "parent": "general/storyboarding/make-sure-storyboard-optimised-much",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/storyboarding/avoid-unnecessary-transparency-around-storyboard",
+      "upstream": {
+        "path": [
+          "Storyboarding"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid unnecessary transparency around storyboard images.",
+        "fingerprint": "avoid unnecessary transparency around storyboard images",
+        "bodyHash": "102cea5eceb0fcd0",
+        "anchor": "storyboarding",
+        "startLine": 242,
+        "endLine": 242,
+        "parent": "general/storyboarding/make-sure-storyboard-optimised-much",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/storyboarding/use-loops-commands-repeat-themselves",
+      "upstream": {
+        "path": [
+          "Storyboarding"
+        ],
+        "kind": "guideline",
+        "lead": "Use loops for commands that repeat themselves many times, unless this goes against what is visually intended.",
+        "fingerprint": "use loops for commands that repeat themselves many times unless this goes against what is visually intended",
+        "bodyHash": "4e2d1a7932824104",
+        "anchor": "storyboarding",
+        "startLine": 243,
+        "endLine": 243,
+        "parent": "general/storyboarding/make-sure-storyboard-optimised-much",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/storyboarding/avoid-using-two-axis-specific",
+      "upstream": {
+        "path": [
+          "Storyboarding"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid using two axis-specific commands when the same effect can be achieved with one regular command instead.",
+        "fingerprint": "avoid using two axis specific commands when the same effect can be achieved with one regular command instead",
+        "bodyHash": "bccbbbcb3c057daf",
+        "anchor": "storyboarding",
+        "startLine": 244,
+        "endLine": 244,
+        "parent": "general/storyboarding/make-sure-storyboard-optimised-much",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/storyboarding/use-whichever-image-file-format",
+      "upstream": {
+        "path": [
+          "Storyboarding"
+        ],
+        "kind": "guideline",
+        "lead": "Use whichever image file format takes up the least file size whilst maintaining reasonable quality.",
+        "fingerprint": "use whichever image file format takes up the least file size whilst maintaining reasonable quality",
+        "bodyHash": "ee6666ee623af451",
+        "anchor": "storyboarding",
+        "startLine": 245,
+        "endLine": 245,
+        "parent": "general/storyboarding/make-sure-storyboard-optimised-much",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "general/storyboarding/avoid-duplicate-image-files",
+      "upstream": {
+        "path": [
+          "Storyboarding"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid any duplicate image files.",
+        "fingerprint": "avoid any duplicate image files",
+        "bodyHash": "23409e388da250b3",
+        "anchor": "storyboarding",
+        "startLine": 246,
+        "endLine": 246,
+        "parent": "general/storyboarding/make-sure-storyboard-optimised-much",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/storyboarding/refrain-having-multiple-sprites-active",
+      "upstream": {
+        "path": [
+          "Storyboarding"
+        ],
+        "kind": "guideline",
+        "lead": "Refrain from having multiple sprites active while not rendered.",
+        "fingerprint": "refrain from having multiple sprites active while not rendered",
+        "bodyHash": "f99f81c79550cb71",
+        "anchor": "storyboarding",
+        "startLine": 247,
+        "endLine": 247,
+        "parent": "general/storyboarding/make-sure-storyboard-optimised-much",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/storyboarding/using-many-commands-same-type",
+      "upstream": {
+        "path": [
+          "Storyboarding"
+        ],
+        "kind": "guideline",
+        "lead": "When using many commands of the same type on a sprite, try leaving at least 16 ms between their start times.",
+        "fingerprint": "when using many commands of the same type on a sprite try leaving at least 16 ms between their start times",
+        "bodyHash": "26ca8c3ec835d56e",
+        "anchor": "storyboarding",
+        "startLine": 248,
+        "endLine": 248,
+        "parent": "general/storyboarding/make-sure-storyboard-optimised-much",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "general/storyboarding/fade-out-sprites-activated-triggers",
+      "upstream": {
+        "path": [
+          "Storyboarding"
+        ],
+        "kind": "guideline",
+        "lead": "Fade out sprites activated from triggers after usage.",
+        "fingerprint": "fade out sprites activated from triggers after usage",
+        "bodyHash": "b3a373573088cd55",
+        "anchor": "storyboarding",
+        "startLine": 249,
+        "endLine": 249,
+        "parent": "general/storyboarding/make-sure-storyboard-optimised-much",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    }
+  ]
+}

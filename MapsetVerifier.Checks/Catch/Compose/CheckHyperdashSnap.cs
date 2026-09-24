@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects.Catch;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Catch.Compose;
 
@@ -51,7 +52,12 @@ public class CheckHyperdashSnap : BeatmapCheck
                     "timestamp -",
                     "allowed",
                     "current"
-                ).WithCause("The used snap is not allowed.")
+                )
+                    .WithCause("The used snap is not allowed.")
+                    .WithRule(
+                        RC.Catch.Platter_HyperdashesLeast125MsGap,
+                        RC.Catch.Rain_HyperdashesDashesLeast62Ms
+                    )
             },
         };
     }

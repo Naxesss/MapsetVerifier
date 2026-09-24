@@ -185,6 +185,7 @@ Returns a dictionary of named [`IssueTemplate`](../MapsetVerifier.Framework/Obje
 - **Format string** — message with `{0}`, `{1}`, … placeholders.
 - **Default argument labels** — one label per placeholder (used in documentation).
 - **Cause** (optional) — extra explanation via `.WithCause("...")`.
+- **Ranking criteria** (optional) — the rule(s) or guideline(s) the template enforces via `.WithRule("osu/hit-objects-never-off-screen")`. Users are then pointed to that statement in the app's ranking criteria viewer. Ids are listed in the [catalogue](../MapsetVerifier.RankingCriteria/Data/catalogue); built-in checks use the generated `RC` constants instead of strings. See [RANKING_CRITERIA.md](RANKING_CRITERIA.md).
 
 Placeholder count must match the number of default-argument labels exactly.
 

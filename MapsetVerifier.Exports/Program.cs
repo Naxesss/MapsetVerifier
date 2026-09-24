@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using MapsetVerifier.Framework;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Metadata;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Exports;
 
@@ -27,6 +28,7 @@ internal static class Program
                 generatedAt = DateTime.UtcNow.ToString("o"),
                 version = GetVersion(),
                 checks = items,
+                rankingCriteria = SerializeRankingCriteria(),
             };
 
             var options = new JsonSerializerOptions
@@ -91,6 +93,44 @@ internal static class Program
         }
     }
 
+    /// <summary>
+    ///     The ranking criteria snapshot the checks link to; together with each template's <c>ruleIds</c> this is enough
+    ///     to show which statements are covered.
+    /// </summary>
+    private static object SerializeRankingCriteria()
+    {
+        var store = RcStore.Embedded;
+
+        return new
+        {
+            source = store.Source,
+            pages = RcPages.All.Select(page => new
+            {
+                key = page.Key,
+                title = page.Title,
+                wikiUrl = page.WikiUrl,
+                modes = page.Modes.Select(mode => mode.ToString()).ToArray(),
+            }),
+            statements = RcPages
+                .All.SelectMany(page => store.GetStatements(page.Key))
+                .Where(statement => !statement.IsRetired)
+                .Select(statement => new
+                {
+                    id = statement.Id,
+                    page = statement.Id.Split('/')[0],
+                    kind = statement.Upstream.Kind.ToString(),
+                    lead = statement.Upstream.Lead,
+                    path = statement.Upstream.Path,
+                    parent = statement.Upstream.Parent,
+                    intro = statement.Upstream.Intro,
+                    difficulties = statement
+                        .Upstream.Difficulties.Select(difficulty => difficulty.ToString())
+                        .ToArray(),
+                    automation = statement.Curation.Automation.ToString(),
+                }),
+        };
+    }
+
     private static object SerializeCheck(Check check)
     {
         var meta = check.GetMetadata();
@@ -128,6 +168,7 @@ internal static class Program
                             .Select(a => a.ToString())
                             .ToArray(),
                         cause = kv.Value.Cause,
+                        ruleIds = kv.Value.RuleIds,
                     }
                 ),
         };

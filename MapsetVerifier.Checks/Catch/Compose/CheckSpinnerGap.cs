@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using static MapsetVerifier.Parser.Objects.Beatmap;
 
 namespace MapsetVerifier.Checks.Catch.Compose
@@ -51,7 +52,15 @@ namespace MapsetVerifier.Checks.Catch.Compose
                         "timestamp -",
                         "required duration",
                         "current duration"
-                    ).WithCause("The spinner starts too early.")
+                    )
+                        .WithCause("The spinner starts too early.")
+                        .WithRule(
+                            RC.Catch.Cup_Least250MsLeftBetween,
+                            RC.Catch.Salad_Least250MsLeftBetween,
+                            RC.Catch.Platter_Least125MsLeftBetween,
+                            RC.Catch.Rain_Least125MsLeftBetween,
+                            RC.Catch.Overdose_Least62MsLeftBetween
+                        )
                 },
                 {
                     "SpinnerAfter",
@@ -61,7 +70,15 @@ namespace MapsetVerifier.Checks.Catch.Compose
                         "timestamp -",
                         "required duration",
                         "current duration"
-                    ).WithCause("The spinner ends too late.")
+                    )
+                        .WithCause("The spinner ends too late.")
+                        .WithRule(
+                            RC.Catch.Cup_Least250MsLeftBetween,
+                            RC.Catch.Salad_Least250MsLeftBetween,
+                            RC.Catch.Platter_Least250MsLeftBetween,
+                            RC.Catch.Rain_Least125MsLeftBetween,
+                            RC.Catch.Overdose_Least125MsLeftBetween
+                        )
                 },
             };
 

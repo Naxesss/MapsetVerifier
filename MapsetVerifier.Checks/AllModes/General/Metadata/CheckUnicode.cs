@@ -2,6 +2,7 @@
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.General.Metadata
 {
@@ -54,9 +55,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         "Artist/title/creator",
                         "field",
                         "unicode char(s)"
-                    ).WithCause(
-                        "The romanized title, artist, or creator field contains unicode characters."
                     )
+                        .WithCause(
+                            "The romanized title, artist, or creator field contains unicode characters."
+                        )
+                        .WithRule(RC.Metadata.Symbols_RomanisedFieldsSymbolsChangedNearest)
                 },
                 {
                     "Warning",
@@ -66,7 +69,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         "difficulty name",
                         "field",
                         "unicode char(s)"
-                    ).WithCause("The difficulty name field contains unicode characters.")
+                    )
+                        .WithCause("The difficulty name field contains unicode characters.")
+                        .WithRule(RC.General.Beatmap_AvoidNonAlphanumericUnicodeCharacters)
                 },
             };
 

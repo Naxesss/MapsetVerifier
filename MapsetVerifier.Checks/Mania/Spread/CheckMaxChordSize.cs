@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using MathNet.Numerics;
 
 namespace MapsetVerifier.Checks.Mania.Spread
@@ -54,7 +55,16 @@ namespace MapsetVerifier.Checks.Mania.Spread
                         "timestamp - ",
                         "maxChordSize",
                         "keymode"
-                    ).WithCause("Chord bigger than expected.")
+                    )
+                        .WithCause("Chord bigger than expected.")
+                        .WithRule(
+                            RC.Mania.NotMore6NotesPressed,
+                            RC.Mania.Easy_AvoidChordsMore2Notes,
+                            RC.Mania.Normal_AvoidChordsMore2Notes,
+                            RC.Mania.Normal_AvoidChordsMore3Notes,
+                            RC.Mania.Hard_AvoidChordsMore3Notes,
+                            RC.Mania.Hard_AvoidChordsMore4Notes
+                        )
                 },
             };
         }

@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Framework.Objects.Resources;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 using Serilog;
 
 namespace MapsetVerifier.Checks.AllModes.General.Audio
@@ -45,9 +46,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         "\"{0}\" is completely silent in the {1} channel.",
                         "path",
                         "left/right"
-                    ).WithCause(
-                        "One of the channels of a hit sound has no volume, but still 2 channels."
                     )
+                        .WithCause(
+                            "One of the channels of a hit sound has no volume, but still 2 channels."
+                        )
+                        .WithRule(RC.General.Audio_AudioFileHitsoundFilesBeatmap)
                 },
                 {
                     "Warning Common",
@@ -57,9 +60,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         "path",
                         "left/right",
                         "[difficulty]"
-                    ).WithCause(
-                        "One of the channels of a hit sound has at least half the total volume of the other. The hit sound must also be used on average once every 10 seconds in a map."
                     )
+                        .WithCause(
+                            "One of the channels of a hit sound has at least half the total volume of the other. The hit sound must also be used on average once every 10 seconds in a map."
+                        )
+                        .WithRule(RC.General.Audio_AudioFileHitsoundFilesBeatmap)
                 },
                 {
                     "Warning Timestamp",
@@ -69,9 +74,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         "path",
                         "left/right",
                         "timestamp in [difficulty]"
-                    ).WithCause(
-                        "Same as the other check, except only happens when the hit sound is used frequently in a short timespan."
                     )
+                        .WithCause(
+                            "Same as the other check, except only happens when the hit sound is used frequently in a short timespan."
+                        )
+                        .WithRule(RC.General.Audio_AudioFileHitsoundFilesBeatmap)
                 },
                 {
                     "Minor",
@@ -80,9 +87,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         "\"{0}\" has a notably louder {1} channel, not a huge deal in this case though.",
                         "path",
                         "left/right"
-                    ).WithCause(
-                        "One of the channels of a hit sound has half the total volume of the other."
                     )
+                        .WithCause(
+                            "One of the channels of a hit sound has half the total volume of the other."
+                        )
+                        .WithRule(RC.General.Audio_AudioFileHitsoundFilesBeatmap)
                 },
                 {
                     "Unable to check",

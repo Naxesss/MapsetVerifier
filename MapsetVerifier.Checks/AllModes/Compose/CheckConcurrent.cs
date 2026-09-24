@@ -5,6 +5,7 @@ using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Objects.HitObjects.Mania;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.Compose
 {
@@ -57,9 +58,12 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                         "{0} Concurrent {1}.",
                         "timestamp -",
                         "hit objects"
-                    ).WithCause(
-                        "A hit object starts before another hit object has ended. For mania this also requires that the objects are in the same column."
                     )
+                        .WithCause(
+                            "A hit object starts before another hit object has ended. For mania this also requires that the objects are in the same column."
+                        )
+                        .WithRule(RC.General.NoTwoHitObjectsPlaced)
+                        .WithRule(RC.Mania.TwoNotesPlacedSingleColumn)
                 },
                 {
                     "Almost Concurrent Objects",
@@ -68,9 +72,12 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                         "{0} Within {1} ms of one another.",
                         "timestamp -",
                         "gap"
-                    ).WithCause(
-                        "Two hit objects are less than 10 ms apart from one another. For mania this also requires that the objects are in the same column."
                     )
+                        .WithCause(
+                            "Two hit objects are less than 10 ms apart from one another. For mania this also requires that the objects are in the same column."
+                        )
+                        .WithRule(RC.General.Least10MillisecondsBetweenHit)
+                        .WithRule(RC.Mania.TwoNotesPlacedSingleColumn)
                 },
             };
 

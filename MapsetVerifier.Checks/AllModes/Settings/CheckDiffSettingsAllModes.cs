@@ -2,6 +2,7 @@
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.Settings
 {
@@ -49,9 +50,11 @@ namespace MapsetVerifier.Checks.AllModes.Settings
                         "setting",
                         "min",
                         "max"
-                    ).WithCause(
-                        "The circle size settings is less than 4 or greater than 10. Only applies to mania."
                     )
+                        .WithCause(
+                            "The circle size settings is less than 4 or greater than 10. Only applies to mania."
+                        )
+                        .WithRule(RC.Mania.BeatmapsOnlyUse410)
                 },
                 {
                     "Decimals",
@@ -60,7 +63,9 @@ namespace MapsetVerifier.Checks.AllModes.Settings
                         "{0} {1} has more than 1 decimal place.",
                         "value",
                         "setting"
-                    ).WithCause("A difficulty setting has more than 1 decimal place.")
+                    )
+                        .WithCause("A difficulty setting has more than 1 decimal place.")
+                        .WithRule(RC.General.DifficultySettingsNotUseMore)
                 },
                 {
                     "Other",

@@ -1,0 +1,67 @@
+name: Sync ranking criteria
+
+# Takes a new snapshot of the ranking criteria from ppy/osu-wiki and opens a pull request when it changed.
+# The pull request's build fails if a check still links to a statement that was removed from the wiki.
+# Requires "Allow GitHub Actions to create and approve pull requests" in the repository's Actions settings.
+
+on:
+  schedule:
+    # Mondays at 06:00 UTC.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Update snapshot
+        id: update
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          previous=$(jq -r .commit MapsetVerifier.RankingCriteria/Data/source.json)
+          ./scripts/update-ranking-criteria.sh > report.md
+          current=$(jq -r .commit MapsetVerifier.RankingCriteria/Data/source.json)
+          echo "previous=$previous" >> "$GITHUB_OUTPUT"
+          echo "current=$current" >> "$GITHUB_OUTPUT"
+          echo "short=${current:0:8}" >> "$GITHUB_OUTPUT"
+
+      - name: Write pull request description
+        run: |
+          set -euo pipefail
+          {
+            echo "Updates the ranking criteria snapshot to ppy/osu-wiki@${{ steps.update.outputs.current }}."
+            echo
+            echo "Wiki changes: https://github.com/ppy/osu-wiki/compare/${{ steps.update.outputs.previous }}...${{ steps.update.outputs.current }}"
+            echo
+            echo "Check reworded and retired statements: linked checks may need updating, and a retired statement's"
+            echo "\`RC\` constant no longer exists, so checks still using it fail to build."
+            echo
+            if [ -s report.md ]; then cat report.md; else echo "No statements changed; only the page text did."; fi
+          } > pr-body.md
+          rm report.md
+
+      - name: Open pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: ranking-criteria/sync
+          delete-branch: true
+          commit-message: Update ranking criteria snapshot to ${{ steps.update.outputs.short }}
+          title: Update ranking criteria snapshot to ${{ steps.update.outputs.short }}
+          body-path: pr-body.md
+          add-paths: |
+            MapsetVerifier.RankingCriteria/Data/**
+            MapsetVerifier.RankingCriteria/RC.g.cs

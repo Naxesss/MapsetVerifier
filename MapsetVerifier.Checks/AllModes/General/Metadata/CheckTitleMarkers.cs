@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.General.Metadata
 {
@@ -132,8 +133,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         "Romanized/unicode",
                         "field",
                         "title marker"
-                    ).WithCause(
-                        @"The format of a title marker, in either the romanized or unicode title, is incorrect.
+                    )
+                        .WithCause(
+                            @"The format of a title marker, in either the romanized or unicode title, is incorrect.
                         Standard markers include:
                         - (TV Size)
                         - (Game Ver.)
@@ -145,7 +147,21 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         - (Nightcore Mix)
                         - (Sped Up & Cut Ver.)
                         - (Nightcore & Cut Ver.)"
-                    )
+                        )
+                        .WithRule(
+                            RC.Metadata.Markers_SongsVersionMarkersFullyReplaced,
+                            RC.Metadata.Markers_SimilarMarkersSongTitleReplace
+                        )
+                        .WithRule(
+                            RC.Metadata.Markers_TvSizeAddMarkerEnd,
+                            RC.Metadata.Markers_CutVerUseSongCut,
+                            RC.Metadata.Markers_ExtendedEditUseSongUnofficial,
+                            RC.Metadata.Markers_SpedUpVerNightcoreMix,
+                            RC.Metadata.Markers_CombinedMarkersEditSpedUp,
+                            RC.Metadata.Markers_ShortVerUsedMarkShorter,
+                            RC.Metadata.Markers_GameVerUsedMarkGame,
+                            RC.Metadata.Markers_MovieVerUsedMarkMovie
+                        )
                 },
                 {
                     "Nightcore Tag",
@@ -156,9 +172,12 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         "(Nightcore Mix)",
                         "(Sped Up Ver.)",
                         "romanized/unicode"
-                    ).WithCause(
-                        "The title contains a sped-up marker while tags indicate nightcore (pitch-up). Use a Nightcore marker instead."
                     )
+                        .WithCause(
+                            "The title contains a sped-up marker while tags indicate nightcore (pitch-up). Use a Nightcore marker instead."
+                        )
+                        .WithRule(RC.Metadata.Markers_SimilarMarkersSongTitleReplace)
+                        .WithRule(RC.Metadata.Markers_SpedUpVerNightcoreMix)
                 },
                 {
                     "Generic Marker Format",
@@ -168,9 +187,12 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         "Romanized/unicode",
                         "field",
                         "title marker"
-                    ).WithCause(
-                        @"Length or version markers not covered by the standard list should use a descriptive ""(#### Ver.)"" form in title case, e.g. ""(Extended Version)"" -> ""(Extended Ver.)"", ""(Long)"" -> ""(Long Ver.)"". Stylised markers considered part of the title should be kept as-is."
                     )
+                        .WithCause(
+                            @"Length or version markers not covered by the standard list should use a descriptive ""(#### Ver.)"" form in title case, e.g. ""(Extended Version)"" -> ""(Extended Ver.)"", ""(Long)"" -> ""(Long Ver.)"". Stylised markers considered part of the title should be kept as-is."
+                        )
+                        .WithRule(RC.Metadata.Markers_SimilarMarkersSongTitleReplace)
+                        .WithRule(RC.Metadata.Markers_VerSongTitlesAlreadyLength)
                 },
                 {
                     "TV Size Position",
@@ -179,9 +201,12 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         "{0} title field; \"{1}\" — (TV Size) should be at the end of the title.",
                         "Romanized/unicode",
                         "field"
-                    ).WithCause(
-                        "The TV Size marker should appear at the end of the title, typically as the final parenthetical."
                     )
+                        .WithCause(
+                            "The TV Size marker should appear at the end of the title, typically as the final parenthetical."
+                        )
+                        .WithRule(RC.Metadata.Markers_SongsWithoutVersionMarkerFit)
+                        .WithRule(RC.Metadata.Markers_TvSizeAddMarkerEnd)
                 },
                 {
                     "OP Version",
@@ -190,9 +215,12 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         "{0} title field; \"{1}\" — consider \"(Game Ver.)\" instead of \"OP Version\" (game-related tags detected).",
                         "Romanized/unicode",
                         "field"
-                    ).WithCause(
-                        "\"OP Version\" in a game context should be standardized to (Game Ver.)."
                     )
+                        .WithCause(
+                            "\"OP Version\" in a game context should be standardized to (Game Ver.)."
+                        )
+                        .WithRule(RC.Metadata.Markers_SimilarMarkersSongTitleReplace)
+                        .WithRule(RC.Metadata.Markers_GameVerUsedMarkGame)
                 },
                 {
                     "Title Marker Mismatch",

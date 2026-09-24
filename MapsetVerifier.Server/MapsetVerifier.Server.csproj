@@ -13,6 +13,7 @@
     <ProjectReference Include="..\MapsetVerifier.Parser\MapsetVerifier.Parser.csproj" />
     <ProjectReference Include="..\MapsetVerifier.Snapshots\MapsetVerifier.Snapshots.csproj" />
     <ProjectReference Include="..\MapsetVerifier.Logging\MapsetVerifier.Logging.csproj" />
+    <ProjectReference Include="..\MapsetVerifier.RankingCriteria\MapsetVerifier.RankingCriteria.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Realm" Version="20.1.0" />

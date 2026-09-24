@@ -2,6 +2,7 @@
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.Compose
 {
@@ -45,9 +46,11 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                         Issue.Level.Problem,
                         "Less than 30 seconds of drain time, currently {0} seconds.",
                         "drain time"
-                    ).WithCause(
-                        "The time from the first object to the end of the last object, subtracting any time between two objects where a break exists, is in total less than 30 seconds."
                     )
+                        .WithCause(
+                            "The time from the first object to the end of the last object, subtracting any time between two objects where a break exists, is in total less than 30 seconds."
+                        )
+                        .WithRule(RC.General.Beatmap_DifficultyBeatmapMinimumDrainTime)
                 },
             };
 

@@ -5,6 +5,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.Timing
 {
@@ -55,10 +56,12 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "timestamp -",
                         "object",
                         "unsnap"
-                    ).WithCause(
-                        "A hit object is snapped at least 2 ms too early or late for either of the 1/5, "
-                            + "1/7, 1/9, 1/12, or 1/16 beat snap divisors."
                     )
+                        .WithCause(
+                            "A hit object is snapped at least 2 ms too early or late for either of the 1/5, "
+                                + "1/7, 1/9, 1/12, or 1/16 beat snap divisors."
+                        )
+                        .WithRule(RC.General.Timing_HitObjectsSnappedWithinLess)
                 },
                 {
                     "Minor",

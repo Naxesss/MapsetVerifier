@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Standard.Compose
 {
@@ -47,10 +48,16 @@ namespace MapsetVerifier.Checks.Standard.Compose
                         "timestamp -",
                         "times",
                         "example objects"
-                    ).WithCause(
-                        @"The space/time ratio between two objects is absurdly large in comparison to other objects with the same snapping prior.
-                                    > Accounts for slider leniency by assuming that the gap is a circle's diameter smaller."
                     )
+                        .WithCause(
+                            @"The space/time ratio between two objects is absurdly large in comparison to other objects with the same snapping prior.
+                                    > Accounts for slider leniency by assuming that the gap is a circle's diameter smaller."
+                        )
+                        .WithRule(
+                            RC.Osu.Easy_TimeDistanceEqualityUsed,
+                            RC.Osu.Normal_TimeDistanceEqualityUsed,
+                            RC.Osu.Hard_AvoidVisuallySimilarSpacingDifferent
+                        )
                 },
                 {
                     "Warning",
@@ -60,9 +67,15 @@ namespace MapsetVerifier.Checks.Standard.Compose
                         "timestamp -",
                         "times",
                         "example objects"
-                    ).WithCause(
-                        "Same as the first check, but with slightly less absurd, yet often still extreme, differences."
                     )
+                        .WithCause(
+                            "Same as the first check, but with slightly less absurd, yet often still extreme, differences."
+                        )
+                        .WithRule(
+                            RC.Osu.Easy_TimeDistanceEqualityUsed,
+                            RC.Osu.Normal_TimeDistanceEqualityUsed,
+                            RC.Osu.Hard_AvoidVisuallySimilarSpacingDifferent
+                        )
                 },
                 {
                     "Minor",
@@ -72,7 +85,13 @@ namespace MapsetVerifier.Checks.Standard.Compose
                         "timestamp -",
                         "times",
                         "example objects"
-                    ).WithCause("Same as the first check, but with more common differences.")
+                    )
+                        .WithCause("Same as the first check, but with more common differences.")
+                        .WithRule(
+                            RC.Osu.Easy_TimeDistanceEqualityUsed,
+                            RC.Osu.Normal_TimeDistanceEqualityUsed,
+                            RC.Osu.Hard_AvoidVisuallySimilarSpacingDifferent
+                        )
                 },
             };
 

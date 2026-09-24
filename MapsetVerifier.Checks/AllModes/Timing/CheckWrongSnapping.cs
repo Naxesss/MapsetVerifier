@@ -5,6 +5,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using MathNet.Numerics;
 
 namespace MapsetVerifier.Checks.AllModes.Timing
@@ -69,11 +70,18 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "timestamp -",
                         "X",
                         "difficulty"
-                    ).WithCause(
-                        @"Two hit objects in separate difficulties do not have any object in the other difficulty at the same time, and are close enough in time to be mistaken for one another.
+                    )
+                        .WithCause(
+                            @"Two hit objects in separate difficulties do not have any object in the other difficulty at the same time, and are close enough in time to be mistaken for one another.
                                     > Ignores cases where the divisor on the lower difficulty is less than on the higher difficulty, since this is usually natural.
                                     > Cross-family snaps (e.g. 1/4 vs 1/6) and exotic divisors (e.g. 1/16) are more severe than mismatches within the 1/2–1/4–1/8 or 1/3–1/6 families."
-                    )
+                        )
+                        .WithRule(
+                            RC.Osu.CirclesSliderHeadsSnappedDistinct,
+                            RC.Catch.FruitsRepresentSoundExistingMusic,
+                            RC.Mania.NoteCorrelateSoundPresentMusic,
+                            RC.Taiko.NoteClearlyAssignableMusicalLayer
+                        )
                 },
                 {
                     "Snap Count",
@@ -82,9 +90,16 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "{0} 1/{1} is used 3 times or less, ensure this makes sense.",
                         "timestamp(s) -",
                         "X"
-                    ).WithCause(
-                        "The beat snap divisor a hit object is on is used less than or equal to 3 times in the same difficulty and is 1/6 or lower."
                     )
+                        .WithCause(
+                            "The beat snap divisor a hit object is on is used less than or equal to 3 times in the same difficulty and is 1/6 or lower."
+                        )
+                        .WithRule(
+                            RC.Osu.CirclesSliderHeadsSnappedDistinct,
+                            RC.Catch.FruitsRepresentSoundExistingMusic,
+                            RC.Mania.NoteCorrelateSoundPresentMusic,
+                            RC.Taiko.NoteClearlyAssignableMusicalLayer
+                        )
                 },
                 {
                     "Snap Percent",
@@ -93,9 +108,16 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "{0} 1/{1} makes out 0.5% or less of snappings, ensure this makes sense.",
                         "timestamp(s) -",
                         "X"
-                    ).WithCause(
-                        "The beat snap divisor a hit object is on is used less than or equal to 0.5% of all snappings in the same difficulty and is 1/6 or lower."
                     )
+                        .WithCause(
+                            "The beat snap divisor a hit object is on is used less than or equal to 0.5% of all snappings in the same difficulty and is 1/6 or lower."
+                        )
+                        .WithRule(
+                            RC.Osu.CirclesSliderHeadsSnappedDistinct,
+                            RC.Catch.FruitsRepresentSoundExistingMusic,
+                            RC.Mania.NoteCorrelateSoundPresentMusic,
+                            RC.Taiko.NoteClearlyAssignableMusicalLayer
+                        )
                 },
                 // minors
                 {
@@ -108,10 +130,17 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "timestamp -",
                         "X",
                         "difficulty"
-                    ).WithCause(
-                        @"Two hit objects in separate difficulties do not have any object in the other difficulty at the same time, and are close enough in time to be mistaken for one another, but both use divisors from the same common family (1/2–1/4–1/8 or 1/3–1/6).
-                                    > Ignores cases where the divisor on the lower difficulty is less than on the higher difficulty, since this is usually natural."
                     )
+                        .WithCause(
+                            @"Two hit objects in separate difficulties do not have any object in the other difficulty at the same time, and are close enough in time to be mistaken for one another, but both use divisors from the same common family (1/2–1/4–1/8 or 1/3–1/6).
+                                    > Ignores cases where the divisor on the lower difficulty is less than on the higher difficulty, since this is usually natural."
+                        )
+                        .WithRule(
+                            RC.Osu.CirclesSliderHeadsSnappedDistinct,
+                            RC.Catch.FruitsRepresentSoundExistingMusic,
+                            RC.Mania.NoteCorrelateSoundPresentMusic,
+                            RC.Taiko.NoteClearlyAssignableMusicalLayer
+                        )
                 },
                 {
                     "Minor Snap Count",
@@ -120,7 +149,14 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "{0} 1/{1} is used 7 times or less, ensure this makes sense.",
                         "timestamp(s) -",
                         "X"
-                    ).WithCause("Same as the other check, except with 7 as threshold instead.")
+                    )
+                        .WithCause("Same as the other check, except with 7 as threshold instead.")
+                        .WithRule(
+                            RC.Osu.CirclesSliderHeadsSnappedDistinct,
+                            RC.Catch.FruitsRepresentSoundExistingMusic,
+                            RC.Mania.NoteCorrelateSoundPresentMusic,
+                            RC.Taiko.NoteClearlyAssignableMusicalLayer
+                        )
                 },
                 {
                     "Minor Snap Percent",
@@ -129,7 +165,14 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "{0} 1/{1} makes out 5% or less of snappings, ensure this makes sense.",
                         "timestamp(s) -",
                         "X"
-                    ).WithCause("Same as the other check, except with 5% as threshold instead.")
+                    )
+                        .WithCause("Same as the other check, except with 5% as threshold instead.")
+                        .WithRule(
+                            RC.Osu.CirclesSliderHeadsSnappedDistinct,
+                            RC.Catch.FruitsRepresentSoundExistingMusic,
+                            RC.Mania.NoteCorrelateSoundPresentMusic,
+                            RC.Taiko.NoteClearlyAssignableMusicalLayer
+                        )
                 },
             };
 
