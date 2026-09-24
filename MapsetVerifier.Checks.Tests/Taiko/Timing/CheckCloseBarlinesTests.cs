@@ -74,6 +74,22 @@ public class CheckCloseBarlinesTests
     }
 
     [Fact]
+    public void DoesNotFlagExactDownbeatWhenTruncated180BpmOvershootsMeasure()
+    {
+        // 180 BPM stored as 333.333333333333; 6/4 * beat length is ~2e-12 ms
+        // under 2000, so the next red line modulo-wraps instead of landing on 0.
+        var issues = RunCheck(
+            timingPoints:
+            [
+                "167139,333.333333333333,6,1,0,70,1,0",
+                "169139,333.333333333333,4,1,0,75,1,0",
+            ]
+        );
+
+        Assert.Empty(issues);
+    }
+
+    [Fact]
     public void DoesNotFlagYobanashiDeceiveRedLineResets()
     {
         // 260 BPM stored as 230.769230769231; integer red lines land 0.15–0.85ms

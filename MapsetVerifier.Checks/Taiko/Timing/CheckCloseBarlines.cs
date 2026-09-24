@@ -97,6 +97,12 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                 if (barlineGap - rest <= Common.MS_EPSILON)
                     continue;
 
+                // The other way around, a repeating BPM such as 180 stored as
+                // 333.333333333333 can land an exact downbeat a hair past the
+                // barline. The remainder is then effectively zero, not a close barline.
+                if (rest <= Common.ROUNDING_ERROR_MARGIN)
+                    continue;
+
                 if (rest > 0)
                 {
                     var snap = TimingUtils.FormatClosestBeatSnap(rest, current.msPerBeat);
