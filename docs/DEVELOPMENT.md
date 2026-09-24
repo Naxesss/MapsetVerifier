@@ -62,6 +62,10 @@ npm ci
 npm --prefix electron-app ci
 ```
 
+## Ranking criteria snapshot
+
+Checks link their issue templates to ranking criteria statements. The snapshot of the osu-wiki pages they link to is maintained with a tool, see [RANKING_CRITERIA.md](RANKING_CRITERIA.md).
+
 ## Building sidecars for other systems
 
 Sidecar binaries are laid out under `bin/server/dist/<runtime>/` and bundled into the Electron app via `extraResources`.

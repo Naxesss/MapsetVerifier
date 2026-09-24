@@ -2,6 +2,7 @@ using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.General.Resources
 {
@@ -50,9 +51,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                     new IssueTemplate(
                         Issue.Level.Info,
                         "Make sure this background is free to use, or that you have permission from the artist."
-                    ).WithCause(
-                        "The tags field contains a Mappers' Guild tag (\"mpg\", \"mappers guild\", or \"mappers' guild\")."
                     )
+                        .WithCause(
+                            "The tags field contains a Mappers' Guild tag (\"mpg\", \"mappers guild\", or \"mappers' guild\")."
+                        )
+                        .WithRule(RC.General.BeatmapContentClearedRegardingContent)
                 },
             };
 

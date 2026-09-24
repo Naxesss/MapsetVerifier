@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.Events;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.Events
 {
@@ -55,7 +56,12 @@ namespace MapsetVerifier.Checks.AllModes.Events
                         "path",
                         "volume",
                         ".osu/.osb"
-                    ).WithCause("The .osu file or .osb file contains storyboarded hit sounds.")
+                    )
+                        .WithCause("The .osu file or .osb file contains storyboarded hit sounds.")
+                        .WithRule(
+                            RC.General.Audio_StoryboardedHitsoundsUsedReplacementsActive,
+                            RC.General.Storyboarding_RefrainUsageStoryboardSoundSamples
+                        )
                 },
             };
 

@@ -5,6 +5,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Taiko.Timing
 {
@@ -55,7 +56,12 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         "{0} Kiai flash ({1}).",
                         "timestamp -",
                         "1/X"
-                    ).WithCause("A kiai flash exists, but is not too drastic")
+                    )
+                        .WithCause("A kiai flash exists, but is not too drastic")
+                        .WithRule(
+                            RC.General.DifficultiesContainRepetitiveStrobesPulsing,
+                            RC.Taiko.KiaiTimeOnlyUsedChorus
+                        )
                 },
                 {
                     Warning,
@@ -64,7 +70,12 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         "{0} Kiai flash ({1}).",
                         "timestamp -",
                         "1/X"
-                    ).WithCause("A kiai flash that's too drastic exists")
+                    )
+                        .WithCause("A kiai flash that's too drastic exists")
+                        .WithRule(
+                            RC.General.DifficultiesContainRepetitiveStrobesPulsing,
+                            RC.Taiko.KiaiTimeOnlyUsedChorus
+                        )
                 },
             };
 

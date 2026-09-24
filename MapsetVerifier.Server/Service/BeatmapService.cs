@@ -556,7 +556,8 @@ public static class BeatmapService
                     return new ApiCheckResult(
                         id: checkId,
                         level: issue.level,
-                        message: issue.message
+                        message: issue.message,
+                        ruleIds: RankingCriteriaService.RuleIdsFor(issue)
                     );
                 });
 
@@ -583,7 +584,12 @@ public static class BeatmapService
                     .FirstOrDefault(c => c.Value.GetType() == issue.CheckOrigin?.GetType())
                     .Key;
 
-                return new ApiCheckResult(id: checkId, level: issue.level, message: issue.message);
+                return new ApiCheckResult(
+                    id: checkId,
+                    level: issue.level,
+                    message: issue.message,
+                    ruleIds: RankingCriteriaService.RuleIdsFor(issue)
+                );
             })
             .ToList();
 
@@ -662,7 +668,12 @@ public static class BeatmapService
                     .FirstOrDefault(c => c.Value.GetType() == issue.CheckOrigin?.GetType())
                     .Key;
 
-                return new ApiCheckResult(id: checkId, level: issue.level, message: issue.message);
+                return new ApiCheckResult(
+                    id: checkId,
+                    level: issue.level,
+                    message: issue.message,
+                    ruleIds: RankingCriteriaService.RuleIdsFor(issue)
+                );
             })
             .ToList();
 

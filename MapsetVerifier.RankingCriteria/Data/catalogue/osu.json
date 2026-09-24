@@ -1,0 +1,2277 @@
+{
+  "page": "osu",
+  "statements": [
+    {
+      "id": "osu/hit-objects-never-off-screen",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "Hit objects must never be off-screen in 4:3 aspect ratios.",
+        "fingerprint": "hit objects must never be off screen in 4 3 aspect ratios",
+        "bodyHash": "d7c164ae3a4b3534",
+        "anchor": "general",
+        "startLine": 15,
+        "endLine": 15,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/spinners-long-enough-auto-achieve",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "Spinners must be long enough for Auto to achieve 1000 bonus score.",
+        "fingerprint": "spinners must be long enough for auto to achieve 1000 bonus score",
+        "bodyHash": "3ebb98e3866761fd",
+        "anchor": "general",
+        "startLine": 16,
+        "endLine": 16,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/beatmap-use-least-two-different",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "Each beatmap must use at least two different custom combo colours unless the default skin is forced.",
+        "fingerprint": "each beatmap must use at least two different custom combo colours unless the default skin is forced",
+        "bodyHash": "11d9e8aa02f8c4aa",
+        "anchor": "general",
+        "startLine": 17,
+        "endLine": 17,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/actively-clicked-parts-objects-least",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "All actively clicked parts of objects must have at least one audible hitsound that does not blend with the song.",
+        "fingerprint": "all actively clicked parts of objects must have at least one audible hitsound that does not blend with the song",
+        "bodyHash": "93c7610d9a649c2b",
+        "anchor": "general",
+        "startLine": 18,
+        "endLine": 18,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/difficulties-convert-other-game-modes",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "Difficulties must convert to other game modes without breaking star rating/performance points.",
+        "fingerprint": "difficulties must convert to other game modes without breaking star rating performance points",
+        "bodyHash": "feb2bce534b5a18a",
+        "anchor": "general",
+        "startLine": 19,
+        "endLine": 19,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/sliderends-not-represent-specific-sound",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Sliderends that do not represent a specific sound in the music should be snapped according to the song's beat structure.",
+        "fingerprint": "sliderends that do not represent a specific sound in the music should be snapped according to the song s beat structure",
+        "bodyHash": "f11d269a3c7aabd0",
+        "anchor": "general",
+        "startLine": 23,
+        "endLine": 23,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "osu/circles-slider-heads-snapped-distinct",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "All circles and slider heads should be snapped to distinct sounds in the music.",
+        "fingerprint": "all circles and slider heads should be snapped to distinct sounds in the music",
+        "bodyHash": "39e0b7a4d95ddb04",
+        "anchor": "general",
+        "startLine": 24,
+        "endLine": 24,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/slider-tick-rate-set-according",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Slider tick rate should be set according to the song.",
+        "fingerprint": "slider tick rate should be set according to the song",
+        "bodyHash": "9523219f824a47a3",
+        "anchor": "general",
+        "startLine": 25,
+        "endLine": 25,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "osu/avoid-using-combo-colours-slider",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid using combo colours, slider borders or hitcircleoverlays with ~50 luminosity or lower.",
+        "fingerprint": "avoid using combo colours slider borders or hitcircleoverlays with 50 luminosity or lower",
+        "bodyHash": "5d7eaf32798f9da7",
+        "anchor": "general",
+        "startLine": 26,
+        "endLine": 26,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/avoid-using-combo-colours-custom",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid using combo colours and custom slider track colours with ~220 luminosity or higher during kiai times.",
+        "fingerprint": "avoid using combo colours and custom slider track colours with 220 luminosity or higher during kiai times",
+        "bodyHash": "66ca69eff7e8ee20",
+        "anchor": "general",
+        "startLine": 27,
+        "endLine": 27,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/spinner-ends-slider-ends-slider",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Spinner ends, slider ends, and slider reverses should have hitsound feedback.",
+        "fingerprint": "spinner ends slider ends and slider reverses should have hitsound feedback",
+        "bodyHash": "9e05da76ed5d5ead",
+        "anchor": "general",
+        "startLine": 28,
+        "endLine": 28,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/avoid-using-sound-samples-sliderslide",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid using sound samples for sliderslide, sliderwhistle, and spinnerspin which do not naturally loop.",
+        "fingerprint": "avoid using sound samples for sliderslide sliderwhistle and spinnerspin which do not naturally loop",
+        "bodyHash": "4dc9570c3076f34e",
+        "anchor": "general",
+        "startLine": 29,
+        "endLine": 29,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/avoid-unjustified-difficulty-spikes",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid unjustified difficulty spikes.",
+        "fingerprint": "avoid unjustified difficulty spikes",
+        "bodyHash": "784e8e0e1595aff7",
+        "anchor": "general",
+        "startLine": 30,
+        "endLine": 30,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "osu/spread/drain-time-difficulty",
+      "upstream": {
+        "path": [
+          "Overall",
+          "Spread"
+        ],
+        "kind": "rule",
+        "lead": "If the drain time of each difficulty is...",
+        "fingerprint": "if the drain time of each difficulty is",
+        "bodyHash": "3368dc282d4c1a0e",
+        "anchor": "spread",
+        "startLine": 38,
+        "endLine": 38,
+        "intro": true,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/spread/lower-2-30-lowest-difficulty",
+      "upstream": {
+        "path": [
+          "Overall",
+          "Spread"
+        ],
+        "kind": "rule",
+        "lead": "...lower than 2:30, the lowest difficulty cannot be harder than a Normal.",
+        "fingerprint": "lower than 2 30 the lowest difficulty cannot be harder than a normal",
+        "bodyHash": "ed8309087058c897",
+        "anchor": "spread",
+        "startLine": 39,
+        "endLine": 39,
+        "parent": "osu/spread/drain-time-difficulty",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/spread/between-2-30-3-15",
+      "upstream": {
+        "path": [
+          "Overall",
+          "Spread"
+        ],
+        "kind": "rule",
+        "lead": "...between 2:30 and 3:15, the lowest difficulty cannot be harder than a Hard.",
+        "fingerprint": "between 2 30 and 3 15 the lowest difficulty cannot be harder than a hard",
+        "bodyHash": "2f98806ce7742119",
+        "anchor": "spread",
+        "startLine": 40,
+        "endLine": 40,
+        "parent": "osu/spread/drain-time-difficulty",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/spread/between-3-15-4-00",
+      "upstream": {
+        "path": [
+          "Overall",
+          "Spread"
+        ],
+        "kind": "rule",
+        "lead": "...between 3:15 and 4:00, the lowest difficulty cannot be harder than an Insane.",
+        "fingerprint": "between 3 15 and 4 00 the lowest difficulty cannot be harder than an insane",
+        "bodyHash": "dc8b517f8e98569a",
+        "anchor": "spread",
+        "startLine": 41,
+        "endLine": 41,
+        "parent": "osu/spread/drain-time-difficulty",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/spread/break-times-combined-drain-time",
+      "upstream": {
+        "path": [
+          "Overall",
+          "Spread"
+        ],
+        "kind": "rule",
+        "lead": "Break times may be combined with drain time to meet the above thresholds.",
+        "fingerprint": "break times may be combined with drain time to meet the above thresholds",
+        "bodyHash": "996db9f2517f1204",
+        "anchor": "spread",
+        "startLine": 43,
+        "endLine": 43,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/skinning/spinner-circles-centres-clearly-visible",
+      "upstream": {
+        "path": [
+          "Overall",
+          "Skinning"
+        ],
+        "kind": "rule",
+        "lead": "Spinner circles and their centres must be clearly visible and exactly centred.",
+        "fingerprint": "spinner circles and their centres must be clearly visible and exactly centred",
+        "bodyHash": "993bdf7c9de4f2fc",
+        "anchor": "skinning",
+        "startLine": 49,
+        "endLine": 49,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "osu/skinning/hit100-hit300-different-corresponding-geki",
+      "upstream": {
+        "path": [
+          "Overall",
+          "Skinning"
+        ],
+        "kind": "rule",
+        "lead": "Hit100 and hit300 must be different from corresponding geki and katu skin elements.",
+        "fingerprint": "hit100 and hit300 must be different from corresponding geki and katu skin elements",
+        "bodyHash": "aa4ed5f8efaa6c55",
+        "anchor": "skinning",
+        "startLine": 50,
+        "endLine": 50,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/skinning/custom-slider-border-colour-selected",
+      "upstream": {
+        "path": [
+          "Overall",
+          "Skinning"
+        ],
+        "kind": "rule",
+        "lead": "A custom slider border colour must be selected when a beatmap contains skin elements from the hit circle or slider sets.",
+        "fingerprint": "a custom slider border colour must be selected when a beatmap contains skin elements from the hit circle or slider sets",
+        "bodyHash": "3c7d41b18db033eb",
+        "anchor": "skinning",
+        "startLine": 51,
+        "endLine": 51,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/skinning/slider-body-colour-too-similar",
+      "upstream": {
+        "path": [
+          "Overall",
+          "Skinning"
+        ],
+        "kind": "rule",
+        "lead": "Slider body colour cannot be too similar to slider border colour.",
+        "fingerprint": "slider body colour cannot be too similar to slider border colour",
+        "bodyHash": "a8cd7bb16355d264",
+        "anchor": "skinning",
+        "startLine": 52,
+        "endLine": 52,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/skinning/slider-body-colour-slider-border",
+      "upstream": {
+        "path": [
+          "Overall",
+          "Skinning"
+        ],
+        "kind": "rule",
+        "lead": "Slider body colour and slider border colour together must not blend in with a beatmap's background or video.",
+        "fingerprint": "slider body colour and slider border colour together must not blend in with a beatmap s background or video",
+        "bodyHash": "4f9ee562661c9fb7",
+        "anchor": "skinning",
+        "startLine": 53,
+        "endLine": 53,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "osu/skinning/usage-new-style-spinners-not",
+      "upstream": {
+        "path": [
+          "Overall",
+          "Skinning"
+        ],
+        "kind": "guideline",
+        "lead": "Usage of the new style spinners is not recommended.",
+        "fingerprint": "usage of the new style spinners is not recommended",
+        "bodyHash": "952e3e665fef08b7",
+        "anchor": "skinning",
+        "startLine": 57,
+        "endLine": 57,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/easy/objects-1-beat-apart-less",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "rule",
+        "lead": "Objects 1 beat apart or less must not fully overlap.",
+        "fingerprint": "objects 1 beat apart or less must not fully overlap",
+        "bodyHash": "79b8586a1c75f5f7",
+        "anchor": "easy",
+        "startLine": 79,
+        "endLine": 79,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/easy/not-use-slider-reverse-arrows",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "rule",
+        "lead": "Do not use slider reverse arrows that do not follow the visible slider path.",
+        "fingerprint": "do not use slider reverse arrows that do not follow the visible slider path",
+        "bodyHash": "6a676195661082c2",
+        "anchor": "easy",
+        "startLine": 80,
+        "endLine": 80,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/easy/slider-clear-visible-path-movement",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "rule",
+        "lead": "Every slider must have a clear and visible path of movement to follow from start to end.",
+        "fingerprint": "every slider must have a clear and visible path of movement to follow from start to end",
+        "bodyHash": "13b94ce9042fcabe",
+        "anchor": "easy",
+        "startLine": 81,
+        "endLine": 81,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/easy/time-distance-equality-used",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Time-distance equality should be used.",
+        "fingerprint": "time distance equality should be used",
+        "bodyHash": "e7f4812f59d8a578",
+        "anchor": "easy",
+        "startLine": 85,
+        "endLine": 85,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/easy/distance-snap-used-try-keep",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "When distance snap is used, try to keep it between 0.8x and 1.2x.",
+        "fingerprint": "when distance snap is used try to keep it between 0 8x and 1 2x",
+        "bodyHash": "295b7d73dd741ef6",
+        "anchor": "easy",
+        "startLine": 86,
+        "endLine": 86,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/easy/avoid-slider-velocity-above-1",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid slider velocity above 1.3.",
+        "fingerprint": "avoid slider velocity above 1 3",
+        "bodyHash": "63fddd25b65f07df",
+        "anchor": "easy",
+        "startLine": 87,
+        "endLine": 87,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/easy/note-density-consist-mostly-1",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Note density should consist of mostly 1/1, 2/1, or slower rhythms.",
+        "fingerprint": "note density should consist of mostly 1 1 2 1 or slower rhythms",
+        "bodyHash": "9e082330e65fee69",
+        "anchor": "easy",
+        "startLine": 88,
+        "endLine": 88,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "osu/easy/avoid-using-sliders-shorter-1",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid using sliders shorter than 1/2 of a beat.",
+        "fingerprint": "avoid using sliders shorter than 1 2 of a beat",
+        "bodyHash": "a6e95a575383da1a",
+        "anchor": "easy",
+        "startLine": 89,
+        "endLine": 89,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/easy/avoid-overlapping-circles-slider-heads",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid overlapping circles, slider heads, and slider tails.",
+        "fingerprint": "avoid overlapping circles slider heads and slider tails",
+        "bodyHash": "7e53f6af1d78dedf",
+        "anchor": "easy",
+        "startLine": 90,
+        "endLine": 90,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/easy/avoid-1-1-sliders-multiple",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid 1/1 sliders with multiple reverses.",
+        "fingerprint": "avoid 1 1 sliders with multiple reverses",
+        "bodyHash": "0dc540315dfbafd7",
+        "anchor": "easy",
+        "startLine": 91,
+        "endLine": 91,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/easy/avoid-slider-only-sections",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid slider-only sections.",
+        "fingerprint": "avoid slider only sections",
+        "bodyHash": "420a89b0ffdc79ab",
+        "anchor": "easy",
+        "startLine": 92,
+        "endLine": 92,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/easy/frequently-manipulating-slider-velocity-discouraged",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Frequently manipulating slider velocity is discouraged.",
+        "fingerprint": "frequently manipulating slider velocity is discouraged",
+        "bodyHash": "e77e72e72199540e",
+        "anchor": "easy",
+        "startLine": 93,
+        "endLine": 93,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/easy/use-straightforward-easily-understandable-slider",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Use straightforward and easily understandable slider shapes.",
+        "fingerprint": "use straightforward and easily understandable slider shapes",
+        "bodyHash": "37360d8a567aab2b",
+        "anchor": "easy",
+        "startLine": 94,
+        "endLine": 94,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/easy/least-4-beats-between-spinner",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "There should be at least 4 beats between a spinner's end and the next object.",
+        "fingerprint": "there should be at least 4 beats between a spinner s end and the next object",
+        "bodyHash": "1cfe021ab65221d2",
+        "anchor": "easy",
+        "startLine": 95,
+        "endLine": 95,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/easy/avoid-spinners-less-4-beats",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid spinners less than 4 beats.",
+        "fingerprint": "avoid spinners less than 4 beats",
+        "bodyHash": "a122ff48ec88559a",
+        "anchor": "easy",
+        "startLine": 96,
+        "endLine": 96,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/easy/avoid-fully-covering-slider-reverse",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid fully covering slider reverse arrows with hit objects within 4 beats of the reverse arrow being reached.",
+        "fingerprint": "avoid fully covering slider reverse arrows with hit objects within 4 beats of the reverse arrow being reached",
+        "bodyHash": "351c78fc8e2f382b",
+        "anchor": "easy",
+        "startLine": 97,
+        "endLine": 97,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/easy/avoid-fully-overlapping-slider-bodies",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid fully overlapping slider bodies within 4 beats of each other.",
+        "fingerprint": "avoid fully overlapping slider bodies within 4 beats of each other",
+        "bodyHash": "10ba896df8fa07a0",
+        "anchor": "easy",
+        "startLine": 98,
+        "endLine": 98,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/easy/ensure-combos-not-unreasonably-short",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Ensure that your combos are not unreasonably short or long.",
+        "fingerprint": "ensure that your combos are not unreasonably short or long",
+        "bodyHash": "28bcfed19385fb6b",
+        "anchor": "easy",
+        "startLine": 99,
+        "endLine": 99,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "osu/easy/avoid-overlapping-hit-objects-other",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid overlapping hit objects with other elements of the default and beatmap-specific skins.",
+        "fingerprint": "avoid overlapping hit objects with other elements of the default and beatmap specific skins",
+        "bodyHash": "d350fb1045be94f6",
+        "anchor": "easy",
+        "startLine": 100,
+        "endLine": 100,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/easy/approach-rate-5-less",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Approach rate should be 5 or less.",
+        "fingerprint": "approach rate should be 5 or less",
+        "bodyHash": "f6cae4c957506755",
+        "anchor": "easy",
+        "startLine": 104,
+        "endLine": 104,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/easy/overall-difficulty-hp-drain-rate",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Overall difficulty / HP drain rate should be between 1 and 3.",
+        "fingerprint": "overall difficulty hp drain rate should be between 1 and 3",
+        "bodyHash": "848dfcd26c79d5a4",
+        "anchor": "easy",
+        "startLine": 105,
+        "endLine": 105,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/easy/circle-size-4-lower",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Easy"
+        ],
+        "kind": "guideline",
+        "lead": "Circle size should be 4 or lower.",
+        "fingerprint": "circle size should be 4 or lower",
+        "bodyHash": "918b485e43fe2ce3",
+        "anchor": "easy",
+        "startLine": 106,
+        "endLine": 106,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/objects-1-beat-apart-less",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "rule",
+        "lead": "Objects 1 beat apart or less must not fully overlap.",
+        "fingerprint": "objects 1 beat apart or less must not fully overlap",
+        "bodyHash": "79b8586a1c75f5f7",
+        "anchor": "normal",
+        "startLine": 112,
+        "endLine": 112,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/not-use-slider-reverse-arrows",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "rule",
+        "lead": "Do not use slider reverse arrows that do not follow the visible slider path.",
+        "fingerprint": "do not use slider reverse arrows that do not follow the visible slider path",
+        "bodyHash": "6a676195661082c2",
+        "anchor": "normal",
+        "startLine": 113,
+        "endLine": 113,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/slider-clear-visible-path-movement",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "rule",
+        "lead": "Every slider must have a clear and visible path of movement to follow from start to end.",
+        "fingerprint": "every slider must have a clear and visible path of movement to follow from start to end",
+        "bodyHash": "13b94ce9042fcabe",
+        "anchor": "normal",
+        "startLine": 114,
+        "endLine": 114,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/time-distance-equality-used",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Time-distance equality should be used.",
+        "fingerprint": "time distance equality should be used",
+        "bodyHash": "7c79fea85e974b24",
+        "anchor": "normal",
+        "startLine": 118,
+        "endLine": 118,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/distance-snap-used-try-keep",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "When distance snap is used, try to keep it between 0.8x and 1.3x.",
+        "fingerprint": "when distance snap is used try to keep it between 0 8x and 1 3x",
+        "bodyHash": "c227b2e52187b369",
+        "anchor": "normal",
+        "startLine": 119,
+        "endLine": 119,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/note-density-consist-mostly-1",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Note density should consist of mostly 1/1, occasional 1/2, or slower rhythms.",
+        "fingerprint": "note density should consist of mostly 1 1 occasional 1 2 or slower rhythms",
+        "bodyHash": "2ed20d6637b6d3fe",
+        "anchor": "normal",
+        "startLine": 120,
+        "endLine": 120,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "osu/normal/avoid-overlapping-circles-slider-heads",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid overlapping circles, slider heads, and slider tails.",
+        "fingerprint": "avoid overlapping circles slider heads and slider tails",
+        "bodyHash": "61640c6e894cd354",
+        "anchor": "normal",
+        "startLine": 121,
+        "endLine": 121,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/avoid-long-chains-hit-objects",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid long chains of hit objects with 1/2 gaps.",
+        "fingerprint": "avoid long chains of hit objects with 1 2 gaps",
+        "bodyHash": "179c5d52d09be92c",
+        "anchor": "normal",
+        "startLine": 122,
+        "endLine": 122,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/avoid-1-2-sliders-multiple",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid 1/2 sliders with multiple reverses.",
+        "fingerprint": "avoid 1 2 sliders with multiple reverses",
+        "bodyHash": "ee9f14902bdc07ee",
+        "anchor": "normal",
+        "startLine": 123,
+        "endLine": 123,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/avoid-slider-only-sections",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid slider-only sections.",
+        "fingerprint": "avoid slider only sections",
+        "bodyHash": "420a89b0ffdc79ab",
+        "anchor": "normal",
+        "startLine": 124,
+        "endLine": 124,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/stacks-acceptable-but-avoid-switching",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Stacks are acceptable, but avoid switching between 1/1 and 1/2 stacks repeatedly.",
+        "fingerprint": "stacks are acceptable but avoid switching between 1 1 and 1 2 stacks repeatedly",
+        "bodyHash": "baf1d81c05272980",
+        "anchor": "normal",
+        "startLine": 125,
+        "endLine": 125,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/frequently-manipulating-slider-velocity-discouraged",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Frequently manipulating slider velocity is discouraged.",
+        "fingerprint": "frequently manipulating slider velocity is discouraged",
+        "bodyHash": "e77e72e72199540e",
+        "anchor": "normal",
+        "startLine": 126,
+        "endLine": 126,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/use-straightforward-easily-understandable-slider",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Use straightforward and easily understandable slider shapes.",
+        "fingerprint": "use straightforward and easily understandable slider shapes",
+        "bodyHash": "37360d8a567aab2b",
+        "anchor": "normal",
+        "startLine": 127,
+        "endLine": 127,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/least-2-beats-between-spinner",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "There should be at least 2 beats between a spinner's end and the next object.",
+        "fingerprint": "there should be at least 2 beats between a spinner s end and the next object",
+        "bodyHash": "d5e765bbd7d67a18",
+        "anchor": "normal",
+        "startLine": 128,
+        "endLine": 128,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/avoid-spinners-less-3-beats",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid spinners less than 3 beats.",
+        "fingerprint": "avoid spinners less than 3 beats",
+        "bodyHash": "57b29cb0759f16ce",
+        "anchor": "normal",
+        "startLine": 129,
+        "endLine": 129,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/avoid-fully-covering-slider-reverse",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid fully covering slider reverse arrows with hit objects within 3 beats of the reverse arrow being reached.",
+        "fingerprint": "avoid fully covering slider reverse arrows with hit objects within 3 beats of the reverse arrow being reached",
+        "bodyHash": "98d05de60fefb352",
+        "anchor": "normal",
+        "startLine": 130,
+        "endLine": 130,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/avoid-fully-overlapping-slider-bodies",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid fully overlapping slider bodies within 3 beats of each other.",
+        "fingerprint": "avoid fully overlapping slider bodies within 3 beats of each other",
+        "bodyHash": "128603b4d9502024",
+        "anchor": "normal",
+        "startLine": 131,
+        "endLine": 131,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/ensure-combos-not-unreasonably-short",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Ensure that your combos are not unreasonably short or long.",
+        "fingerprint": "ensure that your combos are not unreasonably short or long",
+        "bodyHash": "28bcfed19385fb6b",
+        "anchor": "normal",
+        "startLine": 132,
+        "endLine": 132,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "osu/normal/avoid-overlapping-hit-objects-other",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid overlapping hit objects with other elements of the default and beatmap-specific skins.",
+        "fingerprint": "avoid overlapping hit objects with other elements of the default and beatmap specific skins",
+        "bodyHash": "d350fb1045be94f6",
+        "anchor": "normal",
+        "startLine": 133,
+        "endLine": 133,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/avoid-more-three-actively-clicked",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid more than three actively clicked 1/2 rhythms in a row.",
+        "fingerprint": "avoid more than three actively clicked 1 2 rhythms in a row",
+        "bodyHash": "28e938d45198f261",
+        "anchor": "normal",
+        "startLine": 137,
+        "endLine": 137,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/include-1-1-longer-gap",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Include a 1/1 or longer gap in rhythm for every two measures of gameplay.",
+        "fingerprint": "include a 1 1 or longer gap in rhythm for every two measures of gameplay",
+        "bodyHash": "4bba816646a6f532",
+        "anchor": "normal",
+        "startLine": 138,
+        "endLine": 138,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/avoid-more-four-consecutive-1",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid more than four consecutive 1/2 sliders.",
+        "fingerprint": "avoid more than four consecutive 1 2 sliders",
+        "bodyHash": "3a36e6fcfc4ddd0e",
+        "anchor": "normal",
+        "startLine": 139,
+        "endLine": 139,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/objects-making-up-actively-clicked",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Objects making up actively clicked 1/2 rhythms should overlap each other on the playfield.",
+        "fingerprint": "objects making up actively clicked 1 2 rhythms should overlap each other on the playfield",
+        "bodyHash": "624ba7e12c8fd4a1",
+        "anchor": "normal",
+        "startLine": 140,
+        "endLine": 140,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/avoid-slider-velocity-above-1",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid slider velocity above 1.3.",
+        "fingerprint": "avoid slider velocity above 1 3",
+        "bodyHash": "63fddd25b65f07df",
+        "anchor": "normal",
+        "startLine": 141,
+        "endLine": 141,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/approach-rate-between-4-6",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Approach rate should be between 4 and 6.",
+        "fingerprint": "approach rate should be between 4 and 6",
+        "bodyHash": "9c24e6b5c690784f",
+        "anchor": "normal",
+        "startLine": 145,
+        "endLine": 145,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/overall-difficulty-hp-drain-rate",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Overall difficulty / HP drain rate should be between 3 and 5.",
+        "fingerprint": "overall difficulty hp drain rate should be between 3 and 5",
+        "bodyHash": "6720178edb8e6792",
+        "anchor": "normal",
+        "startLine": 146,
+        "endLine": 146,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/normal/circle-size-5-lower",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Normal"
+        ],
+        "kind": "guideline",
+        "lead": "Circle size should be 5 or lower.",
+        "fingerprint": "circle size should be 5 or lower",
+        "bodyHash": "3fc71a364a8994bd",
+        "anchor": "normal",
+        "startLine": 147,
+        "endLine": 147,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/hard/objects-1-2-beat-apart",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "rule",
+        "lead": "Objects 1/2 of a beat apart or less must not fully overlap.",
+        "fingerprint": "objects 1 2 of a beat apart or less must not fully overlap",
+        "bodyHash": "bdbb46e9cf49a69d",
+        "anchor": "hard",
+        "startLine": 153,
+        "endLine": 153,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/hard/not-use-slider-reverse-arrows",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "rule",
+        "lead": "Do not use slider reverse arrows that do not follow the visible slider path.",
+        "fingerprint": "do not use slider reverse arrows that do not follow the visible slider path",
+        "bodyHash": "6a676195661082c2",
+        "anchor": "hard",
+        "startLine": 154,
+        "endLine": 154,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/hard/slider-clear-visible-path-movement",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "rule",
+        "lead": "Every slider must have a clear and visible path of movement to follow from start to end.",
+        "fingerprint": "every slider must have a clear and visible path of movement to follow from start to end",
+        "bodyHash": "4101b9ae74677e77",
+        "anchor": "hard",
+        "startLine": 155,
+        "endLine": 156,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/hard/least-1-beat-between-spinner",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "There should be at least 1 beat between a spinner's end and the next object.",
+        "fingerprint": "there should be at least 1 beat between a spinner s end and the next object",
+        "bodyHash": "a4bf9793d9e49e28",
+        "anchor": "hard",
+        "startLine": 160,
+        "endLine": 160,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/hard/note-density-consist-mostly-1",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "Note density should consist of mostly 1/2, occasional 1/4, or slower rhythms.",
+        "fingerprint": "note density should consist of mostly 1 2 occasional 1 4 or slower rhythms",
+        "bodyHash": "19257ef09005ffc4",
+        "anchor": "hard",
+        "startLine": 161,
+        "endLine": 161,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "osu/hard/avoid-streams-made-more-5",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid streams made of more than 5 notes.",
+        "fingerprint": "avoid streams made of more than 5 notes",
+        "bodyHash": "386d1b7aa1cb97ca",
+        "anchor": "hard",
+        "startLine": 162,
+        "endLine": 162,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/hard/avoid-visually-similar-spacing-different",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid visually similar spacing for different rhythms.",
+        "fingerprint": "avoid visually similar spacing for different rhythms",
+        "bodyHash": "19db12ab1f489d35",
+        "anchor": "hard",
+        "startLine": 163,
+        "endLine": 163,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/hard/slider-tick-hitsounds-discouraged",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "Slider tick hitsounds are discouraged.",
+        "fingerprint": "slider tick hitsounds are discouraged",
+        "bodyHash": "f6254181ca5247bc",
+        "anchor": "hard",
+        "startLine": 164,
+        "endLine": 164,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/hard/avoid-spinners-less-2-beats",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid spinners less than 2 beats.",
+        "fingerprint": "avoid spinners less than 2 beats",
+        "bodyHash": "019327536bb165a6",
+        "anchor": "hard",
+        "startLine": 165,
+        "endLine": 165,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/hard/avoid-fully-covering-slider-reverse",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid fully covering slider reverse arrows with hit objects within 2 beats of the reverse arrow being reached.",
+        "fingerprint": "avoid fully covering slider reverse arrows with hit objects within 2 beats of the reverse arrow being reached",
+        "bodyHash": "76004601d17f8973",
+        "anchor": "hard",
+        "startLine": 166,
+        "endLine": 166,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/hard/avoid-fully-overlapping-slider-bodies",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid fully overlapping slider bodies within 2 beats of each other.",
+        "fingerprint": "avoid fully overlapping slider bodies within 2 beats of each other",
+        "bodyHash": "b31bcd5785f0a8da",
+        "anchor": "hard",
+        "startLine": 167,
+        "endLine": 167,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/hard/approach-rate-between-6-8",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "Approach rate should be between 6 and 8.",
+        "fingerprint": "approach rate should be between 6 and 8",
+        "bodyHash": "549221def6f0aea0",
+        "anchor": "hard",
+        "startLine": 171,
+        "endLine": 171,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/hard/overall-difficulty-between-5-7",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "Overall difficulty should be between 5 and 7.",
+        "fingerprint": "overall difficulty should be between 5 and 7",
+        "bodyHash": "8c0ecd21611d979b",
+        "anchor": "hard",
+        "startLine": 172,
+        "endLine": 172,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/hard/hp-drain-rate-between-4",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "HP drain rate should be between 4 and 6.",
+        "fingerprint": "hp drain rate should be between 4 and 6",
+        "bodyHash": "c3e6cbe7e12d6a1c",
+        "anchor": "hard",
+        "startLine": 173,
+        "endLine": 173,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/hard/circle-size-6-lower",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Hard"
+        ],
+        "kind": "guideline",
+        "lead": "Circle size should be 6 or lower.",
+        "fingerprint": "circle size should be 6 or lower",
+        "bodyHash": "1edf82ff9ae80a51",
+        "anchor": "hard",
+        "startLine": 174,
+        "endLine": 174,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/insane/slider-clear-visible-path-movement",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Insane"
+        ],
+        "kind": "rule",
+        "lead": "Every slider must have a clear and visible path of movement to follow from start to end.",
+        "fingerprint": "every slider must have a clear and visible path of movement to follow from start to end",
+        "bodyHash": "4101b9ae74677e77",
+        "anchor": "insane",
+        "startLine": 180,
+        "endLine": 181,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/insane/objects-1-4-beat-apart",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Insane"
+        ],
+        "kind": "guideline",
+        "lead": "Objects 1/4 of a beat apart or less should not fully overlap, especially on simpler Insane difficulties.",
+        "fingerprint": "objects 1 4 of a beat apart or less should not fully overlap especially on simpler insane difficulties",
+        "bodyHash": "0dc5fa53dfaa78ae",
+        "anchor": "insane",
+        "startLine": 185,
+        "endLine": 185,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/insane/avoid-slider-reverse-arrows-not",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Insane"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid slider reverse arrows that do not follow the visible slider path.",
+        "fingerprint": "avoid slider reverse arrows that do not follow the visible slider path",
+        "bodyHash": "ba0cc1947a3d4e4b",
+        "anchor": "insane",
+        "startLine": 186,
+        "endLine": 186,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/insane/avoid-cross-screen-jumps-streams",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Insane"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid cross screen jumps and streams whose circles do not overlap.",
+        "fingerprint": "avoid cross screen jumps and streams whose circles do not overlap",
+        "bodyHash": "2f6fc45f4dc0ec8f",
+        "anchor": "insane",
+        "startLine": 187,
+        "endLine": 187,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/insane/slider-tick-hitsounds-discouraged",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Insane"
+        ],
+        "kind": "guideline",
+        "lead": "Slider tick hitsounds are discouraged.",
+        "fingerprint": "slider tick hitsounds are discouraged",
+        "bodyHash": "f6254181ca5247bc",
+        "anchor": "insane",
+        "startLine": 188,
+        "endLine": 188,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/insane/avoid-fully-covering-slider-reverse",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Insane"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid fully covering slider reverse arrows with circles, slider heads, or slider tails within a 1/2 beat of the reverse arrow being reached.",
+        "fingerprint": "avoid fully covering slider reverse arrows with circles slider heads or slider tails within a 1 2 beat of the reverse arrow being reached",
+        "bodyHash": "8fb52ac3ec4752bf",
+        "anchor": "insane",
+        "startLine": 189,
+        "endLine": 189,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/insane/avoid-fully-overlapping-slider-bodies",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Insane"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid fully overlapping slider bodies within a 1/2 beat of each other.",
+        "fingerprint": "avoid fully overlapping slider bodies within a 1 2 beat of each other",
+        "bodyHash": "6931c9e9b9141c6b",
+        "anchor": "insane",
+        "startLine": 190,
+        "endLine": 190,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/insane/approach-rate-between-7-9",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Insane"
+        ],
+        "kind": "guideline",
+        "lead": "Approach rate should be between 7 and 9.3.",
+        "fingerprint": "approach rate should be between 7 and 9 3",
+        "bodyHash": "dd7fc789d8730c76",
+        "anchor": "insane",
+        "startLine": 194,
+        "endLine": 194,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/insane/overall-difficulty-between-7-9",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Insane"
+        ],
+        "kind": "guideline",
+        "lead": "Overall difficulty should be between 7 and 9.",
+        "fingerprint": "overall difficulty should be between 7 and 9",
+        "bodyHash": "9809e69476a6d2d9",
+        "anchor": "insane",
+        "startLine": 195,
+        "endLine": 195,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/insane/hp-drain-rate-between-5",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Insane"
+        ],
+        "kind": "guideline",
+        "lead": "HP drain rate should be between 5 and 8.",
+        "fingerprint": "hp drain rate should be between 5 and 8",
+        "bodyHash": "a74201f1541482e4",
+        "anchor": "insane",
+        "startLine": 196,
+        "endLine": 196,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/insane/circle-size-7-lower",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Insane"
+        ],
+        "kind": "guideline",
+        "lead": "Circle size should be 7 or lower.",
+        "fingerprint": "circle size should be 7 or lower",
+        "bodyHash": "f42c3308f92ce7f1",
+        "anchor": "insane",
+        "startLine": 197,
+        "endLine": 197,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/expert/slider-clear-visible-path-movement",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Expert"
+        ],
+        "kind": "rule",
+        "lead": "Every slider must have a clear and visible path of movement to follow from start to end.",
+        "fingerprint": "every slider must have a clear and visible path of movement to follow from start to end",
+        "bodyHash": "9efbf46e3b5a9b6d",
+        "anchor": "expert",
+        "startLine": 203,
+        "endLine": 204,
+        "difficulties": [
+          "expert",
+          "ultra"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/expert/avoid-slider-reverse-arrows-not",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Expert"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid slider reverse arrows that do not follow the visible slider path.",
+        "fingerprint": "avoid slider reverse arrows that do not follow the visible slider path",
+        "bodyHash": "ba0cc1947a3d4e4b",
+        "anchor": "expert",
+        "startLine": 208,
+        "endLine": 208,
+        "difficulties": [
+          "expert",
+          "ultra"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/expert/slider-tick-hitsounds-discouraged",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Expert"
+        ],
+        "kind": "guideline",
+        "lead": "Slider tick hitsounds are discouraged.",
+        "fingerprint": "slider tick hitsounds are discouraged",
+        "bodyHash": "f6254181ca5247bc",
+        "anchor": "expert",
+        "startLine": 209,
+        "endLine": 209,
+        "difficulties": [
+          "expert",
+          "ultra"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/expert/approach-rate-overall-difficulty-8",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Expert"
+        ],
+        "kind": "guideline",
+        "lead": "Approach rate / Overall difficulty should be 8 or higher.",
+        "fingerprint": "approach rate overall difficulty should be 8 or higher",
+        "bodyHash": "3f910654d1a16146",
+        "anchor": "expert",
+        "startLine": 213,
+        "endLine": 213,
+        "difficulties": [
+          "expert",
+          "ultra"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/expert/hp-drain-rate-5-higher",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Expert"
+        ],
+        "kind": "guideline",
+        "lead": "HP drain rate should be 5 or higher.",
+        "fingerprint": "hp drain rate should be 5 or higher",
+        "bodyHash": "b9cf2aeaa41468ed",
+        "anchor": "expert",
+        "startLine": 214,
+        "endLine": 214,
+        "difficulties": [
+          "expert",
+          "ultra"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "osu/expert/circle-size-7-lower",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Expert"
+        ],
+        "kind": "guideline",
+        "lead": "Circle size should be 7 or lower.",
+        "fingerprint": "circle size should be 7 or lower",
+        "bodyHash": "f42c3308f92ce7f1",
+        "anchor": "expert",
+        "startLine": 215,
+        "endLine": 215,
+        "difficulties": [
+          "expert",
+          "ultra"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    }
+  ]
+}

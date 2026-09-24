@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Standard.Compose
 {
@@ -47,10 +48,15 @@ namespace MapsetVerifier.Checks.Standard.Compose
                         "timestamp -",
                         "num",
                         "duration"
-                    ).WithCause(
-                        "Slider-only sections should only exist given that there's enough time between objects "
-                            + "to make sure the player has time to reset."
                     )
+                        .WithCause(
+                            "Slider-only sections should only exist given that there's enough time between objects "
+                                + "to make sure the player has time to reset."
+                        )
+                        .WithRule(
+                            RC.Osu.Easy_AvoidSliderOnlySections,
+                            RC.Osu.Normal_AvoidSliderOnlySections
+                        )
                 },
             };
 

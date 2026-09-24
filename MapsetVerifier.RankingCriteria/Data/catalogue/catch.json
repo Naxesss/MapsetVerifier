@@ -1,0 +1,1782 @@
+{
+  "page": "catch",
+  "statements": [
+    {
+      "id": "catch/map-possible-ss",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "Your map must be possible to SS.",
+        "fingerprint": "your map must be possible to ss",
+        "bodyHash": "cf7bbff0f9c24a9b",
+        "anchor": "general",
+        "startLine": 15,
+        "endLine": 15,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/beatmap-use-least-two-different",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "Each beatmap must use at least two different custom combo colours unless the default skin is forced.",
+        "fingerprint": "each beatmap must use at least two different custom combo colours unless the default skin is forced",
+        "bodyHash": "cba4da29278513c8",
+        "anchor": "general",
+        "startLine": 16,
+        "endLine": 17,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/not-use-keysounds-without-hitnormal",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "Do not use keysounds without hitnormal support.",
+        "fingerprint": "do not use keysounds without hitnormal support",
+        "bodyHash": "158b83d766451044",
+        "anchor": "general",
+        "startLine": 18,
+        "endLine": 18,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/fruits-represent-sound-existing-music",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "All fruits should represent a sound existing in the music.",
+        "fingerprint": "all fruits should represent a sound existing in the music",
+        "bodyHash": "be44893afd4c1c7c",
+        "anchor": "general",
+        "startLine": 22,
+        "endLine": 22,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/last-fruit-slider-snapped-according",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "The last fruit of a slider should be snapped according to the song's beat structure.",
+        "fingerprint": "the last fruit of a slider should be snapped according to the song s beat structure",
+        "bodyHash": "4f4bd1cc926974e0",
+        "anchor": "general",
+        "startLine": 23,
+        "endLine": 23,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "catch/dashes-hyperdashes-not-used-destination",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Dashes and hyperdashes should not be used when the destination of the dash or hyperdash is located near the left or right border of the playfield.",
+        "fingerprint": "dashes and hyperdashes should not be used when the destination of the dash or hyperdash is located near the left or right border of the playfield",
+        "bodyHash": "81ea618246718508",
+        "anchor": "general",
+        "startLine": 24,
+        "endLine": 24,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/combos-not-reach-unreasonable-lengths",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Combos should not reach unreasonable lengths.",
+        "fingerprint": "combos should not reach unreasonable lengths",
+        "bodyHash": "18ce2785bff2f498",
+        "anchor": "general",
+        "startLine": 25,
+        "endLine": 25,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/overall-difficulty-same-value-approach",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Overall difficulty must have the same value as the approach rate.",
+        "fingerprint": "overall difficulty must have the same value as the approach rate",
+        "bodyHash": "32c323d75fe7536a",
+        "anchor": "general",
+        "startLine": 26,
+        "endLine": 26,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/slider-tick-rate-set-according",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "The slider tick rate should be set according to the song.",
+        "fingerprint": "the slider tick rate should be set according to the song",
+        "bodyHash": "9672cae3555e0596",
+        "anchor": "general",
+        "startLine": 27,
+        "endLine": 27,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "catch/avoid-using-combo-colours-50",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid using combo colours with ~50 luminosity or lower.",
+        "fingerprint": "avoid using combo colours with 50 luminosity or lower",
+        "bodyHash": "64327a9c034627b1",
+        "anchor": "general",
+        "startLine": 28,
+        "endLine": 28,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/avoid-using-combo-colours-220",
+      "upstream": {
+        "path": [
+          "Overall",
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Avoid using combo colours with ~220 luminosity or higher if Kiai time is used.",
+        "fingerprint": "avoid using combo colours with 220 luminosity or higher if kiai time is used",
+        "bodyHash": "428746206ada8846",
+        "anchor": "general",
+        "startLine": 29,
+        "endLine": 29,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/spread/drain-time-difficulty",
+      "upstream": {
+        "path": [
+          "Overall",
+          "Spread"
+        ],
+        "kind": "rule",
+        "lead": "If the drain time of each difficulty is...",
+        "fingerprint": "if the drain time of each difficulty is",
+        "bodyHash": "3368dc282d4c1a0e",
+        "anchor": "spread",
+        "startLine": 35,
+        "endLine": 35,
+        "intro": true,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/spread/lower-2-30-lowest-difficulty",
+      "upstream": {
+        "path": [
+          "Overall",
+          "Spread"
+        ],
+        "kind": "rule",
+        "lead": "...lower than 2:30, the lowest difficulty cannot be harder than a Salad, or provide a proper spread containing at least 4 difficulties.",
+        "fingerprint": "lower than 2 30 the lowest difficulty cannot be harder than a salad or provide a proper spread containing at least 4 difficulties",
+        "bodyHash": "5cf3278d13be1ce4",
+        "anchor": "spread",
+        "startLine": 36,
+        "endLine": 36,
+        "parent": "catch/spread/drain-time-difficulty",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/spread/between-2-30-3-15",
+      "upstream": {
+        "path": [
+          "Overall",
+          "Spread"
+        ],
+        "kind": "rule",
+        "lead": "...between 2:30 and 3:15, the lowest difficulty cannot be harder than a Platter, or provide a proper spread containing at least 3 difficulties.",
+        "fingerprint": "between 2 30 and 3 15 the lowest difficulty cannot be harder than a platter or provide a proper spread containing at least 3 difficulties",
+        "bodyHash": "a4e85f714e2f8f9c",
+        "anchor": "spread",
+        "startLine": 37,
+        "endLine": 37,
+        "parent": "catch/spread/drain-time-difficulty",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/spread/between-3-15-4-00",
+      "upstream": {
+        "path": [
+          "Overall",
+          "Spread"
+        ],
+        "kind": "rule",
+        "lead": "...between 3:15 and 4:00, the lowest difficulty cannot be harder than a Rain, or provide a proper spread containing at least 2 difficulties.",
+        "fingerprint": "between 3 15 and 4 00 the lowest difficulty cannot be harder than a rain or provide a proper spread containing at least 2 difficulties",
+        "bodyHash": "ee238c59d1f18b7c",
+        "anchor": "spread",
+        "startLine": 38,
+        "endLine": 38,
+        "parent": "catch/spread/drain-time-difficulty",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/spread/break-times-combined-drain-time",
+      "upstream": {
+        "path": [
+          "Overall",
+          "Spread"
+        ],
+        "kind": "rule",
+        "lead": "Break times may be combined with drain time to meet the above thresholds.",
+        "fingerprint": "break times may be combined with drain time to meet the above thresholds",
+        "bodyHash": "df344fab0f44f8e8",
+        "anchor": "spread",
+        "startLine": 39,
+        "endLine": 39,
+        "parent": "catch/spread/drain-time-difficulty",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/skinning/custom-catchers-included-v2-skin",
+      "upstream": {
+        "path": [
+          "Overall",
+          "Skinning"
+        ],
+        "kind": "rule",
+        "lead": "Custom catchers must be included in the v2 skin format.",
+        "fingerprint": "custom catchers must be included in the v2 skin format",
+        "bodyHash": "bae595379e4acf88",
+        "anchor": "skinning",
+        "startLine": 45,
+        "endLine": 45,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/skinning/custom-fruits-include-necessary-elements",
+      "upstream": {
+        "path": [
+          "Overall",
+          "Skinning"
+        ],
+        "kind": "rule",
+        "lead": "Custom fruits must include all necessary elements and be coloured in a scale of grey colours.",
+        "fingerprint": "custom fruits must include all necessary elements and be coloured in a scale of grey colours",
+        "bodyHash": "5abc570ef51ef715",
+        "anchor": "skinning",
+        "startLine": 46,
+        "endLine": 46,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/skinning/skinned-elements-same-size-default",
+      "upstream": {
+        "path": [
+          "Overall",
+          "Skinning"
+        ],
+        "kind": "rule",
+        "lead": "Skinned elements must be the same size as their default skin counterparts.",
+        "fingerprint": "skinned elements must be the same size as their default skin counterparts",
+        "bodyHash": "a71c17853d6e2067",
+        "anchor": "skinning",
+        "startLine": 47,
+        "endLine": 50,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/cup/dashes-hyperdashes-kind-disallowed",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Cup"
+        ],
+        "kind": "rule",
+        "lead": "Dashes and hyperdashes of any kind are disallowed.",
+        "fingerprint": "dashes and hyperdashes of any kind are disallowed",
+        "bodyHash": "72e5b295cea006a3",
+        "anchor": "cup",
+        "startLine": 82,
+        "endLine": 82,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/cup/least-250-ms-left-between",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Cup"
+        ],
+        "kind": "rule",
+        "lead": "At least 250 ms must be left between fruits and the start and end of spinners.",
+        "fingerprint": "at least 250 ms must be left between fruits and the start and end of spinners",
+        "bodyHash": "71409b029f2778e2",
+        "anchor": "cup",
+        "startLine": 83,
+        "endLine": 83,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/cup/combos-not-exceed-8-fruits",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Cup"
+        ],
+        "kind": "guideline",
+        "lead": "Combos should not exceed 8 fruits.",
+        "fingerprint": "combos should not exceed 8 fruits",
+        "bodyHash": "309ff0d2191fc187",
+        "anchor": "cup",
+        "startLine": 87,
+        "endLine": 87,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/cup/note-density-follow-mostly-1",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Cup"
+        ],
+        "kind": "guideline",
+        "lead": "Note density should follow a mostly 1/1 pattern.",
+        "fingerprint": "note density should follow a mostly 1 1 pattern",
+        "bodyHash": "0d2e625e2bef9d20",
+        "anchor": "cup",
+        "startLine": 88,
+        "endLine": 88,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "catch/cup/approach-rate-overall-difficulty-6",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Cup"
+        ],
+        "kind": "guideline",
+        "lead": "Approach rate / overall difficulty should be 6 or lower.",
+        "fingerprint": "approach rate overall difficulty should be 6 or lower",
+        "bodyHash": "292b4257c90b1259",
+        "anchor": "cup",
+        "startLine": 92,
+        "endLine": 92,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/cup/hp-drain-rate-between-2",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Cup"
+        ],
+        "kind": "guideline",
+        "lead": "HP drain rate should be between 2 and 3.",
+        "fingerprint": "hp drain rate should be between 2 and 3",
+        "bodyHash": "fe7131647690d022",
+        "anchor": "cup",
+        "startLine": 93,
+        "endLine": 93,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/cup/circle-size-2-5-lower",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Cup"
+        ],
+        "kind": "guideline",
+        "lead": "Circle size should be 2.5 or lower.",
+        "fingerprint": "circle size should be 2 5 or lower",
+        "bodyHash": "beeec6d0beb60a50",
+        "anchor": "cup",
+        "startLine": 94,
+        "endLine": 94,
+        "difficulties": [
+          "easy"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/salad/hyperdashes-kind-disallowed",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Salad"
+        ],
+        "kind": "rule",
+        "lead": "Hyperdashes of any kind are disallowed.",
+        "fingerprint": "hyperdashes of any kind are disallowed",
+        "bodyHash": "dd861b1054be9d94",
+        "anchor": "salad",
+        "startLine": 100,
+        "endLine": 100,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/salad/dashes-least-125-ms-gap",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Salad"
+        ],
+        "kind": "rule",
+        "lead": "Dashes must have at least a 125 ms gap between their two objects.",
+        "fingerprint": "dashes must have at least a 125 ms gap between their two objects",
+        "bodyHash": "35bdd5f0b2f09f6f",
+        "anchor": "salad",
+        "startLine": 101,
+        "endLine": 101,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/salad/dashes-basic-snapped-not-used",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Salad"
+        ],
+        "kind": "rule",
+        "lead": "Dashes that are basic-snapped must not be used more than two times between consecutive fruits and drops.",
+        "fingerprint": "dashes that are basic snapped must not be used more than two times between consecutive fruits and drops",
+        "bodyHash": "f7c0dd26b16ca796",
+        "anchor": "salad",
+        "startLine": 102,
+        "endLine": 102,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/salad/dashes-higher-snapped-always-followed",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Salad"
+        ],
+        "kind": "rule",
+        "lead": "Dashes that are higher-snapped must always be followed by a walk.",
+        "fingerprint": "dashes that are higher snapped must always be followed by a walk",
+        "bodyHash": "f5345704949deb21",
+        "anchor": "salad",
+        "startLine": 103,
+        "endLine": 103,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/salad/edge-dashes-not-used",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Salad"
+        ],
+        "kind": "rule",
+        "lead": "Edge dashes must not be used.",
+        "fingerprint": "edge dashes must not be used",
+        "bodyHash": "b511445c5761e88c",
+        "anchor": "salad",
+        "startLine": 104,
+        "endLine": 104,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/salad/least-250-ms-left-between",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Salad"
+        ],
+        "kind": "rule",
+        "lead": "At least 250 ms must be left between fruits and the start and end of spinners.",
+        "fingerprint": "at least 250 ms must be left between fruits and the start and end of spinners",
+        "bodyHash": "71409b029f2778e2",
+        "anchor": "salad",
+        "startLine": 105,
+        "endLine": 105,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/salad/distances-clear-whether-require-player",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Salad"
+        ],
+        "kind": "guideline",
+        "lead": "All distances should be clear on whether they require the player to walk or dash.",
+        "fingerprint": "all distances should be clear on whether they require the player to walk or dash",
+        "bodyHash": "fca9af2546c0c9ba",
+        "anchor": "salad",
+        "startLine": 109,
+        "endLine": 109,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "catch/salad/dashes-basic-snapped-not-used-2",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Salad"
+        ],
+        "kind": "guideline",
+        "lead": "Dashes that are basic-snapped should not be used consecutively when different beat snaps are used.",
+        "fingerprint": "dashes that are basic snapped should not be used consecutively when different beat snaps are used",
+        "bodyHash": "5730f0803fb60fbd",
+        "anchor": "salad",
+        "startLine": 110,
+        "endLine": 110,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/salad/dashes-higher-snapped-not-followed",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Salad"
+        ],
+        "kind": "guideline",
+        "lead": "Dashes that are higher-snapped should not be followed by antiflow patterns.",
+        "fingerprint": "dashes that are higher snapped should not be followed by antiflow patterns",
+        "bodyHash": "ac62940f57dc1393",
+        "anchor": "salad",
+        "startLine": 111,
+        "endLine": 111,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/salad/spinner-traps-not-used",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Salad"
+        ],
+        "kind": "guideline",
+        "lead": "Spinner traps should not be used.",
+        "fingerprint": "spinner traps should not be used",
+        "bodyHash": "7f2950ae7a8d512b",
+        "anchor": "salad",
+        "startLine": 112,
+        "endLine": 112,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/salad/combos-not-exceed-10-fruits",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Salad"
+        ],
+        "kind": "guideline",
+        "lead": "Combos should not exceed 10 fruits.",
+        "fingerprint": "combos should not exceed 10 fruits",
+        "bodyHash": "ec1516199ebf19dd",
+        "anchor": "salad",
+        "startLine": 113,
+        "endLine": 113,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/salad/note-density-follow-mostly-1",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Salad"
+        ],
+        "kind": "guideline",
+        "lead": "Note density should follow a mostly 1/1 and 1/2 pattern.",
+        "fingerprint": "note density should follow a mostly 1 1 and 1 2 pattern",
+        "bodyHash": "850adbf3fef2218a",
+        "anchor": "salad",
+        "startLine": 114,
+        "endLine": 114,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "catch/salad/approach-rate-overall-difficulty-7",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Salad"
+        ],
+        "kind": "guideline",
+        "lead": "Approach rate / overall difficulty should be 7 or lower.",
+        "fingerprint": "approach rate overall difficulty should be 7 or lower",
+        "bodyHash": "094051e3109d2d89",
+        "anchor": "salad",
+        "startLine": 118,
+        "endLine": 118,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/salad/hp-drain-rate-between-3",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Salad"
+        ],
+        "kind": "guideline",
+        "lead": "HP drain rate should be between 3 and 4.",
+        "fingerprint": "hp drain rate should be between 3 and 4",
+        "bodyHash": "11ed79039cf9d539",
+        "anchor": "salad",
+        "startLine": 119,
+        "endLine": 119,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/salad/circle-size-3-lower",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Salad"
+        ],
+        "kind": "guideline",
+        "lead": "Circle size should be 3 or lower.",
+        "fingerprint": "circle size should be 3 or lower",
+        "bodyHash": "b1abe55d75a2f331",
+        "anchor": "salad",
+        "startLine": 120,
+        "endLine": 120,
+        "difficulties": [
+          "normal"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/platter/hyperdashes-least-125-ms-gap",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Platter"
+        ],
+        "kind": "rule",
+        "lead": "Hyperdashes must have at least a 125 ms gap between their two objects.",
+        "fingerprint": "hyperdashes must have at least a 125 ms gap between their two objects",
+        "bodyHash": "ba98e1f4baf8a3f5",
+        "anchor": "platter",
+        "startLine": 126,
+        "endLine": 126,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/platter/hyperdashes-used-individual-drops-slider",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Platter"
+        ],
+        "kind": "rule",
+        "lead": "Hyperdashes cannot be used on individual drops and/or slider repetitions.",
+        "fingerprint": "hyperdashes cannot be used on individual drops and or slider repetitions",
+        "bodyHash": "acc023deb5e503b6",
+        "anchor": "platter",
+        "startLine": 127,
+        "endLine": 127,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/platter/hyperdashes-different-beat-snap-not",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Platter"
+        ],
+        "kind": "rule",
+        "lead": "Hyperdashes of a different beat snap must not be used between consecutive fruits.",
+        "fingerprint": "hyperdashes of a different beat snap must not be used between consecutive fruits",
+        "bodyHash": "c92cc03b931425cb",
+        "anchor": "platter",
+        "startLine": 128,
+        "endLine": 128,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/platter/hyperdashes-basic-snapped-not-used",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Platter"
+        ],
+        "kind": "rule",
+        "lead": "Hyperdashes that are basic-snapped must not be used more than two times between consecutive fruits.",
+        "fingerprint": "hyperdashes that are basic snapped must not be used more than two times between consecutive fruits",
+        "bodyHash": "8a3a9f6b4af0803d",
+        "anchor": "platter",
+        "startLine": 129,
+        "endLine": 129,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/platter/hyperdashes-higher-snapped-not-used",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Platter"
+        ],
+        "kind": "rule",
+        "lead": "Hyperdashes that are higher-snapped must not be used in conjunction with any other dashes or hyperdashes.",
+        "fingerprint": "hyperdashes that are higher snapped must not be used in conjunction with any other dashes or hyperdashes",
+        "bodyHash": "4dc38580c341545f",
+        "anchor": "platter",
+        "startLine": 130,
+        "endLine": 130,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/platter/dashes-least-62-ms-gap",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Platter"
+        ],
+        "kind": "rule",
+        "lead": "Dashes must have at least a 62 ms gap between their two objects.",
+        "fingerprint": "dashes must have at least a 62 ms gap between their two objects",
+        "bodyHash": "e5020ec276cdf451",
+        "anchor": "platter",
+        "startLine": 131,
+        "endLine": 131,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/platter/dashes-basic-snapped-not-used",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Platter"
+        ],
+        "kind": "rule",
+        "lead": "Dashes that are basic-snapped must not be used more than four times between consecutive fruits.",
+        "fingerprint": "dashes that are basic snapped must not be used more than four times between consecutive fruits",
+        "bodyHash": "decdb22aadf3d076",
+        "anchor": "platter",
+        "startLine": 132,
+        "endLine": 132,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/platter/dashes-higher-snapped-used-up",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Platter"
+        ],
+        "kind": "rule",
+        "lead": "Dashes that are higher-snapped can be used up to two times between consecutive fruits, provided there isn't a direction change between them.",
+        "fingerprint": "dashes that are higher snapped can be used up to two times between consecutive fruits provided there isn t a direction change between them",
+        "bodyHash": "8db8462f0854dc01",
+        "anchor": "platter",
+        "startLine": 133,
+        "endLine": 133,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/platter/edge-dashes-not-used",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Platter"
+        ],
+        "kind": "rule",
+        "lead": "Edge dashes must not be used.",
+        "fingerprint": "edge dashes must not be used",
+        "bodyHash": "b511445c5761e88c",
+        "anchor": "platter",
+        "startLine": 134,
+        "endLine": 134,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/platter/least-125-ms-left-between",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Platter"
+        ],
+        "kind": "rule",
+        "lead": "At least 125 ms must be left between fruits and the start of spinners.",
+        "fingerprint": "at least 125 ms must be left between fruits and the start of spinners",
+        "bodyHash": "f8fb52d73586c07b",
+        "anchor": "platter",
+        "startLine": 135,
+        "endLine": 135,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/platter/least-250-ms-left-between",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Platter"
+        ],
+        "kind": "rule",
+        "lead": "At least 250 ms must be left between fruits and the end of spinners.",
+        "fingerprint": "at least 250 ms must be left between fruits and the end of spinners",
+        "bodyHash": "c21f1a4f5abc63f6",
+        "anchor": "platter",
+        "startLine": 136,
+        "endLine": 136,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/platter/strong-hyperdashes-not-used",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Platter"
+        ],
+        "kind": "guideline",
+        "lead": "Strong hyperdashes should not be used.",
+        "fingerprint": "strong hyperdashes should not be used",
+        "bodyHash": "8d67f12220a3cf54",
+        "anchor": "platter",
+        "startLine": 140,
+        "endLine": 140,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/platter/hyperdashes-higher-snapped-not-followed",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Platter"
+        ],
+        "kind": "guideline",
+        "lead": "Hyperdashes that are higher-snapped should not be followed by antiflow patterns.",
+        "fingerprint": "hyperdashes that are higher snapped should not be followed by antiflow patterns",
+        "bodyHash": "2d5797aabcaf8b4d",
+        "anchor": "platter",
+        "startLine": 141,
+        "endLine": 141,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/platter/spinner-traps-not-used",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Platter"
+        ],
+        "kind": "guideline",
+        "lead": "Spinner traps should not be used.",
+        "fingerprint": "spinner traps should not be used",
+        "bodyHash": "7f2950ae7a8d512b",
+        "anchor": "platter",
+        "startLine": 142,
+        "endLine": 142,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/platter/combos-not-exceed-12-fruits",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Platter"
+        ],
+        "kind": "guideline",
+        "lead": "Combos should not exceed 12 fruits.",
+        "fingerprint": "combos should not exceed 12 fruits",
+        "bodyHash": "ff2a89475ed130ec",
+        "anchor": "platter",
+        "startLine": 143,
+        "endLine": 143,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/platter/note-density-follow-mostly-1",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Platter"
+        ],
+        "kind": "guideline",
+        "lead": "Note density should follow a mostly 1/2 and/or 1/3 pattern.",
+        "fingerprint": "note density should follow a mostly 1 2 and or 1 3 pattern",
+        "bodyHash": "a154fcff047cfc6b",
+        "anchor": "platter",
+        "startLine": 144,
+        "endLine": 144,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "catch/platter/approach-rate-overall-difficulty-8",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Platter"
+        ],
+        "kind": "guideline",
+        "lead": "Approach rate / overall difficulty should be 8 or lower.",
+        "fingerprint": "approach rate overall difficulty should be 8 or lower",
+        "bodyHash": "fc6e5f8da0c3f291",
+        "anchor": "platter",
+        "startLine": 148,
+        "endLine": 148,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/platter/hp-drain-rate-between-4",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Platter"
+        ],
+        "kind": "guideline",
+        "lead": "HP drain rate should be between 4 and 5.",
+        "fingerprint": "hp drain rate should be between 4 and 5",
+        "bodyHash": "f6a89571fe8c134c",
+        "anchor": "platter",
+        "startLine": 149,
+        "endLine": 149,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/platter/circle-size-3-5-lower",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Platter"
+        ],
+        "kind": "guideline",
+        "lead": "Circle size should be 3.5 or lower.",
+        "fingerprint": "circle size should be 3 5 or lower",
+        "bodyHash": "14f77b1d06de66c3",
+        "anchor": "platter",
+        "startLine": 150,
+        "endLine": 150,
+        "difficulties": [
+          "hard"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/rain/hyperdashes-dashes-least-62-ms",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Rain"
+        ],
+        "kind": "rule",
+        "lead": "Hyperdashes and dashes must have at least a 62 ms gap between their two objects.",
+        "fingerprint": "hyperdashes and dashes must have at least a 62 ms gap between their two objects",
+        "bodyHash": "cccd39778c10ba97",
+        "anchor": "rain",
+        "startLine": 156,
+        "endLine": 156,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/rain/hyperdashes-basic-snapped-not-used",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Rain"
+        ],
+        "kind": "rule",
+        "lead": "Hyperdashes that are basic-snapped must not be used more than four times between consecutive fruits.",
+        "fingerprint": "hyperdashes that are basic snapped must not be used more than four times between consecutive fruits",
+        "bodyHash": "167dc76c140c6812",
+        "anchor": "rain",
+        "startLine": 157,
+        "endLine": 157,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/rain/hyperdashes-basic-snapped-not-used-2",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Rain"
+        ],
+        "kind": "rule",
+        "lead": "Hyperdashes that are basic-snapped must not be used more than two times within a slider.",
+        "fingerprint": "hyperdashes that are basic snapped must not be used more than two times within a slider",
+        "bodyHash": "34259282cdef504b",
+        "anchor": "rain",
+        "startLine": 158,
+        "endLine": 158,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/rain/hyperdashes-higher-snapped-not-used",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Rain"
+        ],
+        "kind": "rule",
+        "lead": "Hyperdashes that are higher-snapped must not be used in conjunction with any other hyperdashes.",
+        "fingerprint": "hyperdashes that are higher snapped must not be used in conjunction with any other hyperdashes",
+        "bodyHash": "98a26fef63bf656e",
+        "anchor": "rain",
+        "startLine": 159,
+        "endLine": 159,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/rain/hyperdashes-higher-snapped-not-used-2",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Rain"
+        ],
+        "kind": "rule",
+        "lead": "Hyperdashes that are higher-snapped must not be used within a slider.",
+        "fingerprint": "hyperdashes that are higher snapped must not be used within a slider",
+        "bodyHash": "758392185af40d31",
+        "anchor": "rain",
+        "startLine": 160,
+        "endLine": 160,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/rain/least-125-ms-left-between",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Rain"
+        ],
+        "kind": "rule",
+        "lead": "At least 125 ms must be left between fruits and the start and end of spinners.",
+        "fingerprint": "at least 125 ms must be left between fruits and the start and end of spinners",
+        "bodyHash": "8982c65312c21558",
+        "anchor": "rain",
+        "startLine": 161,
+        "endLine": 161,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/rain/hyperdashes-not-used-individual-drops",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Rain"
+        ],
+        "kind": "guideline",
+        "lead": "Hyperdashes should not be used on individual drops and/or slider repetitions.",
+        "fingerprint": "hyperdashes should not be used on individual drops and or slider repetitions",
+        "bodyHash": "60b2474ea91ab97b",
+        "anchor": "rain",
+        "startLine": 165,
+        "endLine": 165,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/rain/hyperdashes-basic-snapped-not-used-3",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Rain"
+        ],
+        "kind": "guideline",
+        "lead": "Hyperdashes that are basic-snapped should not be used consecutively when different beat snaps are used.",
+        "fingerprint": "hyperdashes that are basic snapped should not be used consecutively when different beat snaps are used",
+        "bodyHash": "a2d15e4e169fa6f2",
+        "anchor": "rain",
+        "startLine": 166,
+        "endLine": 166,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/rain/hyperdashes-higher-snapped-not-used-3",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Rain"
+        ],
+        "kind": "guideline",
+        "lead": "Hyperdashes that are higher-snapped should not be used in conjunction with higher-snapped dashes.",
+        "fingerprint": "hyperdashes that are higher snapped should not be used in conjunction with higher snapped dashes",
+        "bodyHash": "20c810e06bda1d57",
+        "anchor": "rain",
+        "startLine": 167,
+        "endLine": 167,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/rain/hyperdashes-higher-snapped-not-followed",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Rain"
+        ],
+        "kind": "guideline",
+        "lead": "Hyperdashes that are higher-snapped should not be followed by antiflow dashes.",
+        "fingerprint": "hyperdashes that are higher snapped should not be followed by antiflow dashes",
+        "bodyHash": "8206d396f8131ea9",
+        "anchor": "rain",
+        "startLine": 168,
+        "endLine": 168,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/rain/edge-dashes-not-used-conjunction",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Rain"
+        ],
+        "kind": "guideline",
+        "lead": "Edge dashes should not be used in conjunction with other dashes or hyperdashes.",
+        "fingerprint": "edge dashes should not be used in conjunction with other dashes or hyperdashes",
+        "bodyHash": "7139ab8023550026",
+        "anchor": "rain",
+        "startLine": 169,
+        "endLine": 169,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/rain/spinner-traps-not-used",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Rain"
+        ],
+        "kind": "guideline",
+        "lead": "Spinner traps should not be used.",
+        "fingerprint": "spinner traps should not be used",
+        "bodyHash": "7f2950ae7a8d512b",
+        "anchor": "rain",
+        "startLine": 170,
+        "endLine": 170,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/rain/note-density-follow-mostly-1",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Rain"
+        ],
+        "kind": "guideline",
+        "lead": "Note density should follow a mostly 1/2 + 1/4 and/or 1/3 + 1/6 pattern.",
+        "fingerprint": "note density should follow a mostly 1 2 1 4 and or 1 3 1 6 pattern",
+        "bodyHash": "58360d71797b9923",
+        "anchor": "rain",
+        "startLine": 171,
+        "endLine": 171,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "catch/rain/approach-rate-overall-difficulty-9",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Rain"
+        ],
+        "kind": "guideline",
+        "lead": "Approach rate / overall difficulty should be 9 or lower.",
+        "fingerprint": "approach rate overall difficulty should be 9 or lower",
+        "bodyHash": "751d50e916ad94ae",
+        "anchor": "rain",
+        "startLine": 175,
+        "endLine": 175,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/rain/hp-drain-rate-between-5",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Rain"
+        ],
+        "kind": "guideline",
+        "lead": "HP drain rate should be between 5 and 6.",
+        "fingerprint": "hp drain rate should be between 5 and 6",
+        "bodyHash": "598edcc15b9ca1e2",
+        "anchor": "rain",
+        "startLine": 176,
+        "endLine": 176,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/rain/circle-size-4-lower",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Rain"
+        ],
+        "kind": "guideline",
+        "lead": "Circle size should be 4 or lower.",
+        "fingerprint": "circle size should be 4 or lower",
+        "bodyHash": "918b485e43fe2ce3",
+        "anchor": "rain",
+        "startLine": 177,
+        "endLine": 177,
+        "difficulties": [
+          "insane"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/overdose/least-62-ms-left-between",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Overdose"
+        ],
+        "kind": "rule",
+        "lead": "At least 62 ms must be left between fruits and the start of spinners.",
+        "fingerprint": "at least 62 ms must be left between fruits and the start of spinners",
+        "bodyHash": "8d14d1b215994214",
+        "anchor": "overdose",
+        "startLine": 183,
+        "endLine": 183,
+        "difficulties": [
+          "expert",
+          "ultra"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/overdose/least-125-ms-left-between",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Overdose"
+        ],
+        "kind": "rule",
+        "lead": "At least 125 ms must be left between fruits and the end of spinners.",
+        "fingerprint": "at least 125 ms must be left between fruits and the end of spinners",
+        "bodyHash": "db687c1fe93aa97c",
+        "anchor": "overdose",
+        "startLine": 184,
+        "endLine": 184,
+        "difficulties": [
+          "expert",
+          "ultra"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/overdose/edge-dashes-not-used-after",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Overdose"
+        ],
+        "kind": "guideline",
+        "lead": "Edge dashes should not be used after hyperdashes.",
+        "fingerprint": "edge dashes should not be used after hyperdashes",
+        "bodyHash": "729a3896391bf7d7",
+        "anchor": "overdose",
+        "startLine": 188,
+        "endLine": 188,
+        "difficulties": [
+          "expert",
+          "ultra"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/overdose/approach-rate-overall-difficulty-9",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Overdose"
+        ],
+        "kind": "guideline",
+        "lead": "Approach rate / overall difficulty should be 9 or higher.",
+        "fingerprint": "approach rate overall difficulty should be 9 or higher",
+        "bodyHash": "ef60a1acf8be2b68",
+        "anchor": "overdose",
+        "startLine": 192,
+        "endLine": 192,
+        "difficulties": [
+          "expert",
+          "ultra"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/overdose/hp-drain-rate-5-higher",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Overdose"
+        ],
+        "kind": "guideline",
+        "lead": "HP drain rate should be 5 or higher.",
+        "fingerprint": "hp drain rate should be 5 or higher",
+        "bodyHash": "b9cf2aeaa41468ed",
+        "anchor": "overdose",
+        "startLine": 193,
+        "endLine": 193,
+        "difficulties": [
+          "expert",
+          "ultra"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "catch/overdose/circle-size-4-higher",
+      "upstream": {
+        "path": [
+          "Difficulty-specific",
+          "Overdose"
+        ],
+        "kind": "guideline",
+        "lead": "Circle size should be 4 or higher.",
+        "fingerprint": "circle size should be 4 or higher",
+        "bodyHash": "a2f98a1410d9e1a0",
+        "anchor": "overdose",
+        "startLine": 194,
+        "endLine": 194,
+        "difficulties": [
+          "expert",
+          "ultra"
+        ]
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    }
+  ]
+}

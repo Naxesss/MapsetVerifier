@@ -2,6 +2,7 @@
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.General.Resources
 {
@@ -47,9 +48,14 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                         "file name",
                         "width",
                         "height"
-                    ).WithCause(
-                        "A background file has a width exceeding 2560 pixels or a height exceeding 1440 pixels."
                     )
+                        .WithCause(
+                            "A background file has a width exceeding 2560 pixels or a height exceeding 1440 pixels."
+                        )
+                        .WithRule(
+                            RC.General.VideoAndBackground_MaximumWidth2560px,
+                            RC.General.VideoAndBackground_MaximumHeight1440px
+                        )
                 },
                 {
                     "Very low",
@@ -59,9 +65,13 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                         "file name",
                         "width",
                         "height"
-                    ).WithCause(
-                        "A background file has a width lower than 1024 pixels or a height lower than 640 pixels."
                     )
+                        .WithCause(
+                            "A background file has a width lower than 1024 pixels or a height lower than 640 pixels."
+                        )
+                        .WithRule(
+                            RC.General.VideoAndBackground_BackgroundImagesVideosBeatmapReasonable
+                        )
                 },
                 {
                     "File size",
@@ -70,7 +80,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                         "\"{0}\" has a file size exceeding 2.5 MB ({1} MB)",
                         "file name",
                         "file size"
-                    ).WithCause("A background file has a file size greater than 2.5 MB.")
+                    )
+                        .WithCause("A background file has a file size greater than 2.5 MB.")
+                        .WithRule(RC.General.VideoAndBackground_MaximumFileSize25mb)
                 },
                 // parsing results
                 {

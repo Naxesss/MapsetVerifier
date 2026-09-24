@@ -5,6 +5,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Standard.Compose
 {
@@ -49,17 +50,33 @@ namespace MapsetVerifier.Checks.Standard.Compose
             {
                 {
                     "Definitely",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Burai.", "timestamp -").WithCause(
-                        "The burai score of a slider shape, based on the distance and delta angle between intersecting parts of the curve, is very high."
-                    )
+                    new IssueTemplate(Issue.Level.Warning, "{0} Burai.", "timestamp -")
+                        .WithCause(
+                            "The burai score of a slider shape, based on the distance and delta angle between intersecting parts of the curve, is very high."
+                        )
+                        .WithRule(
+                            RC.Osu.Easy_UseStraightforwardEasilyUnderstandableSlider,
+                            RC.Osu.Normal_UseStraightforwardEasilyUnderstandableSlider,
+                            RC.Osu.Easy_SliderClearVisiblePathMovement,
+                            RC.Osu.Normal_SliderClearVisiblePathMovement,
+                            RC.Osu.Hard_SliderClearVisiblePathMovement,
+                            RC.Osu.Insane_SliderClearVisiblePathMovement,
+                            RC.Osu.Expert_SliderClearVisiblePathMovement
+                        )
                 },
                 {
                     "Potentially",
-                    new IssueTemplate(
-                        Issue.Level.Warning,
-                        "{0} Potentially burai.",
-                        "timestamp -"
-                    ).WithCause("Same as the other check, but with a lower score threshold.")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Potentially burai.", "timestamp -")
+                        .WithCause("Same as the other check, but with a lower score threshold.")
+                        .WithRule(
+                            RC.Osu.Easy_UseStraightforwardEasilyUnderstandableSlider,
+                            RC.Osu.Normal_UseStraightforwardEasilyUnderstandableSlider,
+                            RC.Osu.Easy_SliderClearVisiblePathMovement,
+                            RC.Osu.Normal_SliderClearVisiblePathMovement,
+                            RC.Osu.Hard_SliderClearVisiblePathMovement,
+                            RC.Osu.Insane_SliderClearVisiblePathMovement,
+                            RC.Osu.Expert_SliderClearVisiblePathMovement
+                        )
                 },
             };
 

@@ -2,6 +2,7 @@
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.General.Audio
 {
@@ -49,9 +50,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         "\"{0}\" may be obnoxious without custom samples. Used most commonly in {1}.",
                         "path",
                         "[difficulty]"
-                    ).WithCause(
-                        "The usage of non-drum finish hit sounds to drain time ratio in a map is 2 seconds or more."
                     )
+                        .WithCause(
+                            "The usage of non-drum finish hit sounds to drain time ratio in a map is 2 seconds or more."
+                        )
+                        .WithRule(RC.General.Audio_AvoidReplacingHitFinishSoft)
                 },
                 {
                     "Warning Timestamp",
@@ -60,9 +63,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         "\"{0}\" may be obnoxious without custom samples. Used most frequently leading up to {1}.",
                         "path",
                         "timestamp in [difficulty]"
-                    ).WithCause(
-                        "Non-drum finish hit sounds are used frequently in a short timespan."
                     )
+                        .WithCause(
+                            "Non-drum finish hit sounds are used frequently in a short timespan."
+                        )
+                        .WithRule(RC.General.Audio_AvoidReplacingHitFinishSoft)
                 },
             };
 

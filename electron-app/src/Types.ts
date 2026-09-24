@@ -16,6 +16,8 @@ export type ApiDocumentationCheckDetailsOutcome = {
   level: Level;
   description: string;
   cause?: string;
+  /** Ranking criteria statements this outcome enforces. */
+  ruleIds?: string[];
 };
 
 export type ApiBeatmapPage = {
@@ -137,6 +139,8 @@ export type ApiCheckResult = {
   id: number;
   level: Level;
   message: string;
+  /** Ranking criteria statements the issue's template enforces. */
+  ruleIds?: string[];
 };
 
 export type ApiCheckRunDelta = {
@@ -832,4 +836,65 @@ export type ObjectsSnappingBucket = {
   percentage: number;
   /** Edge timestamps for this snap column; omit if using an older API. */
   edgeTimesMs?: number[];
+};
+
+export type RcKind = 'Rule' | 'Guideline' | 'Allowance';
+export type RcAutomation = 'Unknown' | 'Automatable' | 'Partial' | 'Manual';
+export type RcCoverage = 'Covered' | 'Partial' | 'Uncovered' | 'Manual' | 'Informational';
+
+export type ApiRcSource = {
+  repository: string;
+  commit: string;
+  commitDate?: string | null;
+};
+
+export type ApiRcPageSummary = {
+  key: string;
+  title: string;
+  wikiUrl: string;
+  modes: Mode[];
+  hasStatements: boolean;
+  coverage: Record<RcCoverage, number>;
+};
+
+export type ApiRcOverview = {
+  source: ApiRcSource;
+  pages: ApiRcPageSummary[];
+};
+
+export type ApiRcCheckLink = {
+  checkId: number;
+  checkName: string;
+  templateKey: string;
+  level: Level;
+};
+
+export type ApiRcStatement = {
+  id: string;
+  page: string;
+  pageTitle: string;
+  kind: RcKind;
+  lead: string;
+  path: string[];
+  wikiUrl: string;
+  startLine: number;
+  endLine: number;
+  parentId?: string | null;
+  parentLead?: string | null;
+  /** Only opens a sentence its nested statements finish, e.g. "The audio file of a beatmap must...". */
+  intro: boolean;
+  difficulties: DifficultyLevel[];
+  automation: RcAutomation;
+  notes?: string | null;
+  retired: boolean;
+  coverage: RcCoverage;
+  links: ApiRcCheckLink[];
+};
+
+export type ApiRcPage = {
+  key: string;
+  title: string;
+  wikiUrl: string;
+  markdown: string;
+  statements: ApiRcStatement[];
 };

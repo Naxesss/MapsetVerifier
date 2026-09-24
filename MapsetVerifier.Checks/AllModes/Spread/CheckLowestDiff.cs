@@ -1,8 +1,9 @@
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.Spread
 {
@@ -79,8 +80,9 @@ namespace MapsetVerifier.Checks.AllModes.Spread
                         "beatmap",
                         "lowest drain",
                         "current drain"
-                    ).WithCause(
-                        "The lowest difficulty of a beatmapset (or key mode, for osu!mania) is too high of a difficulty level considering the drain time of the difficulties, and there are not enough difficulties to rely on a proper spread instead."
+                    )
+                        .WithCause(
+                            "The lowest difficulty of a beatmapset (or key mode, for osu!mania) is too high of a difficulty level considering the drain time of the difficulties, and there are not enough difficulties to rely on a proper spread instead."
                     )
                 },
                 {
@@ -96,7 +98,25 @@ namespace MapsetVerifier.Checks.AllModes.Spread
                         "difficulty count"
                     ).WithCause(
                         "Same as the problem, except there are enough difficulties that a proper spread (osu!catch and osu!mania only) could satisfy the requirement instead."
-                    )
+                        )
+                        .WithRule(
+                            RC.General.Beatmap_GameModesWithinBeatmapForm,
+                            RC.Osu.Spread_Lower230LowestDifficulty,
+                            RC.Osu.Spread_Between230315,
+                            RC.Osu.Spread_Between315400,
+                            RC.Osu.Spread_BreakTimesCombinedDrainTime,
+                            RC.Taiko.Spread_Lower230LowestDifficulty,
+                            RC.Taiko.Spread_Between230315,
+                            RC.Taiko.Spread_Between315400,
+                            RC.Taiko.Spread_BreakTimesCombinedDrainTime,
+                            RC.Catch.Spread_Lower230LowestDifficulty,
+                            RC.Catch.Spread_Between230315,
+                            RC.Catch.Spread_Between315400,
+                            RC.Catch.Spread_BreakTimesCombinedDrainTime,
+                            RC.Mania.Spread_Lower200KeyMode,
+                            RC.Mania.Spread_Between200245,
+                            RC.Mania.Spread_Between245330
+                        )
                 },
             };
 

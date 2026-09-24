@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Framework.Objects.Resources;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.General.Audio
 {
@@ -49,9 +50,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         Issue.Level.Warning,
                         "Currently {0}% unused audio. Ensure the outro significantly contributes to the song, otherwise cut the outro.",
                         "percent"
-                    ).WithCause(
-                        "The amount of time after the last object exceeds 20% of the length of the audio file. No storyboard or video is present."
                     )
+                        .WithCause(
+                            "The amount of time after the last object exceeds 20% of the length of the audio file. No storyboard or video is present."
+                        )
+                        .WithRule(RC.General.Audio_NotMapLast20Beatmap)
                 },
                 {
                     "With Video/Storyboard",
@@ -59,9 +62,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         Issue.Level.Warning,
                         "Currently {0}% unused audio. Ensure the outro either significantly contributes to the song, or is being occupied by the video or storyboard, otherwise cut the outro.",
                         "percent"
-                    ).WithCause(
-                        "Same as the other check, except with a storyboard or video present."
                     )
+                        .WithCause(
+                            "Same as the other check, except with a storyboard or video present."
+                        )
+                        .WithRule(RC.General.Audio_NotMapLast20Beatmap)
                 },
                 {
                     "Unable to check",

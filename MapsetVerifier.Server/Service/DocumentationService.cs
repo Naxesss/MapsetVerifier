@@ -96,7 +96,8 @@ public static class DocumentationService
                 return new ApiDocumentationCheckDetailsOutcome(
                     level: templateValue.Level,
                     description: templateMessage,
-                    cause: templateValue.Cause
+                    cause: templateValue.Cause,
+                    ruleIds: templateValue.RuleIds
                 );
             })
             .ToList();

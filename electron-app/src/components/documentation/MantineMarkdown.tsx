@@ -1,12 +1,14 @@
 import { Title, Text, Code, Divider, List, Anchor, Alert, Blockquote } from '@mantine/core';
 import { IconInfoCircleFilled } from '@tabler/icons-react';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { ReactNode } from 'react';
 
 interface MantineMarkdownProps {
   children: string;
   notesForBlockquotes?: boolean;
+  /** Overrides for individual elements, merged over the default Mantine styled ones. */
+  components?: Components;
 }
 
 function hasLeadingContent(node: unknown): boolean {
@@ -22,6 +24,7 @@ function hasLeadingContent(node: unknown): boolean {
 export default function MantineMarkdown({
   children,
   notesForBlockquotes = false,
+  components,
 }: MantineMarkdownProps) {
   return (
     <div className="markdown-text">
@@ -128,6 +131,7 @@ export default function MantineMarkdown({
           tr: ({ children }: { children?: ReactNode }) => <tr>{children}</tr>,
           th: ({ children }: { children?: ReactNode }) => <th>{children}</th>,
           td: ({ children }: { children?: ReactNode }) => <td>{children}</td>,
+          ...components,
         }}
       >
         {children}

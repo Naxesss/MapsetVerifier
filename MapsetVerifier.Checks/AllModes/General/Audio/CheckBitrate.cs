@@ -5,6 +5,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Framework.Objects.Resources;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using Serilog;
 
 namespace MapsetVerifier.Checks.AllModes.General.Audio
@@ -57,9 +58,14 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         "path",
                         "bitrate",
                         "high/low"
-                    ).WithCause(
-                        "The average bitrate of an audio file is either higher than 192/208 kbps for MP3/OGG respectively or lower than 128 kbps."
                     )
+                        .WithCause(
+                            "The average bitrate of an audio file is either higher than 192/208 kbps for MP3/OGG respectively or lower than 128 kbps."
+                        )
+                        .WithRule(
+                            RC.General.Audio_AverageBitRateNoGreater,
+                            RC.General.Audio_AverageBitRateNoLower
+                        )
                 },
                 {
                     "Exception",

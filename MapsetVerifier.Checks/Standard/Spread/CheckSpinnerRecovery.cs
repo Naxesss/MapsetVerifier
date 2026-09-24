@@ -5,6 +5,7 @@ using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Standard.Spread
 {
@@ -51,9 +52,15 @@ namespace MapsetVerifier.Checks.Standard.Spread
                         "timestamp -",
                         "duration",
                         "duration"
-                    ).WithCause(
-                        "A spinner is shorter than 4, 3 or 2 beats for Easy, Normal and Hard respectively, assuming 240 bpm."
                     )
+                        .WithCause(
+                            "A spinner is shorter than 4, 3 or 2 beats for Easy, Normal and Hard respectively, assuming 240 bpm."
+                        )
+                        .WithRule(
+                            RC.Osu.Easy_AvoidSpinnersLess4Beats,
+                            RC.Osu.Normal_AvoidSpinnersLess3Beats,
+                            RC.Osu.Hard_AvoidSpinnersLess2Beats
+                        )
                 },
                 {
                     "Warning Length",
@@ -63,9 +70,15 @@ namespace MapsetVerifier.Checks.Standard.Spread
                         "timestamp -",
                         "duration",
                         "duration"
-                    ).WithCause(
-                        "Same as the first check, except 20% more lenient, implying that 200 bpm is assumed instead."
                     )
+                        .WithCause(
+                            "Same as the first check, except 20% more lenient, implying that 200 bpm is assumed instead."
+                        )
+                        .WithRule(
+                            RC.Osu.Easy_AvoidSpinnersLess4Beats,
+                            RC.Osu.Normal_AvoidSpinnersLess3Beats,
+                            RC.Osu.Hard_AvoidSpinnersLess2Beats
+                        )
                 },
                 {
                     "Problem Recovery",
@@ -75,9 +88,15 @@ namespace MapsetVerifier.Checks.Standard.Spread
                         "timestamp -",
                         "duration",
                         "duration"
-                    ).WithCause(
-                        "The time after a spinner ends to the next object is shorter than 4, 3 or 2 beats for Easy, Normal and Hard respectively, assuming 240 bpm, where both the non-scaled and bpm-scaled thresholds must be exceeded."
                     )
+                        .WithCause(
+                            "The time after a spinner ends to the next object is shorter than 4, 3 or 2 beats for Easy, Normal and Hard respectively, assuming 240 bpm, where both the non-scaled and bpm-scaled thresholds must be exceeded."
+                        )
+                        .WithRule(
+                            RC.Osu.Easy_Least4BeatsBetweenSpinner,
+                            RC.Osu.Normal_Least2BeatsBetweenSpinner,
+                            RC.Osu.Hard_Least1BeatBetweenSpinner
+                        )
                 },
                 {
                     "Warning Recovery",
@@ -87,9 +106,15 @@ namespace MapsetVerifier.Checks.Standard.Spread
                         "timestamp -",
                         "duration",
                         "duration"
-                    ).WithCause(
-                        "Same as the other recovery check, except 20% more lenient, implying that 200 bpm is assumed instead."
                     )
+                        .WithCause(
+                            "Same as the other recovery check, except 20% more lenient, implying that 200 bpm is assumed instead."
+                        )
+                        .WithRule(
+                            RC.Osu.Easy_Least4BeatsBetweenSpinner,
+                            RC.Osu.Normal_Least2BeatsBetweenSpinner,
+                            RC.Osu.Hard_Least1BeatBetweenSpinner
+                        )
                 },
             };
 

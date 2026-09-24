@@ -2,6 +2,7 @@
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.Settings
 {
@@ -50,9 +51,14 @@ namespace MapsetVerifier.Checks.AllModes.Settings
                     new IssueTemplate(
                         Issue.Level.Problem,
                         "Default combo colours without preferred skin."
-                    ).WithCause(
-                        "A beatmap has no custom combo colours and does not have any preferred skin."
                     )
+                        .WithCause(
+                            "A beatmap has no custom combo colours and does not have any preferred skin."
+                        )
+                        .WithRule(
+                            RC.Osu.BeatmapUseLeastTwoDifferent,
+                            RC.Catch.BeatmapUseLeastTwoDifferent
+                        )
                 },
             };
 

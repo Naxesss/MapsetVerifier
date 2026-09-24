@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.Events
 {
@@ -48,9 +49,11 @@ namespace MapsetVerifier.Checks.AllModes.Events
                         "timestamp -",
                         "timestamp -",
                         "details"
-                    ).WithCause(
-                        "Either the break starts less than 200 ms after the object before the end of the break, or the break ends less than the preemt time before the object after the start of the break."
                     )
+                        .WithCause(
+                            "Either the break starts less than 200 ms after the object before the end of the break, or the break ends less than the preemt time before the object after the start of the break."
+                        )
+                        .WithRule(RC.General.BreakTimesInsertedRestrictionsBeatmap)
                 },
                 {
                     "Too short",
@@ -59,7 +62,9 @@ namespace MapsetVerifier.Checks.AllModes.Events
                         "{0} to {1} is non-functional due to being less than 650 ms.",
                         "timestamp -",
                         "timestamp -"
-                    ).WithCause("The break is less than 650 ms in length.")
+                    )
+                        .WithCause("The break is less than 650 ms in length.")
+                        .WithRule(RC.General.BreakTimesInsertedRestrictionsBeatmap)
                 },
             };
 

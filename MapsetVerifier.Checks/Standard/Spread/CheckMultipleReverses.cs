@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Standard.Spread
 {
@@ -46,9 +47,14 @@ namespace MapsetVerifier.Checks.Standard.Spread
                         Issue.Level.Problem,
                         "{0} This slider is way too short to have multiple reverses.",
                         "timestamp -"
-                    ).WithCause(
-                        "A slider has at least 2 reverses and is 250 ms or shorter (240 bpm 1/1) in an Easy, or 125 ms or shorter (240 bpm 1/2) in a Normal."
                     )
+                        .WithCause(
+                            "A slider has at least 2 reverses and is 250 ms or shorter (240 bpm 1/1) in an Easy, or 125 ms or shorter (240 bpm 1/2) in a Normal."
+                        )
+                        .WithRule(
+                            RC.Osu.Easy_Avoid11SlidersMultiple,
+                            RC.Osu.Normal_Avoid12SlidersMultiple
+                        )
                 },
                 {
                     "Warning",
@@ -56,9 +62,14 @@ namespace MapsetVerifier.Checks.Standard.Spread
                         Issue.Level.Warning,
                         "{0} This slider is very short to have multiple reverses.",
                         "timestamp -"
-                    ).WithCause(
-                        "A slider has at least 2 reverses and is 333 ms or shorter (180 bpm 1/1) in an Easy, or 167 ms or shorter (180 bpm 1/2) in a Normal."
                     )
+                        .WithCause(
+                            "A slider has at least 2 reverses and is 333 ms or shorter (180 bpm 1/1) in an Easy, or 167 ms or shorter (180 bpm 1/2) in a Normal."
+                        )
+                        .WithRule(
+                            RC.Osu.Easy_Avoid11SlidersMultiple,
+                            RC.Osu.Normal_Avoid12SlidersMultiple
+                        )
                 },
             };
 

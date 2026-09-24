@@ -2,6 +2,7 @@
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 using static MapsetVerifier.Checks.Utils.ManiaUtils;
 
 namespace MapsetVerifier.Checks.Mania.Compose
@@ -54,11 +55,9 @@ namespace MapsetVerifier.Checks.Mania.Compose
                 },
                 {
                     "Unused column",
-                    new IssueTemplate(
-                        Issue.Level.Problem,
-                        "Column {0} is unused",
-                        "column"
-                    ).WithCause("A column is unused.")
+                    new IssueTemplate(Issue.Level.Problem, "Column {0} is unused", "column")
+                        .WithCause("A column is unused.")
+                        .WithRule(RC.Mania.NoColumnLeftEmpty)
                 },
             };
         }

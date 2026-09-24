@@ -1,0 +1,1666 @@
+{
+  "page": "metadata",
+  "statements": [
+    {
+      "id": "metadata/primary-metadata-sources-used-reference",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "Primary metadata sources must be used as reference.",
+        "fingerprint": "primary metadata sources must be used as reference",
+        "bodyHash": "96e5d2ef46ecbc87",
+        "anchor": "general",
+        "startLine": 7,
+        "endLine": 7,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/difficulties-beatmap-set-identical-title",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "All difficulties in a beatmap set must have identical `Title`, `Artist`, `Tag`, `Source`, and `BeatmapSetID` fields.",
+        "fingerprint": "all difficulties in a beatmap set must have identical title artist tag source and beatmapsetid fields",
+        "bodyHash": "b8cd7371a367b927",
+        "anchor": "general",
+        "startLine": 8,
+        "endLine": 8,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/artist-title-fields-over-81",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "`Artist` or `Title` fields over 81 characters must be shortened.",
+        "fingerprint": "artist or title fields over 81 characters must be shortened",
+        "bodyHash": "d3d2aceeb66aa134",
+        "anchor": "general",
+        "startLine": 9,
+        "endLine": 13,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/tags-field-shortened-longer-1000",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "rule",
+        "lead": "The `Tags` field must be shortened if it is longer than 1000 characters.",
+        "fingerprint": "the tags field must be shortened if it is longer than 1000 characters",
+        "bodyHash": "ea65a78c1fccc455",
+        "anchor": "general",
+        "startLine": 14,
+        "endLine": 17,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/logos-not-used-reference-capitalisation",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "Logos should not be used as reference for capitalisation.",
+        "fingerprint": "logos should not be used as reference for capitalisation",
+        "bodyHash": "2af3fea410742c00",
+        "anchor": "general",
+        "startLine": 21,
+        "endLine": 21,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/remix-cover-appears-typo-song",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "When a remix or cover appears to have a typo in the song name compared to the original track, use the original spelling instead, unless the typo is an intentional stylisation.",
+        "fingerprint": "when a remix or cover appears to have a typo in the song name compared to the original track use the original spelling instead unless the typo is an intentional stylisation",
+        "bodyHash": "59118f266bbf2721",
+        "anchor": "general",
+        "startLine": 22,
+        "endLine": 26,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/multiple-metadata-options-available",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "guideline",
+        "lead": "When multiple metadata options are available:",
+        "fingerprint": "when multiple metadata options are available",
+        "bodyHash": "d04a893dc7341be9",
+        "anchor": "general",
+        "startLine": 27,
+        "endLine": 32,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/remixes-covers-performances",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "allowance",
+        "lead": "For remixes, covers, or performances:",
+        "fingerprint": "for remixes covers or performances",
+        "bodyHash": "084c8bf1c69532d4",
+        "anchor": "general",
+        "startLine": 36,
+        "endLine": 36,
+        "intro": true,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/original-artist-used-artist-field",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "allowance",
+        "lead": "The original artist may be used in the artist field, as long as the title field is modified to show that the song is not the original version.",
+        "fingerprint": "the original artist may be used in the artist field as long as the title field is modified to show that the song is not the original version",
+        "bodyHash": "1de96b58986c6c10",
+        "anchor": "general",
+        "startLine": 37,
+        "endLine": 37,
+        "parent": "metadata/remixes-covers-performances",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/music-artist-beatmap-host-adjust",
+      "upstream": {
+        "path": [
+          "General"
+        ],
+        "kind": "allowance",
+        "lead": "If the music artist is the beatmap host, they may adjust the title freely.",
+        "fingerprint": "if the music artist is the beatmap host they may adjust the title freely",
+        "bodyHash": "88e0ce5e99da8e7f",
+        "anchor": "general",
+        "startLine": 38,
+        "endLine": 38,
+        "parent": "metadata/remixes-covers-performances",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/symbols/symbols-used-group-part-title",
+      "upstream": {
+        "path": [
+          "Symbols"
+        ],
+        "kind": "rule",
+        "lead": "Symbols used to group part of a title or artist must include surrounding spaces.",
+        "fingerprint": "symbols used to group part of a title or artist must include surrounding spaces",
+        "bodyHash": "73e2320c6097d38e",
+        "anchor": "symbols",
+        "startLine": 44,
+        "endLine": 44,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/symbols/following-unicode-symbol-subsets-leading",
+      "upstream": {
+        "path": [
+          "Symbols"
+        ],
+        "kind": "rule",
+        "lead": "The following Unicode Symbol subsets should have leading and trailing spaces when they can be romanised:",
+        "fingerprint": "the following unicode symbol subsets should have leading and trailing spaces when they can be romanised",
+        "bodyHash": "7ab9db7e4ddd9190",
+        "anchor": "symbols",
+        "startLine": 46,
+        "endLine": 51,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/symbols/romanised-fields-symbols-changed-nearest",
+      "upstream": {
+        "path": [
+          "Symbols"
+        ],
+        "kind": "rule",
+        "lead": "In romanised fields, symbols must be changed to their nearest ASCII printable equivalent or removed.",
+        "fingerprint": "in romanised fields symbols must be changed to their nearest ascii printable equivalent or removed",
+        "bodyHash": "29517c0f958b519b",
+        "anchor": "symbols",
+        "startLine": 53,
+        "endLine": 68,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/artist/not-use-fictional-character-names",
+      "upstream": {
+        "path": [
+          "Artist"
+        ],
+        "kind": "rule",
+        "lead": "Do not use fictional character names or programs as the sole artist of a track, unless the name is being used as the artist’s own alias.",
+        "fingerprint": "do not use fictional character names or programs as the sole artist of a track unless the name is being used as the artist s own alias",
+        "bodyHash": "e279f64086fa7f7c",
+        "anchor": "artist",
+        "startLine": 76,
+        "endLine": 76,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/artist/use-trailing-space-markers-vs",
+      "upstream": {
+        "path": [
+          "Artist"
+        ],
+        "kind": "rule",
+        "lead": "Use a trailing space for markers such as `vs.`, `feat.`, `CV:`, etc. when marking artists.",
+        "fingerprint": "use a trailing space for markers such as vs feat cv etc when marking artists",
+        "bodyHash": "ffc2afd497c050fd",
+        "anchor": "artist",
+        "startLine": 77,
+        "endLine": 77,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/artist/commas-trailing-space-unless-intentionally",
+      "upstream": {
+        "path": [
+          "Artist"
+        ],
+        "kind": "rule",
+        "lead": "Commas must have a trailing space, unless intentionally stylised otherwise.",
+        "fingerprint": "commas must have a trailing space unless intentionally stylised otherwise",
+        "bodyHash": "a58714fefd7909c0",
+        "anchor": "artist",
+        "startLine": 78,
+        "endLine": 78,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/artist/vs-form-vs-versus-vs",
+      "upstream": {
+        "path": [
+          "Artist"
+        ],
+        "kind": "rule",
+        "lead": "`vs.`: Any form of `vs`, `versus`, `Vs`, etc. indicating collaboration between artists must be written as `vs.`.",
+        "fingerprint": "vs any form of vs versus vs etc indicating collaboration between artists must be written as vs",
+        "bodyHash": "6192ad257866cbd4",
+        "anchor": "artist",
+        "startLine": 84,
+        "endLine": 85,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/artist/feat-form-feat-ft-featuring",
+      "upstream": {
+        "path": [
+          "Artist"
+        ],
+        "kind": "rule",
+        "lead": "`feat.`: Any form of `feat`, `ft.`, `featuring`, `Feat.`, etc. that are indicating an artist featured in the song must be written as `feat.`.",
+        "fingerprint": "feat any form of feat ft featuring feat etc that are indicating an artist featured in the song must be written as feat",
+        "bodyHash": "c5af1a1ec8a35246",
+        "anchor": "artist",
+        "startLine": 86,
+        "endLine": 87,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/artist/character-cv-voice-actor-character",
+      "upstream": {
+        "path": [
+          "Artist"
+        ],
+        "kind": "rule",
+        "lead": "`Character (CV: Voice Actor)` and `Character (VO: Voice Actor)`",
+        "fingerprint": "character cv voice actor and character vo voice actor",
+        "bodyHash": "06ab460ad90ba9e0",
+        "anchor": "artist",
+        "startLine": 88,
+        "endLine": 91,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/artist/doujin-circles-use-following-options",
+      "upstream": {
+        "path": [
+          "Artist"
+        ],
+        "kind": "guideline",
+        "lead": "For doujin circles, you should use any of the following options:",
+        "fingerprint": "for doujin circles you should use any of the following options",
+        "bodyHash": "f27ffe3c1996268b",
+        "anchor": "artist",
+        "startLine": 95,
+        "endLine": 100,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/artist/multiple-artists-involved-track-without",
+      "upstream": {
+        "path": [
+          "Artist"
+        ],
+        "kind": "allowance",
+        "lead": "When multiple artists are involved in a track without clear formatting, you may use an allowance below to combine them into one artist field:",
+        "fingerprint": "when multiple artists are involved in a track without clear formatting you may use an allowance below to combine them into one artist field",
+        "bodyHash": "f637c0c3a4515f81",
+        "anchor": "artist",
+        "startLine": 104,
+        "endLine": 105,
+        "intro": true,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/artist/artists-simply-listed-x-etc",
+      "upstream": {
+        "path": [
+          "Artist"
+        ],
+        "kind": "allowance",
+        "lead": "Artists may be simply listed with `,`, `&`, `x`, `/`, etc. in between each artist.",
+        "fingerprint": "artists may be simply listed with x etc in between each artist",
+        "bodyHash": "9227a3777db7eb54",
+        "anchor": "artist",
+        "startLine": 106,
+        "endLine": 106,
+        "parent": "metadata/artist/multiple-artists-involved-track-without",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/artist/combined-artist-too-long-no",
+      "upstream": {
+        "path": [
+          "Artist"
+        ],
+        "kind": "allowance",
+        "lead": "If the combined artist is too long and no official group name is available, a descriptive artist label may be used in the artist fields instead.",
+        "fingerprint": "if the combined artist is too long and no official group name is available a descriptive artist label may be used in the artist fields instead",
+        "bodyHash": "a94e3a9586c8acea",
+        "anchor": "artist",
+        "startLine": 107,
+        "endLine": 107,
+        "parent": "metadata/artist/multiple-artists-involved-track-without",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/artist/character-voice-actor-credited-singer",
+      "upstream": {
+        "path": [
+          "Artist"
+        ],
+        "kind": "allowance",
+        "lead": "When a character's voice actor is credited as the singer of a song sung in-character, the `Character (CV: Voice Actor)` format may be used.",
+        "fingerprint": "when a character s voice actor is credited as the singer of a song sung in character the character cv voice actor format may be used",
+        "bodyHash": "6537ea9274dbb73d",
+        "anchor": "artist",
+        "startLine": 108,
+        "endLine": 108,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/title/track-made-two-more-songs",
+      "upstream": {
+        "path": [
+          "Title"
+        ],
+        "kind": "rule",
+        "lead": "When a track is made of two or more songs you must do either one of the following:",
+        "fingerprint": "when a track is made of two or more songs you must do either one of the following",
+        "bodyHash": "355c73c9a7a5e716",
+        "anchor": "title",
+        "startLine": 114,
+        "endLine": 117,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/markers/unofficial-versions-match-official-version",
+      "upstream": {
+        "path": [
+          "Title",
+          "Markers"
+        ],
+        "kind": "rule",
+        "lead": "Unofficial versions that match an official version in terms of content, order, and length are considered official and must add the appropriate marker. This only applies if the audio is nearly indistinguishable from the official version.",
+        "fingerprint": "unofficial versions that match an official version in terms of content order and length are considered official and must add the appropriate marker this only applies if the audio is nearly indistinguishable from the official version",
+        "bodyHash": "16a42f1a03e5f793",
+        "anchor": "markers",
+        "startLine": 123,
+        "endLine": 123,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/markers/songs-without-version-marker-fit",
+      "upstream": {
+        "path": [
+          "Title",
+          "Markers"
+        ],
+        "kind": "rule",
+        "lead": "Songs without a version marker that fit one of the marker categories below must add the corresponding one at the end.",
+        "fingerprint": "songs without a version marker that fit one of the marker categories below must add the corresponding one at the end",
+        "bodyHash": "fbf9c4ff140d2223",
+        "anchor": "markers",
+        "startLine": 127,
+        "endLine": 127,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/markers/songs-version-markers-fully-replaced",
+      "upstream": {
+        "path": [
+          "Title",
+          "Markers"
+        ],
+        "kind": "rule",
+        "lead": "Songs with version markers must have them fully replaced with the standard marker from the list below.",
+        "fingerprint": "songs with version markers must have them fully replaced with the standard marker from the list below",
+        "bodyHash": "2a409175a0ce9843",
+        "anchor": "markers",
+        "startLine": 128,
+        "endLine": 128,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/markers/tv-size-add-marker-end",
+      "upstream": {
+        "path": [
+          "Title",
+          "Markers"
+        ],
+        "kind": "rule",
+        "lead": "`(TV Size)`: Add this marker at the end of the title when the specific version of the song was in a TV program (excluding concerts), web series, or direct-to-video series.",
+        "fingerprint": "tv size add this marker at the end of the title when the specific version of the song was in a tv program excluding concerts web series or direct to video series",
+        "bodyHash": "f5c9043ec08591fc",
+        "anchor": "markers",
+        "startLine": 129,
+        "endLine": 130,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/markers/cut-ver-use-song-cut",
+      "upstream": {
+        "path": [
+          "Title",
+          "Markers"
+        ],
+        "kind": "rule",
+        "lead": "`(Cut Ver.)`: Use when the song is a cut version that is not considered official.",
+        "fingerprint": "cut ver use when the song is a cut version that is not considered official",
+        "bodyHash": "dad3384d4168a609",
+        "anchor": "markers",
+        "startLine": 131,
+        "endLine": 133,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/markers/extended-edit-use-song-unofficial",
+      "upstream": {
+        "path": [
+          "Title",
+          "Markers"
+        ],
+        "kind": "rule",
+        "lead": "`(Extended Edit)`: Use when the song is an unofficial extended version.",
+        "fingerprint": "extended edit use when the song is an unofficial extended version",
+        "bodyHash": "4f729bb14212e542",
+        "anchor": "markers",
+        "startLine": 134,
+        "endLine": 135,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/markers/sped-up-ver-nightcore-mix",
+      "upstream": {
+        "path": [
+          "Title",
+          "Markers"
+        ],
+        "kind": "rule",
+        "lead": "`(Sped Up Ver.)`, `(Nightcore Mix)`",
+        "fingerprint": "sped up ver nightcore mix",
+        "bodyHash": "fdad7a8608fb8542",
+        "anchor": "markers",
+        "startLine": 136,
+        "endLine": 138,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/markers/combined-markers-edit-sped-up",
+      "upstream": {
+        "path": [
+          "Title",
+          "Markers"
+        ],
+        "kind": "rule",
+        "lead": "Combined Markers: If the edit is sped up and cut, use `(Sped Up & Cut Ver.)` or `(Nightcore & Cut Ver.)`.",
+        "fingerprint": "combined markers if the edit is sped up and cut use sped up cut ver or nightcore cut ver",
+        "bodyHash": "2b4d7cb160d69b9e",
+        "anchor": "markers",
+        "startLine": 139,
+        "endLine": 141,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/markers/similar-markers-song-title-replace",
+      "upstream": {
+        "path": [
+          "Title",
+          "Markers"
+        ],
+        "kind": "rule",
+        "lead": "If there are similar markers in a song's title, replace them with the relevant marker from the list below.",
+        "fingerprint": "if there are similar markers in a song s title replace them with the relevant marker from the list below",
+        "bodyHash": "557f17b1a8318a90",
+        "anchor": "markers",
+        "startLine": 145,
+        "endLine": 145,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/markers/no-markers-add-one-shorter",
+      "upstream": {
+        "path": [
+          "Title",
+          "Markers"
+        ],
+        "kind": "rule",
+        "lead": "If there are no markers, add one to the shorter version when there are multiple versions of a song with identical original metadata. Use the most appropriate option from the list below.",
+        "fingerprint": "if there are no markers add one to the shorter version when there are multiple versions of a song with identical original metadata use the most appropriate option from the list below",
+        "bodyHash": "c150da653c3e1e1f",
+        "anchor": "markers",
+        "startLine": 146,
+        "endLine": 146,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/markers/not-add-these-markers-track",
+      "upstream": {
+        "path": [
+          "Title",
+          "Markers"
+        ],
+        "kind": "rule",
+        "lead": "Do not add these markers if a track is the only known version of a song.",
+        "fingerprint": "do not add these markers if a track is the only known version of a song",
+        "bodyHash": "1b6cb6d35038cb44",
+        "anchor": "markers",
+        "startLine": 147,
+        "endLine": 147,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/markers/short-ver-used-mark-shorter",
+      "upstream": {
+        "path": [
+          "Title",
+          "Markers"
+        ],
+        "kind": "rule",
+        "lead": "`(Short Ver.)`: Used to mark the shorter version when both long and short versions of a song exist.",
+        "fingerprint": "short ver used to mark the shorter version when both long and short versions of a song exist",
+        "bodyHash": "4f3dcc858c80cde0",
+        "anchor": "markers",
+        "startLine": 148,
+        "endLine": 149,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/markers/game-ver-used-mark-game",
+      "upstream": {
+        "path": [
+          "Title",
+          "Markers"
+        ],
+        "kind": "rule",
+        "lead": "`(Game Ver.)`: Used to mark game versions of songs.",
+        "fingerprint": "game ver used to mark game versions of songs",
+        "bodyHash": "905ec742028bbeea",
+        "anchor": "markers",
+        "startLine": 150,
+        "endLine": 151,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/markers/movie-ver-used-mark-movie",
+      "upstream": {
+        "path": [
+          "Title",
+          "Markers"
+        ],
+        "kind": "rule",
+        "lead": "`(Movie Ver.)`: Used to mark movie versions of songs.",
+        "fingerprint": "movie ver used to mark movie versions of songs",
+        "bodyHash": "db7a26c260de3be3",
+        "anchor": "markers",
+        "startLine": 152,
+        "endLine": 153,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/markers/ver-song-titles-already-length",
+      "upstream": {
+        "path": [
+          "Title",
+          "Markers"
+        ],
+        "kind": "guideline",
+        "lead": "`(#### Ver.)`: When song titles already have a length / version marker not covered above, it should be changed to a descriptive `(#### Ver.)` marker using title case.",
+        "fingerprint": "ver when song titles already have a length version marker not covered above it should be changed to a descriptive ver marker using title case",
+        "bodyHash": "c2c114131583e960",
+        "anchor": "markers",
+        "startLine": 157,
+        "endLine": 161,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/markers/alternative-casing-markers-used-rest",
+      "upstream": {
+        "path": [
+          "Title",
+          "Markers"
+        ],
+        "kind": "allowance",
+        "lead": "Alternative casing for markers may be used if the rest of the song title is stylised to fit the formatting.",
+        "fingerprint": "alternative casing for markers may be used if the rest of the song title is stylised to fit the formatting",
+        "bodyHash": "4b179f4e9f2aabeb",
+        "anchor": "markers",
+        "startLine": 165,
+        "endLine": 165,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/markers/live-performances-add-special-marker",
+      "upstream": {
+        "path": [
+          "Title",
+          "Markers"
+        ],
+        "kind": "allowance",
+        "lead": "Live performances may add a special marker, such as `(Live Ver.)`.",
+        "fingerprint": "live performances may add a special marker such as live ver",
+        "bodyHash": "5567580642ecfc25",
+        "anchor": "markers",
+        "startLine": 166,
+        "endLine": 166,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/markers/marker-additions-ignored-custom-marker",
+      "upstream": {
+        "path": [
+          "Title",
+          "Markers"
+        ],
+        "kind": "allowance",
+        "lead": "Marker additions may be ignored or a custom marker may be used on a case-by-case basis if the standard markers are misleading.",
+        "fingerprint": "marker additions may be ignored or a custom marker may be used on a case by case basis if the standard markers are misleading",
+        "bodyHash": "cb60bc27c3c3d589",
+        "anchor": "markers",
+        "startLine": 167,
+        "endLine": 167,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/source/source-field-used-song",
+      "upstream": {
+        "path": [
+          "Source"
+        ],
+        "kind": "rule",
+        "lead": "The `Source` field must be used, if the song...",
+        "fingerprint": "the source field must be used if the song",
+        "bodyHash": "1c4bd29edd7e3b05",
+        "anchor": "source",
+        "startLine": 173,
+        "endLine": 173,
+        "intro": true,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/source/directly-originates-tied-piece-media",
+      "upstream": {
+        "path": [
+          "Source"
+        ],
+        "kind": "rule",
+        "lead": "directly originates from or is tied to a piece of media (video games, TV series, etc.), except for albums and hosting websites.",
+        "fingerprint": "directly originates from or is tied to a piece of media video games tv series etc except for albums and hosting websites",
+        "bodyHash": "ee33101930710de9",
+        "anchor": "source",
+        "startLine": 174,
+        "endLine": 174,
+        "parent": "metadata/source/source-field-used-song",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/source/remix-arrangement-cover-song-tied",
+      "upstream": {
+        "path": [
+          "Source"
+        ],
+        "kind": "rule",
+        "lead": "is a remix, arrangement or cover of a song from or tied to a piece of media, except for albums and hosting websites.",
+        "fingerprint": "is a remix arrangement or cover of a song from or tied to a piece of media except for albums and hosting websites",
+        "bodyHash": "65c9c7f6726780af",
+        "anchor": "source",
+        "startLine": 175,
+        "endLine": 175,
+        "parent": "metadata/source/source-field-used-song",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/source/was-specifically-created-osu-osu",
+      "upstream": {
+        "path": [
+          "Source"
+        ],
+        "kind": "rule",
+        "lead": "was specifically created for osu!, such as osu! originals.",
+        "fingerprint": "was specifically created for osu such as osu originals",
+        "bodyHash": "65041d1c0b0bfa21",
+        "anchor": "source",
+        "startLine": 176,
+        "endLine": 176,
+        "parent": "metadata/source/source-field-used-song",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/source/was-created-specific-event-tournament",
+      "upstream": {
+        "path": [
+          "Source"
+        ],
+        "kind": "rule",
+        "lead": "was created for a specific event, such as a tournament like the `osu! World Cup` or concerts.",
+        "fingerprint": "was created for a specific event such as a tournament like the osu world cup or concerts",
+        "bodyHash": "ce8b6ac37d0f7de3",
+        "anchor": "source",
+        "startLine": 177,
+        "endLine": 177,
+        "parent": "metadata/source/source-field-used-song",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/source/track-contains-remixes-multiple-songs",
+      "upstream": {
+        "path": [
+          "Source"
+        ],
+        "kind": "rule",
+        "lead": "If a track contains or remixes multiple songs that are not all from one shared source, the field must be left blank and the sources added to tags.",
+        "fingerprint": "if a track contains or remixes multiple songs that are not all from one shared source the field must be left blank and the sources added to tags",
+        "bodyHash": "79dde1db39bc628e",
+        "anchor": "source",
+        "startLine": 178,
+        "endLine": 178,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/source/source-field-precise",
+      "upstream": {
+        "path": [
+          "Source"
+        ],
+        "kind": "rule",
+        "lead": "The Source field must be precise.",
+        "fingerprint": "the source field must be precise",
+        "bodyHash": "6f835d7627f0a7d4",
+        "anchor": "source",
+        "startLine": 179,
+        "endLine": 179,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/source/track",
+      "upstream": {
+        "path": [
+          "Source"
+        ],
+        "kind": "guideline",
+        "lead": "If a track...",
+        "fingerprint": "if a track",
+        "bodyHash": "0028753314041502",
+        "anchor": "source",
+        "startLine": 183,
+        "endLine": 183,
+        "intro": true,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/source/was-first-released-later-featured",
+      "upstream": {
+        "path": [
+          "Source"
+        ],
+        "kind": "guideline",
+        "lead": "was first released and later featured or tied to a piece of media, using the source field is optional.",
+        "fingerprint": "was first released and later featured or tied to a piece of media using the source field is optional",
+        "bodyHash": "3ae38febca3ade06",
+        "anchor": "source",
+        "startLine": 184,
+        "endLine": 184,
+        "parent": "metadata/source/track",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/source/featured-multiple-pieces-media-option",
+      "upstream": {
+        "path": [
+          "Source"
+        ],
+        "kind": "guideline",
+        "lead": "has been featured in multiple pieces of media, any option can be used as the source.",
+        "fingerprint": "has been featured in multiple pieces of media any option can be used as the source",
+        "bodyHash": "87617b3d82c3a7bb",
+        "anchor": "source",
+        "startLine": 185,
+        "endLine": 185,
+        "parent": "metadata/source/track",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/source/website-names-only-valid-sources",
+      "upstream": {
+        "path": [
+          "Source"
+        ],
+        "kind": "guideline",
+        "lead": "Website names are only valid sources, if the song...",
+        "fingerprint": "website names are only valid sources if the song",
+        "bodyHash": "4d9493cf4ee5c516",
+        "anchor": "source",
+        "startLine": 186,
+        "endLine": 186,
+        "intro": true,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/source/website-tied-specific-cultural-phenomena",
+      "upstream": {
+        "path": [
+          "Source"
+        ],
+        "kind": "guideline",
+        "lead": "and website are tied to specific cultural phenomena such as `Newgrounds`, etc.",
+        "fingerprint": "and website are tied to specific cultural phenomena such as newgrounds etc",
+        "bodyHash": "ed370dd9cb308a42",
+        "anchor": "source",
+        "startLine": 187,
+        "endLine": 187,
+        "parent": "metadata/source/website-names-only-valid-sources",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/source/was-composed-website-theme-background",
+      "upstream": {
+        "path": [
+          "Source"
+        ],
+        "kind": "guideline",
+        "lead": "was composed as a website theme or background song.",
+        "fingerprint": "was composed as a website theme or background song",
+        "bodyHash": "99d60f1b8145c268",
+        "anchor": "source",
+        "startLine": 188,
+        "endLine": 188,
+        "parent": "metadata/source/website-names-only-valid-sources",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/tags/tags-related-beatmap-describing-style",
+      "upstream": {
+        "path": [
+          "Tags"
+        ],
+        "kind": "rule",
+        "lead": "Tags must be related to the beatmap, such as describing the style, song, storyboard, video, or background content.",
+        "fingerprint": "tags must be related to the beatmap such as describing the style song storyboard video or background content",
+        "bodyHash": "93c42399a6425b7f",
+        "anchor": "tags",
+        "startLine": 194,
+        "endLine": 194,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/tags/names-spaces-between-single-characters",
+      "upstream": {
+        "path": [
+          "Tags"
+        ],
+        "kind": "rule",
+        "lead": "Names with spaces between single characters like `-[M o c h a]-` need to be tagged as `-[M_o_c_h_a]-`",
+        "fingerprint": "names with spaces between single characters like m o c h a need to be tagged as m o c h a",
+        "bodyHash": "691ceef2b21f742c",
+        "anchor": "tags",
+        "startLine": 195,
+        "endLine": 195,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/tags/tags-include-following-applicable",
+      "upstream": {
+        "path": [
+          "Tags"
+        ],
+        "kind": "rule",
+        "lead": "Tags must include the following when applicable:",
+        "fingerprint": "tags must include the following when applicable",
+        "bodyHash": "90e533904d348545",
+        "anchor": "tags",
+        "startLine": 196,
+        "endLine": 196,
+        "intro": true,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/tags/names-guest-difficulty-creators-hitsounders",
+      "upstream": {
+        "path": [
+          "Tags"
+        ],
+        "kind": "rule",
+        "lead": "Names of guest difficulty creators and hitsounders.",
+        "fingerprint": "names of guest difficulty creators and hitsounders",
+        "bodyHash": "459fd8da414f567b",
+        "anchor": "tags",
+        "startLine": 197,
+        "endLine": 197,
+        "parent": "metadata/tags/tags-include-following-applicable",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/tags/names-creators-visual-assets-created",
+      "upstream": {
+        "path": [
+          "Tags"
+        ],
+        "kind": "rule",
+        "lead": "Names of creators of any visual assets created specifically for use in the beatmap, including commissions.",
+        "fingerprint": "names of creators of any visual assets created specifically for use in the beatmap including commissions",
+        "bodyHash": "7924503433ab1b6b",
+        "anchor": "tags",
+        "startLine": 198,
+        "endLine": 198,
+        "parent": "metadata/tags/tags-include-following-applicable",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/tags/featured-artist-track-listed-featured",
+      "upstream": {
+        "path": [
+          "Tags"
+        ],
+        "kind": "rule",
+        "lead": "`Featured Artist`, if the track is listed in the Featured Artist catalogue.",
+        "fingerprint": "featured artist if the track is listed in the featured artist catalogue",
+        "bodyHash": "bc040615749b62f1",
+        "anchor": "tags",
+        "startLine": 199,
+        "endLine": 199,
+        "parent": "metadata/tags/tags-include-following-applicable",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/tags/least-one-song-genre-one",
+      "upstream": {
+        "path": [
+          "Tags"
+        ],
+        "kind": "rule",
+        "lead": "At least one song genre and one language tag.",
+        "fingerprint": "at least one song genre and one language tag",
+        "bodyHash": "69585e456ee10491",
+        "anchor": "tags",
+        "startLine": 200,
+        "endLine": 204,
+        "parent": "metadata/tags/tags-include-following-applicable",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/tags/original-song-artist-names-not",
+      "upstream": {
+        "path": [
+          "Tags"
+        ],
+        "kind": "rule",
+        "lead": "Original song and artist names not present in other fields if the song is a remix, edit, cover, etc.",
+        "fingerprint": "original song and artist names not present in other fields if the song is a remix edit cover etc",
+        "bodyHash": "32a47e24741f783b",
+        "anchor": "tags",
+        "startLine": 205,
+        "endLine": 205,
+        "parent": "metadata/tags/tags-include-following-applicable",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/tags/remixes-arrangements-mashups-tag-specific",
+      "upstream": {
+        "path": [
+          "Tags"
+        ],
+        "kind": "guideline",
+        "lead": "Remixes, arrangements and mashups should tag their specific genres as well as the original song's genres.",
+        "fingerprint": "remixes arrangements and mashups should tag their specific genres as well as the original song s genres",
+        "bodyHash": "97389f05249f937b",
+        "anchor": "tags",
+        "startLine": 209,
+        "endLine": 209,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/tags/tags-include-following-items-applicable",
+      "upstream": {
+        "path": [
+          "Tags"
+        ],
+        "kind": "guideline",
+        "lead": "Tags should include the following items when applicable:",
+        "fingerprint": "tags should include the following items when applicable",
+        "bodyHash": "3f81792863d7e1f2",
+        "anchor": "tags",
+        "startLine": 210,
+        "endLine": 210,
+        "intro": true,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/tags/unused-artist-title-source-metadata",
+      "upstream": {
+        "path": [
+          "Tags"
+        ],
+        "kind": "guideline",
+        "lead": "The unused artist, title, or source metadata not used in the main fields when multiple options exist.",
+        "fingerprint": "the unused artist title or source metadata not used in the main fields when multiple options exist",
+        "bodyHash": "08a32ff632616aeb",
+        "anchor": "tags",
+        "startLine": 211,
+        "endLine": 211,
+        "parent": "metadata/tags/tags-include-following-items-applicable",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/tags/other-artists-related-track-but",
+      "upstream": {
+        "path": [
+          "Tags"
+        ],
+        "kind": "guideline",
+        "lead": "Other artists related to the track but not listed in the artist field, such as composer, lyricist, guitarist, etc.",
+        "fingerprint": "other artists related to the track but not listed in the artist field such as composer lyricist guitarist etc",
+        "bodyHash": "75f136427e6f53e9",
+        "anchor": "tags",
+        "startLine": 212,
+        "endLine": 212,
+        "parent": "metadata/tags/tags-include-following-items-applicable",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/tags/album-ep-single-names",
+      "upstream": {
+        "path": [
+          "Tags"
+        ],
+        "kind": "guideline",
+        "lead": "Album, EP or single names.",
+        "fingerprint": "album ep or single names",
+        "bodyHash": "aa2d845e2a03c940",
+        "anchor": "tags",
+        "startLine": 213,
+        "endLine": 213,
+        "parent": "metadata/tags/tags-include-following-items-applicable",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/tags/easily-searched-versions-difficult-write",
+      "upstream": {
+        "path": [
+          "Tags"
+        ],
+        "kind": "guideline",
+        "lead": "Easily searched versions of difficult-to-write parts of the metadata.",
+        "fingerprint": "easily searched versions of difficult to write parts of the metadata",
+        "bodyHash": "293ec61d18d88c3d",
+        "anchor": "tags",
+        "startLine": 214,
+        "endLine": 217,
+        "parent": "metadata/tags/tags-include-following-items-applicable",
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/tags/words-already-present-other-metadata",
+      "upstream": {
+        "path": [
+          "Tags"
+        ],
+        "kind": "allowance",
+        "lead": "Words already present in other metadata fields may be repeated in tags if they are part of longer terms or phrases.",
+        "fingerprint": "words already present in other metadata fields may be repeated in tags if they are part of longer terms or phrases",
+        "bodyHash": "e4602c9cec455864",
+        "anchor": "tags",
+        "startLine": 221,
+        "endLine": 221,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    },
+    {
+      "id": "metadata/romanisation/romanisation-rules-guidelines-allowances-only",
+      "upstream": {
+        "path": [
+          "Romanisation"
+        ],
+        "kind": "rule",
+        "lead": "Any romanisation rules, guidelines and allowances only apply when you romanise metadata yourself. If you use an official translation or romanisation, you must use it as-is in the romanised fields instead.",
+        "fingerprint": "any romanisation rules guidelines and allowances only apply when you romanise metadata yourself if you use an official translation or romanisation you must use it as is in the romanised fields instead",
+        "bodyHash": "a11b89fc368ca231",
+        "anchor": "romanisation",
+        "startLine": 227,
+        "endLine": 227,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/romanisation/artist-names-romanised-order-printed",
+      "upstream": {
+        "path": [
+          "Romanisation"
+        ],
+        "kind": "rule",
+        "lead": "Artist names must be romanised in the order they are printed in the unicode field.",
+        "fingerprint": "artist names must be romanised in the order they are printed in the unicode field",
+        "bodyHash": "7a217ed4f503943e",
+        "anchor": "romanisation",
+        "startLine": 228,
+        "endLine": 228,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/romanisation/loan-words-use-source-language",
+      "upstream": {
+        "path": [
+          "Romanisation"
+        ],
+        "kind": "rule",
+        "lead": "Loan words must use the source language's spelling when romanised.",
+        "fingerprint": "loan words must use the source language s spelling when romanised",
+        "bodyHash": "60bdaf6cd944460e",
+        "anchor": "romanisation",
+        "startLine": 229,
+        "endLine": 229,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/romanisation/song-uses-repeat-words-title",
+      "upstream": {
+        "path": [
+          "Romanisation"
+        ],
+        "kind": "rule",
+        "lead": "When the song uses repeat words in the title or artist where one is unicode, and the other is a romanisation, the romanised field must use the romanisation only and remove the duplicate word.",
+        "fingerprint": "when the song uses repeat words in the title or artist where one is unicode and the other is a romanisation the romanised field must use the romanisation only and remove the duplicate word",
+        "bodyHash": "0492704306b1bcef",
+        "anchor": "romanisation",
+        "startLine": 230,
+        "endLine": 230,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/romanisation/japanese-use-modified-hepburn-system",
+      "upstream": {
+        "path": [
+          "Romanisation"
+        ],
+        "kind": "rule",
+        "lead": "Japanese: Use the Modified Hepburn system",
+        "fingerprint": "japanese use the modified hepburn system",
+        "bodyHash": "f5f109abdcc0e595",
+        "anchor": "romanisation",
+        "startLine": 234,
+        "endLine": 239,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/romanisation/chinese-character-romanised-capitalised-word",
+      "upstream": {
+        "path": [
+          "Romanisation"
+        ],
+        "kind": "rule",
+        "lead": "Chinese: Each character must be romanised as a capitalised word, separated with a space, except for Proper Nouns.",
+        "fingerprint": "chinese each character must be romanised as a capitalised word separated with a space except for proper nouns",
+        "bodyHash": "3e950ed435e28bef",
+        "anchor": "romanisation",
+        "startLine": 240,
+        "endLine": 245,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/romanisation/cyrillic-writing-use-bgn-pcgn",
+      "upstream": {
+        "path": [
+          "Romanisation"
+        ],
+        "kind": "rule",
+        "lead": "Cyrillic Writing: Use the BGN/PCGN System.",
+        "fingerprint": "cyrillic writing use the bgn pcgn system",
+        "bodyHash": "d0339bb2d6c9206f",
+        "anchor": "romanisation",
+        "startLine": 246,
+        "endLine": 252,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/romanisation/nordic-ae-oe-aa",
+      "upstream": {
+        "path": [
+          "Romanisation"
+        ],
+        "kind": "rule",
+        "lead": "Nordic: `æ` to `ae`, `ø` to `oe`, and `å` to `aa`.",
+        "fingerprint": "nordic æ to ae ø to oe and å to aa",
+        "bodyHash": "893bd14e6d93e3ae",
+        "anchor": "romanisation",
+        "startLine": 253,
+        "endLine": 254,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/romanisation/swedish-o-o",
+      "upstream": {
+        "path": [
+          "Romanisation"
+        ],
+        "kind": "rule",
+        "lead": "Swedish: `ö` to `o`, `ä` to `a`, `å` to `a`",
+        "fingerprint": "swedish ö to o ä to a å to a",
+        "bodyHash": "927ff4aebced72b3",
+        "anchor": "romanisation",
+        "startLine": 255,
+        "endLine": 256,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/romanisation/finnish-o-o",
+      "upstream": {
+        "path": [
+          "Romanisation"
+        ],
+        "kind": "rule",
+        "lead": "Finnish: `ö` to `o`, `ä` to `a`",
+        "fingerprint": "finnish ö to o ä to a",
+        "bodyHash": "3aaeb9ce92730492",
+        "anchor": "romanisation",
+        "startLine": 257,
+        "endLine": 258,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/romanisation/german-u-ue-o-oe",
+      "upstream": {
+        "path": [
+          "Romanisation"
+        ],
+        "kind": "rule",
+        "lead": "German: `ü` to `ue`, `ö` to `oe`, `ä` to `ae`, and `ß` to `ss`.",
+        "fingerprint": "german ü to ue ö to oe ä to ae and ß to ss",
+        "bodyHash": "d9cbe2164b05a297",
+        "anchor": "romanisation",
+        "startLine": 259,
+        "endLine": 260,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/romanisation/stylised-characters-special-characters-used",
+      "upstream": {
+        "path": [
+          "Romanisation"
+        ],
+        "kind": "rule",
+        "lead": "Stylised Characters: Special characters used as a stylistic replacement of roman characters should be changed based off of context, such as spelling an intended word.",
+        "fingerprint": "stylised characters special characters used as a stylistic replacement of roman characters should be changed based off of context such as spelling an intended word",
+        "bodyHash": "fb1ac769d7abc6d1",
+        "anchor": "romanisation",
+        "startLine": 261,
+        "endLine": 262,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/romanisation/other-languages-systems-not-covered",
+      "upstream": {
+        "path": [
+          "Romanisation"
+        ],
+        "kind": "rule",
+        "lead": "Other languages or systems not covered",
+        "fingerprint": "other languages or systems not covered",
+        "bodyHash": "98e85581787ddbb8",
+        "anchor": "romanisation",
+        "startLine": 263,
+        "endLine": 264,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "manual"
+      }
+    },
+    {
+      "id": "metadata/romanisation/romanising-languages-without-spaces-space",
+      "upstream": {
+        "path": [
+          "Romanisation"
+        ],
+        "kind": "allowance",
+        "lead": "When romanising languages without spaces, a space may be romanised as a comma when the space is used to clearly separate items.",
+        "fingerprint": "when romanising languages without spaces a space may be romanised as a comma when the space is used to clearly separate items",
+        "bodyHash": "7f631ab59b43bc9f",
+        "anchor": "romanisation",
+        "startLine": 268,
+        "endLine": 268,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
+      }
+    }
+  ]
+}

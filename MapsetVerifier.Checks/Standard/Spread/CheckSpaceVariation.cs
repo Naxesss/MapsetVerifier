@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Standard.Spread
 {
@@ -48,9 +49,14 @@ namespace MapsetVerifier.Checks.Standard.Spread
                         "distance",
                         "distance",
                         "example objects"
-                    ).WithCause(
-                        "The distance between two hit objects noticeably contradicts a recent use of time distance balance between another two hit objects using a similar time gap."
                     )
+                        .WithCause(
+                            "The distance between two hit objects noticeably contradicts a recent use of time distance balance between another two hit objects using a similar time gap."
+                        )
+                        .WithRule(
+                            RC.Osu.Easy_TimeDistanceEqualityUsed,
+                            RC.Osu.Normal_TimeDistanceEqualityUsed
+                        )
                 },
                 {
                     "Ratio",
@@ -60,9 +66,14 @@ namespace MapsetVerifier.Checks.Standard.Spread
                         "timestamp -",
                         "ratio",
                         "ratio"
-                    ).WithCause(
-                        "The distance/time ratio between the previous hit objects greatly contradicts a following use of distance/time ratio."
                     )
+                        .WithCause(
+                            "The distance/time ratio between the previous hit objects greatly contradicts a following use of distance/time ratio."
+                        )
+                        .WithRule(
+                            RC.Osu.Easy_TimeDistanceEqualityUsed,
+                            RC.Osu.Normal_TimeDistanceEqualityUsed
+                        )
                 },
             };
 
