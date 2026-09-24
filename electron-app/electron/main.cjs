@@ -2,9 +2,10 @@ const fs = require('fs');
 const { app, BrowserWindow, globalShortcut } = require('electron');
 const path = require('path');
 const sidecar = require('./sidecar.cjs');
-const { registerIpc } = require('./ipc.cjs');
+const { registerIpc, settingsPath } = require('./ipc.cjs');
 const { registerUpdater } = require('./updater.cjs');
 const { isSemverPreRelease } = require('./semverPrerelease.cjs');
+const { loadDefaultZoomFactor, registerZoomShortcuts } = require('./zoom.cjs');
 
 let mainWindow = null;
 
@@ -50,8 +51,11 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
+      zoomFactor: loadDefaultZoomFactor(settingsPath()),
     },
   });
+
+  registerZoomShortcuts(mainWindow.webContents);
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();

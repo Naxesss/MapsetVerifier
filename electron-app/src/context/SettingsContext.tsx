@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { parseTimelineThemeVariant } from '../components/overview/objects/timelineTheme/selection.ts';
 import { BACKEND_BASE_URL } from '../Constants.ts';
 import { DEFAULT_UI_FONT_FAMILY, parseUiFontFamily, type UiFontFamily } from '../theme/fonts';
+import { DEFAULT_UI_ZOOM_PERCENT, parseUiZoomPercent } from '../theme/zoom';
 import { isSemverPreRelease } from '../utils/isSemverPreRelease';
 import type { TimelineThemeVariant } from '../components/overview/objects/timelineTheme/types.ts';
 import type { TimestampOpenTarget } from '../electron-env';
@@ -52,6 +53,8 @@ export type Settings = {
   beatmapLookupMode: 'stable' | 'lazer';
   receivePrereleases: boolean;
   uiFontFamily: UiFontFamily;
+  /** Zoom the app starts at and that Ctrl+0 resets to, in percent. */
+  uiZoomPercent: number;
   /** Objects overview timeline circle style (synced across game modes). */
   timelineThemeVariant: TimelineThemeVariant;
   /** When enabled, switching mapsets navigates to the checks tab. */
@@ -100,6 +103,7 @@ const defaultSettings: Settings = {
   timestampOpenCustomCommand: undefined,
   receivePrereleases: false,
   uiFontFamily: DEFAULT_UI_FONT_FAMILY,
+  uiZoomPercent: DEFAULT_UI_ZOOM_PERCENT,
   timelineThemeVariant: 'default',
   goToChecksOnMapsetSwitch: true,
   showCheckRunDelta: true,
@@ -200,6 +204,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
             ? loaded.timestampOpenCustomCommand
             : undefined,
         uiFontFamily: parseUiFontFamily(loaded?.uiFontFamily),
+        uiZoomPercent: parseUiZoomPercent(loaded?.uiZoomPercent),
         timelineThemeVariant: parseTimelineThemeVariant(loaded?.timelineThemeVariant ?? null),
       });
 
@@ -292,6 +297,12 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       saveSettings(settings);
     }
   }, [settings]);
+
+  // The window already starts at the saved zoom; this applies changes made in settings.
+  useEffect(() => {
+    if (!loaded) return;
+    void window.electronAPI?.window.setDefaultZoom(settings.uiZoomPercent);
+  }, [loaded, settings.uiZoomPercent]);
 
   return (
     <SettingsContext.Provider value={{ settings, loaded, setSettings }}>

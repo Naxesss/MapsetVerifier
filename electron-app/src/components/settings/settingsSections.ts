@@ -31,7 +31,7 @@ export const settingsSections: SettingsNavEntry[] = [
   {
     id: 'general',
     label: 'General',
-    description: 'Folders, fonts, and core preferences',
+    description: 'Folders, fonts, zoom, and core preferences',
     icon: IconSettings,
   },
   {

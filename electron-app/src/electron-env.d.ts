@@ -61,6 +61,8 @@ export interface ElectronAPI {
     toggleMaximize(): Promise<boolean>;
     close(): Promise<void>;
     isMaximized(): Promise<boolean>;
+    /** Sets the zoom the app starts at and that Ctrl+0 resets to, and applies it now. */
+    setDefaultZoom(percent: number): Promise<void>;
   };
 
   shell: {
