@@ -36,7 +36,7 @@ namespace MapsetVerifier.Checks.Mania.Spread
                         "Reasoning",
                         @"
                     Due to how many players do not dispose of keyboards capable of registering more than 6-7 keystrokes at once (A.K.A Ghosting), lower difficulties should not allow for more than 7 notes to be pressed at once to be as accessible as possible.
-                    <br><br>
+
                     Moreover, bigger chords in lower difficulties might be too daunting for players to read at their given skill level. Those should exclusively be used in >=Extra difficulties."
                     },
                 },
