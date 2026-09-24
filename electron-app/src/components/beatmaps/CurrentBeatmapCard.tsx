@@ -32,8 +32,10 @@ export default function CurrentBeatmapCard({
   source = 'stable',
   lazerDataDir,
 }: CurrentBeatmapCardProps) {
-  const [renderedCurrent, setRenderedCurrent] = useState<CurrentBeatmapData | null>(null);
-  const [visible, setVisible] = useState(false);
+  // Settings unmounts the sidebar. On return the cached mapset is already here, and
+  // prevKey starts equal to it, so the sync below never copies it unless we seed.
+  const [renderedCurrent, setRenderedCurrent] = useState<CurrentBeatmapData | null>(current);
+  const [visible, setVisible] = useState(current != null);
   const [pending, setPending] = useState<CurrentBeatmapData | null>(null);
   const currentKey = current?.folderPath ?? null;
   const [prevKey, setPrevKey] = useState(currentKey);
