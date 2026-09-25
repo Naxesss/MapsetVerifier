@@ -14,6 +14,9 @@ namespace MapsetVerifier.RankingCriteria.Tool;
 ///     update [--commit &lt;sha&gt;]  Downloads the pages from osu-wiki (latest commit by default) and re-parses them.
 ///     <br />
 ///     reparse                     Re-parses the current snapshot, e.g. after changing the parser.
+///     <br />
+///     review [&lt;id&gt;...]            Lists statements whose wording changed since their checks were reviewed, or marks the
+///     given ones as reviewed.
 /// </summary>
 internal static class Program
 {
@@ -41,8 +44,12 @@ internal static class Program
                 case "reparse":
                     Reparse(dataDir);
                     return 0;
+                case "review":
+                    return Review(dataDir, args.Skip(1).ToList());
                 default:
-                    Console.Error.WriteLine("Usage: update [--commit <sha>] | reparse");
+                    Console.Error.WriteLine(
+                        "Usage: update [--commit <sha>] | reparse | review [<id>...]"
+                    );
                     return 1;
             }
         }
@@ -175,8 +182,7 @@ internal static class Program
             );
         }
 
-        var constantsPath = Path.Combine(dataDir, "..", "RC.g.cs");
-        File.WriteAllText(constantsPath, RcConstantsWriter.Write(source, pages));
+        WriteConstants(dataDir, pages);
 
         // The change report goes to stdout so it can be piped into a pull request description later.
         foreach (var group in allChanges.GroupBy(change => change.Type).OrderBy(group => group.Key))
@@ -186,6 +192,72 @@ internal static class Program
                 Console.WriteLine($"- `{change.Id}`: {change.Detail}");
             Console.WriteLine();
         }
+    }
+
+    /// <summary>
+    ///     Lists statements waiting for a review, or clears the last review of the given ones and re-writes the RC
+    ///     constants, which drops the obsolete warning from the checks linking to them.
+    /// </summary>
+    private static int Review(string dataDir, List<string> ids)
+    {
+        var catalogueDir = Path.Combine(dataDir, "catalogue");
+        var remaining = ids.ToHashSet();
+        var pages = new List<RcCataloguePage>();
+
+        foreach (var rcPage in RcPages.All.Where(page => page.HasStatements))
+        {
+            var path = Path.Combine(catalogueDir, rcPage.Key + ".json");
+            var page = JsonSerializer.Deserialize<RcCataloguePage>(
+                File.ReadAllText(path),
+                RcJson.Options
+            )!;
+            pages.Add(page);
+
+            var pending = page
+                .Statements.Where(statement => statement.LastReview != null && !statement.IsRetired)
+                .ToList();
+
+            if (ids.Count == 0)
+            {
+                foreach (var statement in pending)
+                    Console.WriteLine(
+                        $"{statement.Id} (changed since {statement.LastReview!.Commit[..8]}): {statement.Upstream.Lead}"
+                    );
+                continue;
+            }
+
+            var reviewed = pending.Where(statement => remaining.Remove(statement.Id)).ToList();
+            if (reviewed.Count == 0)
+                continue;
+
+            foreach (var statement in reviewed)
+            {
+                statement.LastReview = null;
+                Console.Error.WriteLine($"Reviewed {statement.Id}");
+            }
+
+            File.WriteAllText(path, JsonSerializer.Serialize(page, RcJson.Options) + "\n");
+        }
+
+        if (ids.Count > 0)
+            WriteConstants(dataDir, pages);
+
+        foreach (var id in remaining)
+            Console.Error.WriteLine($"{id} is not waiting for a review.");
+
+        return remaining.Count == 0 ? 0 : 1;
+    }
+
+    private static void WriteConstants(string dataDir, List<RcCataloguePage> pages)
+    {
+        var source = JsonSerializer.Deserialize<RcSource>(
+            File.ReadAllText(Path.Combine(dataDir, "source.json")),
+            RcJson.Options
+        )!;
+        File.WriteAllText(
+            Path.Combine(dataDir, "..", "RC.g.cs"),
+            RcConstantsWriter.Write(source, pages)
+        );
     }
 
     /// <summary> Finds the repository root by walking up until MapsetVerifier.slnx is found. </summary>

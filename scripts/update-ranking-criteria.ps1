@@ -1,5 +1,5 @@
 # Update the ranking criteria snapshot from ppy/osu-wiki and re-generate the catalogue.
-# Run from repository root: .\scripts\update-ranking-criteria.ps1 [update|reparse] [--commit <sha>]
+# Run from repository root: .\scripts\update-ranking-criteria.ps1 [update [--commit <sha>] | reparse | review [<id>...]]
 # See docs/RANKING_CRITERIA.md.
 
 $ErrorActionPreference = "Stop"

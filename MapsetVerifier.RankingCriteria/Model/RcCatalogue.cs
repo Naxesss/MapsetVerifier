@@ -39,6 +39,14 @@ public sealed class RcSource
 public sealed class RcCataloguePage
 {
     public string Page { get; set; } = "";
+
+    /// <summary>
+    ///     The osu-wiki commit this page was last merged from. Tells a wording change on the wiki apart from a
+    ///     re-parse of the same snapshot.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Commit { get; set; }
+
     public List<RcStatement> Statements { get; set; } = [];
 }
 
@@ -63,6 +71,23 @@ public sealed class RcStatement
 
     [JsonIgnore]
     public bool IsRetired => RetiredAt != null;
+
+    /// <summary>
+    ///     The wording its linked checks were last reviewed against, recorded by the sync when the wording or kind
+    ///     first changes on the wiki. Null while the statement reads as reviewed; cleared by the tool's review command.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public RcReview? LastReview { get; set; }
+}
+
+/// <summary> A statement as it read when its linked checks were last reviewed. </summary>
+public sealed class RcReview
+{
+    /// <summary> The osu-wiki commit of the reviewed wording. </summary>
+    public string Commit { get; set; } = "";
+
+    public string BodyHash { get; set; } = "";
+    public RcKind Kind { get; set; }
 }
 
 public sealed class RcUpstream

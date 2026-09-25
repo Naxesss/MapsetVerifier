@@ -50,6 +50,17 @@ The tool downloads the pages, parses them and merges the result into the catalog
 2. Otherwise a statement with a similar lead is treated as reworded and keeps its id. Check the report for these.
 3. Anything else is new and gets a drafted id. Statements that disappeared are marked `retiredAt` and their `RC` constant is removed, so checks still linking to them fail to compile until they are re-linked.
 
+### Reviewing outdated checks
+
+When a statement's wording or kind changes at a new osu-wiki commit, the merge keeps what it was as `lastReview` (the commit and hash of the wording before). A statement with linked checks and a `lastReview` shows as **Outdated** in the app, with a link to the wiki changes since that commit, until its checks are reviewed against the new wording. Its `RC` constant is also marked `[Obsolete]`, so every check linking to it gets a compiler warning pointing at the `.WithRule(...)` to update, and the change report lists it under `Outdated`. Re-parsing the same commit never marks anything outdated, and a statement that changes back to the reviewed wording is no longer outdated.
+
+```bash
+./scripts/update-ranking-criteria.sh review                  # list statements waiting for a review
+./scripts/update-ranking-criteria.sh review <id> [<id>...]   # mark them as reviewed, which also removes the warning
+```
+
+The merge does not know which statements have checks, so `review` also lists changed statements without any. If you link a check to one of those, review it too, or it shows as outdated right away.
+
 Drafted ids look like `osu/hit-objects-never-off-screen` for general sections and `catch/salad/edge-dashes-not-used` for others. They may be renamed by hand in the catalogue: the tool matches on the lead sentence and never derives an id again.
 
 Statements are bolded list items (or paragraphs) below a Rules, Guidelines or Allowances heading, plus plain top-level list items there, such as the difficulty setting guidelines and marker lists. Nested bold items become sub-statements; a statement without links of its own counts as covered through its sub-statements.

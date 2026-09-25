@@ -12,6 +12,9 @@ public enum RcChangeType
     KindChanged,
     Retired,
     Revived,
+
+    /// <summary> The wording or kind changed since its checks were reviewed; checks linking to it are now outdated. </summary>
+    Outdated,
 }
 
 public sealed record RcChange(RcChangeType Type, string Id, string Detail);
@@ -26,6 +29,9 @@ public sealed record RcMergeResult(RcCataloguePage Page, List<RcChange> Changes)
 ///     2. Similar wording, preferring the same section → reworded statement.
 ///     <br />
 ///     3. Anything left is new and gets a drafted id; old statements left unmatched are retired.
+///     <para />
+///     When a statement's wording or kind changes at a new commit, the wording it had before is kept as its last review,
+///     so the checks linking to it show as outdated until someone reviews them.
 /// </summary>
 public static class RcCatalogueMerger
 {
@@ -148,12 +154,23 @@ public static class RcCatalogueMerger
                     )
                 );
 
+            var lastReview = NextReview(match, upstream, existing?.Commit, commit);
+            if (match.LastReview == null && lastReview != null)
+                changes.Add(
+                    new RcChange(
+                        RcChangeType.Outdated,
+                        match.Id,
+                        $"changed since {lastReview.Commit[..Math.Min(8, lastReview.Commit.Length)]}, review the checks linking to it"
+                    )
+                );
+
             result.Add(
                 new RcStatement
                 {
                     Id = match.Id,
                     Upstream = upstream,
                     Curation = match.Curation,
+                    LastReview = lastReview,
                 }
             );
         }
@@ -179,9 +196,48 @@ public static class RcCatalogueMerger
         }
 
         return new RcMergeResult(
-            new RcCataloguePage { Page = page.Key, Statements = result },
+            new RcCataloguePage
+            {
+                Page = page.Key,
+                Commit = commit,
+                Statements = result,
+            },
             changes
         );
+    }
+
+    /// <summary>
+    ///     The first change after a review keeps the reviewed wording; later changes keep it as is. Changes found while
+    ///     re-parsing the same commit come from the parser rather than the wiki, so they are not recorded.
+    /// </summary>
+    private static RcReview? NextReview(
+        RcStatement match,
+        RcUpstream upstream,
+        string? previousCommit,
+        string commit
+    )
+    {
+        var old = match.Upstream;
+        var review = match.LastReview;
+
+        if (
+            review == null
+            && previousCommit != null
+            && previousCommit != commit
+            && (old.BodyHash != upstream.BodyHash || old.Kind != upstream.Kind)
+        )
+            review = new RcReview
+            {
+                Commit = previousCommit,
+                BodyHash = old.BodyHash,
+                Kind = old.Kind,
+            };
+
+        // Changed back to the wording that was reviewed.
+        if (review != null && review.BodyHash == upstream.BodyHash && review.Kind == upstream.Kind)
+            return null;
+
+        return review;
     }
 
     /// <summary>

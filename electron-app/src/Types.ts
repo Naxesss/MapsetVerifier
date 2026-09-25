@@ -840,7 +840,19 @@ export type ObjectsSnappingBucket = {
 
 export type RcKind = 'Rule' | 'Guideline' | 'Allowance';
 export type RcAutomation = 'Unknown' | 'Automatable' | 'Partial' | 'Manual';
-export type RcCoverage = 'Covered' | 'Partial' | 'Uncovered' | 'Manual' | 'Informational';
+export type RcCoverage =
+  | 'Covered'
+  | 'Partial'
+  | 'Outdated'
+  | 'Uncovered'
+  | 'Manual'
+  | 'Informational';
+
+/** How a statement read when its linked checks were last reviewed, if it changed since. */
+export type ApiRcReview = {
+  commit: string;
+  kind: RcKind;
+};
 
 export type ApiRcSource = {
   repository: string;
@@ -887,6 +899,7 @@ export type ApiRcStatement = {
   automation: RcAutomation;
   notes?: string | null;
   retired: boolean;
+  lastReview?: ApiRcReview | null;
   coverage: RcCoverage;
   links: ApiRcCheckLink[];
 };

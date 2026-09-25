@@ -1,21 +1,20 @@
 import {
   Anchor,
   Badge,
-  Box,
   Flex,
   Group,
   Loader,
   Modal,
   Paper,
-  ScrollArea,
   Stack,
   Text,
   Title,
   useMantineTheme,
 } from '@mantine/core';
 import { IconExternalLink } from '@tabler/icons-react';
-import { useEffect, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import RcMarkdown from './RcMarkdown';
+import RcOutdatedNotice from './RcOutdatedNotice';
 import {
   difficultyStarRating,
   formatDifficulties,
@@ -24,7 +23,7 @@ import {
   pageMode,
 } from './rcUtils';
 import { useRankingCriteriaPage } from './useRankingCriteria';
-import { ApiDocumentationCheck, ApiRcCheckLink, ApiRcStatement } from '../../Types';
+import { ApiDocumentationCheck, ApiRcCheckLink, ApiRcPage, ApiRcStatement } from '../../Types';
 import DocumentationCheckModal from '../documentation/DocumentationCheckModal';
 import { useDocumentationChecks } from '../documentation/hooks/useDocumentationChecks';
 import GameModeIcon from '../icons/GameModeIcon';
@@ -89,42 +88,51 @@ function LinkedCheck({
   );
 }
 
-/** The statement within its page, scrolled so the highlighted statement is in view. */
-function StatementInContext({ statement }: { statement: ApiRcStatement }) {
+/**
+ * The statement's own lines of the page markdown, through those of the statements nested in it,
+ * with its indentation removed so a nested list item renders as a list of its own.
+ */
+function statementMarkdown(statement: ApiRcStatement, page: ApiRcPage) {
+  const nested = new Set([statement.id]);
+  let endLine = statement.endLine;
+  // Statements are in page order, so a nested statement always comes after its parent.
+  for (const other of page.statements) {
+    if (other.parentId && nested.has(other.parentId)) {
+      nested.add(other.id);
+      endLine = Math.max(endLine, other.endLine);
+    }
+  }
+
+  const allLines = page.markdown.split('\n');
+  const lines = allLines.slice(statement.startLine - 1, endLine);
+  const indent = lines[0].match(/^\s*/)?.[0].length ?? 0;
+
+  // Footnotes are defined at the bottom of the page, so bring along the ones this text uses.
+  const footnotes = [...new Set(lines.join('\n').match(/\[\^[^\]]+\](?!:)/g) ?? [])]
+    .map((ref) => allLines.find((line) => line.startsWith(`${ref}:`)))
+    .filter((line) => line !== undefined);
+  if (footnotes.length > 0) lines.push('', ...footnotes);
+
+  return lines
+    .map((line) => line.slice(Math.min(indent, line.match(/^\s*/)![0].length)))
+    .join('\n');
+}
+
+/** The full text of the statement as written on the wiki, including its examples and sub-rules. */
+function StatementText({ statement }: { statement: ApiRcStatement }) {
   const page = useRankingCriteriaPage(statement.page);
-  const viewportRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!page.data) return;
-
-    // Wait for the modal's enter transition, otherwise the layout is not final yet.
-    const timeout = window.setTimeout(() => {
-      const viewport = viewportRef.current;
-      const target = viewport?.querySelector<HTMLElement>(
-        `[data-rc-id="${CSS.escape(statement.id)}"]`
-      );
-      if (!viewport || !target) return;
-
-      const offset =
-        target.getBoundingClientRect().top -
-        viewport.getBoundingClientRect().top +
-        viewport.scrollTop;
-      viewport.scrollTop = offset - viewport.clientHeight / 2 + target.clientHeight / 2;
-    }, 250);
-
-    return () => window.clearTimeout(timeout);
-  }, [page.data, statement.id]);
+  const markdown = useMemo(
+    () => (page.data ? statementMarkdown(statement, page.data) : null),
+    [page.data, statement]
+  );
 
   if (page.isLoading) return <Loader size="sm" />;
-  if (!page.data) return null;
+  if (!markdown) return null;
 
   return (
-    <Paper withBorder radius="md">
-      <ScrollArea h={240} viewportRef={viewportRef} type="auto">
-        <Box px="md" py="xs">
-          <RcMarkdown page={page.data} highlightedId={statement.id} compact />
-        </Box>
-      </ScrollArea>
+    <Paper withBorder radius="md" px="md" pt="sm" pb={4}>
+      <RcMarkdown page={{ key: statement.page, markdown }} compact />
     </Paper>
   );
 }
@@ -210,6 +218,7 @@ export default function RcStatementModal({ statement, onClose }: RcStatementModa
 
             <Stack gap="xs">
               <Title order={2}>Checks</Title>
+              <RcOutdatedNotice statement={current} />
               {linksByCheck.size > 0 ? (
                 [...linksByCheck.values()].map((links) => (
                   <LinkedCheck
@@ -238,7 +247,7 @@ export default function RcStatementModal({ statement, onClose }: RcStatementModa
               <Text size="sm" fw={700} c="dimmed">
                 In the ranking criteria
               </Text>
-              <StatementInContext statement={current} />
+              <StatementText statement={current} />
             </Stack>
           </Flex>
         )}

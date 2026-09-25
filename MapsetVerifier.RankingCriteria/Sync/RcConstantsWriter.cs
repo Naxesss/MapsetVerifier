@@ -6,7 +6,7 @@ namespace MapsetVerifier.RankingCriteria.Sync;
 
 /// <summary>
 ///     Writes the <c>RC</c> class of rule id constants. Checks reference these instead of raw strings, so a typo or a
-///     retired statement becomes a compile error.
+///     retired statement becomes a compile error, and an outdated one an obsolete warning on every check linking to it.
 /// </summary>
 public static class RcConstantsWriter
 {
@@ -55,6 +55,12 @@ public static class RcConstantsWriter
                 builder.AppendLine(
                     $"        /// <summary> {statement.Upstream.Kind}: {Escape(statement.Upstream.Lead)} </summary>"
                 );
+                // Checks linking to an outdated statement get a warning until someone reviews them.
+                if (statement.LastReview is { } review)
+                    builder.AppendLine(
+                        $"        [System.Obsolete(\"Outdated: changed on the osu! wiki since its checks were reviewed at {review.Commit[..Math.Min(8, review.Commit.Length)]}. "
+                            + $"Update the checks, then run `update-ranking-criteria review {statement.Id}`.\")]"
+                    );
                 builder.AppendLine($"        public const string {name} = \"{statement.Id}\";");
             }
 

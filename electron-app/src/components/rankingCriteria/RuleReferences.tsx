@@ -2,6 +2,7 @@ import { Alert, Anchor, Badge, Button, Group, Loader, Paper, Stack, Text } from 
 import { IconAlertCircle, IconExternalLink, IconGavel } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import RcOutdatedNotice from './RcOutdatedNotice';
 import { formatDifficulties, KIND_COLOR, openExternal, rankingCriteriaRoute } from './rcUtils';
 import RankingCriteriaApi from '../../client/RankingCriteriaApi';
 import { ApiRcStatement } from '../../Types';
@@ -41,6 +42,7 @@ function RuleReference({ statement }: { statement: ApiRcStatement }) {
             updating.
           </Text>
         )}
+        <RcOutdatedNotice statement={statement} />
         <Group gap="md">
           {!statement.retired && (
             <Button

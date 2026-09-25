@@ -531,30 +531,9 @@
   }
 }
 
-/* Ranking criteria viewer: statements matched to the catalogue, one of which can be highlighted. */
+/* Ranking criteria viewer. */
 .rc-markdown {
-  .rc-statement {
-    scroll-margin-top: 30vh;
-  }
-
-  .rc-statement-content {
-    border-radius: var(--mantine-radius-sm);
-    transition: background-color 200ms ease;
-  }
-
-  .rc-statement[data-highlighted] > .rc-statement-content {
-    background-color: color-mix(in srgb, var(--mantine-color-primary-4) 18%, transparent);
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--mantine-color-primary-4) 55%, transparent);
-    padding: 2px var(--mantine-spacing-xs);
-  }
-
   .rc-heading {
     scroll-margin-top: var(--mantine-spacing-xl);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .rc-markdown .rc-statement-content {
-    transition: none;
   }
 }
