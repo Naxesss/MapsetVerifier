@@ -15,9 +15,9 @@ import type { ReactNode } from 'react';
 import type { Components } from 'react-markdown';
 
 interface RcMarkdownProps {
-  page: ApiRcPage;
-  highlightedId?: string | null;
-  /** Small text and headings, for showing a statement in context inside another view. */
+  /** The page the markdown is from, or part of, for resolving its relative links. */
+  page: Pick<ApiRcPage, 'key' | 'markdown'>;
+  /** Small text and headings, for showing a statement inside another view. */
   compact?: boolean;
 }
 
@@ -32,10 +32,6 @@ function nodeText(node: HastNode | undefined): string {
   if (!node) return '';
   if (node.type === 'text') return node.value ?? '';
   return (node.children ?? []).map(nodeText).join('');
-}
-
-function startLine(node: unknown) {
-  return (node as HastNode | undefined)?.position?.start?.line;
 }
 
 /** Wiki headings shifted one level down, with the anchors osu-web would give them. */
@@ -79,36 +75,11 @@ function RcHeading({
   );
 }
 
-/**
- * Renders a snapshotted ranking criteria page. Statements known to the catalogue are matched by
- * their line in the markdown, so one can be highlighted in place.
- */
-export default function RcMarkdown({ page, highlightedId, compact }: RcMarkdownProps) {
+/** Renders a snapshotted ranking criteria page, or part of one. */
+export default function RcMarkdown({ page, compact }: RcMarkdownProps) {
   const navigate = useNavigate();
 
-  const statementsByLine = useMemo(
-    () => new Map(page.statements.map((statement) => [statement.startLine, statement])),
-    [page.statements]
-  );
-
   const components = useMemo((): Components => {
-    const wrapStatement = (line: number | undefined, content: ReactNode) => {
-      const statement = line !== undefined ? statementsByLine.get(line) : undefined;
-      if (!statement) return null;
-
-      const highlighted = statement.id === highlightedId;
-
-      return (
-        <Box
-          className="rc-statement"
-          data-rc-id={statement.id}
-          data-highlighted={highlighted || undefined}
-        >
-          <Box className="rc-statement-content">{content}</Box>
-        </Box>
-      );
-    };
-
     return {
       h1: ({ node, children }) => (
         <RcHeading order={1} node={node} compact={compact}>
@@ -152,22 +123,12 @@ export default function RcMarkdown({ page, highlightedId, compact }: RcMarkdownP
           </List>
         ),
       }),
-      li: ({ node, children }) => {
-        const wrapped = wrapStatement(startLine(node), children);
-        return <List.Item className="rc-list-item">{wrapped ?? children}</List.Item>;
-      },
-      p: ({ node, children }) => {
-        // Only top-level paragraphs can be statements; paragraphs inside list items belong to the item.
-        const column = (node as HastNode | undefined)?.position?.start?.column;
-        const wrapped = column === 1 ? wrapStatement(startLine(node), children) : null;
-        return (
-          wrapped ?? (
-            <Text size={compact ? 'sm' : 'md'} mb={compact ? 'xs' : 'sm'}>
-              {children}
-            </Text>
-          )
-        );
-      },
+      li: ({ children }) => <List.Item>{children}</List.Item>,
+      p: ({ children }) => (
+        <Text size={compact ? 'sm' : 'md'} mb={compact ? 'xs' : 'sm'}>
+          {children}
+        </Text>
+      ),
       img: ({ src, alt }) => {
         const icon = parseDifficultyIcon(typeof src === 'string' ? src : undefined);
         if (icon) {
@@ -208,7 +169,7 @@ export default function RcMarkdown({ page, highlightedId, compact }: RcMarkdownP
         );
       },
     };
-  }, [statementsByLine, highlightedId, compact, page.key, navigate]);
+  }, [compact, page.key, navigate]);
 
   return (
     <Box className="rc-markdown">

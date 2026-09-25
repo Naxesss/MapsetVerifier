@@ -13,6 +13,9 @@ public enum ApiRcCoverage
     /// <summary> Linked, but marked as only partially verifiable by a check. </summary>
     Partial,
 
+    /// <summary> Linked, but its wording or kind changed on the wiki since the checks were reviewed. </summary>
+    Outdated,
+
     /// <summary> No issue template links to the statement yet. </summary>
     Uncovered,
 
@@ -51,6 +54,9 @@ public sealed record ApiRcCheckLink(
     Issue.Level Level
 );
 
+/// <summary> How a statement read when its linked checks were last reviewed, if it changed since. </summary>
+public sealed record ApiRcReview(string Commit, RcKind Kind);
+
 public sealed record ApiRcStatement(
     string Id,
     string Page,
@@ -68,6 +74,7 @@ public sealed record ApiRcStatement(
     RcAutomation Automation,
     string? Notes,
     bool Retired,
+    ApiRcReview? LastReview,
     ApiRcCoverage Coverage,
     List<ApiRcCheckLink> Links
 );

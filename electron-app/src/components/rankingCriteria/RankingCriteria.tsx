@@ -1,20 +1,22 @@
 import {
+  ActionIcon,
   Alert,
   Anchor,
   CloseButton,
   Group,
   Paper,
   Progress,
-  SegmentedControl,
   Skeleton,
   Stack,
   Text,
   TextInput,
+  Tooltip,
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import { IconAlertCircle, IconExternalLink, IconSearch } from '@tabler/icons-react';
 import { useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import RcCoverageFilter from './RcCoverageFilter';
 import RcMarkdown from './RcMarkdown';
 import RcPageSelect from './RcPageSelect';
 import RcStatementModal from './RcStatementModal';
@@ -33,8 +35,7 @@ import {
   useRankingCriteriaOverview,
   useRankingCriteriaPage,
 } from './useRankingCriteria';
-import { ApiRcStatement } from '../../Types';
-import { countWord } from '../../utils/countWord';
+import { ApiRcStatement, RcCoverage } from '../../Types';
 
 const DEFAULT_PAGE = 'general';
 
@@ -57,6 +58,48 @@ function coverageOf(statements: ApiRcStatement[]) {
   };
 }
 
+// Manual is striped rather than a colour of its own: like its row icon it is grey, but it is not
+// work left for a check.
+const BAR_SECTIONS: { coverage: RcCoverage; label: string; color: string; striped?: boolean }[] = [
+  { coverage: 'Covered', label: 'Covered', color: 'green' },
+  { coverage: 'Partial', label: 'Partly covered', color: 'yellow' },
+  { coverage: 'Outdated', label: 'Outdated', color: 'red' },
+  { coverage: 'Uncovered', label: 'Not covered', color: 'gray.6' },
+  { coverage: 'Manual', label: 'Manual', color: 'gray.6', striped: true },
+];
+
+/** Every rule and guideline split by coverage status, in the colours of the status icons. */
+function CoverageBar({ rules }: { rules: ApiRcStatement[] }) {
+  const counted = rules.filter((rule) => rule.coverage !== 'Informational');
+
+  return (
+    <Progress.Root size="md" radius="xl">
+      {BAR_SECTIONS.map(({ coverage, label, color, striped }) => {
+        const count = counted.filter((rule) => rule.coverage === coverage).length;
+        if (count === 0) return null;
+
+        return (
+          <Tooltip key={coverage} label={`${label}: ${count}`} withinPortal>
+            <Progress.Section
+              value={(count / counted.length) * 100}
+              color={color}
+              striped={striped}
+            />
+          </Tooltip>
+        );
+      })}
+    </Progress.Root>
+  );
+}
+
+function EmptyState({ children }: { children: string }) {
+  return (
+    <Text size="sm" c="dimmed" ta="center" py="xl">
+      {children}
+    </Text>
+  );
+}
+
 function RowSkeleton({ rows = 6 }: { rows?: number }) {
   return (
     <Stack gap="xs" w="100%">
@@ -67,23 +110,48 @@ function RowSkeleton({ rows = 6 }: { rows?: number }) {
   );
 }
 
-/** Statements of one page, grouped under the headings they appear under in the wiki. */
-function StatementSections({
-  statements,
-  onOpen,
-}: {
+interface StatementListProps {
   statements: ApiRcStatement[];
+  /** Intros and parents shown only for the statements nested in them. */
+  contextIds: Set<string>;
   onOpen: (statement: ApiRcStatement) => void;
-}) {
-  if (statements.length === 0) {
-    return (
-      <Text size="sm" c="dimmed">
-        Nothing on this page matches the filter.
-      </Text>
-    );
+}
+
+/** Statements in wiki order, each nested one below the intro or parent it belongs to. */
+function StatementRows({
+  statements,
+  contextIds,
+  showPage,
+  onOpen,
+  shownIds = new Set(statements.map((statement) => statement.id)),
+}: StatementListProps & { showPage?: boolean; shownIds?: Set<string> }) {
+  return (
+    <Stack gap="xs">
+      {statements.map((statement) =>
+        statement.intro ? (
+          <RcIntroRow key={statement.id} statement={statement} />
+        ) : (
+          <RcStatementRow
+            key={statement.id}
+            statement={statement}
+            showPage={showPage && !contextIds.has(statement.id)}
+            muted={contextIds.has(statement.id)}
+            // The parent is right above it, so its lead needs no repeating.
+            hideParentLead={!!statement.parentId && shownIds.has(statement.parentId)}
+            onOpen={onOpen}
+          />
+        )
+      )}
+    </Stack>
+  );
+}
+
+/** Statements of one page, grouped under the headings they appear under in the wiki. */
+function StatementSections({ statements, contextIds, onOpen }: StatementListProps) {
+  if (statements.every((statement) => contextIds.has(statement.id))) {
+    return <EmptyState>Nothing on this page matches the filter.</EmptyState>;
   }
 
-  // Intros read as sub-headings, so the statements below them do not repeat them.
   const shownIds = new Set(statements.map((statement) => statement.id));
   const sections = new Map<string, ApiRcStatement[]>();
   for (const statement of statements) {
@@ -98,18 +166,12 @@ function StatementSections({
           <Text fw={700} size="sm" c="dimmed">
             {section}
           </Text>
-          {sectionStatements.map((statement) =>
-            statement.intro ? (
-              <RcIntroRow key={statement.id} statement={statement} />
-            ) : (
-              <RcStatementRow
-                key={statement.id}
-                statement={statement}
-                hideParentLead={!!statement.parentId && shownIds.has(statement.parentId)}
-                onOpen={onOpen}
-              />
-            )
-          )}
+          <StatementRows
+            statements={sectionStatements}
+            contextIds={contextIds}
+            shownIds={shownIds}
+            onOpen={onOpen}
+          />
         </Stack>
       ))}
     </Stack>
@@ -151,21 +213,29 @@ function RankingCriteria() {
 
   const selected = ruleId ? statements.find((statement) => statement.id === ruleId) : undefined;
 
-  // Intros are only shown as sub-headings in the unfiltered list; their text is part of every
-  // nested statement's search text, so search still finds them.
   const rules = statements.filter((statement) => !statement.intro);
-  const filtered = statements.filter((statement) =>
-    statement.intro
-      ? filter === 'all' && query.trim().length === 0
-      : matchesCoverageFilter(statement.coverage, filter) && matchesSearch(statement, query)
+  const matches = (statement: ApiRcStatement) =>
+    !statement.intro &&
+    matchesCoverageFilter(statement.coverage, filter) &&
+    matchesSearch(statement, query);
+
+  // Intros and parent rules stay in the list, muted, above the statements that match, so a nested
+  // statement is still read under the sentence it finishes.
+  const byId = new Map(statements.map((statement) => [statement.id, statement]));
+  const contextIds = new Set<string>();
+  for (const statement of statements.filter(matches)) {
+    for (let id = statement.parentId; id; id = byId.get(id)?.parentId) {
+      const parent = byId.get(id);
+      if (parent && !matches(parent)) contextIds.add(parent.id);
+    }
+  }
+  const filtered = statements.filter(
+    (statement) => matches(statement) || contextIds.has(statement.id)
   );
+  const hasMatches = filtered.length > contextIds.size;
 
   const overall = coverageOf(statements);
   const percentage = overall.total > 0 ? Math.round((overall.covered / overall.total) * 100) : 0;
-  const coveredCount = statements.filter((statement) => isCovered(statement.coverage)).length;
-  const uncoveredCount = statements.filter(
-    (statement) => statement.coverage === 'Uncovered'
-  ).length;
 
   const source = overview.data?.source;
   const sourceUrl = source
@@ -177,16 +247,28 @@ function RankingCriteria() {
 
   const statementsOf = (key: string) => statements.filter((statement) => statement.page === key);
   const filteredOf = (key: string) => filtered.filter((statement) => statement.page === key);
-  const filteredRulesOf = (key: string) => filteredOf(key).filter((statement) => !statement.intro);
 
+  // The filter counts what the list below can show: search results, or the current page's rules.
+  const scopedRules = isSearching
+    ? rules.filter((statement) => matchesSearch(statement, query))
+    : rules.filter((statement) => statement.page === pageKey);
+  const showFilter = isSearching || !!currentPage?.hasStatements;
+
+  const pageCoverage = currentPage?.hasStatements
+    ? coverageOf(statementsOf(currentPage.key))
+    : null;
+  const wikiUrl = currentPage?.wikiUrl;
+
+  // Three blocks (header, controls, list) spaced by `sm`, like the beatmap sidebar's search row and
+  // list; everything inside a block by `xs`.
   return (
-    <>
-      <Stack gap={6}>
+    <Stack gap="sm">
+      <Stack gap="xs">
         <Group justify="space-between" align="baseline">
           <Text fw={700} size="md">
             {isLoading
               ? 'Loading coverage…'
-              : `${overall.covered} of ${overall.total} rules and guidelines covered by checks (${percentage}%)`}
+              : `${overall.covered} of ${overall.total} checkable rules and guidelines covered (${percentage}%)`}
           </Text>
           {source && sourceUrl && (
             <Text size="xs" c="dimmed">
@@ -206,48 +288,92 @@ function RankingCriteria() {
             </Text>
           )}
         </Group>
-        <Progress value={percentage} color="green" size="sm" radius="xl" />
+        <CoverageBar rules={rules} />
       </Stack>
 
-      <Group gap="sm" mt="lg" mb="md">
-        <RcPageSelect
-          pages={pages}
-          value={pageKey}
-          disabled={isSearching}
-          coverageOf={(key) => (isLoading ? null : coverageOf(statementsOf(key)))}
-          onChange={(key) => navigate(rankingCriteriaRoute(key))}
-        />
-        <TextInput
-          style={{ flex: 1, minWidth: 220 }}
-          placeholder="Search rules (text, section, check name)…"
-          value={searchInput}
-          onChange={(event) => setSearchInput(event.currentTarget.value)}
-          leftSection={<IconSearch size={18} stroke={1.5} />}
-          rightSection={
-            searchInput ? (
-              <CloseButton aria-label="Clear search" onClick={() => setSearchInput('')} size="sm" />
-            ) : null
-          }
-        />
-        <SegmentedControl
-          value={filter}
-          onChange={(value) => setFilter(value as CoverageFilter)}
-          data={[
-            { value: 'all', label: `All ${rules.length}` },
-            { value: 'covered', label: `Covered ${coveredCount}` },
-            { value: 'uncovered', label: `Not covered ${uncoveredCount}` },
-          ]}
-        />
-      </Group>
+      {/*
+        Stays in view while scrolling the list. Padded and spaced like the beatmap sidebar's search
+        row, so both line up once it sticks; negative margins keep the page spacing unchanged.
+      */}
+      <Stack
+        gap="sm"
+        py="xs"
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 2,
+          margin: 'calc(var(--mantine-spacing-xs) * -1) 0',
+          background: 'var(--mantine-color-body)',
+        }}
+      >
+        <Group gap="sm">
+          <RcPageSelect
+            pages={pages}
+            value={pageKey}
+            disabled={isSearching}
+            coverageOf={(key) => (isLoading ? null : coverageOf(statementsOf(key)))}
+            onChange={(key) => navigate(rankingCriteriaRoute(key))}
+          />
+          <TextInput
+            style={{ flex: 1, minWidth: 220 }}
+            placeholder="Search rules (text, section, check name)…"
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.currentTarget.value)}
+            leftSection={<IconSearch size={18} stroke={1.5} />}
+            rightSection={
+              searchInput ? (
+                <CloseButton
+                  aria-label="Clear search"
+                  onClick={() => setSearchInput('')}
+                  size="sm"
+                />
+              ) : null
+            }
+          />
+          {wikiUrl && (
+            <Tooltip label="Open this page on the osu! wiki" withinPortal>
+              <ActionIcon
+                variant="default"
+                size="input-sm"
+                aria-label="Open this page on the osu! wiki"
+                onClick={() => void openExternal(wikiUrl)}
+              >
+                <IconExternalLink size={18} stroke={1.5} />
+              </ActionIcon>
+            </Tooltip>
+          )}
+        </Group>
+        {/* The filter on the left, what it applies to on the right. */}
+        <Group justify="space-between" gap="xs" mih={26}>
+          {showFilter ? (
+            <RcCoverageFilter rules={scopedRules} value={filter} onChange={setFilter} />
+          ) : (
+            <Text size="xs" c="dimmed">
+              This page has no rules or guidelines of its own.
+            </Text>
+          )}
+          {isSearching ? (
+            <Text size="xs" c="dimmed">
+              Results from all pages
+            </Text>
+          ) : (
+            pageCoverage && (
+              <Text size="xs" c="dimmed">
+                {pageCoverage.covered} of {pageCoverage.total} checkable covered
+              </Text>
+            )
+          )}
+        </Group>
+      </Stack>
 
       {(overview.error || isError) && (
-        <Alert icon={<IconAlertCircle />} color="red" mb="md">
+        <Alert icon={<IconAlertCircle />} color="red">
           Failed to load the ranking criteria.
         </Alert>
       )}
 
       {ruleId && !isLoading && !selected && (
-        <Alert icon={<IconAlertCircle />} color="orange" mb="md">
+        <Alert icon={<IconAlertCircle />} color="orange">
           <Text span ff="monospace">
             {ruleId}
           </Text>{' '}
@@ -256,69 +382,34 @@ function RankingCriteria() {
       )}
 
       {isSearching ? (
-        <Stack gap="xs">
-          <Text size="xs" c="dimmed">
-            Showing {filtered.length} of {countWord(rules.length, 'statement')} across all pages
-          </Text>
-          {filtered.length === 0 ? (
-            <Text size="xs" c="dimmed">
-              No rules match your search.
-            </Text>
-          ) : (
-            filtered.map((statement) => (
-              <RcStatementRow
-                key={statement.id}
-                statement={statement}
-                showPage
-                onOpen={openStatement}
-              />
-            ))
-          )}
-        </Stack>
+        !hasMatches ? (
+          <EmptyState>No rules match your search.</EmptyState>
+        ) : (
+          <StatementRows
+            statements={filtered}
+            contextIds={contextIds}
+            showPage
+            onOpen={openStatement}
+          />
+        )
+      ) : !currentPage ? null : !currentPage.hasStatements ? (
+        <ReadOnlyPage pageKey={currentPage.key} />
+      ) : isLoading ? (
+        <RowSkeleton />
       ) : (
-        <>
-          <Group justify="space-between">
-            <Text size="xs" c="dimmed">
-              {currentPage?.hasStatements
-                ? `${currentPage.title}: ${coverageOf(statementsOf(currentPage.key)).covered} of ${
-                    coverageOf(statementsOf(currentPage.key)).total
-                  } covered · showing ${countWord(filteredRulesOf(currentPage.key).length, 'statement')}`
-                : 'This page has no rules or guidelines of its own.'}
-            </Text>
-            {currentPage && (
-              <Anchor
-                size="xs"
-                href={currentPage.wikiUrl}
-                onClick={(event) => {
-                  event.preventDefault();
-                  void openExternal(currentPage.wikiUrl);
-                }}
-              >
-                <Group gap={4} wrap="nowrap">
-                  Open on osu! wiki
-                  <IconExternalLink size={12} />
-                </Group>
-              </Anchor>
-            )}
-          </Group>
-          <Stack pt="sm">
-            {!currentPage ? null : !currentPage.hasStatements ? (
-              <ReadOnlyPage pageKey={currentPage.key} />
-            ) : isLoading ? (
-              <RowSkeleton />
-            ) : (
-              <StatementSections statements={filteredOf(currentPage.key)} onOpen={openStatement} />
-            )}
-          </Stack>
-        </>
+        <StatementSections
+          statements={filteredOf(currentPage.key)}
+          contextIds={contextIds}
+          onOpen={openStatement}
+        />
       )}
 
-      <Text size="xs" c="dimmed" mt="lg">
+      <Text size="xs" c="dimmed">
         Content from the osu! wiki, licensed under CC BY-NC 4.0.
       </Text>
 
       <RcStatementModal statement={selected ?? null} onClose={closeStatement} />
-    </>
+    </Stack>
   );
 }
 

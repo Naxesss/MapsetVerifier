@@ -129,8 +129,8 @@ public static class RankingCriteriaService
     )
     {
         if (links.ContainsKey(statement.Id))
-            return statement.Curation.Automation == RcAutomation.Partial
-                ? ApiRcCoverage.Partial
+            return statement.LastReview != null ? ApiRcCoverage.Outdated
+                : statement.Curation.Automation == RcAutomation.Partial ? ApiRcCoverage.Partial
                 : ApiRcCoverage.Covered;
 
         // Allowances have nothing to enforce, intros are finished by their nested statements.
@@ -141,6 +141,10 @@ public static class RankingCriteriaService
         var children = Children
             .Value[statement.Id]
             .Select(child => GetCoverage(child, links))
+            // An outdated sub-rule still has a check; it is flagged on its own row.
+            .Select(coverage =>
+                coverage == ApiRcCoverage.Outdated ? ApiRcCoverage.Covered : coverage
+            )
             .Where(coverage =>
                 coverage is not (ApiRcCoverage.Informational or ApiRcCoverage.Manual)
             )
@@ -187,6 +191,7 @@ public static class RankingCriteriaService
             statement.Curation.Automation,
             statement.Curation.Notes,
             statement.IsRetired,
+            statement.LastReview is { } review ? new ApiRcReview(review.Commit, review.Kind) : null,
             GetCoverage(statement, links),
             links.GetValueOrDefault(statement.Id) ?? []
         );

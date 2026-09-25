@@ -1,4 +1,11 @@
-import type { ApiRcStatement, DifficultyLevel, Mode, RcCoverage, RcKind } from '../../Types';
+import type {
+  ApiRcSource,
+  ApiRcStatement,
+  DifficultyLevel,
+  Mode,
+  RcCoverage,
+  RcKind,
+} from '../../Types';
 
 const OSU_WEB = 'https://osu.ppy.sh';
 
@@ -139,10 +146,16 @@ export function difficultyStarRating(difficulty: DifficultyLevel) {
   return ICON_STAR_RATING[difficulty.toLowerCase()] ?? ICON_STAR_RATING.extra;
 }
 
-export type CoverageFilter = 'all' | 'covered' | 'uncovered';
+export type CoverageFilter = 'all' | 'covered' | 'partial' | 'outdated' | 'manual' | 'uncovered';
 
+/** Outdated statements still have a check, it just needs reviewing against the new wording. */
 export function isCovered(coverage: RcCoverage) {
-  return coverage === 'Covered' || coverage === 'Partial';
+  return coverage === 'Covered' || coverage === 'Partial' || coverage === 'Outdated';
+}
+
+/** Compares the wiki between a statement's last reviewed wording and the current snapshot on GitHub. */
+export function wikiCompareUrl(source: ApiRcSource, fromCommit: string) {
+  return `https://github.com/${source.repository}/compare/${fromCommit}...${source.commit}`;
 }
 
 /** Allowances and manual-only statements have nothing for a check to cover. */
@@ -151,9 +164,20 @@ export function isCoverable(coverage: RcCoverage) {
 }
 
 export function matchesCoverageFilter(coverage: RcCoverage, filter: CoverageFilter) {
-  if (filter === 'covered') return isCovered(coverage);
-  if (filter === 'uncovered') return coverage === 'Uncovered';
-  return true;
+  switch (filter) {
+    case 'covered':
+      return coverage === 'Covered';
+    case 'partial':
+      return coverage === 'Partial';
+    case 'outdated':
+      return coverage === 'Outdated';
+    case 'manual':
+      return coverage === 'Manual';
+    case 'uncovered':
+      return coverage === 'Uncovered';
+    default:
+      return true;
+  }
 }
 
 /** Distinct check names linking to a statement, in link order. */

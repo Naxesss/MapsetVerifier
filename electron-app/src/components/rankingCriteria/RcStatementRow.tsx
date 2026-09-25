@@ -1,5 +1,6 @@
 import { Badge, Box, Flex, Group, Text, Tooltip, useMantineTheme } from '@mantine/core';
 import {
+  IconAlertTriangleFilled,
   IconCircleCheckFilled,
   IconCircleDashed,
   IconCircleHalf2,
@@ -17,10 +18,17 @@ interface RcStatementRowProps {
   showPage?: boolean;
   /** Hide the parent's lead, because the parent is shown right above this row. */
   hideParentLead?: boolean;
+  /** Does not match the filter itself, only shown as the parent of statements that do. */
+  muted?: boolean;
   onOpen: (statement: ApiRcStatement) => void;
 }
 
 const STATUS_ICON_SIZE = 22;
+/** Height of a size="md" Badge. */
+const BADGE_HEIGHT = 20;
+/** Line heights of the lead (size md) and the parent's lead above it (size xs). */
+const TITLE_LINE = 'var(--mantine-font-size-md) * var(--mantine-line-height-md)';
+const PARENT_LEAD_LINE = 'var(--mantine-font-size-xs) * var(--mantine-line-height-xs)';
 
 /** One glanceable status at the start of the row: covered, not covered, or manual. */
 function StatusIcon({ statement }: { statement: ApiRcStatement }) {
@@ -44,6 +52,16 @@ function StatusIcon({ statement }: { statement: ApiRcStatement }) {
             size={STATUS_ICON_SIZE}
             color={theme.colors.green[6]}
             aria-label="Covered"
+          />
+        </Tooltip>
+      );
+    case 'Outdated':
+      return (
+        <Tooltip label="Changed on the wiki since its checks were reviewed" withinPortal>
+          <IconAlertTriangleFilled
+            size={STATUS_ICON_SIZE}
+            color={theme.colors.red[6]}
+            aria-label="Outdated"
           />
         </Tooltip>
       );
@@ -74,7 +92,7 @@ function StatusLabel({ statement }: { statement: ApiRcStatement }) {
 
   if (statement.links.length > 0) {
     return (
-      <Badge variant="light" color="green" size="md">
+      <Badge variant="light" color={statement.coverage === 'Outdated' ? 'red' : 'green'} size="md">
         {countWord(linkedCheckNames(statement).length, 'check')}
       </Badge>
     );
@@ -137,6 +155,7 @@ export default function RcStatementRow({
   statement,
   showPage,
   hideParentLead,
+  muted,
   onOpen,
 }: RcStatementRowProps) {
   const theme = useMantineTheme();
@@ -146,14 +165,23 @@ export default function RcStatementRow({
     : theme.variantColorResolver({ variant: 'light', theme, color: 'gray' }).background;
 
   const mode = pageMode(statement.page);
+  const showParentLead = !!statement.parentLead && !hideParentLead;
+
+  // Centres an element of the given height on the first line of the lead, below the parent's lead
+  // when that is shown, so the icon and badge stay put however far the lead wraps.
+  const titleLineOffset = (height: number) =>
+    `calc(${showParentLead ? PARENT_LEAD_LINE : '0px'} + (${TITLE_LINE} - ${height}px) / 2)`;
 
   return (
     <Group
+      align="flex-start"
       style={{
         background,
         borderRadius: theme.defaultRadius,
         cursor: 'pointer',
-        transition: 'background 0.2s',
+        transition: 'background 0.2s, opacity 0.2s',
+        // Shown only as context for the matching statements nested in it; full strength on hover.
+        opacity: muted && !hovered ? 0.5 : 1,
       }}
       p="sm"
       gap="sm"
@@ -171,11 +199,11 @@ export default function RcStatementRow({
         }
       }}
     >
-      <Box style={{ flexShrink: 0, lineHeight: 0 }}>
+      <Box style={{ flexShrink: 0, lineHeight: 0, marginTop: titleLineOffset(STATUS_ICON_SIZE) }}>
         <StatusIcon statement={statement} />
       </Box>
       <Flex direction="column" style={{ flex: 1, minWidth: 0 }}>
-        {statement.parentLead && !hideParentLead && (
+        {showParentLead && (
           <Text size="xs" c="dimmed" lineClamp={1}>
             {statement.parentLead}
           </Text>
@@ -202,7 +230,7 @@ export default function RcStatementRow({
           )}
         </Group>
       </Flex>
-      <Box style={{ flexShrink: 0 }}>
+      <Box style={{ flexShrink: 0, lineHeight: 0, marginTop: titleLineOffset(BADGE_HEIGHT) }}>
         <StatusLabel statement={statement} />
       </Box>
     </Group>
