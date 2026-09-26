@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "backend",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "src/MapsetVerifier.csproj", "--", "--urls=http://localhost:5005"],
+      "port": 5005
+    },
+    {
+      "name": "frontend",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["electron-app/node_modules/vite/bin/vite.js", "electron-app"],
+      "port": 1420
+    }
+  ]
+}
