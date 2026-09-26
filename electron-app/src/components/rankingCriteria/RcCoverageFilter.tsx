@@ -64,6 +64,8 @@ function RcCoverageFilter({ rules, value, onChange }: RcCoverageFilterProps) {
           matchesCoverageFilter(rule.coverage, option.value)
         ).length;
         const active = value === option.value;
+        // A status nothing has is left out rather than shown disabled.
+        if (count === 0 && !active && option.value !== 'all') return null;
 
         return (
           <Button
@@ -73,7 +75,6 @@ function RcCoverageFilter({ rules, value, onChange }: RcCoverageFilterProps) {
             variant={active ? 'light' : 'subtle'}
             color={active ? option.color : 'gray'}
             leftSection={option.icon}
-            disabled={count === 0 && !active}
             aria-pressed={active}
             onClick={() => onChange(option.value)}
           >

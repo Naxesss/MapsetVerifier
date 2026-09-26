@@ -7,6 +7,7 @@ import {
   IconUser,
 } from '@tabler/icons-react';
 import { useState } from 'react';
+import RcLeadText from './RcLeadText';
 import { difficultyStarRating, KIND_COLOR, linkedCheckNames, pageMode } from './rcUtils';
 import { ApiRcStatement } from '../../Types';
 import { countWord } from '../../utils/countWord';
@@ -24,11 +25,10 @@ interface RcStatementRowProps {
 }
 
 const STATUS_ICON_SIZE = 22;
-/** Height of a size="md" Badge. */
-const BADGE_HEIGHT = 20;
-/** Line heights of the lead (size md) and the parent's lead above it (size xs). */
+/** Line heights of the lead (size md), the parent's lead above it (size xs) and the status label (size sm). */
 const TITLE_LINE = 'var(--mantine-font-size-md) * var(--mantine-line-height-md)';
 const PARENT_LEAD_LINE = 'var(--mantine-font-size-xs) * var(--mantine-line-height-xs)';
+const LABEL_LINE = 'var(--mantine-font-size-sm) * var(--mantine-line-height-sm)';
 
 /** One glanceable status at the start of the row: covered, not covered, or manual. */
 function StatusIcon({ statement }: { statement: ApiRcStatement }) {
@@ -87,35 +87,23 @@ function StatusIcon({ statement }: { statement: ApiRcStatement }) {
   }
 }
 
-function StatusLabel({ statement }: { statement: ApiRcStatement }) {
-  if (statement.coverage === 'Informational') return null;
+/** The status icon in words, plain so the icon stays the only colour on the row. */
+function statusLabel(statement: ApiRcStatement) {
+  if (statement.links.length > 0) return countWord(linkedCheckNames(statement).length, 'check');
 
-  if (statement.links.length > 0) {
-    return (
-      <Badge variant="light" color={statement.coverage === 'Outdated' ? 'red' : 'green'} size="md">
-        {countWord(linkedCheckNames(statement).length, 'check')}
-      </Badge>
-    );
+  switch (statement.coverage) {
+    // Covered through its nested statements rather than a check of its own.
+    case 'Covered':
+      return 'Via sub-rules';
+    case 'Partial':
+      return 'Partly via sub-rules';
+    case 'Manual':
+      return 'Manual';
+    case 'Uncovered':
+      return 'No check';
+    default:
+      return null;
   }
-
-  // Covered through its nested statements rather than a check of its own.
-  if (statement.coverage === 'Covered' || statement.coverage === 'Partial') {
-    return (
-      <Badge
-        variant="light"
-        color={statement.coverage === 'Covered' ? 'green' : 'yellow'}
-        size="md"
-      >
-        {statement.coverage === 'Covered' ? 'Via sub-rules' : 'Partly, via sub-rules'}
-      </Badge>
-    );
-  }
-
-  return (
-    <Badge variant="light" color="gray" size="md">
-      {statement.coverage === 'Manual' ? 'Manual' : 'No check'}
-    </Badge>
-  );
 }
 
 /**
@@ -141,7 +129,7 @@ export function RcIntroRow({ statement }: { statement: ApiRcStatement }) {
     >
       <Box w={STATUS_ICON_SIZE} style={{ flexShrink: 0 }} />
       <Text fw="bold" c="dimmed" style={{ flex: 1, minWidth: 0 }}>
-        {statement.lead}
+        <RcLeadText>{statement.lead}</RcLeadText>
       </Text>
       <Text size="xs" c="dimmed" style={{ flexShrink: 0 }}>
         Introduces the rules below
@@ -166,11 +154,12 @@ export default function RcStatementRow({
 
   const mode = pageMode(statement.page);
   const showParentLead = !!statement.parentLead && !hideParentLead;
+  const label = statusLabel(statement);
 
   // Centres an element of the given height on the first line of the lead, below the parent's lead
-  // when that is shown, so the icon and badge stay put however far the lead wraps.
-  const titleLineOffset = (height: number) =>
-    `calc(${showParentLead ? PARENT_LEAD_LINE : '0px'} + (${TITLE_LINE} - ${height}px) / 2)`;
+  // when that is shown, so the icon and label stay put however far the lead wraps.
+  const titleLineOffset = (height: string) =>
+    `calc(${showParentLead ? PARENT_LEAD_LINE : '0px'} + (${TITLE_LINE} - ${height}) / 2)`;
 
   return (
     <Group
@@ -199,16 +188,24 @@ export default function RcStatementRow({
         }
       }}
     >
-      <Box style={{ flexShrink: 0, lineHeight: 0, marginTop: titleLineOffset(STATUS_ICON_SIZE) }}>
+      <Box
+        style={{
+          flexShrink: 0,
+          lineHeight: 0,
+          marginTop: titleLineOffset(`${STATUS_ICON_SIZE}px`),
+        }}
+      >
         <StatusIcon statement={statement} />
       </Box>
       <Flex direction="column" style={{ flex: 1, minWidth: 0 }}>
         {showParentLead && (
           <Text size="xs" c="dimmed" lineClamp={1}>
-            {statement.parentLead}
+            <RcLeadText>{statement.parentLead!}</RcLeadText>
           </Text>
         )}
-        <Text fw="bold">{statement.lead}</Text>
+        <Text fw="bold">
+          <RcLeadText>{statement.lead}</RcLeadText>
+        </Text>
         <Group gap="xs">
           {mode &&
             (statement.difficulties.length > 0 ? (
@@ -230,9 +227,15 @@ export default function RcStatementRow({
           )}
         </Group>
       </Flex>
-      <Box style={{ flexShrink: 0, lineHeight: 0, marginTop: titleLineOffset(BADGE_HEIGHT) }}>
-        <StatusLabel statement={statement} />
-      </Box>
+      {label && (
+        <Text
+          size="sm"
+          c="dimmed"
+          style={{ flexShrink: 0, marginTop: titleLineOffset(`(${LABEL_LINE})`) }}
+        >
+          {label}
+        </Text>
+      )}
     </Group>
   );
 }
