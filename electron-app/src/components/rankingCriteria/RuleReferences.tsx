@@ -2,47 +2,78 @@ import { Alert, Anchor, Badge, Button, Group, Loader, Paper, Stack, Text } from 
 import { IconAlertCircle, IconExternalLink, IconGavel } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import RcLeadText from './RcLeadText';
 import RcOutdatedNotice from './RcOutdatedNotice';
 import { formatDifficulties, KIND_COLOR, openExternal, rankingCriteriaRoute } from './rcUtils';
 import RankingCriteriaApi from '../../client/RankingCriteriaApi';
 import { ApiRcStatement } from '../../Types';
+import ClickablePanel from '../details/ClickablePanel';
+import { useDetailNavigation } from '../details/detailNavigation';
 
 interface RuleReferencesProps {
   ruleIds?: string[];
 }
 
-function RuleReference({ statement }: { statement: ApiRcStatement }) {
-  const navigate = useNavigate();
+/** What a reference says about the statement, the same inside and outside the detail modal. */
+function RuleSummary({ statement, cameFrom }: { statement: ApiRcStatement; cameFrom: boolean }) {
   const breadcrumb = [statement.pageTitle, ...statement.path].join(' › ');
   const difficulties = formatDifficulties(statement.difficulties);
 
   return (
+    <Stack gap={6}>
+      <Group gap="xs" wrap="nowrap">
+        <Badge size="xs" variant="light" color={KIND_COLOR[statement.kind]}>
+          {statement.kind}
+        </Badge>
+        <Text size="xs" c="dimmed" truncate>
+          {breadcrumb}
+          {difficulties && ` (${difficulties})`}
+        </Text>
+        {cameFrom && (
+          <Badge size="xs" variant="light" color="gray" style={{ flexShrink: 0 }}>
+            You came from here
+          </Badge>
+        )}
+      </Group>
+      {statement.parentLead && (
+        <Text size="sm" c="dimmed">
+          <RcLeadText>{statement.parentLead}</RcLeadText>
+        </Text>
+      )}
+      <Text size="sm" fw={600}>
+        <RcLeadText>{statement.lead}</RcLeadText>
+      </Text>
+      {statement.retired && (
+        <Text size="xs" c="orange">
+          This statement is no longer in the ranking criteria. The check linking to it needs
+          updating.
+        </Text>
+      )}
+      <RcOutdatedNotice statement={statement} />
+    </Stack>
+  );
+}
+
+function RuleReference({ statement }: { statement: ApiRcStatement }) {
+  const navigate = useNavigate();
+  const navigation = useDetailNavigation();
+
+  // Inside the detail modal the statement opens in place of the check.
+  if (navigation && !statement.retired) {
+    const cameFrom =
+      navigation.previous?.kind === 'rule' && navigation.previous.statement.id === statement.id;
+
+    return (
+      <ClickablePanel onClick={() => navigation.open({ kind: 'rule', statement })}>
+        <RuleSummary statement={statement} cameFrom={cameFrom} />
+      </ClickablePanel>
+    );
+  }
+
+  return (
     <Paper p="sm" radius="md" withBorder>
       <Stack gap={6}>
-        <Group gap="xs" wrap="nowrap">
-          <Badge size="xs" variant="light" color={KIND_COLOR[statement.kind]}>
-            {statement.kind}
-          </Badge>
-          <Text size="xs" c="dimmed" truncate>
-            {breadcrumb}
-            {difficulties && ` (${difficulties})`}
-          </Text>
-        </Group>
-        {statement.parentLead && (
-          <Text size="sm" c="dimmed">
-            {statement.parentLead}
-          </Text>
-        )}
-        <Text size="sm" fw={600}>
-          {statement.lead}
-        </Text>
-        {statement.retired && (
-          <Text size="xs" c="orange">
-            This statement is no longer in the ranking criteria. The check linking to it needs
-            updating.
-          </Text>
-        )}
-        <RcOutdatedNotice statement={statement} />
+        <RuleSummary statement={statement} cameFrom={false} />
         <Group gap="md">
           {!statement.retired && (
             <Button
@@ -51,7 +82,7 @@ function RuleReference({ statement }: { statement: ApiRcStatement }) {
               leftSection={<IconGavel size={13} />}
               onClick={() => navigate(rankingCriteriaRoute(statement.page, statement.id))}
             >
-              Show in ranking criteria
+              Open in ranking criteria
             </Button>
           )}
           <Anchor
@@ -73,7 +104,7 @@ function RuleReference({ statement }: { statement: ApiRcStatement }) {
   );
 }
 
-/** The ranking criteria statements an issue or outcome enforces, linking into the RC viewer. */
+/** The ranking criteria statements an issue or outcome enforces, linking to their details. */
 export default function RuleReferences({ ruleIds }: RuleReferencesProps) {
   const ids = ruleIds ?? [];
 

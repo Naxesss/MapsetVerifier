@@ -19,7 +19,6 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import RcCoverageFilter from './RcCoverageFilter';
 import RcMarkdown from './RcMarkdown';
 import RcPageSelect from './RcPageSelect';
-import RcStatementModal from './RcStatementModal';
 import RcStatementRow, { RcIntroRow } from './RcStatementRow';
 import {
   CoverageFilter,
@@ -36,6 +35,7 @@ import {
   useRankingCriteriaPage,
 } from './useRankingCriteria';
 import { ApiRcStatement, RcCoverage } from '../../Types';
+import DetailModal from '../details/DetailModal';
 
 const DEFAULT_PAGE = 'general';
 
@@ -160,12 +160,10 @@ function StatementSections({ statements, contextIds, onOpen }: StatementListProp
   }
 
   return (
-    <Stack gap="lg">
+    <Stack gap="xl">
       {[...sections.entries()].map(([section, sectionStatements]) => (
         <Stack key={section} gap="xs">
-          <Text fw={700} size="sm" c="dimmed">
-            {section}
-          </Text>
+          <Text fw={700}>{section}</Text>
           <StatementRows
             statements={sectionStatements}
             contextIds={contextIds}
@@ -330,7 +328,7 @@ function RankingCriteria() {
               ) : null
             }
           />
-          {wikiUrl && (
+          {wikiUrl && !isSearching && (
             <Tooltip label="Open this page on the osu! wiki" withinPortal>
               <ActionIcon
                 variant="default"
@@ -408,7 +406,10 @@ function RankingCriteria() {
         Content from the osu! wiki, licensed under CC BY-NC 4.0.
       </Text>
 
-      <RcStatementModal statement={selected ?? null} onClose={closeStatement} />
+      <DetailModal
+        view={selected ? { kind: 'rule', statement: selected } : null}
+        onClose={closeStatement}
+      />
     </Stack>
   );
 }
