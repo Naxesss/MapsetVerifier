@@ -51,13 +51,15 @@ export default function RcPageSelect({
       aria-label="Ranking criteria page"
       w={240}
       data={groups}
-      value={value}
+      // Search results come from every page, so no single page is selected meanwhile.
+      value={disabled ? null : value}
+      placeholder="All pages"
       disabled={disabled}
       allowDeselect={false}
       maxDropdownHeight={420}
       checkIconPosition="right"
       comboboxProps={{ withinPortal: true }}
-      leftSection={<PageIcon pageKey={value} />}
+      leftSection={<PageIcon pageKey={disabled ? '' : value} />}
       onChange={(key) => key && onChange(key)}
       renderOption={({ option }) => {
         const coverage = pages.find((page) => page.key === option.value)?.hasStatements
