@@ -6,7 +6,7 @@ using MapsetVerifier.Server.Model;
 
 namespace MapsetVerifier.Server.Service;
 
-public static class RankingCriteriaService
+public static partial class RankingCriteriaService
 {
     private static RcStore Store => RcStore.Embedded;
 

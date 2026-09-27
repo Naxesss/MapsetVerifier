@@ -58,10 +58,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         "1/X"
                     )
                         .WithCause("A kiai flash exists, but is not too drastic")
-                        .WithRule(
-                            RC.General.DifficultiesContainRepetitiveStrobesPulsing,
-                            RC.Taiko.KiaiTimeOnlyUsedChorus
-                        )
+                        .WithRule(RC.Taiko.KiaiTimeOnlyUsedChorus)
                 },
                 {
                     Warning,
@@ -72,10 +69,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         "1/X"
                     )
                         .WithCause("A kiai flash that's too drastic exists")
-                        .WithRule(
-                            RC.General.DifficultiesContainRepetitiveStrobesPulsing,
-                            RC.Taiko.KiaiTimeOnlyUsedChorus
-                        )
+                        .WithRule(RC.Taiko.KiaiTimeOnlyUsedChorus)
                 },
             };
 
