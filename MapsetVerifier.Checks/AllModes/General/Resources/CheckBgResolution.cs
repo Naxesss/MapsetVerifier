@@ -70,7 +70,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                             "A background file has a width lower than 1024 pixels or a height lower than 640 pixels."
                         )
                         .WithRule(
-                            RC.General.VideoAndBackground_BackgroundImagesVideosBeatmapReasonable
+                            RC.General.VideoAndBackground_BackgroundImagesVideosBeatmapReasonable,
+                            RC.General.VideoAndBackground_MinimumWidth160px,
+                            RC.General.VideoAndBackground_MinimumHeight120px
                         )
                 },
                 {
