@@ -21,11 +21,13 @@ export default function DocumentationCheckDetails({ check }: { check: ApiDocumen
   return (
     <Flex direction="column" gap="lg">
       <Flex justify="space-between">
-        <Group gap={0}>
-          {check.modes.map((mode) => (
-            <GameModeIcon size={16} key={mode} mode={mode} />
-          ))}
-          <Badge>{`${check.category}`}</Badge>
+        <Group gap="xs">
+          <Group gap={0}>
+            {check.modes.map((mode) => (
+              <GameModeIcon size={16} key={mode} mode={mode} />
+            ))}
+          </Group>
+          <Badge>{check.category}</Badge>
         </Group>
         <Text size="sm" c="dimmed">
           Created by {check.author}
