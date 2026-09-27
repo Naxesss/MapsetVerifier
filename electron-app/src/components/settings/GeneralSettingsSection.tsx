@@ -10,6 +10,7 @@ import {
 import { UI_ZOOM_OPTIONS, parseUiZoomPercent } from '../../theme/zoom';
 import { notifyError } from '../../utils/notify.tsx';
 import { isWindowsPlatform } from '../../utils/platform.ts';
+import type { ClockFormat } from '../../utils/dateTime';
 
 const LIBRARY_DESCRIPTION = 'Which beatmap library the sidebar reads from.';
 const LIBRARY_DESCRIPTION_NON_WINDOWS = `${LIBRARY_DESCRIPTION} Set the lazer data folder manually below; showing the mapset open in the editor only works on Windows.`;
@@ -137,6 +138,22 @@ export default function GeneralSettingsSection() {
               const uiZoomPercent = parseUiZoomPercent(value);
               setSettings((prev) => ({ ...prev, uiZoomPercent }));
             }}
+          />
+        }
+      />
+      <SettingsRow
+        title="Time format"
+        description="How times are shown throughout the app, such as in snapshots and check runs."
+        control={
+          <SegmentedControl
+            data={[
+              { label: '24-hour', value: '24h' },
+              { label: '12-hour', value: '12h' },
+            ]}
+            value={settings.clockFormat}
+            onChange={(value) =>
+              setSettings((prev) => ({ ...prev, clockFormat: value as ClockFormat }))
+            }
           />
         }
       />

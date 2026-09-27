@@ -10,6 +10,7 @@ import {
 } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
+import ShortcutLabel from './ShortcutLabel.tsx';
 import { useBeatmap } from '../../context/BeatmapContext.tsx';
 import { useBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
 import { useOpenExternal } from '../../hooks/useOpenExternal.ts';
@@ -81,7 +82,7 @@ function MapsetActions() {
 
   return (
     <Group gap="xs" wrap="nowrap">
-      <Tooltip label="Refresh mapset (F5)">
+      <Tooltip label={<ShortcutLabel label="Refresh mapset" keys={['F5']} />}>
         <ActionIcon
           variant="default"
           size="input-sm"

@@ -59,7 +59,6 @@ function TimeSeriesLegend({
               onMouseLeave={() => onHighlight?.(null)}
               onFocus={() => onHighlight?.(visibilityId)}
               onBlur={() => onHighlight?.(null)}
-              title="Click to isolate, Ctrl/Cmd+click to toggle just this one"
               leftSection={
                 <ColorSwatch
                   color={item.color}

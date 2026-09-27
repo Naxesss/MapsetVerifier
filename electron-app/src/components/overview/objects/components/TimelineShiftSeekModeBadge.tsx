@@ -1,4 +1,5 @@
 import { Badge, Group, SegmentedControl, Tooltip } from '@mantine/core';
+import ShortcutLabel from '../../../common/ShortcutLabel.tsx';
 import { TIMELINE_SCROLL_TICK_STEP_OPTIONS, type TimelineScrollTickStep } from '../constants.ts';
 
 /** Mantine draws the focus ring on the label via --segmented-control-outline when the radio is focused. */
@@ -38,7 +39,9 @@ export default function TimelineShiftSeekModeBadge({
       data-stop-timeline-pan="true"
       data-timeline-wheel-ignore="true"
     >
-      <Tooltip label="Hold Shift and scroll the timeline" withArrow>
+      <Tooltip
+        label={<ShortcutLabel label="Step through timing snap ticks" keys={['Shift', 'Scroll']} />}
+      >
         <Badge
           color={active ? 'green' : 'gray'}
           style={{ opacity: active ? 1 : 0.45, cursor: 'default' }}
@@ -46,7 +49,7 @@ export default function TimelineShiftSeekModeBadge({
           Timeline scroll
         </Badge>
       </Tooltip>
-      <Tooltip label="Timing ticks per scroll step" withArrow>
+      <Tooltip label="Timing ticks per scroll step">
         <SegmentedControl
           aria-label="Timeline scroll tick step"
           size="xs"

@@ -27,6 +27,7 @@ import {
   useRankingCriteriaPage,
 } from './useRankingCriteria';
 import { ApiRcStatement, RcCoverage } from '../../Types';
+import { formatDate } from '../../utils/dateTime';
 import EmptyState from '../common/EmptyState';
 import { SectionTitle } from '../common/Headings';
 import { ListSkeleton } from '../common/LoadingSkeletons';
@@ -36,16 +37,6 @@ import StickyToolbar from '../common/StickyToolbar';
 import DetailModal from '../details/DetailModal';
 
 const DEFAULT_PAGE = 'general';
-
-function formatDate(value?: string | null) {
-  if (!value) return null;
-
-  return new Date(value).toLocaleDateString(undefined, {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-}
 
 /** How many of the given statements a check could cover, and how many one does. */
 function coverageOf(statements: ApiRcStatement[]) {

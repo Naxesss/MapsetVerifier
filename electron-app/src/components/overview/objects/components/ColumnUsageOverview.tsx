@@ -136,7 +136,7 @@ export default function ColumnUsageOverview({
   return (
     <SectionCard
       title="Column usage"
-      info="Objects per column with their share of the total. Hover a cell for its note and hold note split."
+      info="Objects per column with their share of the total."
       actions={
         <ObjectsGameModeSelector
           groupedDifficulties={groupedDifficulties}

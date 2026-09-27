@@ -1,4 +1,5 @@
 import { Badge, Tooltip } from '@mantine/core';
+import ShortcutLabel from '../../../common/ShortcutLabel.tsx';
 
 type TimelineZoomModeBadgeProps = {
   active: boolean;
@@ -6,7 +7,7 @@ type TimelineZoomModeBadgeProps = {
 
 export default function TimelineZoomModeBadge({ active }: TimelineZoomModeBadgeProps) {
   return (
-    <Tooltip label="Hold Ctrl and scroll the timeline to zoom" withArrow>
+    <Tooltip label={<ShortcutLabel label="Zoom the timeline" keys={['Ctrl', 'Scroll']} />}>
       <Badge
         color={active ? 'blue' : 'gray'}
         style={{ opacity: active ? 1 : 0.45, cursor: 'default' }}

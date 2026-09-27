@@ -122,7 +122,6 @@ export default function ObjectPercentagesOverview({
   return (
     <SectionCard
       title="Objects overview"
-      info="Click on a cell to see all objects for that type."
       actions={
         <ObjectsGameModeSelector
           groupedDifficulties={groupedDifficulties}

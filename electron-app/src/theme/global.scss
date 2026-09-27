@@ -448,6 +448,50 @@
   }
 }
 
+/* Difficulty picker status bar (DifficultyPicker): a thin bar in a taller click area. Hover grows
+   and brightens it to the selected look, so the bar reads as clickable. */
+.mv-status-segment {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+
+  &[aria-disabled] {
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-primary-color-filled);
+    outline-offset: 1px;
+    border-radius: 2px;
+  }
+}
+
+.mv-status-segment__bar {
+  width: 100%;
+  height: 6px;
+  border-radius: 2px;
+  background-color: var(--segment-color);
+  opacity: 0.55;
+  transition:
+    height 0.12s ease,
+    opacity 0.12s ease;
+}
+
+.mv-status-segment[data-active] .mv-status-segment__bar,
+.mv-status-segment:not([aria-disabled]):hover .mv-status-segment__bar {
+  height: 10px;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mv-status-segment__bar {
+    transition: none;
+  }
+}
+
 /* Shared clickable row (ClickableRow): a row that opens something. Hover and keyboard focus look the same. */
 .mv-clickable-row {
   background: var(--mantine-color-gray-light);

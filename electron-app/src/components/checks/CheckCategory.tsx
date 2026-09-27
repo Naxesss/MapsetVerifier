@@ -5,7 +5,6 @@ import { groupChecks } from './groupChecks';
 import { ApiBeatmapSetCheckResult, ApiCategoryOverrideCheckResult, Level } from '../../Types';
 import { countWord } from '../../utils/countWord';
 import { getLevelLabel } from '../../utils/levelLabel';
-import { InfoIconTooltip } from '../common/InfoIconTooltip.tsx';
 import VirtualizedList from '../common/VirtualizedList.tsx';
 
 type DisplayLevel = Exclude<Level, 'Check'>;
@@ -242,9 +241,6 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
             </Badge>
           );
         })}
-        {categoryData.totalCount > 0 && (
-          <InfoIconTooltip label="Click a badge to filter issues by severity" />
-        )}
       </Group>
       {categoryData.totalCount > 0 ? (
         filteredGroups.length > 0 ? (

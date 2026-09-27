@@ -27,6 +27,7 @@ import { getGroupCopyText } from './CheckGroup';
 import IssueDetailDrawer, { copyToClipboard } from './IssueDetailDrawer';
 import IssueRow from './IssueRow';
 import BeatmapApi from '../../client/BeatmapApi';
+import { useDateTimeFormat } from '../../hooks/useDateTimeFormat';
 import { ApiCheckDeltaIssue, ApiCheckResult, ApiCheckRunDelta, Level } from '../../Types';
 import { countWord } from '../../utils/countWord';
 import { useDocumentationChecks } from '../documentation/hooks/useDocumentationChecks';
@@ -71,18 +72,6 @@ function isVisibleIssue(
   if (issue.level !== 'Minor') return true;
   if (!showMinor) return false;
   return !hiddenMinorCheckIds.includes(issue.id);
-}
-
-function formatRunTime(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-
-  return date.toLocaleString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
 }
 
 function highestLevel(items: ApiCheckDeltaIssue[]): Level {
@@ -233,6 +222,7 @@ export default function ChecksDeltaSummary({
   const [clearing, setClearing] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState<ApiCheckDeltaIssue | null>(null);
   const { getCheckById } = useDocumentationChecks();
+  const { formatDateTime } = useDateTimeFormat();
 
   const category = selectedCategory ?? 'General';
 
@@ -354,7 +344,7 @@ export default function ChecksDeltaSummary({
 
   if (!delta) return null;
 
-  const previousRunAt = formatRunTime(delta.previousRunAt);
+  const previousRunAt = formatDateTime(delta.previousRunAt, { withYear: false });
   const activeTab = scopedTabs.find((tab) => tab.issues.length > 0)?.id ?? scopedTabs[0]?.id;
   const summaryCounts = showMapsetWide ? mapsetWideCounts : scopedCounts;
 

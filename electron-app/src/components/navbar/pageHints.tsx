@@ -34,6 +34,41 @@ function refreshBeatmapHint(): PageHint {
   };
 }
 
+function badgeFilterHint(id: string, what: string): PageHint {
+  return {
+    id,
+    content: (
+      <>
+        <Kbd size="xs">Left Click</Kbd> a count badge to filter {what}.
+      </>
+    ),
+  };
+}
+
+function difficultyBarHint(): PageHint {
+  return {
+    id: 'difficulty-bar',
+    content: (
+      <>
+        <Kbd size="xs">Left Click</Kbd> a segment in the bar under the difficulty picker to jump to
+        that difficulty.
+      </>
+    ),
+  };
+}
+
+function difficultyStepHint(): PageHint {
+  return {
+    id: 'difficulty-step',
+    content: (
+      <>
+        Press <Kbd size="xs">[</Kbd> or <Kbd size="xs">]</Kbd> to go to the previous or next
+        difficulty.
+      </>
+    ),
+  };
+}
+
 function contextClickHint(id: string, isMac: boolean, action: ReactNode): PageHint {
   return {
     id,
@@ -166,12 +201,28 @@ export function getPageHints(
           'an object in the timeline to copy its timestamp.'
         ),
         {
+          id: 'timeline-pan',
+          content: (
+            <>
+              Drag the timeline sideways to pan, and drag a row&apos;s grip to reorder the
+              difficulties.
+            </>
+          ),
+        },
+        {
           id: 'timeline-scroll-mode',
           content: (
             <>
-              Hold <Kbd size="xs">Shift</Kbd> over the timeline for{' '}
-              <strong>timeline scroll mode</strong>. While <Kbd size="xs">Shift</Kbd> is held, the
-              wheel steps timing snap ticks.
+              Hold <Kbd size="xs">Shift</Kbd> and scroll over the timeline to step through timing
+              snap ticks.
+            </>
+          ),
+        },
+        {
+          id: 'timeline-zoom',
+          content: (
+            <>
+              Hold <Kbd size="xs">Ctrl</Kbd> and scroll over the timeline to zoom in or out.
             </>
           ),
         },
@@ -192,6 +243,19 @@ export function getPageHints(
               objects.
             </>
           ),
+        },
+        {
+          id: 'cell-popup-filter',
+          content: (
+            <>
+              <Kbd size="xs">Left Click</Kbd> a count badge in a cell&apos;s popup to filter its
+              list by type.
+            </>
+          ),
+        },
+        {
+          id: 'column-usage-hover',
+          content: 'Hover a column usage cell (osu!mania) to see its notes and hold notes.',
         },
       ];
       return hints;
@@ -220,6 +284,16 @@ export function getPageHints(
           ),
         },
         contextClickHint('chart-rclick', isMac, 'on charts for timestamp actions.'),
+        {
+          id: 'chart-legend',
+          content: (
+            <>
+              <Kbd size="xs">Left Click</Kbd> a legend entry to show only that line;{' '}
+              {isMac ? <Kbd size="xs">⌘</Kbd> : <Kbd size="xs">Ctrl</Kbd>} +{' '}
+              <Kbd size="xs">Left Click</Kbd> to show or hide just that one.
+            </>
+          ),
+        },
       ];
     }
   }
@@ -227,10 +301,22 @@ export function getPageHints(
   if (route === '/checks') {
     return [
       ...commonHints(isMac),
+      difficultyBarHint(),
+      difficultyStepHint(),
+      badgeFilterHint('severity-filter', 'issues by severity'),
       issueDetailsSidebarHint(),
       bookmarkHint(bookmarksEnabled),
       ...(!showMinor ? [minorChecksDisabledHint()] : []),
       ...(!showCheckRunDelta ? [checkRunDeltaDisabledHint()] : []),
+    ];
+  }
+
+  if (route === '/snapshots') {
+    return [
+      ...commonHints(isMac),
+      difficultyBarHint(),
+      difficultyStepHint(),
+      badgeFilterHint('diff-type-filter', 'changes by type'),
     ];
   }
 

@@ -3,6 +3,7 @@ import { IconClockPause, IconHistoryOff, IconPointer } from '@tabler/icons-react
 import SnapshotCommitList, { CommitChangeSummary } from './SnapshotCommitList';
 import { getSnapshotHistory } from './snapshotHistory';
 import UnifiedDiffViewer from './UnifiedDiffViewer';
+import { useDateTimeFormat } from '../../hooks/useDateTimeFormat';
 import { ApiSnapshotResult } from '../../Types';
 import EmptyState from '../common/EmptyState.tsx';
 import SectionCard from '../common/SectionCard.tsx';
@@ -17,17 +18,6 @@ interface SnapshotContentProps {
 /** Width of the history list; enough for the time, the "Latest" badge and the change counts. */
 const HISTORY_WIDTH = 280;
 
-function formatDateTime(dateString: string) {
-  return new Date(dateString).toLocaleString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  });
-}
-
 /**
  * The snapshot history as a list on the left, and what changed in the chosen snapshot on the
  * right, like a commit log next to its diff.
@@ -38,6 +28,7 @@ function SnapshotContent({
   selectedCommitId,
   onSelectCommitId,
 }: SnapshotContentProps) {
+  const { formatDateTime } = useDateTimeFormat();
   const history = getSnapshotHistory(data, selectedDifficulty);
 
   if (!history) {
@@ -74,7 +65,7 @@ function SnapshotContent({
           selectedCommit && (
             <>
               <Text size="xs" c="dimmed">
-                {formatDateTime(selectedCommit.date)}
+                {formatDateTime(selectedCommit.date, { withSeconds: true })}
               </Text>
               <CommitChangeSummary commit={selectedCommit} />
             </>

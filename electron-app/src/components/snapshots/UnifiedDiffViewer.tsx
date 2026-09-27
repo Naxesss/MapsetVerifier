@@ -4,7 +4,6 @@ import { MouseEvent, useMemo, useState } from 'react';
 import SnapshotDiffLine, { getDiffTypeIcon } from './SnapshotDiffLine';
 import { ApiSnapshotCommit, ApiSnapshotSection, DiffType } from '../../Types';
 import EmptyState from '../common/EmptyState.tsx';
-import { InfoIconTooltip } from '../common/InfoIconTooltip.tsx';
 import VirtualizedList from '../common/VirtualizedList.tsx';
 
 interface UnifiedDiffViewerProps {
@@ -62,7 +61,6 @@ function SectionAccordion({ section }: { section: ApiSnapshotSection }) {
           {renderFilterBadge(section.additions, 'Added', 'green', 'Added')}
           {renderFilterBadge(section.removals, 'Removed', 'red', 'Removed')}
           {renderFilterBadge(section.modifications, 'Changed', 'yellow', 'Changed')}
-          <InfoIconTooltip label="Click badges to filter by diff type" />
         </Group>
       </Accordion.Control>
       <Accordion.Panel>

@@ -65,6 +65,9 @@ const primary: MantineColorsTuple = [
   '#0068b6',
 ] as const;
 
+/** Gap between a control and what opens from it (menus, popovers, dropdowns, tooltips). */
+const FLOATING_OFFSET = 4;
+
 export function createAppTheme(fontFamily: string) {
   const themeOverride = createTheme({
     fontFamily,
@@ -153,13 +156,47 @@ export function createAppTheme(fontFamily: string) {
           },
         },
       },
-      Tooltip: {
+      // Anything that opens from a control sits one small step (xs, 4px) from it, so it reads as
+      // attached instead of floating; Mantine's default is 8px.
+      Menu: {
         defaultProps: {
-          withArrow: true,
+          offset: FLOATING_OFFSET,
         },
+      },
+      Popover: {
+        defaultProps: {
+          offset: FLOATING_OFFSET,
+        },
+      },
+      HoverCard: {
+        defaultProps: {
+          offset: FLOATING_OFFSET,
+        },
+      },
+      Combobox: {
+        defaultProps: {
+          offset: FLOATING_OFFSET,
+        },
+      },
+      Tooltip: {
+        // No arrow, like the menus and popovers: Mantine's 4px arrow barely showed and only read
+        // as a glitch. The one exception is the timeline object tooltip, which points at a spot.
+        defaultProps: {
+          offset: FLOATING_OFFSET,
+        },
+        // The same surface as the app's popovers and menus (dark with a thin border) instead of
+        // Mantine's light tooltip, so keys drawn with Kbd inside a tooltip match the page tips.
         styles: {
           tooltip: {
             textAlign: 'center',
+            backgroundColor: 'var(--mantine-color-dark-6)',
+            color: 'var(--mantine-color-text)',
+            border: '1px solid var(--mantine-color-dark-4)',
+            boxShadow: 'var(--mantine-shadow-md)',
+          },
+          // Kept for the tooltips that still draw an arrow, so it matches the border.
+          arrow: {
+            border: '1px solid var(--mantine-color-dark-4)',
           },
         },
       },

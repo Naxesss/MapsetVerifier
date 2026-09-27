@@ -58,7 +58,7 @@ function BitrateProgressIndicator({ bitrateData }: BitrateProgressIndicatorProps
           <Progress.Section value={allowedZonePercent} color="green.6" />
           <Progress.Section value={100 - maxAllowedPositionPercent} color="red.6" />
         </Progress.Root>
-        <Tooltip label={`${bitrateData.averageBitrate.toLocaleString()} kbps`} withArrow>
+        <Tooltip label={`${bitrateData.averageBitrate.toLocaleString()} kbps`}>
           <Box
             pos="absolute"
             top={-6}
