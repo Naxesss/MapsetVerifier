@@ -1,6 +1,6 @@
 import { useHotkeys, type HotkeyItem } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { IconCheck } from '@tabler/icons-react';
+import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   createContext,
@@ -100,7 +100,7 @@ export function BeatmapReparseProvider({ children }: { children: ReactNode }) {
         loading: false,
         color: 'green',
         message: 'Mapset refreshed!',
-        icon: <IconCheck size={18} />,
+        icon: <IconCheck size={16} />,
         autoClose: 1500,
         withCloseButton: false,
       });
@@ -110,9 +110,9 @@ export function BeatmapReparseProvider({ children }: { children: ReactNode }) {
         id: REPARSE_TOAST_ID,
         loading: false,
         color: 'red',
-        message: error instanceof Error ? error.message : 'Reparse failed.',
+        message: error instanceof Error ? error.message : "Couldn't refresh the mapset.",
         autoClose: 5000,
-        icon: undefined,
+        icon: <IconAlertCircle size={16} />,
         withCloseButton: true,
       });
     }

@@ -225,10 +225,8 @@
   top: calc(var(--mv-window-bar-height) + var(--mantine-spacing-sm));
 }
 
-.mv-notification {
-  width: fit-content !important;
-  max-width: min(calc(100vw - var(--mantine-spacing-md) * 2), var(--notifications-container-width));
-  align-items: center;
+/* The toast surface, shared with the inline copy bubble so both read as the same kind of feedback */
+@mixin mv-toast-surface {
   /* Tinted glass: muted color + blur what’s behind the toast */
   background: color-mix(
     in srgb,
@@ -243,6 +241,13 @@
   font-size: var(--mantine-font-size-xs);
   line-height: 1.35;
   color: var(--mantine-color-white);
+}
+
+.mv-notification {
+  width: fit-content !important;
+  max-width: min(calc(100vw - var(--mantine-spacing-md) * 2), var(--notifications-container-width));
+  align-items: center;
+  @include mv-toast-surface;
 
   /* Default theme uses ::before as colored strip — use full card color instead */
   &::before {
@@ -261,7 +266,44 @@
   }
 }
 
+/* Copy feedback above a timestamp chip (TimestampLink): a small success toast pinned to what was
+   copied. Floats up and fades out. */
+.mv-copy-bubble {
+  --notification-color: var(--mantine-color-green-filled);
+  @include mv-toast-surface;
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + var(--mantine-spacing-xs));
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding-inline: 0.5rem 0.65rem;
+  border-radius: var(--mantine-radius-default);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  transform: translate(-50%, 0);
+  transition:
+    opacity 300ms ease-out,
+    transform 300ms ease-out;
+
+  &[data-leaving] {
+    opacity: 0;
+    transform: translate(-50%, -10px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .mv-copy-bubble {
+    transition: opacity 300ms ease-out;
+
+    &[data-leaving] {
+      transform: translate(-50%, 0);
+    }
+  }
+
+  .mv-copy-bubble,
   .mv-notification {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;

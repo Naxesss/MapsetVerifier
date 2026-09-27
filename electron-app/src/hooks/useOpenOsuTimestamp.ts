@@ -1,7 +1,7 @@
-import { notifications } from '@mantine/notifications';
 import { useCallback } from 'react';
 import { buildOsuEditHref } from '../components/common/osuLinkUtils.ts';
 import { useSettings } from '../context/SettingsContext';
+import { notifyError } from '../utils/notify.tsx';
 
 export function useOpenOsuTimestamp() {
   const { settings } = useSettings();
@@ -25,10 +25,7 @@ export function useOpenOsuTimestamp() {
       });
 
       if (!result.ok) {
-        notifications.show({
-          message: result.error ?? 'Could not open the timestamp in osu!.',
-          color: 'red',
-        });
+        notifyError(result.error ?? "Couldn't open the timestamp in osu!.");
       }
     },
     [

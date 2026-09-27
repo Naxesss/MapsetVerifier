@@ -11,8 +11,7 @@ import {
   Stack,
   Text,
 } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
-import { IconAlertCircle, IconBook, IconCheck, IconCopy } from '@tabler/icons-react';
+import { IconAlertCircle, IconBook, IconCopy } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import DocumentationApi from '../../client/DocumentationApi';
 import { useOpenOsuTimestamp } from '../../hooks/useOpenOsuTimestamp';
@@ -23,6 +22,7 @@ import {
   Level,
 } from '../../Types';
 import { getLevelLabel } from '../../utils/levelLabel';
+import { notifyError, notifySuccess } from '../../utils/notify';
 import { CardTitle } from '../common/Headings';
 import { TextSkeleton } from '../common/LoadingSkeletons';
 import OsuLink from '../common/OsuLink';
@@ -64,17 +64,9 @@ function getIssueTimestamps(issue: ApiCheckResult | null) {
 export async function copyToClipboard(text: string, message: string) {
   try {
     await navigator.clipboard.writeText(text);
-    notifications.show({
-      message,
-      color: 'green',
-      icon: <IconCheck size={16} />,
-    });
+    notifySuccess(message);
   } catch {
-    notifications.show({
-      message: 'Clipboard is unavailable.',
-      color: 'red',
-      icon: <IconAlertCircle size={16} />,
-    });
+    notifyError('Clipboard is unavailable.');
   }
 }
 
