@@ -18,7 +18,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -37,7 +37,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -56,7 +56,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {
@@ -132,7 +132,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -151,7 +151,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -170,7 +170,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -189,7 +189,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -246,7 +246,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -265,7 +265,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "partial"
       }
     },
     {
@@ -284,7 +284,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -322,7 +322,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -360,7 +360,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -590,7 +590,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -647,7 +647,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -666,7 +666,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "partial"
       }
     },
     {
@@ -685,7 +685,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -704,7 +704,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -723,7 +723,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -742,7 +742,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -761,7 +761,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -801,7 +801,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -821,7 +821,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -841,7 +841,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -861,7 +861,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -900,7 +900,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -919,7 +919,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -939,7 +939,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "manual"
+        "automation": "automatable"
       }
     },
     {
@@ -979,7 +979,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -999,7 +999,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1018,7 +1018,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1037,7 +1037,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1056,7 +1056,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1075,7 +1075,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1094,7 +1094,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "partial"
       }
     },
     {
@@ -1113,7 +1113,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "partial"
       }
     },
     {
@@ -1151,7 +1151,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "partial"
       }
     },
     {
@@ -1227,7 +1227,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {
@@ -1246,7 +1246,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1265,7 +1265,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1305,7 +1305,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1325,7 +1325,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1345,7 +1345,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1365,7 +1365,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1385,7 +1385,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1404,7 +1404,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1423,7 +1423,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1442,7 +1442,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {
@@ -1461,7 +1461,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1480,7 +1480,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "partial"
       }
     },
     {
@@ -1556,7 +1556,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {
@@ -1575,7 +1575,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1594,7 +1594,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "partial"
       }
     },
     {
@@ -1613,7 +1613,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1632,7 +1632,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1651,7 +1651,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1670,7 +1670,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1689,7 +1689,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {
@@ -1727,7 +1727,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1746,7 +1746,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {
@@ -1765,7 +1765,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {
@@ -1784,7 +1784,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "manual"
+        "automation": "partial"
       }
     },
     {
@@ -1804,7 +1804,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {
@@ -1824,7 +1824,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {
@@ -1844,7 +1844,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {
@@ -1864,7 +1864,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {
@@ -1884,7 +1884,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {
@@ -1924,7 +1924,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1944,7 +1944,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {
@@ -1964,7 +1964,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1984,7 +1984,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     }
   ]
