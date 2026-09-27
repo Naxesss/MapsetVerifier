@@ -1,34 +1,30 @@
-import { Alert, Text, Group, Flex, Collapse, Stack } from '@mantine/core';
+import { Alert, Text, Flex, Collapse, Stack, useMantineTheme } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
 import React, { useCallback, useMemo } from 'react';
-import BeatmapActionButtons from './BeatmapActionButtons';
 import ChecksResults from './ChecksResults';
 import DifficultyInfo from './DifficultyInfo';
 import DifficultyLevelOverride from './DifficultyLevelOverride';
-import GameModeSelector from './GameModeSelector';
 import BeatmapHeader from '../common/BeatmapHeader';
-import DifficultyTabSelector, { GENERAL_TAB_ID } from '../common/DifficultyTabSelector';
+import DifficultyPicker, { GENERAL_TAB_ID } from '../common/DifficultyPicker';
 import { useBeatmapChecks } from './hooks/useBeatmapChecks';
 import { useDifficultyOverride } from './hooks/useDifficultyOverride';
-import { getCategoryHighestLevel } from './utils/levelUtils';
+import { getCategoryHighestLevel, getHighestLevel } from './utils/levelUtils';
 import { useBeatmap } from '../../context/BeatmapContext';
-import {
-  useBeatmapReparse,
-  useRegisterBeatmapReparse,
-} from '../../context/BeatmapReparseRegistry.tsx';
+import { useRegisterBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
 import { useSettings } from '../../context/SettingsContext';
-import { ApiCategoryCheckResult, Level, Mode } from '../../Types';
+import { ApiCategoryCheckResult, Level } from '../../Types';
 import { resolveDevOnlySetting } from '../../utils/devSettings';
 import { ListSkeleton } from '../common/LoadingSkeletons.tsx';
 import StackTraceMessage from '../common/StackTraceMessage.tsx';
+import { levelColor } from '../icons/levelColor';
+import LevelIcon from '../icons/LevelIcon';
 
 function Checks() {
-  const { selectedFolder: folder, beatmapInfo } = useBeatmap();
-  const { triggerReparse } = useBeatmapReparse();
+  const theme = useMantineTheme();
+  const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
   const showCheckSpeedStats = resolveDevOnlySetting(settings.showCheckSpeedStats);
   const [selectedCategory, setSelectedCategory] = React.useState<string | undefined>('General');
-  const [selectedMode, setSelectedMode] = React.useState<Mode | undefined>();
   const checkResultsTransitionDurationMs = 320;
 
   const [prevFolder, setPrevFolder] = React.useState(folder);
@@ -146,44 +142,17 @@ function Checks() {
     return levels;
   }, [data, settings.showMinor, settings.hiddenMinorCheckIds, overrides]);
 
-  const groupedDifficulties = useMemo(() => {
-    if (difficultiesForTabs.length === 0) return [];
-
-    // Group difficulties by mode
-    const modeGroups: Record<Mode, ApiCategoryCheckResult[]> = {
-      Standard: [],
-      Taiko: [],
-      Catch: [],
-      Mania: [],
-    };
-
-    for (const diff of difficultiesForTabs) {
-      const mode = diff.mode ?? 'Standard';
-      modeGroups[mode].push(diff);
-    }
-
-    // Sort each group by star rating (ascending)
-    for (const mode of Object.keys(modeGroups) as Mode[]) {
-      modeGroups[mode].sort((a, b) => (a.starRating ?? 0) - (b.starRating ?? 0));
-    }
-
-    // Create ordered array of mode groups (only include modes that have difficulties)
-    const orderedModes: Mode[] = ['Standard', 'Taiko', 'Catch', 'Mania'];
-
-    return orderedModes
-      .filter((mode) => modeGroups[mode].length > 0)
-      .map((mode) => ({
-        mode,
-        difficulties: modeGroups[mode],
-      }));
-  }, [difficultiesForTabs]);
-
-  if (groupedDifficulties.length > 0 && !selectedMode) {
-    setSelectedMode(groupedDifficulties[0].mode);
-  }
-
-  const selectedGroup =
-    groupedDifficulties.find((g) => g.mode === selectedMode) ?? groupedDifficulties[0];
+  const levelOf = (category: string): Level => categoryHighestLevels[category] ?? 'Check';
+  const statusColor = (category: string) =>
+    levelIconsLoading ? theme.colors.dark[4] : levelColor(levelOf(category), theme);
+  const pickerDifficulties = difficultiesForTabs.map((diff) => ({
+    id: diff.category,
+    label: diff.category,
+    mode: diff.mode ?? 'Standard',
+    starRating: diff.starRating,
+    icon: <LevelIcon level={levelOf(diff.category)} size={18} loading={levelIconsLoading} />,
+    statusColor: statusColor(diff.category),
+  }));
 
   // A selected difficulty that no longer exists (e.g. after a reparse) falls back to General.
   if (
@@ -211,38 +180,24 @@ function Checks() {
   return (
     <>
       <BeatmapHeader>
-        <Group gap="sm">
-          <BeatmapActionButtons
-            beatmapFolderPath={beatmapFolderPath}
-            beatmapId={beatmapInfo?.beatmapId ?? undefined}
-            beatmapSetId={beatmapInfo?.beatmapSetId ?? undefined}
-            onReparse={triggerReparse}
-          />
-          {groupedDifficulties.length > 1 && (
-            <GameModeSelector
-              groupedDifficulties={groupedDifficulties}
-              selectedMode={selectedMode}
-              onModeChange={setSelectedMode}
-              categoryHighestLevels={categoryHighestLevels}
-              levelLoading={levelIconsLoading}
-            />
-          )}
-        </Group>
-        {selectedGroup && (
-          <DifficultyTabSelector
-            tabs={selectedGroup.difficulties.map((diff) => ({
-              id: diff.category,
-              label: diff.category,
-              starRating: diff.starRating,
-              level: categoryHighestLevels[diff.category] ?? 'Check',
-              levelLoading: levelIconsLoading,
-            }))}
+        {difficultiesForTabs.length > 0 && (
+          <DifficultyPicker
+            difficulties={pickerDifficulties}
+            general={{
+              icon: (
+                <LevelIcon level={levelOf(GENERAL_TAB_ID)} size={18} loading={levelIconsLoading} />
+              ),
+              statusColor: statusColor(GENERAL_TAB_ID),
+            }}
+            modeStatus={(_, diffs) => (
+              <LevelIcon
+                level={getHighestLevel(diffs.map((d) => levelOf(d.id)))}
+                size={18}
+                loading={levelIconsLoading}
+              />
+            )}
             selectedId={selectedCategory}
             onSelect={setSelectedCategory}
-            highlightGeneralWhenIdle
-            generalLevel={categoryHighestLevels[GENERAL_TAB_ID] ?? 'Check'}
-            levelLoading={levelIconsLoading}
-            showLevelIcons
           />
         )}
       </BeatmapHeader>
@@ -260,7 +215,9 @@ function Checks() {
         </Alert>
       )}
       {(isLoading || isFetching || data) && (
-        <Flex gap="sm" p="md" direction="column" bg="dark.6">
+        // pt="sm": the selected difficulty row describes the picker's selection, so it follows
+        // the header's row gap instead of the larger gap before page content.
+        <Flex gap="sm" px="md" pb="md" pt="sm" direction="column" bg="dark.6">
           {(isLoading || isFetching) && (
             <ChecksResults
               isLoading
@@ -281,8 +238,7 @@ function Checks() {
                   difficulty={selectedDifficulty}
                   categoryHighestLevels={categoryHighestLevels}
                   currentOverrideResult={selectedOverrideResult}
-                  actions={
-                    // Shown with the row as soon as a difficulty is selected, so it doesn't pop in later.
+                  levelControl={
                     selectedDifficulty && (
                       <DifficultyLevelOverride
                         selectedDifficulty={selectedDifficulty}
