@@ -80,9 +80,8 @@ namespace MapsetVerifier.Checks.AllModes.Spread
                         "beatmap",
                         "lowest drain",
                         "current drain"
-                    )
-                        .WithCause(
-                            "The lowest difficulty of a beatmapset (or key mode, for osu!mania) is too high of a difficulty level considering the drain time of the difficulties, and there are not enough difficulties to rely on a proper spread instead."
+                    ).WithCause(
+                        "The lowest difficulty of a beatmapset (or key mode, for osu!mania) is too high of a difficulty level considering the drain time of the difficulties, and there are not enough difficulties to rely on a proper spread instead."
                     )
                 },
                 {
@@ -96,8 +95,9 @@ namespace MapsetVerifier.Checks.AllModes.Spread
                         "lowest drain",
                         "current drain",
                         "difficulty count"
-                    ).WithCause(
-                        "Same as the problem, except there are enough difficulties that a proper spread (osu!catch and osu!mania only) could satisfy the requirement instead."
+                    )
+                        .WithCause(
+                            "Same as the problem, except there are enough difficulties that a proper spread (osu!catch and osu!mania only) could satisfy the requirement instead."
                         )
                         .WithRule(
                             RC.General.Beatmap_GameModesWithinBeatmapForm,
