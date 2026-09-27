@@ -1,5 +1,6 @@
-import { Box, Flex, Title, Text, Anchor, useMantineTheme } from '@mantine/core';
+import { Box, Group, Stack, Title, Text, Anchor, useMantineTheme } from '@mantine/core';
 import { ReactNode, useLayoutEffect, useRef, useState } from 'react';
+import MapsetActions from './MapsetActions.tsx';
 import { MapsetFrameContext } from './mapsetFrameContext.ts';
 import { useBeatmap } from '../../context/BeatmapContext.tsx';
 import { useSettings } from '../../context/SettingsContext.tsx';
@@ -155,22 +156,31 @@ function MapsetFrame({ children }: MapsetFrameProps) {
           }}
         />
       </Box>
-      <Box ref={titleRef} pt="md" px="md" style={{ position: 'relative', zIndex: 1 }}>
-        <Flex
+      {/* Who and what on the left, in the same order as the sidebar cards (title, artist, mapper);
+          what can be done with the mapset as a whole on the right. */}
+      <Group
+        ref={titleRef}
+        pt="md"
+        px="md"
+        justify="space-between"
+        align="flex-start"
+        gap="md"
+        wrap="nowrap"
+        style={{ position: 'relative', zIndex: 1 }}
+      >
+        <Stack
           key={`${artist ?? ''}-${title ?? ''}-${creator ?? ''}`}
           className="mv-fade-in"
-          gap="xs"
-          direction="column"
+          gap={2}
+          style={{ minWidth: 0 }}
         >
-          {title && artist && (
-            <Title order={2}>
-              {artist} - {title}
-            </Title>
-          )}
+          {title && <Title order={2}>{title}</Title>}
+          {artist && <Text size="lg">{artist}</Text>}
           {creator && (
-            <Text>
-              Mapset by{' '}
+            <Text size="sm" c="gray.4">
+              Mapped by{' '}
               <Anchor
+                inherit
                 href={`https://osu.ppy.sh/users/@${creator}`}
                 onClick={(e) => {
                   e.preventDefault();
@@ -181,8 +191,9 @@ function MapsetFrame({ children }: MapsetFrameProps) {
               </Anchor>
             </Text>
           )}
-        </Flex>
-      </Box>
+        </Stack>
+        <MapsetActions />
+      </Group>
       {/* The page, above the art: its header controls sit on the art, its content covers it. */}
       <Box style={{ position: 'relative', zIndex: 1 }}>
         <MapsetFrameContext.Provider value={setHeaderEl}>{children}</MapsetFrameContext.Provider>

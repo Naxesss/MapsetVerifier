@@ -1,4 +1,5 @@
 ﻿import { Badge, Tooltip } from '@mantine/core';
+import { getDifficultyBadgeColor } from './DifficultyLevelOverride';
 import { ApiCategoryCheckResult, ApiCategoryOverrideCheckResult, Level } from '../../Types';
 import DifficultyName from '../common/DifficultyName';
 import SelectedDifficultyRow from '../common/SelectedDifficultyRow.tsx';
@@ -12,32 +13,18 @@ interface DifficultyInfoProps {
   difficulty?: ApiCategoryCheckResult;
   categoryHighestLevels: Record<string, Level>;
   currentOverrideResult?: ApiCategoryOverrideCheckResult;
-  /** Controls for the selected difficulty, shown on the right of the same line. */
-  actions?: ReactNode;
+  /**
+   * A control for the interpreted level, shown on the right of the row. It replaces the static
+   * level badge, so only the star rating stays next to the name.
+   */
+  levelControl?: ReactNode;
 }
-
-const getDifficultyBadgeColor = (difficulty: string) => {
-  switch (difficulty) {
-    case 'Easy':
-      return 'blue';
-    case 'Normal':
-      return 'green';
-    case 'Hard':
-      return 'yellow';
-    case 'Insane':
-      return 'red';
-    case 'Expert':
-      return 'grape';
-    default:
-      return 'grape';
-  }
-};
 
 function DifficultyInfo({
   difficulty,
   categoryHighestLevels,
   currentOverrideResult,
-  actions,
+  levelControl,
 }: DifficultyInfoProps) {
   if (difficulty) {
     return (
@@ -49,10 +36,10 @@ function DifficultyInfo({
           </>
         }
         name={difficulty.category}
-        actions={actions}
+        actions={levelControl}
         badges={
           <>
-            {difficulty.difficultyLevel && (
+            {!levelControl && difficulty.difficultyLevel && (
               <Tooltip label="Interpreted difficulty level">
                 <Badge
                   color={getDifficultyBadgeColor(
