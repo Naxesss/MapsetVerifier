@@ -31,7 +31,7 @@ internal static class Program
         var commit =
             commitIndex >= 0 && commitIndex + 1 < args.Length ? args[commitIndex + 1] : null;
 
-        var dataDir = Path.Combine(FindRepoRoot(), "MapsetVerifier.RankingCriteria", "Data");
+        var dataDir = RcDataDirectory.Find();
 
         try
         {
@@ -257,19 +257,6 @@ internal static class Program
         File.WriteAllText(
             Path.Combine(dataDir, "..", "RC.g.cs"),
             RcConstantsWriter.Write(source, pages)
-        );
-    }
-
-    /// <summary> Finds the repository root by walking up until MapsetVerifier.slnx is found. </summary>
-    private static string FindRepoRoot()
-    {
-        foreach (var start in new[] { Directory.GetCurrentDirectory(), AppContext.BaseDirectory })
-            for (var dir = new DirectoryInfo(start); dir != null; dir = dir.Parent)
-                if (File.Exists(Path.Combine(dir.FullName, "MapsetVerifier.slnx")))
-                    return dir.FullName;
-
-        throw new InvalidOperationException(
-            "Could not find the repository root (MapsetVerifier.slnx)."
         );
     }
 }

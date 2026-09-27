@@ -47,9 +47,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         "{0} Barline is snapped {1} ms before a line which would modify its slider velocity.",
                         "timestamp -",
                         "unsnap"
-                    )
-                        .WithCause("The spinner/slider end is unsnapped 1ms early.")
-                        .WithRule(RC.Taiko.SliderVelocity_SliderVelocityChangesUseCorrespond)
+                    ).WithCause("The spinner/slider end is unsnapped 1ms early.")
                 },
                 {
                     RoundingErrorWarning,
@@ -57,9 +55,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         Issue.Level.Warning,
                         "{0} Barline may not have slider velocity properly applied due to rounding error. Double-check manually.",
                         "timestamp -"
-                    )
-                        .WithCause("Rounding error.")
-                        .WithRule(RC.Taiko.SliderVelocity_SliderVelocityChangesUseCorrespond)
+                    ).WithCause("Rounding error.")
                 },
             };
 
