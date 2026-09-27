@@ -1,17 +1,16 @@
-import { Box, Group, LoadingOverlay, SegmentedControl, useMantineTheme } from '@mantine/core';
+import { Box, useMantineTheme } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import AudioOverview from './audio/AudioOverview.tsx';
 import BeatmapOverview from './beatmap/BeatmapOverview.tsx';
 import DifficultyOverview from './difficulty/DifficultyOverview.tsx';
 import MetadataOverview from './metadata/MetadataOverview.tsx';
 import ObjectsOverview from './objects/ObjectsOverview.tsx';
+import OverviewTabSelector from './OverviewTabSelector.tsx';
 import VideoOverview from './video/VideoOverview.tsx';
 import { useBeatmap } from '../../context/BeatmapContext.tsx';
 import { useBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
 import { usePageHints } from '../../context/PageHintsContext.tsx';
-import { useSettings } from '../../context/SettingsContext.tsx';
 import BeatmapActionButtons from '../checks/BeatmapActionButtons';
-import { useBeatmapBackground } from '../checks/hooks/useBeatmapBackground.ts';
 import BeatmapHeader from '../common/BeatmapHeader.tsx';
 import type { OverviewTab } from '../navbar/pageHints.tsx';
 
@@ -19,11 +18,9 @@ const TABS: OverviewTab[] = ['Metadata', 'Objects', 'Beatmap', 'Difficulty', 'Au
 
 function Overview() {
   const theme = useMantineTheme();
-  const { selectedFolder, beatmapFolderPath, beatmapInfo } = useBeatmap();
+  const { beatmapFolderPath, beatmapInfo } = useBeatmap();
   const { triggerReparse } = useBeatmapReparse();
-  const { settings } = useSettings();
   const { setOverviewTab } = usePageHints();
-  const { bgUrl, isLoading } = useBeatmapBackground(selectedFolder, settings.songFolder);
   const [activeTab, setActiveTab] = useState<OverviewTab>('Metadata');
 
   useEffect(() => {
@@ -40,34 +37,24 @@ function Overview() {
         width: '100%',
         borderRadius: theme.radius.lg,
         overflow: 'hidden',
+        // Clip the banner's layers in one pass, so its rounded top corners stay clean.
+        isolation: 'isolate',
         boxShadow: '0 4px 32px rgba(0,0,0,0.4)',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-start',
       }}
     >
-      <BeatmapHeader bgUrl={bgUrl}>
-        <Group gap="sm" justify="space-between" style={{ width: '100%' }}>
-          <BeatmapActionButtons
-            beatmapFolderPath={beatmapFolderPath}
-            beatmapId={beatmapInfo?.beatmapId ?? undefined}
-            beatmapSetId={beatmapInfo?.beatmapSetId ?? undefined}
-            onReparse={triggerReparse}
-          />
-          <SegmentedControl
-            value={activeTab}
-            onChange={(value) => setActiveTab(value as OverviewTab)}
-            data={TABS}
-            size="xs"
-          />
-        </Group>
+      <BeatmapHeader>
+        <BeatmapActionButtons
+          beatmapFolderPath={beatmapFolderPath}
+          beatmapId={beatmapInfo?.beatmapId ?? undefined}
+          beatmapSetId={beatmapInfo?.beatmapSetId ?? undefined}
+          onReparse={triggerReparse}
+        />
+        <OverviewTabSelector tabs={TABS} value={activeTab} onChange={setActiveTab} />
       </BeatmapHeader>
       <Box style={{ flex: 1, overflow: 'auto', position: 'relative' }} bg="dark.6">
-        <LoadingOverlay
-          visible={isLoading}
-          zIndex={1000}
-          overlayProps={{ radius: 'sm', blur: 2 }}
-        />
         {activeTab === 'Metadata' && <MetadataOverview />}
         {activeTab === 'Beatmap' && <BeatmapOverview />}
         {activeTab === 'Difficulty' && <DifficultyOverview />}

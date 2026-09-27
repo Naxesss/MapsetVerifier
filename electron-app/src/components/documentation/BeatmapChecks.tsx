@@ -1,9 +1,11 @@
-﻿import { Alert, Group, Loader, Text } from '@mantine/core';
-import { IconAlertCircle } from '@tabler/icons-react';
+﻿import { Alert, Group } from '@mantine/core';
+import { IconAlertCircle, IconListSearch } from '@tabler/icons-react';
 import DocumentationCheck from './DocumentationCheck';
 import { useBeatmapDocumentationChecks } from './hooks/useDocumentationChecks';
 import { Mode } from '../../Types.ts';
 import { formatGameModeLabel } from '../../utils/gameMode';
+import EmptyState from '../common/EmptyState.tsx';
+import { ListSkeleton } from '../common/LoadingSkeletons.tsx';
 
 interface BeatmapChecksProps {
   mode: Mode;
@@ -12,7 +14,7 @@ interface BeatmapChecksProps {
 function BeatmapChecks({ mode }: BeatmapChecksProps) {
   const { checks, isLoading, isError } = useBeatmapDocumentationChecks(mode);
 
-  if (isLoading) return <Loader size="sm" />;
+  if (isLoading) return <ListSkeleton />;
   if (isError) {
     return (
       <Alert icon={<IconAlertCircle />} color="red">
@@ -21,7 +23,9 @@ function BeatmapChecks({ mode }: BeatmapChecksProps) {
     );
   }
   if (!checks || checks.length === 0)
-    return <Text>No {formatGameModeLabel(mode)} checks found.</Text>;
+    return (
+      <EmptyState icon={IconListSearch} title={`No ${formatGameModeLabel(mode)} checks found`} />
+    );
 
   return (
     <Group gap="xs">

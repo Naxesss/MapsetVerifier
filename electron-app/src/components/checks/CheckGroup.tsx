@@ -28,6 +28,12 @@ export function getGroupCopyText(items: ApiCheckResult[], groupName?: string) {
   return [title, ...lines].join('\n');
 }
 
+// Header: chevron (16px), gap (4px), level icon (16px), gap (4px), then the name at 40px.
+/** Centre of the chevron, where the guide line runs. */
+const GUIDE_LINE_OFFSET = 8;
+/** Where issue rows start; plus their 4px padding, their icons sit at 40px, under the check name. */
+const ISSUE_INDENT = 36;
+
 const CheckGroup: React.FC<CheckGroupProps> = ({
   id,
   items,
@@ -114,7 +120,7 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
   const extraCount = extraItems.length;
 
   return (
-    <Stack gap="0" justify="center" id={`check-group-${id}`}>
+    <Stack gap={0} justify="center" id={`check-group-${id}`}>
       <Flex
         gap="xs"
         onClick={toggle}
@@ -150,14 +156,22 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
         </Button>
       </Flex>
 
+      {/* Issues line up under the check's name, with a guide line down from the chevron. */}
       <Collapse in={isOpen}>
-        <Stack ml="xl" gap="0">
+        <Stack
+          gap={0}
+          style={{
+            marginLeft: GUIDE_LINE_OFFSET,
+            paddingLeft: ISSUE_INDENT - GUIDE_LINE_OFFSET - 1,
+            borderLeft: '1px solid var(--mantine-color-default-border)',
+          }}
+        >
           {firstItems.map((item, idx) => (
             <IssueRow key={`${id}-${idx}`} item={item} onOpen={() => setSelectedIssue(item)} />
           ))}
           {showAll && (
             <Collapse in={showAll}>
-              <Stack gap="0">
+              <Stack gap={0}>
                 {extraItems.map((item, idx) => (
                   <IssueRow
                     key={`${id}-${VISIBLE_COUNT + idx}`}
@@ -171,6 +185,7 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
           {extraCount > 0 && (
             <Text
               size="sm"
+              px="xs"
               role="button"
               tabIndex={0}
               onClick={toggleShowAll}

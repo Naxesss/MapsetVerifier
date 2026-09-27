@@ -35,6 +35,8 @@ export type DifficultyChartPanelProps = {
   showZoomHint?: boolean;
   /** Inline card: crosshair tooltip above plot. Full view uses ChartHoverFloatingPanel instead. */
   showInlineHoverTooltip?: boolean;
+  /** Series emphasized while no legend entry is hovered, so a crowded chart has a line to follow. */
+  defaultEmphasizedSeriesId?: string | null;
 };
 
 export function DifficultyChartPanel({
@@ -52,7 +54,9 @@ export function DifficultyChartPanel({
   onHover,
   showZoomHint = true,
   showInlineHoverTooltip = true,
+  defaultEmphasizedSeriesId = null,
 }: DifficultyChartPanelProps) {
+  const [highlightedSeriesId, setHighlightedSeriesId] = useState<string | null>(null);
   const chartAreaRef = useRef<HTMLDivElement>(null);
   const tooltipMeasureRef = useRef<HTMLDivElement>(null);
   const [tooltipLeft, setTooltipLeft] = useState(0);
@@ -133,7 +137,7 @@ export function DifficultyChartPanel({
   if (data.length === 0) {
     return (
       <Text c="dimmed" ta="center" py="xl">
-        No chart data available
+        No chart data available.
       </Text>
     );
   }
@@ -173,6 +177,7 @@ export function DifficultyChartPanel({
           durationMs={durationMs}
           plotHeight={plotHeight}
           visibleSeriesIds={visibleSeriesIds}
+          emphasizedSeriesId={highlightedSeriesId ?? defaultEmphasizedSeriesId}
           valueFormatter={axisValueFormatter}
           interpolation={interpolation}
           showDataPoints={showDataPoints}
@@ -209,6 +214,7 @@ export function DifficultyChartPanel({
         isVisible={isVisible}
         onToggle={toggleSeries}
         onIsolate={toggleIsolateSeries}
+        onHighlight={setHighlightedSeriesId}
       />
     </Stack>
   );

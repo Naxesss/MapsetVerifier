@@ -48,6 +48,7 @@ export type DifficultyModeGroup = {
 };
 
 export const SAMPLE_VOLUME_CHART_TITLE = 'Sample volume';
+export const STAR_RATING_CHART_TITLE = 'Star rating';
 
 export type ChartDefinition = {
   title: string;
@@ -99,7 +100,7 @@ export function buildCharts(
   if (starRatingSeries.length > 0 || starRatingStrainSeries.length > 0) {
     chartSeries.push(
       buildChartDefinition(
-        'Star Rating',
+        STAR_RATING_CHART_TITLE,
         starRatingSeries,
         msPerPeak,
         '★',
@@ -177,7 +178,7 @@ export function buildCharts(
 
 function buildStarRatingSeries(difficulty: DifficultyOverviewDifficulty): DifficultyChartSeries {
   return {
-    skillName: 'Star Rating',
+    skillName: STAR_RATING_CHART_TITLE,
     label: difficulty.label,
     mode: difficulty.mode,
     difficultyLevel: difficulty.difficultyLevel,

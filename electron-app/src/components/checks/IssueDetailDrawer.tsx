@@ -7,11 +7,9 @@ import {
   Drawer,
   Grid,
   Group,
-  Loader,
   Paper,
   Stack,
   Text,
-  Title,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconAlertCircle, IconBook, IconCheck, IconCopy } from '@tabler/icons-react';
@@ -25,6 +23,8 @@ import {
   Level,
 } from '../../Types';
 import { getLevelLabel } from '../../utils/levelLabel';
+import { CardTitle } from '../common/Headings';
+import { TextSkeleton } from '../common/LoadingSkeletons';
 import OsuLink from '../common/OsuLink';
 import {
   buildOsuEditHref,
@@ -116,7 +116,7 @@ export default function IssueDetailDrawer({
       title={
         <Group>
           <LevelIcon level={normalizedLevel} />
-          <Stack gap={2}>
+          <Stack gap="2xs">
             <Text size="sm" c="dimmed">
               Issue details
             </Text>
@@ -126,9 +126,7 @@ export default function IssueDetailDrawer({
 
             {documentationCheck && (
               <Group gap="xs">
-                <Badge size="xs" variant="light">
-                  {documentationCheck.category}
-                </Badge>
+                <Badge>{documentationCheck.category}</Badge>
                 <Text size="xs" c="dimmed">
                   Created by {documentationCheck.author}
                 </Text>
@@ -200,7 +198,7 @@ export default function IssueDetailDrawer({
           </Grid>
 
           <Stack gap="xs">
-            <Title order={3}>Full message</Title>
+            <CardTitle>Full message</CardTitle>
             <Paper p="sm" radius="sm" withBorder>
               <Text size="sm" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
                 <OsuLink text={issue.message} />
@@ -209,7 +207,7 @@ export default function IssueDetailDrawer({
           </Stack>
 
           <Stack gap="xs">
-            <Title order={3}>Timestamp links</Title>
+            <CardTitle>Timestamp links</CardTitle>
             {visibleTimestamps.length > 0 ? (
               <Stack gap="xs">
                 {visibleTimestamps.map((timestamp) => (
@@ -251,7 +249,7 @@ export default function IssueDetailDrawer({
 
           {issue.ruleIds && issue.ruleIds.length > 0 ? (
             <Stack gap="xs">
-              <Title order={3}>Ranking criteria</Title>
+              <CardTitle>Ranking criteria</CardTitle>
               <RuleReferences ruleIds={issue.ruleIds} />
             </Stack>
           ) : null}
@@ -268,7 +266,7 @@ export default function IssueDetailDrawer({
           <Stack gap="sm">
             {documentationCheck ? (
               <>
-                {isLoading ? <Loader size="sm" /> : null}
+                {isLoading ? <TextSkeleton lines={4} /> : null}
                 {error ? (
                   <Alert icon={<IconAlertCircle size={16} />} color="red">
                     Failed to load documentation details.

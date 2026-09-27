@@ -4,6 +4,7 @@ import { useState } from 'react';
 import AdvancedAudioWarningModal from './AdvancedAudioWarningModal';
 import { SettingsRow, SettingsSection } from './SettingsSection';
 import { parseTimestampOpenTarget, useSettings } from '../../context/SettingsContext';
+import { notifyError } from '../../utils/notify.tsx';
 import type { TimestampOpenTarget } from '../../electron-env';
 
 const TIMESTAMP_OPEN_OPTIONS: { label: string; value: TimestampOpenTarget }[] = [
@@ -27,11 +28,9 @@ function ExperimentalLabel({ children }: { children: React.ReactNode }) {
       <Text size="sm">{children}</Text>
       <Tooltip label="Experimental">
         <Badge
-          size="xs"
           radius="xl"
-          variant="light"
           color="yellow"
-          px={6}
+          px="xs"
           aria-label="Experimental setting"
           leftSection={<IconAlertTriangle size={11} />}
         />
@@ -61,7 +60,7 @@ export default function ExperimentalSettingsSection() {
     } catch (e: any) {
       console.error('[Settings] File pick failed:', e);
       const msg = typeof e === 'string' ? e : e?.message || 'Unknown error';
-      alert('File picker failed: ' + msg);
+      notifyError(`Couldn't open the file picker: ${msg}`);
     }
   };
 
@@ -77,15 +76,15 @@ export default function ExperimentalSettingsSection() {
         setSettings((prev) => ({ ...prev, [key]: result }));
         return;
       }
-      alert(
+      notifyError(
         timestampTarget === 'stable'
-          ? 'Could not find osu!(stable). Browse to osu!.exe, or osu-wine on Linux.'
-          : 'Could not find osu!(lazer). Browse to the Lazer executable or app.'
+          ? "Couldn't find osu!(stable). Browse to osu!.exe, or osu-wine on Linux."
+          : "Couldn't find osu!(lazer). Browse to the lazer executable or app."
       );
     } catch (e: any) {
       console.error('[Settings] Client detect failed:', e);
       const msg = typeof e === 'string' ? e : e?.message || 'Unknown error';
-      alert('Could not detect the client: ' + msg);
+      notifyError(`Couldn't detect the client: ${msg}`);
     }
   };
 
@@ -117,8 +116,8 @@ export default function ExperimentalSettingsSection() {
           }
         />
         <SettingsRow
-          title={<ExperimentalLabel>Bookmark beatmapsets</ExperimentalLabel>}
-          description="Pin beatmapsets for quick lookup in the sidebar, without scrolling to find them."
+          title={<ExperimentalLabel>Bookmark mapsets</ExperimentalLabel>}
+          description="Pin mapsets for quick lookup in the sidebar, without scrolling to find them."
           control={
             <Switch
               checked={settings.bookmarksEnabled}

@@ -1,7 +1,19 @@
-import { Badge, Card, Collapse, Group, Stack, Text, Title } from '@mantine/core';
+import { Badge, Collapse, Group, Stack, Text, UnstyledButton } from '@mantine/core';
 import { IconChevronDown } from '@tabler/icons-react';
 import { useState } from 'react';
+import { CardTitle } from '../common/Headings.tsx';
+import SectionCard from '../common/SectionCard.tsx';
 import MantineMarkdown from '../documentation/MantineMarkdown.tsx';
+import type { Components } from 'react-markdown';
+
+/** Sub-headings inside an entry must not outrank the entry's own card title. */
+const CHANGELOG_MARKDOWN_COMPONENTS: Components = {
+  h3: ({ children }) => (
+    <CardTitle component="h4" mt="md" mb="xs">
+      {children}
+    </CardTitle>
+  ),
+};
 
 interface ChangelogEntry {
   version: string;
@@ -96,10 +108,6 @@ export default function Changelog() {
 
   return (
     <Stack gap="md">
-      <Title order={2} fw={600}>
-        Changelog
-      </Title>
-
       {entries.length === 0 ? <Text c="dimmed">No changelog entries yet.</Text> : null}
 
       {entries.map((entry, index) => {
@@ -107,30 +115,17 @@ export default function Changelog() {
         const isLatest = index === 0;
 
         return (
-          <Card key={entry.version} withBorder padding="lg" radius="md" shadow="sm">
+          <SectionCard key={entry.version}>
             <Stack gap="sm">
-              <div
-                role="button"
-                tabIndex={0}
+              <UnstyledButton
                 onClick={() => toggleEntry(entry.version)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    toggleEntry(entry.version);
-                  }
-                }}
-                style={{ width: '100%', textAlign: 'left', cursor: 'pointer' }}
+                aria-expanded={isExpanded}
+                w="100%"
               >
-                <Group justify="space-between" align="center">
+                <Group justify="space-between" align="center" wrap="nowrap">
                   <Group gap="xs" align="center">
-                    <Text component="h3" fw={700} fz="1.6rem" lh={1.15} m={0}>
-                      {entry.title}
-                    </Text>
-                    {isLatest ? (
-                      <Badge size="md" variant="light" color="blue">
-                        Latest
-                      </Badge>
-                    ) : null}
+                    <CardTitle>{entry.title}</CardTitle>
+                    {isLatest ? <Badge color="blue">Latest</Badge> : null}
                   </Group>
                   <IconChevronDown
                     size={18}
@@ -145,13 +140,17 @@ export default function Changelog() {
                     {entry.previewLine}
                   </Text>
                 ) : null}
-              </div>
+              </UnstyledButton>
 
               <Collapse in={isExpanded}>
-                {entry.body ? <MantineMarkdown>{entry.body}</MantineMarkdown> : null}
+                {entry.body ? (
+                  <MantineMarkdown components={CHANGELOG_MARKDOWN_COMPONENTS}>
+                    {entry.body}
+                  </MantineMarkdown>
+                ) : null}
               </Collapse>
             </Stack>
-          </Card>
+          </SectionCard>
         );
       })}
     </Stack>

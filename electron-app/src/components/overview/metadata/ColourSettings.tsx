@@ -1,8 +1,8 @@
-﻿import { Text, Badge, Group, Paper, useMantineTheme, Stack, Tooltip, Box } from '@mantine/core';
+﻿import { Text, Badge, Group, useMantineTheme, Stack, Tooltip, Box } from '@mantine/core';
 import { IconAlertTriangle } from '@tabler/icons-react';
 import { DifficultyColourSettings, ComboColourInfo, ColourInfo } from '../../../Types';
 import { formatGameModeLabel } from '../../../utils/gameMode';
-import { InfoIconTooltip } from '../../common/InfoIconTooltip.tsx';
+import SectionCard from '../../common/SectionCard.tsx';
 
 interface ColourSettingsProps {
   colourSettings: DifficultyColourSettings[];
@@ -23,7 +23,7 @@ function ColourSwatch({
   return (
     <Tooltip
       label={
-        <Stack gap={2}>
+        <Stack gap="2xs">
           <Text size="xs">
             RGB: {colour.r}, {colour.g}, {colour.b}
           </Text>
@@ -89,8 +89,8 @@ function DifficultyColours({ settings }: { settings: DifficultyColourSettings })
       {/* Combo Colours */}
       {settings.comboColours.length > 0 && (
         <Box>
-          <Text size="xs" c="dimmed" mb={4}>
-            Combo Colours
+          <Text size="xs" c="dimmed" mb="xs">
+            Combo colours
           </Text>
           <Group gap="xs">
             {settings.comboColours.map((colour, idx) => (
@@ -105,16 +105,16 @@ function DifficultyColours({ settings }: { settings: DifficultyColourSettings })
         <Group gap="md">
           {settings.sliderBorder && (
             <Box>
-              <Text size="xs" c="dimmed" mb={4}>
-                Slider Border
+              <Text size="xs" c="dimmed" mb="xs">
+                Slider border
               </Text>
               <ColourSwatch colour={settings.sliderBorder} />
             </Box>
           )}
           {settings.sliderTrack && (
             <Box>
-              <Text size="xs" c="dimmed" mb={4}>
-                Slider Track
+              <Text size="xs" c="dimmed" mb="xs">
+                Slider track
               </Text>
               <ColourSwatch colour={settings.sliderTrack} showWarning={false} />
             </Box>
@@ -162,7 +162,7 @@ function groupByColours(colourSettings: DifficultyColourSettings[]): ColourGroup
   return Array.from(groups.values());
 }
 
-function ColourGroupDisplay({ group }: { group: ColourGroup }) {
+function ColourGroupDisplay({ group, isOnlyGroup }: { group: ColourGroup; isOnlyGroup: boolean }) {
   const theme = useMantineTheme();
   const hasWarning =
     group.settings.comboColours.some((c) => c.luminosityWarning) ||
@@ -176,12 +176,12 @@ function ColourGroupDisplay({ group }: { group: ColourGroup }) {
         borderRadius: theme.radius.sm,
       }}
     >
+      {/* Which difficulties use these colours; one group means they all share them. */}
       <Group gap="xs" mb="xs" wrap="wrap">
-        {group.difficulties.map((diff, idx) => (
-          <Badge key={idx} size="xs" variant="light">
-            {diff}
-          </Badge>
-        ))}
+        <Text size="xs" c="dimmed">
+          {isOnlyGroup ? 'Used by all difficulties' : 'Used by'}
+        </Text>
+        {!isOnlyGroup && group.difficulties.map((diff, idx) => <Badge key={idx}>{diff}</Badge>)}
         {hasWarning && <IconAlertTriangle size={12} style={{ color: theme.colors.yellow[5] }} />}
       </Group>
       <DifficultyColours settings={group.settings} />
@@ -190,8 +190,6 @@ function ColourGroupDisplay({ group }: { group: ColourGroup }) {
 }
 
 function ColourSettings({ colourSettings }: ColourSettingsProps) {
-  const theme = useMantineTheme();
-
   if (colourSettings.length === 0) {
     return null;
   }
@@ -202,29 +200,23 @@ function ColourSettings({ colourSettings }: ColourSettingsProps) {
   );
 
   return (
-    <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
-      <Group justify="space-between" mb="md">
-        <Group gap="xs">
-          <Text fw={600}>Colour Settings</Text>
-          <InfoIconTooltip
-            label="Combo colours and slider colours. HSP luminosity < 43 is too dark, > 250 is too bright for kiai."
-            multiline
-            w={280}
-          />
-        </Group>
-        {hasWarnings && (
-          <Badge color="yellow" variant="light" leftSection={<IconAlertTriangle size={12} />}>
+    <SectionCard
+      title="Colours"
+      info="Combo colours and slider colours. HSP luminosity < 43 is too dark, > 250 is too bright for kiai."
+      actions={
+        hasWarnings && (
+          <Badge color="yellow" leftSection={<IconAlertTriangle size={12} />}>
             Luminosity warnings
           </Badge>
-        )}
-      </Group>
-
+        )
+      }
+    >
       <Stack gap="sm">
         {groups.map((group) => (
-          <ColourGroupDisplay key={group.key} group={group} />
+          <ColourGroupDisplay key={group.key} group={group} isOnlyGroup={groups.length === 1} />
         ))}
       </Stack>
-    </Paper>
+    </SectionCard>
   );
 }
 

@@ -73,7 +73,7 @@ export default function CheckSettingsSection() {
               title="Negligible check filter"
               description={`${hiddenMinorChecks.length} of ${minorChecks.length} checks disabled.`}
               control={
-                <Tooltip label="Loading check catalogue..." disabled={docsStatus === 'success'}>
+                <Tooltip label="Loading check catalogue…" disabled={docsStatus === 'success'}>
                   <Box>
                     <Button
                       size="sm"
@@ -87,7 +87,7 @@ export default function CheckSettingsSection() {
                 </Tooltip>
               }
             />
-            <Paper withBorder radius="sm" p="sm">
+            <Paper withBorder radius="md" p="sm">
               {hiddenMinorChecks.length === 0 ? (
                 <Text size="sm" c="dimmed">
                   No negligible checks are currently disabled.
@@ -97,10 +97,8 @@ export default function CheckSettingsSection() {
                   <Stack gap="xs">
                     {hiddenMinorChecks.map(({ id, check }) => (
                       <Group key={id} gap="xs" wrap="nowrap" align="flex-start">
-                        <Badge size="xs" variant="light" color="gray">
-                          #{id}
-                        </Badge>
-                        <Stack gap={2} style={{ minWidth: 0 }}>
+                        <Badge color="gray">#{id}</Badge>
+                        <Stack gap="2xs" style={{ minWidth: 0 }}>
                           <Text size="sm" lineClamp={2}>
                             {check?.description ?? 'Unknown check'}
                           </Text>

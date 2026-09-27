@@ -8,7 +8,6 @@ import DifficultyLevelOverride from './DifficultyLevelOverride';
 import GameModeSelector from './GameModeSelector';
 import BeatmapHeader from '../common/BeatmapHeader';
 import DifficultyTabSelector, { GENERAL_TAB_ID } from '../common/DifficultyTabSelector';
-import { useBeatmapBackground } from './hooks/useBeatmapBackground';
 import { useBeatmapChecks } from './hooks/useBeatmapChecks';
 import { useDifficultyOverride } from './hooks/useDifficultyOverride';
 import { getCategoryHighestLevel } from './utils/levelUtils';
@@ -31,9 +30,6 @@ function Checks() {
   const [selectedCategory, setSelectedCategory] = React.useState<string | undefined>('General');
   const [displayedCategory, setDisplayedCategory] = React.useState<string | undefined>('General');
   const [isDifficultyContentVisible, setIsDifficultyContentVisible] = React.useState(true);
-  const [hoveredDifficulty, setHoveredDifficulty] = React.useState<
-    ApiCategoryCheckResult | undefined
-  >(undefined);
   const [selectedMode, setSelectedMode] = React.useState<Mode | undefined>();
   const difficultyTransitionDurationMs = 220;
   const checkResultsTransitionDurationMs = 320;
@@ -48,7 +44,6 @@ function Checks() {
       setSelectedCategory('General');
       setDisplayedCategory('General');
       setIsDifficultyContentVisible(true);
-      setHoveredDifficulty(undefined);
     }
   }
 
@@ -71,8 +66,6 @@ function Checks() {
   });
   const areCheckResultsExpanded = !!data && !isLoading && !isFetching;
   const levelIconsLoading = isLoading;
-
-  const { bgUrl } = useBeatmapBackground(folder, settings.songFolder);
 
   const {
     overrides,
@@ -107,12 +100,11 @@ function Checks() {
   }, [dataDifficulties, structureDifficulties]);
 
   const selectedDifficulty = difficultiesForTabs.find((d) => d.category === selectedCategory);
-  const displayedDifficulty = data?.difficulties?.find((d) => d.category === displayedCategory);
   const selectedOverrideResult = selectedCategory ? getOverrideResult(selectedCategory) : undefined;
   const displayedOverrideResult = displayedCategory
     ? getOverrideResult(displayedCategory)
     : undefined;
-  const currentOverrideLevel = displayedCategory ? getOverrideLevel(displayedCategory) : undefined;
+  const currentOverrideLevel = selectedCategory ? getOverrideLevel(selectedCategory) : undefined;
 
   const handleDifficultyContentTransitionEnd = React.useCallback(() => {
     if (isDifficultyContentVisible) return;
@@ -243,7 +235,7 @@ function Checks() {
         title="Song folder not set"
         withCloseButton
       >
-        <Text size="sm">Please set the song folder in settings to run beatmap checks.</Text>
+        <Text size="sm">Please set the song folder in settings to run checks.</Text>
       </Alert>
     );
   }
@@ -257,13 +249,15 @@ function Checks() {
         width: '100%',
         borderRadius: theme.radius.lg,
         overflow: 'hidden',
+        // Clip the banner's layers in one pass, so its rounded top corners stay clean.
+        isolation: 'isolate',
         boxShadow: '0 4px 32px rgba(0,0,0,0.4)',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-start',
       }}
     >
-      <BeatmapHeader bgUrl={bgUrl}>
+      <BeatmapHeader>
         <Group gap="sm">
           <BeatmapActionButtons
             beatmapFolderPath={beatmapFolderPath}
@@ -271,7 +265,7 @@ function Checks() {
             beatmapSetId={beatmapInfo?.beatmapSetId ?? undefined}
             onReparse={triggerReparse}
           />
-          {groupedDifficulties.length > 0 && (
+          {groupedDifficulties.length > 1 && (
             <GameModeSelector
               groupedDifficulties={groupedDifficulties}
               selectedMode={selectedMode}
@@ -292,16 +286,6 @@ function Checks() {
             }))}
             selectedId={selectedCategory}
             onSelect={setSelectedCategory}
-            activeOnHover
-            hoveredId={hoveredDifficulty?.category}
-            onHover={(id) =>
-              setHoveredDifficulty(
-                id && id !== GENERAL_TAB_ID
-                  ? difficultiesForTabs.find((d) => d.category === id)
-                  : undefined
-              )
-            }
-            hoverRestoreId={selectedDifficulty?.category}
             highlightGeneralWhenIdle
             generalLevel={categoryHighestLevels[GENERAL_TAB_ID] ?? 'Check'}
             levelLoading={levelIconsLoading}
@@ -341,10 +325,26 @@ function Checks() {
             {data && (
               <Stack gap="sm">
                 <DifficultyInfo
-                  hoveredDifficulty={hoveredDifficulty}
-                  selectedCategory={selectedCategory}
+                  difficulty={selectedDifficulty}
                   categoryHighestLevels={categoryHighestLevels}
                   currentOverrideResult={selectedOverrideResult}
+                  actions={
+                    // Shown with the row as soon as a difficulty is selected, so it doesn't pop in later.
+                    selectedDifficulty && (
+                      <DifficultyLevelOverride
+                        selectedDifficulty={selectedDifficulty}
+                        currentOverrideLevel={currentOverrideLevel}
+                        isLoading={isOverrideLoading}
+                        onOverrideChange={(category, level) => {
+                          if (level === null) {
+                            clearOverride(category);
+                          } else {
+                            applyOverride(category, level);
+                          }
+                        }}
+                      />
+                    )
+                  }
                 />
                 <Collapse
                   in={isDifficultyContentVisible}
@@ -352,20 +352,6 @@ function Checks() {
                   animateOpacity={false}
                   onTransitionEnd={handleDifficultyContentTransitionEnd}
                 >
-                  {displayedDifficulty && (
-                    <DifficultyLevelOverride
-                      selectedDifficulty={displayedDifficulty}
-                      currentOverrideLevel={currentOverrideLevel}
-                      isLoading={isOverrideLoading}
-                      onOverrideChange={(category, level) => {
-                        if (level === null) {
-                          clearOverride(category);
-                        } else {
-                          applyOverride(category, level);
-                        }
-                      }}
-                    />
-                  )}
                   <ChecksResults
                     data={data}
                     isLoading={false}

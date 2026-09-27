@@ -51,7 +51,7 @@ export function TimestampContextMenu({
       </Menu.Target>
       <Menu.Dropdown>
         {timestampLabel ? (
-          <Text size="xs" c="dimmed" px="sm" pt={6} pb={4} style={{ lineHeight: 1.35 }}>
+          <Text size="xs" c="dimmed" px="sm" pt="xs" pb="xs" style={{ lineHeight: 1.35 }}>
             {timestampLabel}
           </Text>
         ) : null}

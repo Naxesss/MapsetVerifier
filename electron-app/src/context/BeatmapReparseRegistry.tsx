@@ -57,7 +57,7 @@ export function BeatmapReparseProvider({ children }: { children: ReactNode }) {
     notifications.show({
       id: REPARSE_TOAST_ID,
       loading: true,
-      message: 'Refreshing beatmap…',
+      message: 'Refreshing mapset…',
       color: 'primary',
       autoClose: false,
       withCloseButton: false,
@@ -70,7 +70,7 @@ export function BeatmapReparseProvider({ children }: { children: ReactNode }) {
       if (lazerSourceSetId) {
         const result = await BeatmapApi.materializeLazer(lazerSourceSetId, settings.lazerDataDir);
         if (!result.success || !result.folderPath) {
-          throw new Error(result.errorMessage ?? 'Failed to re-sync this beatmapset from lazer.');
+          throw new Error(result.errorMessage ?? "Couldn't re-sync this mapset from lazer.");
         }
 
         const resolvedSetId = result.beatmapSetId || lazerSourceSetId;
@@ -99,7 +99,7 @@ export function BeatmapReparseProvider({ children }: { children: ReactNode }) {
         id: REPARSE_TOAST_ID,
         loading: false,
         color: 'green',
-        message: 'Beatmap refreshed!',
+        message: 'Mapset refreshed!',
         icon: <IconCheck size={18} />,
         autoClose: 1500,
         withCloseButton: false,

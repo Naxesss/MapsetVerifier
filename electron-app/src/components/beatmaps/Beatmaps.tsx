@@ -20,7 +20,7 @@ export default function Beatmaps() {
           variant="light"
           color="gray"
           leftSection={<IconSettings />}
-          onClick={() => navigate('/settings', { viewTransition: true })}
+          onClick={() => navigate('/settings')}
         >
           Open settings
         </Button>
@@ -32,7 +32,7 @@ export default function Beatmaps() {
     <BeatmapsList
       songFolder={settings.songFolder}
       lazerDataDir={settings.lazerDataDir}
-      onOpenSettings={() => navigate('/settings', { viewTransition: true })}
+      onOpenSettings={() => navigate('/settings')}
     />
   );
 }

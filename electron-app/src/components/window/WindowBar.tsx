@@ -55,7 +55,7 @@ const WindowBar: React.FC = () => {
       justify="flex-end"
     >
       <Group
-        gap={6}
+        gap="xs"
         align="center"
         wrap="nowrap"
         style={{ ...dragStyle, flex: 1 } as React.CSSProperties}
@@ -95,9 +95,7 @@ const WindowBar: React.FC = () => {
           {isDev && (
             <Badge
               color="red"
-              size="xs"
               radius="sm"
-              variant="filled"
               style={{ marginLeft: 8, verticalAlign: 'middle', opacity: 0.85 }}
             >
               DEV
@@ -106,9 +104,7 @@ const WindowBar: React.FC = () => {
           {isPrerelease && (
             <Badge
               color="orange"
-              size="xs"
               radius="sm"
-              variant="filled"
               style={{ marginLeft: 8, verticalAlign: 'middle', opacity: 0.85 }}
             >
               Beta

@@ -75,7 +75,7 @@ function ChecksResults({
       {isLoading && (
         <Stack gap="xs" py="sm">
           <Text size="sm" c="dimmed">
-            Checking for...
+            Checking for…
           </Text>
           <CheckProgressTaskList progress={progress ?? null} />
           <Progress value={progressPercent} animated size="lg" radius="xl" />
@@ -97,7 +97,7 @@ function ChecksResults({
       )}
 
       {data && (
-        <Stack gap="xs">
+        <Stack gap="sm">
           {showCheckSpeedStats && data.checkTimings ? (
             <CheckSpeedStatsPanel report={data.checkTimings} />
           ) : null}
@@ -118,7 +118,6 @@ function ChecksResults({
               color="gray"
               icon={<IconEyeOff size={16} />}
               p="xs"
-              my="sm"
               styles={{
                 wrapper: { alignItems: 'flex-start' },
                 icon: { marginTop: 2, marginRight: 4, marginLeft: 8 },
@@ -129,7 +128,7 @@ function ChecksResults({
               <Text size="xs" c="dimmed" lh={2}>
                 Negligible issues exist for checks hidden in{' '}
                 <Text span fw={600} inherit>
-                  Settings → Negligible checks filter
+                  Settings → Negligible check filter
                 </Text>
                 . They are omitted from this list.
               </Text>

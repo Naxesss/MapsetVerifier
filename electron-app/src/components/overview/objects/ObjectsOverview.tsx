@@ -1,4 +1,4 @@
-﻿import { Alert, Box, Flex, LoadingOverlay, SimpleGrid, Text } from '@mantine/core';
+﻿import { Alert, Box, Flex, SimpleGrid, Text } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
 import { useEffect, useMemo } from 'react';
 import ColumnUsageOverview from './components/ColumnUsageOverview.tsx';
@@ -14,6 +14,7 @@ import { usePageHints } from '../../../context/PageHintsContext.tsx';
 import { useSettings } from '../../../context/SettingsContext.tsx';
 import { type Mode, type ObjectsOverviewDifficulty } from '../../../Types';
 import { MODE_ORDER, normalizeMode } from '../../../utils/gameMode';
+import { CardsSkeleton } from '../../common/LoadingSkeletons.tsx';
 import NoBeatmapsetDisplay from '../../common/NoBeatmapsetDisplay.tsx';
 import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 import { SummaryCard } from '../difficulty/DifficultySummaryCards.tsx';
@@ -23,7 +24,7 @@ function ObjectsOverview() {
   const { selectedFolder: folder } = useBeatmap();
   const { setObjectsHasHitsoundModes } = usePageHints();
   const { settings } = useSettings();
-  const { data, isLoading, isFetching, isError, error } = useObjectsAnalysis({
+  const { data, isLoading, isError, error } = useObjectsAnalysis({
     folder,
     songFolder: settings.songFolder,
   });
@@ -82,11 +83,7 @@ function ObjectsOverview() {
 
   return (
     <Box>
-      <LoadingOverlay
-        visible={isLoading || isFetching}
-        zIndex={1000}
-        overlayProps={{ radius: 'sm', blur: 2 }}
-      />
+      {isLoading && <CardsSkeleton />}
       {isError && (
         <Flex p="md">
           <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing objects">
@@ -113,7 +110,7 @@ function ObjectsOverview() {
             <SummaryCard label="Hit objects" value={summary.objectCount.toLocaleString()} />
             <SummaryCard
               label={`Timeline range (${formatDuration(data.endTimeMs - data.startTimeMs)})`}
-              value={`${formatTime(data.startTimeMs)} -> ${formatTime(data.endTimeMs)}`}
+              value={`${formatTime(data.startTimeMs)} – ${formatTime(data.endTimeMs)}`}
             />
           </SimpleGrid>
 

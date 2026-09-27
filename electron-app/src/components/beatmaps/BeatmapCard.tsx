@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Flex, Skeleton, Stack, Text, Tooltip } from '@mantine/core';
+import { ActionIcon, Flex, Skeleton, Stack, Text, Tooltip } from '@mantine/core';
 import { IconPin, IconPinFilled } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { useBeatmap } from '../../context/BeatmapContext';
@@ -89,39 +89,31 @@ function BeatmapCard({
 
   const transitionMs = '0.22s ease';
 
+  // The art and its left-to-right shade (dark enough behind the text on any artwork, lighter on
+  // the right so the art still shows) are the card's own background (`.mv-beatmap-card`), not
+  // child layers: a child layer is clipped separately at the rounded corners and leaves a light
+  // fringe there. Hover and selection lighten the shade (`lift`). The ring is one 2px border in
+  // every state (only its colour changes), so nothing shifts and the corner is a single smooth
+  // curve; stacking a border and a box-shadow drew two slightly different curves there. No drop
+  // shadows: they darkened the sidebar around a hovered or selected card.
   const cardVisual = (() => {
-    if (isSelected && isHovered) {
-      return {
-        border: '1px solid var(--mantine-color-blue-4)',
-        boxShadow: '0 10px 28px rgba(0, 0, 0, 0.4)',
-        overlay: 'rgba(0, 0, 0, 0.38)',
-        scale: 1.045,
-      };
-    }
-
     if (isSelected) {
       return {
-        border: '1px solid var(--mantine-color-blue-6)',
-        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.28)',
-        overlay: 'rgba(0, 0, 0, 0.48)',
-        scale: 1,
+        borderColor: 'var(--mantine-color-primary-2)',
+        lift: isHovered ? 0.18 : 0.12,
       };
     }
 
     if (isHovered) {
       return {
-        border: '1px solid var(--mantine-color-dark-2)',
-        boxShadow: '0 6px 20px rgba(0, 0, 0, 0.32)',
-        overlay: 'rgba(0, 0, 0, 0.52)',
-        scale: 1.025,
+        borderColor: 'var(--mantine-color-dark-2)',
+        lift: 0.06,
       };
     }
 
     return {
-      border: '1px solid var(--mantine-color-dark-4)',
-      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
-      overlay: 'rgba(0, 0, 0, 0.6)',
-      scale: 1,
+      borderColor: 'var(--mantine-color-dark-4)',
+      lift: 0,
     };
   })();
 
@@ -131,7 +123,6 @@ function BeatmapCard({
     whiteSpace: 'nowrap',
     display: 'block',
     maxWidth: '100%',
-    opacity: 0.9,
     textShadow:
       '0 1px 2px rgba(0, 0, 0, 0.62), 0 0 8px rgba(0, 0, 0, 0.28), 0 0 1px rgba(0, 0, 0, 0.55)',
   } as const;
@@ -143,17 +134,23 @@ function BeatmapCard({
   return (
     <Flex
       h={96}
-      className={beatmap.folder !== 'placeholder' ? 'mv-beatmap-card-enter' : undefined}
+      aria-current={isSelected || undefined}
+      className={
+        beatmap.folder !== 'placeholder'
+          ? 'mv-beatmap-card mv-beatmap-card-enter'
+          : 'mv-beatmap-card'
+      }
       style={{
-        justifyContent: 'center',
+        '--mv-card-art': displayedBgUrl ? `url('${displayedBgUrl}')` : 'none',
+        '--mv-card-lift': cardVisual.lift,
+        justifyContent: 'flex-start',
         alignItems: 'center',
         borderRadius: 'var(--mantine-radius-md)',
         position: 'relative',
         overflow: 'hidden',
         cursor: 'pointer',
-        border: cardVisual.border,
-        boxShadow: cardVisual.boxShadow,
-        transition: `border-color ${transitionMs}, box-shadow ${transitionMs}`,
+        border: `2px solid ${cardVisual.borderColor}`,
+        transition: `border-color ${transitionMs}, --mv-card-lift ${transitionMs}`,
         ...(beatmap.folder !== 'placeholder'
           ? {
               animation: 'mv-beatmap-card-enter 280ms cubic-bezier(0.4, 0, 0.2, 1) both',
@@ -179,47 +176,12 @@ function BeatmapCard({
       {/* Loading shimmer, shown until the background image settles */}
       {beatmap.folder !== 'placeholder' && imageLoading && (
         <Skeleton
-          radius="var(--mantine-radius-md)"
+          radius="calc(var(--mantine-radius-md) - 2px)"
           style={{ position: 'absolute', inset: 0, zIndex: 0 }}
         />
       )}
-      {/* Background image */}
-      <Box
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          borderRadius: 'var(--mantine-radius-md)',
-          zIndex: 0,
-          backgroundImage: displayedBgUrl ? `url('${displayedBgUrl}')` : 'none',
-          opacity: displayedBgUrl ? 1 : 0,
-          transform: `scale(${cardVisual.scale})`,
-          transformOrigin: 'center center',
-          transition: `transform ${transitionMs}, opacity 0.35s ease`,
-        }}
-      />
-      {/* Dark overlay */}
-      <Box
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          background: cardVisual.overlay,
-          borderRadius: 'var(--mantine-radius-md)',
-          zIndex: 1,
-          pointerEvents: 'none',
-          transition: `background ${transitionMs}`,
-        }}
-      />
       {settings.bookmarksEnabled && beatmap.folder !== 'placeholder' && (
-        <Tooltip label={isBookmarked ? 'Remove bookmark' : 'Bookmark this beatmapset'}>
+        <Tooltip label={isBookmarked ? 'Remove bookmark' : 'Bookmark this mapset'}>
           <ActionIcon
             variant="subtle"
             color="yellow"
@@ -237,7 +199,7 @@ function BeatmapCard({
               e.stopPropagation();
               toggleBookmark();
             }}
-            aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark this beatmapset'}
+            aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark this mapset'}
           >
             {isBookmarked ? <IconPinFilled size={16} /> : <IconPin size={16} />}
           </ActionIcon>
@@ -247,12 +209,16 @@ function BeatmapCard({
       <Flex
         direction="column"
         gap={0}
-        p="xs"
+        w="100%"
+        py="xs"
+        px="md"
         style={{
           position: 'relative',
           zIndex: 2,
           overflow: 'hidden',
-          textAlign: 'center',
+          minWidth: 0,
+          maxWidth: '100%',
+          textAlign: 'left',
           cursor: 'pointer',
           userSelect: 'none',
           WebkitUserSelect: 'none',
@@ -260,13 +226,18 @@ function BeatmapCard({
           msUserSelect: 'none',
         }}
       >
-        <Stack gap="sm">
+        {/* Title first, then artist and mapper, so the three lines scan top to bottom. Only the
+            title shares a row with the bookmark pin, so only it reserves room for the pin. */}
+        <Stack gap="xs">
           <Stack gap={0}>
-            <Text style={artistTitleStyle}>{beatmap.artist}</Text>
-            <Text style={artistTitleStyle}>{beatmap.title}</Text>
+            <Text fw={700} pr={settings.bookmarksEnabled ? 12 : 0} style={artistTitleStyle}>
+              {beatmap.title}
+            </Text>
+            <Text size="sm" style={artistTitleStyle}>
+              {beatmap.artist}
+            </Text>
           </Stack>
-
-          <Text fs="italic" size="xs" style={textStyle}>
+          <Text size="xs" c="gray.4" style={textStyle}>
             Mapped by {beatmap.creator}
           </Text>
         </Stack>

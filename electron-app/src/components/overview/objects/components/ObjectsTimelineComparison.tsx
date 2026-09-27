@@ -1,20 +1,10 @@
-import {
-  Box,
-  Group,
-  Loader,
-  Paper,
-  SegmentedControl,
-  Stack,
-  Switch,
-  Text,
-  Title,
-  Tooltip,
-} from '@mantine/core';
+import { Box, Group, Loader, SegmentedControl, Stack, Switch, Tooltip } from '@mantine/core';
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import HitsoundStripLegend from './HitsoundStripLegend.tsx';
 import ObjectsTimelineComparisonContent from './ObjectsTimelineComparisonContent.tsx';
 import ObjectsTimelineHelpButton from './ObjectsTimelineHelpButton.tsx';
 import TimelineHorizontalReveal from './TimelineHorizontalReveal.tsx';
+import SectionCard from '../../../common/SectionCard.tsx';
 import { HITSOUND_ROW_HEIGHT, ROW_HEIGHT } from '../constants.ts';
 import {
   TimelineControllerProvider,
@@ -68,24 +58,17 @@ export default function ObjectsTimelineComparison({
   const hitsoundAvailable = isHitsoundViewAvailable(controller.mode.activeMode);
 
   return (
-    <Paper p="md" radius="md" withBorder>
+    <SectionCard
+      title="Timeline comparison"
+      info="Drag the grip to reorder rows. Drag horizontally or shift + scroll to pan. Hover or right click on objects for more info."
+      actions={<ObjectsTimelineHelpButton showHitsoundSection={hitsoundAvailable} />}
+    >
       <Stack gap="md">
-        <Group justify="space-between" align="flex-start" wrap="nowrap">
-          <Stack gap={2}>
-            <Title order={4}>Timeline comparison</Title>
-            <Text size="sm" c="dimmed">
-              Drag the grip to reorder rows. Drag horizontally or shift + scroll to pan. Hover or
-              right click on objects for more info.
-            </Text>
-          </Stack>
-          <ObjectsTimelineHelpButton showHitsoundSection={hitsoundAvailable} />
-        </Group>
-
         <TimelineControllerProvider value={controller}>
           <ObjectsTimelineComparisonBody pan={pan} />
         </TimelineControllerProvider>
       </Stack>
-    </Paper>
+    </SectionCard>
   );
 }
 

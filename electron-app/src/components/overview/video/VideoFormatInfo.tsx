@@ -2,7 +2,6 @@ import {
   Text,
   Badge,
   Group,
-  Paper,
   useMantineTheme,
   Stack,
   SimpleGrid,
@@ -13,7 +12,7 @@ import {
 } from '@mantine/core';
 import { IconCheck, IconX, IconAlertTriangle } from '@tabler/icons-react';
 import { VideoAnalysisEntry } from '../../../Types';
-import { InfoIconTooltip } from '../../common/InfoIconTooltip.tsx';
+import SectionCard from '../../common/SectionCard.tsx';
 
 interface VideoFormatInfoProps {
   data: VideoAnalysisEntry;
@@ -53,35 +52,27 @@ function VideoFormatInfo({ data }: VideoFormatInfoProps) {
     data.width > 0 && data.width <= MAX_WIDTH && data.height > 0 && data.height <= MAX_HEIGHT;
 
   return (
-    <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
-      <Group justify="space-between" mb="md">
-        <Group gap="xs">
-          <Text fw={600}>Format Information</Text>
-          <InfoIconTooltip
-            label="Format information describes the technical properties of a video file that define how it is stored and played back."
-            multiline
-            w={250}
-          />
-        </Group>
-        <Group gap="xs">
-          <Badge color={getBadgeColor(data.badgeType)} variant="light">
-            {data.container}
+    <SectionCard
+      title="Format"
+      info="Format information describes the technical properties of a video file that define how it is stored and played back."
+      actions={
+        <>
+          <Badge color={getBadgeColor(data.badgeType)}>{data.container}</Badge>
+          <Badge color={data.isCompliant ? 'green' : 'red'}>
+            {data.isCompliant ? 'Compliant' : 'Non-compliant'}
           </Badge>
-          <Badge color={data.isCompliant ? 'green' : 'red'} variant="light">
-            {data.isCompliant ? 'Compliant' : 'Non-Compliant'}
-          </Badge>
-        </Group>
-      </Group>
-
+        </>
+      }
+    >
       <SimpleGrid cols={3} mb="md" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
-        <Stack gap={2}>
+        <Stack gap="2xs">
           <Text size="xs" c="dimmed">
-            File Name
+            File name
           </Text>
           <Text fw={500}>{data.fileName}</Text>
         </Stack>
-        <Stack gap={2}>
-          <Group gap={4} align="center">
+        <Stack gap="2xs">
+          <Group gap="xs" align="center">
             <Text size="xs" c="dimmed">
               Resolution
             </Text>
@@ -98,15 +89,15 @@ function VideoFormatInfo({ data }: VideoFormatInfoProps) {
             {data.width > 0 ? data.resolution : 'Unknown'}
           </Text>
         </Stack>
-        <Stack gap={2}>
+        <Stack gap="2xs">
           <Text size="xs" c="dimmed">
             Duration
           </Text>
           <Text fw={500}>{data.durationMs > 0 ? data.durationFormatted : 'Unknown'}</Text>
         </Stack>
-        <Stack gap={2}>
+        <Stack gap="2xs">
           <Text size="xs" c="dimmed">
-            Frame Rate
+            Frame rate
           </Text>
           <Text fw={500}>{formatFrameRate(data.frameRate)}</Text>
           {data.isVariableFrameRate && (
@@ -115,7 +106,7 @@ function VideoFormatInfo({ data }: VideoFormatInfoProps) {
             </Text>
           )}
         </Stack>
-        <Stack gap={2}>
+        <Stack gap="2xs">
           <Text size="xs" c="dimmed">
             Codec
           </Text>
@@ -126,7 +117,7 @@ function VideoFormatInfo({ data }: VideoFormatInfoProps) {
             </Text>
           )}
         </Stack>
-        <Stack gap={2}>
+        <Stack gap="2xs">
           <Text size="xs" c="dimmed">
             Bitrate
           </Text>
@@ -135,21 +126,21 @@ function VideoFormatInfo({ data }: VideoFormatInfoProps) {
             {data.videoBitrateKbps ? 'Video track' : 'Whole file'}
           </Text>
         </Stack>
-        <Stack gap={2}>
+        <Stack gap="2xs">
           <Text size="xs" c="dimmed">
-            File Size
+            File size
           </Text>
           <Text fw={500}>{data.fileSizeFormatted}</Text>
         </Stack>
-        <Stack gap={2}>
+        <Stack gap="2xs">
           <Text size="xs" c="dimmed">
             Offset
           </Text>
           <Text fw={500}>{data.offsetMs} ms</Text>
         </Stack>
-        <Stack gap={2}>
+        <Stack gap="2xs">
           <Text size="xs" c="dimmed">
-            Audio Track
+            Audio track
           </Text>
           <Text fw={500} c={data.hasAudioTrack ? 'red.4' : 'white'}>
             {data.hasAudioTrack ? (data.audioCodec ?? 'Present') : 'None'}
@@ -164,10 +155,10 @@ function VideoFormatInfo({ data }: VideoFormatInfoProps) {
       </SimpleGrid>
 
       <Box p="xs" mb="md" bg={theme.colors.dark[6]} style={{ borderRadius: theme.radius.sm }}>
-        <Text size="xs" fw={500} c="dimmed" mb={4}>
-          Ranking Requirements:
+        <Text size="xs" fw={500} c="dimmed" mb="xs">
+          Ranking requirements
         </Text>
-        <Stack gap={4}>
+        <Stack gap="xs">
           <Group gap="xs">
             <ThemeIcon size="xs" color={resolutionIsValid ? 'green' : 'red'} variant="light">
               {resolutionIsValid ? <IconCheck size={12} /> : <IconX size={12} />}
@@ -188,15 +179,13 @@ function VideoFormatInfo({ data }: VideoFormatInfoProps) {
       </Box>
 
       {data.usedByDifficulties.length > 0 && (
-        <Stack gap={2} mb="md">
+        <Stack gap="2xs" mb="md">
           <Text size="xs" c="dimmed">
-            Used By
+            Used by
           </Text>
           <Group gap="xs">
             {data.usedByDifficulties.map((difficulty) => (
-              <Badge key={difficulty} size="xs" variant="light">
-                {difficulty}
-              </Badge>
+              <Badge key={difficulty}>{difficulty}</Badge>
             ))}
           </Group>
         </Stack>
@@ -205,7 +194,7 @@ function VideoFormatInfo({ data }: VideoFormatInfoProps) {
       {data.complianceIssues.length > 0 && (
         <Stack gap="xs" mb={data.warnings.length > 0 ? 'md' : 0}>
           <Text size="sm" fw={500} c="red.4">
-            Compliance Issues:
+            Compliance issues
           </Text>
           <List
             size="sm"
@@ -224,7 +213,7 @@ function VideoFormatInfo({ data }: VideoFormatInfoProps) {
       )}
 
       {data.warnings.length > 0 && (
-        <Stack gap={2}>
+        <Stack gap="2xs">
           {data.warnings.map((warning, idx) => (
             <Text key={idx} size="xs" c="dimmed">
               {warning}
@@ -232,7 +221,7 @@ function VideoFormatInfo({ data }: VideoFormatInfoProps) {
           ))}
         </Stack>
       )}
-    </Paper>
+    </SectionCard>
   );
 }
 

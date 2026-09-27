@@ -126,11 +126,11 @@ export function ObjectTypeEntriesPopover({
         </UnstyledButton>
       </Popover.Target>
       <Popover.Dropdown>
-        <Group gap={6} mb="xs" wrap="wrap" align="center">
+        <Group gap="xs" mb="xs" wrap="wrap" align="center">
           <Text size="xs" c="dimmed" fw={600} component="span">
             {headingLabel} ·{' '}
           </Text>
-          <Group gap={4} wrap="nowrap" align="center">
+          <Group gap="xs" wrap="nowrap" align="center">
             <Text size="xs" c="dimmed" fw={700} component="span">
               {difficultyVersion}
             </Text>
@@ -140,7 +140,7 @@ export function ObjectTypeEntriesPopover({
           </Group>
         </Group>
         {detailBadges.length > 1 ? (
-          <Group gap={6} mb="sm" wrap="wrap" align="flex-start">
+          <Group gap="xs" mb="sm" wrap="wrap" align="flex-start">
             {detailBadges.map(([detail, count]) => {
               const isActive = detailFilter === detail;
               return (
@@ -150,7 +150,6 @@ export function ObjectTypeEntriesPopover({
                   type="button"
                   variant={isActive ? 'filled' : 'light'}
                   color={isActive ? 'blue' : 'gray'}
-                  size="sm"
                   style={{ cursor: 'pointer' }}
                   onClick={() => setDetailFilter((current) => (current === detail ? null : detail))}
                 >

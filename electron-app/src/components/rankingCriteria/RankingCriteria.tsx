@@ -1,19 +1,11 @@
-import {
-  ActionIcon,
-  Alert,
-  Anchor,
-  CloseButton,
-  Group,
-  Paper,
-  Progress,
-  Skeleton,
-  Stack,
-  Text,
-  TextInput,
-  Tooltip,
-} from '@mantine/core';
+import { ActionIcon, Alert, Anchor, Group, Progress, Stack, Text, Tooltip } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
-import { IconAlertCircle, IconExternalLink, IconSearch } from '@tabler/icons-react';
+import {
+  IconAlertCircle,
+  IconExternalLink,
+  IconFilterOff,
+  IconSearchOff,
+} from '@tabler/icons-react';
 import { useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import RcCoverageFilter from './RcCoverageFilter';
@@ -35,6 +27,12 @@ import {
   useRankingCriteriaPage,
 } from './useRankingCriteria';
 import { ApiRcStatement, RcCoverage } from '../../Types';
+import EmptyState from '../common/EmptyState';
+import { SectionTitle } from '../common/Headings';
+import { ListSkeleton } from '../common/LoadingSkeletons';
+import SearchInput from '../common/SearchInput';
+import SectionCard from '../common/SectionCard';
+import StickyToolbar from '../common/StickyToolbar';
 import DetailModal from '../details/DetailModal';
 
 const DEFAULT_PAGE = 'general';
@@ -92,24 +90,6 @@ function CoverageBar({ rules }: { rules: ApiRcStatement[] }) {
   );
 }
 
-function EmptyState({ children }: { children: string }) {
-  return (
-    <Text size="sm" c="dimmed" ta="center" py="xl">
-      {children}
-    </Text>
-  );
-}
-
-function RowSkeleton({ rows = 6 }: { rows?: number }) {
-  return (
-    <Stack gap="xs" w="100%">
-      {Array.from({ length: rows }).map((_, i) => (
-        <Skeleton key={i} height={56} radius="var(--mantine-radius-md)" />
-      ))}
-    </Stack>
-  );
-}
-
 interface StatementListProps {
   statements: ApiRcStatement[];
   /** Intros and parents shown only for the statements nested in them. */
@@ -149,7 +129,7 @@ function StatementRows({
 /** Statements of one page, grouped under the headings they appear under in the wiki. */
 function StatementSections({ statements, contextIds, onOpen }: StatementListProps) {
   if (statements.every((statement) => contextIds.has(statement.id))) {
-    return <EmptyState>Nothing on this page matches the filter.</EmptyState>;
+    return <EmptyState icon={IconFilterOff} title="Nothing on this page matches the filter" />;
   }
 
   const shownIds = new Set(statements.map((statement) => statement.id));
@@ -160,10 +140,10 @@ function StatementSections({ statements, contextIds, onOpen }: StatementListProp
   }
 
   return (
-    <Stack gap="xl">
+    <Stack gap="lg">
       {[...sections.entries()].map(([section, sectionStatements]) => (
         <Stack key={section} gap="xs">
-          <Text fw={700}>{section}</Text>
+          <SectionTitle>{section}</SectionTitle>
           <StatementRows
             statements={sectionStatements}
             contextIds={contextIds}
@@ -180,13 +160,13 @@ function StatementSections({ statements, contextIds, onOpen }: StatementListProp
 function ReadOnlyPage({ pageKey }: { pageKey: string }) {
   const page = useRankingCriteriaPage(pageKey);
 
-  if (page.isLoading) return <RowSkeleton />;
+  if (page.isLoading) return <ListSkeleton />;
   if (!page.data) return null;
 
   return (
-    <Paper p="lg" radius="md" withBorder>
+    <SectionCard>
       <RcMarkdown page={page.data} />
-    </Paper>
+    </SectionCard>
   );
 }
 
@@ -257,53 +237,11 @@ function RankingCriteria() {
     : null;
   const wikiUrl = currentPage?.wikiUrl;
 
-  // Three blocks (header, controls, list) spaced by `sm`, like the beatmap sidebar's search row and
+  // Three blocks (controls, coverage, list) spaced by `sm`, like the beatmap sidebar's search row and
   // list; everything inside a block by `xs`.
   return (
     <Stack gap="sm">
-      <Stack gap="xs">
-        <Group justify="space-between" align="baseline">
-          <Text fw={700} size="md">
-            {isLoading
-              ? 'Loading coverage…'
-              : `${overall.covered} of ${overall.total} checkable rules and guidelines covered (${percentage}%)`}
-          </Text>
-          {source && sourceUrl && (
-            <Text size="xs" c="dimmed">
-              Snapshot of the osu! wiki at{' '}
-              <Anchor
-                size="xs"
-                ff="monospace"
-                href={sourceUrl}
-                onClick={(event) => {
-                  event.preventDefault();
-                  void openExternal(sourceUrl);
-                }}
-              >
-                {source.commit.slice(0, 8)}
-              </Anchor>
-              {source.commitDate && ` (${formatDate(source.commitDate)})`}
-            </Text>
-          )}
-        </Group>
-        <CoverageBar rules={rules} />
-      </Stack>
-
-      {/*
-        Stays in view while scrolling the list. Padded and spaced like the beatmap sidebar's search
-        row, so both line up once it sticks; negative margins keep the page spacing unchanged.
-      */}
-      <Stack
-        gap="sm"
-        py="xs"
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 2,
-          margin: 'calc(var(--mantine-spacing-xs) * -1) 0',
-          background: 'var(--mantine-color-body)',
-        }}
-      >
+      <StickyToolbar>
         <Group gap="sm">
           <RcPageSelect
             pages={pages}
@@ -312,21 +250,12 @@ function RankingCriteria() {
             coverageOf={(key) => (isLoading ? null : coverageOf(statementsOf(key)))}
             onChange={(key) => navigate(rankingCriteriaRoute(key))}
           />
-          <TextInput
+          <SearchInput
             style={{ flex: 1, minWidth: 220 }}
-            placeholder="Search rules (text, section, check name)…"
+            placeholder="Search rules…"
+            hint="Searches rule text, section and linked check names across all pages."
             value={searchInput}
-            onChange={(event) => setSearchInput(event.currentTarget.value)}
-            leftSection={<IconSearch size={18} stroke={1.5} />}
-            rightSection={
-              searchInput ? (
-                <CloseButton
-                  aria-label="Clear search"
-                  onClick={() => setSearchInput('')}
-                  size="sm"
-                />
-              ) : null
-            }
+            onChange={setSearchInput}
           />
           {wikiUrl && !isSearching && (
             <Tooltip label="Open this page on the osu! wiki" withinPortal>
@@ -362,6 +291,35 @@ function RankingCriteria() {
             )
           )}
         </Group>
+      </StickyToolbar>
+
+      {/* Overall coverage, below the toolbar so the search row lines up with the sidebar's. */}
+      <Stack gap="xs">
+        <Group justify="space-between" align="baseline">
+          <Text fw={700} size="md">
+            {isLoading
+              ? 'Loading coverage…'
+              : `${overall.covered} of ${overall.total} checkable rules and guidelines covered (${percentage}%)`}
+          </Text>
+          {source && sourceUrl && (
+            <Text size="xs" c="dimmed">
+              Snapshot of the osu! wiki at{' '}
+              <Anchor
+                size="xs"
+                ff="monospace"
+                href={sourceUrl}
+                onClick={(event) => {
+                  event.preventDefault();
+                  void openExternal(sourceUrl);
+                }}
+              >
+                {source.commit.slice(0, 8)}
+              </Anchor>
+              {source.commitDate && ` (${formatDate(source.commitDate)})`}
+            </Text>
+          )}
+        </Group>
+        <CoverageBar rules={rules} />
       </Stack>
 
       {(overview.error || isError) && (
@@ -381,7 +339,7 @@ function RankingCriteria() {
 
       {isSearching ? (
         !hasMatches ? (
-          <EmptyState>No rules match your search.</EmptyState>
+          <EmptyState icon={IconSearchOff} title="No rules match your search" />
         ) : (
           <StatementRows
             statements={filtered}
@@ -393,7 +351,7 @@ function RankingCriteria() {
       ) : !currentPage ? null : !currentPage.hasStatements ? (
         <ReadOnlyPage pageKey={currentPage.key} />
       ) : isLoading ? (
-        <RowSkeleton />
+        <ListSkeleton />
       ) : (
         <StatementSections
           statements={filteredOf(currentPage.key)}

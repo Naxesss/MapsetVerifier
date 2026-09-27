@@ -1,4 +1,4 @@
-﻿import { Group, Paper, Stack, Table, Text, useMantineTheme } from '@mantine/core';
+﻿import { Group, Stack, Table, Text, useMantineTheme } from '@mantine/core';
 import { useGroupCellStyle } from './utils/useGroupCellStyle';
 import { formatNullable } from '../../../utils/formatters';
 import { formatGameModeLabel, getModeAccentColor } from '../../../utils/gameMode';
@@ -7,6 +7,7 @@ import AppTable, {
   DifficultyTableCell,
   DifficultyTableHeaderCell,
 } from '../../common/AppTable.tsx';
+import SectionCard from '../../common/SectionCard.tsx';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
 import type { DifficultyDifficultySettings } from '../../../Types';
 import type { InconsistencyField } from '../../../utils/inconsistencies';
@@ -25,7 +26,7 @@ function formatDifficultyValue(value: number) {
 
 function ModeCell({ mode }: { mode: string }) {
   return (
-    <Group gap={6} wrap="nowrap" justify="center">
+    <Group gap="xs" wrap="nowrap" justify="center">
       <GameModeIcon mode={mode} size={16} color={getModeAccentColor(mode)} />
       <Text size="sm">{formatGameModeLabel(mode)}</Text>
     </Group>
@@ -45,27 +46,27 @@ function CircleSizeCell({ settings }: { settings: DifficultyDifficultySettings }
 function DifficultySettingsInfo({ difficultySettings }: DifficultySettingsInfoProps) {
   const theme = useMantineTheme();
   const groupCell = useGroupCellStyle(difficultySettings, CONSISTENCY_FIELDS);
+  // One mode for the whole mapset is said once by the mode icons elsewhere, not on every row.
+  const showMode = new Set(difficultySettings.map((entry) => entry.mode)).size > 1;
 
   if (difficultySettings.length === 0) {
     return null;
   }
 
   return (
-    <Paper p="md" radius="md" withBorder>
+    <SectionCard title="Difficulty settings">
       <Stack gap="md">
-        <Text fw={600}>Difficulty Settings</Text>
-
         <AppTable>
           <Table.Thead style={{ backgroundColor: theme.colors.dark[5] }}>
             <Table.Tr>
               <DifficultyTableHeaderCell>Difficulty</DifficultyTableHeaderCell>
-              <Table.Th>Mode</Table.Th>
-              <Table.Th>HP Drain</Table.Th>
-              <Table.Th>Circle Size</Table.Th>
-              <Table.Th>Overall Difficulty</Table.Th>
-              <Table.Th>Approach Rate</Table.Th>
-              <Table.Th>Slider Tick Rate</Table.Th>
-              <Table.Th>Slider Velocity</Table.Th>
+              {showMode && <Table.Th>Mode</Table.Th>}
+              <Table.Th>HP drain</Table.Th>
+              <Table.Th>Circle size</Table.Th>
+              <Table.Th>Overall difficulty</Table.Th>
+              <Table.Th>Approach rate</Table.Th>
+              <Table.Th>Slider tick rate</Table.Th>
+              <Table.Th>Slider velocity</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -79,9 +80,11 @@ function DifficultySettingsInfo({ difficultySettings }: DifficultySettingsInfoPr
                       {settings.version}
                     </Text>
                   </DifficultyTableCell>
-                  <Table.Td>
-                    <ModeCell mode={settings.mode} />
-                  </Table.Td>
+                  {showMode && (
+                    <Table.Td>
+                      <ModeCell mode={settings.mode} />
+                    </Table.Td>
+                  )}
                   <Table.Td>
                     <Text size="sm">{formatDifficultyValue(settings.hpDrain)}</Text>
                   </Table.Td>
@@ -114,7 +117,7 @@ function DifficultySettingsInfo({ difficultySettings }: DifficultySettingsInfoPr
           </Table.Tbody>
         </AppTable>
       </Stack>
-    </Paper>
+    </SectionCard>
   );
 }
 

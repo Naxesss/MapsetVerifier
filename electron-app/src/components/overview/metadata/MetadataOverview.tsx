@@ -1,4 +1,4 @@
-﻿import { Alert, Text, Box, Flex, SimpleGrid, LoadingOverlay } from '@mantine/core';
+﻿import { Alert, Text, Box, Flex, SimpleGrid } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
 import ColourSettings from './ColourSettings';
 import { useMetadataAnalysis } from './hooks/useMetadataAnalysis';
@@ -6,6 +6,7 @@ import MetadataInfo from './MetadataInfo';
 import ResourcesInfo from './ResourcesInfo';
 import { useBeatmap } from '../../../context/BeatmapContext';
 import { useSettings } from '../../../context/SettingsContext';
+import { CardsSkeleton } from '../../common/LoadingSkeletons.tsx';
 import NoBeatmapsetDisplay from '../../common/NoBeatmapsetDisplay.tsx';
 import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 
@@ -13,7 +14,7 @@ function MetadataOverview() {
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
 
-  const { data, isLoading, isFetching, isError, error } = useMetadataAnalysis({
+  const { data, isLoading, isError, error } = useMetadataAnalysis({
     folder,
     songFolder: settings.songFolder,
   });
@@ -24,11 +25,7 @@ function MetadataOverview() {
 
   return (
     <Box>
-      <LoadingOverlay
-        visible={isLoading || isFetching}
-        zIndex={1000}
-        overlayProps={{ radius: 'sm', blur: 2 }}
-      />
+      {isLoading && <CardsSkeleton />}
       {isError && (
         <Flex p="md">
           <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing metadata">

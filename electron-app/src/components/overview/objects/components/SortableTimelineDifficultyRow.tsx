@@ -95,7 +95,7 @@ function SortableTimelineDifficultyRow({
           transition: rowHeightTransition,
         }}
       >
-        <Flex align="center" gap={8} style={{ width: '100%', minWidth: 0, overflow: 'hidden' }}>
+        <Flex align="center" gap="sm" style={{ width: '100%', minWidth: 0, overflow: 'hidden' }}>
           <Box
             ref={setActivatorNodeRef}
             aria-label={`Reorder ${difficulty.version}`}
@@ -117,7 +117,7 @@ function SortableTimelineDifficultyRow({
             <IconGripVertical size={16} />
           </Box>
           <Group
-            gap={8}
+            gap="sm"
             wrap="nowrap"
             style={{
               flex: 1,

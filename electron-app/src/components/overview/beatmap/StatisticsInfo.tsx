@@ -1,4 +1,4 @@
-﻿import { Group, Paper, Stack, Table, Text, useMantineTheme } from '@mantine/core';
+﻿import { Group, Stack, Table, Text, useMantineTheme } from '@mantine/core';
 import { useGroupCellStyle } from './utils/useGroupCellStyle';
 import { formatGameModeLabel, getModeAccentColor } from '../../../utils/gameMode';
 import { itemKey, type InconsistencyField } from '../../../utils/inconsistencies';
@@ -7,6 +7,7 @@ import AppTable, {
   DifficultyTableCell,
   DifficultyTableHeaderCell,
 } from '../../common/AppTable.tsx';
+import SectionCard from '../../common/SectionCard.tsx';
 import StarRatingBadge from '../../common/StarRatingBadge.tsx';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
 import type { DifficultyStatistics } from '../../../Types';
@@ -29,7 +30,7 @@ function formatCount(value: number | null) {
 
 function ModeCell({ mode }: { mode: string }) {
   return (
-    <Group gap={6} wrap="nowrap" justify="center">
+    <Group gap="xs" wrap="nowrap" justify="center">
       <GameModeIcon mode={mode} size={16} color={getModeAccentColor(mode)} />
       <Text size="sm">{formatGameModeLabel(mode)}</Text>
     </Group>
@@ -41,7 +42,7 @@ function SliderCell({ stats }: { stats: DifficultyStatistics }) {
   const value = isMania ? stats.holdNoteCount : stats.sliderCount;
 
   return (
-    <Stack gap={4}>
+    <Stack gap="xs">
       <Text size="sm" fw={500}>
         {formatCount(value)}
       </Text>
@@ -52,6 +53,8 @@ function SliderCell({ stats }: { stats: DifficultyStatistics }) {
 function StatisticsInfo({ statistics }: StatisticsInfoProps) {
   const theme = useMantineTheme();
   const groupCell = useGroupCellStyle(statistics, CONSISTENCY_FIELDS);
+  // One mode for the whole mapset is said once by the mode icons elsewhere, not on every row.
+  const showMode = new Set(statistics.map((entry) => entry.mode)).size > 1;
 
   if (statistics.length === 0) {
     return null;
@@ -60,15 +63,14 @@ function StatisticsInfo({ statistics }: StatisticsInfoProps) {
   const sliderColumnLabel = statistics.every((s) => s.mode === 'Mania') ? 'LNs' : 'Sliders';
 
   return (
-    <Paper p="md" radius="md" withBorder>
+    <SectionCard title="Statistics">
       <Stack gap="md">
-        <Text fw={600}>Statistics</Text>
         <AppTable>
           <Table.Thead style={{ backgroundColor: theme.colors.dark[5] }}>
             <Table.Tr>
               <DifficultyTableHeaderCell rowSpan={2}>Difficulty</DifficultyTableHeaderCell>
-              <Table.Th rowSpan={2}>Mode</Table.Th>
-              <Table.Th rowSpan={2}>Star Rating</Table.Th>
+              {showMode && <Table.Th rowSpan={2}>Mode</Table.Th>}
+              <Table.Th rowSpan={2}>Star rating</Table.Th>
               <Table.Th colSpan={3}>Objects</Table.Th>
               <Table.Th colSpan={2}>Misc</Table.Th>
               <Table.Th colSpan={2}>Timing</Table.Th>
@@ -78,13 +80,13 @@ function StatisticsInfo({ statistics }: StatisticsInfoProps) {
               <Table.Th>Circles</Table.Th>
               <Table.Th>{sliderColumnLabel}</Table.Th>
               <Table.Th>Spinners</Table.Th>
-              <Table.Th>New Combos</Table.Th>
+              <Table.Th>New combos</Table.Th>
               <Table.Th>Breaks</Table.Th>
               <Table.Th>Uninherited</Table.Th>
               <Table.Th>Inherited</Table.Th>
-              <Table.Th>Kiai Time</Table.Th>
-              <Table.Th>Drain Time</Table.Th>
-              <Table.Th>Play Time</Table.Th>
+              <Table.Th>Kiai time</Table.Th>
+              <Table.Th>Drain time</Table.Th>
+              <Table.Th>Play time</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -95,9 +97,11 @@ function StatisticsInfo({ statistics }: StatisticsInfoProps) {
                     {stats.version}
                   </Text>
                 </DifficultyTableCell>
-                <Table.Td>
-                  <ModeCell mode={stats.mode} />
-                </Table.Td>
+                {showMode && (
+                  <Table.Td>
+                    <ModeCell mode={stats.mode} />
+                  </Table.Td>
+                )}
                 <Table.Td>
                   <StarRatingBadge rating={stats.starRating ?? 0} />
                 </Table.Td>
@@ -136,7 +140,7 @@ function StatisticsInfo({ statistics }: StatisticsInfoProps) {
           </Table.Tbody>
         </AppTable>
       </Stack>
-    </Paper>
+    </SectionCard>
   );
 }
 

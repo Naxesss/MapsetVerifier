@@ -215,8 +215,9 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
     setLevelFilter((current) => (current === level ? null : level));
   };
 
+  // Rows on this page are all `sm` apart: the difficulty row, the severity badges and each check.
   return (
-    <Stack gap="md">
+    <Stack gap="sm">
       <Group wrap="wrap" gap="xs" align="center">
         {LEVEL_ORDER.map((level) => {
           const count = categoryData.levelCounts[level];
@@ -229,7 +230,6 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
               key={level}
               component="button"
               type="button"
-              size="xs"
               color={LEVEL_BADGE_COLORS[level]}
               variant={isSelected ? 'filled' : 'light'}
               onClick={() => toggleLevelFilter(level)}

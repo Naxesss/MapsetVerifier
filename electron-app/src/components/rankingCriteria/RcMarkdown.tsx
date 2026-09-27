@@ -54,7 +54,7 @@ function RcHeading({
         fw={700}
         c={order <= 3 ? undefined : 'dimmed'}
         mt={order === 1 ? 0 : 'sm'}
-        mb={4}
+        mb="xs"
         className="rc-heading"
       >
         {children}
@@ -113,12 +113,12 @@ export default function RcMarkdown({ page, compact }: RcMarkdownProps) {
       ),
       ...(compact && {
         ul: ({ children }) => (
-          <List size="sm" spacing={2} mb="xs" withPadding>
+          <List size="sm" spacing="2xs" mb="xs" withPadding>
             {children}
           </List>
         ),
         ol: ({ children }) => (
-          <List size="sm" spacing={2} mb="xs" type="ordered" withPadding>
+          <List size="sm" spacing="2xs" mb="xs" type="ordered" withPadding>
             {children}
           </List>
         ),

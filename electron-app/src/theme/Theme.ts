@@ -72,12 +72,16 @@ export function createAppTheme(fontFamily: string) {
       fontFamily,
     },
     defaultRadius: 5,
+    // rem, not em: an em gap shrinks inside small text (a 4px xs became 3.5px in 14px rows).
+    // xs inside a row, sm between rows, md between cards and blocks, lg between sections.
+    // 2xs is only for a title and the subtitle right below it.
     spacing: {
-      xs: '0.25em',
-      sm: '0.5em',
-      md: '1em',
-      lg: '2em',
-      xl: '4em',
+      '2xs': '0.125rem',
+      xs: '0.25rem',
+      sm: '0.5rem',
+      md: '1rem',
+      lg: '2rem',
+      xl: '4rem',
     },
     colors: {
       blue: blue,
@@ -117,11 +121,22 @@ export function createAppTheme(fontFamily: string) {
           },
         },
       },
+      // Information badges are light and xs everywhere; the star-rating badge is the one exception.
       Badge: {
+        defaultProps: {
+          size: 'xs',
+          variant: 'light',
+        },
         styles: {
           root: {
             transition: 'all 0.1s ease',
           },
+        },
+      },
+      // 36px, like the other toolbar inputs.
+      SegmentedControl: {
+        defaultProps: {
+          size: 'sm',
         },
       },
       Modal: {

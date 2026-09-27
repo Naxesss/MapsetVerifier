@@ -1,7 +1,8 @@
 ﻿import { AreaChart } from '@mantine/charts';
-import { Text, Badge, Group, Paper, useMantineTheme, Progress, Stack } from '@mantine/core';
+import { Text, Badge, Group, Progress, Stack } from '@mantine/core';
 import { useMemo } from 'react';
 import { ChannelAnalysisResult, ChannelBalanceDataPoint } from '../../../Types';
+import SectionCard from '../../common/SectionCard.tsx';
 
 interface ChannelBalanceProps {
   data: ChannelAnalysisResult;
@@ -24,8 +25,6 @@ function getSeverityColor(severity: string): string {
 }
 
 function ChannelBalance({ data }: ChannelBalanceProps) {
-  const theme = useMantineTheme();
-
   // Transform data for Mantine AreaChart - sample data for performance
   const chartData = useMemo(() => {
     if (!data.balanceOverTime?.length) return [];
@@ -45,18 +44,17 @@ function ChannelBalance({ data }: ChannelBalanceProps) {
   const rightPercent = Math.round(data.rightChannelLevel * 100);
 
   return (
-    <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
-      <Group justify="space-between" mb="sm">
-        <Text fw={600}>Channel Balance</Text>
-        <Group gap="xs">
-          <Badge color={getSeverityColor(data.severity)} variant="light">
+    <SectionCard
+      title="Channel balance"
+      actions={
+        <>
+          <Badge color={getSeverityColor(data.severity)}>
             {data.severity === 'None' ? 'Balanced' : data.severity}
           </Badge>
-          <Badge color="gray" variant="light">
-            {data.isMono ? 'Mono' : 'Stereo'}
-          </Badge>
-        </Group>
-      </Group>
+          <Badge color="gray">{data.isMono ? 'Mono' : 'Stereo'}</Badge>
+        </>
+      }
+    >
       <Stack gap="xs" mb="md">
         <Group gap="xs">
           <Text size="sm" w={60} c="blue.4">
@@ -79,7 +77,7 @@ function ChannelBalance({ data }: ChannelBalanceProps) {
       </Stack>
       <Group gap="lg" mb="md">
         <Text size="sm" c="dimmed">
-          Stereo Width:{' '}
+          Stereo width:{' '}
           <Text span fw={500} c="white">
             {(data.stereoWidth * 100).toFixed(0)}%
           </Text>
@@ -108,8 +106,8 @@ function ChannelBalance({ data }: ChannelBalanceProps) {
           areaChartProps={{ accessibilityLayer: false }}
           onMouseDownCapture={(e) => e.preventDefault()}
           series={[
-            { name: 'left', label: 'Left Channel', color: 'blue.6' },
-            { name: 'right', label: 'Right Channel', color: 'pink.6' },
+            { name: 'left', label: 'Left channel', color: 'blue.6' },
+            { name: 'right', label: 'Right channel', color: 'pink.6' },
           ]}
           curveType="monotone"
           withDots={false}
@@ -123,10 +121,10 @@ function ChannelBalance({ data }: ChannelBalanceProps) {
         />
       ) : (
         <Text c="dimmed" ta="center" py="xl">
-          No channel balance data available
+          No channel balance data available.
         </Text>
       )}
-    </Paper>
+    </SectionCard>
   );
 }
 

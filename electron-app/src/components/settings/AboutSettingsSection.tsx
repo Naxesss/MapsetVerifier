@@ -3,6 +3,7 @@ import { IconBrandGithub, IconFolder, IconInfoCircle, IconWorld } from '@tabler/
 import { SettingsSection } from './SettingsSection';
 import { SOURCE_CODE_URL, WEBSITE_URL } from '../../Constants';
 import { useOpenExternal } from '../../hooks/useOpenExternal';
+import { notifyError, openPathOrNotify } from '../../utils/notify.tsx';
 
 export default function AboutSettingsSection() {
   const openExternal = useOpenExternal();
@@ -11,11 +12,10 @@ export default function AboutSettingsSection() {
     try {
       const folderPath = await getPath();
       if (!folderPath) return;
-      const err = await window.electronAPI?.shell.openPath(folderPath);
-      if (err) throw new Error(err);
+      await openPathOrNotify(folderPath, "Couldn't open the folder.");
     } catch (e) {
       console.error('[Settings] Failed to open folder:', e);
-      alert('Failed to open folder. See console for details.');
+      notifyError("Couldn't open the folder.");
     }
   };
 

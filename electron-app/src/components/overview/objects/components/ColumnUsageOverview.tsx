@@ -1,9 +1,10 @@
-import { Box, Group, Paper, Stack, Table, Text, Title, useMantineTheme } from '@mantine/core';
+import { Box, Group, Stack, Table, Text, useMantineTheme } from '@mantine/core';
 import ObjectsGameModeSelector from './ObjectsGameModeSelector.tsx';
 import AppTable, {
   DifficultyTableCell,
   DifficultyTableHeaderCell,
 } from '../../../common/AppTable.tsx';
+import SectionCard from '../../../common/SectionCard.tsx';
 import GameModeIcon from '../../../icons/GameModeIcon.tsx';
 import type { Mode, ObjectsColumnUsage, ObjectsOverviewDifficulty } from '../../../../Types';
 import type { ObjectsModeGroup } from '../types.ts';
@@ -55,7 +56,7 @@ function ColumnUsageCell({
 
   return (
     <Table.Td style={{ textAlign: 'center', ...usageCellStyle(theme, status) }}>
-      <Stack gap={2} align="center">
+      <Stack gap="2xs" align="center">
         <Text size="sm" fw={600} c={usage.totalCount === 0 ? 'dimmed' : undefined}>
           {usage.totalCount.toLocaleString()}
         </Text>
@@ -88,7 +89,7 @@ function LegendSwatch({ color, label }: { color: string; label: string }) {
   const theme = useMantineTheme();
 
   return (
-    <Group gap={6} wrap="nowrap">
+    <Group gap="xs" wrap="nowrap">
       <Box
         style={{
           width: 10,
@@ -133,23 +134,18 @@ export default function ColumnUsageOverview({
   );
 
   return (
-    <Paper p="md" radius="md" withBorder>
+    <SectionCard
+      title="Column usage"
+      info="Objects per column with their share of the total. Hover a cell for its note and hold note split."
+      actions={
+        <ObjectsGameModeSelector
+          groupedDifficulties={groupedDifficulties}
+          selectedMode={activeMode}
+          onModeChange={onModeChange}
+        />
+      }
+    >
       <Stack gap="md">
-        <Group justify="space-between" align="flex-start" wrap="wrap">
-          <Stack gap={2}>
-            <Title order={4}>Column usage</Title>
-            <Text size="sm" c="dimmed">
-              Objects per column with their share of the total. Hover a cell for its note and hold
-              note split.
-            </Text>
-          </Stack>
-          <ObjectsGameModeSelector
-            groupedDifficulties={groupedDifficulties}
-            selectedMode={activeMode}
-            onModeChange={onModeChange}
-          />
-        </Group>
-
         <Group gap="md">
           <LegendSwatch color="blue" label="Evenly used" />
           <LegendSwatch
@@ -221,6 +217,6 @@ export default function ColumnUsageOverview({
           </Table.Tbody>
         </AppTable>
       </Stack>
-    </Paper>
+    </SectionCard>
   );
 }
