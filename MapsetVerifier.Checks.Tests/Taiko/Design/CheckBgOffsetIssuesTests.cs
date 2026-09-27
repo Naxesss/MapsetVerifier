@@ -107,11 +107,19 @@ public class CheckBgOffsetIssuesTests
     }
 
     [Theory]
-    [InlineData(16, 9, 115)]
-    [InlineData(4, 3, 200)]
-    [InlineData(2, 1, 86)]
-    public void VerticalOffsetLimitFollowsAspectRatio(int width, int height, int expected) =>
-        Assert.Equal(expected, CheckBgOffsetIssues.MaxVerticalOffset(width, height));
+    [InlineData(16, 9, 115, -136)]
+    [InlineData(4, 3, 200, -215)]
+    [InlineData(2, 1, 86, -109)]
+    public void VerticalOffsetLimitFollowsAspectRatio(
+        int width,
+        int height,
+        int expectedMax,
+        int expectedMin
+    )
+    {
+        Assert.Equal(expectedMax, CheckBgOffsetIssues.MaxVerticalOffset(width, height));
+        Assert.Equal(expectedMin, CheckBgOffsetIssues.MinVerticalOffset(width, height));
+    }
 
     [Theory]
     [InlineData(160, 90, 115, true)]
@@ -146,6 +154,43 @@ public class CheckBgOffsetIssuesTests
         var issue = Assert.Single(issues);
         Assert.Equal(Issue.Level.Warning, issue.level);
         Assert.Contains($"vertical offset ({yOffset})", issue.message);
+        Assert.Contains("below", issue.message);
+    }
+
+    [Theory]
+    [InlineData(160, 90, -136, false)]
+    [InlineData(160, 90, -137, true)]
+    [InlineData(160, 120, -215, false)]
+    [InlineData(160, 120, -216, true)]
+    [InlineData(200, 100, -109, false)]
+    [InlineData(200, 100, -110, true)]
+    public void FlagsVerticalOffsetPastTheNegativeAspectRatioLimit(
+        int width,
+        int height,
+        int yOffset,
+        bool shouldFlag
+    )
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles(
+            [("oni.osu", BuildTaikoOsu("Oni", $"0,0,\"bg.png\",0,{yOffset}"))],
+            extraBinaryFiles: [("bg.png", CreatePng(width, height))]
+        );
+
+        var issues = context
+            .RunBeatmapSetCheck<CheckBgOffsetIssues>()
+            .Where(issue => issue.message.Contains("vertical offset"))
+            .ToList();
+
+        if (!shouldFlag)
+        {
+            Assert.Empty(issues);
+            return;
+        }
+
+        var issue = Assert.Single(issues);
+        Assert.Equal(Issue.Level.Warning, issue.level);
+        Assert.Contains($"vertical offset ({yOffset})", issue.message);
+        Assert.Contains($"above {yOffset}", issue.message);
     }
 
     private static string BuildTaikoOsu(string version, string backgroundLine) =>
