@@ -1,4 +1,4 @@
-import { Alert, Text, Box, useMantineTheme, Flex, Group } from '@mantine/core';
+import { Alert, Text, Box, Flex, Group } from '@mantine/core';
 import { IconAlertCircle, IconPhotoOff } from '@tabler/icons-react';
 import { useState, useMemo } from 'react';
 import { useSnapshots } from './hooks/useSnapshots';
@@ -32,7 +32,6 @@ interface ModeGroup {
 }
 
 function Snapshots() {
-  const theme = useMantineTheme();
   const { selectedFolder: folder, beatmapFolderPath, beatmapInfo } = useBeatmap();
   const { triggerReparse } = useBeatmapReparse();
   const { settings } = useSettings();
@@ -140,22 +139,7 @@ function Snapshots() {
   }
 
   return (
-    <Box
-      h="100%"
-      style={{
-        fontFamily: theme.headings.fontFamily,
-        position: 'relative',
-        width: '100%',
-        borderRadius: theme.radius.lg,
-        overflow: 'hidden',
-        // Clip the banner's layers in one pass, so its rounded top corners stay clean.
-        isolation: 'isolate',
-        boxShadow: '0 4px 32px rgba(0,0,0,0.4)',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-start',
-      }}
-    >
+    <>
       <BeatmapHeader>
         <Group gap="sm">
           <BeatmapActionButtons
@@ -274,7 +258,7 @@ function Snapshots() {
           </Alert>
         </Flex>
       )}
-    </Box>
+    </>
   );
 }
 

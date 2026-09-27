@@ -90,9 +90,10 @@ function BeatmapCard({
   const transitionMs = '0.22s ease';
 
   // The art and its left-to-right shade (dark enough behind the text on any artwork, lighter on
-  // the right so the art still shows) are the card's own background (`.mv-beatmap-card`), not
-  // child layers: a child layer is clipped separately at the rounded corners and leaves a light
-  // fringe there. Hover and selection lighten the shade (`lift`). The ring is one 2px border in
+  // the right so the art still shows) are one layer (`.mv-beatmap-card::before`), not separate
+  // art and shade layers: those are clipped separately at the rounded corners and leave a light
+  // fringe there. Hover and selection lighten the shade (`lift`), and hovering zooms the art in
+  // slightly (`zoom`). The ring is one 2px border in
   // every state (only its colour changes), so nothing shifts and the corner is a single smooth
   // curve; stacking a border and a box-shadow drew two slightly different curves there. No drop
   // shadows: they darkened the sidebar around a hovered or selected card.
@@ -101,6 +102,7 @@ function BeatmapCard({
       return {
         borderColor: 'var(--mantine-color-primary-2)',
         lift: isHovered ? 0.18 : 0.12,
+        zoom: isHovered ? 1.045 : 1,
       };
     }
 
@@ -108,12 +110,14 @@ function BeatmapCard({
       return {
         borderColor: 'var(--mantine-color-dark-2)',
         lift: 0.06,
+        zoom: 1.025,
       };
     }
 
     return {
       borderColor: 'var(--mantine-color-dark-4)',
       lift: 0,
+      zoom: 1,
     };
   })();
 
@@ -143,6 +147,7 @@ function BeatmapCard({
       style={{
         '--mv-card-art': displayedBgUrl ? `url('${displayedBgUrl}')` : 'none',
         '--mv-card-lift': cardVisual.lift,
+        '--mv-card-zoom': cardVisual.zoom,
         justifyContent: 'flex-start',
         alignItems: 'center',
         borderRadius: 'var(--mantine-radius-md)',
