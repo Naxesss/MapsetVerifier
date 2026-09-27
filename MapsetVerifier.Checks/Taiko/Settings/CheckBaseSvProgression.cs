@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Taiko.Settings;
 
@@ -53,9 +54,11 @@ public class CheckBaseSvProgression : BeatmapSetCheck
                     "currentSV",
                     "previousSV",
                     "previousVersion"
-                ).WithCause(
-                    "SliderMultiplier does not follow a one-directional progression when difficulties are ordered by interpreted difficulty and star rating."
                 )
+                    .WithCause(
+                        "SliderMultiplier does not follow a one-directional progression when difficulties are ordered by interpreted difficulty and star rating."
+                    )
+                    .WithRule(RC.Taiko.SliderVelocity_BaseSliderVelocity140)
             },
         };
 

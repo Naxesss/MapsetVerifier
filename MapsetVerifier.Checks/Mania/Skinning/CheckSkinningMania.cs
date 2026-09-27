@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Mania.Skinning;
 
@@ -64,9 +65,11 @@ public class CheckSkinningMania : BeatmapSetCheck
                     "The \"{0}\" skin set is only partially skinned, missing: {1}.",
                     "set",
                     "missing elements"
-                ).WithCause(
-                    "One or more elements of a skin set are present, but a required element of the same set is missing."
                 )
+                    .WithCause(
+                        "One or more elements of a skin set are present, but a required element of the same set is missing."
+                    )
+                    .WithRule(RC.General.Skinning_SkinningGameplayElementsCompleteSets)
             },
             {
                 "Non Png",
@@ -74,9 +77,11 @@ public class CheckSkinningMania : BeatmapSetCheck
                     Issue.Level.Warning,
                     "\"{0}\" should be a .png file if it uses transparency.",
                     "path"
-                ).WithCause(
-                    "A skinned gameplay element does not use the .png format, which is required for elements that utilise transparency."
                 )
+                    .WithCause(
+                        "A skinned gameplay element does not use the .png format, which is required for elements that utilise transparency."
+                    )
+                    .WithRule(RC.General.Skinning_SkinnedElementsKeptPngFormat)
             },
         };
 

@@ -148,7 +148,7 @@ export function getPageHints(
     return [];
   }
 
-  if (route === '/documentation' || route === '/') {
+  if (route === '/documentation' || route === '/ranking-criteria' || route === '/') {
     return [];
   }
 

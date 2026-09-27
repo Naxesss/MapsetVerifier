@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Standard.Spread
 {
@@ -50,9 +51,11 @@ namespace MapsetVerifier.Checks.Standard.Spread
                         "timestamp -",
                         "gap",
                         "threshold"
-                    ).WithCause(
-                        "Two objects with a time gap less than 125 ms (240 bpm 1/2) are not overlapping."
                     )
+                        .WithCause(
+                            "Two objects with a time gap less than 125 ms (240 bpm 1/2) are not overlapping."
+                        )
+                        .WithRule(RC.Osu.Normal_ObjectsMakingUpActivelyClicked)
                 },
                 {
                     "Warning",
@@ -61,9 +64,11 @@ namespace MapsetVerifier.Checks.Standard.Spread
                         "{0} {1} ms apart.",
                         "timestamp -",
                         "gap"
-                    ).WithCause(
-                        "Two objects with a time gap less than 167 ms (180 bpm 1/2) are not overlapping."
                     )
+                        .WithCause(
+                            "Two objects with a time gap less than 167 ms (180 bpm 1/2) are not overlapping."
+                        )
+                        .WithRule(RC.Osu.Normal_ObjectsMakingUpActivelyClicked)
                 },
             };
 

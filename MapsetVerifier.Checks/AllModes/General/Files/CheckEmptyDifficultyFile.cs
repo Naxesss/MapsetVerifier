@@ -2,6 +2,7 @@ using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.General.Files
 {
@@ -36,9 +37,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
             {
                 {
                     "Empty",
-                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" is empty.", "path").WithCause(
-                        "A .osu file in the song folder contains no data."
-                    )
+                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" is empty.", "path")
+                        .WithCause("A .osu file in the song folder contains no data.")
+                        .WithRule(RC.General.Storyboarding_DifficultyNotThrowParsingErrors)
                 },
             };
 

@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using MathNet.Numerics;
 
 namespace MapsetVerifier.Checks.AllModes.Timing
@@ -44,9 +45,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "{0} Kiai is unsnapped by {1} ms.",
                         "timestamp -",
                         "unsnap"
-                    ).WithCause(
-                        "An inherited line with kiai enabled is unsnapped by 10 ms or more. For taiko this is 5 ms or more instead."
                     )
+                        .WithCause(
+                            "An inherited line with kiai enabled is unsnapped by 10 ms or more. For taiko this is 5 ms or more instead."
+                        )
+                        .WithRule(RC.General.KiaiStartSoundMusic)
                 },
                 {
                     "Minor",
@@ -55,7 +58,9 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "{0} Kiai is unsnapped by {1} ms.",
                         "timestamp -",
                         "unsnap"
-                    ).WithCause("Same as the other check, but by 1 ms or more instead.")
+                    )
+                        .WithCause("Same as the other check, but by 1 ms or more instead.")
+                        .WithRule(RC.General.KiaiStartSoundMusic)
                 },
                 {
                     "Minor End",

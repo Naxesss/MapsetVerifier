@@ -5,6 +5,7 @@ using MapsetVerifier.Framework.Objects.Resources;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using MathNet.Numerics;
 using Serilog;
 
@@ -62,9 +63,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         "\"{0}\" has a {1} ms period of complete silence at the start.",
                         "path",
                         "pure delay"
-                    ).WithCause(
-                        "A hit sound file used on an active hit object has a definite delay (complete silence) of at least 5 ms."
                     )
+                        .WithCause(
+                            "A hit sound file used on an active hit object has a definite delay (complete silence) of at least 5 ms."
+                        )
+                        .WithRule(RC.General.Audio_ClearImpactWhosePeakDelayed)
                 },
                 {
                     "Delay",
@@ -76,9 +79,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         "delay",
                         "timestamp",
                         "difficulty"
-                    ).WithCause(
-                        "A hit sound file used on an active hit object has very low volume for ~5 ms or more."
                     )
+                        .WithCause(
+                            "A hit sound file used on an active hit object has very low volume for ~5 ms or more."
+                        )
+                        .WithRule(RC.General.Audio_ClearImpactWhosePeakDelayed)
                 },
                 {
                     "Minor Delay",
@@ -88,7 +93,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         "path",
                         "pure delay",
                         "delay"
-                    ).WithCause("Same as the regular delay, except anything between 1 to 5 ms.")
+                    )
+                        .WithCause("Same as the regular delay, except anything between 1 to 5 ms.")
+                        .WithRule(RC.General.Audio_ClearImpactWhosePeakDelayed)
                 },
                 {
                     "Unable to check",

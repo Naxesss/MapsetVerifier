@@ -5,6 +5,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.Timing
 {
@@ -51,9 +52,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "difficulty",
                         "bpm",
                         "meter"
-                    ).WithCause(
-                        "A beatmap does not have an uninherited line which the reference beatmap does, or visa versa."
                     )
+                        .WithCause(
+                            "A beatmap does not have an uninherited line which the reference beatmap does, or visa versa."
+                        )
+                        .WithRule(RC.General.Timing_UninheritedTimingPointsSameDifficulty)
                 },
                 {
                     "Missing Minor",
@@ -64,9 +67,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "offset",
                         "difficulty",
                         "reference offset"
-                    ).WithCause(
-                        "Same as the first check, except includes issues caused by decimal unsnaps of uninherited lines."
                     )
+                        .WithCause(
+                            "Same as the first check, except includes issues caused by decimal unsnaps of uninherited lines."
+                        )
+                        .WithRule(RC.General.Timing_UninheritedTimingPointsSameDifficulty)
                 },
                 {
                     "Inconsistent Meter",
@@ -77,9 +82,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "meter",
                         "difficulty",
                         "reference meter"
-                    ).WithCause(
-                        "The meter signature of an uninherited timing line is different from the reference beatmap."
                     )
+                        .WithCause(
+                            "The meter signature of an uninherited timing line is different from the reference beatmap."
+                        )
+                        .WithRule(RC.General.Timing_UninheritedTimingPointsSameDifficulty)
                 },
                 {
                     "Inconsistent BPM",
@@ -90,7 +97,9 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "bpm",
                         "difficulty",
                         "reference bpm"
-                    ).WithCause("Same as the meter check, except checks BPM instead.")
+                    )
+                        .WithCause("Same as the meter check, except checks BPM instead.")
+                        .WithRule(RC.General.Timing_UninheritedTimingPointsSameDifficulty)
                 },
             };
 

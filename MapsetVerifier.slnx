@@ -12,6 +12,9 @@
   <Project Path="MapsetVerifier.Logging/MapsetVerifier.Logging.csproj" />
   <Project Path="MapsetVerifier.Parser.Tests/MapsetVerifier.Parser.Tests.csproj" />
   <Project Path="MapsetVerifier.Parser/MapsetVerifier.Parser.csproj" />
+  <Project Path="MapsetVerifier.RankingCriteria.Tests/MapsetVerifier.RankingCriteria.Tests.csproj" />
+  <Project Path="MapsetVerifier.RankingCriteria.Tool/MapsetVerifier.RankingCriteria.Tool.csproj" />
+  <Project Path="MapsetVerifier.RankingCriteria/MapsetVerifier.RankingCriteria.csproj" />
   <Project Path="MapsetVerifier.Server/MapsetVerifier.Server.csproj" />
   <Project Path="MapsetVerifier.Snapshots.Tests/MapsetVerifier.Snapshots.Tests.csproj" />
   <Project Path="MapsetVerifier.Snapshots/MapsetVerifier.Snapshots.csproj" />

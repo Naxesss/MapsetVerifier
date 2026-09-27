@@ -2,6 +2,7 @@
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.Settings
 {
@@ -162,9 +163,11 @@ namespace MapsetVerifier.Checks.AllModes.Settings
                         "value",
                         "difficulty",
                         "value"
-                    ).WithCause(
-                        "The beatmapset id is inconsistent between any two difficulties in the set, regardless of mode."
                     )
+                        .WithCause(
+                            "The beatmapset id is inconsistent between any two difficulties in the set, regardless of mode."
+                        )
+                        .WithRule(RC.Metadata.DifficultiesBeatmapSetIdenticalTitle)
                 },
                 {
                     "Warning",
@@ -175,8 +178,9 @@ namespace MapsetVerifier.Checks.AllModes.Settings
                         "value",
                         "difficulty",
                         "value"
-                    ).WithCause(
-                        @"Compares settings and presence of elements within the same mode. Includes the following:
+                    )
+                        .WithCause(
+                            @"Compares settings and presence of elements within the same mode. Includes the following:
 
                         - countdown speed (if there's enough time to show it, excluded for taiko/mania)
                         - countdown offset (if there's enough time to show it, excluded for taiko/mania)
@@ -191,7 +195,12 @@ namespace MapsetVerifier.Checks.AllModes.Settings
                         - usage of skin sprites in storyboard (if there's a storyboard)
 
                         > Inconsistent video is already covered by another check."
-                    )
+                        )
+                        .WithRule(
+                            RC.General.EnableCountdownSettingConsistentBetween,
+                            RC.General.LetterboxDuringBreaksSettingConsistent,
+                            RC.General.Storyboarding_WidescreenSupportSettingConsistentBetween
+                        )
                 },
                 {
                     "Minor",

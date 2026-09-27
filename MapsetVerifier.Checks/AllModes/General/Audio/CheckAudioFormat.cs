@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Framework.Objects.Resources;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 using Serilog;
 
 namespace MapsetVerifier.Checks.AllModes.General.Audio
@@ -48,7 +49,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         "\"{0}\" is using the {1} format. Song audio files must be in either MP3 or OGG format. (Note: extension ≠ format.)",
                         "path",
                         "actual format"
-                    ).WithCause("A song audio file is not using the MP3 format.")
+                    )
+                        .WithCause("A song audio file is not using the MP3 format.")
+                        .WithRule(RC.General.Audio_EncodedMp3Mp3OggVorbis)
                 },
                 {
                     "Incorrect Extension",

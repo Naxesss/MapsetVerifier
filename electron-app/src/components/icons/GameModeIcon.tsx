@@ -1,4 +1,4 @@
-﻿import { Box, Tooltip, useMantineTheme } from '@mantine/core';
+﻿import { Box, useMantineTheme } from '@mantine/core';
 import React from 'react';
 import { Mode } from '../../Types';
 import { formatGameModeLabel } from '../../utils/gameMode';
@@ -167,21 +167,21 @@ export default function GameModeIcon({
     iconComponents.Standard;
 
   return (
-    <Tooltip label={formatGameModeLabel(mode)} zIndex={400}>
-      <Box
-        component="span"
-        className={className}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: size,
-          height: size,
-          ...style,
-        }}
-      >
-        <IconComponent size={size} color={customColor} />
-      </Box>
-    </Tooltip>
+    <Box
+      component="span"
+      role="img"
+      aria-label={formatGameModeLabel(mode)}
+      className={className}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: size,
+        height: size,
+        ...style,
+      }}
+    >
+      <IconComponent size={size} color={customColor} />
+    </Box>
   );
 }

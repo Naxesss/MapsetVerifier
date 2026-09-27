@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Mania.Settings
 {
@@ -81,7 +82,13 @@ namespace MapsetVerifier.Checks.Mania.Settings
                         "difficulty",
                         "max hp",
                         "current hp"
-                    ).WithCause("One of the difficulties' HP breaches the RC limits.")
+                    )
+                        .WithCause("One of the difficulties' HP breaches the RC limits.")
+                        .WithRule(
+                            RC.Mania.Easy_HpOdValuesNotHigher,
+                            RC.Mania.Normal_HpOdValuesNotHigher,
+                            RC.Mania.Hard_HpOdValuesNotHigher
+                        )
                 },
                 {
                     "OD Problem",
@@ -91,7 +98,13 @@ namespace MapsetVerifier.Checks.Mania.Settings
                         "difficulty",
                         "max od",
                         "current od"
-                    ).WithCause("One of the difficulties' OD breaches the RC limits.")
+                    )
+                        .WithCause("One of the difficulties' OD breaches the RC limits.")
+                        .WithRule(
+                            RC.Mania.Easy_HpOdValuesNotHigher,
+                            RC.Mania.Normal_HpOdValuesNotHigher,
+                            RC.Mania.Hard_HpOdValuesNotHigher
+                        )
                 },
                 {
                     "Ambiguous",

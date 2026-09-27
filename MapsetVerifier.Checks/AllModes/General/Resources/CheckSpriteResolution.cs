@@ -2,6 +2,7 @@
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.General.Resources
 {
@@ -36,19 +37,19 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
             {
                 {
                     "Resolution",
-                    new IssueTemplate(Issue.Level.Problem, "\"{0}\"", "file name").WithCause(
-                        "A storyboard image has a width height product exceeding 17,000,000 pixels."
-                    )
+                    new IssueTemplate(Issue.Level.Problem, "\"{0}\"", "file name")
+                        .WithCause(
+                            "A storyboard image has a width height product exceeding 17,000,000 pixels."
+                        )
+                        .WithRule(RC.General.Storyboarding_StoryboardedImagesNotExceedArea)
                 },
                 {
                     "Resolution Animation Frame",
-                    new IssueTemplate(
-                        Issue.Level.Problem,
-                        "\"{0}\" (Animation Frame)",
-                        "file name"
-                    ).WithCause(
-                        "Same as the regular storyboard image check, except on one used in an animation."
-                    )
+                    new IssueTemplate(Issue.Level.Problem, "\"{0}\" (Animation Frame)", "file name")
+                        .WithCause(
+                            "Same as the regular storyboard image check, except on one used in an animation."
+                        )
+                        .WithRule(RC.General.Storyboarding_StoryboardedImagesNotExceedArea)
                 },
                 // parsing results
                 {
