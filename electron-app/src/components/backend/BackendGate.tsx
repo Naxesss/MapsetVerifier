@@ -296,7 +296,7 @@ const BackendGate: React.FC<BackendGateProps> = ({
 
                   <CopyButton value={`Error: ${errorMsg ?? ''}\n\n${sidecarLogs.join('\n')}`}>
                     {({ copied, copy }) => (
-                      <Tooltip label={copied ? 'Copied' : 'Copy output'} withArrow>
+                      <Tooltip label={copied ? 'Copied' : 'Copy output'}>
                         <Button
                           size="xs"
                           variant="light"

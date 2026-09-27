@@ -1,14 +1,11 @@
 import { Badge, Group, Popover, ScrollArea, Text, UnstyledButton } from '@mantine/core';
 import { type ReactNode, useMemo, useState } from 'react';
-import { InfoIconTooltip } from '../../../common/InfoIconTooltip.tsx';
 import OsuLink from '../../../common/OsuLink.tsx';
 import { formatEditorTimestamp, lookupEdgePartName } from '../timelineUtils.ts';
 
 const POPOVER_EDGE_LIST_MAX_HEIGHT_PX = 280;
 const POPOVER_EDGE_LIST_APPROX_LINE_HEIGHT_PX = 22;
 const POPOVER_DROPDOWN_MAX_WIDTH_PX = 380;
-
-const BADGE_FILTER_TOOLTIP_LABEL = 'Click badges below to filter edge times by type';
 
 /**
  * Builds a line `MM:SS:mmm - - edgeLabel` where the first ` -` is consumed by {@link OsuLink}
@@ -107,7 +104,6 @@ export function EdgeTimesPopover({
   return (
     <Popover
       position="top"
-      withArrow
       shadow="md"
       trapFocus={false}
       styles={{
@@ -157,7 +153,6 @@ export function EdgeTimesPopover({
             <Text size="xs" c="dimmed" fw={700} component="span">
               {difficultyVersion}
             </Text>
-            <InfoIconTooltip label={BADGE_FILTER_TOOLTIP_LABEL} iconSize={14} />
           </Group>
         </Group>
         {typeBadges.length > 0 ? (

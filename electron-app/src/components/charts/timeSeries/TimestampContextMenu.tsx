@@ -33,7 +33,6 @@ export function TimestampContextMenu({
       closeOnItemClick
       closeOnClickOutside
       clickOutsideEvents={['mousedown', 'touchstart', 'keydown', 'pointerdown']}
-      withArrow
       position="bottom-start"
     >
       <Menu.Target>

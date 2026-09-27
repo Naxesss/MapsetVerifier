@@ -1,6 +1,5 @@
 import { Badge, Group, Popover, ScrollArea, Text, UnstyledButton } from '@mantine/core';
 import { type ReactNode, useMemo, useState } from 'react';
-import { InfoIconTooltip } from '../../../common/InfoIconTooltip.tsx';
 import OsuLink from '../../../common/OsuLink.tsx';
 import { formatEditorTimestamp } from '../timelineUtils.ts';
 import type { ObjectsTypeEntry } from '../../../../Types';
@@ -8,8 +7,6 @@ import type { ObjectsTypeEntry } from '../../../../Types';
 const POPOVER_LIST_MAX_HEIGHT_PX = 280;
 const POPOVER_LIST_APPROX_LINE_HEIGHT_PX = 22;
 const POPOVER_DROPDOWN_MAX_WIDTH_PX = 380;
-
-const DETAIL_FILTER_TOOLTIP_LABEL = 'Click badges below to filter objects by type';
 
 function buildOsuTimestampLinkText(entries: ObjectsTypeEntry[]) {
   if (entries.length === 0) return '';
@@ -84,7 +81,6 @@ export function ObjectTypeEntriesPopover({
   return (
     <Popover
       position="top"
-      withArrow
       shadow="md"
       trapFocus={false}
       styles={{
@@ -134,9 +130,6 @@ export function ObjectTypeEntriesPopover({
             <Text size="xs" c="dimmed" fw={700} component="span">
               {difficultyVersion}
             </Text>
-            {detailBadges.length > 1 ? (
-              <InfoIconTooltip label={DETAIL_FILTER_TOOLTIP_LABEL} iconSize={14} />
-            ) : null}
           </Group>
         </Group>
         {detailBadges.length > 1 ? (

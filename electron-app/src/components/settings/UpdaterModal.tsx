@@ -15,6 +15,7 @@ import { IconAlertCircle, IconCircleCheck, IconCloudDownload } from '@tabler/ico
 import React, { useMemo } from 'react';
 import TurndownService from 'turndown';
 import { useUpdater } from '../../context/UpdaterContext';
+import { useDateTimeFormat } from '../../hooks/useDateTimeFormat';
 import { isSemverPreRelease } from '../../utils/isSemverPreRelease';
 import MantineMarkdown from '../documentation/MantineMarkdown';
 
@@ -54,6 +55,7 @@ const UpdaterModal: React.FC = () => {
     closeUpdater,
     installUpdate,
   } = useUpdater();
+  const { formatDateTime } = useDateTimeFormat();
 
   const busy = status === 'checking' || status === 'downloading' || status === 'installing';
   const updateNotes = availableUpdate?.body?.trim();
@@ -171,7 +173,7 @@ const UpdaterModal: React.FC = () => {
                   <Text size="sm">Target version: {availableUpdate.version}</Text>
                   {availableUpdate.date && (
                     <Text size="sm" c="dimmed">
-                      Published: {new Date(availableUpdate.date).toLocaleString()}
+                      Published: {formatDateTime(availableUpdate.date)}
                     </Text>
                   )}
                 </Stack>

@@ -32,7 +32,6 @@ export type DifficultyChartPanelProps = {
   chartState: DifficultyChartState;
   hover: ChartHoverPayload | null;
   onHover: (hover: ChartHoverPayload | null) => void;
-  showZoomHint?: boolean;
   /** Inline card: crosshair tooltip above plot. Full view uses ChartHoverFloatingPanel instead. */
   showInlineHoverTooltip?: boolean;
   /** Series emphasized while no legend entry is hovered, so a crowded chart has a line to follow. */
@@ -52,7 +51,6 @@ export function DifficultyChartPanel({
   chartState,
   hover,
   onHover,
-  showZoomHint = true,
   showInlineHoverTooltip = true,
   defaultEmphasizedSeriesId = null,
 }: DifficultyChartPanelProps) {
@@ -204,11 +202,6 @@ export function DifficultyChartPanel({
           withinPortal={false}
         />
       </Box>
-      {showZoomHint && !isZoomed ? (
-        <Text size="xs" c="dimmed" ta="center" style={{ lineHeight: 1.35 }}>
-          Click and drag on the chart to zoom in. Right-click a peak for timestamp actions.
-        </Text>
-      ) : null}
       <TimeSeriesLegend
         series={series}
         isVisible={isVisible}

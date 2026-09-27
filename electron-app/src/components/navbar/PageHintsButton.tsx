@@ -42,7 +42,7 @@ export default function PageHintsButton() {
       openDelay={120}
       closeDelay={80}
       withinPortal
-      offset={{ mainAxis: 12, crossAxis: 40 }}
+      offset={{ mainAxis: 4, crossAxis: 40 }}
     >
       <HoverCard.Target>
         <ActionIcon color="gray" variant="subtle" size={NAV_CONTROL_SIZE} aria-label="Page tips">

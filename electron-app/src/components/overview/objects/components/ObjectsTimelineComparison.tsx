@@ -60,7 +60,6 @@ export default function ObjectsTimelineComparison({
   return (
     <SectionCard
       title="Timeline comparison"
-      info="Drag the grip to reorder rows. Drag horizontally or shift + scroll to pan. Hover or right click on objects for more info."
       actions={<ObjectsTimelineHelpButton showHitsoundSection={hitsoundAvailable} />}
     >
       <Stack gap="md">
@@ -116,7 +115,6 @@ function ObjectsTimelineComparisonBody({ pan }: { pan: TimelinePanValue }) {
       <Tooltip
         label="Hitsounding view is available for osu! and osu!catch only"
         disabled={hitsoundAvailable}
-        withArrow
       >
         <Group gap="xs" wrap="nowrap">
           <SegmentedControl

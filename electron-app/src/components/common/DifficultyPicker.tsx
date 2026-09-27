@@ -14,6 +14,7 @@ import { IconChevronDown, IconChevronLeft, IconChevronRight } from '@tabler/icon
 import { Fragment, useState, type ReactNode } from 'react';
 import { getDifficultyColor } from './DifficultyColor';
 import DifficultyColorPill from './DifficultyColorPill';
+import ShortcutLabel from './ShortcutLabel';
 import { formatGameModeLabel, MODE_ORDER } from '../../utils/gameMode';
 import GameModeIcon from '../icons/GameModeIcon';
 import type { Mode } from '../../Types';
@@ -237,7 +238,7 @@ function DifficultyPicker({
           </Menu.Dropdown>
         </Menu>
         <Group gap="xs" wrap="nowrap" ml="auto" style={{ flexShrink: 0 }}>
-          <Tooltip label="Previous difficulty ([)">
+          <Tooltip label={<ShortcutLabel label="Previous difficulty" keys={['[']} />}>
             <ActionIcon
               variant="default"
               size="input-sm"
@@ -248,7 +249,7 @@ function DifficultyPicker({
               <IconChevronLeft size={18} stroke={1.5} />
             </ActionIcon>
           </Tooltip>
-          <Tooltip label="Next difficulty (])">
+          <Tooltip label={<ShortcutLabel label="Next difficulty" keys={[']']} />}>
             <ActionIcon
               variant="default"
               size="input-sm"
@@ -262,14 +263,16 @@ function DifficultyPicker({
         </Group>
       </Group>
       {/* One segment per difficulty in spread order: the same small gap between every segment, a
-          wider one after General and between modes. The row sits the header's usual row gap (sm)
-          under the controls. */}
+          wider one after General and between modes. Each segment's click area is taller than its
+          bar; the row's margins take that extra height back, so the bars keep the header's usual
+          row gap (sm) above and below. */}
       <Group
         gap={SEGMENT_GAP}
         wrap="nowrap"
         align="center"
-        mt="sm"
-        h={SEGMENT_ACTIVE_HEIGHT}
+        h={SEGMENT_HIT_HEIGHT}
+        mt={`calc(var(--mantine-spacing-sm) - ${SEGMENT_HIT_SLACK}px)`}
+        mb={-SEGMENT_HIT_SLACK}
         aria-label="Difficulties at a glance"
       >
         <StatusSegment
@@ -304,8 +307,10 @@ function DifficultyPicker({
 
 const SEGMENT_GAP = 3;
 const SEGMENT_GROUP_GAP = 10;
-const SEGMENT_HEIGHT = 6;
-const SEGMENT_ACTIVE_HEIGHT = 10;
+/** Height of each segment's click area; its bar is 6px, or 10px when selected or hovered. */
+const SEGMENT_HIT_HEIGHT = 20;
+/** Room between the tallest bar and the click area's edge, above and below. */
+const SEGMENT_HIT_SLACK = (SEGMENT_HIT_HEIGHT - 10) / 2;
 
 interface StatusSegmentProps {
   label: string;
@@ -318,8 +323,9 @@ interface StatusSegmentProps {
 }
 
 /**
- * The selected segment is taller rather than outlined: an outline spills into the gaps next to it,
- * which made them look uneven.
+ * A bar in a taller click area (`.mv-status-segment` in global.scss). Hovering grows and brightens
+ * the bar to the selected look, so it reads as clickable. The selected bar is taller rather than
+ * outlined: an outline spilled into the gaps next to it.
  */
 function StatusSegment({
   label,
@@ -332,20 +338,19 @@ function StatusSegment({
   return (
     <Tooltip label={label} openDelay={100}>
       <UnstyledButton
+        className="mv-status-segment"
         aria-label={label}
         aria-current={active || undefined}
         aria-disabled={disabled || undefined}
+        data-active={active || undefined}
         onClick={disabled ? undefined : onClick}
         style={{
-          flex: 1,
-          height: active ? SEGMENT_ACTIVE_HEIGHT : SEGMENT_HEIGHT,
           marginLeft: groupStart ? SEGMENT_GROUP_GAP - SEGMENT_GAP : undefined,
-          borderRadius: 2,
-          backgroundColor: color,
-          opacity: active ? 1 : 0.55,
-          cursor: disabled ? 'not-allowed' : 'pointer',
+          '--segment-color': color,
         }}
-      />
+      >
+        <span className="mv-status-segment__bar" />
+      </UnstyledButton>
     </Tooltip>
   );
 }

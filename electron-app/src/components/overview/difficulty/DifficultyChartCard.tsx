@@ -435,7 +435,6 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
             <DifficultyChartPanel
               {...panelProps}
               plotHeight={MODAL_PLOT_HEIGHT}
-              showZoomHint={false}
               showInlineHoverTooltip={false}
             />
             <ChartHoverFloatingPanel

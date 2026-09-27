@@ -1,6 +1,8 @@
 ﻿import { Badge, Group, ScrollArea, Stack, Text, UnstyledButton } from '@mantine/core';
 import { Fragment, useEffect, useRef, type KeyboardEvent } from 'react';
+import { useDateTimeFormat } from '../../hooks/useDateTimeFormat';
 import { ApiSnapshotCommit } from '../../Types';
+import { formatDate } from '../../utils/dateTime';
 import { MicroLabel } from '../common/Headings.tsx';
 
 interface SnapshotCommitListProps {
@@ -25,18 +27,7 @@ function formatDay(dateString: string): string {
   if (date.toDateString() === today.toDateString()) return 'Today';
   if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
 
-  return date.toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
-
-function formatTime(dateString: string): string {
-  return new Date(dateString).toLocaleTimeString(undefined, {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  return formatDate(date) ?? '';
 }
 
 /** Added, removed and changed counts as coloured numbers, or why there are none. */
@@ -86,6 +77,7 @@ function SnapshotCommitList({
   selectedCommitId,
   onSelectCommit,
 }: SnapshotCommitListProps) {
+  const { formatTime } = useDateTimeFormat();
   const viewportRef = useRef<HTMLDivElement>(null);
   const currentIndex = commits.findIndex((commit) => commit.id === selectedCommitId);
 

@@ -18,7 +18,7 @@ function StackTraceMessage(props: Props) {
       </ScrollArea.Autosize>
       <CopyButton value={props.stackTrace}>
         {({ copied, copy }) => (
-          <Tooltip label={copied ? 'Copied' : 'Copy stack trace'} withArrow>
+          <Tooltip label={copied ? 'Copied' : 'Copy stack trace'}>
             <Button
               size="xs"
               variant="light"
