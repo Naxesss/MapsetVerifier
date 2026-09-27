@@ -1,5 +1,7 @@
-import { Group, Paper, Stack, Text, ThemeIcon } from '@mantine/core';
+import { Group, Stack, Text, ThemeIcon } from '@mantine/core';
 import React from 'react';
+import { CardTitle } from '../common/Headings.tsx';
+import SectionCard from '../common/SectionCard.tsx';
 
 interface SettingsSectionProps {
   title: string;
@@ -16,14 +18,14 @@ interface SettingsRowProps {
 
 export function SettingsSection({ title, description, icon, children }: SettingsSectionProps) {
   return (
-    <Paper withBorder radius="sm" p="md">
-      <Stack gap="md">
+    <SectionCard
+      title={
         <Group gap="sm" align="center" wrap="nowrap">
-          <ThemeIcon size={46} radius="sm" variant="light" color="primary">
+          <ThemeIcon size={46} radius="md" variant="light" color="primary">
             {icon}
           </ThemeIcon>
-          <Stack gap={2} style={{ minWidth: 0 }}>
-            <Text fw={700}>{title}</Text>
+          <Stack gap="2xs" style={{ minWidth: 0 }}>
+            <CardTitle>{title}</CardTitle>
             {description && (
               <Text size="sm" c="dimmed">
                 {description}
@@ -31,16 +33,17 @@ export function SettingsSection({ title, description, icon, children }: Settings
             )}
           </Stack>
         </Group>
-        <Stack gap="sm">{children}</Stack>
-      </Stack>
-    </Paper>
+      }
+    >
+      <Stack gap="sm">{children}</Stack>
+    </SectionCard>
   );
 }
 
 export function SettingsRow({ title, description, control }: SettingsRowProps) {
   return (
     <Group justify="space-between" align="center" wrap="nowrap" gap="md">
-      <Stack gap={2} style={{ minWidth: 0, flex: 1 }}>
+      <Stack gap="2xs" style={{ minWidth: 0, flex: 1 }}>
         <Text size="sm" fw={500}>
           {title}
         </Text>

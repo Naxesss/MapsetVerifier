@@ -1,4 +1,4 @@
-import { Badge, Group, Paper, Stack, Table, Text, Title, useMantineTheme } from '@mantine/core';
+import { Badge, Group, Stack, Table, Text, useMantineTheme } from '@mantine/core';
 import { CSSProperties, useMemo } from 'react';
 import { EdgeTimesPopover } from './EdgeTimesPopover.tsx';
 import ObjectsGameModeSelector from './ObjectsGameModeSelector.tsx';
@@ -6,6 +6,7 @@ import AppTable, {
   DifficultyTableCell,
   DifficultyTableHeaderCell,
 } from '../../../common/AppTable.tsx';
+import SectionCard from '../../../common/SectionCard.tsx';
 import GameModeIcon from '../../../icons/GameModeIcon.tsx';
 import { buildRoundedEdgePartNameMap, getSnappingColumns } from '../timelineUtils.ts';
 import type { Mode, ObjectsOverviewDifficulty, ObjectsSnappingBucket } from '../../../../Types';
@@ -34,7 +35,7 @@ function SnappingStatusBadge({
   style?: CSSProperties;
 }) {
   return (
-    <Badge color={count > 0 ? 'yellow' : 'green'} variant="light" style={style}>
+    <Badge color={count > 0 ? 'yellow' : 'green'} style={style}>
       {count.toLocaleString()} ({percentage.toFixed(1)}%)
     </Badge>
   );
@@ -162,21 +163,18 @@ export default function SnappingsOverview({
   }
 
   return (
-    <Paper p="md" radius="md" withBorder>
+    <SectionCard
+      title="Snapping overview"
+      info="Click on a cell to see all timestamps for that snapping."
+      actions={
+        <ObjectsGameModeSelector
+          groupedDifficulties={groupedDifficulties}
+          selectedMode={activeMode}
+          onModeChange={onModeChange}
+        />
+      }
+    >
       <Stack gap="md">
-        <Group justify="space-between" align="flex-start" wrap="wrap">
-          <Stack gap={2}>
-            <Title order={4}>Snapping overview</Title>
-            <Text size="sm" c="dimmed">
-              Click on a cell to see all timestamps for that snapping.
-            </Text>
-          </Stack>
-          <ObjectsGameModeSelector
-            groupedDifficulties={groupedDifficulties}
-            selectedMode={activeMode}
-            onModeChange={onModeChange}
-          />
-        </Group>
         <AppTable highlightOnHover={false}>
           <Table.Thead style={{ backgroundColor: theme.colors.dark[5] }}>
             <Table.Tr>
@@ -204,6 +202,6 @@ export default function SnappingsOverview({
           </Table.Tbody>
         </AppTable>
       </Stack>
-    </Paper>
+    </SectionCard>
   );
 }

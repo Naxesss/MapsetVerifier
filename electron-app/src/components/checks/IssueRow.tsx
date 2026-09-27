@@ -11,6 +11,8 @@ interface IssueRowProps {
   prefix?: React.ReactNode;
 }
 
+const ROW_PADDING = 'var(--mantine-spacing-2xs) var(--mantine-spacing-xs)';
+
 const IssueRow: React.FC<IssueRowProps> = ({ item, onOpen, prefix }) => {
   const theme = useMantineTheme();
   const { settings } = useSettings();
@@ -71,8 +73,9 @@ const IssueRow: React.FC<IssueRowProps> = ({ item, onOpen, prefix }) => {
     </Stack>
   );
 
+  // Same padding either way, so rows line up whether or not they open the details drawer.
   if (!isInteractive) {
-    return content;
+    return <Box style={{ padding: ROW_PADDING }}>{content}</Box>;
   }
 
   return (
@@ -88,7 +91,7 @@ const IssueRow: React.FC<IssueRowProps> = ({ item, onOpen, prefix }) => {
         maxWidth: '100%',
         borderRadius: theme.radius.sm,
         cursor: 'pointer',
-        padding: '2px 4px',
+        padding: ROW_PADDING,
         backgroundColor: hovered ? 'var(--mantine-color-default-hover)' : undefined,
         transition: 'background-color 120ms ease',
       }}

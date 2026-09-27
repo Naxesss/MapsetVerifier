@@ -7,9 +7,17 @@ type TimeSeriesLegendProps = {
   isVisible: (seriesId: string) => boolean;
   onToggle: (seriesId: string) => void;
   onIsolate: (seriesId: string) => void;
+  /** Called with a series' visibility id while its entry is hovered or focused, null after. */
+  onHighlight?: (seriesId: string | null) => void;
 };
 
-function TimeSeriesLegend({ series, isVisible, onToggle, onIsolate }: TimeSeriesLegendProps) {
+function TimeSeriesLegend({
+  series,
+  isVisible,
+  onToggle,
+  onIsolate,
+  onHighlight,
+}: TimeSeriesLegendProps) {
   const theme = useMantineTheme();
   const legendSeries = series.filter((item) => !item.hideFromLegend);
 
@@ -47,6 +55,10 @@ function TimeSeriesLegend({ series, isVisible, onToggle, onIsolate }: TimeSeries
                 }
               }}
               aria-pressed={visible}
+              onMouseEnter={() => onHighlight?.(visibilityId)}
+              onMouseLeave={() => onHighlight?.(null)}
+              onFocus={() => onHighlight?.(visibilityId)}
+              onBlur={() => onHighlight?.(null)}
               title="Click to isolate, Ctrl/Cmd+click to toggle just this one"
               leftSection={
                 <ColorSwatch

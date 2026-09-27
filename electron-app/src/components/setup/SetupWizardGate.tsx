@@ -82,7 +82,7 @@ export default function SetupWizardGate({ children }: SetupWizardGateProps) {
 
   return (
     <MantineProvider defaultColorScheme="dark" theme={theme} cssVariablesResolver={cssVarResolver}>
-      <Container size="md" pt={80}>
+      <Container size="md" pt="xl">
         <Stack gap="lg">
           <Group gap="md" wrap="nowrap" align="center">
             <Box aria-hidden style={{ flexShrink: 0, opacity: 0.92 }}>
@@ -97,7 +97,7 @@ export default function SetupWizardGate({ children }: SetupWizardGateProps) {
                 />
               </Paper>
             </Box>
-            <Stack gap={4} style={{ minWidth: 0 }}>
+            <Stack gap="xs" style={{ minWidth: 0 }}>
               <Title order={2}>Welcome to Mapset Verifier</Title>
               <Text c="dimmed" size="sm">
                 Let&apos;s get a few things set up before you start.

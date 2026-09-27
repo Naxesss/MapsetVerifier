@@ -8,6 +8,11 @@ import {
   parseUiFontFamily,
 } from '../../theme/fonts';
 import { UI_ZOOM_OPTIONS, parseUiZoomPercent } from '../../theme/zoom';
+import { notifyError } from '../../utils/notify.tsx';
+import { isWindowsPlatform } from '../../utils/platform.ts';
+
+const LIBRARY_DESCRIPTION = 'Which beatmap library the sidebar reads from.';
+const LIBRARY_DESCRIPTION_NON_WINDOWS = `${LIBRARY_DESCRIPTION} Set the lazer data folder manually below; showing the mapset open in the editor only works on Windows.`;
 
 export default function GeneralSettingsSection() {
   const { settings, setSettings } = useSettings();
@@ -24,7 +29,7 @@ export default function GeneralSettingsSection() {
     } catch (e: any) {
       console.error('[Settings] Folder pick failed:', e);
       const msg = typeof e === 'string' ? e : e?.message || 'Unknown error';
-      alert('Folder picker failed: ' + msg);
+      notifyError(`Couldn't open the folder picker: ${msg}`);
     }
   };
 
@@ -37,7 +42,7 @@ export default function GeneralSettingsSection() {
     } catch (e: any) {
       console.error('[Settings] Lazer data folder pick failed:', e);
       const msg = typeof e === 'string' ? e : e?.message || 'Unknown error';
-      alert('Folder picker failed: ' + msg);
+      notifyError(`Couldn't open the folder picker: ${msg}`);
     }
   };
 
@@ -49,7 +54,7 @@ export default function GeneralSettingsSection() {
     >
       <SettingsRow
         title="Beatmap library"
-        description="Which beatmap library the sidebar reads from. On macOS/Linux, set the lazer data folder manually below; the 'currently open in editor' shortcut is Windows-only."
+        description={isWindowsPlatform() ? LIBRARY_DESCRIPTION : LIBRARY_DESCRIPTION_NON_WINDOWS}
         control={
           <SegmentedControl
             data={[

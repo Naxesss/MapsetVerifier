@@ -129,7 +129,7 @@ function renderDeltaIssueLevelChange(issue: ApiCheckDeltaIssue) {
   }
 
   return (
-    <Group gap={6}>
+    <Group gap="xs">
       <LevelIcon level={issue.previousLevel === 'Check' ? 'Info' : issue.previousLevel} size={14} />
       <Text size="xs" c="dimmed">
         to
@@ -173,11 +173,7 @@ function DeltaIssueGroup({
             <IconChevronRight size={16} />
           </span>
           <LevelIcon level={highest === 'Check' ? 'Info' : highest} size={16} />
-          {mapsetWide ? (
-            <Badge size="xs" variant="light" color="gray">
-              {group.category}
-            </Badge>
-          ) : null}
+          {mapsetWide ? <Badge color="gray">{group.category}</Badge> : null}
           <Text size="sm" fw={700} style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
             {group.checkName}
           </Text>
@@ -482,11 +478,9 @@ export default function ChecksDeltaSummary({
               <Tabs.List style={{ flexWrap: 'wrap' }}>
                 {scopedTabs.map((tab) => (
                   <Tabs.Tab key={tab.id} value={tab.id} leftSection={tab.icon}>
-                    <Group gap={6}>
+                    <Group gap="xs">
                       <span>{tab.label}</span>
-                      <Badge size="xs" color={tab.color} variant="light">
-                        {tab.issues.length}
-                      </Badge>
+                      <Badge color={tab.color}>{tab.issues.length}</Badge>
                     </Group>
                   </Tabs.Tab>
                 ))}

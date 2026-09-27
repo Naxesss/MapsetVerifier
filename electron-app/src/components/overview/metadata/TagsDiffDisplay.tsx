@@ -94,35 +94,27 @@ export default function TagsDiffDisplay({ difficulties }: TagsDiffDisplayProps) 
 
         const statusBadge = hasClearMajority ? (
           isMinority ? (
-            <Badge size="xs" color="yellow" variant="light">
-              Differs
-            </Badge>
+            <Badge color="yellow">Differs</Badge>
           ) : (
-            <Badge size="xs" color="gray" variant="light">
-              Most difficulties
-            </Badge>
+            <Badge color="gray">Most difficulties</Badge>
           )
         ) : (
-          <Badge size="xs" variant="light">
-            {countWord(versions.length, 'difficulty')}
-          </Badge>
+          <Badge>{countWord(versions.length, 'difficulty')}</Badge>
         );
 
         const inner = (
-          <Stack gap={4}>
+          <Stack gap="xs">
             <Group gap="xs" wrap="wrap">
               {statusBadge}
               {versions.map((version, vi) => (
-                <Badge key={`${groupIdx}-${version}-${vi}`} size="xs" variant="outline">
-                  {version}
-                </Badge>
+                <Badge key={`${groupIdx}-${version}-${vi}`}>{version}</Badge>
               ))}
             </Group>
             <Code block fz="sm" style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
               {tags || '(none)'}
             </Code>
             {tokenHint && (tokenHint.onlyHere.length > 0 || tokenHint.missingHere.length > 0) ? (
-              <Stack gap={2}>
+              <Stack gap="2xs">
                 {tokenHint.onlyHere.length > 0 ? (
                   <Text size="xs" c="dimmed">
                     Extra keywords vs shared set:{' '}

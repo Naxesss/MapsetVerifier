@@ -1,5 +1,6 @@
 import { Box, Group, Progress, Stack, Text, Tooltip, useMantineTheme } from '@mantine/core';
 import { BitrateAnalysisResult } from '../../../Types';
+import { MicroLabel } from '../../common/Headings.tsx';
 
 interface BitrateProgressIndicatorProps {
   bitrateData: BitrateAnalysisResult;
@@ -37,12 +38,10 @@ function BitrateProgressIndicator({ bitrateData }: BitrateProgressIndicatorProps
         : null;
 
   return (
-    <Stack gap={4}>
+    <Stack gap="xs">
       <Group justify="space-between" align="flex-start" mb="xs">
         <Stack gap={0}>
-          <Text size="xs" c="dimmed" tt="uppercase">
-            Average Bitrate
-          </Text>
+          <MicroLabel>Average bitrate</MicroLabel>
           <Text fw={700} size="xl" c={isAverageBitrateOutOfRange ? 'red.4' : undefined}>
             {bitrateData.averageBitrate.toLocaleString()} kbps
           </Text>
@@ -53,7 +52,7 @@ function BitrateProgressIndicator({ bitrateData }: BitrateProgressIndicatorProps
         </Text>
       </Group>
 
-      <Box pos="relative" mb={4}>
+      <Box pos="relative" mb="xs">
         <Progress.Root size={8} radius="xl" bg={theme.colors.dark[4]}>
           <Progress.Section value={minAllowedPositionPercent} color="red.6" />
           <Progress.Section value={allowedZonePercent} color="green.6" />
@@ -110,7 +109,7 @@ function BitrateProgressIndicator({ bitrateData }: BitrateProgressIndicatorProps
       </Box>
 
       {isAverageBitrateOutOfRange && (
-        <Text size="xs" c="red.4" mt={2}>
+        <Text size="xs" c="red.4" mt="2xs">
           Average bitrate is {averageBitrateRangeDirection} the allowed range.
         </Text>
       )}

@@ -55,7 +55,7 @@ export default function TimelineObjectHeadHovercard({
       radius="md"
       events={{ hover: false, focus: false, touch: false }}
       label={
-        <Stack gap={6} align="stretch" ta="left" maw={340}>
+        <Stack gap="xs" align="stretch" ta="left" maw={340}>
           <Text size="sm" fw={600} ta="left">
             {formatEditorTimestamp(hover.timeMs)}
           </Text>
@@ -71,7 +71,7 @@ export default function TimelineObjectHeadHovercard({
             </Text>
           ) : null}
           {showHitsoundDetail && hitsoundResolved ? (
-            <Box pt={4} style={{ borderTop: '1px solid var(--mantine-color-dark-4)' }}>
+            <Box pt="xs" style={{ borderTop: '1px solid var(--mantine-color-dark-4)' }}>
               <HitsoundContextDetail
                 resolved={hitsoundResolved}
                 timestampMs={hover.timeMs}

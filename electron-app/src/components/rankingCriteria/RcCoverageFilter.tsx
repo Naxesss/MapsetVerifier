@@ -58,7 +58,7 @@ function RcCoverageFilter({ rules, value, onChange }: RcCoverageFilterProps) {
   ];
 
   return (
-    <Group gap={6}>
+    <Group gap="xs">
       {options.map((option) => {
         const count = rules.filter((rule) =>
           matchesCoverageFilter(rule.coverage, option.value)

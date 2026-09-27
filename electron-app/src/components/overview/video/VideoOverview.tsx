@@ -1,13 +1,4 @@
-import {
-  Alert,
-  Text,
-  Box,
-  Flex,
-  Stack,
-  SimpleGrid,
-  LoadingOverlay,
-  SegmentedControl,
-} from '@mantine/core';
+import { Alert, Text, Box, Flex, Stack, SimpleGrid, SegmentedControl } from '@mantine/core';
 import {
   IconAlertCircle,
   IconAlertTriangle,
@@ -20,6 +11,8 @@ import VideoFormatInfo from './VideoFormatInfo';
 import VideoPreview from './VideoPreview';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
 import { useSettings } from '../../../context/SettingsContext.tsx';
+import EmptyState from '../../common/EmptyState.tsx';
+import { CardsSkeleton } from '../../common/LoadingSkeletons.tsx';
 import NoBeatmapsetDisplay from '../../common/NoBeatmapsetDisplay.tsx';
 import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 
@@ -27,7 +20,7 @@ function VideoOverview() {
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
 
-  const { data, isLoading, isFetching, isError, error, beatmapFolderPath } = useVideoAnalysis({
+  const { data, isLoading, isError, error, beatmapFolderPath } = useVideoAnalysis({
     folder,
     songFolder: settings.songFolder,
   });
@@ -45,11 +38,7 @@ function VideoOverview() {
 
   return (
     <Box>
-      <LoadingOverlay
-        visible={isLoading || isFetching}
-        zIndex={1000}
-        overlayProps={{ radius: 'sm', blur: 2 }}
-      />
+      {isLoading && <CardsSkeleton />}
       {isError && (
         <Flex p="md">
           <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing video">
@@ -70,17 +59,17 @@ function VideoOverview() {
       )}
 
       {data && data.success && videos.length === 0 && (
-        <Flex p="md">
-          <Alert icon={<IconVideoOff />} color="gray" title="No video">
-            <Text size="sm">This beatmapset does not use a background video.</Text>
-          </Alert>
-        </Flex>
+        <EmptyState
+          icon={IconVideoOff}
+          title="No video"
+          description="This mapset doesn't use a background video."
+        />
       )}
 
       {data && data.success && selected && (
         <Flex gap="md" p="md" direction="column">
           {data.complianceIssues.length > 0 && (
-            <Alert icon={<IconRulerMeasure />} color="yellow" title="Compliance Issues">
+            <Alert icon={<IconRulerMeasure />} color="yellow" title="Compliance issues">
               <Stack gap="xs">
                 {data.complianceIssues.map((issue: string, idx: number) => (
                   <Text key={idx} size="sm">
@@ -96,7 +85,6 @@ function VideoOverview() {
               value={selected.fileName}
               onChange={setSelectedFileName}
               data={videos.map((video) => video.fileName)}
-              size="xs"
             />
           )}
 

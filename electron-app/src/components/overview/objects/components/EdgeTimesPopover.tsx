@@ -149,11 +149,11 @@ export function EdgeTimesPopover({
         </UnstyledButton>
       </Popover.Target>
       <Popover.Dropdown>
-        <Group gap={6} mb="xs" wrap="wrap" align="center">
+        <Group gap="xs" mb="xs" wrap="wrap" align="center">
           <Text size="xs" c="dimmed" fw={600} component="span">
             {headingLabel} ·{' '}
           </Text>
-          <Group gap={4} wrap="nowrap" align="center">
+          <Group gap="xs" wrap="nowrap" align="center">
             <Text size="xs" c="dimmed" fw={700} component="span">
               {difficultyVersion}
             </Text>
@@ -161,7 +161,7 @@ export function EdgeTimesPopover({
           </Group>
         </Group>
         {typeBadges.length > 0 ? (
-          <Group gap={6} mb="sm" wrap="wrap" align="flex-start">
+          <Group gap="xs" mb="sm" wrap="wrap" align="flex-start">
             {typeBadges.map(([partName, count]) => {
               const isActive = edgeTypeFilter === partName;
               const canFilterByType = typeBadges.length > 1;
@@ -172,7 +172,6 @@ export function EdgeTimesPopover({
                   type={canFilterByType ? 'button' : undefined}
                   variant={isActive ? 'filled' : 'light'}
                   color={isActive ? 'blue' : 'gray'}
-                  size="sm"
                   style={{ cursor: canFilterByType ? 'pointer' : undefined }}
                   onClick={
                     canFilterByType

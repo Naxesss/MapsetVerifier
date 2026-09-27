@@ -1,17 +1,9 @@
 ﻿import { AreaChart } from '@mantine/charts';
-import {
-  Text,
-  Group,
-  Paper,
-  useMantineTheme,
-  Stack,
-  SimpleGrid,
-  Loader,
-  Center,
-  Badge,
-} from '@mantine/core';
+import { Text, Group, Stack, SimpleGrid, Center, Badge } from '@mantine/core';
 import { useMemo } from 'react';
 import { FrequencyAnalysisResult, FftDataPoint, DetectedNote } from '../../../Types';
+import { BlockSkeleton } from '../../common/LoadingSkeletons.tsx';
+import SectionCard from '../../common/SectionCard.tsx';
 
 interface FrequencyAnalysisProps {
   data: FrequencyAnalysisResult | undefined;
@@ -25,8 +17,6 @@ function formatFrequency(freq: number): string {
 }
 
 function FrequencyAnalysis({ data, isLoading }: FrequencyAnalysisProps) {
-  const theme = useMantineTheme();
-
   const fftData = data?.fftData;
 
   // Transform FFT data for Mantine AreaChart
@@ -69,62 +59,49 @@ function FrequencyAnalysis({ data, isLoading }: FrequencyAnalysisProps) {
 
   if (isLoading) {
     return (
-      <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
-        <Text fw={600} mb="sm">
-          Frequency Analysis
-        </Text>
-        <Center h={200}>
-          <Loader size="lg" />
-        </Center>
-      </Paper>
+      <SectionCard title="Frequency analysis">
+        <BlockSkeleton height={200} />
+      </SectionCard>
     );
   }
 
   if (!data) {
     return (
-      <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
-        <Text fw={600} mb="sm">
-          Frequency Analysis
-        </Text>
+      <SectionCard title="Frequency analysis">
         <Center h={200}>
-          <Text c="dimmed">No frequency data available</Text>
+          <Text c="dimmed">No frequency data available.</Text>
         </Center>
-      </Paper>
+      </SectionCard>
     );
   }
 
   return (
-    <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
-      <Group justify="space-between" mb="sm">
-        <Text fw={600}>Frequency Analysis (FFT)</Text>
+    <SectionCard
+      title="Frequency analysis (FFT)"
+      actions={
         <Text size="sm" c="dimmed">
           Window: {data.fftWindowSize}
         </Text>
-      </Group>
+      }
+    >
       <SimpleGrid cols={3} mb="md">
-        <Stack gap={2}>
+        <Stack gap="2xs">
           <Text size="xs" c="dimmed">
             Bass (20-250Hz)
           </Text>
-          <Badge color="red" variant="light">
-            {data.harmonicAnalysis?.bassEnergy?.toFixed(1) || 'N/A'} dB
-          </Badge>
+          <Badge color="red">{data.harmonicAnalysis?.bassEnergy?.toFixed(1) || 'N/A'} dB</Badge>
         </Stack>
-        <Stack gap={2}>
+        <Stack gap="2xs">
           <Text size="xs" c="dimmed">
             Mids (250-4kHz)
           </Text>
-          <Badge color="green" variant="light">
-            {data.harmonicAnalysis?.midEnergy?.toFixed(1) || 'N/A'} dB
-          </Badge>
+          <Badge color="green">{data.harmonicAnalysis?.midEnergy?.toFixed(1) || 'N/A'} dB</Badge>
         </Stack>
-        <Stack gap={2}>
+        <Stack gap="2xs">
           <Text size="xs" c="dimmed">
             Highs (4k-20kHz)
           </Text>
-          <Badge color="blue" variant="light">
-            {data.harmonicAnalysis?.highEnergy?.toFixed(1) || 'N/A'} dB
-          </Badge>
+          <Badge color="blue">{data.harmonicAnalysis?.highEnergy?.toFixed(1) || 'N/A'} dB</Badge>
         </Stack>
       </SimpleGrid>
       {chartData.length > 0 ? (
@@ -147,7 +124,7 @@ function FrequencyAnalysis({ data, isLoading }: FrequencyAnalysisProps) {
         />
       ) : (
         <Center h={200}>
-          <Text c="dimmed">No FFT data available</Text>
+          <Text c="dimmed">No FFT data available.</Text>
         </Center>
       )}
       <Text size="xs" c="dimmed" mt="xs" ta="center">
@@ -156,16 +133,14 @@ function FrequencyAnalysis({ data, isLoading }: FrequencyAnalysisProps) {
       {data.detectedNotes?.length > 0 && (
         <Group gap="xs" mt="md">
           <Text size="xs" c="dimmed">
-            Detected Notes:
+            Detected notes:
           </Text>
           {data.detectedNotes.slice(0, 5).map((note: DetectedNote, idx: number) => (
-            <Badge key={idx} size="sm" variant="outline">
-              {note.noteName}
-            </Badge>
+            <Badge key={idx}>{note.noteName}</Badge>
           ))}
         </Group>
       )}
-    </Paper>
+    </SectionCard>
   );
 }
 

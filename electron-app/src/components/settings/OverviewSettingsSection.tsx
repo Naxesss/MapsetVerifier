@@ -21,10 +21,9 @@ export default function OverviewSettingsSection() {
     >
       <SettingsRow
         title="Star Rating chart"
-        description="Whether the Star Rating overview chart shows the cumulative line, the difficulty strain overlay, or both, by default."
+        description="Whether the star rating chart on the Difficulty tab shows the cumulative line, the difficulty strain overlay, or both, by default."
         control={
           <SegmentedControl
-            size="xs"
             data={DISPLAY_MODE_OPTIONS}
             value={settings.difficultyStrainDisplayMode}
             onChange={(value) =>

@@ -1,6 +1,7 @@
 ﻿import { Badge, Flex, Group, Text, useMantineTheme } from '@mantine/core';
 import { useState } from 'react';
 import { ApiDocumentationCheck } from '../../Types.ts';
+import ClickableRow from '../common/ClickableRow.tsx';
 import DetailModal from '../details/DetailModal';
 import GameModeIcon from '../icons/GameModeIcon.tsx';
 import LevelIcon from '../icons/LevelIcon.tsx';
@@ -12,37 +13,25 @@ interface DocumentationCheckProps {
 function DocumentationCheck({ check }: DocumentationCheckProps) {
   const theme = useMantineTheme();
   const [modalOpen, setModalOpen] = useState(false);
-  const [hovered, setHovered] = useState(false);
-  const background = hovered
-    ? theme.variantColorResolver({ variant: 'light', theme, color: 'blue' }).background
-    : theme.variantColorResolver({ variant: 'light', theme, color: 'gray' }).background;
 
   return (
     <>
-      <Group
-        style={{
-          background: background,
-          borderRadius: theme.defaultRadius,
-          cursor: 'pointer',
-          transition: 'background 0.2s',
-        }}
-        p="sm"
-        w="100%"
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        onClick={() => setModalOpen(true)}
-      >
+      <ClickableRow onClick={() => setModalOpen(true)}>
         <Flex direction="column" style={{ flex: 1 }}>
           <Text fw="bold">{check.description}</Text>
           <Group gap="xs">
-            <Group gap="1">
+            <Group gap={0}>
               {check.modes.map((mode) => (
-                <GameModeIcon size={16} key={mode} mode={mode} color={theme.colors.gray[5]} />
+                <GameModeIcon
+                  size={16}
+                  key={mode}
+                  mode={mode}
+                  color={theme.colors.gray[5]}
+                  withTooltip
+                />
               ))}
             </Group>
-            <Badge size="xs" variant="light">
-              {`${check.category}`}
-            </Badge>
+            <Badge>{check.category}</Badge>
           </Group>
         </Flex>
         <Flex direction="column">
@@ -55,7 +44,7 @@ function DocumentationCheck({ check }: DocumentationCheckProps) {
             {check.author}
           </Text>
         </Flex>
-      </Group>
+      </ClickableRow>
       <DetailModal
         view={modalOpen ? { kind: 'check', check } : null}
         onClose={() => setModalOpen(false)}

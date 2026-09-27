@@ -1,4 +1,4 @@
-import { Anchor, Badge, Flex, Group, Loader, Paper, Stack, Text, Title } from '@mantine/core';
+import { Anchor, Badge, Flex, Group, Paper, Stack, Text } from '@mantine/core';
 import { IconExternalLink } from '@tabler/icons-react';
 import { useMemo } from 'react';
 import RcLeadText from './RcLeadText';
@@ -13,6 +13,8 @@ import {
 } from './rcUtils';
 import { useRankingCriteriaPage } from './useRankingCriteria';
 import { ApiRcCheckLink, ApiRcPage, ApiRcStatement } from '../../Types';
+import { SectionTitle } from '../common/Headings';
+import { TextSkeleton } from '../common/LoadingSkeletons';
 import ClickablePanel from '../details/ClickablePanel';
 import { useDetailNavigation } from '../details/detailNavigation';
 import { useDocumentationChecks } from '../documentation/hooks/useDocumentationChecks';
@@ -31,15 +33,11 @@ function LinkedCheck({ links }: { links: ApiRcCheckLink[] }) {
     <Group wrap="nowrap">
       <Group gap="xs" style={{ flex: 1 }}>
         <Text fw="bold">{links[0].checkName}</Text>
-        {cameFrom && (
-          <Badge size="xs" variant="light" color="gray">
-            You came from here
-          </Badge>
-        )}
+        {cameFrom && <Badge color="gray">You came from here</Badge>}
       </Group>
       <Group gap="md">
         {links.map((link) => (
-          <Group key={link.templateKey} gap={6} wrap="nowrap">
+          <Group key={link.templateKey} gap="xs" wrap="nowrap">
             <LevelIcon level={link.level} size={18} />
             <Text size="sm" c="dimmed">
               {link.templateKey}
@@ -66,8 +64,10 @@ function LinkedCheck({ links }: { links: ApiRcCheckLink[] }) {
 }
 
 /**
- * The statement's own lines of the page markdown, through those of the statements nested in it,
- * with its indentation removed so a nested list item renders as a list of its own.
+ * The statement's own lines of the page markdown, through those of the statements nested in it. A
+ * nested statement comes below the lines of the statements it is nested in, such as "The audio file
+ * of a beatmap must...", so it reads as on the wiki. Indentation is removed down to the outermost
+ * line, keeping the nesting as a list.
  */
 function statementMarkdown(statement: ApiRcStatement, page: ApiRcPage) {
   const nested = new Set([statement.id]);
@@ -80,8 +80,19 @@ function statementMarkdown(statement: ApiRcStatement, page: ApiRcPage) {
     }
   }
 
+  const byId = new Map(page.statements.map((other) => [other.id, other]));
+  const ancestors: ApiRcStatement[] = [];
+  for (let id = statement.parentId; id; id = byId.get(id)?.parentId) {
+    const parent = byId.get(id);
+    if (parent) ancestors.unshift(parent);
+  }
+
   const allLines = page.markdown.split('\n');
-  const lines = allLines.slice(statement.startLine - 1, endLine);
+  const lines = [
+    // Only each parent's own lines, not its other nested statements.
+    ...ancestors.flatMap((parent) => allLines.slice(parent.startLine - 1, parent.endLine)),
+    ...allLines.slice(statement.startLine - 1, endLine),
+  ];
   const indent = lines[0].match(/^\s*/)?.[0].length ?? 0;
 
   // Footnotes are defined at the bottom of the page, so bring along the ones this text uses.
@@ -95,14 +106,9 @@ function statementMarkdown(statement: ApiRcStatement, page: ApiRcPage) {
     .join('\n');
 }
 
-/** Letters and digits only, to tell whether two texts say the same regardless of markdown. */
-function plainWords(text: string) {
-  return text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
-}
-
 /**
- * The full text of the statement as written on the wiki, including its examples and sub-rules. Left
- * out when it is only the sentence the title already shows.
+ * The full text of the statement as written on the wiki, including its examples and sub-rules. Always
+ * shown, even when it is only the title's sentence, so every statement reads the same way.
  */
 function StatementText({ statement }: { statement: ApiRcStatement }) {
   const page = useRankingCriteriaPage(statement.page);
@@ -112,13 +118,13 @@ function StatementText({ statement }: { statement: ApiRcStatement }) {
     [page.data, statement]
   );
 
-  if (page.isLoading) return <Loader size="sm" />;
-  if (!markdown || plainWords(markdown) === plainWords(statement.lead)) return null;
+  if (page.isLoading) return <TextSkeleton lines={3} />;
+  if (!markdown) return null;
 
   return (
     <Stack gap="xs">
-      <Title order={2}>In the ranking criteria</Title>
-      <Paper withBorder radius="md" px="md" pt="sm" pb={4}>
+      <SectionTitle>In the ranking criteria</SectionTitle>
+      <Paper withBorder radius="md" px="md" pt="sm" pb="xs">
         <RcMarkdown page={{ key: statement.page, markdown }} compact />
       </Paper>
     </Stack>
@@ -128,7 +134,7 @@ function StatementText({ statement }: { statement: ApiRcStatement }) {
 /** The title of a statement, below the sentence it finishes when it is nested. */
 export function RcStatementTitle({ statement }: { statement: ApiRcStatement }) {
   return (
-    <Stack gap={2}>
+    <Stack gap="2xs">
       {statement.parentLead && (
         <Text size="sm" c="dimmed">
           <RcLeadText>{statement.parentLead}</RcLeadText>
@@ -166,9 +172,7 @@ export default function RcStatementDetails({ statement }: { statement: ApiRcStat
               }
             />
           )}
-          <Badge size="xs" variant="light" color={KIND_COLOR[statement.kind]}>
-            {statement.kind}
-          </Badge>
+          <Badge color={KIND_COLOR[statement.kind]}>{statement.kind}</Badge>
           <Text size="sm" c="dimmed">
             {[statement.pageTitle, ...statement.path].join(' › ')}
             {difficulties && ` (${difficulties})`}
@@ -182,7 +186,7 @@ export default function RcStatementDetails({ statement }: { statement: ApiRcStat
             void openExternal(statement.wikiUrl);
           }}
         >
-          <Group gap={4} wrap="nowrap">
+          <Group gap="xs" wrap="nowrap">
             osu! wiki
             <IconExternalLink size={14} />
           </Group>
@@ -190,7 +194,7 @@ export default function RcStatementDetails({ statement }: { statement: ApiRcStat
       </Flex>
 
       <Stack gap="xs">
-        <Title order={2}>Checks</Title>
+        <SectionTitle>Checks</SectionTitle>
         <RcOutdatedNotice statement={statement} />
         {linksByCheck.size > 0 ? (
           [...linksByCheck.values()].map((links) => (

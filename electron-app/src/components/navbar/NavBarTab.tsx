@@ -29,7 +29,6 @@ export function NavBarTab({ item, activeRoute, controlRef }: NavBarTabProps) {
       fontSize: theme.fontSizes.sm,
       lineHeight: 1,
       color: labelColor,
-      viewTransitionName: 'none',
       transition: `color ${NAV_INDICATOR_TRANSITION_MS}ms ease, background-color 120ms ease`,
     }),
     [labelColor, theme.fontSizes.sm, theme.headings.fontFamily]
@@ -80,7 +79,6 @@ export function NavBarTab({ item, activeRoute, controlRef }: NavBarTabProps) {
       ref={controlRef}
       component={Link}
       to={item.to}
-      viewTransition
       data-nav-route={item.to}
       data-active={isActive || undefined}
       onMouseEnter={() => setHovered(true)}

@@ -8,6 +8,8 @@ import {
   IconWorld,
 } from '@tabler/icons-react';
 import { useOpenExternal } from '../../hooks/useOpenExternal.ts';
+import { notifyError, openPathOrNotify } from '../../utils/notify.tsx';
+import type { ReactNode } from 'react';
 
 export type SnapshotFolderTarget = {
   beatmapSetId: number;
@@ -23,9 +25,44 @@ interface BeatmapActionButtonsProps {
   snapshotFolder?: SnapshotFolderTarget | null;
 }
 
-async function openFolderPath(folderPath: string) {
-  const err = await window.electronAPI?.shell.openPath(folderPath);
-  if (err) throw new Error(err);
+const NOT_SUBMITTED = 'Not submitted yet';
+
+interface HeaderActionProps {
+  label: string;
+  /** When set, the action is disabled and the tooltip explains why. */
+  disabledReason?: string;
+  onClick: () => void | Promise<void>;
+  children: ReactNode;
+}
+
+/**
+ * Disabled buttons don't receive hover, so a disabled action is rendered with `data-disabled`
+ * instead; that keeps its tooltip working to explain why it can't be used.
+ */
+function HeaderAction({ label, disabledReason, onClick, children }: HeaderActionProps) {
+  const disabled = !!disabledReason;
+
+  return (
+    <Tooltip label={disabled ? `${label} (${disabledReason.toLowerCase()})` : label}>
+      <Button
+        size="xs"
+        variant="default"
+        type="button"
+        aria-label={label}
+        data-disabled={disabled || undefined}
+        aria-disabled={disabled || undefined}
+        onClick={(event) => {
+          if (disabled) {
+            event.preventDefault();
+            return;
+          }
+          void onClick();
+        }}
+      >
+        {children}
+      </Button>
+    </Tooltip>
+  );
 }
 
 function BeatmapActionButtons({
@@ -37,115 +74,76 @@ function BeatmapActionButtons({
 }: BeatmapActionButtonsProps) {
   const theme = useMantineTheme();
   const openExternal = useOpenExternal();
-  const showSnapshotFolderButton = snapshotFolder !== undefined;
+
+  const isSubmitted = !!beatmapSetId && beatmapSetId > 0;
+  const hasBeatmapId = !!beatmapId && beatmapId > 0;
 
   return (
-    <Group p="xs" gap="xs" bg={theme.colors.dark[8]} style={{ borderRadius: theme.radius.md }}>
-      <Tooltip label="Refresh beatmap (F5)">
-        <Button size="xs" variant="default" onClick={onReparse}>
-          <IconRefresh />
-        </Button>
-      </Tooltip>
-      <Tooltip label="Open beatmap folder">
-        <Button
-          size="xs"
-          variant="default"
+    <Group
+      p="xs"
+      gap="xs"
+      w="fit-content"
+      bg={theme.colors.dark[8]}
+      style={{ borderRadius: theme.radius.md }}
+    >
+      <HeaderAction label="Refresh mapset (F5)" onClick={onReparse}>
+        <IconRefresh />
+      </HeaderAction>
+      <HeaderAction
+        label="Open mapset folder"
+        disabledReason={beatmapFolderPath ? undefined : 'Folder not found'}
+        onClick={() =>
+          beatmapFolderPath
+            ? openPathOrNotify(beatmapFolderPath, "Couldn't open the mapset folder.")
+            : undefined
+        }
+      >
+        <IconFolder />
+      </HeaderAction>
+      <HeaderAction
+        label="Open mapset page"
+        disabledReason={isSubmitted ? undefined : NOT_SUBMITTED}
+        onClick={() => openExternal(`https://osu.ppy.sh/beatmapsets/${beatmapSetId}`)}
+      >
+        <IconWorld />
+      </HeaderAction>
+      <HeaderAction
+        label="Open modding page"
+        disabledReason={isSubmitted ? undefined : NOT_SUBMITTED}
+        onClick={() => openExternal(`https://osu.ppy.sh/beatmapsets/${beatmapSetId}/discussion`)}
+      >
+        <IconMessage />
+      </HeaderAction>
+      <HeaderAction
+        label="Open with osu!direct"
+        disabledReason={hasBeatmapId ? undefined : NOT_SUBMITTED}
+        onClick={() => openExternal(`osu://b/${beatmapId}`)}
+      >
+        <IconLink />
+      </HeaderAction>
+      {/* Page-specific actions go last so the shared ones keep their place across pages. */}
+      {snapshotFolder !== undefined && (
+        <HeaderAction
+          label="Open snapshot folder"
+          disabledReason={snapshotFolder ? undefined : 'No snapshot available'}
           onClick={async () => {
-            if (!beatmapFolderPath) return;
+            if (!snapshotFolder) return;
+            const failureMessage = "Couldn't open the snapshot folder.";
             try {
-              await openFolderPath(beatmapFolderPath);
+              const folderPath = await window.electronAPI?.app.getSnapshotFolderPath(
+                snapshotFolder.beatmapSetId,
+                snapshotFolder.subfolder
+              );
+              if (folderPath) await openPathOrNotify(folderPath, failureMessage);
             } catch (e) {
-              console.error('Failed to open folder:', e);
-              alert('Failed to open folder. See console for details.');
+              console.error(failureMessage, e);
+              notifyError(failureMessage);
             }
           }}
-          disabled={!beatmapFolderPath}
         >
-          <IconFolder />
-        </Button>
-      </Tooltip>
-      {showSnapshotFolderButton && (
-        <Tooltip label="Open snapshot folder">
-          <Button
-            size="xs"
-            variant="default"
-            onClick={async () => {
-              if (!snapshotFolder) return;
-              try {
-                const folderPath = await window.electronAPI?.app.getSnapshotFolderPath(
-                  snapshotFolder.beatmapSetId,
-                  snapshotFolder.subfolder
-                );
-                if (!folderPath) return;
-                await openFolderPath(folderPath);
-              } catch (e) {
-                console.error('Failed to open snapshot folder:', e);
-                alert('Failed to open snapshot folder. See console for details.');
-              }
-            }}
-            disabled={!snapshotFolder}
-          >
-            <IconVersions />
-          </Button>
-        </Tooltip>
+          <IconVersions />
+        </HeaderAction>
       )}
-      <Tooltip label="Open beatmap page">
-        <Button
-          size="xs"
-          variant="default"
-          type="button"
-          onClick={async () => {
-            if (!beatmapSetId) return;
-            try {
-              await openExternal(`https://osu.ppy.sh/beatmapsets/${beatmapSetId}`);
-            } catch (e) {
-              console.error('Failed to open beatmap page:', e);
-              alert('Failed to open beatmap page. See console for details.');
-            }
-          }}
-          disabled={!beatmapSetId}
-        >
-          <IconWorld />
-        </Button>
-      </Tooltip>
-      <Tooltip label="Open modding page">
-        <Button
-          size="xs"
-          variant="default"
-          type="button"
-          onClick={async () => {
-            if (!beatmapSetId) return;
-            try {
-              await openExternal(`https://osu.ppy.sh/beatmapsets/${beatmapSetId}/discussion`);
-            } catch (e) {
-              console.error('Failed to open modding page:', e);
-              alert('Failed to open modding page. See console for details.');
-            }
-          }}
-          disabled={!beatmapSetId}
-        >
-          <IconMessage />
-        </Button>
-      </Tooltip>
-      <Tooltip label="Open with osu!direct">
-        <Button
-          size="xs"
-          variant="default"
-          type="button"
-          onClick={async () => {
-            if (!beatmapId) return;
-            try {
-              await openExternal(`osu://b/${beatmapId}`);
-            } catch (e) {
-              console.error('Failed to open via osu direct:', e);
-              alert('Failed to open via osu!direct. See console for details.');
-            }
-          }}
-          disabled={!beatmapId}
-        >
-          <IconLink />
-        </Button>
-      </Tooltip>
     </Group>
   );
 }

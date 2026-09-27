@@ -1,4 +1,4 @@
-﻿import { Alert, Text, Box, Flex, LoadingOverlay } from '@mantine/core';
+﻿import { Alert, Text, Box, Flex } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
 import DifficultySettingsInfo from './DifficultySettingsInfo';
 import GeneralSettingsInfo from './GeneralSettingsInfo';
@@ -6,6 +6,7 @@ import { useBeatmapAnalysis } from './hooks/useBeatmapAnalysis';
 import StatisticsInfo from './StatisticsInfo';
 import { useBeatmap } from '../../../context/BeatmapContext';
 import { useSettings } from '../../../context/SettingsContext';
+import { CardsSkeleton } from '../../common/LoadingSkeletons.tsx';
 import NoBeatmapsetDisplay from '../../common/NoBeatmapsetDisplay.tsx';
 import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 
@@ -13,7 +14,7 @@ function BeatmapOverview() {
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
 
-  const { data, isLoading, isFetching, isError, error } = useBeatmapAnalysis({
+  const { data, isLoading, isError, error } = useBeatmapAnalysis({
     folder,
     songFolder: settings.songFolder,
   });
@@ -24,11 +25,7 @@ function BeatmapOverview() {
 
   return (
     <Box>
-      <LoadingOverlay
-        visible={isLoading || isFetching}
-        zIndex={1000}
-        overlayProps={{ radius: 'sm', blur: 2 }}
-      />
+      {isLoading && <CardsSkeleton />}
       {isError && (
         <Flex p="md">
           <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing beatmap">

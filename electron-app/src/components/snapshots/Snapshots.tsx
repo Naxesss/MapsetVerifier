@@ -1,13 +1,4 @@
-import {
-  Alert,
-  Text,
-  Box,
-  useMantineTheme,
-  Flex,
-  LoadingOverlay,
-  Group,
-  Title,
-} from '@mantine/core';
+import { Alert, Text, Box, useMantineTheme, Flex, Group } from '@mantine/core';
 import { IconAlertCircle, IconPhotoOff } from '@tabler/icons-react';
 import { useState, useMemo } from 'react';
 import { useSnapshots } from './hooks/useSnapshots';
@@ -24,11 +15,14 @@ import { useBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
 import { useSettings } from '../../context/SettingsContext';
 import { ApiSnapshotDifficulty, Mode } from '../../Types';
 import BeatmapActionButtons, { SnapshotFolderTarget } from '../checks/BeatmapActionButtons';
-import { useBeatmapBackground } from '../checks/hooks/useBeatmapBackground';
 import BeatmapHeader from '../common/BeatmapHeader';
 import DifficultyTabSelector from '../common/DifficultyTabSelector';
+import EmptyState from '../common/EmptyState.tsx';
+import { CardsSkeleton } from '../common/LoadingSkeletons.tsx';
 import NoBeatmapsetDisplay from '../common/NoBeatmapsetDisplay.tsx';
+import SelectedDifficultyRow from '../common/SelectedDifficultyRow.tsx';
 import StackTraceMessage from '../common/StackTraceMessage.tsx';
+import StarRatingBadge from '../common/StarRatingBadge.tsx';
 import GameModeIcon from '../icons/GameModeIcon';
 import SnapshotDifficultyChangesIcon from '../icons/SnapshotDifficultyChangesIcon';
 
@@ -62,8 +56,6 @@ function Snapshots() {
     folder,
     songFolder: settings.songFolder,
   });
-
-  const { bgUrl } = useBeatmapBackground(folder, settings.songFolder);
 
   const dataDifficulties = data?.difficulties;
 
@@ -156,14 +148,15 @@ function Snapshots() {
         width: '100%',
         borderRadius: theme.radius.lg,
         overflow: 'hidden',
+        // Clip the banner's layers in one pass, so its rounded top corners stay clean.
+        isolation: 'isolate',
         boxShadow: '0 4px 32px rgba(0,0,0,0.4)',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-start',
       }}
     >
-      <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
-      <BeatmapHeader bgUrl={bgUrl}>
+      <BeatmapHeader>
         <Group gap="sm">
           <BeatmapActionButtons
             beatmapFolderPath={beatmapFolderPath}
@@ -208,6 +201,11 @@ function Snapshots() {
           />
         )}
       </BeatmapHeader>
+      {isLoading && (
+        <Box bg="dark.6" style={{ flex: 1 }}>
+          <CardsSkeleton />
+        </Box>
+      )}
       {data && (
         <Flex
           gap="sm"
@@ -217,29 +215,45 @@ function Snapshots() {
           bg="dark.6"
         >
           {data.errorMessage ? (
-            <Alert icon={<IconPhotoOff />} color="yellow" title="Snapshots unavailable">
-              <Text size="sm">{data.errorMessage}</Text>
-            </Alert>
+            <EmptyState
+              icon={IconPhotoOff}
+              title="Snapshots unavailable"
+              description={data.errorMessage}
+            />
           ) : (
             <>
-              <Flex gap="xs" align="center">
-                <SnapshotDifficultyChangesIcon
-                  hasChanges={
-                    selectedDifficulty === 'General'
-                      ? generalHasChangesAtCommit(data, selectedCommitId)
-                      : difficultyHasChangesAtCommit(data, selectedDifficulty!, selectedCommitId)
-                  }
-                  size={30}
-                />
-                {selectedSnapshotDifficulty && (
-                  <GameModeIcon
-                    mode={selectedSnapshotDifficulty.mode ?? 'Standard'}
-                    size={28}
-                    starRating={selectedSnapshotDifficulty.starRating}
-                  />
-                )}
-                <Title order={3}>{selectedDifficulty}</Title>
-              </Flex>
+              {/* The same row as on Checks, so both pages show the selection alike. */}
+              <SelectedDifficultyRow
+                icons={
+                  <>
+                    <SnapshotDifficultyChangesIcon
+                      hasChanges={
+                        selectedDifficulty === 'General'
+                          ? generalHasChangesAtCommit(data, selectedCommitId)
+                          : difficultyHasChangesAtCommit(
+                              data,
+                              selectedDifficulty!,
+                              selectedCommitId
+                            )
+                      }
+                      size={32}
+                    />
+                    {selectedSnapshotDifficulty && (
+                      <GameModeIcon
+                        mode={selectedSnapshotDifficulty.mode ?? 'Standard'}
+                        size={32}
+                        starRating={selectedSnapshotDifficulty.starRating}
+                      />
+                    )}
+                  </>
+                }
+                name={selectedDifficulty}
+                badges={
+                  !!selectedSnapshotDifficulty?.starRating && (
+                    <StarRatingBadge rating={selectedSnapshotDifficulty.starRating} />
+                  )
+                }
+              />
               <SnapshotContent
                 data={data}
                 selectedDifficulty={selectedDifficulty}

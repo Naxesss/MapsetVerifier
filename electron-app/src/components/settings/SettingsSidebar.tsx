@@ -18,7 +18,6 @@ export default function SettingsSidebar() {
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        viewTransitionName: 'settings-toc',
       }}
     >
       <Box py="xs" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -26,7 +25,7 @@ export default function SettingsSidebar() {
           Settings
         </Title>
       </Box>
-      <Stack gap={4} mt="md" style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+      <Stack gap="xs" mt="md" style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
         {visibleSections.map((section) => (
           <NavLink
             key={section.id}

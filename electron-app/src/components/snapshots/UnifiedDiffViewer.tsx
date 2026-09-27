@@ -1,8 +1,9 @@
 import { Accordion, Badge, Group, Text, useMantineTheme } from '@mantine/core';
-import { IconX } from '@tabler/icons-react';
+import { IconEqual, IconX } from '@tabler/icons-react';
 import { MouseEvent, useMemo, useState } from 'react';
 import SnapshotDiffLine, { getDiffTypeIcon } from './SnapshotDiffLine';
 import { ApiSnapshotCommit, ApiSnapshotSection, DiffType } from '../../Types';
+import EmptyState from '../common/EmptyState.tsx';
 import { InfoIconTooltip } from '../common/InfoIconTooltip.tsx';
 import VirtualizedList from '../common/VirtualizedList.tsx';
 
@@ -36,13 +37,12 @@ function SectionAccordion({ section }: { section: ApiSnapshotSection }) {
     const isActive = activeDiffFilter === diffType;
     return (
       <Badge
-        size="sm"
         color={color}
         variant={isActive ? 'filled' : 'light'}
         style={{ cursor: 'pointer', userSelect: 'none' }}
         onClick={(event) => handleBadgeClick(event, diffType)}
       >
-        <Group gap={4} wrap="nowrap">
+        <Group gap="xs" wrap="nowrap">
           <Text inherit>{count}</Text>
           <Text inherit>{label}</Text>
           {isActive && <IconX size={12} />}
@@ -56,7 +56,9 @@ function SectionAccordion({ section }: { section: ApiSnapshotSection }) {
       <Accordion.Control>
         <Group gap="sm">
           {getDiffTypeIcon(section.aggregatedDiffType, 18)}
-          <Text fw={500}>{section.name}</Text>
+          <Text size="sm" fw={600}>
+            {section.name}
+          </Text>
           {renderFilterBadge(section.additions, 'Added', 'green', 'Added')}
           {renderFilterBadge(section.removals, 'Removed', 'red', 'Removed')}
           {renderFilterBadge(section.modifications, 'Changed', 'yellow', 'Changed')}
@@ -89,9 +91,11 @@ function UnifiedDiffViewer({ commit }: UnifiedDiffViewerProps) {
 
   if (commit.sections.length === 0) {
     return (
-      <Text c="dimmed" size="sm" py="md">
-        This difficulty did not change while the mapset was snapshotted at this time.
-      </Text>
+      <EmptyState
+        icon={IconEqual}
+        title="No changes"
+        description="This difficulty did not change in this snapshot."
+      />
     );
   }
 
@@ -102,12 +106,12 @@ function UnifiedDiffViewer({ commit }: UnifiedDiffViewerProps) {
       value={expandedSections}
       onChange={setExpandedSections}
       styles={{
+        // Sections sit inside the Changes card, so they are a step lighter than it.
         root: {
-          backgroundColor: theme.colors.dark[6],
           border: 0,
         },
         item: {
-          backgroundColor: theme.colors.dark[7],
+          backgroundColor: theme.colors.dark[6],
           borderRadius: theme.radius.md,
           border: 0,
           boxShadow: 'none',

@@ -127,19 +127,17 @@ const MinorChecksFilterModal: React.FC<MinorChecksFilterModalProps> = ({ opened,
                   pr="xs"
                   style={{ borderBottom: '1px solid var(--mantine-color-dark-5)' }}
                 >
-                  <Stack gap={4} style={{ minWidth: 0, flex: 1 }}>
+                  <Stack gap="xs" style={{ minWidth: 0, flex: 1 }}>
                     <Text size="sm" fw={500} lineClamp={2}>
                       {check.description}
                     </Text>
                     <Group gap="xs" wrap="wrap" align="center">
-                      <Group gap={2} wrap="nowrap">
+                      <Group gap="2xs" wrap="nowrap">
                         {check.modes.map((mode) => (
                           <GameModeIcon key={mode} mode={mode} size={15} color={modeIconColor} />
                         ))}
                       </Group>
-                      <Badge size="xs" variant="light" color="gray">
-                        {check.category}
-                      </Badge>
+                      <Badge color="gray">{check.category}</Badge>
                     </Group>
                   </Stack>
                   <Switch

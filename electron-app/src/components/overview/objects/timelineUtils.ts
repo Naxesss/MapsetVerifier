@@ -687,7 +687,7 @@ export function formatTime(timeMs: number) {
   const totalSeconds = Math.floor(absoluteMs / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-  const sign = timeMs < 0 ? '-' : '';
+  const sign = timeMs < 0 ? '−' : '';
   return `${sign}${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 

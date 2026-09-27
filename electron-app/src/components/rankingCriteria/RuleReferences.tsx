@@ -1,4 +1,4 @@
-import { Alert, Anchor, Badge, Button, Group, Loader, Paper, Stack, Text } from '@mantine/core';
+import { Alert, Anchor, Badge, Button, Group, Paper, Stack, Text } from '@mantine/core';
 import { IconAlertCircle, IconExternalLink, IconGavel } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -7,6 +7,7 @@ import RcOutdatedNotice from './RcOutdatedNotice';
 import { formatDifficulties, KIND_COLOR, openExternal, rankingCriteriaRoute } from './rcUtils';
 import RankingCriteriaApi from '../../client/RankingCriteriaApi';
 import { ApiRcStatement } from '../../Types';
+import { ListSkeleton } from '../common/LoadingSkeletons';
 import ClickablePanel from '../details/ClickablePanel';
 import { useDetailNavigation } from '../details/detailNavigation';
 
@@ -20,17 +21,15 @@ function RuleSummary({ statement, cameFrom }: { statement: ApiRcStatement; cameF
   const difficulties = formatDifficulties(statement.difficulties);
 
   return (
-    <Stack gap={6}>
+    <Stack gap="xs">
       <Group gap="xs" wrap="nowrap">
-        <Badge size="xs" variant="light" color={KIND_COLOR[statement.kind]}>
-          {statement.kind}
-        </Badge>
+        <Badge color={KIND_COLOR[statement.kind]}>{statement.kind}</Badge>
         <Text size="xs" c="dimmed" truncate>
           {breadcrumb}
           {difficulties && ` (${difficulties})`}
         </Text>
         {cameFrom && (
-          <Badge size="xs" variant="light" color="gray" style={{ flexShrink: 0 }}>
+          <Badge color="gray" style={{ flexShrink: 0 }}>
             You came from here
           </Badge>
         )}
@@ -72,7 +71,7 @@ function RuleReference({ statement }: { statement: ApiRcStatement }) {
 
   return (
     <Paper p="sm" radius="md" withBorder>
-      <Stack gap={6}>
+      <Stack gap="xs">
         <RuleSummary statement={statement} cameFrom={false} />
         <Group gap="md">
           {!statement.retired && (
@@ -93,7 +92,7 @@ function RuleReference({ statement }: { statement: ApiRcStatement }) {
               void openExternal(statement.wikiUrl);
             }}
           >
-            <Group gap={4} wrap="nowrap">
+            <Group gap="xs" wrap="nowrap">
               osu! wiki
               <IconExternalLink size={12} />
             </Group>
@@ -117,7 +116,7 @@ export default function RuleReferences({ ruleIds }: RuleReferencesProps) {
   });
 
   if (ids.length === 0) return null;
-  if (isLoading) return <Loader size="xs" />;
+  if (isLoading) return <ListSkeleton rows={Math.min(ids.length, 3)} />;
 
   if (error) {
     return (

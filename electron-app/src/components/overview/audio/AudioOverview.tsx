@@ -1,4 +1,4 @@
-﻿import { Alert, Text, Box, Flex, Stack, SimpleGrid, LoadingOverlay } from '@mantine/core';
+﻿import { Alert, Text, Box, Flex, Stack, SimpleGrid } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle, IconRulerMeasure } from '@tabler/icons-react';
 import ChannelBalance from './ChannelBalance';
 import DynamicRange from './DynamicRange';
@@ -8,6 +8,8 @@ import { useAudioAnalysis, useFrequencyAnalysis } from './hooks/useAudioAnalysis
 import Spectrogram from './Spectrogram';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
 import { useSettings } from '../../../context/SettingsContext.tsx';
+import { SectionTitle } from '../../common/Headings.tsx';
+import { CardsSkeleton } from '../../common/LoadingSkeletons.tsx';
 import NoBeatmapsetDisplay from '../../common/NoBeatmapsetDisplay.tsx';
 import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 
@@ -15,7 +17,7 @@ function AudioOverview() {
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
 
-  const { data, isLoading, isFetching, isError, error } = useAudioAnalysis({
+  const { data, isLoading, isError, error } = useAudioAnalysis({
     folder,
     songFolder: settings.songFolder,
   });
@@ -33,11 +35,7 @@ function AudioOverview() {
 
   return (
     <Box>
-      <LoadingOverlay
-        visible={isLoading || isFetching}
-        zIndex={1000}
-        overlayProps={{ radius: 'sm', blur: 2 }}
-      />
+      {isLoading && <CardsSkeleton />}
       {isError && (
         <Flex p="md">
           <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing audio">
@@ -60,7 +58,7 @@ function AudioOverview() {
       {data && data.success && (
         <Flex gap="md" p="md" direction="column">
           {data.complianceIssues?.length > 0 && (
-            <Alert icon={<IconRulerMeasure />} color="yellow" title="Compliance Issues">
+            <Alert icon={<IconRulerMeasure />} color="yellow" title="Compliance issues">
               <Stack gap="xs">
                 {data.complianceIssues.map((issue: string, idx: number) => (
                   <Text key={idx} size="sm">
@@ -83,7 +81,7 @@ function AudioOverview() {
 
           {settings.showAdvancedAudioAnalysis && (
             <>
-              <Text fw={600}>Advanced Audio Analysis</Text>
+              <SectionTitle>Advanced audio analysis</SectionTitle>
               <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="md">
                 {data.channelAnalysis && (
                   <ChannelBalance data={data.channelAnalysis} durationMs={durationMs} />

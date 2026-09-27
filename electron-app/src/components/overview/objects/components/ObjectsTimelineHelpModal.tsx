@@ -17,7 +17,7 @@ export default function ObjectsTimelineHelpModal({
       <Stack gap="lg">
         <Stack gap="xs">
           <Title order={5}>Navigation</Title>
-          <List size="sm" spacing={4}>
+          <List size="sm" spacing="xs">
             <List.Item>Drag horizontally to pan.</List.Item>
             <List.Item>
               Hold <Kbd size="xs">Shift</Kbd> + scroll to step through timing snap ticks.
@@ -49,7 +49,7 @@ export default function ObjectsTimelineHelpModal({
               <Text size="sm" c="dimmed">
                 osu! and osu!catch only. Switch via Structure / Hitsounding in the header.
               </Text>
-              <List size="sm" spacing={4}>
+              <List size="sm" spacing="xs">
                 <List.Item>
                   Circles show <strong>additions</strong> (Whistle, Clap, Finish; grey = none).
                   Priority is Finish → Clap → Whistle, the top one fills the marker, stacked ones
@@ -67,7 +67,7 @@ export default function ObjectsTimelineHelpModal({
 
             <Stack gap="xs">
               <Title order={5}>Hitsound details</Title>
-              <List size="sm" spacing={4}>
+              <List size="sm" spacing="xs">
                 <List.Item>
                   <strong>Hitsound additions</strong>, matches the circles above the strip. Hover a
                   name for primary/stacked tooltips.
@@ -84,7 +84,7 @@ export default function ObjectsTimelineHelpModal({
               <Text size="sm" c="dimmed">
                 The lane below each row, a compact timeline of when samples play.
               </Text>
-              <List size="sm" spacing={4}>
+              <List size="sm" spacing="xs">
                 <List.Item>
                   <strong>Edge lane</strong>, bars at each object edge (head, tail, reverse),
                   coloured by hitnormal sample bank.
@@ -102,7 +102,7 @@ export default function ObjectsTimelineHelpModal({
 
             <Stack gap="xs">
               <Title order={5}>Layer toggles</Title>
-              <List size="sm" spacing={4}>
+              <List size="sm" spacing="xs">
                 <List.Item>
                   <strong>Body sounds</strong>, repeating slider body samples in the passive lane.
                 </List.Item>

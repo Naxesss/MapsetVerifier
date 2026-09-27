@@ -23,11 +23,7 @@ export interface DifficultyTabSelectorProps {
   selectedId?: string;
   onSelect: (id: string) => void;
   sortByStarRating?: boolean;
-  activeOnHover?: boolean;
-  hoveredId?: string;
-  onHover?: (id: string | undefined) => void;
-  hoverRestoreId?: string;
-  /** When true, General shows active border while no difficulty tab is hovered. */
+  /** When true, General shows the active border while nothing is selected. */
   highlightGeneralWhenIdle?: boolean;
   generalLevel?: Level;
   generalLeading?: ReactNode;
@@ -47,10 +43,6 @@ function DifficultyTabSelector({
   selectedId,
   onSelect,
   sortByStarRating = false,
-  activeOnHover = false,
-  hoveredId,
-  onHover,
-  hoverRestoreId,
   highlightGeneralWhenIdle = false,
   generalLevel,
   generalLeading,
@@ -69,16 +61,7 @@ function DifficultyTabSelector({
     : tabs;
 
   const isGeneralActive =
-    selectedId === GENERAL_TAB_ID ||
-    (highlightGeneralWhenIdle && hoveredId === undefined && !selectedId);
-
-  const handleHover = (id: string | undefined) => {
-    onHover?.(id);
-  };
-
-  const handleHoverLeave = () => {
-    onHover?.(hoverRestoreId);
-  };
+    selectedId === GENERAL_TAB_ID || (highlightGeneralWhenIdle && !selectedId);
 
   return (
     <Group gap="xs">
@@ -97,8 +80,6 @@ function DifficultyTabSelector({
             '--button-hover': generalButtonHover,
           }}
           onClick={() => onSelect(GENERAL_TAB_ID)}
-          onMouseEnter={activeOnHover ? () => handleHover(undefined) : undefined}
-          onMouseLeave={activeOnHover ? handleHoverLeave : undefined}
           bd={isGeneralActive ? `1px solid ${diffButtonSelectedBorder}` : '1px solid transparent'}
         >
           <Flex gap="xs" align="center">
@@ -110,7 +91,7 @@ function DifficultyTabSelector({
           </Flex>
         </Button>
         {displayTabs.map((tab) => {
-          const isActive = selectedId === tab.id || (activeOnHover && hoveredId === tab.id);
+          const isActive = selectedId === tab.id;
           const srColor = getDifficultyColor(tab.starRating ?? 0);
 
           const button = (
@@ -129,8 +110,6 @@ function DifficultyTabSelector({
               size="compact-md"
               h="fit-content"
               p="xs"
-              onMouseEnter={activeOnHover && !tab.disabled ? () => handleHover(tab.id) : undefined}
-              onMouseLeave={activeOnHover && !tab.disabled ? handleHoverLeave : undefined}
               bd={
                 isActive
                   ? `1px solid ${srColor}`

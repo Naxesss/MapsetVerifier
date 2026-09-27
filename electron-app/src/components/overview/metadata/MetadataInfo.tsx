@@ -1,19 +1,9 @@
-﻿import {
-  Text,
-  Badge,
-  Group,
-  Paper,
-  useMantineTheme,
-  Stack,
-  SimpleGrid,
-  Box,
-  Code,
-} from '@mantine/core';
+﻿import { Text, Badge, Group, Stack, SimpleGrid, Box, Code } from '@mantine/core';
 import TagsDiffDisplay from './TagsDiffDisplay.tsx';
 import { DifficultyMetadata } from '../../../Types';
 import { countWord } from '../../../utils/countWord';
 import { getModeAccentColor } from '../../../utils/gameMode.ts';
-import { InfoIconTooltip } from '../../common/InfoIconTooltip.tsx';
+import SectionCard from '../../common/SectionCard.tsx';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
 import type { ReactNode } from 'react';
 
@@ -40,9 +30,7 @@ function MetadataDifficultyGrid({
       }}
     >
       {difficulties.map((d, idx) => [
-        <Badge key={`${idx}-badge`} size="xs" variant="light">
-          {d.version}
-        </Badge>,
+        <Badge key={`${idx}-badge`}>{d.version}</Badge>,
         <Box key={`${idx}-value`}>{children(d)}</Box>,
       ])}
     </Box>
@@ -50,8 +38,6 @@ function MetadataDifficultyGrid({
 }
 
 function MetadataInfo({ difficulties }: MetadataInfoProps) {
-  const theme = useMantineTheme();
-
   if (difficulties.length === 0) {
     return null;
   }
@@ -67,29 +53,19 @@ function MetadataInfo({ difficulties }: MetadataInfoProps) {
   const hasUnicodeTitle = first.title !== first.titleUnicode;
 
   return (
-    <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
-      <Group justify="space-between" mb="md">
-        <Group gap="xs">
-          <Text fw={600}>Metadata</Text>
-          <InfoIconTooltip
-            label="Beatmap metadata information across all difficulties"
-            multiline
-            w={250}
-          />
-        </Group>
-        <Badge color="blue" variant="light">
-          {countWord(difficulties.length, 'difficulty')}
-        </Badge>
-      </Group>
-
+    <SectionCard
+      title="Metadata"
+      info="Artist, title, source and tags, compared across all difficulties."
+      actions={<Badge color="blue">{countWord(difficulties.length, 'difficulty')}</Badge>}
+    >
       <Stack gap="md">
         {/* Artist */}
         <Box>
-          <Text size="xs" c="dimmed" mb={4}>
+          <Text size="xs" c="dimmed" mb="xs">
             Artist
           </Text>
           {allSame('artist') ? (
-            <Stack gap={2}>
+            <Stack gap="2xs">
               <Text fw={500}>{first.artist}</Text>
               {hasUnicodeArtist && (
                 <Text size="sm" c="dimmed">
@@ -100,7 +76,7 @@ function MetadataInfo({ difficulties }: MetadataInfoProps) {
           ) : (
             <MetadataDifficultyGrid difficulties={difficulties}>
               {(d) => (
-                <Stack gap={2}>
+                <Stack gap="2xs">
                   <Text size="sm">{d.artist}</Text>
                   {d.artist !== d.artistUnicode && (
                     <Text size="xs" c="dimmed">
@@ -115,11 +91,11 @@ function MetadataInfo({ difficulties }: MetadataInfoProps) {
 
         {/* Title */}
         <Box>
-          <Text size="xs" c="dimmed" mb={4}>
+          <Text size="xs" c="dimmed" mb="xs">
             Title
           </Text>
           {allSame('title') ? (
-            <Stack gap={2}>
+            <Stack gap="2xs">
               <Text fw={500}>{first.title}</Text>
               {hasUnicodeTitle && (
                 <Text size="sm" c="dimmed">
@@ -130,7 +106,7 @@ function MetadataInfo({ difficulties }: MetadataInfoProps) {
           ) : (
             <MetadataDifficultyGrid difficulties={difficulties}>
               {(d) => (
-                <Stack gap={2}>
+                <Stack gap="2xs">
                   <Text size="sm">{d.title}</Text>
                   {d.title !== d.titleUnicode && (
                     <Text size="xs" c="dimmed">
@@ -146,7 +122,7 @@ function MetadataInfo({ difficulties }: MetadataInfoProps) {
         <SimpleGrid cols={2}>
           {/* Creator */}
           <Box>
-            <Text size="xs" c="dimmed" mb={4}>
+            <Text size="xs" c="dimmed" mb="xs">
               Creator
             </Text>
             {allSame('creator') ? (
@@ -160,7 +136,7 @@ function MetadataInfo({ difficulties }: MetadataInfoProps) {
 
           {/* Source */}
           <Box>
-            <Text size="xs" c="dimmed" mb={4}>
+            <Text size="xs" c="dimmed" mb="xs">
               Source
             </Text>
             {allSame('source') ? (
@@ -191,7 +167,7 @@ function MetadataInfo({ difficulties }: MetadataInfoProps) {
 
         {/* Tags */}
         <Box>
-          <Text size="xs" c="dimmed" mb={4}>
+          <Text size="xs" c="dimmed" mb="xs">
             Tags
           </Text>
           {allSame('tags') ? (
@@ -206,13 +182,13 @@ function MetadataInfo({ difficulties }: MetadataInfoProps) {
         {/* IDs */}
         <SimpleGrid cols={2}>
           <Box>
-            <Text size="xs" c="dimmed" mb={4}>
-              Beatmapset ID
+            <Text size="xs" c="dimmed" mb="xs">
+              Mapset ID
             </Text>
             <Text fw={500}>{first.beatmapSetId ?? 'Not submitted'}</Text>
           </Box>
           <Box>
-            <Text size="xs" c="dimmed" mb={4}>
+            <Text size="xs" c="dimmed" mb="xs">
               Modes
             </Text>
             <Group gap="xs">
@@ -223,7 +199,7 @@ function MetadataInfo({ difficulties }: MetadataInfoProps) {
           </Box>
         </SimpleGrid>
       </Stack>
-    </Paper>
+    </SectionCard>
   );
 }
 

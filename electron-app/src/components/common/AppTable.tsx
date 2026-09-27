@@ -76,7 +76,15 @@ function AppTable({
         verticalSpacing={verticalSpacing}
         styles={
           styles ?? {
-            th: { textAlign: 'center' },
+            // Headers use the shared uppercase label style (see MicroLabel).
+            th: {
+              textAlign: 'center',
+              fontSize: 11,
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+              color: 'var(--mantine-color-dimmed)',
+            },
             td: { textAlign: 'center' },
           }
         }

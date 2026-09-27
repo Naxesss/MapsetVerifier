@@ -1,16 +1,5 @@
-import {
-  Alert,
-  Box,
-  Flex,
-  Grid,
-  LoadingOverlay,
-  Paper,
-  SimpleGrid,
-  Stack,
-  Text,
-  useMantineTheme,
-} from '@mantine/core';
-import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
+import { Alert, Box, Flex, Grid, Stack, Text } from '@mantine/core';
+import { IconAlertCircle, IconAlertTriangle, IconChartLine } from '@tabler/icons-react';
 import { useMemo, useState } from 'react';
 import { DifficultyChartCard } from './DifficultyChartCard.tsx';
 import {
@@ -18,14 +7,18 @@ import {
   MODE_ORDER,
   normalizeMode,
   SAMPLE_VOLUME_CHART_TITLE,
+  STAR_RATING_CHART_TITLE,
   type DifficultyModeGroup,
 } from './difficultyChartModel.ts';
 import { DifficultyGameModeSelector } from './DifficultyGameModeSelector.tsx';
-import { SummaryCard } from './DifficultySummaryCards.tsx';
+import { DifficultySpreadSummary } from './DifficultySummaryCards.tsx';
 import { useDifficultyChartState } from './hooks/useDifficultyChartState.ts';
 import { useDifficultyOverview } from './hooks/useDifficultyOverview.ts';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
 import { useSettings } from '../../../context/SettingsContext.tsx';
+import EmptyState from '../../common/EmptyState.tsx';
+import { SectionTitle } from '../../common/Headings.tsx';
+import { CardsSkeleton } from '../../common/LoadingSkeletons.tsx';
 import NoBeatmapsetDisplay from '../../common/NoBeatmapsetDisplay.tsx';
 import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 import type { DifficultyOverviewDifficulty, Mode } from '../../../Types';
@@ -33,11 +26,10 @@ import type { DifficultyOverviewDifficulty, Mode } from '../../../Types';
 const EMPTY_DIFFICULTIES: DifficultyOverviewDifficulty[] = [];
 
 function DifficultyOverview() {
-  const theme = useMantineTheme();
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
   const [selectedMode, setSelectedMode] = useState<Mode | undefined>();
-  const { data, isLoading, isFetching, isError, error } = useDifficultyOverview({
+  const { data, isLoading, isError, error } = useDifficultyOverview({
     folder,
     songFolder: settings.songFolder,
   });
@@ -96,23 +88,14 @@ function DifficultyOverview() {
     folder ?? ''
   );
 
-  const starRatingChart = charts.find((c) => c.title === 'Star Rating');
+  const starRatingChart = charts.find((c) => c.title === STAR_RATING_CHART_TITLE);
   const sliderVelocityChart = charts.find((c) => c.title === 'Slider velocity');
   const sampleVolumeChart = charts.find((c) => c.title === SAMPLE_VOLUME_CHART_TITLE);
   const skillCharts = charts.filter(
     (c) =>
-      c.title !== 'Star Rating' &&
+      c.title !== STAR_RATING_CHART_TITLE &&
       c.title !== 'Slider velocity' &&
       c.title !== SAMPLE_VOLUME_CHART_TITLE
-  );
-  const distinctSkillCount = useMemo(
-    () =>
-      new Set(
-        selectedDifficulties.flatMap((difficulty) =>
-          difficulty.skills.map((skill) => skill.skillName)
-        )
-      ).size,
-    [selectedDifficulties]
   );
 
   if (!folder) {
@@ -121,11 +104,7 @@ function DifficultyOverview() {
 
   return (
     <Box>
-      <LoadingOverlay
-        visible={isLoading || isFetching}
-        zIndex={1000}
-        overlayProps={{ radius: 'sm', blur: 2 }}
-      />
+      {isLoading && <CardsSkeleton />}
       {isError && (
         <Flex p="md">
           <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing difficulty overview">
@@ -153,19 +132,7 @@ function DifficultyOverview() {
             onModeChange={setSelectedMode}
           />
 
-          <SimpleGrid cols={{ base: 1, md: 3 }} spacing="md">
-            <SummaryCard label="Difficulties" value={String(selectedDifficulties.length)} />
-            <SummaryCard
-              label="Skill charts"
-              value={String(skillCharts.length)}
-              subValue={`${distinctSkillCount} unique skills`}
-            />
-            <SummaryCard
-              label="Peak interval"
-              value={`${(data.msPerPeak / 1000).toFixed(1)}s`}
-              subValue={`${data.msPerPeak}ms strain windows`}
-            />
-          </SimpleGrid>
+          <DifficultySpreadSummary difficulties={selectedDifficulties} />
 
           <Stack gap="md">
             {charts.length > 0 ? (
@@ -181,9 +148,7 @@ function DifficultyOverview() {
                 )}
                 {skillCharts.length > 0 && (
                   <>
-                    <Text fw={600} c={theme.colors.gray[2]}>
-                      Skill Strain Analysis
-                    </Text>
+                    <SectionTitle>Skill strain</SectionTitle>
                     <Grid grow gutter="md">
                       {skillCharts.map((chart) => (
                         <Grid.Col key={chart.title} span={{ base: 12, lg: 6, xl: 4 }}>
@@ -195,11 +160,7 @@ function DifficultyOverview() {
                 )}
               </>
             ) : (
-              <Paper p="md" radius="md" withBorder>
-                <Text c="dimmed" ta="center">
-                  No difficulty strain data available.
-                </Text>
-              </Paper>
+              <EmptyState icon={IconChartLine} title="No difficulty strain data available" />
             )}
           </Stack>
         </Flex>

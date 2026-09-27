@@ -32,7 +32,7 @@ export default function TimelineShiftSeekModeBadge({
 }: TimelineShiftSeekModeBadgeProps) {
   return (
     <Group
-      gap={6}
+      gap="xs"
       wrap="nowrap"
       align="center"
       data-stop-timeline-pan="true"
@@ -41,8 +41,6 @@ export default function TimelineShiftSeekModeBadge({
       <Tooltip label="Hold Shift and scroll the timeline" withArrow>
         <Badge
           color={active ? 'green' : 'gray'}
-          variant="light"
-          size="sm"
           style={{ opacity: active ? 1 : 0.45, cursor: 'default' }}
         >
           Timeline scroll

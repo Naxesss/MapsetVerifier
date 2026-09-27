@@ -1,7 +1,8 @@
-import { AppShell, Burger, Group, useMantineTheme } from '@mantine/core';
+import { ActionIcon, AppShell, Group, Tooltip, useMantineTheme } from '@mantine/core';
+import { IconLayoutSidebarLeftCollapse, IconLayoutSidebarLeftExpand } from '@tabler/icons-react';
 import { useLocation } from 'react-router-dom';
 import { MainNavRail } from './MainNavRail';
-import { getActiveNavRoute } from './navConfig';
+import { getActiveNavRoute, NAV_CONTROL_SIZE } from './navConfig';
 import PageHintsButton from './PageHintsButton.tsx';
 import Beatmaps from '../beatmaps/Beatmaps.tsx';
 import SettingsButton from '../settings/SettingsButton';
@@ -17,6 +18,7 @@ function NavBars(props: NavBarsProps) {
   const theme = useMantineTheme();
   const location = useLocation();
   const activeRoute = getActiveNavRoute(location.pathname);
+  const sidebarToggleLabel = props.desktopOpened ? 'Hide mapset list' : 'Show mapset list';
 
   return (
     <>
@@ -26,18 +28,29 @@ function NavBars(props: NavBarsProps) {
           height: 60,
           fontFamily: theme.headings.fontFamily,
           background: theme.colors.dark[8],
-          viewTransitionName: 'app-header',
         }}
       >
         <Group h={60} px="md" wrap="nowrap">
-          <Burger
-            opened={props.desktopOpened}
-            onClick={props.toggleDesktop}
-            disabled={!props.toggleDesktop}
-            size="sm"
-            aria-label="Toggle sidebar"
-            style={!props.toggleDesktop ? { cursor: 'not-allowed', opacity: 0.4 } : undefined}
-          />
+          {/* Keep the toggle's space on Settings so the page links don't shift. */}
+          {/* Tooltips open below: above the navbar is the window's title bar. */}
+          <Tooltip label={sidebarToggleLabel} position="bottom" disabled={!props.toggleDesktop}>
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              size={NAV_CONTROL_SIZE}
+              onClick={props.toggleDesktop}
+              aria-label={sidebarToggleLabel}
+              aria-hidden={!props.toggleDesktop || undefined}
+              tabIndex={props.toggleDesktop ? undefined : -1}
+              style={props.toggleDesktop ? undefined : { visibility: 'hidden' }}
+            >
+              {props.desktopOpened ? (
+                <IconLayoutSidebarLeftCollapse color="var(--mantine-color-white)" />
+              ) : (
+                <IconLayoutSidebarLeftExpand color="var(--mantine-color-white)" />
+              )}
+            </ActionIcon>
+          </Tooltip>
           <Group
             gap="xs"
             justify="space-between"
@@ -46,14 +59,14 @@ function NavBars(props: NavBarsProps) {
             style={{ flex: 1, minWidth: 0 }}
           >
             <MainNavRail activeRoute={activeRoute} />
-            <Group gap={4} ml="auto" wrap="nowrap">
+            <Group gap="xs" ml="auto" wrap="nowrap">
               <PageHintsButton />
               <SettingsButton />
             </Group>
           </Group>
         </Group>
       </AppShell.Header>
-      <AppShell.Navbar style={{ viewTransitionName: 'app-sidebar' }}>
+      <AppShell.Navbar>
         {props.showBeatmapSidebar ? <Beatmaps /> : <SettingsSidebar />}
       </AppShell.Navbar>
     </>

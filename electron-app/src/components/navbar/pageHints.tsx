@@ -28,7 +28,7 @@ function refreshBeatmapHint(): PageHint {
     id: 'refresh-beatmap',
     content: (
       <>
-        Press <Kbd size="xs">F5</Kbd> to refresh the beatmap.
+        Press <Kbd size="xs">F5</Kbd> to refresh the mapset.
       </>
     ),
   };
@@ -78,7 +78,7 @@ function bookmarkHint(bookmarksEnabled: boolean): PageHint {
     return {
       id: 'bookmark-pin',
       content:
-        'Use the pin icon on a beatmapset in the sidebar to bookmark it, then filter the list to show bookmarked sets only.',
+        'Use the pin icon on a mapset in the sidebar to bookmark it, then filter the list to show bookmarked mapsets only.',
     };
   }
 
@@ -97,7 +97,7 @@ function bookmarkHint(bookmarksEnabled: boolean): PageHint {
           }}
         >
           <IconPin size={16} />
-          pin beatmapsets
+          pin mapsets
         </Box>
         ? Enable bookmarks in Experimental Settings.
       </>

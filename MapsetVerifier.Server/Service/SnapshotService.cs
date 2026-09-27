@@ -44,7 +44,7 @@ public static class SnapshotService
                 difficulties: difficulties,
                 general: null,
                 beatmapHistories: [],
-                errorMessage: "The BeatmapSet ID is -1, indicating that the map is not submitted. This makes the snapshotter not work. Either download the submitted version from the osu! website, or submit the map before using this feature."
+                errorMessage: "Snapshots need a submitted mapset, and this one hasn't been uploaded yet. Submit it, or download the submitted version from the osu! website, to start taking snapshots."
             );
         }
 

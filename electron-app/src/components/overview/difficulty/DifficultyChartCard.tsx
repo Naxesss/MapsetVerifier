@@ -3,7 +3,6 @@ import {
   Button,
   Group,
   Modal,
-  Paper,
   SegmentedControl,
   SimpleGrid,
   Stack,
@@ -22,6 +21,12 @@ import {
   type PointerEvent,
 } from 'react';
 import {
+  SAMPLE_VOLUME_CHART_TITLE,
+  STAR_RATING_CHART_TITLE,
+  type ChartDefinition,
+  type ChartRow,
+} from './difficultyChartModel.ts';
+import {
   DifficultyChartPanel,
   INLINE_PLOT_HEIGHT,
   MODAL_PLOT_HEIGHT,
@@ -29,8 +34,8 @@ import {
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
 import { useSettings } from '../../../context/SettingsContext';
 import { ChartHoverFloatingPanel } from '../../charts/timeSeries/ChartHoverFloatingPanel.tsx';
+import SectionCard from '../../common/SectionCard.tsx';
 import { formatChartTime } from '../../common/TimeAxis.tsx';
-import type { ChartDefinition, ChartRow } from './difficultyChartModel.ts';
 import type { DifficultyChartState } from './hooks/useDifficultyChartState.ts';
 import type { DifficultyStrainDisplayMode } from '../../../context/SettingsContext';
 import type { ChartHoverPayload } from '../../charts/timeSeries/types.ts';
@@ -49,9 +54,21 @@ function formatStrainResolution(msPerPeak: number): string {
   return `${trimmed}s`;
 }
 
+const CHART_INFO: Record<string, string> = {
+  [STAR_RATING_CHART_TITLE]:
+    'Star rating over time for each difficulty, so you can compare where each one peaks.',
+  'Slider velocity': 'Effective slider velocity over time, including SV changes.',
+  [SAMPLE_VOLUME_CHART_TITLE]: 'Hitsound sample volume over time for each difficulty.',
+};
+const SKILL_CHART_INFO =
+  'Strain of this skill over time. Higher sections are harder in this aspect of the map.';
+
+/** Above this many difficulties a chart emphasizes the hardest one by default. */
+const CROWDED_CHART_SERIES_COUNT = 6;
+
 function MetricStat({ label, value }: { label: string; value: string }) {
   return (
-    <Stack gap={2}>
+    <Stack gap="2xs">
       <Text size="xs" c="dimmed">
         {label}
       </Text>
@@ -247,6 +264,18 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
     });
   }, [chart.data, chart.hideLowValuesThreshold, ignoreLowVolume, visibleSeries]);
 
+  // With many difficulties the lines tangle; start with the hardest one emphasized so there is
+  // always a line to follow. Hovering a legend entry emphasizes that one instead.
+  const defaultEmphasizedSeriesId = useMemo(() => {
+    const legendSeries = visibleSeries.filter((item) => !item.hideFromLegend);
+    if (legendSeries.length <= CROWDED_CHART_SERIES_COUNT) return null;
+
+    const hardest = legendSeries.reduce((best, item) =>
+      item.starRating > best.starRating ? item : best
+    );
+    return hardest.visibilityId ?? hardest.id;
+  }, [visibleSeries]);
+
   const seriesConfig = useMemo(
     () =>
       visibleSeries.map((item) => ({
@@ -310,36 +339,39 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
     chartState,
     hover: modalOpened ? effectiveHover : hover,
     onHover: modalOpened ? handleChartHover : setHover,
+    defaultEmphasizedSeriesId,
   };
 
   return (
     <>
-      <Paper p="md" radius="md" bg={theme.colors.dark[5]} style={{ overflow: 'visible' }}>
+      <SectionCard
+        title={chart.title}
+        info={CHART_INFO[chart.title] ?? SKILL_CHART_INFO}
+        style={{ overflow: 'visible' }}
+        actions={
+          <>
+            {hasStrainSeries && (
+              <SegmentedControl
+                size="xs"
+                data={STRAIN_DISPLAY_MODE_OPTIONS}
+                value={displayMode}
+                onChange={(value) => setDisplayMode(value as DifficultyStrainDisplayMode)}
+              />
+            )}
+            {chart.data.length > 0 ? (
+              <Button
+                leftSection={<IconArrowsMaximize size={16} />}
+                variant="light"
+                size="xs"
+                onClick={() => setModalOpened(true)}
+              >
+                Full view
+              </Button>
+            ) : null}
+          </>
+        }
+      >
         <Stack gap="sm">
-          <Group justify="space-between" align="center" wrap="nowrap">
-            <Text fw={600}>{chart.title}</Text>
-            <Group gap="md" wrap="nowrap">
-              {hasStrainSeries && (
-                <SegmentedControl
-                  size="xs"
-                  data={STRAIN_DISPLAY_MODE_OPTIONS}
-                  value={displayMode}
-                  onChange={(value) => setDisplayMode(value as DifficultyStrainDisplayMode)}
-                />
-              )}
-              {chart.data.length > 0 ? (
-                <Button
-                  leftSection={<IconArrowsMaximize size={16} />}
-                  variant="light"
-                  size="sm"
-                  onClick={() => setModalOpened(true)}
-                >
-                  Full view
-                </Button>
-              ) : null}
-            </Group>
-          </Group>
-
           <SimpleGrid cols={chart.showResolution ? 4 : 3} spacing="md">
             <MetricStat label="Peak" value={formatChartMetricValue(peakValue, peakValueSuffix)} />
             <MetricStat label="Peak at" value={formatSeconds(peakAtSeconds)} />
@@ -368,18 +400,18 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
           {chart.data.length > 0 ? (
             modalOpened ? (
               <Text size="sm" c="dimmed" ta="center" py="md">
-                Chart open in full view
+                Chart open in full view.
               </Text>
             ) : (
               <DifficultyChartPanel {...panelProps} plotHeight={INLINE_PLOT_HEIGHT} />
             )
           ) : (
             <Text c="dimmed" ta="center" py="xl">
-              No chart data available
+              No chart data available.
             </Text>
           )}
         </Stack>
-      </Paper>
+      </SectionCard>
 
       <Modal
         opened={modalOpened}

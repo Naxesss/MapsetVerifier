@@ -47,7 +47,7 @@ export default function DetailModal({ view, onClose }: DetailModalProps) {
       onClose={onClose}
       title={
         current && (
-          <Stack gap={4}>
+          <Stack gap="xs">
             {previous && (
               <Button
                 variant="subtle"

@@ -2,7 +2,6 @@
   Text,
   Badge,
   Group,
-  Paper,
   useMantineTheme,
   Stack,
   SimpleGrid,
@@ -15,6 +14,7 @@ import { IconCheck, IconX, IconAlertTriangle } from '@tabler/icons-react';
 import BitrateProgressIndicator from './BitrateProgressIndicator.tsx';
 import { BitrateAnalysisResult, FormatAnalysisResult } from '../../../Types';
 import { InfoIconTooltip } from '../../common/InfoIconTooltip.tsx';
+import SectionCard from '../../common/SectionCard.tsx';
 
 interface FormatInfoProps {
   data: FormatAnalysisResult;
@@ -45,46 +45,38 @@ function FormatInfo({ data, audioFilePath, bitrateData }: FormatInfoProps) {
   const isValidFormat = data.format.toLowerCase() === 'mp3' || data.format.toLowerCase() === 'ogg';
 
   return (
-    <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
-      <Group justify="space-between" mb="md">
-        <Group gap="xs">
-          <Text fw={600}>Format Information</Text>
-          <InfoIconTooltip
-            label="Format information describes the technical properties of an audio file that define how it is stored and played back."
-            multiline
-            w={250}
-          />
-        </Group>
-        <Group gap="xs">
-          <Badge color={getBadgeColor(data.badgeType)} variant="light">
-            {data.format}
+    <SectionCard
+      title="Format"
+      info="Format information describes the technical properties of an audio file that define how it is stored and played back."
+      actions={
+        <>
+          <Badge color={getBadgeColor(data.badgeType)}>{data.format}</Badge>
+          <Badge color={data.isCompliant ? 'green' : 'red'}>
+            {data.isCompliant ? 'Compliant' : 'Non-compliant'}
           </Badge>
-          <Badge color={data.isCompliant ? 'green' : 'red'} variant="light">
-            {data.isCompliant ? 'Compliant' : 'Non-Compliant'}
-          </Badge>
-        </Group>
-      </Group>
-
+        </>
+      }
+    >
       <SimpleGrid cols={3} mb="md" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
-        <Stack gap={2}>
+        <Stack gap="2xs">
           <Text size="xs" c="dimmed">
-            File Name
+            File name
           </Text>
           <Text fw={500}>{audioFilePath}</Text>
         </Stack>
-        <Stack gap={2}>
+        <Stack gap="2xs">
           <Text size="xs" c="dimmed">
             Duration
           </Text>
           <Text fw={500}>{data.durationFormatted}</Text>
         </Stack>
-        <Stack gap={2}>
+        <Stack gap="2xs">
           <Text size="xs" c="dimmed">
-            File Size
+            File size
           </Text>
           <Text fw={500}>{data.fileSizeFormatted}</Text>
         </Stack>
-        <Stack gap={2}>
+        <Stack gap="2xs">
           <Text size="xs" c="dimmed">
             Channels
           </Text>
@@ -92,9 +84,9 @@ function FormatInfo({ data, audioFilePath, bitrateData }: FormatInfoProps) {
             {data.channels === 1 ? 'Mono' : data.channels === 2 ? 'Stereo' : `${data.channels}ch`}
           </Text>
         </Stack>
-        <Stack gap={2}>
+        <Stack gap="2xs">
           <Text size="xs" c="dimmed">
-            Sample Rate
+            Sample rate
           </Text>
           <Text fw={500}>{(data.sampleRate / 1000).toFixed(1)} kHz</Text>
           {sampleRateExceeds48kHz && (
@@ -103,8 +95,8 @@ function FormatInfo({ data, audioFilePath, bitrateData }: FormatInfoProps) {
             </Text>
           )}
         </Stack>
-        <Stack gap={2}>
-          <Group gap={4} align="center">
+        <Stack gap="2xs">
+          <Group gap="xs" align="center">
             <Text size="xs" c="dimmed">
               Codec
             </Text>
@@ -138,14 +130,10 @@ function FormatInfo({ data, audioFilePath, bitrateData }: FormatInfoProps) {
               />
             </Group>
             <Group gap="xs">
-              <Badge color={bitrateData.isCompliant ? 'green' : 'red'} variant="light">
-                {bitrateData.isCompliant ? 'Compliant' : 'Non-Compliant'}
+              <Badge color={bitrateData.isCompliant ? 'green' : 'red'}>
+                {bitrateData.isCompliant ? 'Compliant' : 'Non-compliant'}
               </Badge>
-              {bitrateData.isVbr && (
-                <Badge color="blue" variant="light">
-                  VBR
-                </Badge>
-              )}
+              {bitrateData.isVbr && <Badge color="blue">VBR</Badge>}
             </Group>
           </Group>
           <Box p="sm" mb="md" bg={theme.colors.dark[6]} style={{ borderRadius: theme.radius.sm }}>
@@ -156,10 +144,10 @@ function FormatInfo({ data, audioFilePath, bitrateData }: FormatInfoProps) {
 
       {/* Format Requirements Summary */}
       <Box p="xs" mb="md" bg={theme.colors.dark[6]} style={{ borderRadius: theme.radius.sm }}>
-        <Text size="xs" fw={500} c="dimmed" mb={4}>
-          Ranking Requirements:
+        <Text size="xs" fw={500} c="dimmed" mb="xs">
+          Ranking requirements
         </Text>
-        <Stack gap={4}>
+        <Stack gap="xs">
           <Group gap="xs">
             <ThemeIcon size="xs" color={isValidFormat ? 'green' : 'red'} variant="light">
               {isValidFormat ? <IconCheck size={12} /> : <IconX size={12} />}
@@ -173,7 +161,7 @@ function FormatInfo({ data, audioFilePath, bitrateData }: FormatInfoProps) {
               {!sampleRateExceeds48kHz ? <IconCheck size={12} /> : <IconX size={12} />}
             </ThemeIcon>
             <Text size="xs" c={!sampleRateExceeds48kHz ? 'green.4' : 'red.4'}>
-              Sample Rate 48 kHz or below
+              Sample rate 48 kHz or below
             </Text>
           </Group>
         </Stack>
@@ -182,7 +170,7 @@ function FormatInfo({ data, audioFilePath, bitrateData }: FormatInfoProps) {
       {data.complianceIssues?.length > 0 && (
         <Stack gap="xs">
           <Text size="sm" fw={500} c="red.4">
-            Compliance Issues:
+            Compliance issues
           </Text>
           <List
             size="sm"
@@ -199,7 +187,7 @@ function FormatInfo({ data, audioFilePath, bitrateData }: FormatInfoProps) {
           </List>
         </Stack>
       )}
-    </Paper>
+    </SectionCard>
   );
 }
 

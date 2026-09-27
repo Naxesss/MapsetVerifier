@@ -1,8 +1,8 @@
-﻿import { Text, Badge, Group, Paper, useMantineTheme, Stack, SimpleGrid } from '@mantine/core';
+﻿import { Text, Badge, Group, useMantineTheme, Stack, SimpleGrid } from '@mantine/core';
 import { IconAlertTriangle } from '@tabler/icons-react';
 import { useMemo } from 'react';
 import { BitrateAnalysisResult, BitrateDataPoint } from '../../../Types';
-import { InfoIconTooltip } from '../../common/InfoIconTooltip.tsx';
+import SectionCard from '../../common/SectionCard.tsx';
 import { formatChartTime } from '../../common/TimeAxis.tsx';
 
 interface BitrateGraphProps {
@@ -44,44 +44,35 @@ function BitrateGraph({ data }: BitrateGraphProps) {
   }, [data.bitrateOverTime, data.maxAllowedBitrate, data.minAllowedBitrate]);
 
   return (
-    <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
+    <SectionCard
+      title="Bitrate"
+      info="Bitrate represents the amount of data used per second of audio. Higher bitrates generally preserve more detail but result in larger file sizes."
+      actions={
+        <>
+          <Badge color={data.isCompliant ? 'green' : 'red'}>
+            {data.isCompliant ? 'Compliant' : 'Non-compliant'}
+          </Badge>
+          {data.isVbr && <Badge color="blue">VBR</Badge>}
+        </>
+      }
+    >
       <Stack gap="sm">
-        <Group justify="space-between">
-          <Group gap="xs">
-            <Text fw={600}>Bitrate Information</Text>
-            <InfoIconTooltip
-              label="Bitrate represents the amount of data used per second of audio. Higher bitrates generally preserve more detail but result in larger file sizes."
-              multiline
-              w={250}
-            />
-          </Group>
-          <Group gap="xs">
-            <Badge color={data.isCompliant ? 'green' : 'red'} variant="light">
-              {data.isCompliant ? 'Compliant' : 'Non-Compliant'}
-            </Badge>
-            {data.isVbr && (
-              <Badge color="blue" variant="light">
-                VBR
-              </Badge>
-            )}
-          </Group>
-        </Group>
-        <SimpleGrid cols={3} mb="md" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
-          <Stack gap={2}>
+        <SimpleGrid cols={3} style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+          <Stack gap="xs">
             <Text size="xs" c="dimmed">
-              Average Bitrate
+              Average bitrate
             </Text>
             <Text fw={500}>{data.averageBitrate}</Text>
           </Stack>
-          <Stack gap={2}>
+          <Stack gap="xs">
             <Text size="xs" c="dimmed">
-              Min Allowed Bitrate
+              Min allowed bitrate
             </Text>
             <Text fw={500}>{data.minAllowedBitrate}</Text>
           </Stack>
-          <Stack gap={2}>
+          <Stack gap="xs">
             <Text size="xs" c="dimmed">
-              Max Allowed Bitrate
+              Max allowed bitrate
             </Text>
             <Text fw={500}>{data.maxAllowedBitrate}</Text>
           </Stack>
@@ -104,7 +95,7 @@ function BitrateGraph({ data }: BitrateGraphProps) {
           </Group>
         )}
       </Stack>
-    </Paper>
+    </SectionCard>
   );
 }
 

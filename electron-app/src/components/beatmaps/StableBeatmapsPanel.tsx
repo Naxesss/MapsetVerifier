@@ -1,10 +1,8 @@
 import {
   Alert,
-  CloseButton,
   Collapse,
   Divider,
   Flex,
-  TextInput,
   Button,
   Text,
   ScrollArea,
@@ -31,6 +29,7 @@ import BeatmapApi from '../../client/BeatmapApi.ts';
 import { useBeatmap } from '../../context/BeatmapContext.tsx';
 import { useSettings } from '../../context/SettingsContext.tsx';
 import { ApiBeatmapPage, ApiLazerLookupResult, Beatmap } from '../../Types.ts';
+import SearchInput from '../common/SearchInput.tsx';
 
 interface Props {
   songFolder?: string;
@@ -170,7 +169,7 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
     if (hasNoBookmarks) {
       return (
         <Alert icon={<IconPin />} color="gray" title="No bookmarks yet" mt="xs" variant="light">
-          Pin a beatmapset from the list to find it here quickly.
+          Pin a mapset from the list to find it here quickly.
         </Alert>
       );
     }
@@ -184,7 +183,7 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
             : filterByBookmarks
               ? 'None of your bookmarks match the current filters.'
               : 'No mapsets could be found in the songs folder.'
-          : error.message || 'Failed to load beatmaps.';
+          : error.message || "Couldn't load mapsets.";
       return (
         <Alert icon={<IconAlertCircle />} color="red" title="Error" mt="xs">
           <Text>{msg}</Text>
@@ -232,44 +231,32 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
     <>
       <Flex direction="column" gap="sm" p="xs">
         <Flex gap="sm" direction="row" justify="space-between">
-          <TextInput
-            placeholder="Search beatmaps..."
+          <SearchInput
+            style={{ flex: 1, minWidth: 0 }}
+            placeholder="Search mapsets…"
+            hint="Searches title, artist, mapper and IDs."
             value={search}
-            onChange={(e) => {
-              const value = e.target.value;
+            onChange={(value) => {
               if (value === '' && search !== '') {
                 scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
               }
               setSearch(value);
             }}
-            rightSectionPointerEvents="all"
-            rightSection={
-              <CloseButton
-                aria-label="Clear input"
-                onClick={() => {
-                  if (search !== '') {
-                    scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
-                  }
-                  setSearch('');
-                }}
-                style={{ display: search ? undefined : 'none' }}
-              />
-            }
           />
           {settings.bookmarksEnabled && (
-            <Tooltip label={bookmarkedOnly ? 'Show all beatmapsets' : 'Show bookmarked only'}>
+            <Tooltip label={bookmarkedOnly ? 'Show all mapsets' : 'Show bookmarked only'}>
               <ActionIcon
                 variant={bookmarkedOnly ? 'light' : 'default'}
                 color="yellow"
                 onClick={() => setBookmarkedOnly((prev) => !prev)}
                 size="36"
-                aria-label={bookmarkedOnly ? 'Show all beatmapsets' : 'Show bookmarked only'}
+                aria-label={bookmarkedOnly ? 'Show all mapsets' : 'Show bookmarked only'}
               >
                 {bookmarkedOnly ? <IconPinFilled /> : <IconPin />}
               </ActionIcon>
             </Tooltip>
           )}
-          <Tooltip label="Refresh beatmap search">
+          <Tooltip label="Refresh mapset list">
             <ActionIcon
               variant="default"
               onClick={() => {
@@ -340,10 +327,10 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
                   <Alert
                     icon={<IconListDetails />}
                     color="gray"
-                    title="No more beatmaps"
+                    title="No more mapsets"
                     variant="light"
                   >
-                    You have reached the last available beatmap.
+                    You have reached the end of the list.
                     <Button
                       size="xs"
                       mt="xs"

@@ -9,8 +9,6 @@ export default function TimelineZoomModeBadge({ active }: TimelineZoomModeBadgeP
     <Tooltip label="Hold Ctrl and scroll the timeline to zoom" withArrow>
       <Badge
         color={active ? 'blue' : 'gray'}
-        variant="light"
-        size="sm"
         style={{ opacity: active ? 1 : 0.45, cursor: 'default' }}
       >
         Timeline zoom
