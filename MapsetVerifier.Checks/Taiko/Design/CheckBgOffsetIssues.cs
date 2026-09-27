@@ -14,14 +14,22 @@ namespace MapsetVerifier.Checks.Taiko.Design
         private const string Inconsistent = nameof(Inconsistent);
         private const string XOffset = nameof(XOffset);
         private const string YOffset = nameof(YOffset);
+        private const string YOffsetLow = nameof(YOffsetLow);
 
         // Scale every background to this width. The offset may consume whatever height is left
         // after 140 pixels, which is the pair that yields 115 at 16:9 and 200 at 4:3.
         private const double ScaledWidth = 1360d / 3d;
         private const double CoveredHeight = 140;
 
+        // Last safe negative offset. 16:9 is still safe at -136 and 4:3 at -215.
+        private const double NegativeScaledWidth = 1264d / 3d;
+        private const double NegativeCoveredHeight = 101;
+
         internal static int MaxVerticalOffset(double width, double height) =>
             (int)Math.Floor(ScaledWidth * height / width - CoveredHeight);
+
+        internal static int MinVerticalOffset(double width, double height) =>
+            -(int)Math.Floor(NegativeScaledWidth * height / width - NegativeCoveredHeight);
 
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata()
@@ -47,7 +55,9 @@ namespace MapsetVerifier.Checks.Taiko.Design
                     Vertical offset also can't be too high, as it will cause a gap under the playfield. The limit changes depending on the aspect ratio, for example:
                     - 16:9: 115
                     - 4:3: 200
-                    
+
+                    A negative offset gaps from the other side. -136 is still safe for 16:9 and -215 is still safe for 4:3; the next step past either of those leaves a gap.
+
                     Limit is intentionally slightly lower than the maximum possible value, to account for potential miscalculations."
                     },
                 },
@@ -91,6 +101,18 @@ namespace MapsetVerifier.Checks.Taiko.Design
                         "Vertical offset is high enough that the background no longer covers the playfield for its aspect ratio."
                     )
                 },
+                {
+                    YOffsetLow,
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "\"{0}\"'s vertical offset ({1}) may cause a gap below the background. Consider using a value above {2}.",
+                        "Filename",
+                        "Vertical offset",
+                        "Limit"
+                    ).WithCause(
+                        "Vertical offset is low enough that the background no longer covers the bottom of the screen for its aspect ratio."
+                    )
+                },
             };
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
@@ -132,18 +154,35 @@ namespace MapsetVerifier.Checks.Taiko.Design
                         imageSizes[path] = imageSize;
                     }
 
-                    if (imageSize is { Width: > 0, Height: > 0 } size && castOffset.Y > 0)
+                    if (imageSize is { Width: > 0, Height: > 0 } size)
                     {
-                        var limit = MaxVerticalOffset(size.Width, size.Height);
-                        if (castOffset.Y >= limit)
+                        if (castOffset.Y > 0)
                         {
-                            yield return new Issue(
-                                GetTemplate(YOffset),
-                                beatmap,
-                                path,
-                                castOffset.Y,
-                                limit.ToString(CultureInfo.InvariantCulture)
-                            );
+                            var limit = MaxVerticalOffset(size.Width, size.Height);
+                            if (castOffset.Y >= limit)
+                            {
+                                yield return new Issue(
+                                    GetTemplate(YOffset),
+                                    beatmap,
+                                    path,
+                                    castOffset.Y,
+                                    limit.ToString(CultureInfo.InvariantCulture)
+                                );
+                            }
+                        }
+                        else if (castOffset.Y < 0)
+                        {
+                            var limit = MinVerticalOffset(size.Width, size.Height);
+                            if (castOffset.Y < limit)
+                            {
+                                yield return new Issue(
+                                    GetTemplate(YOffsetLow),
+                                    beatmap,
+                                    path,
+                                    castOffset.Y,
+                                    (limit - 1).ToString(CultureInfo.InvariantCulture)
+                                );
+                            }
                         }
                     }
 
