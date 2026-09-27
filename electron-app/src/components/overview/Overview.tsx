@@ -1,4 +1,4 @@
-import { Box, useMantineTheme } from '@mantine/core';
+import { Box } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import AudioOverview from './audio/AudioOverview.tsx';
 import BeatmapOverview from './beatmap/BeatmapOverview.tsx';
@@ -17,7 +17,6 @@ import type { OverviewTab } from '../navbar/pageHints.tsx';
 const TABS: OverviewTab[] = ['Metadata', 'Objects', 'Beatmap', 'Difficulty', 'Audio', 'Video'];
 
 function Overview() {
-  const theme = useMantineTheme();
   const { beatmapFolderPath, beatmapInfo } = useBeatmap();
   const { triggerReparse } = useBeatmapReparse();
   const { setOverviewTab } = usePageHints();
@@ -29,22 +28,7 @@ function Overview() {
   }, [activeTab, setOverviewTab]);
 
   return (
-    <Box
-      h="100%"
-      style={{
-        fontFamily: theme.headings.fontFamily,
-        position: 'relative',
-        width: '100%',
-        borderRadius: theme.radius.lg,
-        overflow: 'hidden',
-        // Clip the banner's layers in one pass, so its rounded top corners stay clean.
-        isolation: 'isolate',
-        boxShadow: '0 4px 32px rgba(0,0,0,0.4)',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-start',
-      }}
-    >
+    <>
       <BeatmapHeader>
         <BeatmapActionButtons
           beatmapFolderPath={beatmapFolderPath}
@@ -62,7 +46,7 @@ function Overview() {
         {activeTab === 'Video' && <VideoOverview />}
         {activeTab === 'Objects' && <ObjectsOverview />}
       </Box>
-    </Box>
+    </>
   );
 }
 

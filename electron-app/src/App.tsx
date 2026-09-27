@@ -7,6 +7,7 @@ import BackendGate from './components/backend/BackendGate.tsx';
 import BeatmapSelectionNavigator from './components/beatmaps/BeatmapSelectionNavigator.tsx';
 import ErrorBoundary from './components/common/ErrorBoundary.tsx';
 import { PageSkeleton } from './components/common/LoadingSkeletons.tsx';
+import MapsetFrame from './components/common/MapsetFrame.tsx';
 import RouteErrorBoundary from './components/common/RouteErrorBoundary.tsx';
 import NavBars from './components/navbar/NavBars.tsx';
 import UpdaterModal from './components/settings/UpdaterModal';
@@ -78,12 +79,14 @@ function BeatmapKeyedOutlet() {
   // once a mapset is selected (without one they only show their empty state). Everything else,
   // like Home and Settings, renders straight away.
   const isMapsetPage = MAPSET_SECTIONS.includes(section);
-  const isHeavyPage = LIST_SECTIONS.includes(section) || (isMapsetPage && !!selectedFolder);
+  const inMapsetFrame = isMapsetPage && !!selectedFolder;
+  const isHeavyPage = LIST_SECTIONS.includes(section) || inMapsetFrame;
 
-  return (
+  const content = (
     <div ref={wrapRef} className="mv-route-outlet-wrap">
       {ready || !isHeavyPage ? (
-        <div key={section} className="mv-deferred-content-enter">
+        // Mapset pages swap in place under their shared banner, without a fade.
+        <div key={section} className={inMapsetFrame ? undefined : 'mv-deferred-content-enter'}>
           <Outlet />
         </div>
       ) : (
@@ -91,6 +94,10 @@ function BeatmapKeyedOutlet() {
       )}
     </div>
   );
+
+  // The mapset pages share one frame with the mapset's art and title, kept mounted while switching
+  // between them, so only the page below the title swaps.
+  return inMapsetFrame ? <MapsetFrame>{content}</MapsetFrame> : content;
 }
 
 function AppContent() {

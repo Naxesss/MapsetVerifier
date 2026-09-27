@@ -500,15 +500,24 @@
   }
 }
 
-/* Sidebar mapset card: art and shade in the card's own background (see BeatmapCard). The lift is a
-   registered property so hover and selection fade smoothly instead of jumping. */
+/* Sidebar mapset card: art and shade in one layer behind the text (see BeatmapCard), so both are
+   clipped identically at the card's rounded corners and no light fringe shows there. The layer has
+   no radius of its own; only the card's clip rounds it, so hovering can zoom the art (`--mv-card-zoom`)
+   without its edge showing. The lift is a registered property so hover and selection fade smoothly
+   instead of jumping; it inherits so the layer sees the value while it animates. */
 @property --mv-card-lift {
   syntax: '<number>';
-  inherits: false;
+  inherits: true;
   initial-value: 0;
 }
 
-.mv-beatmap-card {
+.mv-beatmap-card::before {
+  content: '';
+  position: absolute;
+  /* The padding box, inside the border, so the border's rounded edge only blends with the sidebar. */
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
   background-image: linear-gradient(
       90deg,
       rgba(0, 0, 0, calc(0.85 - var(--mv-card-lift))) 0%,
@@ -519,7 +528,13 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  /* Keep the art inside the border, so the border's rounded edge only blends with the sidebar. */
-  background-origin: padding-box;
-  background-clip: padding-box;
+  transform: scale(var(--mv-card-zoom, 1));
+  transform-origin: center;
+  transition: transform 0.22s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mv-beatmap-card::before {
+    transform: none;
+  }
 }

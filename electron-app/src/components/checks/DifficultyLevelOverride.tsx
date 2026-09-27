@@ -1,11 +1,10 @@
-﻿import { Box, Group, Loader, SegmentedControl, Text } from '@mantine/core';
+﻿import { Group, SegmentedControl, Text } from '@mantine/core';
 import { ApiCategoryCheckResult, DifficultyLevel } from '../../Types';
 import DifficultyName from '../common/DifficultyName';
 
 interface DifficultyLevelOverrideProps {
   selectedDifficulty: ApiCategoryCheckResult;
   currentOverrideLevel?: string;
-  isLoading: boolean;
   onOverrideChange: (category: string, level: string | null) => void;
 }
 
@@ -14,7 +13,6 @@ const SHOWING_DIFFICULTY_LEVELS: DifficultyLevel[] = ['Easy', 'Normal', 'Hard', 
 function DifficultyLevelOverride({
   selectedDifficulty,
   currentOverrideLevel,
-  isLoading,
   onOverrideChange,
 }: DifficultyLevelOverrideProps) {
   const current = selectedDifficulty.difficultyLevel || 'Unknown';
@@ -44,10 +42,6 @@ function DifficultyLevelOverride({
         // Exactly the height of the selected-difficulty row, so the row doesn't grow when it appears.
         styles={{ root: { maxWidth: '100%', height: 'var(--mv-control-height)' } }}
       />
-      {/* Space for the loader is always kept, so the switch doesn't shift when it appears. */}
-      <Box w={18} style={{ display: 'flex', justifyContent: 'center' }} aria-hidden={!isLoading}>
-        {isLoading && <Loader size="xs" />}
-      </Box>
     </Group>
   );
 }
