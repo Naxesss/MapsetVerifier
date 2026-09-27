@@ -55,10 +55,7 @@ namespace MapsetVerifier.Checks.Standard.Spread
                         .WithCause(
                             "Two objects with a time gap less than 125 ms (240 bpm 1/2) are not overlapping."
                         )
-                        .WithRule(
-                            RC.Osu.Normal_ObjectsMakingUpActivelyClicked,
-                            RC.Osu.Insane_AvoidCrossScreenJumpsStreams
-                        )
+                        .WithRule(RC.Osu.Normal_ObjectsMakingUpActivelyClicked)
                 },
                 {
                     "Warning",
@@ -71,10 +68,7 @@ namespace MapsetVerifier.Checks.Standard.Spread
                         .WithCause(
                             "Two objects with a time gap less than 167 ms (180 bpm 1/2) are not overlapping."
                         )
-                        .WithRule(
-                            RC.Osu.Normal_ObjectsMakingUpActivelyClicked,
-                            RC.Osu.Insane_AvoidCrossScreenJumpsStreams
-                        )
+                        .WithRule(RC.Osu.Normal_ObjectsMakingUpActivelyClicked)
                 },
             };
 
