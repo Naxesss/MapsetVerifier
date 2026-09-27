@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects.Catch;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Catch.Compose.Rain;
 
@@ -43,7 +44,9 @@ public class CheckRainConsistentHyperdashSnaps : BeatmapCheck
                     Issue.Level.Warning,
                     "{0} Basic-snapped hyperdashes of different snap are used.",
                     "timestamp -"
-                ).WithCause("Different snapped basic-snapped hyperdashes.")
+                )
+                    .WithCause("Different snapped basic-snapped hyperdashes.")
+                    .WithRule(RC.Catch.Rain_HyperdashesBasicSnappedNotUsed3)
             },
         };
     }

@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects.Catch;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Catch.Compose.Platter;
 
@@ -44,7 +45,7 @@ public class CheckPlatterHigherSnappedHyperdash : BeatmapCheck
                     "{0} Higher-snapped hyperdashes on {1} followed by antiflow.",
                     "timestamp -",
                     "note"
-                )
+                ).WithRule(RC.Catch.Platter_HyperdashesHigherSnappedNotFollowed)
             },
         };
     }

@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects.Catch;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Catch.Compose
 {
@@ -65,7 +66,12 @@ namespace MapsetVerifier.Checks.Catch.Compose
                         "timestamp -",
                         "rule amount",
                         "amount"
-                    ).WithCause("Too many consecutive basic-snapped hyperdash are used.")
+                    )
+                        .WithCause("Too many consecutive basic-snapped hyperdash are used.")
+                        .WithRule(
+                            RC.Catch.Platter_HyperdashesBasicSnappedNotUsed,
+                            RC.Catch.Rain_HyperdashesBasicSnappedNotUsed
+                        )
                 },
                 {
                     "HigherConsecutive",
@@ -75,7 +81,12 @@ namespace MapsetVerifier.Checks.Catch.Compose
                         "timestamp -",
                         "rule amount",
                         "amount"
-                    ).WithCause("Too many consecutive higher-snapped hyperdash are used.")
+                    )
+                        .WithCause("Too many consecutive higher-snapped hyperdash are used.")
+                        .WithRule(
+                            RC.Catch.Platter_HyperdashesHigherSnappedNotUsed,
+                            RC.Catch.Rain_HyperdashesHigherSnappedNotUsed
+                        )
                 },
                 {
                     "RainBasicConsecutiveSlider",
@@ -85,7 +96,9 @@ namespace MapsetVerifier.Checks.Catch.Compose
                         "timestamp -",
                         "rule amount",
                         "amount"
-                    ).WithCause("Too many consecutive hyperdash are used in a Slider body.")
+                    )
+                        .WithCause("Too many consecutive hyperdash are used in a Slider body.")
+                        .WithRule(RC.Catch.Rain_HyperdashesBasicSnappedNotUsed2)
                 },
             };
         }

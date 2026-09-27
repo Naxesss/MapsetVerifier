@@ -5,6 +5,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.Timing
 {
@@ -50,9 +51,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "object",
                         "unsnap",
                         "timestamp -"
-                    ).WithCause(
-                        @"A hit object edge is within max(50 ms, 1/8 beat) before a misaligned upcoming uninherited line, appears snapped on the current red line, but would be unsnapped by 2 ms or more if evaluated against the upcoming line's grid."
                     )
+                        .WithCause(
+                            @"A hit object edge is within max(50 ms, 1/8 beat) before a misaligned upcoming uninherited line, appears snapped on the current red line, but would be unsnapped by 2 ms or more if evaluated against the upcoming line's grid."
+                        )
+                        .WithRule(RC.General.Timing_ObjectWronglySnappedDuePassing)
                 },
             };
 

@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using MathNet.Numerics;
 
 namespace MapsetVerifier.Checks.AllModes.HitSounds
@@ -49,7 +50,10 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
                         "timestamp -",
                         "percent",
                         "active hit object"
-                    ).WithCause("An active hit object is at 10% or lower volume.")
+                    )
+                        .WithCause("An active hit object is at 10% or lower volume.")
+                        .WithRule(RC.General.Audio_HitsoundsAudible)
+                        .WithRule(RC.Osu.ActivelyClickedPartsObjectsLeast)
                 },
                 {
                     "Minor Volume",
@@ -59,7 +63,10 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
                         "timestamp -",
                         "percent",
                         "active hit object"
-                    ).WithCause("An active hit object is at 20% or lower volume.")
+                    )
+                        .WithCause("An active hit object is at 20% or lower volume.")
+                        .WithRule(RC.General.Audio_HitsoundsAudible)
+                        .WithRule(RC.Osu.ActivelyClickedPartsObjectsLeast)
                 },
                 {
                     "Passive Reverse",
@@ -69,7 +76,9 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
                         "timestamp -",
                         "percent",
                         "reverse"
-                    ).WithCause("A slider reverse is at 10% or lower volume.")
+                    )
+                        .WithCause("A slider reverse is at 10% or lower volume.")
+                        .WithRule(RC.Osu.SpinnerEndsSliderEndsSlider)
                 },
                 {
                     "Passive",
@@ -79,7 +88,9 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
                         "timestamp -",
                         "percent",
                         "tick/tail"
-                    ).WithCause("A passive hit object is at 10% or lower volume.")
+                    )
+                        .WithCause("A passive hit object is at 10% or lower volume.")
+                        .WithRule(RC.Osu.SpinnerEndsSliderEndsSlider)
                 },
             };
 

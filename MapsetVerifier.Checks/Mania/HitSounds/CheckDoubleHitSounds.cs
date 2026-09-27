@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Mania.HitSounds
 {
@@ -52,9 +53,11 @@ namespace MapsetVerifier.Checks.Mania.HitSounds
                         "timestamp -",
                         "sample",
                         "amount"
-                    ).WithCause(
-                        "Multiple notes hit at the same time play the same sample, doubling its volume."
                     )
+                        .WithCause(
+                            "Multiple notes hit at the same time play the same sample, doubling its volume."
+                        )
+                        .WithRule(RC.Mania.AvoidUsingSameHitsoundMultiple)
                 },
             };
 

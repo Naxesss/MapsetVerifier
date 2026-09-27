@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Framework.Objects.Resources;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 using Serilog;
 
 namespace MapsetVerifier.Checks.AllModes.HitSounds
@@ -48,9 +49,11 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
                         Issue.Level.Problem,
                         "\"{0}\" is a silent hit sound but is not the required 44-byte blank.wav.",
                         "path"
-                    ).WithCause(
-                        "A used hit sound file is effectively silent but does not match the 44-byte file osu provides for muted hit sounds."
                     )
+                        .WithCause(
+                            "A used hit sound file is effectively silent but does not match the 44-byte file osu provides for muted hit sounds."
+                        )
+                        .WithRule(RC.General.Audio_CompletelySilentSoundFilesUse)
                 },
                 {
                     "Unable to check",

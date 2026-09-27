@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Framework.Objects.Resources;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 using Serilog;
 
 namespace MapsetVerifier.Checks.AllModes.General.Audio
@@ -52,7 +53,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                         "\"{0}\" is shorter than 25 ms ({1} ms).",
                         "path",
                         "length"
-                    ).WithCause("A hit sound file is shorter than 25 ms and longer than 0 ms.")
+                    )
+                        .WithCause("A hit sound file is shorter than 25 ms and longer than 0 ms.")
+                        .WithRule(RC.General.Audio_HitsoundFileLeast25msLong)
                 },
                 {
                     "Unable to check",

@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects.Catch;
+using MapsetVerifier.RankingCriteria;
 using static MapsetVerifier.Parser.Objects.HitObjects.Catch.JuiceStream.JuiceStreamPart.PartKind;
 
 namespace MapsetVerifier.Checks.Catch.Compose.Rain
@@ -45,7 +46,9 @@ namespace MapsetVerifier.Checks.Catch.Compose.Rain
                         "{0} {1} hyperdashes should not be used.",
                         "timestamp -",
                         "object"
-                    ).WithCause("Hyperdash is put on a droplet or slider repeat.")
+                    )
+                        .WithCause("Hyperdash is put on a droplet or slider repeat.")
+                        .WithRule(RC.Catch.Rain_HyperdashesNotUsedIndividualDrops)
                 },
             };
         }

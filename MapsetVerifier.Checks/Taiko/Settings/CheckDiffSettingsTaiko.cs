@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Taiko.Settings;
 
@@ -106,7 +107,15 @@ public class CheckDiffSettingsTaiko : DifficultySettingsCheck
                     "HP is different from suggested value {0}, currently {1}.",
                     "limit",
                     "current"
-                ).WithCause("Current value is slightly different from the recommended limits.")
+                )
+                    .WithCause("Current value is slightly different from the recommended limits.")
+                    .WithRule(
+                        RC.Taiko.Kantan_HpDrainRate8More,
+                        RC.Taiko.Futsuu_HpDrainRate7More,
+                        RC.Taiko.Muzukashii_HpDrainRate6More,
+                        RC.Taiko.Oni_HpDrainRate5More,
+                        RC.Taiko.InnerOni_HpDrainRate5More
+                    )
             },
             {
                 "hpWarning",
@@ -115,7 +124,17 @@ public class CheckDiffSettingsTaiko : DifficultySettingsCheck
                     "HP is different from suggested value {0}, currently {1}. Ensure this makes sense.",
                     "limit",
                     "current"
-                ).WithCause("Current value is considerably different from the recommended limits.")
+                )
+                    .WithCause(
+                        "Current value is considerably different from the recommended limits."
+                    )
+                    .WithRule(
+                        RC.Taiko.Kantan_HpDrainRate8More,
+                        RC.Taiko.Futsuu_HpDrainRate7More,
+                        RC.Taiko.Muzukashii_HpDrainRate6More,
+                        RC.Taiko.Oni_HpDrainRate5More,
+                        RC.Taiko.InnerOni_HpDrainRate5More
+                    )
             },
             {
                 "odMinor",
@@ -124,7 +143,15 @@ public class CheckDiffSettingsTaiko : DifficultySettingsCheck
                     "OD is different from suggested value {0}, currently {1}.",
                     "limit",
                     "current"
-                ).WithCause("Current value is slightly different from the recommended limits.")
+                )
+                    .WithCause("Current value is slightly different from the recommended limits.")
+                    .WithRule(
+                        RC.Taiko.Kantan_OverallDifficulty3Less,
+                        RC.Taiko.Futsuu_OverallDifficulty4Less,
+                        RC.Taiko.Muzukashii_OverallDifficulty5Less,
+                        RC.Taiko.Oni_OverallDifficulty5More,
+                        RC.Taiko.InnerOni_OverallDifficulty6More
+                    )
             },
             {
                 "odWarning",
@@ -133,7 +160,17 @@ public class CheckDiffSettingsTaiko : DifficultySettingsCheck
                     "OD is different from suggested value {0}, currently {1}. Ensure this makes sense.",
                     "limit",
                     "current"
-                ).WithCause("Current value is considerably different from the recommended limits.")
+                )
+                    .WithCause(
+                        "Current value is considerably different from the recommended limits."
+                    )
+                    .WithRule(
+                        RC.Taiko.Kantan_OverallDifficulty3Less,
+                        RC.Taiko.Futsuu_OverallDifficulty4Less,
+                        RC.Taiko.Muzukashii_OverallDifficulty5Less,
+                        RC.Taiko.Oni_OverallDifficulty5More,
+                        RC.Taiko.InnerOni_OverallDifficulty6More
+                    )
             },
         };
 

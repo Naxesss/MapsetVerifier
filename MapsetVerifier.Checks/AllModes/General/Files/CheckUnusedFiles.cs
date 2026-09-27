@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.General.Files
 {
@@ -59,9 +60,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
             {
                 {
                     "Unused",
-                    new IssueTemplate(Issue.Level.Problem, "\"{0}\"", "path").WithCause(
-                        "A file in the song folder is not used in any of the .osu or .osb files. Includes unused .osb files. Ignores thumbs.db."
-                    )
+                    new IssueTemplate(Issue.Level.Problem, "\"{0}\"", "path")
+                        .WithCause(
+                            "A file in the song folder is not used in any of the .osu or .osb files. Includes unused .osb files. Ignores thumbs.db."
+                        )
+                        .WithRule(RC.General.NotUnusedFiles0Byte)
                 },
                 {
                     "Unused Overridden",
@@ -70,9 +73,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
                         "\"{0}\", likely due to \"{1}\" being used instead.",
                         "path",
                         "path with different extension"
-                    ).WithCause(
-                        "Same as the other check, but where a file with the same name is used."
                     )
+                        .WithCause(
+                            "Same as the other check, but where a file with the same name is used."
+                        )
+                        .WithRule(RC.General.NotUnusedFiles0Byte)
                 },
                 {
                     "Lazer Only",

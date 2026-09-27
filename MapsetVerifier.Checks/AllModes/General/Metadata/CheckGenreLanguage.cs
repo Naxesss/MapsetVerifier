@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.General.Metadata
 {
@@ -111,20 +112,24 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     new IssueTemplate(
                         Issue.Level.Warning,
                         "Missing genre tag (\"rock\", \"pop\", \"electronic\", etc), ignore if none fit."
-                    ).WithCause(
-                        "None of the following tags were found (case insensitive):"
-                            + ToCause(GenreTagCombinations)
                     )
+                        .WithCause(
+                            "None of the following tags were found (case insensitive):"
+                                + ToCause(GenreTagCombinations)
+                        )
+                        .WithRule(RC.Metadata.Tags_LeastOneSongGenreOne)
                 },
                 {
                     "Language",
                     new IssueTemplate(
                         Issue.Level.Warning,
                         "Missing language tag (\"english\", \"japanese\", \"instrumental\", etc), ignore if none fit."
-                    ).WithCause(
-                        "None of the following tags were found (case insensitive):"
-                            + ToCause(LanguageTagCombinations)
                     )
+                        .WithCause(
+                            "None of the following tags were found (case insensitive):"
+                                + ToCause(LanguageTagCombinations)
+                        )
+                        .WithRule(RC.Metadata.Tags_LeastOneSongGenreOne)
                 },
             };
 

@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects.Catch;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Catch.Compose;
 
@@ -67,7 +68,9 @@ public class CheckHasEdgeDash : BeatmapCheck
                     "timestamp -",
                     "object",
                     "x"
-                ).WithCause("X amount of pixels off to become a hyperdash.")
+                )
+                    .WithCause("X amount of pixels off to become a hyperdash.")
+                    .WithRule(RC.Catch.Overdose_EdgeDashesNotUsedAfter)
             },
             {
                 "EdgeDash",
@@ -77,7 +80,9 @@ public class CheckHasEdgeDash : BeatmapCheck
                     "timestamp -",
                     "object",
                     "x"
-                ).WithCause("X amount of pixels off to become a hyperdash.")
+                )
+                    .WithCause("X amount of pixels off to become a hyperdash.")
+                    .WithRule(RC.Catch.Rain_EdgeDashesNotUsedConjunction)
             },
             {
                 "EdgeDashProblem",
@@ -87,7 +92,9 @@ public class CheckHasEdgeDash : BeatmapCheck
                     "timestamp -",
                     "object",
                     "x"
-                ).WithCause("Usage of edge dashes on lower diffs.")
+                )
+                    .WithCause("Usage of edge dashes on lower diffs.")
+                    .WithRule(RC.Catch.Salad_EdgeDashesNotUsed, RC.Catch.Platter_EdgeDashesNotUsed)
             },
         };
     }

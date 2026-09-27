@@ -34,6 +34,7 @@ import {
 import DocumentationOutcomeBlockquote from '../documentation/DocumentationOutcomeBlockquote';
 import MantineMarkdown from '../documentation/MantineMarkdown';
 import LevelIcon from '../icons/LevelIcon';
+import RuleReferences from '../rankingCriteria/RuleReferences';
 
 interface IssueDetailDrawerProps {
   opened: boolean;
@@ -248,6 +249,13 @@ export default function IssueDetailDrawer({
             )}
           </Stack>
 
+          {issue.ruleIds && issue.ruleIds.length > 0 ? (
+            <Stack gap="xs">
+              <Title order={3}>Ranking criteria</Title>
+              <RuleReferences ruleIds={issue.ruleIds} />
+            </Stack>
+          ) : null}
+
           <Divider
             label={
               <Group>
@@ -272,7 +280,11 @@ export default function IssueDetailDrawer({
                     {relatedOutcomes.length > 0 ? (
                       <Stack gap="sm">
                         {relatedOutcomes.map((outcome, index) => (
-                          <DocumentationOutcomeBlockquote key={index} outcome={outcome} />
+                          <DocumentationOutcomeBlockquote
+                            key={index}
+                            outcome={outcome}
+                            showRules={false}
+                          />
                         ))}
                       </Stack>
                     ) : null}

@@ -2,12 +2,32 @@ using MapsetVerifier.Checks.AllModes.Settings;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Catch.Settings;
 
 [Check]
 public class CheckDiffSettingsCatch : MinorRangeDifficultySettingsCheck
 {
+    protected override string[] RuleIds =>
+        [
+            RC.Catch.Cup_ApproachRateOverallDifficulty6,
+            RC.Catch.Cup_HpDrainRateBetween2,
+            RC.Catch.Cup_CircleSize25Lower,
+            RC.Catch.Salad_ApproachRateOverallDifficulty7,
+            RC.Catch.Salad_HpDrainRateBetween3,
+            RC.Catch.Salad_CircleSize3Lower,
+            RC.Catch.Platter_ApproachRateOverallDifficulty8,
+            RC.Catch.Platter_HpDrainRateBetween4,
+            RC.Catch.Platter_CircleSize35Lower,
+            RC.Catch.Rain_ApproachRateOverallDifficulty9,
+            RC.Catch.Rain_HpDrainRateBetween5,
+            RC.Catch.Rain_CircleSize4Lower,
+            RC.Catch.Overdose_ApproachRateOverallDifficulty9,
+            RC.Catch.Overdose_HpDrainRate5Higher,
+            RC.Catch.Overdose_CircleSize4Higher,
+        ];
+
     private static readonly Dictionary<Beatmap.Difficulty, SettingRange> ApproachRateRanges = new()
     {
         { Beatmap.Difficulty.Easy, new SettingRange(null, 6) },

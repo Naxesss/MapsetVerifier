@@ -5,6 +5,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using static MapsetVerifier.Checks.Utils.GeneralUtils;
 
 namespace MapsetVerifier.Checks.Taiko.Timing
@@ -47,9 +48,11 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         "{0} Barline is very close to the previous barline ({1}).",
                         "timestamp -",
                         "x/1"
-                    ).WithCause(
-                        "Red line is within half a metronome of a downbeat from the previous red line."
                     )
+                        .WithCause(
+                            "Red line is within half a metronome of a downbeat from the previous red line."
+                        )
+                        .WithRule(RC.Taiko.OmitFirstBarLineFeature)
                 },
                 {
                     Warning,
@@ -58,9 +61,11 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         "{0} Barline is close to the previous barline ({1}), ensure this makes sense.",
                         "timestamp -",
                         "x/1"
-                    ).WithCause(
-                        "Red line is within one metronome of a downbeat from the previous red line."
                     )
+                        .WithCause(
+                            "Red line is within one metronome of a downbeat from the previous red line."
+                        )
+                        .WithRule(RC.Taiko.OmitFirstBarLineFeature)
                 },
             };
 

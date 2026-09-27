@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.General.Metadata
 {
@@ -51,9 +52,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         "\"{0}\" is possessive but \"{1}\" isn't in the tags, ignore if not a user.",
                         "guest's diff",
                         "guest"
-                    ).WithCause(
-                        "A difficulty name is prefixed by text containing an apostrophe (') before or after the character \"s\", which is not in the tags."
                     )
+                        .WithCause(
+                            "A difficulty name is prefixed by text containing an apostrophe (') before or after the character \"s\", which is not in the tags."
+                        )
+                        .WithRule(RC.Metadata.Tags_NamesGuestDifficultyCreatorsHitsounders)
                 },
             };
 

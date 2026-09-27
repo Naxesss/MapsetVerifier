@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Mania.HitSounds
 {
@@ -51,9 +52,11 @@ namespace MapsetVerifier.Checks.Mania.HitSounds
                         "{0} is used at {1}, but no such file exists in the mapset.",
                         "file name",
                         "timestamp -"
-                    ).WithCause(
-                        "A hit object references a hit sound file which isn't present in the song folder."
                     )
+                        .WithCause(
+                            "A hit object references a hit sound file which isn't present in the song folder."
+                        )
+                        .WithRule(RC.General.Audio_HitsoundsAudible)
                 },
                 {
                     "Missing Sample",

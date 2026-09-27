@@ -6,6 +6,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using SixLabors.ImageSharp;
 
 namespace MapsetVerifier.Checks.Catch.Skinning;
@@ -115,9 +116,14 @@ public class CheckSkinningCatch : BeatmapSetCheck
                     "The \"{0}\" skin set is only partially skinned, missing: {1}.",
                     "set",
                     "missing elements"
-                ).WithCause(
-                    "One or more elements of a skin set are present, but a required element of the same set is missing."
                 )
+                    .WithCause(
+                        "One or more elements of a skin set are present, but a required element of the same set is missing."
+                    )
+                    .WithRule(
+                        RC.General.Skinning_SkinningGameplayElementsCompleteSets,
+                        RC.Catch.Skinning_CustomFruitsIncludeNecessaryElements
+                    )
             },
             {
                 "Incorrect Dimensions",
@@ -129,18 +135,22 @@ public class CheckSkinningCatch : BeatmapSetCheck
                     "actual height",
                     "expected width",
                     "expected height"
-                ).WithCause(
-                    "A skinned fruit, drop, or catcher element does not match its default skin counterpart's dimensions."
                 )
+                    .WithCause(
+                        "A skinned fruit, drop, or catcher element does not match its default skin counterpart's dimensions."
+                    )
+                    .WithRule(RC.Catch.Skinning_SkinnedElementsSameSizeDefault)
             },
             {
                 "Old Skin Version",
                 new IssueTemplate(
                     Issue.Level.Problem,
                     "A custom catcher is skinned, but skin.ini does not declare a v2 (or higher) skin format."
-                ).WithCause(
-                    "Custom catchers must be included in the v2 skin format, declared via \"Version\" under [General] in skin.ini."
                 )
+                    .WithCause(
+                        "Custom catchers must be included in the v2 skin format, declared via \"Version\" under [General] in skin.ini."
+                    )
+                    .WithRule(RC.Catch.Skinning_CustomCatchersIncludedV2Skin)
             },
             {
                 "Non Png",
@@ -148,9 +158,11 @@ public class CheckSkinningCatch : BeatmapSetCheck
                     Issue.Level.Warning,
                     "\"{0}\" should be a .png file if it uses transparency.",
                     "path"
-                ).WithCause(
-                    "A skinned gameplay element does not use the .png format, which is required for elements that utilise transparency."
                 )
+                    .WithCause(
+                        "A skinned gameplay element does not use the .png format, which is required for elements that utilise transparency."
+                    )
+                    .WithRule(RC.General.Skinning_SkinnedElementsKeptPngFormat)
             },
         };
 

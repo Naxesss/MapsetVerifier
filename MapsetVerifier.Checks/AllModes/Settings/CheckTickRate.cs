@@ -2,6 +2,7 @@
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 using MathNet.Numerics;
 
 namespace MapsetVerifier.Checks.AllModes.Settings
@@ -39,15 +40,12 @@ namespace MapsetVerifier.Checks.AllModes.Settings
             {
                 {
                     "Tick Rate",
-                    new IssueTemplate(
-                        Issue.Level.Problem,
-                        "{0} {1}.",
-                        "setting",
-                        "value"
-                    ).WithCause(
-                        @"The slider tick rate setting of a beatmap is using an incorrect or otherwise extremely uncommon divisor.
+                    new IssueTemplate(Issue.Level.Problem, "{0} {1}.", "setting", "value")
+                        .WithCause(
+                            @"The slider tick rate setting of a beatmap is using an incorrect or otherwise extremely uncommon divisor.
                                     > Common tick rates include any full integer as well as 1/2, 4/3, and 3/2. Excludes precision errors."
-                    )
+                        )
+                        .WithRule(RC.General.SliderTickRateNotModified)
                 },
             };
 

@@ -5,6 +5,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Framework.Objects.Resources;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Taiko.Design
 {
@@ -85,9 +86,11 @@ namespace MapsetVerifier.Checks.Taiko.Design
                         "\"{0}\" uses an X offset of {1}. Ensure this is intentional.",
                         "Filename",
                         "X offset"
-                    ).WithCause(
-                        "Horizontal background offset is rare in osu!taiko and often leaves black gaps in the playfield."
                     )
+                        .WithCause(
+                            "Horizontal background offset is rare in osu!taiko and often leaves black gaps in the playfield."
+                        )
+                        .WithRule(RC.Taiko.NotLeaveBlankSpaceBetween)
                 },
                 {
                     YOffset,

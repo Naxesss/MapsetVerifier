@@ -6,6 +6,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Standard.Compose
 {
@@ -66,9 +67,11 @@ namespace MapsetVerifier.Checks.Standard.Compose
                         "{0} {1} is offscreen.",
                         "timestamp -",
                         "object"
-                    ).WithCause(
-                        "The border of a hit object is partially off the screen in 4:3 aspect ratios."
                     )
+                        .WithCause(
+                            "The border of a hit object is partially off the screen in 4:3 aspect ratios."
+                        )
+                        .WithRule(RC.Osu.HitObjectsNeverOffScreen)
                 },
                 {
                     "Prevented",
@@ -77,9 +80,11 @@ namespace MapsetVerifier.Checks.Standard.Compose
                         "{0} {1} would be offscreen, but the game prevents it.",
                         "timestamp -",
                         "object"
-                    ).WithCause(
-                        "The .osu code implies the hit object is in a place where it would be off the 512x512 playfield area, but the game has moved it back inside the screen automatically."
                     )
+                        .WithCause(
+                            "The .osu code implies the hit object is in a place where it would be off the 512x512 playfield area, but the game has moved it back inside the screen automatically."
+                        )
+                        .WithRule(RC.Osu.HitObjectsNeverOffScreen)
                 },
                 {
                     "Borderline",
@@ -89,9 +94,11 @@ namespace MapsetVerifier.Checks.Standard.Compose
                         "timestamp -",
                         "object",
                         "amount"
-                    ).WithCause(
-                        "The border of a hit object is within a pixel of the screen edge in 4:3 aspect ratios, which due to the rounding the game applies can still end up offscreen."
                     )
+                        .WithCause(
+                            "The border of a hit object is within a pixel of the screen edge in 4:3 aspect ratios, which due to the rounding the game applies can still end up offscreen."
+                        )
+                        .WithRule(RC.Osu.HitObjectsNeverOffScreen)
                 },
                 {
                     "Bezier Margin",
@@ -99,9 +106,11 @@ namespace MapsetVerifier.Checks.Standard.Compose
                         Issue.Level.Warning,
                         "{0} Slider body is possibly offscreen, ensure the entire white border is visible on a 4:3 aspect ratio.",
                         "timestamp -"
-                    ).WithCause(
-                        "The slider body of a bezier slider is approximated to be 1 osu!pixel away from being offscreen at some point on its curve."
                     )
+                        .WithCause(
+                            "The slider body of a bezier slider is approximated to be 1 osu!pixel away from being offscreen at some point on its curve."
+                        )
+                        .WithRule(RC.Osu.HitObjectsNeverOffScreen)
                 },
             };
 

@@ -530,3 +530,10 @@
     }
   }
 }
+
+/* Ranking criteria viewer. */
+.rc-markdown {
+  .rc-heading {
+    scroll-margin-top: var(--mantine-spacing-xl);
+  }
+}

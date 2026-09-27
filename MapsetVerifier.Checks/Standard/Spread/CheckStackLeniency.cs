@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Standard.Spread
 {
@@ -52,9 +53,15 @@ namespace MapsetVerifier.Checks.Standard.Spread
                         "{0} Stack leniency should be at least {1}.",
                         "timestamp -",
                         "stack leniency"
-                    ).WithCause(
-                        "Two objects are overlapping perfectly and are less than 1/1, 1/1, 1/2, or 1/4 apart (assuming 160 BPM), for E/N/H/I respectively."
                     )
+                        .WithCause(
+                            "Two objects are overlapping perfectly and are less than 1/1, 1/1, 1/2, or 1/4 apart (assuming 160 BPM), for E/N/H/I respectively."
+                        )
+                        .WithRule(
+                            RC.Osu.Easy_Objects1BeatApartLess,
+                            RC.Osu.Normal_Objects1BeatApartLess,
+                            RC.Osu.Hard_Objects12BeatApart
+                        )
                 },
                 {
                     "Problem Failed Stack",
@@ -63,9 +70,15 @@ namespace MapsetVerifier.Checks.Standard.Spread
                         "{0} Failed stack, objects are {1} px apart, which is basically a perfect stack.",
                         "timestamp -",
                         "gap"
-                    ).WithCause(
-                        "Same as the other check, except applies to non-stacked objects within 1/14th of a circle radius of one another."
                     )
+                        .WithCause(
+                            "Same as the other check, except applies to non-stacked objects within 1/14th of a circle radius of one another."
+                        )
+                        .WithRule(
+                            RC.Osu.Easy_Objects1BeatApartLess,
+                            RC.Osu.Normal_Objects1BeatApartLess,
+                            RC.Osu.Hard_Objects12BeatApart
+                        )
                 },
                 {
                     "Warning",
@@ -74,9 +87,11 @@ namespace MapsetVerifier.Checks.Standard.Spread
                         "{0} Stack leniency should be at least {1}.",
                         "timestamp -",
                         "stack leniency"
-                    ).WithCause(
-                        "Same as the other check, except only appears for insane difficulties, as this becomes a guideline."
                     )
+                        .WithCause(
+                            "Same as the other check, except only appears for insane difficulties, as this becomes a guideline."
+                        )
+                        .WithRule(RC.Osu.Insane_Objects14BeatApart)
                 },
             };
 

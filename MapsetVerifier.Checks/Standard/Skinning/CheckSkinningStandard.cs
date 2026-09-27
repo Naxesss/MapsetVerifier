@@ -6,6 +6,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Standard.Skinning;
 
@@ -182,9 +183,11 @@ public class CheckSkinningStandard : BeatmapSetCheck
                     "The \"{0}\" skin set is only partially skinned, missing: {1}.",
                     "set",
                     "missing elements"
-                ).WithCause(
-                    "One or more elements of a skin set are present, but a required element of the same set is missing."
                 )
+                    .WithCause(
+                        "One or more elements of a skin set are present, but a required element of the same set is missing."
+                    )
+                    .WithRule(RC.General.Skinning_SkinningGameplayElementsCompleteSets)
             },
             {
                 "Mixed Spinner Style",
@@ -193,9 +196,11 @@ public class CheckSkinningStandard : BeatmapSetCheck
                     "Both old (\"{0}\") and new (\"{1}\") spinner style elements are present; the old style will take priority.",
                     "old file",
                     "new file"
-                ).WithCause(
-                    "Elements exclusive to both the old and new spinner styles are present at the same time."
                 )
+                    .WithCause(
+                        "Elements exclusive to both the old and new spinner styles are present at the same time."
+                    )
+                    .WithRule(RC.General.Skinning_SkinningGameplayElementsCompleteSets)
             },
             {
                 "Duplicate Hitburst",
@@ -204,9 +209,11 @@ public class CheckSkinningStandard : BeatmapSetCheck
                     "\"{0}\" and \"{1}\" are identical; hit100/hit300 hitbursts must be visually distinguishable from their geki/katu counterparts.",
                     "path",
                     "path"
-                ).WithCause(
-                    "hit100 or hit300 shares the exact same file as its corresponding katu/geki hitburst."
                 )
+                    .WithCause(
+                        "hit100 or hit300 shares the exact same file as its corresponding katu/geki hitburst."
+                    )
+                    .WithRule(RC.Osu.Skinning_Hit100Hit300DifferentCorrespondingGeki)
             },
             {
                 "Missing Slider Border",
@@ -214,9 +221,11 @@ public class CheckSkinningStandard : BeatmapSetCheck
                     Issue.Level.Problem,
                     "{0} skins hitcircle or slider elements but does not define a custom slider border colour (SliderBorder under [Colours]).",
                     "difficulty"
-                ).WithCause(
-                    "A custom slider border colour must be selected when a beatmap contains skin elements from the hit circle or slider sets."
                 )
+                    .WithCause(
+                        "A custom slider border colour must be selected when a beatmap contains skin elements from the hit circle or slider sets."
+                    )
+                    .WithRule(RC.Osu.Skinning_CustomSliderBorderColourSelected)
             },
             {
                 "Similar Slider Colours",
@@ -224,9 +233,11 @@ public class CheckSkinningStandard : BeatmapSetCheck
                     Issue.Level.Problem,
                     "{0}'s slider body colour (SliderTrackOverride) is too similar to its slider border colour (SliderBorder).",
                     "difficulty"
-                ).WithCause(
-                    "The slider body colour is too close to the slider border colour, making the border lose its purpose as a visual boundary."
                 )
+                    .WithCause(
+                        "The slider body colour is too close to the slider border colour, making the border lose its purpose as a visual boundary."
+                    )
+                    .WithRule(RC.Osu.Skinning_SliderBodyColourTooSimilar)
             },
             {
                 "New Spinner Style",
@@ -234,9 +245,11 @@ public class CheckSkinningStandard : BeatmapSetCheck
                     Issue.Level.Warning,
                     "\"{0}\": usage of the new style spinner is discouraged; it only displays correctly if the player's \"Preferred Skin\" is set to Default.",
                     "path"
-                ).WithCause(
-                    "Elements exclusive to the new spinner style are used, which is only recommended when a default skin is forced."
                 )
+                    .WithCause(
+                        "Elements exclusive to the new spinner style are used, which is only recommended when a default skin is forced."
+                    )
+                    .WithRule(RC.Osu.Skinning_UsageNewStyleSpinnersNot)
             },
             {
                 "Deprecated Spinner Osu",
@@ -254,9 +267,11 @@ public class CheckSkinningStandard : BeatmapSetCheck
                     Issue.Level.Warning,
                     "\"{0}\" should be a .png file if it uses transparency.",
                     "path"
-                ).WithCause(
-                    "A skinned gameplay element does not use the .png format, which is required for elements that utilise transparency."
                 )
+                    .WithCause(
+                        "A skinned gameplay element does not use the .png format, which is required for elements that utilise transparency."
+                    )
+                    .WithRule(RC.General.Skinning_SkinnedElementsKeptPngFormat)
             },
         };
 

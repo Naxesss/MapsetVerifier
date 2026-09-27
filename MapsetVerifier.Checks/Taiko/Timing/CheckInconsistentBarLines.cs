@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Taiko.Timing
 {
@@ -45,9 +46,11 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         "{0} Inconsistent omitted bar line, see {1}.",
                         "timestamp -",
                         "difficulty"
-                    ).WithCause(
-                        "A beatmap does not omit bar line where the reference beatmap does, or visa versa."
                     )
+                        .WithCause(
+                            "A beatmap does not omit bar line where the reference beatmap does, or visa versa."
+                        )
+                        .WithRule(RC.General.Timing_UninheritedTimingPointsSameDifficulty)
                 },
             };
 

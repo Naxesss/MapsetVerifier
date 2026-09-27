@@ -2,12 +2,34 @@ using MapsetVerifier.Checks.AllModes.Settings;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Standard.Settings;
 
 [Check]
 public class CheckDiffSettingsStandard : MinorRangeDifficultySettingsCheck
 {
+    protected override string[] RuleIds =>
+        [
+            RC.Osu.Easy_ApproachRate5Less,
+            RC.Osu.Easy_OverallDifficultyHpDrainRate,
+            RC.Osu.Easy_CircleSize4Lower,
+            RC.Osu.Normal_ApproachRateBetween46,
+            RC.Osu.Normal_OverallDifficultyHpDrainRate,
+            RC.Osu.Normal_CircleSize5Lower,
+            RC.Osu.Hard_ApproachRateBetween68,
+            RC.Osu.Hard_OverallDifficultyBetween57,
+            RC.Osu.Hard_HpDrainRateBetween4,
+            RC.Osu.Hard_CircleSize6Lower,
+            RC.Osu.Insane_ApproachRateBetween79,
+            RC.Osu.Insane_OverallDifficultyBetween79,
+            RC.Osu.Insane_HpDrainRateBetween5,
+            RC.Osu.Insane_CircleSize7Lower,
+            RC.Osu.Expert_ApproachRateOverallDifficulty8,
+            RC.Osu.Expert_HpDrainRate5Higher,
+            RC.Osu.Expert_CircleSize7Lower,
+        ];
+
     private static readonly Dictionary<Beatmap.Difficulty, SettingRange> ApproachRateRanges = new()
     {
         { Beatmap.Difficulty.Easy, new SettingRange(null, 5) },
