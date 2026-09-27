@@ -13,7 +13,12 @@ import {
   Tooltip,
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
-import { IconAlertCircle, IconExternalLink, IconSearch } from '@tabler/icons-react';
+import {
+  IconAlertCircle,
+  IconClipboardCheck,
+  IconExternalLink,
+  IconSearch,
+} from '@tabler/icons-react';
 import { useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import RcCoverageFilter from './RcCoverageFilter';
@@ -35,6 +40,7 @@ import {
   useRankingCriteriaPage,
 } from './useRankingCriteria';
 import { ApiRcStatement, RcCoverage } from '../../Types';
+import { isDevBuild } from '../../utils/devSettings';
 import DetailModal from '../details/DetailModal';
 
 const DEFAULT_PAGE = 'general';
@@ -337,6 +343,24 @@ function RankingCriteria() {
                 onClick={() => void openExternal(wikiUrl)}
               >
                 <IconExternalLink size={18} stroke={1.5} />
+              </ActionIcon>
+            </Tooltip>
+          )}
+          {isDevBuild && (
+            <Tooltip label="Review curation one rule at a time (dev only)" withinPortal>
+              <ActionIcon
+                variant="default"
+                size="input-sm"
+                aria-label="Review curation"
+                onClick={() =>
+                  navigate(
+                    currentPage?.hasStatements && !isSearching
+                      ? `/ranking-criteria/review?page=${encodeURIComponent(pageKey)}`
+                      : '/ranking-criteria/review'
+                  )
+                }
+              >
+                <IconClipboardCheck size={18} stroke={1.5} />
               </ActionIcon>
             </Tooltip>
           )}

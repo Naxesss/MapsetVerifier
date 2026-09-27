@@ -67,9 +67,11 @@ function LinkedCheck({ links }: { links: ApiRcCheckLink[] }) {
 
 /**
  * The statement's own lines of the page markdown, through those of the statements nested in it,
- * with its indentation removed so a nested list item renders as a list of its own.
+ * with its indentation removed so a nested list item renders as a list of its own. With
+ * `withParents`, the own lines of the statements it is nested in come first, so a sub-item such as
+ * "...not be encoded upwards" is read under the sentence it finishes.
  */
-function statementMarkdown(statement: ApiRcStatement, page: ApiRcPage) {
+function statementMarkdown(statement: ApiRcStatement, page: ApiRcPage, withParents: boolean) {
   const nested = new Set([statement.id]);
   let endLine = statement.endLine;
   // Statements are in page order, so a nested statement always comes after its parent.
@@ -80,8 +82,35 @@ function statementMarkdown(statement: ApiRcStatement, page: ApiRcPage) {
     }
   }
 
+  // 1-based line numbers to show, in page order.
+  const shown = new Set<number>();
+  for (let line = statement.startLine; line <= endLine; line++) shown.add(line);
+
+  if (withParents) {
+    const byId = new Map(page.statements.map((other) => [other.id, other]));
+    const isNestedIn = (other: ApiRcStatement, ancestorId: string) => {
+      for (let id = other.parentId; id; id = byId.get(id)?.parentId) {
+        if (id === ancestorId) return true;
+      }
+      return false;
+    };
+
+    for (let parent = byId.get(statement.parentId ?? ''); parent; ) {
+      // A parent's range can span its nested statements when a note follows them, as in "...which
+      // both...", so leave out every line of theirs; only this statement's own block is shown.
+      const nestedLines = new Set<number>();
+      for (const other of page.statements.filter((other) => isNestedIn(other, parent!.id))) {
+        for (let line = other.startLine; line <= other.endLine; line++) nestedLines.add(line);
+      }
+      for (let line = parent.startLine; line <= parent.endLine; line++) {
+        if (!nestedLines.has(line)) shown.add(line);
+      }
+      parent = byId.get(parent.parentId ?? '');
+    }
+  }
+
   const allLines = page.markdown.split('\n');
-  const lines = allLines.slice(statement.startLine - 1, endLine);
+  const lines = [...shown].sort((a, b) => a - b).map((line) => allLines[line - 1]);
   const indent = lines[0].match(/^\s*/)?.[0].length ?? 0;
 
   // Footnotes are defined at the bottom of the page, so bring along the ones this text uses.
@@ -102,18 +131,26 @@ function plainWords(text: string) {
 
 /**
  * The full text of the statement as written on the wiki, including its examples and sub-rules. Left
- * out when it is only the sentence the title already shows.
+ * out when it is only the sentence the title already shows. Without a title, it always shows, under
+ * the sentences it is nested in, which the title would otherwise show.
  */
-function StatementText({ statement }: { statement: ApiRcStatement }) {
+function StatementText({
+  statement,
+  withoutTitle,
+}: {
+  statement: ApiRcStatement;
+  withoutTitle?: boolean;
+}) {
   const page = useRankingCriteriaPage(statement.page);
 
   const markdown = useMemo(
-    () => (page.data ? statementMarkdown(statement, page.data) : null),
-    [page.data, statement]
+    () => (page.data ? statementMarkdown(statement, page.data, !!withoutTitle) : null),
+    [page.data, statement, withoutTitle]
   );
 
   if (page.isLoading) return <Loader size="sm" />;
-  if (!markdown || plainWords(markdown) === plainWords(statement.lead)) return null;
+  if (!markdown || (!withoutTitle && plainWords(markdown) === plainWords(statement.lead)))
+    return null;
 
   return (
     <Stack gap="xs">
@@ -141,8 +178,14 @@ export function RcStatementTitle({ statement }: { statement: ApiRcStatement }) {
   );
 }
 
+interface RcStatementDetailsProps {
+  statement: ApiRcStatement;
+  /** Shown without RcStatementTitle, so the wiki text carries the lead and the parent's instead. */
+  withoutTitle?: boolean;
+}
+
 /** Details of a ranking criteria statement, laid out like the check documentation. */
-export default function RcStatementDetails({ statement }: { statement: ApiRcStatement }) {
+export default function RcStatementDetails({ statement, withoutTitle }: RcStatementDetailsProps) {
   const mode = pageMode(statement.page);
   const difficulties = formatDifficulties(statement.difficulties);
 
@@ -212,7 +255,7 @@ export default function RcStatementDetails({ statement }: { statement: ApiRcStat
         {statement.notes && <Text size="sm">{statement.notes}</Text>}
       </Stack>
 
-      <StatementText statement={statement} />
+      <StatementText statement={statement} withoutTitle={withoutTitle} />
     </Flex>
   );
 }
