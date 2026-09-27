@@ -19,6 +19,18 @@ export const router = createHashRouter([
     children: [
       { index: true, element: <Home /> },
       { path: 'documentation', element: <Documentation /> },
+      // Dev only: writes to the catalogue in the source checkout. Left out of production bundles.
+      ...(import.meta.env.DEV
+        ? [
+            {
+              path: 'ranking-criteria/review',
+              lazy: async () => ({
+                Component: (await import('./components/rankingCriteria/RcCurationReview.tsx'))
+                  .default,
+              }),
+            },
+          ]
+        : []),
       { path: 'ranking-criteria/:page?', element: <RankingCriteria /> },
       { path: 'settings/:section?', element: <Settings /> },
       {

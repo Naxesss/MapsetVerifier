@@ -2,6 +2,7 @@ import { ActionIcon, Alert, Anchor, Group, Progress, Stack, Text, Tooltip } from
 import { useDebouncedValue } from '@mantine/hooks';
 import {
   IconAlertCircle,
+  IconClipboardCheck,
   IconExternalLink,
   IconFilterOff,
   IconSearchOff,
@@ -28,6 +29,7 @@ import {
 } from './useRankingCriteria';
 import { ApiRcStatement, RcCoverage } from '../../Types';
 import { formatDate } from '../../utils/dateTime';
+import { isDevBuild } from '../../utils/devSettings';
 import EmptyState from '../common/EmptyState';
 import { SectionTitle } from '../common/Headings';
 import { ListSkeleton } from '../common/LoadingSkeletons';
@@ -257,6 +259,24 @@ function RankingCriteria() {
                 onClick={() => void openExternal(wikiUrl)}
               >
                 <IconExternalLink size={18} stroke={1.5} />
+              </ActionIcon>
+            </Tooltip>
+          )}
+          {isDevBuild && (
+            <Tooltip label="Review curation one rule at a time (dev only)" withinPortal>
+              <ActionIcon
+                variant="default"
+                size="input-sm"
+                aria-label="Review curation"
+                onClick={() =>
+                  navigate(
+                    currentPage?.hasStatements && !isSearching
+                      ? `/ranking-criteria/review?page=${encodeURIComponent(pageKey)}`
+                      : '/ranking-criteria/review'
+                  )
+                }
+              >
+                <IconClipboardCheck size={18} stroke={1.5} />
               </ActionIcon>
             </Tooltip>
           )}

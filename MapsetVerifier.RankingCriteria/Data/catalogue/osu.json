@@ -19,7 +19,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -39,7 +39,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -59,7 +59,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -79,7 +79,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -99,7 +99,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "partial"
       }
     },
     {
@@ -139,7 +139,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {
@@ -179,7 +179,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -199,7 +199,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -219,7 +219,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -239,7 +239,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "partial"
       }
     },
     {
@@ -301,7 +301,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -322,7 +322,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -343,7 +343,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -363,7 +363,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -403,7 +403,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -423,7 +423,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -443,7 +443,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -483,7 +483,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -505,7 +505,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -527,7 +527,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {
@@ -549,7 +549,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "partial"
       }
     },
     {
@@ -571,7 +571,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "partial"
       }
     },
     {
@@ -593,7 +593,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {
@@ -615,7 +615,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -637,7 +637,7 @@
         ]
       },
       "curation": {
-        "automation": "manual"
+        "automation": "automatable"
       }
     },
     {
@@ -659,7 +659,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -681,7 +681,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -703,7 +703,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -725,7 +725,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "partial"
       }
     },
     {
@@ -747,7 +747,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -769,7 +769,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "partial"
       }
     },
     {
@@ -791,7 +791,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -813,7 +813,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -835,7 +835,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -857,7 +857,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -879,7 +879,7 @@
         ]
       },
       "curation": {
-        "automation": "manual"
+        "automation": "automatable"
       }
     },
     {
@@ -901,7 +901,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {
@@ -923,7 +923,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -945,7 +945,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -967,7 +967,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -989,7 +989,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1011,7 +1011,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {
@@ -1033,7 +1033,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "partial"
       }
     },
     {
@@ -1055,7 +1055,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "partial"
       }
     },
     {
@@ -1077,7 +1077,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {
@@ -1099,7 +1099,7 @@
         ]
       },
       "curation": {
-        "automation": "manual"
+        "automation": "automatable"
       }
     },
     {
@@ -1121,7 +1121,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "partial"
       }
     },
     {
@@ -1143,7 +1143,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1165,7 +1165,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1187,7 +1187,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1209,7 +1209,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1231,7 +1231,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "partial"
       }
     },
     {
@@ -1253,7 +1253,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "partial"
       }
     },
     {
@@ -1275,7 +1275,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1297,7 +1297,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1319,7 +1319,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1341,7 +1341,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1363,7 +1363,7 @@
         ]
       },
       "curation": {
-        "automation": "manual"
+        "automation": "automatable"
       }
     },
     {
@@ -1385,7 +1385,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {
@@ -1407,7 +1407,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1429,7 +1429,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1451,7 +1451,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1473,7 +1473,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1495,7 +1495,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1517,7 +1517,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1539,7 +1539,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1561,7 +1561,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1583,7 +1583,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1605,7 +1605,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {
@@ -1627,7 +1627,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "partial"
       }
     },
     {
@@ -1649,7 +1649,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1671,7 +1671,7 @@
         ]
       },
       "curation": {
-        "automation": "manual"
+        "automation": "automatable"
       }
     },
     {
@@ -1693,7 +1693,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1715,7 +1715,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1737,7 +1737,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1759,7 +1759,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1781,7 +1781,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1803,7 +1803,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1825,7 +1825,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1847,7 +1847,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1869,7 +1869,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1891,7 +1891,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1913,7 +1913,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "partial"
       }
     },
     {
@@ -1935,7 +1935,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -1957,7 +1957,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {
@@ -1979,7 +1979,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {
@@ -2001,7 +2001,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -2023,7 +2023,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -2045,7 +2045,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -2067,7 +2067,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -2089,7 +2089,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -2111,7 +2111,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -2133,7 +2133,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -2156,7 +2156,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "partial"
       }
     },
     {
@@ -2179,7 +2179,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {
@@ -2202,7 +2202,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -2225,7 +2225,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -2248,7 +2248,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     },
     {
@@ -2271,7 +2271,7 @@
         ]
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "automatable"
       }
     }
   ]

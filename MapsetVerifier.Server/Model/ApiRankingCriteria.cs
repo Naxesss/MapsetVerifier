@@ -78,3 +78,5 @@ public sealed record ApiRcStatement(
     ApiRcCoverage Coverage,
     List<ApiRcCheckLink> Links
 );
+
+public sealed record ApiRcCurationRequest(string Id, RcAutomation Automation, string? Notes);
