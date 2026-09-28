@@ -1,5 +1,4 @@
-﻿import { Alert, Box, Flex, SimpleGrid, Text } from '@mantine/core';
-import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
+﻿import { SimpleGrid } from '@mantine/core';
 import { useEffect, useMemo } from 'react';
 import ColumnUsageOverview from './components/ColumnUsageOverview.tsx';
 import ObjectPercentagesOverview from './components/ObjectPercentagesOverview.tsx';
@@ -14,10 +13,8 @@ import { usePageHints } from '../../../context/PageHintsContext.tsx';
 import { useSettings } from '../../../context/SettingsContext.tsx';
 import { type Mode, type ObjectsOverviewDifficulty } from '../../../Types';
 import { MODE_ORDER, normalizeMode } from '../../../utils/gameMode';
-import { CardsSkeleton } from '../../common/LoadingSkeletons.tsx';
-import NoBeatmapsetDisplay from '../../common/NoBeatmapsetDisplay.tsx';
-import StackTraceMessage from '../../common/StackTraceMessage.tsx';
-import { SummaryCard } from '../difficulty/DifficultySummaryCards.tsx';
+import { StatCard } from '../../common/StatField.tsx';
+import AnalysisTab from '../AnalysisTab.tsx';
 import type { ObjectsModeGroup } from './types.ts';
 
 function ObjectsOverview() {
@@ -63,52 +60,28 @@ function ObjectsOverview() {
   const { selectedMode, setSelectedMode, selectedGroup } =
     useObjectsOverviewModeSelection(groupedDifficulties);
 
-  const summary = useMemo(() => {
-    if (!data?.success) return null;
-
-    return data.difficulties.reduce(
-      (accumulator, difficulty) => {
-        accumulator.objectCount += difficulty.objectCount;
-        accumulator.edgeCount += difficulty.edgeCount;
-        accumulator.unsnappedCount += difficulty.unsnappedCount;
-        return accumulator;
-      },
-      { objectCount: 0, edgeCount: 0, unsnappedCount: 0 }
-    );
-  }, [data]);
-
-  if (!folder) {
-    return <NoBeatmapsetDisplay />;
-  }
+  const objectCount = useMemo(
+    () =>
+      data?.success
+        ? data.difficulties.reduce((total, difficulty) => total + difficulty.objectCount, 0)
+        : null,
+    [data]
+  );
 
   return (
-    <Box>
-      {isLoading && <CardsSkeleton />}
-      {isError && (
-        <Flex p="md">
-          <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing objects">
-            <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
-              {error?.message}
-            </Text>
-            {error?.stackTrace && <StackTraceMessage stackTrace={error.stackTrace} />}
-          </Alert>
-        </Flex>
-      )}
-
-      {data && !data.success && (
-        <Flex p="md">
-          <Alert icon={<IconAlertTriangle />} color="yellow" title="Analysis failed">
-            <Text size="sm">{data.errorMessage}</Text>
-          </Alert>
-        </Flex>
-      )}
-
-      {data && data.success && summary && (
-        <Flex gap="md" p="md" direction="column">
+    <AnalysisTab
+      data={data}
+      isLoading={isLoading}
+      isError={isError}
+      error={error}
+      subject="objects"
+    >
+      {(data) => (
+        <>
           <SimpleGrid cols={{ base: 1, md: 3 }} spacing="md">
-            <SummaryCard label="Difficulties" value={String(data.difficulties.length)} />
-            <SummaryCard label="Hit objects" value={summary.objectCount.toLocaleString()} />
-            <SummaryCard
+            <StatCard label="Difficulties" value={String(data.difficulties.length)} />
+            <StatCard label="Hit objects" value={(objectCount ?? 0).toLocaleString()} />
+            <StatCard
               label={`Timeline range (${formatDuration(data.endTimeMs - data.startTimeMs)})`}
               value={`${formatTime(data.startTimeMs)} – ${formatTime(data.endTimeMs)}`}
             />
@@ -140,9 +113,9 @@ function ObjectsOverview() {
             onModeChange={setSelectedMode}
             difficulties={selectedGroup?.difficulties ?? []}
           />
-        </Flex>
+        </>
       )}
-    </Box>
+    </AnalysisTab>
   );
 }
 

@@ -134,16 +134,28 @@ function BeatmapCard({
   const artistTitleStyle = { ...textStyle, lineHeight: 1.15 };
 
   const enterDelayMs = enterIndex !== undefined ? Math.min(enterIndex, 10) * 22 : 0;
+  const isPlaceholder = beatmap.folder === 'placeholder';
+
+  const select = () => {
+    // Prefer isSelected so lazer cards (GUID vs temp path) and current-map overrides still reparse.
+    if (isSelected) {
+      return triggerReparse();
+    }
+
+    if (onSelect) {
+      onSelect();
+    } else {
+      setSelectedFolder(beatmap.folder);
+    }
+  };
 
   return (
     <Flex
       h={96}
+      role={isPlaceholder ? undefined : 'button'}
+      tabIndex={isPlaceholder ? undefined : 0}
       aria-current={isSelected || undefined}
-      className={
-        beatmap.folder !== 'placeholder'
-          ? 'mv-beatmap-card mv-beatmap-card-enter'
-          : 'mv-beatmap-card'
-      }
+      className={!isPlaceholder ? 'mv-beatmap-card mv-beatmap-card-enter' : 'mv-beatmap-card'}
       style={{
         '--mv-card-art': displayedBgUrl ? `url('${displayedBgUrl}')` : 'none',
         '--mv-card-lift': cardVisual.lift,
@@ -156,36 +168,33 @@ function BeatmapCard({
         cursor: 'pointer',
         border: `2px solid ${cardVisual.borderColor}`,
         transition: `border-color ${transitionMs}, --mv-card-lift ${transitionMs}`,
-        ...(beatmap.folder !== 'placeholder'
+        ...(!isPlaceholder
           ? {
               animation: 'mv-beatmap-card-enter 280ms cubic-bezier(0.4, 0, 0.2, 1) both',
               animationDelay: `${enterDelayMs}ms`,
             }
           : {}),
       }}
-      onClick={() => {
-        // Prefer isSelected so lazer cards (GUID vs temp path) and current-map overrides still reparse.
-        if (isSelected) {
-          return triggerReparse();
-        }
-
-        if (onSelect) {
-          onSelect();
-        } else {
-          setSelectedFolder(beatmap.folder);
+      onClick={select}
+      onKeyDown={(event) => {
+        // Keys pressed on the bookmark button inside the card are that button's own.
+        if (isPlaceholder || event.target !== event.currentTarget) return;
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          void select();
         }
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Loading shimmer, shown until the background image settles */}
-      {beatmap.folder !== 'placeholder' && imageLoading && (
+      {!isPlaceholder && imageLoading && (
         <Skeleton
           radius="calc(var(--mantine-radius-md) - 2px)"
           style={{ position: 'absolute', inset: 0, zIndex: 0 }}
         />
       )}
-      {settings.bookmarksEnabled && beatmap.folder !== 'placeholder' && (
+      {settings.bookmarksEnabled && !isPlaceholder && (
         <Tooltip label={isBookmarked ? 'Remove bookmark' : 'Bookmark this mapset'}>
           <ActionIcon
             variant="subtle"

@@ -1,14 +1,9 @@
-import { Button, Group, useMantineTheme } from '@mantine/core';
-import {
-  IconAlertTriangleFilled,
-  IconCircleCheckFilled,
-  IconCircleDashed,
-  IconCircleHalf2,
-  IconUser,
-} from '@tabler/icons-react';
+import { Group } from '@mantine/core';
 import { ReactNode } from 'react';
+import { COVERAGE_ORDER, COVERAGE_STATUSES, CoverageIcon } from './coverageStatus';
 import { CoverageFilter, matchesCoverageFilter } from './rcUtils';
 import { ApiRcStatement } from '../../Types';
+import FilterChip from '../common/FilterChip';
 
 const ICON_SIZE = 14;
 
@@ -21,40 +16,14 @@ interface RcCoverageFilterProps {
 
 /** Quick filter pills, one per coverage status, with the same icons as the statement rows. */
 function RcCoverageFilter({ rules, value, onChange }: RcCoverageFilterProps) {
-  const theme = useMantineTheme();
-
   const options: { value: CoverageFilter; label: string; color: string; icon?: ReactNode }[] = [
     { value: 'all', label: 'All', color: 'gray' },
-    {
-      value: 'covered',
-      label: 'Covered',
-      color: 'green',
-      icon: <IconCircleCheckFilled size={ICON_SIZE} color={theme.colors.green[6]} />,
-    },
-    {
-      value: 'partial',
-      label: 'Partial',
-      color: 'yellow',
-      icon: <IconCircleHalf2 size={ICON_SIZE} color={theme.colors.yellow[6]} />,
-    },
-    {
-      value: 'outdated',
-      label: 'Outdated',
-      color: 'red',
-      icon: <IconAlertTriangleFilled size={ICON_SIZE} color={theme.colors.red[6]} />,
-    },
-    {
-      value: 'uncovered',
-      label: 'Not covered',
-      color: 'gray',
-      icon: <IconCircleDashed size={ICON_SIZE} color={theme.colors.gray[6]} />,
-    },
-    {
-      value: 'manual',
-      label: 'Manual',
-      color: 'gray',
-      icon: <IconUser size={ICON_SIZE} color={theme.colors.gray[6]} />,
-    },
+    ...COVERAGE_ORDER.map((coverage) => ({
+      value: COVERAGE_STATUSES[coverage].filter,
+      label: COVERAGE_STATUSES[coverage].label,
+      color: COVERAGE_STATUSES[coverage].color,
+      icon: <CoverageIcon coverage={coverage} size={ICON_SIZE} />,
+    })),
   ];
 
   return (
@@ -68,18 +37,15 @@ function RcCoverageFilter({ rules, value, onChange }: RcCoverageFilterProps) {
         if (count === 0 && !active && option.value !== 'all') return null;
 
         return (
-          <Button
+          <FilterChip
             key={option.value}
-            size="compact-sm"
-            radius="xl"
-            variant={active ? 'light' : 'subtle'}
-            color={active ? option.color : 'gray'}
-            leftSection={option.icon}
-            aria-pressed={active}
+            label={option.label}
+            count={count}
+            color={option.color}
+            icon={option.icon}
+            active={active}
             onClick={() => onChange(option.value)}
-          >
-            {option.label} {count}
-          </Button>
+          />
         );
       })}
     </Group>

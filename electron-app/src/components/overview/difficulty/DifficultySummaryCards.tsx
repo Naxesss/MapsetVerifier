@@ -1,33 +1,6 @@
-import { SimpleGrid, Stack, Text } from '@mantine/core';
-import { MicroLabel } from '../../common/Headings.tsx';
-import SectionCard from '../../common/SectionCard.tsx';
+import { SimpleGrid } from '@mantine/core';
+import { StatCard } from '../../common/StatField.tsx';
 import type { DifficultyOverviewDifficulty } from '../../../Types';
-
-export function SummaryCard({
-  label,
-  value,
-  subValue,
-}: {
-  label: string;
-  value: string;
-  subValue?: string;
-}) {
-  return (
-    <SectionCard>
-      <Stack gap="xs">
-        <MicroLabel>{label}</MicroLabel>
-        <Text fw={700} size="lg">
-          {value}
-        </Text>
-        {subValue && (
-          <Text size="xs" c="dimmed" truncate>
-            {subValue}
-          </Text>
-        )}
-      </Stack>
-    </SectionCard>
-  );
-}
 
 const formatStars = (starRating: number) => `★ ${starRating.toFixed(2)}`;
 
@@ -56,24 +29,24 @@ export function DifficultySpreadSummary({
 
   return (
     <SimpleGrid cols={{ base: 1, md: 3 }} spacing="md">
-      <SummaryCard
+      <StatCard
         label="Lowest star rating"
         value={formatStars(lowest.starRating)}
-        subValue={lowest.version}
+        note={lowest.version}
       />
-      <SummaryCard
+      <StatCard
         label="Highest star rating"
         value={formatStars(highest.starRating)}
-        subValue={highest.version}
+        note={highest.version}
       />
-      <SummaryCard
+      <StatCard
         label="Largest gap"
         value={
           largestGap
             ? `★ ${(largestGap.to.starRating - largestGap.from.starRating).toFixed(2)}`
             : '–'
         }
-        subValue={
+        note={
           largestGap
             ? `${largestGap.from.version} → ${largestGap.to.version}`
             : 'Only one difficulty'

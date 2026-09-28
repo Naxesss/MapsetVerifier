@@ -13,14 +13,14 @@ import {
 } from '@mantine/core';
 import { IconEye, IconEyeOff } from '@tabler/icons-react';
 import { useMemo } from 'react';
-import { LABEL_WIDTH, TIMELINE_VIEW_MODE_TRANSITION_MS } from '../constants.ts';
-import ObjectsGameModeSelector from './ObjectsGameModeSelector.tsx';
 import SortableTimelineDifficultyRow from './SortableTimelineDifficultyRow.tsx';
 import TimelineAxisRow from './TimelineAxisRow.tsx';
 import TimelineHorizontalReveal from './TimelineHorizontalReveal.tsx';
 import TimelineShiftSeekModeBadge from './TimelineShiftSeekModeBadge.tsx';
 import TimelineZoomControls from './TimelineZoomControls.tsx';
+import { LABEL_WIDTH, TIMELINE_VIEW_MODE_TRANSITION_MS } from '../constants.ts';
 import TimelineZoomModeBadge from './TimelineZoomModeBadge.tsx';
+import GameModeSelector from '../../../common/GameModeSelector.tsx';
 import {
   useTimelineController,
   useTimelineDisplay,
@@ -195,7 +195,7 @@ export default function ObjectsTimelineComparisonContent({
             <Group gap="sm" align="center" wrap="wrap" justify="flex-end" ml="auto">
               {headerExtra}
               {showModeSelector && (
-                <ObjectsGameModeSelector
+                <GameModeSelector
                   groupedDifficulties={groupedDifficulties}
                   selectedMode={selectedMode}
                   onModeChange={onModeChange}

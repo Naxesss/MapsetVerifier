@@ -1,7 +1,7 @@
-import { Alert, Button, Text } from '@mantine/core';
-import { IconAlertTriangle, IconSettings } from '@tabler/icons-react';
+import { Box } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import BeatmapsList from './BeatmapsList.tsx';
+import { SongsFolderMissing } from './MapsetListParts.tsx';
 import { useSettings } from '../../context/SettingsContext';
 
 export default function Beatmaps() {
@@ -12,19 +12,9 @@ export default function Beatmaps() {
 
   if (settings.beatmapViewMode === 'stable' && !songFolder) {
     return (
-      <Alert icon={<IconAlertTriangle />} title="Song folder not set" color="yellow">
-        <Text size="sm" mb="sm">
-          Please set your song folder in the settings to view your beatmaps.
-        </Text>
-        <Button
-          variant="light"
-          color="gray"
-          leftSection={<IconSettings />}
-          onClick={() => navigate('/settings')}
-        >
-          Open settings
-        </Button>
-      </Alert>
+      <Box p="xs">
+        <SongsFolderMissing onOpenSettings={() => navigate('/settings')} />
+      </Box>
     );
   }
 

@@ -12,10 +12,8 @@ import {
   Stepper,
   Switch,
   Text,
-  TextInput,
   Title,
 } from '@mantine/core';
-import { IconFolder } from '@tabler/icons-react';
 import { ReactNode, useState } from 'react';
 import logoUrl from '../../assets/logo.svg';
 import { BeatmapViewMode, useSettings } from '../../context/SettingsContext.tsx';
@@ -23,6 +21,7 @@ import { cssVarResolver } from '../../theme/cssVarResolver';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { UI_ZOOM_OPTIONS, parseUiZoomPercent } from '../../theme/zoom';
 import MinorIcon from '../icons/MinorIcon';
+import FolderField from '../settings/FolderField.tsx';
 import { SettingsRow } from '../settings/SettingsSection.tsx';
 
 interface SetupWizardGateProps {
@@ -55,28 +54,6 @@ export default function SetupWizardGate({ children }: SetupWizardGateProps) {
   const viewMode = settings.beatmapViewMode;
   const showSongFolder = viewMode === 'stable' || viewMode === 'both';
   const showLazerDataDir = viewMode === 'lazer' || viewMode === 'both';
-
-  const pickFolder = async () => {
-    try {
-      const result = await window.electronAPI?.dialog.openFolder();
-      if (typeof result === 'string') {
-        setSettings((prev) => ({ ...prev, songFolder: result }));
-      }
-    } catch (e: any) {
-      console.error('[Setup] Folder pick failed:', e);
-    }
-  };
-
-  const pickLazerDataDir = async () => {
-    try {
-      const result = await window.electronAPI?.dialog.openFolder();
-      if (typeof result === 'string') {
-        setSettings((prev) => ({ ...prev, lazerDataDir: result }));
-      }
-    } catch (e: any) {
-      console.error('[Setup] Lazer data folder pick failed:', e);
-    }
-  };
 
   const finish = () => setSettings((prev) => ({ ...prev, hasCompletedSetup: true }));
 
@@ -154,10 +131,10 @@ export default function SetupWizardGate({ children }: SetupWizardGateProps) {
               <Stack gap="md">
                 {showSongFolder && (
                   <FolderField
-                    label="osu! Songs Folder"
+                    label="osu! Songs folder"
                     placeholder={settings.songFolder ? undefined : 'Detecting…'}
-                    value={settings.songFolder ?? ''}
-                    onBrowse={pickFolder}
+                    value={settings.songFolder}
+                    onChange={(songFolder) => setSettings((prev) => ({ ...prev, songFolder }))}
                   />
                 )}
                 {showLazerDataDir && (
@@ -165,8 +142,8 @@ export default function SetupWizardGate({ children }: SetupWizardGateProps) {
                     label="osu!(lazer) data folder"
                     description="Contains client.realm. Auto-detected when left empty."
                     placeholder={settings.lazerDataDir ? undefined : 'Detecting…'}
-                    value={settings.lazerDataDir ?? ''}
-                    onBrowse={pickLazerDataDir}
+                    value={settings.lazerDataDir}
+                    onChange={(lazerDataDir) => setSettings((prev) => ({ ...prev, lazerDataDir }))}
                   />
                 )}
                 {!showSongFolder && !showLazerDataDir && (
@@ -202,7 +179,7 @@ export default function SetupWizardGate({ children }: SetupWizardGateProps) {
                       Show negligible issues
                     </Group>
                   }
-                  description="Includes negligible findings in the checks page."
+                  description="Includes negligible issues on the Checks page."
                   control={
                     <Switch
                       checked={settings.showMinor}
@@ -252,36 +229,5 @@ export default function SetupWizardGate({ children }: SetupWizardGateProps) {
         </Stack>
       </Container>
     </MantineProvider>
-  );
-}
-
-function FolderField({
-  label,
-  description,
-  placeholder,
-  value,
-  onBrowse,
-}: {
-  label: string;
-  description?: string;
-  placeholder?: string;
-  value: string;
-  onBrowse: () => void;
-}) {
-  return (
-    <Group align="flex-end" gap="sm" wrap="nowrap">
-      <TextInput
-        label={label}
-        description={description}
-        placeholder={placeholder}
-        value={value}
-        readOnly
-        style={{ flex: 1, minWidth: 0 }}
-        onClick={() => !value && onBrowse()}
-      />
-      <Button size="sm" variant="light" leftSection={<IconFolder size={18} />} onClick={onBrowse}>
-        Browse
-      </Button>
-    </Group>
   );
 }

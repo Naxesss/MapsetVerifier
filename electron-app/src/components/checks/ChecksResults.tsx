@@ -1,6 +1,7 @@
-﻿import { Alert, Box, Progress, Stack, Text } from '@mantine/core';
-import { IconAlertCircle, IconEyeOff } from '@tabler/icons-react';
+﻿import { Alert, Anchor, Box, Progress, Stack, Text } from '@mantine/core';
+import { IconEyeOff } from '@tabler/icons-react';
 import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import CheckCategory from './CheckCategory.tsx';
 import CheckProgressTaskList from './CheckProgressTaskList.tsx';
 import {
@@ -9,19 +10,15 @@ import {
 } from './checkResultVisibility';
 import ChecksDeltaSummary from './ChecksDeltaSummary.tsx';
 import CheckSpeedStatsPanel from './CheckSpeedStatsPanel.tsx';
-import { FetchError } from '../../client/ApiHelper';
 import {
   ApiBeatmapSetCheckResult,
   ApiCategoryOverrideCheckResult,
   CheckProgress,
 } from '../../Types';
-import StackTraceMessage from '../common/StackTraceMessage.tsx';
 
 interface ChecksResultsProps {
   data?: ApiBeatmapSetCheckResult;
   isLoading: boolean;
-  isError: boolean;
-  error?: FetchError | null;
   progress?: CheckProgress | null;
   showMinor: boolean;
   hiddenMinorCheckIds: readonly number[];
@@ -37,8 +34,6 @@ interface ChecksResultsProps {
 function ChecksResults({
   data,
   isLoading,
-  isError,
-  error,
   progress,
   showMinor,
   hiddenMinorCheckIds,
@@ -87,15 +82,6 @@ function ChecksResults({
         </Stack>
       )}
 
-      {isError && (
-        <Alert icon={<IconAlertCircle />} color="red" title="Error loading checks">
-          <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
-            {error?.message}
-          </Text>
-          {error?.stackTrace && <StackTraceMessage stackTrace={error.stackTrace} />}
-        </Alert>
-      )}
-
       {data && (
         <Stack gap="sm">
           {showCheckSpeedStats && data.checkTimings ? (
@@ -126,11 +112,11 @@ function ChecksResults({
               }}
             >
               <Text size="xs" c="dimmed" lh={2}>
-                Negligible issues exist for checks hidden in{' '}
-                <Text span fw={600} inherit>
-                  Settings → Negligible check filter
-                </Text>
-                . They are omitted from this list.
+                Some negligible issues are hidden by your{' '}
+                <Anchor component={Link} to="/settings/checks" inherit fw={600}>
+                  negligible check filter
+                </Anchor>
+                .
               </Text>
             </Alert>
           ) : null}
@@ -143,14 +129,6 @@ function ChecksResults({
             overrideResult={overrideResult}
           />
         </Stack>
-      )}
-
-      {!isLoading && !isError && !data && (
-        <Box>
-          <Text size="sm" c="dimmed">
-            No data returned.
-          </Text>
-        </Box>
       )}
     </Box>
   );

@@ -1,5 +1,5 @@
 import { Alert, Text, Flex, Collapse, Stack, useMantineTheme } from '@mantine/core';
-import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
+import { IconAlertCircle } from '@tabler/icons-react';
 import React, { useCallback, useMemo } from 'react';
 import ChecksResults from './ChecksResults';
 import DifficultyInfo from './DifficultyInfo';
@@ -164,19 +164,6 @@ function Checks() {
     setSelectedCategory('General');
   }
 
-  if (!folder) {
-    return (
-      <Alert
-        icon={<IconAlertTriangle />}
-        color="yellow"
-        title="Song folder not set"
-        withCloseButton
-      >
-        <Text size="sm">Please set the song folder in settings to run checks.</Text>
-      </Alert>
-    );
-  }
-
   return (
     <>
       <BeatmapHeader>
@@ -202,7 +189,7 @@ function Checks() {
         )}
       </BeatmapHeader>
       {isError && (
-        <Alert icon={<IconAlertCircle />} color="red" title="Error loading checks" m="md">
+        <Alert icon={<IconAlertCircle />} color="red" title="Couldn't run the checks" m="md">
           <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
             {error?.message}
           </Text>
@@ -219,12 +206,7 @@ function Checks() {
         // the header's row gap instead of the larger gap before page content.
         <Flex gap="sm" px="md" pb="md" pt="sm" direction="column" bg="dark.6">
           {(isLoading || isFetching) && (
-            <ChecksResults
-              isLoading
-              isError={false}
-              progress={progress}
-              {...checkResultsSharedProps}
-            />
+            <ChecksResults isLoading progress={progress} {...checkResultsSharedProps} />
           )}
 
           <Collapse
@@ -260,8 +242,6 @@ function Checks() {
                   <ChecksResults
                     data={data}
                     isLoading={false}
-                    isError={isError}
-                    error={error}
                     overrideResult={selectedOverrideResult}
                     {...checkResultsSharedProps}
                   />

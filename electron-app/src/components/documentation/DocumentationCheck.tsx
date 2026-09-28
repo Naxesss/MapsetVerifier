@@ -1,10 +1,18 @@
 ﻿import { Badge, Flex, Group, Text, useMantineTheme } from '@mantine/core';
 import { useState } from 'react';
-import { ApiDocumentationCheck } from '../../Types.ts';
+import { ApiDocumentationCheck, Level } from '../../Types.ts';
 import ClickableRow from '../common/ClickableRow.tsx';
 import DetailModal from '../details/DetailModal';
 import GameModeIcon from '../icons/GameModeIcon.tsx';
 import LevelIcon from '../icons/LevelIcon.tsx';
+
+/** Left to right: what the check can report, most severe first, and whether it can fail to run. */
+const OUTCOME_ORDER: Level[] = ['Problem', 'Warning', 'Minor', 'Info', 'Check', 'Error'];
+
+/** Each level a check can report, once, in {@link OUTCOME_ORDER}. */
+function outcomeLevels(outcomes: Level[]): Level[] {
+  return OUTCOME_ORDER.filter((level) => outcomes.includes(level));
+}
 
 interface DocumentationCheckProps {
   check: ApiDocumentationCheck;
@@ -36,8 +44,8 @@ function DocumentationCheck({ check }: DocumentationCheckProps) {
         </Flex>
         <Flex direction="column">
           <Group gap="xs" style={{ alignSelf: 'end' }}>
-            {check.outcomes.map((level, index) => (
-              <LevelIcon key={`${check.id}-outcome-${index}`} level={level} />
+            {outcomeLevels(check.outcomes).map((level) => (
+              <LevelIcon key={level} level={level} />
             ))}
           </Group>
           <Text size="sm" c="dimmed" style={{ alignSelf: 'end' }}>

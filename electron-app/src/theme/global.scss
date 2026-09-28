@@ -632,3 +632,9 @@
     transform: none;
   }
 }
+
+/* Keyboard focus on a sidebar mapset card, drawn like the other clickable rows. */
+.mv-beatmap-card:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 2px;
+}

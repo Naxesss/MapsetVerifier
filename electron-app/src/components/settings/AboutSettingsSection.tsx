@@ -30,7 +30,7 @@ export default function AboutSettingsSection() {
   return (
     <SettingsSection
       icon={<IconInfoCircle size={28} />}
-      title="About and folders"
+      title="About"
       description="Quick access to application folders and project links."
     >
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">

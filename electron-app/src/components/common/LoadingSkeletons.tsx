@@ -1,4 +1,4 @@
-import { SimpleGrid, Skeleton, Stack } from '@mantine/core';
+import { Flex, SimpleGrid, Skeleton, Stack } from '@mantine/core';
 
 /*
  * One way to show loading across the app: content-shaped skeletons where content is on its way
@@ -27,6 +27,27 @@ export function CardsSkeleton() {
         <Skeleton height={200} radius="md" />
       </SimpleGrid>
       <Skeleton height={280} radius="md" />
+    </Stack>
+  );
+}
+
+/**
+ * The selected-difficulty row over a narrow list next to a wide panel, e.g. the snapshot history
+ * and its changes, padded like that page's content.
+ */
+export function HistorySkeleton() {
+  return (
+    <Stack gap="sm" px="md" pt="sm" pb="md" aria-busy aria-label="Loading">
+      <Skeleton height={36} radius="md" />
+      <Flex gap="md" direction={{ base: 'column', md: 'row' }}>
+        <Skeleton
+          height={240}
+          radius="md"
+          w={{ base: '100%', md: 280 }}
+          style={{ flexShrink: 0 }}
+        />
+        <Skeleton height={320} radius="md" style={{ flex: 1 }} />
+      </Flex>
     </Stack>
   );
 }

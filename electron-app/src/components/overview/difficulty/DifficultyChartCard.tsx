@@ -35,6 +35,7 @@ import { useBeatmap } from '../../../context/BeatmapContext.tsx';
 import { useSettings } from '../../../context/SettingsContext';
 import { ChartHoverFloatingPanel } from '../../charts/timeSeries/ChartHoverFloatingPanel.tsx';
 import SectionCard from '../../common/SectionCard.tsx';
+import { StatField } from '../../common/StatField.tsx';
 import { formatChartTime } from '../../common/TimeAxis.tsx';
 import type { DifficultyChartState } from './hooks/useDifficultyChartState.ts';
 import type { DifficultyStrainDisplayMode } from '../../../context/SettingsContext';
@@ -65,17 +66,6 @@ const SKILL_CHART_INFO =
 
 /** Above this many difficulties a chart emphasizes the hardest one by default. */
 const CROWDED_CHART_SERIES_COUNT = 6;
-
-function MetricStat({ label, value }: { label: string; value: string }) {
-  return (
-    <Stack gap="2xs">
-      <Text size="xs" c="dimmed">
-        {label}
-      </Text>
-      <Text fw={600}>{value}</Text>
-    </Stack>
-  );
-}
 
 function computePeakFromRows(
   rows: ChartRow[],
@@ -373,11 +363,11 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
       >
         <Stack gap="sm">
           <SimpleGrid cols={chart.showResolution ? 4 : 3} spacing="md">
-            <MetricStat label="Peak" value={formatChartMetricValue(peakValue, peakValueSuffix)} />
-            <MetricStat label="Peak at" value={formatSeconds(peakAtSeconds)} />
-            <MetricStat label="Duration" value={formatChartDuration(chart.durationMs)} />
+            <StatField label="Peak" value={formatChartMetricValue(peakValue, peakValueSuffix)} />
+            <StatField label="Peak at" value={formatSeconds(peakAtSeconds)} />
+            <StatField label="Duration" value={formatChartDuration(chart.durationMs)} />
             {chart.showResolution ? (
-              <MetricStat label="Resolution" value={formatStrainResolution(chart.msPerPeak)} />
+              <StatField label="Resolution" value={formatStrainResolution(chart.msPerPeak)} />
             ) : null}
           </SimpleGrid>
 

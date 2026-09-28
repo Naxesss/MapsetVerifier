@@ -1,5 +1,6 @@
-import { Kbd, List, Modal, Stack, Text, Title } from '@mantine/core';
+import { Kbd, List, Modal, Stack, Text } from '@mantine/core';
 import HitsoundLegendContent from './HitsoundLegendContent.tsx';
+import { CardTitle } from '../../../common/Headings.tsx';
 
 type ObjectsTimelineHelpModalProps = {
   opened: boolean;
@@ -16,7 +17,7 @@ export default function ObjectsTimelineHelpModal({
     <Modal opened={opened} onClose={onClose} title="How to use the timeline" size="lg" centered>
       <Stack gap="lg">
         <Stack gap="xs">
-          <Title order={5}>Navigation</Title>
+          <CardTitle>Navigation</CardTitle>
           <List size="sm" spacing="xs">
             <List.Item>Drag horizontally to pan.</List.Item>
             <List.Item>
@@ -35,7 +36,7 @@ export default function ObjectsTimelineHelpModal({
         </Stack>
 
         <Stack gap="xs">
-          <Title order={5}>Structure view</Title>
+          <CardTitle>Structure view</CardTitle>
           <Text size="sm" c="dimmed">
             Default view, object shapes, combo colours, breaks, and the timing grid. Change the
             object style from the dropdown.
@@ -45,7 +46,7 @@ export default function ObjectsTimelineHelpModal({
         {showHitsoundSection && (
           <>
             <Stack gap="xs">
-              <Title order={5}>Hitsounding view</Title>
+              <CardTitle>Hitsounding view</CardTitle>
               <Text size="sm" c="dimmed">
                 osu! and osu!catch only. Switch via Structure / Hitsounding in the header.
               </Text>
@@ -66,7 +67,7 @@ export default function ObjectsTimelineHelpModal({
             </Stack>
 
             <Stack gap="xs">
-              <Title order={5}>Hitsound details</Title>
+              <CardTitle>Hitsound details</CardTitle>
               <List size="sm" spacing="xs">
                 <List.Item>
                   <strong>Hitsound additions</strong>, matches the circles above the strip. Hover a
@@ -80,7 +81,7 @@ export default function ObjectsTimelineHelpModal({
             </Stack>
 
             <Stack gap="xs">
-              <Title order={5}>Sound strip</Title>
+              <CardTitle>Sound strip</CardTitle>
               <Text size="sm" c="dimmed">
                 The lane below each row, a compact timeline of when samples play.
               </Text>
@@ -101,7 +102,7 @@ export default function ObjectsTimelineHelpModal({
             </Stack>
 
             <Stack gap="xs">
-              <Title order={5}>Layer toggles</Title>
+              <CardTitle>Layer toggles</CardTitle>
               <List size="sm" spacing="xs">
                 <List.Item>
                   <strong>Body sounds</strong>, repeating slider body samples in the passive lane.
@@ -120,7 +121,7 @@ export default function ObjectsTimelineHelpModal({
             </Stack>
 
             <Stack gap="xs">
-              <Title order={5}>Colour key</Title>
+              <CardTitle>Colour key</CardTitle>
               <HitsoundLegendContent />
             </Stack>
           </>

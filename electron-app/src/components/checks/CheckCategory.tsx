@@ -1,33 +1,23 @@
-import { Badge, Group, Stack, Text } from '@mantine/core';
+import { Group, Stack, Text } from '@mantine/core';
+import { IconCircleCheck } from '@tabler/icons-react';
 import React from 'react';
 import CheckGroup from './CheckGroup.tsx';
 import { groupChecks } from './groupChecks';
+import { DisplayLevel, normalizeLevel, SEVERITY_ORDER } from './utils/levelUtils';
 import { ApiBeatmapSetCheckResult, ApiCategoryOverrideCheckResult, Level } from '../../Types';
-import { countWord } from '../../utils/countWord';
 import { getLevelLabel } from '../../utils/levelLabel';
+import EmptyState from '../common/EmptyState.tsx';
+import FilterChip from '../common/FilterChip.tsx';
 import VirtualizedList from '../common/VirtualizedList.tsx';
-
-type DisplayLevel = Exclude<Level, 'Check'>;
+import { levelColorName } from '../icons/levelColor';
+import LevelIcon from '../icons/LevelIcon.tsx';
 
 type CheckGroupUiState = {
   isOpen: boolean;
   showAll: boolean;
 };
 
-const LEVEL_ORDER: DisplayLevel[] = ['Error', 'Problem', 'Warning', 'Minor', 'Info'];
 const VIRTUAL_GROUP_OVERSCAN = 6;
-
-const LEVEL_BADGE_COLORS: Record<DisplayLevel, string> = {
-  Error: 'gray',
-  Problem: 'red',
-  Warning: 'orange',
-  Minor: 'lime',
-  Info: 'teal',
-};
-
-function normalizeLevel(level: Level): DisplayLevel {
-  return level === 'Check' ? 'Info' : level;
-}
 
 function getLevelCounts(levels: Level[]): Record<DisplayLevel, number> {
   const counts: Record<DisplayLevel, number> = {
@@ -89,7 +79,7 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
       );
       const allLevels = groups.flatMap((g) => g.items.map((item) => item.level));
       const levelCounts = getLevelCounts(allLevels);
-      const totalCount = LEVEL_ORDER.reduce((sum, level) => sum + levelCounts[level], 0);
+      const totalCount = SEVERITY_ORDER.reduce((sum, level) => sum + levelCounts[level], 0);
       const sortedGroups = [...groups].sort((a, b) => {
         const nameA = (overrideResult.checks[a.id]?.name ?? '').toLowerCase();
         const nameB = (overrideResult.checks[b.id]?.name ?? '').toLowerCase();
@@ -131,7 +121,7 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
     const groups = groupChecks(cat.checks, showMinor, hiddenMinorCheckIds);
     const allLevels = groups.flatMap((g) => g.items.map((item) => item.level));
     const levelCounts = getLevelCounts(allLevels);
-    const totalCount = LEVEL_ORDER.reduce((sum, level) => sum + levelCounts[level], 0);
+    const totalCount = SEVERITY_ORDER.reduce((sum, level) => sum + levelCounts[level], 0);
     const sortedGroups = [...groups].sort((a, b) => {
       const nameA = (data.checks[a.id]?.name ?? '').toLowerCase();
       const nameB = (data.checks[b.id]?.name ?? '').toLowerCase();
@@ -218,27 +208,22 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
   return (
     <Stack gap="sm">
       <Group wrap="wrap" gap="xs" align="center">
-        {LEVEL_ORDER.map((level) => {
+        {SEVERITY_ORDER.map((level) => {
           const count = categoryData.levelCounts[level];
           if (count === 0) return null;
 
           const isSelected = levelFilter === level;
 
           return (
-            <Badge
+            <FilterChip
               key={level}
-              component="button"
-              type="button"
-              color={LEVEL_BADGE_COLORS[level]}
-              variant={isSelected ? 'filled' : 'light'}
+              label={getLevelLabel(level)}
+              count={count}
+              color={levelColorName(level)}
+              icon={<LevelIcon level={level} size={14} />}
+              active={isSelected}
               onClick={() => toggleLevelFilter(level)}
-              style={{ cursor: 'pointer' }}
-              title={isSelected ? 'Show all severities' : `Filter by this type`}
-            >
-              {level === 'Minor'
-                ? `${count} ${getLevelLabel(level)}`
-                : countWord(count, level.toLowerCase())}
-            </Badge>
+            />
           );
         })}
       </Group>
@@ -258,7 +243,7 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
           </Text>
         )
       ) : (
-        <Text>No issues found.</Text>
+        <EmptyState icon={IconCircleCheck} title="No issues found" />
       )}
     </Stack>
   );

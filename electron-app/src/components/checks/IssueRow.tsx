@@ -4,6 +4,7 @@ import { useSettings } from '../../context/SettingsContext';
 import { ApiCheckResult } from '../../Types';
 import OsuLink from '../common/OsuLink';
 import LevelIcon from '../icons/LevelIcon';
+import { normalizeLevel } from './utils/levelUtils';
 
 interface IssueRowProps {
   item: ApiCheckResult;
@@ -49,7 +50,7 @@ const IssueRow: React.FC<IssueRowProps> = ({ item, onOpen, prefix }) => {
       }}
     >
       <div style={{ flexShrink: 0, userSelect: 'none' }}>
-        <LevelIcon level={item.level === 'Check' ? 'Info' : item.level} size={16} />
+        <LevelIcon level={normalizeLevel(item.level)} size={16} />
       </div>
       <Text
         component="span"

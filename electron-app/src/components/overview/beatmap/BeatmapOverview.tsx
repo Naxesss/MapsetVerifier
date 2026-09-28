@@ -1,14 +1,10 @@
-﻿import { Alert, Text, Box, Flex } from '@mantine/core';
-import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
-import DifficultySettingsInfo from './DifficultySettingsInfo';
+﻿import DifficultySettingsInfo from './DifficultySettingsInfo';
 import GeneralSettingsInfo from './GeneralSettingsInfo';
 import { useBeatmapAnalysis } from './hooks/useBeatmapAnalysis';
 import StatisticsInfo from './StatisticsInfo';
 import { useBeatmap } from '../../../context/BeatmapContext';
 import { useSettings } from '../../../context/SettingsContext';
-import { CardsSkeleton } from '../../common/LoadingSkeletons.tsx';
-import NoBeatmapsetDisplay from '../../common/NoBeatmapsetDisplay.tsx';
-import StackTraceMessage from '../../common/StackTraceMessage.tsx';
+import AnalysisTab from '../AnalysisTab.tsx';
 
 function BeatmapOverview() {
   const { selectedFolder: folder } = useBeatmap();
@@ -19,40 +15,22 @@ function BeatmapOverview() {
     songFolder: settings.songFolder,
   });
 
-  if (!folder) {
-    return <NoBeatmapsetDisplay />;
-  }
-
   return (
-    <Box>
-      {isLoading && <CardsSkeleton />}
-      {isError && (
-        <Flex p="md">
-          <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing beatmap">
-            <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
-              {error?.message}
-            </Text>
-            {error?.stackTrace && <StackTraceMessage stackTrace={error.stackTrace} />}
-          </Alert>
-        </Flex>
-      )}
-
-      {data && !data.success && (
-        <Flex p="md">
-          <Alert icon={<IconAlertTriangle />} color="yellow" title="Analysis failed">
-            <Text size="sm">{data.errorMessage}</Text>
-          </Alert>
-        </Flex>
-      )}
-
-      {data && data.success && (
-        <Flex gap="md" p="md" direction="column">
+    <AnalysisTab
+      data={data}
+      isLoading={isLoading}
+      isError={isError}
+      error={error}
+      subject="beatmap"
+    >
+      {(data) => (
+        <>
           <StatisticsInfo statistics={data.statistics} />
           <GeneralSettingsInfo generalSettings={data.generalSettings} />
           <DifficultySettingsInfo difficultySettings={data.difficultySettings} />
-        </Flex>
+        </>
       )}
-    </Box>
+    </AnalysisTab>
   );
 }
 

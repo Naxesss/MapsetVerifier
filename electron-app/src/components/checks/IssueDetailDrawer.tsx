@@ -5,25 +5,20 @@ import {
   Button,
   Divider,
   Drawer,
-  Grid,
   Group,
   Paper,
   Stack,
   Text,
 } from '@mantine/core';
-import { IconAlertCircle, IconBook, IconCopy } from '@tabler/icons-react';
+import { IconAlertCircle, IconCopy } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import DocumentationApi from '../../client/DocumentationApi';
 import { useOpenOsuTimestamp } from '../../hooks/useOpenOsuTimestamp';
-import {
-  ApiCheckResult,
-  ApiDocumentationCheck,
-  ApiDocumentationCheckDetails,
-  Level,
-} from '../../Types';
+import { Z_INDEX } from '../../theme/layers';
+import { ApiCheckResult, ApiDocumentationCheck, ApiDocumentationCheckDetails } from '../../Types';
 import { getLevelLabel } from '../../utils/levelLabel';
 import { notifyError, notifySuccess } from '../../utils/notify';
-import { CardTitle } from '../common/Headings';
+import { CardTitle, SectionTitle } from '../common/Headings';
 import { TextSkeleton } from '../common/LoadingSkeletons';
 import OsuLink from '../common/OsuLink';
 import {
@@ -35,6 +30,7 @@ import DocumentationOutcomeBlockquote from '../documentation/DocumentationOutcom
 import MantineMarkdown from '../documentation/MantineMarkdown';
 import LevelIcon from '../icons/LevelIcon';
 import RuleReferences from '../rankingCriteria/RuleReferences';
+import { normalizeLevel } from './utils/levelUtils';
 
 interface IssueDetailDrawerProps {
   opened: boolean;
@@ -47,10 +43,6 @@ interface IssueDetailDrawerProps {
   onCopyAll?: () => void;
   sameSeverityCount?: number;
   onCopySameSeverity?: () => void;
-}
-
-export function normalizeLevel(level: Level): Exclude<Level, 'Check'> {
-  return level === 'Check' ? 'Info' : level;
 }
 
 function getIssueTimestamps(issue: ApiCheckResult | null) {
@@ -104,7 +96,7 @@ export default function IssueDetailDrawer({
       onClose={onClose}
       position="right"
       size="lg"
-      zIndex={1900}
+      zIndex={Z_INDEX.drawer}
       title={
         <Group>
           <LevelIcon level={normalizedLevel} />
@@ -112,9 +104,7 @@ export default function IssueDetailDrawer({
             <Text size="sm" c="dimmed">
               Issue details
             </Text>
-            <Text size="lg" fw={700}>
-              {checkName ?? 'Check issue'}
-            </Text>
+            <SectionTitle component="span">{checkName ?? 'Check issue'}</SectionTitle>
 
             {documentationCheck && (
               <Group gap="xs">
@@ -148,46 +138,29 @@ export default function IssueDetailDrawer({
     >
       {issue ? (
         <Stack gap="lg">
-          <Grid grow>
-            <Grid.Col span={4}>
-              <Button
-                w="100%"
-                variant="light"
-                leftSection={<IconCopy size={14} />}
-                onClick={onCopyIssue}
-              >
-                Copy issue
-              </Button>
-            </Grid.Col>
+          <Group gap="xs">
+            <Button variant="light" leftSection={<IconCopy size={14} />} onClick={onCopyIssue}>
+              Copy issue
+            </Button>
             {onCopySameSeverity &&
               sameSeverityCount &&
               sameSeverityCount > 1 &&
               groupCount &&
               sameSeverityCount < groupCount && (
-                <Grid.Col span={4}>
-                  <Button
-                    w="100%"
-                    variant="light"
-                    leftSection={<IconCopy size={14} />}
-                    onClick={onCopySameSeverity}
-                  >
-                    Copy {getLevelLabel(normalizedLevel)} ({sameSeverityCount})
-                  </Button>
-                </Grid.Col>
-              )}
-            {onCopyAll && groupCount && groupCount > 1 && (
-              <Grid.Col span={4}>
                 <Button
-                  w="100%"
                   variant="light"
                   leftSection={<IconCopy size={14} />}
-                  onClick={onCopyAll}
+                  onClick={onCopySameSeverity}
                 >
-                  Copy all ({groupCount})
+                  Copy {getLevelLabel(normalizedLevel)} ({sameSeverityCount})
                 </Button>
-              </Grid.Col>
+              )}
+            {onCopyAll && groupCount && groupCount > 1 && (
+              <Button variant="light" leftSection={<IconCopy size={14} />} onClick={onCopyAll}>
+                Copy all ({groupCount})
+              </Button>
             )}
-          </Grid>
+          </Group>
 
           <Stack gap="xs">
             <CardTitle>Full message</CardTitle>
@@ -198,9 +171,9 @@ export default function IssueDetailDrawer({
             </Paper>
           </Stack>
 
-          <Stack gap="xs">
-            <CardTitle>Timestamp links</CardTitle>
-            {visibleTimestamps.length > 0 ? (
+          {visibleTimestamps.length > 0 ? (
+            <Stack gap="xs">
+              <CardTitle>Timestamp links</CardTitle>
               <Stack gap="xs">
                 {visibleTimestamps.map((timestamp) => (
                   <Group key={timestamp} gap="xs" wrap="nowrap">
@@ -232,12 +205,8 @@ export default function IssueDetailDrawer({
                   </Group>
                 ))}
               </Stack>
-            ) : (
-              <Text size="sm" c="dimmed">
-                This issue does not include a timestamp.
-              </Text>
-            )}
-          </Stack>
+            </Stack>
+          ) : null}
 
           {issue.ruleIds && issue.ruleIds.length > 0 ? (
             <Stack gap="xs">
@@ -246,22 +215,16 @@ export default function IssueDetailDrawer({
             </Stack>
           ) : null}
 
-          <Divider
-            label={
-              <Group>
-                <IconBook />
-                <Text>Check documentation</Text>
-              </Group>
-            }
-          />
+          <Divider />
 
-          <Stack gap="sm">
+          <Stack gap="xs">
+            <CardTitle>Check documentation</CardTitle>
             {documentationCheck ? (
               <>
                 {isLoading ? <TextSkeleton lines={4} /> : null}
                 {error ? (
                   <Alert icon={<IconAlertCircle size={16} />} color="red">
-                    Failed to load documentation details.
+                    Couldn&apos;t load the check documentation.
                   </Alert>
                 ) : null}
                 {data ? (

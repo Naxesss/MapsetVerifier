@@ -2,6 +2,7 @@ import { Button, Modal, Stack, Text } from '@mantine/core';
 import { IconArrowLeft } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import { DetailNavigationContext, DetailView, detailKey, detailTitle } from './detailNavigation';
+import { SectionTitle } from '../common/Headings';
 import DocumentationCheckDetails from '../documentation/DocumentationCheckDetails';
 import RcStatementDetails, { RcStatementTitle } from '../rankingCriteria/RcStatementDetails';
 
@@ -67,9 +68,7 @@ export default function DetailModal({ view, onClose }: DetailModalProps) {
             {current.kind === 'rule' ? (
               <RcStatementTitle statement={current.statement} />
             ) : (
-              <Text fw="bold" size="lg">
-                {current.check.description}
-              </Text>
+              <SectionTitle component="span">{current.check.description}</SectionTitle>
             )}
           </Stack>
         )

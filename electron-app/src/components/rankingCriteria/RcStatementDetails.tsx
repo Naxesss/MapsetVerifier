@@ -4,14 +4,9 @@ import { useMemo } from 'react';
 import RcLeadText from './RcLeadText';
 import RcMarkdown from './RcMarkdown';
 import RcOutdatedNotice from './RcOutdatedNotice';
-import {
-  difficultyStarRating,
-  formatDifficulties,
-  KIND_COLOR,
-  openExternal,
-  pageMode,
-} from './rcUtils';
+import { difficultyStarRating, formatDifficulties, KIND_COLOR, pageMode } from './rcUtils';
 import { useRankingCriteriaPage } from './useRankingCriteria';
+import { openExternal } from '../../hooks/useOpenExternal';
 import { ApiRcCheckLink, ApiRcPage, ApiRcStatement } from '../../Types';
 import { SectionTitle } from '../common/Headings';
 import { TextSkeleton } from '../common/LoadingSkeletons';
@@ -165,9 +160,9 @@ export function RcStatementTitle({ statement }: { statement: ApiRcStatement }) {
           <RcLeadText>{statement.parentLead}</RcLeadText>
         </Text>
       )}
-      <Text fw="bold" size="lg">
+      <SectionTitle component="span">
         <RcLeadText>{statement.lead}</RcLeadText>
-      </Text>
+      </SectionTitle>
     </Stack>
   );
 }

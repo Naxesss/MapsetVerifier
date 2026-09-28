@@ -4,6 +4,7 @@ import { DifficultyMetadata } from '../../../Types';
 import { countWord } from '../../../utils/countWord';
 import { getModeAccentColor } from '../../../utils/gameMode.ts';
 import SectionCard from '../../common/SectionCard.tsx';
+import { StatField } from '../../common/StatField.tsx';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
 import type { ReactNode } from 'react';
 
@@ -37,6 +38,29 @@ function MetadataDifficultyGrid({
   );
 }
 
+/** A name and, when it differs, its Unicode spelling below it. */
+function NameWithUnicode({ name, unicode }: { name: string; unicode?: string | null }) {
+  return (
+    <Stack gap="2xs">
+      <Text size="sm">{name}</Text>
+      {unicode && unicode !== name && (
+        <Text size="xs" c="dimmed">
+          {unicode}
+        </Text>
+      )}
+    </Stack>
+  );
+}
+
+/** An empty optional field. */
+function EmptyValue({ size }: { size?: 'sm' }) {
+  return (
+    <Text size={size} c="dimmed">
+      None
+    </Text>
+  );
+}
+
 function MetadataInfo({ difficulties }: MetadataInfoProps) {
   if (difficulties.length === 0) {
     return null;
@@ -59,144 +83,86 @@ function MetadataInfo({ difficulties }: MetadataInfoProps) {
       actions={<Badge color="blue">{countWord(difficulties.length, 'difficulty')}</Badge>}
     >
       <Stack gap="md">
-        {/* Artist */}
-        <Box>
-          <Text size="xs" c="dimmed" mb="xs">
-            Artist
-          </Text>
-          {allSame('artist') ? (
-            <Stack gap="2xs">
-              <Text fw={500}>{first.artist}</Text>
-              {hasUnicodeArtist && (
-                <Text size="sm" c="dimmed">
-                  {first.artistUnicode}
-                </Text>
-              )}
-            </Stack>
-          ) : (
-            <MetadataDifficultyGrid difficulties={difficulties}>
-              {(d) => (
-                <Stack gap="2xs">
-                  <Text size="sm">{d.artist}</Text>
-                  {d.artist !== d.artistUnicode && (
-                    <Text size="xs" c="dimmed">
-                      {d.artistUnicode}
-                    </Text>
-                  )}
-                </Stack>
-              )}
-            </MetadataDifficultyGrid>
-          )}
-        </Box>
+        <StatField
+          label="Artist"
+          value={
+            allSame('artist') ? (
+              first.artist
+            ) : (
+              <MetadataDifficultyGrid difficulties={difficulties}>
+                {(d) => <NameWithUnicode name={d.artist} unicode={d.artistUnicode} />}
+              </MetadataDifficultyGrid>
+            )
+          }
+          note={allSame('artist') && hasUnicodeArtist ? first.artistUnicode : undefined}
+        />
 
-        {/* Title */}
-        <Box>
-          <Text size="xs" c="dimmed" mb="xs">
-            Title
-          </Text>
-          {allSame('title') ? (
-            <Stack gap="2xs">
-              <Text fw={500}>{first.title}</Text>
-              {hasUnicodeTitle && (
-                <Text size="sm" c="dimmed">
-                  {first.titleUnicode}
-                </Text>
-              )}
-            </Stack>
-          ) : (
-            <MetadataDifficultyGrid difficulties={difficulties}>
-              {(d) => (
-                <Stack gap="2xs">
-                  <Text size="sm">{d.title}</Text>
-                  {d.title !== d.titleUnicode && (
-                    <Text size="xs" c="dimmed">
-                      {d.titleUnicode}
-                    </Text>
-                  )}
-                </Stack>
-              )}
-            </MetadataDifficultyGrid>
-          )}
-        </Box>
+        <StatField
+          label="Title"
+          value={
+            allSame('title') ? (
+              first.title
+            ) : (
+              <MetadataDifficultyGrid difficulties={difficulties}>
+                {(d) => <NameWithUnicode name={d.title} unicode={d.titleUnicode} />}
+              </MetadataDifficultyGrid>
+            )
+          }
+          note={allSame('title') && hasUnicodeTitle ? first.titleUnicode : undefined}
+        />
 
         <SimpleGrid cols={2}>
-          {/* Creator */}
-          <Box>
-            <Text size="xs" c="dimmed" mb="xs">
-              Creator
-            </Text>
-            {allSame('creator') ? (
-              <Text fw={500}>{first.creator}</Text>
-            ) : (
-              <MetadataDifficultyGrid difficulties={difficulties}>
-                {(d) => <Text size="sm">{d.creator}</Text>}
-              </MetadataDifficultyGrid>
-            )}
-          </Box>
-
-          {/* Source */}
-          <Box>
-            <Text size="xs" c="dimmed" mb="xs">
-              Source
-            </Text>
-            {allSame('source') ? (
-              <Text fw={500}>
-                {first.source ? (
-                  <Text size="sm">{first.source}</Text>
-                ) : (
-                  <Text size="xs" fs="italic">
-                    none
-                  </Text>
-                )}
-              </Text>
-            ) : (
-              <MetadataDifficultyGrid difficulties={difficulties}>
-                {(d) =>
-                  d.source ? (
-                    <Text size="sm">{d.source}</Text>
-                  ) : (
-                    <Text size="xs" c="dimmed">
-                      (none)
-                    </Text>
-                  )
-                }
-              </MetadataDifficultyGrid>
-            )}
-          </Box>
+          <StatField
+            label="Creator"
+            value={
+              allSame('creator') ? (
+                first.creator
+              ) : (
+                <MetadataDifficultyGrid difficulties={difficulties}>
+                  {(d) => <Text size="sm">{d.creator}</Text>}
+                </MetadataDifficultyGrid>
+              )
+            }
+          />
+          <StatField
+            label="Source"
+            value={
+              allSame('source') ? (
+                (first.source ?? '') || <EmptyValue />
+              ) : (
+                <MetadataDifficultyGrid difficulties={difficulties}>
+                  {(d) => (d.source ? <Text size="sm">{d.source}</Text> : <EmptyValue size="sm" />)}
+                </MetadataDifficultyGrid>
+              )
+            }
+          />
         </SimpleGrid>
 
-        {/* Tags */}
-        <Box>
-          <Text size="xs" c="dimmed" mb="xs">
-            Tags
-          </Text>
-          {allSame('tags') ? (
-            <Code block fz="sm" style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
-              {first.tags || '(none)'}
-            </Code>
-          ) : (
-            <TagsDiffDisplay difficulties={difficulties} />
-          )}
-        </Box>
+        <StatField
+          label="Tags"
+          value={
+            allSame('tags') ? (
+              <Code block fz="sm" style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
+                {first.tags || 'None'}
+              </Code>
+            ) : (
+              <TagsDiffDisplay difficulties={difficulties} />
+            )
+          }
+        />
 
-        {/* IDs */}
         <SimpleGrid cols={2}>
-          <Box>
-            <Text size="xs" c="dimmed" mb="xs">
-              Mapset ID
-            </Text>
-            <Text fw={500}>{first.beatmapSetId ?? 'Not submitted'}</Text>
-          </Box>
-          <Box>
-            <Text size="xs" c="dimmed" mb="xs">
-              Modes
-            </Text>
-            <Group gap="xs">
-              {[...new Set(difficulties.map((d) => d.mode))].map((mode) => (
-                <GameModeIcon key={mode} mode={mode} size={16} color={getModeAccentColor(mode)} />
-              ))}
-            </Group>
-          </Box>
+          <StatField label="Mapset ID" value={first.beatmapSetId ?? 'Not submitted'} />
+          <StatField
+            label="Modes"
+            value={
+              <Group gap="xs">
+                {[...new Set(difficulties.map((d) => d.mode))].map((mode) => (
+                  <GameModeIcon key={mode} mode={mode} size={16} color={getModeAccentColor(mode)} />
+                ))}
+              </Group>
+            }
+          />
         </SimpleGrid>
       </Stack>
     </SectionCard>

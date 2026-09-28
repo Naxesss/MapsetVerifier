@@ -1,5 +1,6 @@
-import { Box, Kbd } from '@mantine/core';
+import { Anchor, Box, Kbd } from '@mantine/core';
 import { IconPin } from '@tabler/icons-react';
+import { Link } from 'react-router-dom';
 import { getActiveNavRoute } from './navConfig.ts';
 import MinorIcon from '../icons/MinorIcon.tsx';
 import type { ReactNode } from 'react';
@@ -102,7 +103,11 @@ function minorChecksDisabledHint(): PageHint {
           <MinorIcon size={16} />
           negligible checks
         </Box>
-        ? Enable them in Settings.
+        ?{' '}
+        <Anchor component={Link} to="/settings/checks" inherit>
+          Turn them on in Settings
+        </Anchor>
+        .
       </>
     ),
   };
@@ -134,7 +139,11 @@ function bookmarkHint(bookmarksEnabled: boolean): PageHint {
           <IconPin size={16} />
           pin mapsets
         </Box>
-        ? Enable bookmarks in Experimental Settings.
+        ?{' '}
+        <Anchor component={Link} to="/settings/experimental" inherit>
+          Turn on bookmarks in Settings
+        </Anchor>
+        .
       </>
     ),
   };

@@ -131,7 +131,7 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
                     </Text>
                   )}
                   <Text size="xs" c="dimmed">
-                    Offset: {video.offsetMs}ms
+                    Offset: {video.offsetMs} ms
                   </Text>
                   {video.hasAudioTrack && <Badge color="red">Audio track</Badge>}
                 </Group>

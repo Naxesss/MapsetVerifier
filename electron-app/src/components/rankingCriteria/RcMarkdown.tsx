@@ -10,13 +10,13 @@ import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   headingAnchor,
-  openExternal,
   parseDifficultyIcon,
   parseModeIcon,
   rankingCriteriaRoute,
   resolveWikiLink,
 } from './rcUtils';
 import { remarkWikiAlerts } from './remarkWikiAlerts';
+import { openExternal } from '../../hooks/useOpenExternal';
 import { ApiRcPage } from '../../Types';
 import MantineMarkdown from '../documentation/MantineMarkdown';
 import GameModeIcon from '../icons/GameModeIcon';

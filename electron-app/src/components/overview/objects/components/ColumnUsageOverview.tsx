@@ -1,9 +1,9 @@
 import { Box, Group, Stack, Table, Text, useMantineTheme } from '@mantine/core';
-import ObjectsGameModeSelector from './ObjectsGameModeSelector.tsx';
 import AppTable, {
   DifficultyTableCell,
   DifficultyTableHeaderCell,
 } from '../../../common/AppTable.tsx';
+import GameModeSelector from '../../../common/GameModeSelector.tsx';
 import SectionCard from '../../../common/SectionCard.tsx';
 import GameModeIcon from '../../../icons/GameModeIcon.tsx';
 import type { Mode, ObjectsColumnUsage, ObjectsOverviewDifficulty } from '../../../../Types';
@@ -138,7 +138,7 @@ export default function ColumnUsageOverview({
       title="Column usage"
       info="Objects per column with their share of the total."
       actions={
-        <ObjectsGameModeSelector
+        <GameModeSelector
           groupedDifficulties={groupedDifficulties}
           selectedMode={activeMode}
           onModeChange={onModeChange}

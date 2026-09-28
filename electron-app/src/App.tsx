@@ -20,6 +20,7 @@ import { PageHintsProvider } from './context/PageHintsContext.tsx';
 import { SettingsProvider } from './context/SettingsContext.tsx';
 import { UpdaterProvider } from './context/UpdaterContext';
 import { cssVarResolver } from './theme/cssVarResolver.ts';
+import { NAV_BAR_HEIGHT, WINDOW_BAR_HEIGHT, Z_INDEX } from './theme/layers.ts';
 import { useAppTheme } from './theme/useAppTheme.ts';
 import '@mantine/core/styles.css';
 import '@mantine/charts/styles.css';
@@ -109,7 +110,7 @@ function AppContent() {
 
   return (
     <MantineProvider defaultColorScheme="dark" theme={theme} cssVariablesResolver={cssVarResolver}>
-      <Notifications position="top-center" zIndex={2100} />
+      <Notifications position="top-center" zIndex={Z_INDEX.notifications} />
       <ErrorBoundary title="The app encountered an error">
         <WindowBar />
         <UpdaterProvider>
@@ -119,7 +120,7 @@ function AppContent() {
                 <SetupWizardGate>
                   <DocumentationProvider>
                     <AppShell
-                      header={{ height: 92 }}
+                      header={{ height: WINDOW_BAR_HEIGHT + NAV_BAR_HEIGHT }}
                       navbar={{
                         width: '256',
                         breakpoint: 'xs',

@@ -9,6 +9,7 @@ import {
 } from '@tabler/icons-react';
 import { useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { COVERAGE_ORDER, COVERAGE_STATUSES } from './coverageStatus';
 import RcCoverageFilter from './RcCoverageFilter';
 import RcMarkdown from './RcMarkdown';
 import RcPageSelect from './RcPageSelect';
@@ -19,7 +20,6 @@ import {
   isCovered,
   matchesCoverageFilter,
   matchesSearch,
-  openExternal,
   rankingCriteriaRoute,
 } from './rcUtils';
 import {
@@ -27,7 +27,8 @@ import {
   useRankingCriteriaOverview,
   useRankingCriteriaPage,
 } from './useRankingCriteria';
-import { ApiRcStatement, RcCoverage } from '../../Types';
+import { openExternal } from '../../hooks/useOpenExternal';
+import { ApiRcStatement } from '../../Types';
 import { formatDate } from '../../utils/dateTime';
 import { isDevBuild } from '../../utils/devSettings';
 import EmptyState from '../common/EmptyState';
@@ -49,23 +50,14 @@ function coverageOf(statements: ApiRcStatement[]) {
   };
 }
 
-// Manual is striped rather than a colour of its own: like its row icon it is grey, but it is not
-// work left for a check.
-const BAR_SECTIONS: { coverage: RcCoverage; label: string; color: string; striped?: boolean }[] = [
-  { coverage: 'Covered', label: 'Covered', color: 'green' },
-  { coverage: 'Partial', label: 'Partly covered', color: 'yellow' },
-  { coverage: 'Outdated', label: 'Outdated', color: 'red' },
-  { coverage: 'Uncovered', label: 'Not covered', color: 'gray.6' },
-  { coverage: 'Manual', label: 'Manual', color: 'gray.6', striped: true },
-];
-
 /** Every rule and guideline split by coverage status, in the colours of the status icons. */
 function CoverageBar({ rules }: { rules: ApiRcStatement[] }) {
   const counted = rules.filter((rule) => rule.coverage !== 'Informational');
 
   return (
     <Progress.Root size="md" radius="xl">
-      {BAR_SECTIONS.map(({ coverage, label, color, striped }) => {
+      {COVERAGE_ORDER.map((coverage) => {
+        const { label, color, striped } = COVERAGE_STATUSES[coverage];
         const count = counted.filter((rule) => rule.coverage === coverage).length;
         if (count === 0) return null;
 
@@ -73,7 +65,7 @@ function CoverageBar({ rules }: { rules: ApiRcStatement[] }) {
           <Tooltip key={coverage} label={`${label}: ${count}`} withinPortal>
             <Progress.Section
               value={(count / counted.length) * 100}
-              color={color}
+              color={color === 'gray' ? 'gray.6' : color}
               striped={striped}
             />
           </Tooltip>
@@ -230,8 +222,6 @@ function RankingCriteria() {
     : null;
   const wikiUrl = currentPage?.wikiUrl;
 
-  // Three blocks (controls, coverage, list) spaced by `sm`, like the beatmap sidebar's search row and
-  // list; everything inside a block by `xs`.
   return (
     <Stack gap="md">
       <StickyToolbar>
@@ -335,7 +325,7 @@ function RankingCriteria() {
 
       {(overview.error || isError) && (
         <Alert icon={<IconAlertCircle />} color="red">
-          Failed to load the ranking criteria.
+          Couldn&apos;t load the ranking criteria.
         </Alert>
       )}
 

@@ -1,11 +1,11 @@
 import { Group, Stack, Table, Text, useMantineTheme } from '@mantine/core';
 import { useMemo } from 'react';
-import ObjectsGameModeSelector from './ObjectsGameModeSelector.tsx';
 import { ObjectTypeEntriesPopover } from './ObjectTypeEntriesPopover.tsx';
 import AppTable, {
   DifficultyTableCell,
   DifficultyTableHeaderCell,
 } from '../../../common/AppTable.tsx';
+import GameModeSelector from '../../../common/GameModeSelector.tsx';
 import SectionCard from '../../../common/SectionCard.tsx';
 import GameModeIcon from '../../../icons/GameModeIcon.tsx';
 import {
@@ -123,7 +123,7 @@ export default function ObjectPercentagesOverview({
     <SectionCard
       title="Objects overview"
       actions={
-        <ObjectsGameModeSelector
+        <GameModeSelector
           groupedDifficulties={groupedDifficulties}
           selectedMode={activeMode}
           onModeChange={onModeChange}

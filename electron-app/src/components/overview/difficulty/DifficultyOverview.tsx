@@ -1,5 +1,5 @@
-import { Alert, Box, Flex, Grid, Stack, Text } from '@mantine/core';
-import { IconAlertCircle, IconAlertTriangle, IconChartLine } from '@tabler/icons-react';
+import { Grid, Stack } from '@mantine/core';
+import { IconChartLine } from '@tabler/icons-react';
 import { useMemo, useState } from 'react';
 import { DifficultyChartCard } from './DifficultyChartCard.tsx';
 import {
@@ -10,17 +10,15 @@ import {
   STAR_RATING_CHART_TITLE,
   type DifficultyModeGroup,
 } from './difficultyChartModel.ts';
-import { DifficultyGameModeSelector } from './DifficultyGameModeSelector.tsx';
 import { DifficultySpreadSummary } from './DifficultySummaryCards.tsx';
+import AnalysisTab from '../AnalysisTab.tsx';
 import { useDifficultyChartState } from './hooks/useDifficultyChartState.ts';
 import { useDifficultyOverview } from './hooks/useDifficultyOverview.ts';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
 import { useSettings } from '../../../context/SettingsContext.tsx';
 import EmptyState from '../../common/EmptyState.tsx';
+import GameModeSelector from '../../common/GameModeSelector.tsx';
 import { SectionTitle } from '../../common/Headings.tsx';
-import { CardsSkeleton } from '../../common/LoadingSkeletons.tsx';
-import NoBeatmapsetDisplay from '../../common/NoBeatmapsetDisplay.tsx';
-import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 import type { DifficultyOverviewDifficulty, Mode } from '../../../Types';
 
 const EMPTY_DIFFICULTIES: DifficultyOverviewDifficulty[] = [];
@@ -98,35 +96,17 @@ function DifficultyOverview() {
       c.title !== SAMPLE_VOLUME_CHART_TITLE
   );
 
-  if (!folder) {
-    return <NoBeatmapsetDisplay />;
-  }
-
   return (
-    <Box>
-      {isLoading && <CardsSkeleton />}
-      {isError && (
-        <Flex p="md">
-          <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing difficulty overview">
-            <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
-              {error?.message}
-            </Text>
-            {error?.stackTrace && <StackTraceMessage stackTrace={error.stackTrace} />}
-          </Alert>
-        </Flex>
-      )}
-
-      {data && !data.success && (
-        <Flex p="md">
-          <Alert icon={<IconAlertTriangle />} color="yellow" title="Analysis failed">
-            <Text size="sm">{data.errorMessage}</Text>
-          </Alert>
-        </Flex>
-      )}
-
-      {data && data.success && (
-        <Flex gap="md" p="md" direction="column">
-          <DifficultyGameModeSelector
+    <AnalysisTab
+      data={data}
+      isLoading={isLoading}
+      isError={isError}
+      error={error}
+      subject="difficulties"
+    >
+      {() => (
+        <>
+          <GameModeSelector
             groupedDifficulties={groupedDifficulties}
             selectedMode={selectedGroup?.mode}
             onModeChange={setSelectedMode}
@@ -163,9 +143,9 @@ function DifficultyOverview() {
               <EmptyState icon={IconChartLine} title="No difficulty strain data available" />
             )}
           </Stack>
-        </Flex>
+        </>
       )}
-    </Box>
+    </AnalysisTab>
   );
 }
 

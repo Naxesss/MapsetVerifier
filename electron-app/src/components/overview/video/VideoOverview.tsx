@@ -1,10 +1,5 @@
-import { Alert, Text, Box, Flex, Stack, SimpleGrid, SegmentedControl } from '@mantine/core';
-import {
-  IconAlertCircle,
-  IconAlertTriangle,
-  IconRulerMeasure,
-  IconVideoOff,
-} from '@tabler/icons-react';
+import { SimpleGrid, SegmentedControl } from '@mantine/core';
+import { IconVideoOff } from '@tabler/icons-react';
 import { useState } from 'react';
 import { useVideoAnalysis } from './hooks/useVideoAnalysis';
 import VideoFormatInfo from './VideoFormatInfo';
@@ -12,9 +7,8 @@ import VideoPreview from './VideoPreview';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
 import { useSettings } from '../../../context/SettingsContext.tsx';
 import EmptyState from '../../common/EmptyState.tsx';
-import { CardsSkeleton } from '../../common/LoadingSkeletons.tsx';
-import NoBeatmapsetDisplay from '../../common/NoBeatmapsetDisplay.tsx';
-import StackTraceMessage from '../../common/StackTraceMessage.tsx';
+import AnalysisTab from '../AnalysisTab.tsx';
+import { ComplianceAlert } from '../formatCard.tsx';
 
 function VideoOverview() {
   const { selectedFolder: folder } = useBeatmap();
@@ -29,74 +23,40 @@ function VideoOverview() {
 
   const videos = data?.videos ?? [];
 
-  if (!folder) {
-    return <NoBeatmapsetDisplay />;
-  }
-
   // Falling back to the first video also covers switching to a set that lacks the selected one.
   const selected = videos.find((video) => video.fileName === selectedFileName) ?? videos[0];
 
   return (
-    <Box>
-      {isLoading && <CardsSkeleton />}
-      {isError && (
-        <Flex p="md">
-          <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing video">
-            <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
-              {error?.message}
-            </Text>
-            {error?.stackTrace && <StackTraceMessage stackTrace={error.stackTrace} />}
-          </Alert>
-        </Flex>
-      )}
+    <AnalysisTab data={data} isLoading={isLoading} isError={isError} error={error} subject="video">
+      {(data) =>
+        !selected ? (
+          <EmptyState
+            icon={IconVideoOff}
+            title="No video"
+            description="This mapset doesn't use a background video."
+          />
+        ) : (
+          <>
+            <ComplianceAlert issues={data.complianceIssues} />
 
-      {data && !data.success && (
-        <Flex p="md">
-          <Alert icon={<IconAlertTriangle />} color="yellow" title="Analysis failed">
-            <Text size="sm">{data.errorMessage}</Text>
-          </Alert>
-        </Flex>
-      )}
-
-      {data && data.success && videos.length === 0 && (
-        <EmptyState
-          icon={IconVideoOff}
-          title="No video"
-          description="This mapset doesn't use a background video."
-        />
-      )}
-
-      {data && data.success && selected && (
-        <Flex gap="md" p="md" direction="column">
-          {data.complianceIssues.length > 0 && (
-            <Alert icon={<IconRulerMeasure />} color="yellow" title="Compliance issues">
-              <Stack gap="xs">
-                {data.complianceIssues.map((issue: string, idx: number) => (
-                  <Text key={idx} size="sm">
-                    • {issue}
-                  </Text>
-                ))}
-              </Stack>
-            </Alert>
-          )}
-
-          {videos.length > 1 && (
-            <SegmentedControl
-              value={selected.fileName}
-              onChange={setSelectedFileName}
-              data={videos.map((video) => video.fileName)}
-            />
-          )}
-
-          <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="md">
-            <VideoFormatInfo data={selected} />
-            {beatmapFolderPath && (
-              <VideoPreview beatmapFolderPath={beatmapFolderPath} data={selected} />
+            {videos.length > 1 && (
+              <SegmentedControl
+                value={selected.fileName}
+                onChange={setSelectedFileName}
+                data={videos.map((video) => video.fileName)}
+              />
             )}
-          </SimpleGrid>
-        </Flex>
-      )}
-    </Box>
+
+            <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="md">
+              <VideoFormatInfo data={selected} />
+              {beatmapFolderPath && (
+                <VideoPreview beatmapFolderPath={beatmapFolderPath} data={selected} />
+              )}
+            </SimpleGrid>
+          </>
+        )
+      }
+    </AnalysisTab>
   );
 }
 

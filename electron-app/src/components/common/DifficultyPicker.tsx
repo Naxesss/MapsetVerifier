@@ -87,6 +87,10 @@ function DifficultyPicker({
     selected?.mode ??
     (browsedMode && modes.some((g) => g.mode === browsedMode) ? browsedMode : modes[0]?.mode);
   const activeGroup = modes.find((g) => g.mode === activeMode);
+  // Every star badge in the menu takes the width of the widest one, so they line up.
+  const menuStarRatings = activeGroup?.difficulties.flatMap((d) =>
+    d.starRating != null && !d.disabled ? [d.starRating] : []
+  );
 
   const steps = [GENERAL_TAB_ID, ...ordered.filter((d) => !d.disabled).map((d) => d.id)];
   const stepIndex = steps.indexOf(isGeneral ? GENERAL_TAB_ID : (selectedId ?? ''));
@@ -233,7 +237,9 @@ function DifficultyPicker({
                         {d.disabledReason}
                       </Text>
                     ) : (
-                      d.starRating != null && <StarRatingBadge rating={d.starRating} size="xs" />
+                      d.starRating != null && (
+                        <StarRatingBadge rating={d.starRating} size="xs" sizeTo={menuStarRatings} />
+                      )
                     )
                   }
                   style={
