@@ -3,6 +3,8 @@ import type { ReactNode } from 'react';
 
 type HeadingProps = Omit<TextProps, 'fz' | 'fw' | 'size'> & {
   children: ReactNode;
+  fz?: number;
+  fw?: number;
   /** Element to render; defaults to the heading level that fits. */
   component?: 'h2' | 'h3' | 'h4' | 'div' | 'span';
 };
@@ -11,17 +13,29 @@ type HeadingProps = Omit<TextProps, 'fz' | 'fw' | 'size'> & {
  * The two heading levels below the page title. Use these instead of `Title` or ad-hoc bold text
  * so every page reads the same: sentence case, section 18px/700, card 16px/600.
  */
-export function SectionTitle({ children, component = 'h2', ...props }: HeadingProps) {
+export function SectionTitle({
+  children,
+  component = 'h2',
+  fz = 18,
+  fw = 700,
+  ...props
+}: HeadingProps) {
   return (
-    <Text component={component} fz={18} fw={700} lh={1.3} m={0} {...props}>
+    <Text component={component} fz={fz} fw={fw} lh={1.3} m={0} {...props}>
       {children}
     </Text>
   );
 }
 
-export function CardTitle({ children, component = 'h3', ...props }: HeadingProps) {
+export function CardTitle({
+  children,
+  component = 'h3',
+  fz = 16,
+  fw = 600,
+  ...props
+}: HeadingProps) {
   return (
-    <Text component={component} fz={16} fw={600} lh={1.3} m={0} {...props}>
+    <Text component={component} fz={fz} fw={fw} lh={1.3} m={0} {...props}>
       {children}
     </Text>
   );

@@ -124,8 +124,14 @@ export default function Changelog() {
               >
                 <Group justify="space-between" align="center" wrap="nowrap">
                   <Group gap="xs" align="center">
-                    <CardTitle>{entry.title}</CardTitle>
-                    {isLatest ? <Badge color="blue">Latest</Badge> : null}
+                    <CardTitle fz={22} fw={700}>
+                      {entry.title}
+                    </CardTitle>
+                    {isLatest ? (
+                      <Badge color="blue" size="sm">
+                        Latest
+                      </Badge>
+                    ) : null}
                   </Group>
                   <IconChevronDown
                     size={18}

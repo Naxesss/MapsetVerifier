@@ -1,4 +1,4 @@
-﻿import { Box, Button, Group, Stack, Text } from '@mantine/core';
+import { Box, Button, Group, Stack, Text } from '@mantine/core';
 import { IconBrandGithub, IconMessage } from '@tabler/icons-react';
 import Changelog from './Changelog.tsx';
 import { useOpenExternal } from '../../hooks/useOpenExternal.ts';
@@ -13,10 +13,10 @@ export default function Home() {
   // Opens with a toolbar row like Documentation and Ranking criteria: 36px high, so it lines up
   // with the sidebar's search row, followed by the content.
   return (
-    <Box maw={960}>
+    <Box maw={960} w="100%" mx="auto">
       <Stack gap="sm">
-        <Group justify="space-between" gap="sm" mih="var(--mv-control-height)">
-          <SectionTitle>Changelog</SectionTitle>
+        <Group justify="space-between" my="md" gap="sm" mih="var(--mv-control-height)">
+          <SectionTitle fz={24}>Changelog</SectionTitle>
           {/* The question says what the buttons are for, so they read as a feedback prompt. */}
           <Group gap="sm">
             <Text size="sm" c="dimmed">
