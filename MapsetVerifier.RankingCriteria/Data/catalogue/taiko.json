@@ -119,7 +119,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "partial"
+        "automation": "automatable"
       }
     },
     {
