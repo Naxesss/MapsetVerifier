@@ -486,6 +486,14 @@
   opacity: 1;
 }
 
+/* Chosen level in the interpreted-as select. A row highlight stands in for the check icon. */
+.mv-level-option[data-checked],
+.mv-level-option[data-checked]:hover,
+.mv-level-option[data-combobox-selected] {
+  background-color: var(--mantine-color-dark-5);
+  color: inherit;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mv-status-segment__bar {
     transition: none;
