@@ -1,20 +1,26 @@
 import type { Level } from '../../Types';
 import type { MantineTheme } from '@mantine/core';
 
-/** The colour of each level's icon (see LevelIcon), for places that show a level as colour only. */
-export function levelColor(level: Level, theme: MantineTheme): string {
+/** The Mantine colour of each level, the same as its icon (see LevelIcon), e.g. for badges. */
+export function levelColorName(level: Level): 'red' | 'orange' | 'teal' | 'gray' | 'green' {
   switch (level) {
     case 'Problem':
-      return theme.colors.red[6];
+      return 'red';
     case 'Warning':
-      return theme.colors.orange[6];
+      return 'orange';
     case 'Info':
-      return theme.colors.teal[6];
+      return 'teal';
     case 'Error':
-      return theme.colors.gray[5];
+      return 'gray';
     case 'Minor':
     case 'Check':
     default:
-      return theme.colors.green[6];
+      return 'green';
   }
+}
+
+/** The colour of each level's icon (see LevelIcon), for places that show a level as colour only. */
+export function levelColor(level: Level, theme: MantineTheme): string {
+  const name = levelColorName(level);
+  return theme.colors[name][name === 'gray' ? 5 : 6];
 }

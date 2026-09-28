@@ -12,7 +12,7 @@ namespace MapsetVerifier.Snapshots.Translators
     public class HitObjectsTranslator : DiffTranslator
     {
         public override string Section => "HitObjects";
-        public override string TranslatedSection => "Hit Objects";
+        public override string TranslatedSection => "Hit objects";
         public override DiffSortMode SortMode => DiffSortMode.Timestamp;
 
         public override IEnumerable<DiffInstance> Translate(

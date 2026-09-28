@@ -40,15 +40,27 @@ export function SettingsSection({ title, description, icon, children }: Settings
   );
 }
 
+/**
+ * Rows that only apply while the row above them is on, indented under it so the dependency shows.
+ */
+export function SettingsSubRows({ children }: { children: React.ReactNode }) {
+  return (
+    <Stack gap="sm" pl="md" style={{ borderLeft: '2px solid var(--mantine-color-default-border)' }}>
+      {children}
+    </Stack>
+  );
+}
+
 export function SettingsRow({ title, description, control }: SettingsRowProps) {
+  // Title and description render as divs: callers pass rows with icons (Group) as the title.
   return (
     <Group justify="space-between" align="center" wrap="nowrap" gap="md">
       <Stack gap="2xs" style={{ minWidth: 0, flex: 1 }}>
-        <Text size="sm" fw={500}>
+        <Text component="div" size="sm" fw={500}>
           {title}
         </Text>
         {description && (
-          <Text size="xs" c="dimmed">
+          <Text component="div" size="xs" c="dimmed">
             {description}
           </Text>
         )}

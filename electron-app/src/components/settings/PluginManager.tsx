@@ -66,7 +66,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
       setReport(await PluginApi.getPlugins());
     } catch (e: any) {
       console.error('[PluginManager] Failed to load plugins:', e);
-      setError(e?.message ?? 'Failed to load plugin status.');
+      setError(e?.message ?? "Couldn't load the plugin status.");
     } finally {
       setLoading(false);
     }
@@ -81,7 +81,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
       await reloadDocumentation();
     } catch (e: any) {
       console.error('[PluginManager] Failed to reload plugins:', e);
-      setError(e?.message ?? 'Failed to reload plugins.');
+      setError(e?.message ?? "Couldn't reload the plugins.");
     } finally {
       setLoading(false);
     }
@@ -98,7 +98,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
         await reloadDocumentation();
       } catch (e: any) {
         console.error('[PluginManager] Failed to toggle custom checks:', e);
-        setError(e?.message ?? 'Failed to toggle custom checks.');
+        setError(e?.message ?? "Couldn't turn custom checks on or off.");
       } finally {
         setLoading(false);
       }

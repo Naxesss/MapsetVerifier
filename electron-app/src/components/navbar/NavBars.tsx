@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { MainNavRail } from './MainNavRail';
 import { getActiveNavRoute, NAV_CONTROL_SIZE } from './navConfig';
 import PageHintsButton from './PageHintsButton.tsx';
+import { NAV_BAR_HEIGHT, WINDOW_BAR_HEIGHT } from '../../theme/layers.ts';
 import Beatmaps from '../beatmaps/Beatmaps.tsx';
 import SettingsButton from '../settings/SettingsButton';
 import SettingsSidebar from '../settings/SettingsSidebar';
@@ -25,13 +26,13 @@ function NavBars(props: NavBarsProps) {
     <>
       <AppShell.Header
         style={{
-          marginTop: 32,
-          height: 60,
+          marginTop: WINDOW_BAR_HEIGHT,
+          height: NAV_BAR_HEIGHT,
           fontFamily: theme.headings.fontFamily,
           background: theme.colors.dark[8],
         }}
       >
-        <Group h={60} px="md" wrap="nowrap">
+        <Group h={NAV_BAR_HEIGHT} px="md" wrap="nowrap">
           {/* Tooltips open below: above the navbar is the window's title bar. */}
           <Tooltip label={sidebarToggleLabel} position="bottom" disabled={sidebarToggleDisabled}>
             <ActionIcon

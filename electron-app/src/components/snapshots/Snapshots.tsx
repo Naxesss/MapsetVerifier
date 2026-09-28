@@ -15,8 +15,7 @@ import { ApiSnapshotDifficulty } from '../../Types';
 import BeatmapHeader from '../common/BeatmapHeader';
 import DifficultyPicker from '../common/DifficultyPicker';
 import EmptyState from '../common/EmptyState.tsx';
-import { CardsSkeleton } from '../common/LoadingSkeletons.tsx';
-import NoBeatmapsetDisplay from '../common/NoBeatmapsetDisplay.tsx';
+import { HistorySkeleton } from '../common/LoadingSkeletons.tsx';
 import SelectedDifficultyRow from '../common/SelectedDifficultyRow.tsx';
 import StackTraceMessage from '../common/StackTraceMessage.tsx';
 import StarRatingBadge from '../common/StarRatingBadge.tsx';
@@ -67,7 +66,10 @@ function Snapshots() {
     [data, selectedDifficulty]
   );
 
-  const [prevActiveSnapshotHistory, setPrevActiveSnapshotHistory] = useState(activeSnapshotHistory);
+  // Starts empty rather than at the current history: with cached data the history is there on the
+  // first render, and the latest snapshot must still get selected.
+  const [prevActiveSnapshotHistory, setPrevActiveSnapshotHistory] =
+    useState<typeof activeSnapshotHistory>(null);
 
   if (activeSnapshotHistory !== prevActiveSnapshotHistory) {
     setPrevActiveSnapshotHistory(activeSnapshotHistory);
@@ -82,10 +84,6 @@ function Snapshots() {
         return activeSnapshotHistory.commits[0].id;
       });
     }
-  }
-
-  if (!folder) {
-    return <NoBeatmapsetDisplay />;
   }
 
   return (
@@ -132,7 +130,7 @@ function Snapshots() {
       </BeatmapHeader>
       {isLoading && (
         <Box bg="dark.6" style={{ flex: 1 }}>
-          <CardsSkeleton />
+          <HistorySkeleton />
         </Box>
       )}
       {data && (
@@ -198,7 +196,7 @@ function Snapshots() {
       )}
       {isError && (
         <Flex p="md">
-          <Alert icon={<IconAlertCircle />} color="red" title="Error loading snapshots">
+          <Alert icon={<IconAlertCircle />} color="red" title="Couldn't load the snapshots">
             <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
               {error?.message}
             </Text>

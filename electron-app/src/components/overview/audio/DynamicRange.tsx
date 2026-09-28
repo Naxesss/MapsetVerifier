@@ -1,8 +1,9 @@
 ﻿import { AreaChart } from '@mantine/charts';
-import { Box, Text, Badge, Group, Stack, SimpleGrid } from '@mantine/core';
+import { Box, Text, Badge, Group, SimpleGrid } from '@mantine/core';
 import { useMemo } from 'react';
 import { DynamicRangeResult, LoudnessDataPoint, ClippingMarker } from '../../../Types';
 import SectionCard from '../../common/SectionCard.tsx';
+import { StatField } from '../../common/StatField.tsx';
 
 interface DynamicRangeProps {
   data: DynamicRangeResult;
@@ -63,30 +64,10 @@ function DynamicRange({ data }: DynamicRangeProps) {
       }
     >
       <SimpleGrid cols={4} mb="md">
-        <Stack gap="2xs">
-          <Text size="xs" c="dimmed">
-            Loudness range
-          </Text>
-          <Text fw={600}>{data.loudnessRange.toFixed(1)} LU</Text>
-        </Stack>
-        <Stack gap="2xs">
-          <Text size="xs" c="dimmed">
-            Integrated
-          </Text>
-          <Text fw={600}>{data.integratedLoudness.toFixed(1)} LUFS</Text>
-        </Stack>
-        <Stack gap="2xs">
-          <Text size="xs" c="dimmed">
-            True peak
-          </Text>
-          <Text fw={600}>{data.truePeak.toFixed(1)} dBTP</Text>
-        </Stack>
-        <Stack gap="2xs">
-          <Text size="xs" c="dimmed">
-            Dynamic range
-          </Text>
-          <Text fw={600}>{data.dynamicRange.toFixed(1)} dB</Text>
-        </Stack>
+        <StatField label="Loudness range" value={`${data.loudnessRange.toFixed(1)} LU`} />
+        <StatField label="Integrated" value={`${data.integratedLoudness.toFixed(1)} LUFS`} />
+        <StatField label="True peak" value={`${data.truePeak.toFixed(1)} dBTP`} />
+        <StatField label="Dynamic range" value={`${data.dynamicRange.toFixed(1)} dB`} />
       </SimpleGrid>
       {chartData.length > 0 ? (
         <AreaChart

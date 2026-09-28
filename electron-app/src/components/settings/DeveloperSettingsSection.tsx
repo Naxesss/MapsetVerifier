@@ -1,5 +1,5 @@
-import { Alert, Button, Switch, Text } from '@mantine/core';
-import { IconCode, IconNote, IconRotateClockwise2 } from '@tabler/icons-react';
+import { Button, Switch } from '@mantine/core';
+import { IconCode, IconRotateClockwise2 } from '@tabler/icons-react';
 import { SettingsRow, SettingsSection } from './SettingsSection';
 import { useSettings } from '../../context/SettingsContext';
 
@@ -14,7 +14,7 @@ export default function DeveloperSettingsSection() {
     >
       <SettingsRow
         title="Gate backend in DEV"
-        description="Starts the sidecar on port 5005 to mimic production mode."
+        description="Starts the sidecar on port 5005 to mimic production mode. Needs a sidecar built into /bin/server/dist/<rid>/, and may need an app restart after changing it."
         control={
           <Switch
             checked={settings.gateInDev}
@@ -41,7 +41,7 @@ export default function DeveloperSettingsSection() {
       />
       <SettingsRow
         title="Show check speed stats"
-        description="Shows how long each check took to run, plus the combined check run time, on the checks tab."
+        description="Shows how long each check took to run, plus the combined check run time, on the Checks page."
         control={
           <Switch
             checked={settings.showCheckSpeedStats}
@@ -52,13 +52,6 @@ export default function DeveloperSettingsSection() {
           />
         }
       />
-      <Alert icon={<IconNote />} title="Note" color="yellow" variant="light">
-        <Text size="sm">
-          This requires the sidecar to be built beforehand and available in{' '}
-          <code>/bin/server/dist/&lt;rid&gt;/</code>. Changing this setting may require restarting
-          the application.
-        </Text>
-      </Alert>
     </SettingsSection>
   );
 }

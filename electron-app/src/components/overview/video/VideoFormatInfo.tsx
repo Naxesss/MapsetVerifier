@@ -1,18 +1,14 @@
-import {
-  Text,
-  Badge,
-  Group,
-  useMantineTheme,
-  Stack,
-  SimpleGrid,
-  List,
-  ThemeIcon,
-  Tooltip,
-  Box,
-} from '@mantine/core';
-import { IconCheck, IconX, IconAlertTriangle } from '@tabler/icons-react';
+import { Badge, Box, Group, SimpleGrid, Stack, Text } from '@mantine/core';
 import { VideoAnalysisEntry } from '../../../Types';
 import SectionCard from '../../common/SectionCard.tsx';
+import { StatField } from '../../common/StatField.tsx';
+import {
+  ComplianceBadge,
+  ComplianceIssueList,
+  formatBadgeColor,
+  RequirementsList,
+  RuleLabel,
+} from '../formatCard.tsx';
 
 interface VideoFormatInfoProps {
   data: VideoAnalysisEntry;
@@ -20,19 +16,6 @@ interface VideoFormatInfoProps {
 
 const MAX_WIDTH = 1280;
 const MAX_HEIGHT = 720;
-
-function getBadgeColor(badgeType: string): string {
-  switch (badgeType) {
-    case 'success':
-      return 'green';
-    case 'warning':
-      return 'yellow';
-    case 'error':
-      return 'red';
-    default:
-      return 'gray';
-  }
-}
 
 function formatFrameRate(frameRate: number | null): string {
   if (!frameRate) return 'Unknown';
@@ -46,8 +29,6 @@ function formatBitrate(kbps: number | null): string {
 }
 
 function VideoFormatInfo({ data }: VideoFormatInfoProps) {
-  const theme = useMantineTheme();
-
   const resolutionIsValid =
     data.width > 0 && data.width <= MAX_WIDTH && data.height > 0 && data.height <= MAX_HEIGHT;
 
@@ -57,160 +38,89 @@ function VideoFormatInfo({ data }: VideoFormatInfoProps) {
       info="Format information describes the technical properties of a video file that define how it is stored and played back."
       actions={
         <>
-          <Badge color={getBadgeColor(data.badgeType)}>{data.container}</Badge>
-          <Badge color={data.isCompliant ? 'green' : 'red'}>
-            {data.isCompliant ? 'Compliant' : 'Non-compliant'}
-          </Badge>
+          <Badge color={formatBadgeColor(data.badgeType)}>{data.container}</Badge>
+          <ComplianceBadge compliant={data.isCompliant} />
         </>
       }
     >
       <SimpleGrid cols={3} mb="md" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
-        <Stack gap="2xs">
-          <Text size="xs" c="dimmed">
-            File name
-          </Text>
-          <Text fw={500}>{data.fileName}</Text>
-        </Stack>
-        <Stack gap="2xs">
-          <Group gap="xs" align="center">
-            <Text size="xs" c="dimmed">
-              Resolution
-            </Text>
-            {!resolutionIsValid && (
-              <Tooltip label={`Must not exceed ${MAX_WIDTH} x ${MAX_HEIGHT}`}>
-                <IconAlertTriangle
-                  size={12}
-                  style={{ color: theme.colors.red[5], cursor: 'help' }}
-                />
-              </Tooltip>
-            )}
-          </Group>
-          <Text fw={500} c={resolutionIsValid ? 'white' : 'red.4'}>
-            {data.width > 0 ? data.resolution : 'Unknown'}
-          </Text>
-        </Stack>
-        <Stack gap="2xs">
-          <Text size="xs" c="dimmed">
-            Duration
-          </Text>
-          <Text fw={500}>{data.durationMs > 0 ? data.durationFormatted : 'Unknown'}</Text>
-        </Stack>
-        <Stack gap="2xs">
-          <Text size="xs" c="dimmed">
-            Frame rate
-          </Text>
-          <Text fw={500}>{formatFrameRate(data.frameRate)}</Text>
-          {data.isVariableFrameRate && (
-            <Text size="xs" c="yellow.4">
-              Variable frame rate
-            </Text>
-          )}
-        </Stack>
-        <Stack gap="2xs">
-          <Text size="xs" c="dimmed">
-            Codec
-          </Text>
-          <Text fw={500}>{data.videoCodec ?? 'Unknown'}</Text>
-          {data.videoCodecProfile && (
-            <Text size="xs" c="dimmed">
-              {data.videoCodecProfile}
-            </Text>
-          )}
-        </Stack>
-        <Stack gap="2xs">
-          <Text size="xs" c="dimmed">
-            Bitrate
-          </Text>
-          <Text fw={500}>{formatBitrate(data.videoBitrateKbps ?? data.overallBitrateKbps)}</Text>
-          <Text size="xs" c="dimmed">
-            {data.videoBitrateKbps ? 'Video track' : 'Whole file'}
-          </Text>
-        </Stack>
-        <Stack gap="2xs">
-          <Text size="xs" c="dimmed">
-            File size
-          </Text>
-          <Text fw={500}>{data.fileSizeFormatted}</Text>
-        </Stack>
-        <Stack gap="2xs">
-          <Text size="xs" c="dimmed">
-            Offset
-          </Text>
-          <Text fw={500}>{data.offsetMs} ms</Text>
-        </Stack>
-        <Stack gap="2xs">
-          <Text size="xs" c="dimmed">
-            Audio track
-          </Text>
-          <Text fw={500} c={data.hasAudioTrack ? 'red.4' : 'white'}>
-            {data.hasAudioTrack ? (data.audioCodec ?? 'Present') : 'None'}
-          </Text>
-          {data.hasAudioTrack && data.audioChannels > 0 && (
-            <Text size="xs" c="dimmed">
-              {data.audioChannels === 1 ? 'Mono' : `${data.audioChannels}ch`}
-              {data.audioSampleRate > 0 && ` · ${(data.audioSampleRate / 1000).toFixed(1)} kHz`}
-            </Text>
-          )}
-        </Stack>
+        <StatField label="File name" value={data.fileName} />
+        <StatField
+          label={
+            <RuleLabel
+              label="Resolution"
+              brokenRule={
+                resolutionIsValid ? undefined : `Must not exceed ${MAX_WIDTH} x ${MAX_HEIGHT}`
+              }
+            />
+          }
+          value={data.width > 0 ? data.resolution : 'Unknown'}
+          valueColor={resolutionIsValid ? undefined : 'red.4'}
+        />
+        <StatField
+          label="Duration"
+          value={data.durationMs > 0 ? data.durationFormatted : 'Unknown'}
+        />
+        <StatField
+          label="Frame rate"
+          value={formatFrameRate(data.frameRate)}
+          note={data.isVariableFrameRate ? 'Variable frame rate' : undefined}
+          noteColor="yellow.4"
+        />
+        <StatField
+          label="Codec"
+          value={data.videoCodec ?? 'Unknown'}
+          note={data.videoCodecProfile ?? undefined}
+        />
+        <StatField
+          label="Bitrate"
+          value={formatBitrate(data.videoBitrateKbps ?? data.overallBitrateKbps)}
+          note={data.videoBitrateKbps ? 'Video track' : 'Whole file'}
+        />
+        <StatField label="File size" value={data.fileSizeFormatted} />
+        <StatField label="Offset" value={`${data.offsetMs} ms`} />
+        <StatField
+          label="Audio track"
+          value={data.hasAudioTrack ? (data.audioCodec ?? 'Present') : 'None'}
+          valueColor={data.hasAudioTrack ? 'red.4' : undefined}
+          note={
+            data.hasAudioTrack && data.audioChannels > 0
+              ? `${data.audioChannels === 1 ? 'Mono' : `${data.audioChannels}ch`}${
+                  data.audioSampleRate > 0
+                    ? ` · ${(data.audioSampleRate / 1000).toFixed(1)} kHz`
+                    : ''
+                }`
+              : undefined
+          }
+        />
       </SimpleGrid>
 
-      <Box p="xs" mb="md" bg={theme.colors.dark[6]} style={{ borderRadius: theme.radius.sm }}>
-        <Text size="xs" fw={500} c="dimmed" mb="xs">
-          Ranking requirements
-        </Text>
-        <Stack gap="xs">
-          <Group gap="xs">
-            <ThemeIcon size="xs" color={resolutionIsValid ? 'green' : 'red'} variant="light">
-              {resolutionIsValid ? <IconCheck size={12} /> : <IconX size={12} />}
-            </ThemeIcon>
-            <Text size="xs" c={resolutionIsValid ? 'green.4' : 'red.4'}>
-              Resolution is {MAX_WIDTH} x {MAX_HEIGHT} or below
-            </Text>
-          </Group>
-          <Group gap="xs">
-            <ThemeIcon size="xs" color={data.hasAudioTrack ? 'red' : 'green'} variant="light">
-              {data.hasAudioTrack ? <IconX size={12} /> : <IconCheck size={12} />}
-            </ThemeIcon>
-            <Text size="xs" c={data.hasAudioTrack ? 'red.4' : 'green.4'}>
-              No audio track present
-            </Text>
-          </Group>
-        </Stack>
-      </Box>
+      <RequirementsList
+        requirements={[
+          { label: `Resolution is ${MAX_WIDTH} x ${MAX_HEIGHT} or below`, met: resolutionIsValid },
+          { label: 'No audio track present', met: !data.hasAudioTrack },
+        ]}
+      />
 
       {data.usedByDifficulties.length > 0 && (
-        <Stack gap="2xs" mb="md">
-          <Text size="xs" c="dimmed">
-            Used by
-          </Text>
-          <Group gap="xs">
-            {data.usedByDifficulties.map((difficulty) => (
-              <Badge key={difficulty}>{difficulty}</Badge>
-            ))}
-          </Group>
-        </Stack>
+        <Box mb="md">
+          <StatField
+            label="Used by"
+            value={
+              <Group gap="xs">
+                {data.usedByDifficulties.map((difficulty) => (
+                  <Badge key={difficulty}>{difficulty}</Badge>
+                ))}
+              </Group>
+            }
+          />
+        </Box>
       )}
 
-      {data.complianceIssues.length > 0 && (
-        <Stack gap="xs" mb={data.warnings.length > 0 ? 'md' : 0}>
-          <Text size="sm" fw={500} c="red.4">
-            Compliance issues
-          </Text>
-          <List
-            size="sm"
-            spacing="xs"
-            icon={
-              <ThemeIcon color="red" size="sm" variant="light">
-                <IconX size={14} />
-              </ThemeIcon>
-            }
-          >
-            {data.complianceIssues.map((issue, idx) => (
-              <List.Item key={idx}>{issue}</List.Item>
-            ))}
-          </List>
-        </Stack>
-      )}
+      <ComplianceIssueList
+        issues={data.complianceIssues}
+        mb={data.warnings.length > 0 ? 'md' : 0}
+      />
 
       {data.warnings.length > 0 && (
         <Stack gap="2xs">

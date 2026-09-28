@@ -1,19 +1,20 @@
 import {
   Badge,
-  CloseButton,
   Group,
   Modal,
   ScrollArea,
   Stack,
   Switch,
   Text,
-  TextInput,
   useMantineTheme,
   FocusTrap,
 } from '@mantine/core';
-import { IconSearch } from '@tabler/icons-react';
+import { IconListSearch, IconSearchOff } from '@tabler/icons-react';
 import React, { useMemo, useState } from 'react';
 import { useSettings } from '../../context/SettingsContext';
+import { Z_INDEX } from '../../theme/layers';
+import EmptyState from '../common/EmptyState.tsx';
+import SearchInput from '../common/SearchInput.tsx';
 import {
   dedupeDocumentationChecksById,
   filterDocumentationChecks,
@@ -81,40 +82,37 @@ const MinorChecksFilterModal: React.FC<MinorChecksFilterModalProps> = ({ opened,
   };
 
   return (
-    <Modal zIndex={350} opened={opened} onClose={onClose} title="Minor checks filter" size="lg">
+    <Modal
+      zIndex={Z_INDEX.modal}
+      opened={opened}
+      onClose={onClose}
+      title="Negligible check filter"
+      size="lg"
+    >
       <Stack gap="md">
         <Text size="sm" c="dimmed">
-          Choose which Minor-severity issues appear when &quot;Show minor issues&quot; is on.
+          Choose which checks can report negligible issues while &quot;Show negligible issues&quot;
+          is on.
         </Text>
         <FocusTrap active={opened}>
-          <TextInput
-            placeholder="Search by name, category, author, mode, id…"
+          <SearchInput
+            placeholder="Search checks…"
+            hint="Searches check name, category, author, mode and ID."
             data-autofocus
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.currentTarget.value)}
-            leftSection={<IconSearch size={18} stroke={1.5} />}
-            rightSection={
-              searchQuery ? (
-                <CloseButton
-                  aria-label="Clear search"
-                  onClick={() => setSearchQuery('')}
-                  iconSize={16}
-                  size="sm"
-                />
-              ) : null
-            }
+            onChange={setSearchQuery}
           />
         </FocusTrap>
         <ScrollArea.Autosize mah={420} offsetScrollbars type="always" scrollbars="y">
           <Stack gap={0}>
             {minorChecksList.length === 0 ? (
-              <Text size="sm" c="dimmed" py="md">
-                No checks with Minor outcomes were found in the catalogue.
-              </Text>
+              <EmptyState
+                icon={IconListSearch}
+                title="No checks report negligible issues"
+                description="The check catalogue has no checks with a negligible outcome."
+              />
             ) : filteredMinorChecks.length === 0 ? (
-              <Text size="sm" c="dimmed" py="md">
-                No checks match your search.
-              </Text>
+              <EmptyState icon={IconSearchOff} title="No checks match your search" />
             ) : (
               filteredMinorChecks.map((check) => (
                 <Group
@@ -143,7 +141,7 @@ const MinorChecksFilterModal: React.FC<MinorChecksFilterModalProps> = ({ opened,
                   <Switch
                     checked={!settings.hiddenMinorCheckIds.includes(check.id)}
                     onChange={(e) => toggleVisible(check.id, e.currentTarget.checked)}
-                    aria-label={`Show minor findings for ${check.description}`}
+                    aria-label={`Show negligible issues for ${check.description}`}
                   />
                 </Group>
               ))

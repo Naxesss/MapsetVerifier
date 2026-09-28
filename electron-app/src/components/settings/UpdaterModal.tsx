@@ -16,7 +16,9 @@ import React, { useMemo } from 'react';
 import TurndownService from 'turndown';
 import { useUpdater } from '../../context/UpdaterContext';
 import { useDateTimeFormat } from '../../hooks/useDateTimeFormat';
+import { Z_INDEX } from '../../theme/layers';
 import { isSemverPreRelease } from '../../utils/isSemverPreRelease';
+import { CardTitle } from '../common/Headings';
 import MantineMarkdown from '../documentation/MantineMarkdown';
 
 const releaseNotesTurndown = new TurndownService({
@@ -88,7 +90,7 @@ const UpdaterModal: React.FC = () => {
       onClose={closeUpdater}
       size="lg"
       centered
-      zIndex={400}
+      zIndex={Z_INDEX.modal}
       closeOnClickOutside={!busy}
       closeOnEscape={!busy}
     >
@@ -161,7 +163,7 @@ const UpdaterModal: React.FC = () => {
             )}
 
             {status === 'error' && errorMessage && (
-              <Alert icon={<IconAlertCircle />} color="red" title="Updater error">
+              <Alert icon={<IconAlertCircle />} color="red" title="Couldn't update">
                 {errorMessage}
               </Alert>
             )}
@@ -169,7 +171,7 @@ const UpdaterModal: React.FC = () => {
             {availableUpdate && status !== 'checking' && (
               <>
                 <Stack gap="xs">
-                  <Text fw={500}>Release details</Text>
+                  <CardTitle>Release details</CardTitle>
                   <Text size="sm">Target version: {availableUpdate.version}</Text>
                   {availableUpdate.date && (
                     <Text size="sm" c="dimmed">
@@ -181,9 +183,7 @@ const UpdaterModal: React.FC = () => {
                 {updateNotes && (
                   <>
                     <Divider />
-                    <Text size="sm" fw={500}>
-                      Changelog
-                    </Text>
+                    <CardTitle>Changelog</CardTitle>
                     <MantineMarkdown>{releaseNotesMarkdown}</MantineMarkdown>
                   </>
                 )}

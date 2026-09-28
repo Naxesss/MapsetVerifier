@@ -36,7 +36,7 @@ export default function DocumentationCheckDetails({ check }: { check: ApiDocumen
       {isLoading && <TextSkeleton lines={4} />}
       {error && (
         <Alert icon={<IconAlertCircle />} color="red">
-          Failed to load details.
+          Couldn&apos;t load the check documentation.
         </Alert>
       )}
       {data && (

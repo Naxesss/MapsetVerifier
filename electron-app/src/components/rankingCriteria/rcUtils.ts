@@ -80,14 +80,6 @@ export function resolveWikiLink(href: string, currentPage: string): ResolvedWiki
   };
 }
 
-export function openExternal(href: string) {
-  if (window.electronAPI?.shell.openExternal) {
-    return window.electronAPI.shell.openExternal(href);
-  }
-
-  window.open(href, '_blank', 'noopener,noreferrer');
-}
-
 /** Heading anchor in the same shape osu-web uses: lower-cased words joined by dashes. */
 export function headingAnchor(text: string) {
   return text

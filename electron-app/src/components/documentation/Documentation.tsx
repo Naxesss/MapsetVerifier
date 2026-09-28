@@ -1,6 +1,5 @@
 ﻿import {
   ActionIcon,
-  Alert,
   Box,
   Group,
   Popover,
@@ -10,10 +9,9 @@
   useMantineTheme,
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
-import { IconAlertCircle, IconHelpCircle, IconSearchOff } from '@tabler/icons-react';
+import { IconHelpCircle, IconListSearch, IconSearchOff } from '@tabler/icons-react';
 import React, { useEffect, useMemo, useState } from 'react';
-import BeatmapChecks from './BeatmapChecks.tsx';
-import DocumentationCheck from './DocumentationCheck';
+import DocumentationCheckList from './DocumentationCheckList';
 import DocumentationModeSelect, {
   documentationCategoryLabel,
   type DocumentationCategory,
@@ -22,12 +20,10 @@ import {
   dedupeDocumentationChecksById,
   filterDocumentationChecks,
 } from './filterDocumentationChecks';
-import GeneralChecks from './GeneralChecks';
 import { useDocumentationChecks } from './hooks/useDocumentationChecks';
 import { countWord, pluralize } from '../../utils/countWord';
 import EmptyState from '../common/EmptyState.tsx';
 import { MicroLabel } from '../common/Headings.tsx';
-import { ListSkeleton } from '../common/LoadingSkeletons.tsx';
 import SearchInput from '../common/SearchInput.tsx';
 import StickyToolbar from '../common/StickyToolbar.tsx';
 import ErrorIcon from '../icons/ErrorIcon.tsx';
@@ -38,7 +34,6 @@ import ProblemIcon from '../icons/ProblemIcon.tsx';
 import SnapshotHasChangesIcon from '../icons/SnapshotHasChangesIcon.tsx';
 import SnapshotNoChangesIcon from '../icons/SnapshotNoChangesIcon.tsx';
 import WarningIcon from '../icons/WarningIcon.tsx';
-import type { ApiDocumentationCheck } from '../../Types';
 
 interface InfoIconExplanationProp {
   icon: React.ReactNode;
@@ -213,6 +208,7 @@ function DocumentationChecksBrowser() {
     return value === 'general' ? (generalChecks?.length ?? 0) : (beatmapChecks[value]?.length ?? 0);
   };
   const categoryCount = countOf(category);
+  const categoryLabel = documentationCategoryLabel(category);
 
   // Laid out like Ranking criteria: a sticky toolbar (what to browse, search, help; then what the
   // list shows), the list below.
@@ -238,29 +234,24 @@ function DocumentationChecksBrowser() {
         </Text>
       </StickyToolbar>
       {isSearching ? (
-        <>
-          {allChecksLoading && <ListSkeleton />}
-          {allChecksError && (
-            <Alert icon={<IconAlertCircle />} color="red">
-              Failed to load checks for search.
-            </Alert>
-          )}
-          {!allChecksLoading && !allChecksError && (
-            <Stack className="mv-deferred-content-enter" w="100%" gap="xs">
-              {filteredAllChecks.length === 0 ? (
-                <EmptyState icon={IconSearchOff} title="No checks match your search" />
-              ) : (
-                filteredAllChecks.map((check: ApiDocumentationCheck) => (
-                  <DocumentationCheck key={check.id} check={check} />
-                ))
-              )}
-            </Stack>
-          )}
-        </>
+        <DocumentationCheckList
+          checks={filteredAllChecks}
+          isLoading={allChecksLoading}
+          isError={allChecksError}
+          errorMessage="Couldn't load the checks to search."
+          emptyState={<EmptyState icon={IconSearchOff} title="No checks match your search" />}
+        />
       ) : (
-        <Box key={category} className="mv-deferred-content-enter" w="100%">
-          {category === 'general' ? <GeneralChecks /> : <BeatmapChecks mode={category} />}
-        </Box>
+        <DocumentationCheckList
+          key={category}
+          checks={category === 'general' ? generalChecks : beatmapChecks[category]}
+          isLoading={allChecksLoading}
+          isError={allChecksError}
+          errorMessage={`Couldn't load the ${categoryLabel} checks.`}
+          emptyState={
+            <EmptyState icon={IconListSearch} title={`No ${categoryLabel} checks found`} />
+          }
+        />
       )}
     </Stack>
   );

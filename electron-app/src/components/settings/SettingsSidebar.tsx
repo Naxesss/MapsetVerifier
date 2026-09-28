@@ -1,6 +1,7 @@
-import { Box, NavLink, Stack, Title } from '@mantine/core';
+import { Box, NavLink, Stack } from '@mantine/core';
 import { Link, useParams } from 'react-router-dom';
 import { resolveSettingsSection, settingsSections } from './settingsSections';
+import { SectionTitle } from '../common/Headings';
 
 export default function SettingsSidebar() {
   const params = useParams();
@@ -21,9 +22,7 @@ export default function SettingsSidebar() {
       }}
     >
       <Box py="xs" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <Title order={2} size="h3" ta="center" m={0}>
-          Settings
-        </Title>
+        <SectionTitle ta="center">Settings</SectionTitle>
       </Box>
       <Stack gap="xs" mt="md" style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
         {visibleSections.map((section) => (
@@ -38,7 +37,7 @@ export default function SettingsSidebar() {
             variant="light"
             styles={{
               root: {
-                borderRadius: 5,
+                borderRadius: 'var(--mantine-radius-default)',
               },
             }}
           />

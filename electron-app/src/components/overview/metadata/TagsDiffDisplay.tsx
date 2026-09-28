@@ -111,7 +111,7 @@ export default function TagsDiffDisplay({ difficulties }: TagsDiffDisplayProps) 
               ))}
             </Group>
             <Code block fz="sm" style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
-              {tags || '(none)'}
+              {tags || 'None'}
             </Code>
             {tokenHint && (tokenHint.onlyHere.length > 0 || tokenHint.missingHere.length > 0) ? (
               <Stack gap="2xs">

@@ -1,19 +1,25 @@
 import { Flex, Group, SegmentedControl, Text } from '@mantine/core';
-import GameModeIcon from '../../../icons/GameModeIcon.tsx';
-import type { Mode } from '../../../../Types';
-import type { ObjectsModeGroup } from '../types.ts';
+import GameModeIcon from '../icons/GameModeIcon.tsx';
+import type { Mode } from '../../Types';
 
-interface ObjectsGameModeSelectorProps {
-  groupedDifficulties: ObjectsModeGroup[];
+/** Difficulties of one game mode; only the count is shown. */
+interface ModeGroup {
+  mode: Mode;
+  difficulties: readonly unknown[];
+}
+
+interface GameModeSelectorProps {
+  groupedDifficulties: readonly ModeGroup[];
   selectedMode?: Mode;
   onModeChange: (mode: Mode) => void;
 }
 
-export default function ObjectsGameModeSelector({
+/** Picks a game mode for a mapset with several, showing each mode's difficulty count. */
+export default function GameModeSelector({
   groupedDifficulties,
   selectedMode,
   onModeChange,
-}: ObjectsGameModeSelectorProps) {
+}: GameModeSelectorProps) {
   if (groupedDifficulties.length <= 1) {
     return null;
   }

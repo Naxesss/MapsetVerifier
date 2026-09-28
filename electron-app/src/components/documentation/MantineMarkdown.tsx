@@ -2,6 +2,7 @@ import { Title, Text, Code, Divider, List, Anchor, Alert, Blockquote } from '@ma
 import { IconInfoCircleFilled } from '@tabler/icons-react';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { openExternal } from '../../hooks/useOpenExternal';
 import type { ComponentProps, ReactNode } from 'react';
 
 interface MantineMarkdownProps {
@@ -69,13 +70,7 @@ export default function MantineMarkdown({
             const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
               e.preventDefault();
 
-              if (href) {
-                if (window.electronAPI?.shell.openExternal) {
-                  return window.electronAPI.shell.openExternal(href);
-                }
-
-                window.open(href, '_blank', 'noopener,noreferrer');
-              }
+              if (href) void openExternal(href);
             };
 
             return (

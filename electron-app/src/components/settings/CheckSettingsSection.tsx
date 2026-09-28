@@ -14,7 +14,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { IconAdjustments } from '@tabler/icons-react';
 import { useMemo } from 'react';
 import MinorChecksFilterModal from './MinorChecksFilterModal';
-import { SettingsRow, SettingsSection } from './SettingsSection';
+import { SettingsRow, SettingsSection, SettingsSubRows } from './SettingsSection';
 import { useDocumentation } from '../../context/DocumentationContext';
 import { useSettings } from '../../context/SettingsContext';
 import { dedupeDocumentationChecksById } from '../documentation/filterDocumentationChecks';
@@ -56,7 +56,7 @@ export default function CheckSettingsSection() {
               Show negligible issues
             </Group>
           }
-          description="Includes negligible findings in the checks page."
+          description="Includes negligible issues on the Checks page."
           control={
             <Switch
               checked={settings.showMinor}
@@ -68,7 +68,7 @@ export default function CheckSettingsSection() {
           }
         />
         {settings.showMinor && (
-          <Stack gap="xs">
+          <SettingsSubRows>
             <SettingsRow
               title="Negligible check filter"
               description={`${hiddenMinorChecks.length} of ${minorChecks.length} checks disabled.`}
@@ -114,7 +114,7 @@ export default function CheckSettingsSection() {
                 </ScrollArea.Autosize>
               )}
             </Paper>
-          </Stack>
+          </SettingsSubRows>
         )}
         <SettingsRow
           title="Display issue details"
@@ -146,8 +146,8 @@ export default function CheckSettingsSection() {
           }
         />
         <SettingsRow
-          title="Go to checks tab when switching mapsets"
-          description="Automatically opens the checks page after selecting another mapset."
+          title="Open Checks when switching mapsets"
+          description="Goes to the Checks page after you select another mapset."
           control={
             <Switch
               checked={settings.goToChecksOnMapsetSwitch}
@@ -179,7 +179,7 @@ export default function CheckSettingsSection() {
         />
         <SettingsRow
           title="Show check changes since last run"
-          description="Adds the delta summary to the checks page."
+          description="Shows what changed since the previous check run at the top of the Checks page."
           control={
             <Switch
               checked={settings.showCheckRunDelta}
@@ -191,22 +191,24 @@ export default function CheckSettingsSection() {
           }
         />
         {settings.showCheckRunDelta && (
-          <SettingsRow
-            title="Include unchanged issues in check delta"
-            description="Shows unchanged findings alongside added and resolved findings."
-            control={
-              <Switch
-                checked={settings.checkRunDeltaShowUnchanged}
-                onChange={(e) => {
-                  const checked = e.currentTarget.checked;
-                  setSettings((prev) => ({
-                    ...prev,
-                    checkRunDeltaShowUnchanged: checked,
-                  }));
-                }}
-              />
-            }
-          />
+          <SettingsSubRows>
+            <SettingsRow
+              title="Include unchanged issues"
+              description="Adds an Unchanged tab next to New, Resolved, Worsened and Improved."
+              control={
+                <Switch
+                  checked={settings.checkRunDeltaShowUnchanged}
+                  onChange={(e) => {
+                    const checked = e.currentTarget.checked;
+                    setSettings((prev) => ({
+                      ...prev,
+                      checkRunDeltaShowUnchanged: checked,
+                    }));
+                  }}
+                />
+              }
+            />
+          </SettingsSubRows>
         )}
       </SettingsSection>
       <MinorChecksFilterModal opened={minorFilterOpened} onClose={closeMinorFilterModal} />

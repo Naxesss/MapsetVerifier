@@ -1,5 +1,6 @@
-import { Button, Group, Select, SegmentedControl, TextInput } from '@mantine/core';
-import { IconFolder, IconSettings } from '@tabler/icons-react';
+import { Select, SegmentedControl } from '@mantine/core';
+import { IconSettings } from '@tabler/icons-react';
+import FolderField from './FolderField';
 import { SettingsRow, SettingsSection } from './SettingsSection';
 import { BeatmapViewMode, useSettings } from '../../context/SettingsContext';
 import {
@@ -8,7 +9,6 @@ import {
   parseUiFontFamily,
 } from '../../theme/fonts';
 import { UI_ZOOM_OPTIONS, parseUiZoomPercent } from '../../theme/zoom';
-import { notifyError } from '../../utils/notify.tsx';
 import { isWindowsPlatform } from '../../utils/platform.ts';
 import type { ClockFormat } from '../../utils/dateTime';
 
@@ -20,32 +20,6 @@ export default function GeneralSettingsSection() {
   const viewMode = settings.beatmapViewMode;
   const showLazerDataDir = viewMode === 'lazer' || viewMode === 'both';
   const showSongFolder = viewMode === 'stable' || viewMode === 'both';
-
-  const pickFolder = async () => {
-    try {
-      const result = await window.electronAPI?.dialog.openFolder();
-      if (typeof result === 'string') {
-        setSettings((prev) => ({ ...prev, songFolder: result }));
-      }
-    } catch (e: any) {
-      console.error('[Settings] Folder pick failed:', e);
-      const msg = typeof e === 'string' ? e : e?.message || 'Unknown error';
-      notifyError(`Couldn't open the folder picker: ${msg}`);
-    }
-  };
-
-  const pickLazerDataDir = async () => {
-    try {
-      const result = await window.electronAPI?.dialog.openFolder();
-      if (typeof result === 'string') {
-        setSettings((prev) => ({ ...prev, lazerDataDir: result }));
-      }
-    } catch (e: any) {
-      console.error('[Settings] Lazer data folder pick failed:', e);
-      const msg = typeof e === 'string' ? e : e?.message || 'Unknown error';
-      notifyError(`Couldn't open the folder picker: ${msg}`);
-    }
-  };
 
   return (
     <SettingsSection
@@ -71,43 +45,19 @@ export default function GeneralSettingsSection() {
         }
       />
       {showSongFolder && (
-        <Group align="flex-end" gap="sm" wrap="nowrap">
-          <TextInput
-            label="osu! Songs Folder"
-            value={settings.songFolder ?? ''}
-            readOnly
-            style={{ flex: 1, minWidth: 0 }}
-            onClick={() => !settings.songFolder && pickFolder()}
-          />
-          <Button
-            size="sm"
-            variant="light"
-            leftSection={<IconFolder size={18} />}
-            onClick={pickFolder}
-          >
-            Browse
-          </Button>
-        </Group>
+        <FolderField
+          label="osu! Songs folder"
+          value={settings.songFolder}
+          onChange={(songFolder) => setSettings((prev) => ({ ...prev, songFolder }))}
+        />
       )}
       {showLazerDataDir && (
-        <Group align="flex-end" gap="sm" wrap="nowrap">
-          <TextInput
-            label="osu!(lazer) data folder"
-            description="Contains client.realm. Auto-detected when left empty."
-            value={settings.lazerDataDir ?? ''}
-            readOnly
-            style={{ flex: 1, minWidth: 0 }}
-            onClick={() => !settings.lazerDataDir && pickLazerDataDir()}
-          />
-          <Button
-            size="sm"
-            variant="light"
-            leftSection={<IconFolder size={18} />}
-            onClick={pickLazerDataDir}
-          >
-            Browse
-          </Button>
-        </Group>
+        <FolderField
+          label="osu!(lazer) data folder"
+          description="Contains client.realm. Auto-detected when left empty."
+          value={settings.lazerDataDir}
+          onChange={(lazerDataDir) => setSettings((prev) => ({ ...prev, lazerDataDir }))}
+        />
       )}
       <SettingsRow
         title="Font"

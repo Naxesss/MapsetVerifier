@@ -4,8 +4,9 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import RcLeadText from './RcLeadText';
 import RcOutdatedNotice from './RcOutdatedNotice';
-import { formatDifficulties, KIND_COLOR, openExternal, rankingCriteriaRoute } from './rcUtils';
+import { formatDifficulties, KIND_COLOR, rankingCriteriaRoute } from './rcUtils';
 import RankingCriteriaApi from '../../client/RankingCriteriaApi';
+import { openExternal } from '../../hooks/useOpenExternal';
 import { ApiRcStatement } from '../../Types';
 import { ListSkeleton } from '../common/LoadingSkeletons';
 import ClickablePanel from '../details/ClickablePanel';
@@ -121,7 +122,7 @@ export default function RuleReferences({ ruleIds }: RuleReferencesProps) {
   if (error) {
     return (
       <Alert icon={<IconAlertCircle size={16} />} color="red">
-        Failed to load the linked ranking criteria.
+        Couldn&apos;t load the linked ranking criteria.
       </Alert>
     );
   }

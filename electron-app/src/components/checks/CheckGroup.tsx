@@ -1,13 +1,15 @@
-import { Button, Collapse, Flex, Group, Modal, Stack, Text } from '@mantine/core';
-import { IconChevronRight, IconCopy } from '@tabler/icons-react';
+import { Button, Group, Modal, Stack, Text } from '@mantine/core';
+import { IconCopy } from '@tabler/icons-react';
 import React, { useMemo, useState } from 'react';
-import IssueDetailDrawer, { copyToClipboard, normalizeLevel } from './IssueDetailDrawer';
+import IssueDetailDrawer, { copyToClipboard } from './IssueDetailDrawer';
+import IssueGroupLayout from './IssueGroupLayout';
 import IssueRow from './IssueRow';
-import { ApiCheckResult, Level } from '../../Types';
+import { getHighestIssueLevel, normalizeLevel } from './utils/levelUtils';
+import { Z_INDEX } from '../../theme/layers';
+import { ApiCheckResult } from '../../Types';
 import { countWord } from '../../utils/countWord';
 import { getLevelLabel } from '../../utils/levelLabel';
 import { useDocumentationChecks } from '../documentation/hooks/useDocumentationChecks';
-import LevelIcon from '../icons/LevelIcon.tsx';
 
 interface CheckGroupProps {
   id: number;
@@ -19,7 +21,6 @@ interface CheckGroupProps {
   onToggleShowAll: (id: number) => void;
 }
 
-const VISIBLE_COUNT = 5;
 const LARGE_GROUP_THRESHOLD = 25;
 
 export function getGroupCopyText(items: ApiCheckResult[], groupName?: string) {
@@ -27,12 +28,6 @@ export function getGroupCopyText(items: ApiCheckResult[], groupName?: string) {
   const lines = items.map((item) => `- ${item.message}`);
   return [title, ...lines].join('\n');
 }
-
-// Header: chevron (16px), gap (4px), level icon (16px), gap (4px), then the name at 40px.
-/** Centre of the chevron, where the guide line runs. */
-const GUIDE_LINE_OFFSET = 8;
-/** Where issue rows start; plus their 4px padding, their icons sit at 40px, under the check name. */
-const ISSUE_INDENT = 36;
 
 const CheckGroup: React.FC<CheckGroupProps> = ({
   id,
@@ -43,19 +38,7 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
   onToggleOpen,
   onToggleShowAll,
 }) => {
-  // Determine the highest severity per requested order: Error > Problem > Warning > Minor > Info
-  const highest = useMemo((): Level => {
-    const severityOrder: Level[] = ['Error', 'Problem', 'Warning', 'Minor', 'Info'];
-    const normalizedLevels = items.map((i) => (i.level === 'Check' ? 'Info' : i.level)) as Level[];
-
-    for (const level of severityOrder) {
-      if (normalizedLevels.includes(level)) {
-        return level;
-      }
-    }
-
-    return 'Info';
-  }, [items]);
+  const highest = useMemo(() => getHighestIssueLevel(items.map((item) => item.level)), [items]);
 
   const [selectedIssue, setSelectedIssue] = useState<ApiCheckResult | null>(null);
   const [pendingCopy, setPendingCopy] = useState<{
@@ -67,17 +50,11 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
 
   const toggle = () => onToggleOpen(id);
   const toggleShowAll = () => onToggleShowAll(id);
-  const onKeyDown: React.KeyboardEventHandler = (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      toggle();
-    }
-  };
 
   const performCopy = (copyItems: ApiCheckResult[]) =>
     copyToClipboard(
       getGroupCopyText(copyItems, name),
-      `Copied ${countWord(copyItems.length, 'issue')}`
+      `Copied ${countWord(copyItems.length, 'issue')}.`
     );
 
   const triggerCopy = (copyItems: ApiCheckResult[], description: string) => {
@@ -115,87 +92,31 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
     );
   };
 
-  const firstItems = items.slice(0, VISIBLE_COUNT);
-  const extraItems = items.slice(VISIBLE_COUNT);
-  const extraCount = extraItems.length;
-
   return (
-    <Stack gap={0} justify="center" id={`check-group-${id}`}>
-      <Flex
-        gap="xs"
-        onClick={toggle}
-        onKeyDown={onKeyDown}
-        role="button"
-        tabIndex={0}
-        aria-expanded={isOpen}
-        style={{ cursor: 'pointer', userSelect: 'none' }}
-      >
-        <span
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
-            transition: 'transform 200ms ease',
-          }}
-        >
-          <IconChevronRight size={16} />
-        </span>
-        <LevelIcon level={highest} size={16} />
-        <Text size="sm" fw="bold">
-          {name}
-        </Text>
-        <Button
-          size="compact-xs"
-          variant="subtle"
-          ml="auto"
-          leftSection={<IconCopy size={13} />}
-          onClick={onCopyAllClick}
-        >
-          Copy all ({items.length})
-        </Button>
-      </Flex>
-
-      {/* Issues line up under the check's name, with a guide line down from the chevron. */}
-      <Collapse in={isOpen}>
-        <Stack
-          gap={0}
-          style={{
-            marginLeft: GUIDE_LINE_OFFSET,
-            paddingLeft: ISSUE_INDENT - GUIDE_LINE_OFFSET - 1,
-            borderLeft: '1px solid var(--mantine-color-default-border)',
-          }}
-        >
-          {firstItems.map((item, idx) => (
-            <IssueRow key={`${id}-${idx}`} item={item} onOpen={() => setSelectedIssue(item)} />
-          ))}
-          {showAll && (
-            <Collapse in={showAll}>
-              <Stack gap={0}>
-                {extraItems.map((item, idx) => (
-                  <IssueRow
-                    key={`${id}-${VISIBLE_COUNT + idx}`}
-                    item={item}
-                    onOpen={() => setSelectedIssue(item)}
-                  />
-                ))}
-              </Stack>
-            </Collapse>
-          )}
-          {extraCount > 0 && (
-            <Text
-              size="sm"
-              px="xs"
-              role="button"
-              tabIndex={0}
-              onClick={toggleShowAll}
-              style={{ cursor: 'pointer', color: 'var(--mantine-color-blue-6)', fontWeight: 500 }}
-            >
-              {showAll ? `Hide extra issues` : `Show ${extraCount} more`}
-            </Text>
-          )}
-        </Stack>
-      </Collapse>
+    <>
+      <IssueGroupLayout
+        id={`check-group-${id}`}
+        name={name}
+        level={highest}
+        items={items}
+        renderItem={(item, index) => (
+          <IssueRow key={`${id}-${index}`} item={item} onOpen={() => setSelectedIssue(item)} />
+        )}
+        isOpen={isOpen}
+        onToggleOpen={toggle}
+        showAll={showAll}
+        onToggleShowAll={toggleShowAll}
+        actions={
+          <Button
+            size="compact-xs"
+            variant="subtle"
+            leftSection={<IconCopy size={13} />}
+            onClick={onCopyAllClick}
+          >
+            Copy all ({items.length})
+          </Button>
+        }
+      />
 
       <IssueDetailDrawer
         opened={selectedIssue !== null}
@@ -214,7 +135,7 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
         opened={pendingCopy !== null}
         onClose={() => setPendingCopy(null)}
         title="Copy issues?"
-        zIndex={2000}
+        zIndex={Z_INDEX.modalAboveDrawer}
       >
         <Stack gap="md">
           <Text size="sm">
@@ -236,7 +157,7 @@ const CheckGroup: React.FC<CheckGroupProps> = ({
           </Group>
         </Stack>
       </Modal>
-    </Stack>
+    </>
   );
 };
 

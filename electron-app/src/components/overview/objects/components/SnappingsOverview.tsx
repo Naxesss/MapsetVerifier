@@ -1,11 +1,11 @@
 import { Badge, Group, Stack, Table, Text, useMantineTheme } from '@mantine/core';
 import { CSSProperties, useMemo } from 'react';
 import { EdgeTimesPopover } from './EdgeTimesPopover.tsx';
-import ObjectsGameModeSelector from './ObjectsGameModeSelector.tsx';
 import AppTable, {
   DifficultyTableCell,
   DifficultyTableHeaderCell,
 } from '../../../common/AppTable.tsx';
+import GameModeSelector from '../../../common/GameModeSelector.tsx';
 import SectionCard from '../../../common/SectionCard.tsx';
 import GameModeIcon from '../../../icons/GameModeIcon.tsx';
 import { buildRoundedEdgePartNameMap, getSnappingColumns } from '../timelineUtils.ts';
@@ -167,7 +167,7 @@ export default function SnappingsOverview({
       title="Snapping overview"
       info="Click on a cell to see all timestamps for that snapping."
       actions={
-        <ObjectsGameModeSelector
+        <GameModeSelector
           groupedDifficulties={groupedDifficulties}
           selectedMode={activeMode}
           onModeChange={onModeChange}

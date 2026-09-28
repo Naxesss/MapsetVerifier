@@ -99,7 +99,7 @@ export function BeatmapReparseProvider({ children }: { children: ReactNode }) {
         id: REPARSE_TOAST_ID,
         loading: false,
         color: 'green',
-        message: 'Mapset refreshed!',
+        message: 'Mapset refreshed.',
         icon: <IconCheck size={16} />,
         autoClose: 1500,
         withCloseButton: false,

@@ -1,6 +1,7 @@
 import { Badge, Collapse, Group, Stack, Text, UnstyledButton } from '@mantine/core';
-import { IconChevronDown } from '@tabler/icons-react';
+import { IconChevronDown, IconNotes } from '@tabler/icons-react';
 import { useState } from 'react';
+import EmptyState from '../common/EmptyState.tsx';
 import { CardTitle } from '../common/Headings.tsx';
 import SectionCard from '../common/SectionCard.tsx';
 import MantineMarkdown from '../documentation/MantineMarkdown.tsx';
@@ -108,7 +109,9 @@ export default function Changelog() {
 
   return (
     <Stack gap="md">
-      {entries.length === 0 ? <Text c="dimmed">No changelog entries yet.</Text> : null}
+      {entries.length === 0 ? (
+        <EmptyState icon={IconNotes} title="No changelog entries yet" />
+      ) : null}
 
       {entries.map((entry, index) => {
         const isExpanded = expandedVersions.has(entry.version);

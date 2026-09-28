@@ -140,7 +140,7 @@ function GeneralSettingsInfo({ generalSettings }: GeneralSettingsInfoProps) {
                   <Text size="sm">{formatNullable(settings.useSkinSprites)}</Text>
                 </Table.Td>
                 <Table.Td>
-                  <Text size="sm">{formatNullable(settings.skinPreference, '(none)')}</Text>
+                  <Text size="sm">{formatNullable(settings.skinPreference, 'None')}</Text>
                 </Table.Td>
                 <Table.Td>
                   <Text size="sm">{formatNullable(settings.epilepsyWarning)}</Text>
