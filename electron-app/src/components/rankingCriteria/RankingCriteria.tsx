@@ -233,7 +233,7 @@ function RankingCriteria() {
   // Three blocks (controls, coverage, list) spaced by `sm`, like the beatmap sidebar's search row and
   // list; everything inside a block by `xs`.
   return (
-    <Stack gap="sm">
+    <Stack gap="md">
       <StickyToolbar>
         <Group gap="sm">
           <RcPageSelect
