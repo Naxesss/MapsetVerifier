@@ -1,8 +1,8 @@
 import { ActionIcon, Button, Group, Menu, Stack, Text, Tooltip } from '@mantine/core';
 import {
   IconChevronDown,
+  IconDownload,
   IconFolder,
-  IconLink,
   IconMessage,
   IconRefresh,
   IconVersions,
@@ -111,7 +111,7 @@ function MapsetActions() {
         <Menu.Dropdown>
           <OpenItem
             icon={<IconFolder size={16} stroke={1.5} />}
-            label="Mapset folder"
+            label="Beatmap folder"
             disabledReason={beatmapFolderPath ? undefined : 'Folder not found'}
             onClick={() => {
               if (beatmapFolderPath) {
@@ -138,7 +138,7 @@ function MapsetActions() {
           <Menu.Divider />
           <OpenItem
             icon={<IconWorld size={16} stroke={1.5} />}
-            label="Mapset page"
+            label="Beatmap page"
             disabledReason={isSubmitted ? undefined : NOT_SUBMITTED}
             onClick={() => void openExternal(`https://osu.ppy.sh/beatmapsets/${beatmapSetId}`)}
           />
@@ -151,7 +151,7 @@ function MapsetActions() {
             }
           />
           <OpenItem
-            icon={<IconLink size={16} stroke={1.5} />}
+            icon={<IconDownload size={16} stroke={1.5} />}
             label="osu!direct"
             disabledReason={hasBeatmapId ? undefined : NOT_SUBMITTED}
             onClick={() => void openExternal(`osu://b/${beatmapId}`)}
