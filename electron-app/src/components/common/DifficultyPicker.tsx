@@ -12,7 +12,12 @@ import {
 import { useHotkeys } from '@mantine/hooks';
 import { IconChevronDown, IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
 import { Fragment, useState, type ReactNode } from 'react';
-import { getDifficultyColor } from './DifficultyColor';
+import {
+  getDifficultyBorderColor,
+  getDifficultyColor,
+  getDifficultyMutedColor,
+  getDifficultyTextColor,
+} from './DifficultyColor';
 import DifficultyColorPill from './DifficultyColorPill';
 import ShortcutLabel from './ShortcutLabel';
 import StarRatingBadge from './StarRatingBadge';
@@ -297,6 +302,7 @@ function DifficultyPicker({
                     ? `${d.label}: ${d.disabledReason}`
                     : `${d.label}${d.starRating != null ? ` · ${d.starRating.toFixed(2)}★` : ''}`
                 }
+                starRating={d.disabled ? undefined : d.starRating}
                 color={d.disabled ? theme.colors.dark[4] : d.statusColor}
                 active={d.id === selectedId}
                 disabled={d.disabled}
@@ -321,6 +327,8 @@ interface StatusSegmentProps {
   label: string;
   /** First segment of a mode, which gets the wider gap in front of it. */
   groupStart?: boolean;
+  /** Colours the tooltip like the star-rating badge when the label includes a rating. */
+  starRating?: number | null;
   color: string;
   active: boolean;
   disabled?: boolean;
@@ -335,13 +343,42 @@ interface StatusSegmentProps {
 function StatusSegment({
   label,
   groupStart,
+  starRating,
   color,
   active,
   disabled,
   onClick,
 }: StatusSegmentProps) {
+  const difficultyColor = starRating != null ? getDifficultyColor(starRating) : undefined;
+  const difficultyTextColor =
+    starRating == null
+      ? undefined
+      : starRating < 6.5
+        ? '#ffffff'
+        : getDifficultyTextColor(starRating);
+  const difficultyBorderColor =
+    starRating != null ? getDifficultyBorderColor(starRating) : undefined;
+
   return (
-    <Tooltip label={label} openDelay={100}>
+    <Tooltip
+      label={label}
+      styles={{
+        tooltip: {
+          // The star in a difficulty label grows the line box. A fixed line height and the same
+          // padding keep General the same height as those tooltips.
+          padding: 'calc(var(--mantine-spacing-xs) / 2) var(--mantine-spacing-xs)',
+          lineHeight: 1.45,
+          fontWeight: 500,
+          ...(difficultyColor
+            ? {
+                backgroundColor: getDifficultyMutedColor(difficultyColor),
+                color: difficultyTextColor,
+                border: `1px solid ${difficultyBorderColor}`,
+              }
+            : {}),
+        },
+      }}
+    >
       <UnstyledButton
         className="mv-status-segment"
         aria-label={label}
