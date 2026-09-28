@@ -15,6 +15,7 @@ import { Fragment, useState, type ReactNode } from 'react';
 import { getDifficultyColor } from './DifficultyColor';
 import DifficultyColorPill from './DifficultyColorPill';
 import ShortcutLabel from './ShortcutLabel';
+import StarRatingBadge from './StarRatingBadge';
 import { formatGameModeLabel, MODE_ORDER } from '../../utils/gameMode';
 import GameModeIcon from '../icons/GameModeIcon';
 import type { Mode } from '../../Types';
@@ -222,9 +223,13 @@ function DifficultyPicker({
                     </Group>
                   }
                   rightSection={
-                    <Text size="xs" c="dimmed" style={{ fontVariantNumeric: 'tabular-nums' }}>
-                      {d.disabled ? d.disabledReason : d.starRating?.toFixed(2)}
-                    </Text>
+                    d.disabled ? (
+                      <Text size="xs" c="dimmed">
+                        {d.disabledReason}
+                      </Text>
+                    ) : (
+                      d.starRating != null && <StarRatingBadge rating={d.starRating} size="xs" />
+                    )
                   }
                   style={
                     d.id === selectedId ? { background: 'var(--mantine-color-dark-5)' } : undefined

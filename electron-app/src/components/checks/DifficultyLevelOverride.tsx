@@ -1,7 +1,9 @@
-import { ActionIcon, Button, Group, Menu, Text, Tooltip } from '@mantine/core';
-import { IconArrowBackUp, IconCheck, IconChevronDown } from '@tabler/icons-react';
+import { ActionIcon, Box, Group, Select, Text, Tooltip } from '@mantine/core';
+import { IconArrowBackUp, IconChevronDown } from '@tabler/icons-react';
+import { useSettings } from '../../context/SettingsContext';
 import { ApiCategoryCheckResult, DifficultyLevel } from '../../Types';
-import DifficultyName from '../common/DifficultyName';
+import { formatDifficultyName } from '../common/DifficultyName';
+import GameModeIcon from '../icons/GameModeIcon';
 
 interface DifficultyLevelOverrideProps {
   selectedDifficulty: ApiCategoryCheckResult;
@@ -10,6 +12,11 @@ interface DifficultyLevelOverrideProps {
 }
 
 const SHOWING_DIFFICULTY_LEVELS: DifficultyLevel[] = ['Easy', 'Normal', 'Hard', 'Insane', 'Expert'];
+
+/** Room for "Interpreted as", so the selected level (icon and name) starts after it. */
+const PREFIX_WIDTH = 112;
+const MODE_ICON_SIZE = 16;
+const MODE_ICON_GAP = 6;
 
 export const getDifficultyBadgeColor = (difficulty: string) => {
   switch (difficulty) {
@@ -30,23 +37,32 @@ export const getDifficultyBadgeColor = (difficulty: string) => {
 
 /** Shade of a level's colour that reads as text on the dark buttons and menus. */
 const levelTextColor = (level: string) => `${getDifficultyBadgeColor(level)}.4`;
+const levelColor = (level: string) => `var(--mantine-color-${getDifficultyBadgeColor(level)}-4)`;
 
 /**
- * "Interpreted as <level>" on the right of the selected difficulty's row: one button that both
- * shows the level the checks use and changes it, listing the levels with the detected one marked.
- * Once changed, a reset button appears to its left (so the button itself stays put) and goes back
- * to the detected level.
+ * "Interpreted as <level>" on the right of the selected difficulty's row: one select that both
+ * shows the level the checks use and changes it. The chosen level is highlighted, and the
+ * detected one is marked. Once changed, a reset button appears to its left (so the select itself
+ * stays put) and goes back to the detected level.
  */
 function DifficultyLevelOverride({
   selectedDifficulty,
   currentOverrideLevel,
   onOverrideChange,
 }: DifficultyLevelOverrideProps) {
+  const { settings } = useSettings();
   const detected = selectedDifficulty.difficultyLevel || 'Unknown';
   const selected = currentOverrideLevel || detected;
   const mode = selectedDifficulty.mode;
 
-  const choose = (level: DifficultyLevel) => {
+  const nameOf = (level: string) =>
+    formatDifficultyName(level, mode, settings.showGamemodeDifficultyNames);
+
+  const levels = SHOWING_DIFFICULTY_LEVELS.includes(selected as DifficultyLevel)
+    ? SHOWING_DIFFICULTY_LEVELS
+    : [selected, ...SHOWING_DIFFICULTY_LEVELS];
+
+  const choose = (level: string) => {
     const isDefault = level === detected || (detected === 'Expert' && level === 'Ultra');
     onOverrideChange(selectedDifficulty.category, isDefault ? null : level);
   };
@@ -67,44 +83,74 @@ function DifficultyLevelOverride({
           </ActionIcon>
         </Tooltip>
       )}
-      <Menu position="bottom-end" withinPortal>
-        <Menu.Target>
-          <Button
-            variant="default"
-            size="sm"
-            rightSection={<IconChevronDown size={14} stroke={1.5} />}
-          >
-            <Text span inherit c="dimmed" mr={4}>
+      <Box pos="relative" w="fit-content">
+        <Select
+          aria-label={`Interpreted as ${nameOf(selected)}`}
+          size="sm"
+          w="auto"
+          allowDeselect={false}
+          withCheckIcon={false}
+          comboboxProps={{ position: 'bottom-end', withinPortal: true, width: 'max-content' }}
+          value={selected}
+          data={[
+            {
+              group: 'Check this difficulty as',
+              items: levels.map((level) => ({ value: level, label: nameOf(level) })),
+            },
+          ]}
+          leftSectionWidth={PREFIX_WIDTH}
+          leftSectionPointerEvents="none"
+          leftSection={
+            <Text size="sm" c="dimmed" fw={500}>
               Interpreted as
             </Text>
-            {/* The level in its own colour, as the level badge used to show it. */}
-            <Text span inherit fw={700} c={levelTextColor(selected)}>
-              <DifficultyName difficulty={selected as DifficultyLevel} mode={mode} />
-            </Text>
-          </Button>
-        </Menu.Target>
-        <Menu.Dropdown>
-          <Menu.Label>Check this difficulty as</Menu.Label>
-          {SHOWING_DIFFICULTY_LEVELS.map((level) => (
-            <Menu.Item
-              key={level}
-              leftSection={<IconCheck size={14} style={{ opacity: level === selected ? 1 : 0 }} />}
-              rightSection={
-                level === detected && (
-                  <Text size="xs" c="dimmed">
-                    Detected
-                  </Text>
-                )
-              }
-              onClick={() => choose(level)}
-            >
-              <Text span inherit c={levelTextColor(level)}>
-                <DifficultyName difficulty={level} mode={mode} />
+          }
+          rightSection={<IconChevronDown size={14} stroke={1.5} />}
+          rightSectionPointerEvents="none"
+          classNames={{ option: 'mv-level-option' }}
+          styles={{
+            root: { width: 'auto' },
+            wrapper: { width: 'auto' },
+            input: {
+              width: 'auto',
+              fieldSizing: 'content',
+              color: levelColor(selected),
+              fontWeight: 700,
+              paddingInlineStart: mode ? PREFIX_WIDTH + MODE_ICON_SIZE + MODE_ICON_GAP : undefined,
+            },
+          }}
+          onChange={(level) => level && choose(level)}
+          renderOption={({ option }) => (
+            <Group gap={6} wrap="nowrap">
+              {mode && (
+                <GameModeIcon mode={mode} size={MODE_ICON_SIZE} color={levelColor(option.value)} />
+              )}
+              <Text span inherit fw={700} c={levelTextColor(option.value)}>
+                {option.label}
               </Text>
-            </Menu.Item>
-          ))}
-        </Menu.Dropdown>
-      </Menu>
+              {option.value === detected && (
+                <Text size="xs" c="dimmed" fw={400}>
+                  Detected
+                </Text>
+              )}
+            </Group>
+          )}
+        />
+        {mode && (
+          <GameModeIcon
+            mode={mode}
+            size={MODE_ICON_SIZE}
+            color={levelColor(selected)}
+            style={{
+              position: 'absolute',
+              left: PREFIX_WIDTH,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              pointerEvents: 'none',
+            }}
+          />
+        )}
+      </Box>
     </Group>
   );
 }

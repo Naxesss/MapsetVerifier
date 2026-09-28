@@ -5,7 +5,7 @@ export type StarRatingBadgeProps = Omit<BadgeProps, 'color' | 'variant' | 'child
   rating: number;
 };
 
-function StarRatingBadge({ rating, ...props }: StarRatingBadgeProps) {
+function StarRatingBadge({ rating, size = 'sm', style, ...props }: StarRatingBadgeProps) {
   const bg = getDifficultyColor(rating);
   const textColor = rating >= 6.5 ? 'var(--mantine-color-yellow-4)' : 'black';
 
@@ -13,12 +13,13 @@ function StarRatingBadge({ rating, ...props }: StarRatingBadgeProps) {
     <Badge
       {...props}
       variant="filled"
-      size="sm"
+      size={size}
       style={{
         backgroundColor: bg,
         color: textColor,
         fontFamily: 'Torus, sans-serif',
-        fontSize: 12,
+        fontSize: size === 'xs' ? 10 : 12,
+        ...style,
       }}
     >
       ★ {rating.toFixed(2)}
