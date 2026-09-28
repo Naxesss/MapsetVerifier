@@ -3,7 +3,11 @@ import type { CSSProperties } from 'react';
 
 const GROUP_COLOR_NAMES = ['yellow', 'cyan', 'grape', 'green', 'pink', 'lime', 'teal'] as const;
 
-export function groupCellStyle(
+/**
+ * A soft pill behind a value whose difficulties share it with others in the same group colour.
+ * The dominant value has no colour, so only the values that differ stand out.
+ */
+export function groupValueStyle(
   theme: MantineTheme,
   colorIndex: number | null
 ): CSSProperties | undefined {
@@ -14,7 +18,11 @@ export function groupCellStyle(
   const colorName = GROUP_COLOR_NAMES[colorIndex % GROUP_COLOR_NAMES.length];
 
   return {
-    backgroundColor: `${theme.colors[colorName][9]}33`,
-    boxShadow: `inset 3px 0 0 ${theme.colors[colorName][5]}`,
+    display: 'inline-block',
+    padding: '1px 7px',
+    margin: '-1px -7px',
+    borderRadius: 999,
+    backgroundColor: `${theme.colors[colorName][9]}40`,
+    color: theme.colors[colorName][3],
   };
 }

@@ -9,6 +9,8 @@ export const NAV_BAR_HEIGHT = 60;
  * sit at 300.
  */
 export const Z_INDEX = {
+  /** A page's sticky controls (the Overview's difficulty chips), above its tables and timeline. */
+  stickyControls: 20,
   /** Modals opened from a page (updater, settings dialogs). */
   modal: 400,
   /** The issue details drawer, which sits below the title bar. */

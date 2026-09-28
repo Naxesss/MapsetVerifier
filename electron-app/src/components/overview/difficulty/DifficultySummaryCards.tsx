@@ -1,8 +1,28 @@
-import { SimpleGrid } from '@mantine/core';
-import { StatCard } from '../../common/StatField.tsx';
+import { Badge } from '@mantine/core';
+import StarRatingBadge, { STAR_BADGE_FONT_SIZE } from '../../common/StarRatingBadge.tsx';
+import { StatLine } from '../../common/StatField.tsx';
 import type { DifficultyOverviewDifficulty } from '../../../Types';
 
-const formatStars = (starRating: number) => `★ ${starRating.toFixed(2)}`;
+/** Coloured like everywhere else a difficulty's star rating shows; both badges share one width. */
+const starBadge = (starRating: number, pair: number[]) => (
+  <div>
+    <StarRatingBadge rating={starRating} size="lg" sizeTo={pair} />
+  </div>
+);
+
+/** A difference between two ratings, not a difficulty, so it takes the badge's shape in grey. */
+const gapBadge = (gap: string) => (
+  <div>
+    <Badge
+      variant="light"
+      color="gray"
+      size="lg"
+      style={{ fontFamily: 'Torus, sans-serif', fontSize: STAR_BADGE_FONT_SIZE.lg }}
+    >
+      {gap}
+    </Badge>
+  </div>
+);
 
 /** The spread at a glance: easiest and hardest difficulty, and the biggest jump between neighbours. */
 export function DifficultySpreadSummary({
@@ -28,30 +48,28 @@ export function DifficultySpreadSummary({
   }
 
   return (
-    <SimpleGrid cols={{ base: 1, md: 3 }} spacing="md">
-      <StatCard
-        label="Lowest star rating"
-        value={formatStars(lowest.starRating)}
-        note={lowest.version}
-      />
-      <StatCard
-        label="Highest star rating"
-        value={formatStars(highest.starRating)}
-        note={highest.version}
-      />
-      <StatCard
-        label="Largest gap"
-        value={
-          largestGap
-            ? `★ ${(largestGap.to.starRating - largestGap.from.starRating).toFixed(2)}`
-            : '–'
-        }
-        note={
-          largestGap
+    <StatLine
+      items={[
+        {
+          label: 'Lowest star rating',
+          value: starBadge(lowest.starRating, [highest.starRating]),
+          note: lowest.version,
+        },
+        {
+          label: 'Highest star rating',
+          value: starBadge(highest.starRating, [lowest.starRating]),
+          note: highest.version,
+        },
+        {
+          label: 'Largest gap',
+          value: largestGap
+            ? gapBadge(`★ ${(largestGap.to.starRating - largestGap.from.starRating).toFixed(2)}`)
+            : '–',
+          note: largestGap
             ? `${largestGap.from.version} → ${largestGap.to.version}`
-            : 'Only one difficulty'
-        }
-      />
-    </SimpleGrid>
+            : 'Only one difficulty',
+        },
+      ]}
+    />
   );
 }

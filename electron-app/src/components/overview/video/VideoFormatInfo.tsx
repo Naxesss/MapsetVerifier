@@ -2,20 +2,10 @@ import { Badge, Box, Group, SimpleGrid, Stack, Text } from '@mantine/core';
 import { VideoAnalysisEntry } from '../../../Types';
 import SectionCard from '../../common/SectionCard.tsx';
 import { StatField } from '../../common/StatField.tsx';
-import {
-  ComplianceBadge,
-  ComplianceIssueList,
-  formatBadgeColor,
-  RequirementsList,
-  RuleLabel,
-} from '../formatCard.tsx';
 
 interface VideoFormatInfoProps {
   data: VideoAnalysisEntry;
 }
-
-const MAX_WIDTH = 1280;
-const MAX_HEIGHT = 720;
 
 function formatFrameRate(frameRate: number | null): string {
   if (!frameRate) return 'Unknown';
@@ -28,35 +18,20 @@ function formatBitrate(kbps: number | null): string {
   return `${Math.round(kbps)} kbps`;
 }
 
+/**
+ * What the video file is: container, resolution, codec, frame rate, audio track and more. Whether
+ * any of it breaks a ranking rule is for Checks to say.
+ */
 function VideoFormatInfo({ data }: VideoFormatInfoProps) {
-  const resolutionIsValid =
-    data.width > 0 && data.width <= MAX_WIDTH && data.height > 0 && data.height <= MAX_HEIGHT;
-
   return (
     <SectionCard
       title="Format"
       info="Format information describes the technical properties of a video file that define how it is stored and played back."
-      actions={
-        <>
-          <Badge color={formatBadgeColor(data.badgeType)}>{data.container}</Badge>
-          <ComplianceBadge compliant={data.isCompliant} />
-        </>
-      }
+      actions={<Badge>{data.container}</Badge>}
     >
-      <SimpleGrid cols={3} mb="md" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+      <SimpleGrid cols={3} style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
         <StatField label="File name" value={data.fileName} />
-        <StatField
-          label={
-            <RuleLabel
-              label="Resolution"
-              brokenRule={
-                resolutionIsValid ? undefined : `Must not exceed ${MAX_WIDTH} x ${MAX_HEIGHT}`
-              }
-            />
-          }
-          value={data.width > 0 ? data.resolution : 'Unknown'}
-          valueColor={resolutionIsValid ? undefined : 'red.4'}
-        />
+        <StatField label="Resolution" value={data.width > 0 ? data.resolution : 'Unknown'} />
         <StatField
           label="Duration"
           value={data.durationMs > 0 ? data.durationFormatted : 'Unknown'}
@@ -65,7 +40,6 @@ function VideoFormatInfo({ data }: VideoFormatInfoProps) {
           label="Frame rate"
           value={formatFrameRate(data.frameRate)}
           note={data.isVariableFrameRate ? 'Variable frame rate' : undefined}
-          noteColor="yellow.4"
         />
         <StatField
           label="Codec"
@@ -82,7 +56,6 @@ function VideoFormatInfo({ data }: VideoFormatInfoProps) {
         <StatField
           label="Audio track"
           value={data.hasAudioTrack ? (data.audioCodec ?? 'Present') : 'None'}
-          valueColor={data.hasAudioTrack ? 'red.4' : undefined}
           note={
             data.hasAudioTrack && data.audioChannels > 0
               ? `${data.audioChannels === 1 ? 'Mono' : `${data.audioChannels}ch`}${
@@ -95,15 +68,8 @@ function VideoFormatInfo({ data }: VideoFormatInfoProps) {
         />
       </SimpleGrid>
 
-      <RequirementsList
-        requirements={[
-          { label: `Resolution is ${MAX_WIDTH} x ${MAX_HEIGHT} or below`, met: resolutionIsValid },
-          { label: 'No audio track present', met: !data.hasAudioTrack },
-        ]}
-      />
-
       {data.usedByDifficulties.length > 0 && (
-        <Box mb="md">
+        <Box mt="md">
           <StatField
             label="Used by"
             value={
@@ -117,13 +83,8 @@ function VideoFormatInfo({ data }: VideoFormatInfoProps) {
         </Box>
       )}
 
-      <ComplianceIssueList
-        issues={data.complianceIssues}
-        mb={data.warnings.length > 0 ? 'md' : 0}
-      />
-
       {data.warnings.length > 0 && (
-        <Stack gap="2xs">
+        <Stack gap="2xs" mt="md">
           {data.warnings.map((warning, idx) => (
             <Text key={idx} size="xs" c="dimmed">
               {warning}

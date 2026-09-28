@@ -16,11 +16,9 @@ import { useMemo } from 'react';
 import SortableTimelineDifficultyRow from './SortableTimelineDifficultyRow.tsx';
 import TimelineAxisRow from './TimelineAxisRow.tsx';
 import TimelineHorizontalReveal from './TimelineHorizontalReveal.tsx';
-import TimelineShiftSeekModeBadge from './TimelineShiftSeekModeBadge.tsx';
 import TimelineZoomControls from './TimelineZoomControls.tsx';
 import { LABEL_WIDTH, TIMELINE_VIEW_MODE_TRANSITION_MS } from '../constants.ts';
-import TimelineZoomModeBadge from './TimelineZoomModeBadge.tsx';
-import GameModeSelector from '../../../common/GameModeSelector.tsx';
+import TimelineShortcutHints from './TimelineShortcutHints.tsx';
 import {
   useTimelineController,
   useTimelineDisplay,
@@ -46,7 +44,6 @@ import {
 export type ObjectsTimelineComparisonContentProps = {
   showScrollModeControls?: boolean;
   scrollModeExtra?: React.ReactNode;
-  showModeSelector?: boolean;
   showVisibilityControls?: boolean;
   showThemeControls?: boolean;
   showZoomControls?: boolean;
@@ -57,7 +54,6 @@ export type ObjectsTimelineComparisonContentProps = {
 export default function ObjectsTimelineComparisonContent({
   showScrollModeControls = true,
   scrollModeExtra,
-  showModeSelector = true,
   showVisibilityControls = true,
   showThemeControls = true,
   showZoomControls = true,
@@ -70,7 +66,6 @@ export default function ObjectsTimelineComparisonContent({
   const { startTimeMs, endTimeMs, timelineWidth } = useTimelineScale();
 
   const {
-    mode: { groupedDifficulties, selectedMode, onModeChange },
     rows: { orderedDifficulties },
     visibility: { visibilityByDifficulty, setManyVisible },
     display: { timelineThemeVariant, setTimelineThemeVariant },
@@ -158,11 +153,7 @@ export default function ObjectsTimelineComparisonContent({
   const zoomModeActive = ctrlHeld && !shiftHeld;
 
   const hasRightHeaderControls =
-    showModeSelector ||
-    showVisibilityControls ||
-    showThemeControls ||
-    showZoomControls ||
-    !!headerExtra;
+    showVisibilityControls || showThemeControls || showZoomControls || !!headerExtra;
 
   const showHeaderRow = showScrollModeControls || !!scrollModeExtra || hasRightHeaderControls;
 
@@ -179,14 +170,12 @@ export default function ObjectsTimelineComparisonContent({
               data-timeline-wheel-ignore="true"
             >
               {showScrollModeControls && (
-                <>
-                  <TimelineZoomModeBadge active={zoomModeActive} />
-                  <TimelineShiftSeekModeBadge
-                    active={scrollModeActive}
-                    tickStep={tickStep}
-                    onTickStepChange={setTickStep}
-                  />
-                </>
+                <TimelineShortcutHints
+                  zoomActive={zoomModeActive}
+                  scrollActive={scrollModeActive}
+                  tickStep={tickStep}
+                  onTickStepChange={setTickStep}
+                />
               )}
               {scrollModeExtra}
             </Group>
@@ -194,13 +183,6 @@ export default function ObjectsTimelineComparisonContent({
           {hasRightHeaderControls && (
             <Group gap="sm" align="center" wrap="wrap" justify="flex-end" ml="auto">
               {headerExtra}
-              {showModeSelector && (
-                <GameModeSelector
-                  groupedDifficulties={groupedDifficulties}
-                  selectedMode={selectedMode}
-                  onModeChange={onModeChange}
-                />
-              )}
               {showVisibilityControls && (
                 <Group gap="xs" align="center" wrap="nowrap">
                   <Tooltip label="Show all difficulties">

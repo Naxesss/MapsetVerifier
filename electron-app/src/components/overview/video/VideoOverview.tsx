@@ -8,7 +8,6 @@ import { useBeatmap } from '../../../context/BeatmapContext.tsx';
 import { useSettings } from '../../../context/SettingsContext.tsx';
 import EmptyState from '../../common/EmptyState.tsx';
 import AnalysisTab from '../AnalysisTab.tsx';
-import { ComplianceAlert } from '../formatCard.tsx';
 
 function VideoOverview() {
   const { selectedFolder: folder } = useBeatmap();
@@ -28,7 +27,7 @@ function VideoOverview() {
 
   return (
     <AnalysisTab data={data} isLoading={isLoading} isError={isError} error={error} subject="video">
-      {(data) =>
+      {() =>
         !selected ? (
           <EmptyState
             icon={IconVideoOff}
@@ -37,8 +36,6 @@ function VideoOverview() {
           />
         ) : (
           <>
-            <ComplianceAlert issues={data.complianceIssues} />
-
             {videos.length > 1 && (
               <SegmentedControl
                 value={selected.fileName}

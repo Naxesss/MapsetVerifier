@@ -1,146 +1,113 @@
-﻿import { Group, Stack, Table, Text, useMantineTheme } from '@mantine/core';
-import { useGroupCellStyle } from './utils/useGroupCellStyle';
-import { formatGameModeLabel, getModeAccentColor } from '../../../utils/gameMode';
-import { itemKey, type InconsistencyField } from '../../../utils/inconsistencies';
+import { Text } from '@mantine/core';
+import { useMemo } from 'react';
 import { trimTimestamp } from '../../../utils/timestamps';
-import AppTable, {
-  DifficultyTableCell,
-  DifficultyTableHeaderCell,
-} from '../../common/AppTable.tsx';
-import SectionCard from '../../common/SectionCard.tsx';
-import StarRatingBadge from '../../common/StarRatingBadge.tsx';
-import GameModeIcon from '../../icons/GameModeIcon.tsx';
+import ComparisonTable, { type ComparisonRow } from '../ComparisonTable.tsx';
 import type { DifficultyStatistics } from '../../../Types';
 
 interface StatisticsInfoProps {
   statistics: DifficultyStatistics[];
+  /** Star rating per difficulty version, for the column headers. */
+  starRatings: Map<string, number>;
 }
 
-const CONSISTENCY_FIELDS: InconsistencyField<DifficultyStatistics>[] = [
-  { id: 'breakCount', getValue: (stats) => stats.breakCount },
-  { id: 'uninheritedLineCount', getValue: (stats) => stats.uninheritedLineCount },
-  { id: 'kiaiTimeMs', getValue: (stats) => stats.kiaiTimeMs },
-  { id: 'drainTimeMs', getValue: (stats) => stats.drainTimeMs },
-  { id: 'playTimeMs', getValue: (stats) => stats.playTimeMs },
-];
-
-function formatCount(value: number | null) {
-  return value === null ? 'N/A' : value.toLocaleString();
-}
-
-function ModeCell({ mode }: { mode: string }) {
-  return (
-    <Group gap="xs" wrap="nowrap" justify="center">
-      <GameModeIcon mode={mode} size={16} color={getModeAccentColor(mode)} />
-      <Text size="sm">{formatGameModeLabel(mode)}</Text>
-    </Group>
+const text = (value: string) => <Text size="sm">{value}</Text>;
+/** A count; zero is dimmed so the counts that matter stand out. */
+const count = (value: number | null) =>
+  value === null ? (
+    text('N/A')
+  ) : (
+    <Text size="sm" c={value === 0 ? 'dimmed' : undefined}>
+      {value.toLocaleString()}
+    </Text>
   );
+
+function buildRows(isMania: boolean): ComparisonRow<DifficultyStatistics>[] {
+  return [
+    {
+      id: 'circleCount',
+      label: 'Circles',
+      group: 'Objects',
+      value: (s) => s.circleCount,
+      render: (s) => count(s.circleCount),
+    },
+    {
+      id: 'sliderCount',
+      label: isMania ? 'LNs' : 'Sliders',
+      group: 'Objects',
+      value: (s) => (isMania ? s.holdNoteCount : s.sliderCount),
+      render: (s) => count(isMania ? s.holdNoteCount : s.sliderCount),
+    },
+    {
+      id: 'spinnerCount',
+      label: 'Spinners',
+      group: 'Objects',
+      value: (s) => s.spinnerCount,
+      render: (s) => count(s.spinnerCount),
+    },
+    {
+      id: 'newComboCount',
+      label: 'New combos',
+      group: 'Misc',
+      value: (s) => s.newComboCount,
+      render: (s) => count(s.newComboCount),
+    },
+    {
+      id: 'breakCount',
+      label: 'Breaks',
+      group: 'Misc',
+      groupColours: true,
+      value: (s) => s.breakCount,
+      render: (s) => count(s.breakCount),
+    },
+    {
+      id: 'uninheritedLineCount',
+      label: 'Uninherited',
+      group: 'Timing',
+      groupColours: true,
+      value: (s) => s.uninheritedLineCount,
+      render: (s) => count(s.uninheritedLineCount),
+    },
+    {
+      id: 'inheritedLineCount',
+      label: 'Inherited',
+      group: 'Timing',
+      value: (s) => s.inheritedLineCount,
+      render: (s) => count(s.inheritedLineCount),
+    },
+    {
+      id: 'kiaiTimeMs',
+      label: 'Kiai time',
+      group: 'Duration',
+      groupColours: true,
+      value: (s) => s.kiaiTimeMs,
+      render: (s) => text(trimTimestamp(s.kiaiTimeFormatted)),
+    },
+    {
+      id: 'drainTimeMs',
+      label: 'Drain time',
+      group: 'Duration',
+      groupColours: true,
+      value: (s) => s.drainTimeMs,
+      render: (s) => text(trimTimestamp(s.drainTimeFormatted)),
+    },
+    {
+      id: 'playTimeMs',
+      label: 'Play time',
+      group: 'Duration',
+      groupColours: true,
+      value: (s) => s.playTimeMs,
+      render: (s) => text(trimTimestamp(s.playTimeFormatted)),
+    },
+  ];
 }
 
-function SliderCell({ stats }: { stats: DifficultyStatistics }) {
-  const isMania = stats.mode === 'Mania';
-  const value = isMania ? stats.holdNoteCount : stats.sliderCount;
+function StatisticsInfo({ statistics, starRatings }: StatisticsInfoProps) {
+  // The table shows one mode at a time; osu!mania counts long notes where others count sliders.
+  const isMania = statistics.length > 0 && statistics.every((s) => s.mode === 'Mania');
+  const rows = useMemo(() => buildRows(isMania), [isMania]);
 
   return (
-    <Stack gap="xs">
-      <Text size="sm" fw={500}>
-        {formatCount(value)}
-      </Text>
-    </Stack>
-  );
-}
-
-function StatisticsInfo({ statistics }: StatisticsInfoProps) {
-  const theme = useMantineTheme();
-  const groupCell = useGroupCellStyle(statistics, CONSISTENCY_FIELDS);
-  // One mode for the whole mapset is said once by the mode icons elsewhere, not on every row.
-  const showMode = new Set(statistics.map((entry) => entry.mode)).size > 1;
-
-  if (statistics.length === 0) {
-    return null;
-  }
-
-  const sliderColumnLabel = statistics.every((s) => s.mode === 'Mania') ? 'LNs' : 'Sliders';
-
-  return (
-    <SectionCard title="Statistics">
-      <Stack gap="md">
-        <AppTable>
-          <Table.Thead style={{ backgroundColor: theme.colors.dark[5] }}>
-            <Table.Tr>
-              <DifficultyTableHeaderCell rowSpan={2}>Difficulty</DifficultyTableHeaderCell>
-              {showMode && <Table.Th rowSpan={2}>Mode</Table.Th>}
-              <Table.Th rowSpan={2}>Star rating</Table.Th>
-              <Table.Th colSpan={3}>Objects</Table.Th>
-              <Table.Th colSpan={2}>Misc</Table.Th>
-              <Table.Th colSpan={2}>Timing</Table.Th>
-              <Table.Th colSpan={3}>Duration</Table.Th>
-            </Table.Tr>
-            <Table.Tr>
-              <Table.Th>Circles</Table.Th>
-              <Table.Th>{sliderColumnLabel}</Table.Th>
-              <Table.Th>Spinners</Table.Th>
-              <Table.Th>New combos</Table.Th>
-              <Table.Th>Breaks</Table.Th>
-              <Table.Th>Uninherited</Table.Th>
-              <Table.Th>Inherited</Table.Th>
-              <Table.Th>Kiai time</Table.Th>
-              <Table.Th>Drain time</Table.Th>
-              <Table.Th>Play time</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {statistics.map((stats) => (
-              <Table.Tr key={itemKey(stats)}>
-                <DifficultyTableCell>
-                  <Text size="sm" fw={600} style={{ whiteSpace: 'nowrap' }}>
-                    {stats.version}
-                  </Text>
-                </DifficultyTableCell>
-                {showMode && (
-                  <Table.Td>
-                    <ModeCell mode={stats.mode} />
-                  </Table.Td>
-                )}
-                <Table.Td>
-                  <StarRatingBadge rating={stats.starRating ?? 0} />
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm">{stats.circleCount.toLocaleString()}</Text>
-                </Table.Td>
-                <Table.Td>
-                  <SliderCell stats={stats} />
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm">{formatCount(stats.spinnerCount)}</Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm">{stats.newComboCount.toLocaleString()}</Text>
-                </Table.Td>
-                <Table.Td style={groupCell(stats, 'breakCount')}>
-                  <Text size="sm">{stats.breakCount.toLocaleString()}</Text>
-                </Table.Td>
-                <Table.Td style={groupCell(stats, 'uninheritedLineCount')}>
-                  <Text size="sm">{stats.uninheritedLineCount.toLocaleString()}</Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm">{stats.inheritedLineCount.toLocaleString()}</Text>
-                </Table.Td>
-                <Table.Td style={groupCell(stats, 'kiaiTimeMs')}>
-                  <Text size="sm">{trimTimestamp(stats.kiaiTimeFormatted)}</Text>
-                </Table.Td>
-                <Table.Td style={groupCell(stats, 'drainTimeMs')}>
-                  <Text size="sm">{trimTimestamp(stats.drainTimeFormatted)}</Text>
-                </Table.Td>
-                <Table.Td style={groupCell(stats, 'playTimeMs')}>
-                  <Text size="sm">{trimTimestamp(stats.playTimeFormatted)}</Text>
-                </Table.Td>
-              </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </AppTable>
-      </Stack>
-    </SectionCard>
+    <ComparisonTable starRatings={starRatings} title="Statistics" items={statistics} rows={rows} />
   );
 }
 

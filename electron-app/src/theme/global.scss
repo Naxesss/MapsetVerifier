@@ -528,6 +528,260 @@
   opacity: 1;
 }
 
+/* Overview section tab (OverviewTabSelector): a label on its segment of the difficulty picker's
+   track. The whole tab, track included, is the click target. The selected segment is raised in the
+   primary colour, a hovered one in dark-2, like the picker's segments. Hover only brightens the
+   label and raises the segment, so label and segment read as one control. */
+.mv-overview-tab {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  /* Lets the icon hide when the tab gets too narrow for icon and label (see below). */
+  container-type: inline-size;
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-primary-color-filled);
+    outline-offset: 1px;
+    border-radius: var(--mantine-radius-default);
+  }
+}
+
+.mv-overview-tab__label {
+  height: var(--input-height-sm, 2.25rem);
+  display: flex;
+  /* The label sits at the bottom of its row, right on its segment, so the two read as one tab. */
+  align-items: flex-end;
+  justify-content: center;
+  gap: 5px;
+  padding-inline: 2px;
+  padding-bottom: var(--mantine-spacing-xs);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 700;
+  color: var(--mantine-color-dark-1);
+  white-space: nowrap;
+  transition: color 0.12s ease;
+}
+
+.mv-overview-tab__icon {
+  flex: none;
+  /* Sits on the text's baseline row rather than the bottom of the label. */
+  margin-bottom: 1px;
+}
+
+.mv-overview-tab__text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The longest label ("Metadata") with its icon needs about 87px; below that the icon goes first,
+   so labels are never cut off (a small window or a high UI zoom). */
+@container (max-width: 88px) {
+  .mv-overview-tab__icon {
+    display: none;
+  }
+}
+
+.mv-overview-tab__track {
+  /* 23px keeps the header 62px tall like Checks: 36px row + 23px - 5px bottom slack + 8px top. */
+  height: 23px;
+  display: flex;
+  /* Grows downward on hover and selection, so the label never moves. */
+  align-items: flex-start;
+}
+
+.mv-overview-tab__bar {
+  width: 100%;
+  height: 6px;
+  border-radius: 2px;
+  background-color: var(--mantine-color-dark-3);
+  transition:
+    height 0.12s ease,
+    background-color 0.12s ease;
+}
+
+.mv-overview-tab:hover {
+  .mv-overview-tab__label {
+    color: var(--mantine-color-white);
+  }
+
+  .mv-overview-tab__bar {
+    height: 10px;
+    background-color: var(--mantine-color-dark-2);
+  }
+}
+
+.mv-overview-tab[data-active] {
+  .mv-overview-tab__label {
+    color: var(--mantine-color-white);
+  }
+
+  .mv-overview-tab__bar {
+    height: 10px;
+    background-color: var(--mantine-color-primary-2);
+  }
+}
+
+/* The one table style (AppTable). The card is the only surface: no header fill, no stripes, no
+   filled sticky column. Labels sit on a dark-4 hairline, rows are split by fainter dark-5 ones,
+   the sticky first column is left-aligned and every other column right-aligned in tabular
+   figures, so numbers line up. */
+.mv-table {
+  --table-border-color: var(--mantine-color-dark-5);
+  --table-highlight-on-hover-color: var(--mantine-color-dark-6);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+
+  th {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--mantine-color-dimmed);
+    text-align: right;
+  }
+
+  thead th {
+    vertical-align: bottom;
+    border-bottom: 1px solid var(--mantine-color-dark-4);
+  }
+
+  td {
+    text-align: right;
+  }
+
+  /* A header over a run of columns (Objects, Timing…): centred, on its own fainter hairline. */
+  th.mv-table-group {
+    text-align: center;
+    border-bottom-color: var(--mantine-color-dark-5);
+  }
+
+  .mv-table-left,
+  .mv-table-sticky {
+    text-align: left;
+  }
+
+  /* The difficulty column stays in view while the table scrolls sideways. It takes the card
+     colour and only casts a shadow once something is scrolled underneath it. */
+  .mv-table-sticky {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background-color: var(--mantine-color-body);
+    transition: box-shadow 0.12s ease;
+  }
+
+  th.mv-table-sticky {
+    z-index: 3;
+  }
+
+  tbody tr:hover .mv-table-sticky {
+    background-color: var(--table-highlight-on-hover-color);
+  }
+}
+
+.mv-table-scroll[data-scrolled] .mv-table-sticky {
+  box-shadow: 8px 0 12px -12px rgba(0, 0, 0, 0.8);
+}
+
+/* Settings as rows, difficulties as columns (ComparisonTable on the Beatmap tab). Each column is
+   only as wide as its values; its header is the difficulty name over a line in its star rating
+   colour. Long names wrap onto two lines, hyphenated, and the full name is in the tooltip. */
+.mv-table-transposed {
+  th,
+  td {
+    padding-inline: 6px;
+  }
+
+  /* Names wrap at 64px, so a column is as wide as its values rather than its name. */
+  thead th:not(.mv-table-sticky) {
+    min-width: 56px;
+  }
+
+  .mv-table-column-name {
+    max-width: 64px;
+    margin-left: auto;
+  }
+
+  /* The setting names: flush with the card's edge; a long name wraps onto two lines. */
+  .mv-table-sticky {
+    padding-left: 0;
+    padding-right: var(--mantine-spacing-sm);
+  }
+
+  tbody th.mv-table-sticky {
+    white-space: normal;
+    width: 96px;
+    min-width: 96px;
+    max-width: 96px;
+    line-height: 1.25;
+  }
+
+  .mv-table-column-name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    white-space: normal;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--mantine-color-text);
+  }
+
+  .mv-table-column-rating {
+    display: block;
+    height: 3px;
+    border-radius: 2px;
+    margin-top: 6px;
+  }
+
+  /* A cell that opens something: its content brings the padding and it lights up on hover. */
+  td.mv-table-clickable {
+    padding: 0;
+    cursor: pointer;
+    transition: background-color 0.12s ease;
+
+    &:hover {
+      background-color: var(--mantine-color-dark-5);
+    }
+  }
+
+  /* A group's name (Objects, Timing…) heads its rows. */
+  .mv-table-group-row th {
+    padding-top: var(--mantine-spacing-md);
+    font-size: 10.5px;
+    color: var(--mantine-color-dark-2);
+  }
+
+  .mv-table-group-row:hover th {
+    background-color: var(--mantine-color-body);
+  }
+}
+
+/* The Overview's difficulty chips stay at the top of the tab while it scrolls. They take the
+   panel's colour edge to edge, so content passes cleanly underneath, and cast a shadow only while
+   something is under them. The side margins undo the tab's padding (md); the vertical ones undo
+   the bar's own padding, so it keeps the tab's usual gap to its neighbours. */
+.mv-sticky-picks {
+  position: sticky;
+  top: 0;
+  margin: calc(-1 * var(--mantine-spacing-sm)) calc(-1 * var(--mantine-spacing-md));
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  background-color: var(--mantine-color-dark-6);
+  transition: box-shadow 0.12s ease;
+
+  &[data-stuck] {
+    box-shadow: 0 8px 12px -10px rgba(0, 0, 0, 0.7);
+    border-bottom: 1px solid var(--mantine-color-dark-5);
+  }
+}
+
 /* Chosen level in the interpreted-as select. A row highlight stands in for the check icon. */
 .mv-level-option[data-checked],
 .mv-level-option[data-checked]:hover,
@@ -537,7 +791,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mv-status-segment__bar {
+  .mv-status-segment__bar,
+  .mv-overview-tab__label,
+  .mv-overview-tab__bar {
     transition: none;
   }
 }

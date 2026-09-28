@@ -1,6 +1,6 @@
 import { Grid, Stack } from '@mantine/core';
 import { IconChartLine } from '@tabler/icons-react';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { DifficultyChartCard } from './DifficultyChartCard.tsx';
 import {
   buildCharts,
@@ -12,6 +12,7 @@ import {
 } from './difficultyChartModel.ts';
 import { DifficultySpreadSummary } from './DifficultySummaryCards.tsx';
 import AnalysisTab from '../AnalysisTab.tsx';
+import DifficultyPicks, { useDifficultyPicks } from '../DifficultyPicks.tsx';
 import { useDifficultyChartState } from './hooks/useDifficultyChartState.ts';
 import { useDifficultyOverview } from './hooks/useDifficultyOverview.ts';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
@@ -19,6 +20,7 @@ import { useSettings } from '../../../context/SettingsContext.tsx';
 import EmptyState from '../../common/EmptyState.tsx';
 import GameModeSelector from '../../common/GameModeSelector.tsx';
 import { SectionTitle } from '../../common/Headings.tsx';
+import { useOverviewMode } from '../useOverviewMode.ts';
 import type { DifficultyOverviewDifficulty, Mode } from '../../../Types';
 
 const EMPTY_DIFFICULTIES: DifficultyOverviewDifficulty[] = [];
@@ -26,7 +28,6 @@ const EMPTY_DIFFICULTIES: DifficultyOverviewDifficulty[] = [];
 function DifficultyOverview() {
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
-  const [selectedMode, setSelectedMode] = useState<Mode | undefined>();
   const { data, isLoading, isError, error } = useDifficultyOverview({
     folder,
     songFolder: settings.songFolder,
@@ -56,20 +57,22 @@ function DifficultyOverview() {
     }));
   }, [data]);
 
-  if (groupedDifficulties.length === 0) {
-    if (selectedMode !== undefined) {
-      setSelectedMode(undefined);
-    }
-  } else if (!selectedMode || !groupedDifficulties.some((group) => group.mode === selectedMode)) {
-    setSelectedMode(groupedDifficulties[0].mode);
-  }
-
-  const selectedGroup =
-    groupedDifficulties.find((group) => group.mode === selectedMode) ?? groupedDifficulties[0];
-  const selectedDifficulties = selectedGroup?.difficulties ?? EMPTY_DIFFICULTIES;
+  const { setSelectedMode, selectedGroup } = useOverviewMode(groupedDifficulties);
+  const modeDifficulties = selectedGroup?.difficulties ?? EMPTY_DIFFICULTIES;
+  // The graphs show the difficulties picked to compare; the spread summary stays about all of them.
+  const pickable = useMemo(
+    () => modeDifficulties.map((d) => ({ version: d.label, starRating: d.starRating })),
+    [modeDifficulties]
+  );
+  const { isShown } = useDifficultyPicks(pickable);
+  const shownKey = modeDifficulties.map((d) => (isShown(d.label) ? '1' : '0')).join('');
+  const selectedDifficulties = useMemo(
+    () => modeDifficulties.filter((_, i) => shownKey[i] === '1'),
+    [modeDifficulties, shownKey]
+  );
   const charts = useMemo(
-    () => buildCharts(selectedDifficulties, data?.msPerPeak),
-    [data?.msPerPeak, selectedDifficulties]
+    () => buildCharts(selectedDifficulties, data?.msPerPeak, modeDifficulties),
+    [data?.msPerPeak, selectedDifficulties, modeDifficulties]
   );
 
   const durationMs = charts[0]?.durationMs ?? data?.msPerPeak ?? 0;
@@ -112,7 +115,9 @@ function DifficultyOverview() {
             onModeChange={setSelectedMode}
           />
 
-          <DifficultySpreadSummary difficulties={selectedDifficulties} />
+          <DifficultySpreadSummary difficulties={modeDifficulties} />
+
+          <DifficultyPicks difficulties={pickable} />
 
           <Stack gap="md">
             {charts.length > 0 ? (

@@ -15,7 +15,7 @@ public static class MetadataAnalysisService
         {
             var beatmapSet = new BeatmapSet(beatmapSetFolder);
 
-            if (beatmapSet.Beatmaps.Count == 0)
+            if (beatmapSet.InOverviewOrder().Count == 0)
                 return MetadataAnalysisResult.CreateError("No beatmaps found in folder.");
 
             var difficulties = GetDifficultyMetadata(beatmapSet);
@@ -34,7 +34,8 @@ public static class MetadataAnalysisService
     private static List<DifficultyMetadata> GetDifficultyMetadata(BeatmapSet beatmapSet)
     {
         return beatmapSet
-            .Beatmaps.Select(beatmap => new DifficultyMetadata
+            .InOverviewOrder()
+            .Select(beatmap => new DifficultyMetadata
             {
                 Version = beatmap.MetadataSettings.version,
                 Artist = beatmap.MetadataSettings.artist,
@@ -98,7 +99,7 @@ public static class MetadataAnalysisService
 
             // Get usage per difficulty
             var fileNameWithoutExt = Path.GetFileNameWithoutExtension(hsFile);
-            foreach (var beatmap in beatmapSet.Beatmaps)
+            foreach (var beatmap in beatmapSet.InOverviewOrder())
             {
                 var usedFiles = beatmap
                     .HitObjects.SelectMany(obj => obj.GetUsedHitSoundFileNames())
@@ -145,7 +146,7 @@ public static class MetadataAnalysisService
     {
         var backgrounds = new Dictionary<string, BackgroundInfo>();
 
-        foreach (var beatmap in beatmapSet.Beatmaps)
+        foreach (var beatmap in beatmapSet.InOverviewOrder())
         {
             foreach (var bg in beatmap.Backgrounds)
             {
@@ -193,7 +194,7 @@ public static class MetadataAnalysisService
     {
         var videos = new Dictionary<string, VideoInfo>();
 
-        foreach (var beatmap in beatmapSet.Beatmaps)
+        foreach (var beatmap in beatmapSet.InOverviewOrder())
         {
             foreach (var video in beatmap.Videos)
             {
@@ -282,7 +283,7 @@ public static class MetadataAnalysisService
             DifficultySpecificStoryboards = [],
         };
 
-        foreach (var beatmap in beatmapSet.Beatmaps)
+        foreach (var beatmap in beatmapSet.InOverviewOrder())
         {
             info.DifficultySpecificStoryboards.Add(
                 new DifficultyStoryboardInfo
@@ -329,7 +330,8 @@ public static class MetadataAnalysisService
     private static List<DifficultyColourSettings> GetColourSettings(BeatmapSet beatmapSet)
     {
         return beatmapSet
-            .Beatmaps.Select(beatmap =>
+            .InOverviewOrder()
+            .Select(beatmap =>
             {
                 var mode = beatmap.GeneralSettings.mode;
                 var isApplicable = mode != Beatmap.Mode.Taiko && mode != Beatmap.Mode.Mania;

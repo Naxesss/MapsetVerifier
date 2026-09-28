@@ -64,9 +64,6 @@ const CHART_INFO: Record<string, string> = {
 const SKILL_CHART_INFO =
   'Strain of this skill over time. Higher sections are harder in this aspect of the map.';
 
-/** Above this many difficulties a chart emphasizes the hardest one by default. */
-const CROWDED_CHART_SERIES_COUNT = 6;
-
 function computePeakFromRows(
   rows: ChartRow[],
   seriesKeys: string[]
@@ -254,18 +251,6 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
     });
   }, [chart.data, chart.hideLowValuesThreshold, ignoreLowVolume, visibleSeries]);
 
-  // With many difficulties the lines tangle; start with the hardest one emphasized so there is
-  // always a line to follow. Hovering a legend entry emphasizes that one instead.
-  const defaultEmphasizedSeriesId = useMemo(() => {
-    const legendSeries = visibleSeries.filter((item) => !item.hideFromLegend);
-    if (legendSeries.length <= CROWDED_CHART_SERIES_COUNT) return null;
-
-    const hardest = legendSeries.reduce((best, item) =>
-      item.starRating > best.starRating ? item : best
-    );
-    return hardest.visibilityId ?? hardest.id;
-  }, [visibleSeries]);
-
   const seriesConfig = useMemo(
     () =>
       visibleSeries.map((item) => ({
@@ -279,6 +264,8 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
         hoverKey: item.hoverKey,
         useSecondaryAxis: item.useSecondaryAxis,
         valueSuffix: item.valueSuffix,
+        // Lines are coloured per difficulty, not by star rating, so the legend names the rating.
+        legendNote: `★ ${item.starRating.toFixed(2)}`,
       })),
     [visibleSeries]
   );
@@ -329,7 +316,6 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
     chartState,
     hover: modalOpened ? effectiveHover : hover,
     onHover: modalOpened ? handleChartHover : setHover,
-    defaultEmphasizedSeriesId,
   };
 
   return (

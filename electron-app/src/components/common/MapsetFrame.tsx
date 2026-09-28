@@ -108,7 +108,9 @@ function MapsetFrame({ children }: MapsetFrameProps) {
         position: 'relative',
         width: '100%',
         borderRadius: theme.radius.lg,
-        overflow: 'hidden',
+        // Clip rather than hide: it cuts the same corners, but isn't a scroll container, so a
+        // page's sticky controls (the Overview's difficulty chips) can stick to the page scroll.
+        overflow: 'clip',
         // Clip the banner's layers in one pass, so its rounded top corners stay clean.
         isolation: 'isolate',
         boxShadow: '0 4px 32px rgba(0,0,0,0.4)',

@@ -9,7 +9,6 @@ import { useBeatmap } from '../../../context/BeatmapContext.tsx';
 import { useSettings } from '../../../context/SettingsContext.tsx';
 import { SectionTitle } from '../../common/Headings.tsx';
 import AnalysisTab from '../AnalysisTab.tsx';
-import { ComplianceAlert } from '../formatCard.tsx';
 
 function AudioOverview() {
   const { selectedFolder: folder } = useBeatmap();
@@ -31,7 +30,6 @@ function AudioOverview() {
     <AnalysisTab data={data} isLoading={isLoading} isError={isError} error={error} subject="audio">
       {(data) => (
         <>
-          <ComplianceAlert issues={data.complianceIssues ?? []} />
           <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="md">
             {data.formatAnalysis && (
               <FormatInfo

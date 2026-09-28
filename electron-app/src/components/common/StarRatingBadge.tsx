@@ -9,6 +9,15 @@ export type StarRatingBadgeProps = Omit<BadgeProps, 'color' | 'variant' | 'child
 
 const formatRating = (rating: number) => `★ ${rating.toFixed(2)}`;
 
+/** Text size per badge size, so a bigger badge doesn't leave its text looking lost inside it. */
+export const STAR_BADGE_FONT_SIZE: Record<string, number> = {
+  xs: 10,
+  sm: 12,
+  md: 13,
+  lg: 15,
+  xl: 17,
+};
+
 function StarRatingBadge({ rating, sizeTo, size = 'sm', style, ...props }: StarRatingBadgeProps) {
   const bg = getDifficultyColor(rating);
   const textColor = getDifficultyTextColor(rating);
@@ -26,7 +35,7 @@ function StarRatingBadge({ rating, sizeTo, size = 'sm', style, ...props }: StarR
         backgroundColor: bg,
         color: textColor,
         fontFamily: 'Torus, sans-serif',
-        fontSize: size === 'xs' ? 10 : 12,
+        fontSize: STAR_BADGE_FONT_SIZE[String(size)] ?? 12,
         ...style,
       }}
     >
