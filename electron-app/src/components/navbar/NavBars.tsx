@@ -19,6 +19,7 @@ function NavBars(props: NavBarsProps) {
   const location = useLocation();
   const activeRoute = getActiveNavRoute(location.pathname);
   const sidebarToggleLabel = props.desktopOpened ? 'Hide mapset list' : 'Show mapset list';
+  const sidebarToggleDisabled = !props.toggleDesktop;
 
   return (
     <>
@@ -31,18 +32,20 @@ function NavBars(props: NavBarsProps) {
         }}
       >
         <Group h={60} px="md" wrap="nowrap">
-          {/* Keep the toggle's space on Settings so the page links don't shift. */}
           {/* Tooltips open below: above the navbar is the window's title bar. */}
-          <Tooltip label={sidebarToggleLabel} position="bottom" disabled={!props.toggleDesktop}>
+          <Tooltip label={sidebarToggleLabel} position="bottom" disabled={sidebarToggleDisabled}>
             <ActionIcon
               variant="subtle"
               color="gray"
               size={NAV_CONTROL_SIZE}
               onClick={props.toggleDesktop}
+              disabled={sidebarToggleDisabled}
               aria-label={sidebarToggleLabel}
-              aria-hidden={!props.toggleDesktop || undefined}
-              tabIndex={props.toggleDesktop ? undefined : -1}
-              style={props.toggleDesktop ? undefined : { visibility: 'hidden' }}
+              styles={
+                sidebarToggleDisabled
+                  ? { root: { backgroundColor: 'transparent', opacity: 0.35 } }
+                  : undefined
+              }
             >
               {props.desktopOpened ? (
                 <IconLayoutSidebarLeftCollapse color="var(--mantine-color-white)" />
