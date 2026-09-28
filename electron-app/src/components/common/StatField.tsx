@@ -1,4 +1,4 @@
-import { Stack, Text, type MantineColor } from '@mantine/core';
+import { Divider, Group, Stack, Text, type MantineColor } from '@mantine/core';
 import { MicroLabel } from './Headings.tsx';
 import SectionCard from './SectionCard.tsx';
 import type { ReactNode } from 'react';
@@ -55,11 +55,24 @@ export function StatField({
   );
 }
 
-/** A {@link StatField} on its own card, for the big numbers at the top of an Overview tab. */
-export function StatCard({ label, value, note }: Pick<StatFieldProps, 'label' | 'value' | 'note'>) {
+type StatLineItem = Pick<StatFieldProps, 'label' | 'value' | 'note'>;
+
+/**
+ * The few big numbers at the top of an Overview tab, side by side on one card with a divider
+ * between them. The row wraps only when the panel runs out of room, instead of stacking a card per
+ * number on the window's breakpoints.
+ */
+export function StatLine({ items }: { items: StatLineItem[] }) {
   return (
     <SectionCard>
-      <StatField label={label} value={value} note={note} size="lg" />
+      <Group gap="lg" align="flex-start" style={{ rowGap: 'var(--mantine-spacing-md)' }}>
+        {items.map((item, index) => (
+          <Group key={index} gap="lg" align="stretch" wrap="nowrap" style={{ minWidth: 0 }}>
+            {index > 0 && <Divider orientation="vertical" />}
+            <StatField label={item.label} value={item.value} note={item.note} size="lg" />
+          </Group>
+        ))}
+      </Group>
     </SectionCard>
   );
 }

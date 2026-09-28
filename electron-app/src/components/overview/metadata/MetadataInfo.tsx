@@ -1,8 +1,9 @@
-﻿import { Text, Badge, Group, Stack, SimpleGrid, Box, Code } from '@mantine/core';
+﻿import { Text, Badge, Group, Stack, SimpleGrid, Box } from '@mantine/core';
+import TagChips from './TagChips.tsx';
 import TagsDiffDisplay from './TagsDiffDisplay.tsx';
 import { DifficultyMetadata } from '../../../Types';
 import { countWord } from '../../../utils/countWord';
-import { getModeAccentColor } from '../../../utils/gameMode.ts';
+import { formatGameModeLabel, getModeAccentColor } from '../../../utils/gameMode.ts';
 import SectionCard from '../../common/SectionCard.tsx';
 import { StatField } from '../../common/StatField.tsx';
 import GameModeIcon from '../../icons/GameModeIcon.tsx';
@@ -142,9 +143,7 @@ function MetadataInfo({ difficulties }: MetadataInfoProps) {
           label="Tags"
           value={
             allSame('tags') ? (
-              <Code block fz="sm" style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
-                {first.tags || 'None'}
-              </Code>
+              <TagChips tags={first.tags} />
             ) : (
               <TagsDiffDisplay difficulties={difficulties} />
             )
@@ -156,9 +155,12 @@ function MetadataInfo({ difficulties }: MetadataInfoProps) {
           <StatField
             label="Modes"
             value={
-              <Group gap="xs">
+              <Group gap="md">
                 {[...new Set(difficulties.map((d) => d.mode))].map((mode) => (
-                  <GameModeIcon key={mode} mode={mode} size={16} color={getModeAccentColor(mode)} />
+                  <Group key={mode} gap={6} wrap="nowrap">
+                    <GameModeIcon mode={mode} size={16} color={getModeAccentColor(mode)} />
+                    <Text fw={600}>{formatGameModeLabel(mode)}</Text>
+                  </Group>
                 ))}
               </Group>
             }

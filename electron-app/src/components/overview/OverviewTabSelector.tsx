@@ -1,4 +1,4 @@
-import { alpha, Button, Group, Text, useMantineTheme } from '@mantine/core';
+import { Box, Group, UnstyledButton } from '@mantine/core';
 import {
   IconAdjustmentsHorizontal,
   IconChartLine,
@@ -8,7 +8,14 @@ import {
   IconVideo,
   type Icon,
 } from '@tabler/icons-react';
+import { useRef, type KeyboardEvent } from 'react';
 import type { OverviewTab } from '../navbar/pageHints.tsx';
+
+interface OverviewTabSelectorProps {
+  tabs: OverviewTab[];
+  value: OverviewTab;
+  onChange: (tab: OverviewTab) => void;
+}
 
 const TAB_ICONS: Record<OverviewTab, Icon> = {
   Metadata: IconTags,
@@ -19,51 +26,79 @@ const TAB_ICONS: Record<OverviewTab, Icon> = {
   Video: IconVideo,
 };
 
-interface OverviewTabSelectorProps {
-  tabs: OverviewTab[];
-  value: OverviewTab;
-  onChange: (tab: OverviewTab) => void;
-}
+/** Room between the tallest segment and its click area's edge, as in the difficulty picker. */
+const SEGMENT_HIT_SLACK = 5;
 
 /**
- * The Overview's sections, shown in the header the way Checks and Snapshots show their difficulty
- * selector: the same translucent strip and the same buttons as its "General" button.
+ * The Overview's sections as equal-width tabs across the header, each standing on its segment of
+ * the same track the difficulty picker draws under its buttons (`.mv-overview-tab` in
+ * global.scss). The 36px row plus the track makes the header exactly as tall as on Checks and
+ * Snapshots, so the banner doesn't move when switching pages. Follows the WAI-ARIA tabs pattern:
+ * one tab stop, arrow keys move and select, Home and End jump.
  */
 export default function OverviewTabSelector({ tabs, value, onChange }: OverviewTabSelectorProps) {
-  const theme = useMantineTheme();
-  const buttonBg = alpha(theme.colors.dark[4], 0.6);
-  const buttonHover = alpha(theme.colors.dark[3], 0.7);
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const index = tabs.indexOf(value);
+    let next: number;
+    switch (event.key) {
+      case 'ArrowLeft':
+        next = (index - 1 + tabs.length) % tabs.length;
+        break;
+      case 'ArrowRight':
+        next = (index + 1) % tabs.length;
+        break;
+      case 'Home':
+        next = 0;
+        break;
+      case 'End':
+        next = tabs.length - 1;
+        break;
+      default:
+        return;
+    }
+    event.preventDefault();
+    onChange(tabs[next]);
+    tabRefs.current[next]?.focus();
+  };
 
   return (
     <Group
-      p="xs"
-      gap="xs"
-      w="fit-content"
-      bg="hsl(200deg 10% 10% / 50%)"
+      gap={3}
+      wrap="nowrap"
       role="tablist"
       aria-label="Overview sections"
-      style={{ borderRadius: theme.radius.md }}
+      mb={-SEGMENT_HIT_SLACK}
+      onKeyDown={handleKeyDown}
     >
-      {tabs.map((tab) => {
+      {tabs.map((tab, i) => {
+        const selected = tab === value;
         const TabIcon = TAB_ICONS[tab];
-        const active = tab === value;
 
         return (
-          <Button
+          <UnstyledButton
             key={tab}
+            ref={(el) => {
+              tabRefs.current[i] = el;
+            }}
+            className="mv-overview-tab"
             role="tab"
-            aria-selected={active}
-            variant="light"
-            size="compact-md"
-            h="fit-content"
-            p="xs"
-            style={{ '--button-bg': buttonBg, '--button-hover': buttonHover }}
-            bd={active ? `1px solid ${theme.colors.dark[2]}` : '1px solid transparent'}
-            leftSection={<TabIcon size={18} color="var(--mantine-color-white)" />}
+            id={`overview-tab-${tab}`}
+            aria-selected={selected}
+            aria-controls="overview-panel"
+            tabIndex={selected ? 0 : -1}
+            data-active={selected || undefined}
             onClick={() => onChange(tab)}
           >
-            <Text c="white">{tab}</Text>
-          </Button>
+            <span className="mv-overview-tab__label">
+              <TabIcon className="mv-overview-tab__icon" size={16} stroke={1.8} aria-hidden />
+              <span className="mv-overview-tab__text">{tab}</span>
+            </span>
+            <Box component="span" className="mv-overview-tab__track" aria-hidden>
+              <span className="mv-overview-tab__bar" />
+            </Box>
+          </UnstyledButton>
         );
       })}
     </Group>

@@ -1,4 +1,4 @@
-import { Button, ColorSwatch, Group, Stack, useMantineTheme } from '@mantine/core';
+import { Button, ColorSwatch, Group, Stack, Text, useMantineTheme } from '@mantine/core';
 import { memo } from 'react';
 import type { SeriesConfig } from './types.ts';
 
@@ -92,6 +92,11 @@ function TimeSeriesLegend({
               }}
             >
               {item.label}
+              {item.legendNote && (
+                <Text span inherit c="dimmed" ml={6}>
+                  {item.legendNote}
+                </Text>
+              )}
             </Button>
           );
         })}

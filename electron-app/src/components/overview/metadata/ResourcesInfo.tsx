@@ -133,7 +133,7 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
                   <Text size="xs" c="dimmed">
                     Offset: {video.offsetMs} ms
                   </Text>
-                  {video.hasAudioTrack && <Badge color="red">Audio track</Badge>}
+                  {video.hasAudioTrack && <Badge color="gray">Audio track</Badge>}
                 </Group>
               ))}
             </Stack>
@@ -202,9 +202,9 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
                 </Accordion.Control>
                 <Accordion.Panel>
                   <AppTable>
-                    <Table.Thead style={{ backgroundColor: theme.colors.dark[5] }}>
+                    <Table.Thead>
                       <Table.Tr>
-                        <Table.Th>File</Table.Th>
+                        <Table.Th className="mv-table-left">File</Table.Th>
                         <Table.Th>Format</Table.Th>
                         <Table.Th>Size</Table.Th>
                         <Table.Th>Duration</Table.Th>
@@ -214,7 +214,7 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
                     <Table.Tbody>
                       {resources.hitSounds.slice(0, 20).map((hs, idx) => (
                         <Table.Tr key={idx}>
-                          <Table.Td style={{ textAlign: 'left' }}>
+                          <Table.Td className="mv-table-left">
                             <Text size="xs">{hs.fileName}</Text>
                           </Table.Td>
                           <Table.Td>

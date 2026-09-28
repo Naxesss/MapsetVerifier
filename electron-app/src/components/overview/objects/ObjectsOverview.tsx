@@ -1,20 +1,21 @@
-﻿import { SimpleGrid } from '@mantine/core';
-import { useEffect, useMemo } from 'react';
+﻿import { useEffect, useMemo } from 'react';
 import ColumnUsageOverview from './components/ColumnUsageOverview.tsx';
 import ObjectPercentagesOverview from './components/ObjectPercentagesOverview.tsx';
 import ObjectsTimelineComparison from './components/ObjectsTimelineComparison.tsx';
 import SnappingsOverview from './components/SnappingsOverview.tsx';
 import { isHitsoundViewAvailable } from './hitsoundUtils.ts';
 import { useObjectsAnalysis } from './hooks/useObjectsAnalysis.ts';
-import { useObjectsOverviewModeSelection } from './hooks/useObjectsOverviewModeSelection.ts';
 import { formatDuration, formatTime } from './timelineUtils.ts';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
 import { usePageHints } from '../../../context/PageHintsContext.tsx';
 import { useSettings } from '../../../context/SettingsContext.tsx';
 import { type Mode, type ObjectsOverviewDifficulty } from '../../../Types';
 import { MODE_ORDER, normalizeMode } from '../../../utils/gameMode';
-import { StatCard } from '../../common/StatField.tsx';
+import GameModeSelector from '../../common/GameModeSelector.tsx';
+import { StatLine } from '../../common/StatField.tsx';
 import AnalysisTab from '../AnalysisTab.tsx';
+import DifficultyPicks, { useDifficultyPicks } from '../DifficultyPicks.tsx';
+import { useOverviewMode } from '../useOverviewMode.ts';
 import type { ObjectsModeGroup } from './types.ts';
 
 function ObjectsOverview() {
@@ -57,8 +58,11 @@ function ObjectsOverview() {
     return () => setObjectsHasHitsoundModes(false);
   }, [hasHitsoundModes, setObjectsHasHitsoundModes]);
 
-  const { selectedMode, setSelectedMode, selectedGroup } =
-    useObjectsOverviewModeSelection(groupedDifficulties);
+  const { selectedMode, setSelectedMode, selectedGroup } = useOverviewMode(groupedDifficulties);
+  const modeDifficulties = useMemo(() => selectedGroup?.difficulties ?? [], [selectedGroup]);
+  // The timeline and the tables show the difficulties picked to compare, or all of them.
+  const { isShown } = useDifficultyPicks(modeDifficulties);
+  const shownDifficulties = modeDifficulties.filter((difficulty) => isShown(difficulty.version));
 
   const objectCount = useMemo(
     () =>
@@ -78,41 +82,35 @@ function ObjectsOverview() {
     >
       {(data) => (
         <>
-          <SimpleGrid cols={{ base: 1, md: 3 }} spacing="md">
-            <StatCard label="Difficulties" value={String(data.difficulties.length)} />
-            <StatCard label="Hit objects" value={(objectCount ?? 0).toLocaleString()} />
-            <StatCard
-              label={`Timeline range (${formatDuration(data.endTimeMs - data.startTimeMs)})`}
-              value={`${formatTime(data.startTimeMs)} – ${formatTime(data.endTimeMs)}`}
-            />
-          </SimpleGrid>
+          <GameModeSelector
+            groupedDifficulties={groupedDifficulties}
+            selectedMode={selectedMode}
+            onModeChange={setSelectedMode}
+          />
+
+          <StatLine
+            items={[
+              { label: 'Difficulties', value: String(data.difficulties.length) },
+              { label: 'Hit objects', value: (objectCount ?? 0).toLocaleString() },
+              {
+                label: `Timeline range (${formatDuration(data.endTimeMs - data.startTimeMs)})`,
+                value: `${formatTime(data.startTimeMs)} – ${formatTime(data.endTimeMs)}`,
+              },
+            ]}
+          />
+
+          <DifficultyPicks difficulties={modeDifficulties} />
 
           <ObjectsTimelineComparison
             startTimeMs={data.startTimeMs}
             endTimeMs={data.endTimeMs}
             groupedDifficulties={groupedDifficulties}
-            difficulties={selectedGroup?.difficulties ?? []}
-            selectedMode={selectedMode ?? selectedGroup?.mode}
-            onModeChange={setSelectedMode}
+            difficulties={shownDifficulties}
+            selectedMode={selectedMode}
           />
-          <SnappingsOverview
-            groupedDifficulties={groupedDifficulties}
-            selectedMode={selectedMode ?? selectedGroup?.mode}
-            onModeChange={setSelectedMode}
-            difficulties={selectedGroup?.difficulties ?? []}
-          />
-          <ObjectPercentagesOverview
-            groupedDifficulties={groupedDifficulties}
-            selectedMode={selectedMode ?? selectedGroup?.mode}
-            onModeChange={setSelectedMode}
-            difficulties={selectedGroup?.difficulties ?? []}
-          />
-          <ColumnUsageOverview
-            groupedDifficulties={groupedDifficulties}
-            selectedMode={selectedMode ?? selectedGroup?.mode}
-            onModeChange={setSelectedMode}
-            difficulties={selectedGroup?.difficulties ?? []}
-          />
+          <SnappingsOverview difficulties={shownDifficulties} />
+          <ObjectPercentagesOverview mode={selectedMode} difficulties={shownDifficulties} />
+          <ColumnUsageOverview mode={selectedMode} difficulties={shownDifficulties} />
         </>
       )}
     </AnalysisTab>

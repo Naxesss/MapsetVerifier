@@ -1,6 +1,6 @@
 import { useMantineTheme } from '@mantine/core';
 import { useMemo } from 'react';
-import { groupCellStyle } from './consistencyTableStyles';
+import { groupValueStyle } from './consistencyTableStyles';
 import {
   buildGroupColorLookup,
   itemKey,
@@ -15,6 +15,6 @@ export function useGroupCellStyle<T extends { version: string; mode: string }>(
 
   return (item: T, fieldId: string) => {
     const colorIndex = lookup.get(fieldId)?.get(itemKey(item));
-    return groupCellStyle(theme, colorIndex === undefined ? null : colorIndex);
+    return groupValueStyle(theme, colorIndex === undefined ? null : colorIndex);
   };
 }

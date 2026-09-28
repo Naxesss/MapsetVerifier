@@ -32,7 +32,6 @@ interface ObjectsTimelineComparisonProps {
   groupedDifficulties: ObjectsModeGroup[];
   difficulties: ObjectsOverviewDifficulty[];
   selectedMode?: Mode;
-  onModeChange: (mode: Mode) => void;
 }
 
 export default function ObjectsTimelineComparison({
@@ -41,7 +40,6 @@ export default function ObjectsTimelineComparison({
   groupedDifficulties,
   difficulties,
   selectedMode,
-  onModeChange,
 }: ObjectsTimelineComparisonProps) {
   const pan = useHorizontalScrollPan();
 
@@ -51,7 +49,6 @@ export default function ObjectsTimelineComparison({
     groupedDifficulties,
     difficulties,
     selectedMode,
-    onModeChange,
     stopPanning: () => pan.stopDragging(),
   });
 
@@ -168,7 +165,6 @@ function ObjectsTimelineComparisonBody({ pan }: { pan: TimelinePanValue }) {
         <TimelinePanProvider value={pan}>
           <TimelineViewportProvider value={viewport}>
             <ObjectsTimelineComparisonContent
-              showModeSelector
               showVisibilityControls
               showThemeControls
               showZoomControls

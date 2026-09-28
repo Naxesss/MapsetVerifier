@@ -25,7 +25,7 @@ public static class VideoAnalysisService
         {
             var beatmapSet = new BeatmapSet(beatmapSetFolder);
 
-            if (beatmapSet.Beatmaps.Count == 0)
+            if (beatmapSet.InOverviewOrder().Count == 0)
                 return VideoAnalysisResult.CreateError("No beatmaps found in folder.");
 
             var references = CollectReferences(beatmapSet);
@@ -86,7 +86,7 @@ public static class VideoAnalysisService
     {
         var references = new Dictionary<string, VideoReference>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var beatmap in beatmapSet.Beatmaps)
+        foreach (var beatmap in beatmapSet.InOverviewOrder())
         {
             foreach (var video in beatmap.Videos)
             {
@@ -218,7 +218,8 @@ public static class VideoAnalysisService
             );
 
         var offsets = beatmapSet
-            .Beatmaps.Where(beatmap => beatmap.Videos.Count > 0)
+            .InOverviewOrder()
+            .Where(beatmap => beatmap.Videos.Count > 0)
             .Select(beatmap => beatmap.Videos[0].offset)
             .Distinct()
             .ToList();

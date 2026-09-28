@@ -30,7 +30,7 @@ public static class BeatmapAnalysisService
         {
             var beatmapSet = new BeatmapSet(beatmapSetFolder);
 
-            if (beatmapSet.Beatmaps.Count == 0)
+            if (beatmapSet.InOverviewOrder().Count == 0)
                 return BeatmapAnalysisResult.CreateError("No beatmaps found in folder.");
 
             var statistics = GetStatistics(beatmapSet);
@@ -56,13 +56,14 @@ public static class BeatmapAnalysisService
         {
             var beatmapSet = new BeatmapSet(beatmapSetFolder);
 
-            if (beatmapSet.Beatmaps.Count == 0)
+            if (beatmapSet.InOverviewOrder().Count == 0)
                 return ObjectsOverviewResult.CreateError("No beatmaps found in folder.");
 
             var startTimeMs = GetTimelineStartTime(beatmapSet);
             var endTimeMs = GetTimelineEndTime(beatmapSet);
             var difficulties = beatmapSet
-                .Beatmaps.Select(beatmap => GetObjectsOverviewDifficulty(beatmap, endTimeMs))
+                .InOverviewOrder()
+                .Select(beatmap => GetObjectsOverviewDifficulty(beatmap, endTimeMs))
                 .ToList();
 
             return ObjectsOverviewResult.CreateSuccess(startTimeMs, endTimeMs, difficulties);
@@ -82,22 +83,23 @@ public static class BeatmapAnalysisService
         {
             var beatmapSet = new BeatmapSet(beatmapSetFolder);
 
-            if (beatmapSet.Beatmaps.Count == 0)
+            if (beatmapSet.InOverviewOrder().Count == 0)
                 return DifficultyOverviewResult.CreateError("No beatmaps found in folder.");
 
-            var msPerPeak = ResolveMsPerPeak(beatmapSet.Beatmaps);
+            var msPerPeak = ResolveMsPerPeak(beatmapSet.InOverviewOrder());
             var difficulties = new ConcurrentBag<DifficultyOverviewDifficulty>();
 
             // Each diff runs one timed calc. Safe to parallelize across beatmaps.
             Parallel.ForEach(
-                beatmapSet.Beatmaps,
+                beatmapSet.InOverviewOrder(),
                 beatmap => difficulties.Add(GetDifficultyOverviewDifficulty(beatmap, msPerPeak))
             );
 
-            // Parallel.ForEach loses set order; restore the BeatmapSet ordering.
+            // Parallel.ForEach loses the order; restore the Overview's (mode, then star rating).
             var difficultiesByVersion = difficulties.ToDictionary(difficulty => difficulty.Version);
             var orderedDifficulties = beatmapSet
-                .Beatmaps.Select(beatmap => difficultiesByVersion[beatmap.MetadataSettings.version])
+                .InOverviewOrder()
+                .Select(beatmap => difficultiesByVersion[beatmap.MetadataSettings.version])
                 .ToList();
 
             return DifficultyOverviewResult.CreateSuccess(msPerPeak, orderedDifficulties);
@@ -135,7 +137,8 @@ public static class BeatmapAnalysisService
     private static List<DifficultyStatistics> GetStatistics(BeatmapSet beatmapSet)
     {
         return beatmapSet
-            .Beatmaps.Select(beatmap =>
+            .InOverviewOrder()
+            .Select(beatmap =>
             {
                 var mode = beatmap.GeneralSettings.mode;
                 var isMania = mode == Beatmap.Mode.Mania;
@@ -219,7 +222,8 @@ public static class BeatmapAnalysisService
     private static List<DifficultyGeneralSettings> GetGeneralSettings(BeatmapSet beatmapSet)
     {
         return beatmapSet
-            .Beatmaps.Select(beatmap =>
+            .InOverviewOrder()
+            .Select(beatmap =>
             {
                 var mode = beatmap.GeneralSettings.mode;
                 var hasStoryboard =
@@ -268,7 +272,8 @@ public static class BeatmapAnalysisService
     private static List<DifficultyDifficultySettings> GetDifficultySettings(BeatmapSet beatmapSet)
     {
         return beatmapSet
-            .Beatmaps.Select(beatmap =>
+            .InOverviewOrder()
+            .Select(beatmap =>
             {
                 var mode = beatmap.GeneralSettings.mode;
                 var isTaiko = mode == Beatmap.Mode.Taiko;
@@ -598,7 +603,7 @@ public static class BeatmapAnalysisService
     {
         var minTimes = new List<double>();
 
-        foreach (var beatmap in beatmapSet.Beatmaps)
+        foreach (var beatmap in beatmapSet.InOverviewOrder())
         {
             if (beatmap.HitObjects.Count > 0)
                 minTimes.Add(beatmap.HitObjects.Min(hitObject => hitObject.time));
@@ -614,7 +619,7 @@ public static class BeatmapAnalysisService
     {
         var maxTimes = new List<double>();
 
-        foreach (var beatmap in beatmapSet.Beatmaps)
+        foreach (var beatmap in beatmapSet.InOverviewOrder())
         {
             if (beatmap.HitObjects.Count > 0)
                 maxTimes.Add(beatmap.HitObjects.Max(hitObject => hitObject.GetEndTime()));

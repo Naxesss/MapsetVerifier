@@ -16,6 +16,7 @@ import WindowBar from './components/window/WindowBar.tsx';
 import { BeatmapProvider, useBeatmap } from './context/BeatmapContext.tsx';
 import { BeatmapReparseProvider } from './context/BeatmapReparseRegistry.tsx';
 import { DocumentationProvider } from './context/DocumentationContext.tsx';
+import { OverviewProvider } from './context/OverviewContext.tsx';
 import { PageHintsProvider } from './context/PageHintsContext.tsx';
 import { SettingsProvider } from './context/SettingsContext.tsx';
 import { UpdaterProvider } from './context/UpdaterContext';
@@ -116,49 +117,51 @@ function AppContent() {
         <UpdaterProvider>
           <BeatmapProvider>
             <PageHintsProvider>
-              <BackendGate>
-                <SetupWizardGate>
-                  <DocumentationProvider>
-                    <AppShell
-                      header={{ height: WINDOW_BAR_HEIGHT + NAV_BAR_HEIGHT }}
-                      navbar={{
-                        width: '256',
-                        breakpoint: 'xs',
-                        collapsed: {
-                          desktop: !isNavbarOpened,
-                          mobile: false,
-                        },
-                      }}
-                    >
-                      <BeatmapReparseProvider>
-                        {!isSettingsRoute && <BeatmapSelectionNavigator />}
-                        <NavBars
-                          desktopOpened={isNavbarOpened}
-                          showBeatmapSidebar={!isSettingsRoute}
-                          toggleDesktop={isSettingsRoute ? undefined : toggleDesktop}
-                        />
-                        <AppShell.Main pb={isSettingsRoute ? 0 : undefined}>
-                          <ScrollArea
-                            offsetScrollbars
-                            type="always"
-                            scrollbars={isSettingsRoute ? 'y' : undefined}
-                            h="calc(100vh - var(--app-shell-header-offset, 0rem) + var(--app-shell-padding))"
-                          >
-                            {/* The one page frame: every page gets a 16px gutter and adds no outer
+              <OverviewProvider>
+                <BackendGate>
+                  <SetupWizardGate>
+                    <DocumentationProvider>
+                      <AppShell
+                        header={{ height: WINDOW_BAR_HEIGHT + NAV_BAR_HEIGHT }}
+                        navbar={{
+                          width: '256',
+                          breakpoint: 'xs',
+                          collapsed: {
+                            desktop: !isNavbarOpened,
+                            mobile: false,
+                          },
+                        }}
+                      >
+                        <BeatmapReparseProvider>
+                          {!isSettingsRoute && <BeatmapSelectionNavigator />}
+                          <NavBars
+                            desktopOpened={isNavbarOpened}
+                            showBeatmapSidebar={!isSettingsRoute}
+                            toggleDesktop={isSettingsRoute ? undefined : toggleDesktop}
+                          />
+                          <AppShell.Main pb={isSettingsRoute ? 0 : undefined}>
+                            <ScrollArea
+                              offsetScrollbars
+                              type="always"
+                              scrollbars={isSettingsRoute ? 'y' : undefined}
+                              h="calc(100vh - var(--app-shell-header-offset, 0rem) + var(--app-shell-padding))"
+                            >
+                              {/* The one page frame: every page gets a 16px gutter and adds no outer
                                 padding of its own. The top offset matches the sidebar's search row
                                 (xs), so the first row of every page lines up with it. */}
-                            <Container px="md" pt="xs" pb="md" fluid>
-                              <RouteErrorBoundary>
-                                <BeatmapKeyedOutlet />
-                              </RouteErrorBoundary>
-                            </Container>
-                          </ScrollArea>
-                        </AppShell.Main>
-                      </BeatmapReparseProvider>
-                    </AppShell>
-                  </DocumentationProvider>
-                </SetupWizardGate>
-              </BackendGate>
+                              <Container px="md" pt="xs" pb="md" fluid>
+                                <RouteErrorBoundary>
+                                  <BeatmapKeyedOutlet />
+                                </RouteErrorBoundary>
+                              </Container>
+                            </ScrollArea>
+                          </AppShell.Main>
+                        </BeatmapReparseProvider>
+                      </AppShell>
+                    </DocumentationProvider>
+                  </SetupWizardGate>
+                </BackendGate>
+              </OverviewProvider>
             </PageHintsProvider>
           </BeatmapProvider>
           <UpdaterModal />
