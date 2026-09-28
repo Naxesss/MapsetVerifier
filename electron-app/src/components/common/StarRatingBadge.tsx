@@ -1,5 +1,5 @@
 import { Badge, type BadgeProps } from '@mantine/core';
-import { getDifficultyColor } from './DifficultyColor';
+import { getDifficultyColor, getDifficultyTextColor } from './DifficultyColor';
 
 export type StarRatingBadgeProps = Omit<BadgeProps, 'color' | 'variant' | 'children' | 'styles'> & {
   rating: number;
@@ -7,7 +7,7 @@ export type StarRatingBadgeProps = Omit<BadgeProps, 'color' | 'variant' | 'child
 
 function StarRatingBadge({ rating, size = 'sm', style, ...props }: StarRatingBadgeProps) {
   const bg = getDifficultyColor(rating);
-  const textColor = rating >= 6.5 ? 'var(--mantine-color-yellow-4)' : 'black';
+  const textColor = getDifficultyTextColor(rating);
 
   return (
     <Badge
