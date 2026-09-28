@@ -108,6 +108,21 @@ const ICON_STAR_RATING: Record<string, number> = {
   extra: 7,
 };
 
+const MODE_FILE: Record<string, Mode> = {
+  osu: 'Standard',
+  taiko: 'Taiko',
+  catch: 'Catch',
+  fruits: 'Catch',
+  mania: 'Mania',
+};
+
+/** Parses a wiki mode icon such as `/wiki/shared/mode/osu.png`. */
+export function parseModeIcon(src: string | undefined): Mode | null {
+  const match = src?.match(/\/wiki\/shared\/mode\/([a-z]+)\.png/);
+  if (!match) return null;
+  return MODE_FILE[match[1]] ?? null;
+}
+
 /** Parses a wiki difficulty icon such as `/wiki/shared/diff/normal-c.png?20211215`. */
 export function parseDifficultyIcon(src: string | undefined) {
   const match = src?.match(/\/wiki\/shared\/diff\/([a-z]+)-([otcm])\.png/);
