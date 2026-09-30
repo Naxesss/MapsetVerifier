@@ -54,7 +54,7 @@ namespace MapsetVerifier.Checks.AllModes.Spread
                         - osu!, osu!taiko, and osu!catch: below 2:30 at most Normal, below 3:15 at most Hard, below 4:00 at most Insane.
                         - osu!mania: below 2:00 at most Normal, below 2:45 at most Hard, below 3:30 at most Insane, for each key mode separately.
 
-                        In osu!taiko and osu!catch, break times may be combined with drain time, limited to at most 30 seconds for the highest difficulty. This does not apply to difficulties with less than 30 seconds of drain time.
+                        In osu!, osu!taiko and osu!catch, break times may be combined with drain time, limited to at most 30 seconds for the highest difficulty. This does not apply to difficulties with less than 30 seconds of drain time.
 
                         In osu!catch and osu!mania, a proper spread of at least 4, 3, or 2 difficulties (for each respective threshold) can be provided instead. Since whether a spread is proper cannot be determined automatically, this is left as a warning to verify manually."
                     },
@@ -128,7 +128,8 @@ namespace MapsetVerifier.Checks.AllModes.Spread
                     _ => throw new ArgumentOutOfRangeException(nameof(mode)),
                 };
 
-                var allowsBreakTime = mode is Beatmap.Mode.Taiko or Beatmap.Mode.Catch;
+                var allowsBreakTime =
+                    mode is Beatmap.Mode.Standard or Beatmap.Mode.Taiko or Beatmap.Mode.Catch;
                 var allowsSpreadAlternative = mode is Beatmap.Mode.Catch or Beatmap.Mode.Mania;
 
                 foreach (var beatmap in groupBeatmaps)
