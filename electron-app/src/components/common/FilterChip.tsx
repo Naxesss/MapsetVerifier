@@ -1,4 +1,4 @@
-import { Button, type MantineColor } from '@mantine/core';
+import { Button, type ButtonProps, type MantineColor } from '@mantine/core';
 import type { ReactNode } from 'react';
 
 interface FilterChipProps {
@@ -10,6 +10,8 @@ interface FilterChipProps {
   icon?: ReactNode;
   active: boolean;
   onClick: () => void;
+  /** Corner radius. Fully round unless a caller matches another control. */
+  radius?: ButtonProps['radius'];
 }
 
 /**
@@ -23,11 +25,12 @@ export default function FilterChip({
   icon,
   active,
   onClick,
+  radius = 'xl',
 }: FilterChipProps) {
   return (
     <Button
       size="compact-sm"
-      radius="xl"
+      radius={radius}
       variant={active ? 'light' : 'subtle'}
       color={active ? color : 'gray'}
       leftSection={icon}

@@ -264,7 +264,6 @@ export function DifficultyChartCard({ chart, chartState }: DifficultyChartCardPr
         hoverKey: item.hoverKey,
         useSecondaryAxis: item.useSecondaryAxis,
         valueSuffix: item.valueSuffix,
-        // Lines are coloured per difficulty, not by star rating, so the legend names the rating.
         legendNote: `★ ${item.starRating.toFixed(2)}`,
       })),
     [visibleSeries]
