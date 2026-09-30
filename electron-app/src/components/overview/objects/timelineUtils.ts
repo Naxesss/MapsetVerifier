@@ -18,6 +18,7 @@ import type {
   ObjectsTimelineEdge,
   ObjectsTimelineObject,
   ObjectsTimelineSample,
+  ObjectsTimingSegment,
 } from '../../../Types';
 
 /** Lenience matching server-side `HitObject.IsClose` (±2 ms). */
@@ -341,6 +342,41 @@ export function getTimelineCanvasTiles(width: number) {
   return tiles;
 }
 
+/**
+ * Tile span that must stay mounted for `rangeStartX..rangeEndX`, including one neighboring
+ * tile on each side. A shape that straddles a tile boundary is clipped per canvas, so both
+ * neighbors have to be mounted or half of it disappears.
+ */
+export function getPaddedTimelineTileSpan(
+  width: number,
+  rangeStartX: number,
+  rangeEndX: number
+): { startX: number; endX: number } | null {
+  const canvasTiles = getTimelineCanvasTiles(width);
+  let firstIndex = -1;
+  let lastIndex = -1;
+
+  for (let index = 0; index < canvasTiles.length; index += 1) {
+    const tile = canvasTiles[index];
+    if (tile.startX + tile.width > rangeStartX && tile.startX < rangeEndX) {
+      if (firstIndex === -1) {
+        firstIndex = index;
+      }
+      lastIndex = index;
+    }
+  }
+
+  if (firstIndex === -1) {
+    return null;
+  }
+
+  const paddedStart = Math.max(0, firstIndex - 1);
+  const paddedEnd = Math.min(canvasTiles.length - 1, lastIndex + 1);
+  const firstTile = canvasTiles[paddedStart];
+  const lastTile = canvasTiles[paddedEnd];
+  return { startX: firstTile.startX, endX: lastTile.startX + lastTile.width };
+}
+
 export function buildRoundedEdgeTimes(timelineObjects: ObjectsTimelineObject[]): Set<number> {
   const roundedEdgeTimes = new Set<number>();
 
@@ -353,9 +389,30 @@ export function buildRoundedEdgeTimes(timelineObjects: ObjectsTimelineObject[]):
   return roundedEdgeTimes;
 }
 
+export type TimelineTimingTick = {
+  timeMs: number;
+  color: string;
+  height: number;
+  alpha: number;
+  priority: number;
+};
+
+/** Hitsound strip markers, built once per row. Indices are into the sample/marker arrays. */
+export type TimelineSoundStripCache = {
+  passiveSamples: ObjectsTimelineSample[];
+  pairedBodyTimes: Set<number>;
+  /** Indices of `passiveSamples` sorted by time, so a tile can binary-search its window. */
+  passiveOrder: number[];
+  /** Indices of `primaryEdgeMarkers` sorted by time. */
+  edgeOrder: number[];
+};
+
 export type TimelineRowDrawCache = {
   roundedEdgeTimes: Set<number>;
   hitsound?: HitsoundDrawCache;
+  /** Whole-map timing ticks for this difficulty. Tiles binary-search instead of resampling. */
+  timingTicks: TimelineTimingTick[];
+  soundStrip?: TimelineSoundStripCache;
   /** `timelineObjects` sorted ascending by `startTimeMs` — the raw array is sorted in practice
    * (chronological hit-object order) but not contractually guaranteed, so we sort defensively
    * once per difficulty instead of trusting call sites. */
@@ -372,7 +429,8 @@ export type TimelineRowDrawCache = {
 export function buildTimelineRowDrawCache(
   timelineObjects: ObjectsTimelineObject[],
   samples: ObjectsTimelineSample[] | undefined,
-  isHitsoundView: boolean
+  isHitsoundView: boolean,
+  timingSegments: ObjectsTimingSegment[]
 ): TimelineRowDrawCache {
   const sortedObjects = timelineObjects
     .slice()
@@ -390,9 +448,17 @@ export function buildTimelineRowDrawCache(
     .filter((sample) => sample.source === 'Tick' && sample.objectType === 'Slider')
     .sort((left, right) => left.timeMs - right.timeMs);
 
+  const roundedEdgeTimes = buildRoundedEdgeTimes(timelineObjects);
+
   return {
-    roundedEdgeTimes: buildRoundedEdgeTimes(timelineObjects),
+    roundedEdgeTimes,
     hitsound: isHitsoundView ? buildHitsoundDrawCache(timelineObjects, samples ?? []) : undefined,
+    timingTicks: collectTimingTicks(
+      timingSegments,
+      roundedEdgeTimes,
+      Number.NEGATIVE_INFINITY,
+      Number.POSITIVE_INFINITY
+    ),
     sortedObjects,
     maxObjectDurationMs,
     sortedSliderTickSamples,
@@ -436,6 +502,60 @@ export function buildAllRoundedEdgeTimes(difficulties: ObjectsOverviewDifficulty
   return roundedEdgeTimes;
 }
 
+export function collectTimingTicks(
+  timingSegments: ObjectsTimingSegment[],
+  roundedEdgeTimes: Set<number>,
+  windowStartMs: number,
+  windowEndMs: number
+): TimelineTimingTick[] {
+  if (!(windowEndMs > windowStartMs)) {
+    return [];
+  }
+
+  const ticks: TimelineTimingTick[] = [];
+  const sixteenthStep = TIMING_SAMPLES_PER_BEAT / 16;
+  const twelfthStep = TIMING_SAMPLES_PER_BEAT / 12;
+
+  for (const segment of timingSegments) {
+    const sampleStepMs = segment.msPerBeat / TIMING_SAMPLES_PER_BEAT;
+    if (sampleStepMs <= 0) {
+      continue;
+    }
+
+    const visibleStartMs = Math.max(windowStartMs, segment.startTimeMs);
+    const visibleEndMs = Math.min(windowEndMs, segment.endTimeMs);
+    if (visibleEndMs <= visibleStartMs) {
+      continue;
+    }
+
+    const startSampleIndex = Math.max(
+      0,
+      Math.ceil((visibleStartMs - segment.offsetMs) / sampleStepMs)
+    );
+    const endSampleIndex = Math.floor((visibleEndMs - segment.offsetMs) / sampleStepMs);
+
+    for (let sampleIndex = startSampleIndex; sampleIndex <= endSampleIndex; sampleIndex += 1) {
+      // Drawn ticks are 1/4 (every 12) or, beside an object edge, 1/12 and 1/16.
+      // Those are exactly the multiples of 3 and 4 when there are 48 samples per beat.
+      if (sampleIndex % sixteenthStep !== 0 && sampleIndex % twelfthStep !== 0) {
+        continue;
+      }
+
+      const timeMs = segment.offsetMs + sampleIndex * sampleStepMs;
+      const hasNearbyEdge = hasNearbyRoundedEdge(roundedEdgeTimes, timeMs);
+      const tickStyle = getTimingTickStyle(sampleIndex, segment.meter, hasNearbyEdge);
+      if (!tickStyle) {
+        continue;
+      }
+
+      ticks.push({ timeMs, ...tickStyle });
+    }
+  }
+
+  ticks.sort((left, right) => left.timeMs - right.timeMs);
+  return ticks;
+}
+
 export function buildTimelineSnapTicks(
   difficulties: ObjectsOverviewDifficulty[],
   roundedEdgeTimes: Set<number>,
@@ -445,31 +565,13 @@ export function buildTimelineSnapTicks(
   const tickTimes = new Set<number>();
 
   for (const difficulty of difficulties) {
-    for (const segment of difficulty.timingSegments) {
-      const sampleStepMs = segment.msPerBeat / TIMING_SAMPLES_PER_BEAT;
-      if (sampleStepMs <= 0) {
-        continue;
-      }
-
-      const visibleStartMs = Math.max(startTimeMs, segment.startTimeMs);
-      const visibleEndMs = Math.min(endTimeMs, segment.endTimeMs);
-      if (visibleEndMs <= visibleStartMs) {
-        continue;
-      }
-
-      const startSampleIndex = Math.max(
-        0,
-        Math.ceil((visibleStartMs - segment.offsetMs) / sampleStepMs)
-      );
-      const endSampleIndex = Math.floor((visibleEndMs - segment.offsetMs) / sampleStepMs);
-
-      for (let sampleIndex = startSampleIndex; sampleIndex <= endSampleIndex; sampleIndex += 1) {
-        const timeMs = segment.offsetMs + sampleIndex * sampleStepMs;
-        const hasNearbyEdge = hasNearbyRoundedEdge(roundedEdgeTimes, timeMs);
-        if (getTimingTickStyle(sampleIndex, segment.meter, hasNearbyEdge)) {
-          tickTimes.add(timeMs);
-        }
-      }
+    for (const tick of collectTimingTicks(
+      difficulty.timingSegments,
+      roundedEdgeTimes,
+      startTimeMs,
+      endTimeMs
+    )) {
+      tickTimes.add(tick.timeMs);
     }
   }
 
