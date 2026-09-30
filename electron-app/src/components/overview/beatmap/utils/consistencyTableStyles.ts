@@ -4,7 +4,7 @@ import type { CSSProperties } from 'react';
 const GROUP_COLOR_NAMES = ['yellow', 'cyan', 'grape', 'green', 'pink', 'lime', 'teal'] as const;
 
 /**
- * A soft pill behind a value whose difficulties share it with others in the same group colour.
+ * Text colour for a value that shares its group colour with other difficulties.
  * The dominant value has no colour, so only the values that differ stand out.
  */
 export function groupValueStyle(
@@ -17,12 +17,10 @@ export function groupValueStyle(
 
   const colorName = GROUP_COLOR_NAMES[colorIndex % GROUP_COLOR_NAMES.length];
 
-  return {
-    display: 'inline-block',
-    padding: '1px 7px',
-    margin: '-1px -7px',
-    borderRadius: 999,
-    backgroundColor: `${theme.colors[colorName][9]}40`,
-    color: theme.colors[colorName][3],
-  };
+  return { color: theme.colors[colorName][3] };
+}
+
+/** The uncoloured value is the majority; each other colour is the next group. */
+export function groupValueLabel(colorIndex: number | null): string {
+  return colorIndex === null ? 'Majority group' : `Group ${colorIndex + 1}`;
 }

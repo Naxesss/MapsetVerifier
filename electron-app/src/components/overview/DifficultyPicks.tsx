@@ -1,4 +1,4 @@
-import { Box, Group } from '@mantine/core';
+import { Box, Group, useMantineTheme } from '@mantine/core';
 import { useEffect, useRef, useState } from 'react';
 import { useBeatmap } from '../../context/BeatmapContext.tsx';
 import { useOverviewState } from '../../context/OverviewContext.tsx';
@@ -46,6 +46,7 @@ export default function DifficultyPicks({
 }: {
   difficulties: readonly PickableDifficulty[];
 }) {
+  const theme = useMantineTheme();
   const { showAll, picked, toggle, clear } = useDifficultyPicks(difficulties);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [stuck, setStuck] = useState(false);
@@ -77,11 +78,18 @@ export default function DifficultyPicks({
         style={{ zIndex: Z_INDEX.stickyControls }}
       >
         <Group gap="xs" role="group" aria-label="Difficulties to compare">
-          <FilterChip label="All" color="blue" active={showAll} onClick={clear} />
+          <FilterChip
+            label="All"
+            color="blue"
+            active={showAll}
+            onClick={clear}
+            radius={theme.defaultRadius}
+          />
           {difficulties.map((difficulty) => (
             <FilterChip
               key={difficulty.version}
               label={difficulty.version}
+              radius={theme.defaultRadius}
               color="blue"
               icon={
                 <DifficultyColorPill

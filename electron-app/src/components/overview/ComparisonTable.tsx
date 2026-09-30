@@ -1,4 +1,4 @@
-import { Table } from '@mantine/core';
+import { Table, Tooltip } from '@mantine/core';
 import { Fragment, useMemo, type ReactNode } from 'react';
 import { useGroupCellStyle } from './beatmap/utils/useGroupCellStyle';
 import { itemKey, type ComparisonValue } from '../../utils/inconsistencies';
@@ -110,18 +110,31 @@ export default function ComparisonTable<T extends { version: string; mode: strin
                 <Table.Th scope="row" className="mv-table-sticky">
                   {row.label}
                 </Table.Th>
-                {items.map((item) => (
-                  <Table.Td
-                    key={itemKey(item)}
-                    className={row.clickable?.(item) ? 'mv-table-clickable' : undefined}
-                  >
-                    {row.groupColours && groupCell(item, row.id) ? (
-                      <span style={groupCell(item, row.id)}>{row.render(item)}</span>
-                    ) : (
-                      row.render(item)
-                    )}
-                  </Table.Td>
-                ))}
+                {items.map((item) => {
+                  const group = row.groupColours ? groupCell(item, row.id) : undefined;
+                  const cell = (
+                    <Table.Td
+                      className={row.clickable?.(item) ? 'mv-table-clickable' : undefined}
+                      style={group?.style}
+                    >
+                      {row.render(item)}
+                    </Table.Td>
+                  );
+
+                  return group ? (
+                    <Tooltip
+                      key={itemKey(item)}
+                      label={group.label}
+                      position="top-end"
+                      // The cell's right padding, so the tooltip meets the right-aligned value.
+                      offset={{ mainAxis: 4, alignmentAxis: 6 }}
+                    >
+                      {cell}
+                    </Tooltip>
+                  ) : (
+                    <Fragment key={itemKey(item)}>{cell}</Fragment>
+                  );
+                })}
               </Table.Tr>
             </Fragment>
           ))}

@@ -1,4 +1,6 @@
+import { clampColor, parseColor } from '../../../utils/color.ts';
 import { MODE_ORDER, normalizeMode } from '../../../utils/gameMode.ts';
+import { getDifficultyColor } from '../../common/DifficultyColor.ts';
 import { formatChartTime } from '../../common/TimeAxis.tsx';
 import type {
   DifficultyChartDataPoint,
@@ -46,34 +48,48 @@ export type DifficultyModeGroup = {
 };
 
 /**
- * Line colours, one per difficulty from easiest to hardest. Distinct hues rather than star rating
- * colours, which gave the hardest difficulties near-identical pinks; neighbours in the spread get
- * contrasting hues. Mantine shade 4, readable on the dark chart background.
+ * The star-rating colour, the same one used everywhere else a difficulty is coloured. Two
+ * difficulties that land on the same colour are nudged apart so their lines stay distinct, and
+ * the nudge follows the full list so hiding a difficulty doesn't recolour the ones still shown.
  */
-const SERIES_PALETTE = [
-  '#4dabf7', // blue
-  '#a9e34b', // lime
-  '#da77f2', // grape
-  '#ffa94d', // orange
-  '#3bc9db', // cyan
-  '#f783ac', // pink
-  '#ffd43b', // yellow
-  '#9775fa', // violet
-  '#38d9a9', // teal
-  '#ff8787', // red
-  '#748ffc', // indigo
-  '#69db7c', // green
-];
-
-/** Each difficulty's line colour, the same in every chart. */
 function buildSeriesColours(difficulties: DifficultyOverviewDifficulty[]): Map<string, string> {
-  const bySpread = [...difficulties].sort((a, b) => a.starRating - b.starRating);
-  return new Map(
-    bySpread.map((difficulty, index) => [
-      difficulty.label,
-      SERIES_PALETTE[index % SERIES_PALETTE.length],
-    ])
-  );
+  const previousRatings: number[] = [];
+  const colours = new Map<string, string>();
+
+  for (const difficulty of difficulties) {
+    colours.set(difficulty.label, getGraphColor(difficulty.starRating, previousRatings));
+    previousRatings.push(difficulty.starRating);
+  }
+
+  return colours;
+}
+
+function getGraphColor(starRating: number, previousRatings: number[]): string {
+  const baseValue = getDifficultyColor(starRating);
+  const baseColor = parseColor(baseValue);
+  const sameColorCount = previousRatings.filter(
+    (rating) => getDifficultyColor(rating) === baseValue
+  ).length;
+
+  let red = baseColor.r;
+  let green = baseColor.g;
+  let blue = baseColor.b;
+  const dominant = Math.max(baseColor.r, baseColor.g, baseColor.b);
+
+  for (let index = 0; index < sameColorCount; index += 1) {
+    const mult = 0.7;
+    const multInverse = 1 / mult;
+
+    red *= mult;
+    green *= mult;
+    blue *= mult;
+
+    if (baseColor.r === dominant) red *= multInverse;
+    else if (baseColor.g === dominant) green *= multInverse;
+    else blue *= multInverse;
+  }
+
+  return `rgb(${clampColor(red)}, ${clampColor(green)}, ${clampColor(blue)})`;
 }
 
 export const SAMPLE_VOLUME_CHART_TITLE = 'Sample volume';
@@ -123,7 +139,7 @@ export function buildCharts(
   const chartSeries: ChartDefinition[] = [];
   const colours = buildSeriesColours(colourDifficulties);
   const colourFor = (series: DifficultyChartSeries) =>
-    colours.get(series.label.replace(/ \(strain\)$/, '')) ?? SERIES_PALETTE[0];
+    colours.get(series.label.replace(/ \(strain\)$/, '')) ?? getDifficultyColor(series.starRating);
   const starRatingSeries = difficulties
     .map((difficulty) => buildStarRatingSeries(difficulty))
     .filter((series) => series.points.length > 0);
