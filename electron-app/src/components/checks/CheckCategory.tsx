@@ -1,4 +1,4 @@
-import { Group, Stack, Text } from '@mantine/core';
+import { Group, Stack, Text, useMantineTheme } from '@mantine/core';
 import { IconCircleCheck } from '@tabler/icons-react';
 import React from 'react';
 import CheckGroup from './CheckGroup.tsx';
@@ -41,6 +41,9 @@ interface CheckCategoryProps {
   hiddenMinorCheckIds: readonly number[];
   selectedCategory?: string;
   overrideResult?: ApiCategoryOverrideCheckResult;
+  /** Kept by the parent so it survives switching difficulties. */
+  levelFilter: DisplayLevel | null;
+  onLevelFilterChange: (level: DisplayLevel | null) => void;
 }
 
 const defaultGroupState: CheckGroupUiState = { isOpen: true, showAll: false };
@@ -51,8 +54,10 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
   hiddenMinorCheckIds,
   selectedCategory,
   overrideResult,
+  levelFilter,
+  onLevelFilterChange,
 }) => {
-  const [levelFilter, setLevelFilter] = React.useState<DisplayLevel | null>(null);
+  const theme = useMantineTheme();
   const [groupUiState, setGroupUiState] = React.useState<Record<number, CheckGroupUiState>>({});
   const [prevGroupUiToken, setPrevGroupUiToken] = React.useState({
     levelFilter,
@@ -201,7 +206,7 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
   };
 
   const toggleLevelFilter = (level: DisplayLevel) => {
-    setLevelFilter((current) => (current === level ? null : level));
+    onLevelFilterChange(levelFilter === level ? null : level);
   };
 
   // Rows on this page are all `sm` apart: the difficulty row, the severity badges and each check.
@@ -210,18 +215,25 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
       <Group wrap="wrap" gap="xs" align="center">
         {SEVERITY_ORDER.map((level) => {
           const count = categoryData.levelCounts[level];
-          if (count === 0) return null;
-
           const isSelected = levelFilter === level;
+          // A selected severity stays visible at 0 after a difficulty switch. Turning it off hides it.
+          if (count === 0 && !isSelected) return null;
 
           return (
             <FilterChip
               key={level}
-              label={getLevelLabel(level)}
-              count={count}
+              label={
+                <>
+                  {getLevelLabel(level)}{' '}
+                  <Text span fz="0.85em" c="dimmed" ml="xs">
+                    ({count})
+                  </Text>
+                </>
+              }
               color={levelColorName(level)}
               icon={<LevelIcon level={level} size={14} />}
               active={isSelected}
+              radius={theme.defaultRadius}
               onClick={() => toggleLevelFilter(level)}
             />
           );

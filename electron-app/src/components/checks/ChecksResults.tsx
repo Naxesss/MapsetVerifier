@@ -1,6 +1,6 @@
 ﻿import { Alert, Anchor, Box, Progress, Stack, Text } from '@mantine/core';
 import { IconEyeOff } from '@tabler/icons-react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import CheckCategory from './CheckCategory.tsx';
 import CheckProgressTaskList from './CheckProgressTaskList.tsx';
@@ -15,6 +15,7 @@ import {
   ApiCategoryOverrideCheckResult,
   CheckProgress,
 } from '../../Types';
+import type { DisplayLevel } from './utils/levelUtils';
 
 interface ChecksResultsProps {
   data?: ApiBeatmapSetCheckResult;
@@ -45,6 +46,8 @@ function ChecksResults({
   onCheckRunHistoryCleared,
   showCheckSpeedStats = false,
 }: ChecksResultsProps) {
+  // Survives difficulty switches; CheckCategory remounts per difficulty and would drop it.
+  const [levelFilter, setLevelFilter] = useState<DisplayLevel | null>(null);
   const rawForCategory = useMemo(
     () =>
       data ? getRawCheckResultsForSelectedCategory(data, selectedCategory, overrideResult) : [],
@@ -127,6 +130,8 @@ function ChecksResults({
             hiddenMinorCheckIds={hiddenMinorCheckIds}
             selectedCategory={selectedCategory}
             overrideResult={overrideResult}
+            levelFilter={levelFilter}
+            onLevelFilterChange={setLevelFilter}
           />
         </Stack>
       )}
