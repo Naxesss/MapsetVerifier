@@ -1,5 +1,6 @@
 import { useLayoutEffect, useState, type RefObject } from 'react';
 import { LABEL_WIDTH } from '../constants.ts';
+import { getPaddedTimelineTileSpan, getTimelineTimeFromX } from '../timelineUtils.ts';
 
 export type TimelineViewportRange = {
   startX: number;
@@ -8,6 +9,29 @@ export type TimelineViewportRange = {
 
 const FULL_RANGE: TimelineViewportRange = { startX: -Infinity, endX: Infinity };
 const MIN_OVERSCAN_PX = 512;
+
+export function readTimelineOverscanWindowMs(
+  scrollElement: HTMLElement,
+  timelineWidth: number,
+  startTimeMs: number,
+  endTimeMs: number
+): { windowStartMs: number; windowEndMs: number } {
+  const viewportWidth = scrollElement.clientWidth;
+  const overscan = Math.max(viewportWidth, MIN_OVERSCAN_PX);
+  const localScrollLeft = scrollElement.scrollLeft - LABEL_WIDTH;
+  const durationMs = Math.max(1, endTimeMs - startTimeMs);
+  const clampedStartX = Math.max(0, localScrollLeft - overscan);
+  const clampedEndX = Math.min(timelineWidth, localScrollLeft + viewportWidth + overscan);
+
+  if (clampedEndX <= clampedStartX || timelineWidth <= 0) {
+    return { windowStartMs: startTimeMs, windowEndMs: endTimeMs };
+  }
+
+  return {
+    windowStartMs: getTimelineTimeFromX(clampedStartX, startTimeMs, durationMs, timelineWidth),
+    windowEndMs: getTimelineTimeFromX(clampedEndX, startTimeMs, durationMs, timelineWidth),
+  };
+}
 
 export function useTimelineViewportRange(
   scrollRef: RefObject<HTMLDivElement | null>,
@@ -33,14 +57,22 @@ export function useTimelineViewportRange(
       const viewportWidth = scrollElement.clientWidth;
       const overscan = Math.max(viewportWidth, MIN_OVERSCAN_PX);
       const localScrollLeft = scrollElement.scrollLeft - LABEL_WIDTH;
+      const span = getPaddedTimelineTileSpan(
+        timelineWidth,
+        localScrollLeft - overscan,
+        localScrollLeft + viewportWidth + overscan
+      );
+      if (!span) {
+        return;
+      }
 
+      // Publish the mounted tile span, not the scroll pixel. The span only changes when a new
+      // tile enters the overscan, so scrolling inside it does not re-render every row.
       setRange((prev) => {
-        const startX = localScrollLeft - overscan;
-        const endX = localScrollLeft + viewportWidth + overscan;
-        if (prev.startX === startX && prev.endX === endX) {
+        if (prev.startX === span.startX && prev.endX === span.endX) {
           return prev;
         }
-        return { startX, endX };
+        return span;
       });
     };
 

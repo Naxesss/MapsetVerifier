@@ -24,14 +24,26 @@ export default function TimelineObjectHeadHovercard({
   viewMode,
   hitsoundLayers,
 }: TimelineObjectHeadHovercardProps) {
-  const hitsoundResolved = useMemo(() => {
-    if (!hover || viewMode !== 'hitsounding') {
+  const crosshairCache = useMemo(() => {
+    if (viewMode !== 'hitsounding') {
       return null;
     }
 
-    const cache = buildCrosshairRowLookupCache(difficulty, hitsoundLayers);
-    return resolveCrosshairRow(difficulty, hover.timeMs, cache.enrichedSamples, cache);
-  }, [difficulty, hitsoundLayers, hover, viewMode]);
+    return buildCrosshairRowLookupCache(difficulty, hitsoundLayers);
+  }, [difficulty, hitsoundLayers, viewMode]);
+
+  const hitsoundResolved = useMemo(() => {
+    if (!hover || !crosshairCache) {
+      return null;
+    }
+
+    return resolveCrosshairRow(
+      difficulty,
+      hover.timeMs,
+      crosshairCache.enrichedSamples,
+      crosshairCache
+    );
+  }, [crosshairCache, difficulty, hover]);
 
   if (!hover) {
     return null;
