@@ -5,19 +5,25 @@ import BeatmapOverview from './beatmap/BeatmapOverview.tsx';
 import DifficultyOverview from './difficulty/DifficultyOverview.tsx';
 import MetadataOverview from './metadata/MetadataOverview.tsx';
 import ObjectsOverview from './objects/ObjectsOverview.tsx';
-import OverviewTabSelector from './OverviewTabSelector.tsx';
+import OverviewPicker from './OverviewPicker.tsx';
+import OverviewSummary from './OverviewSummary.tsx';
+import { useUnavailableSections } from './useUnavailableSections.ts';
 import VideoOverview from './video/VideoOverview.tsx';
 import { useOverviewState } from '../../context/OverviewContext.tsx';
 import { usePageHints } from '../../context/PageHintsContext.tsx';
 import BeatmapHeader from '../common/BeatmapHeader.tsx';
-import type { OverviewTab } from '../navbar/pageHints.tsx';
-
-const TABS: OverviewTab[] = ['Metadata', 'Objects', 'Beatmap', 'Difficulty', 'Audio', 'Video'];
 
 function Overview() {
   const { setOverviewTab } = usePageHints();
-  // Kept above the page, so coming back from Checks opens the section that was left open.
+  // Kept above the page, so coming back from Checks opens the page that was left open.
   const { tab: activeTab, setTab: setActiveTab } = useOverviewState();
+
+  // A mapset without video has no Video page to be left open on.
+  const unavailable = useUnavailableSections();
+  const isUnavailable = !!unavailable[activeTab];
+  useEffect(() => {
+    if (isUnavailable) setActiveTab('Summary');
+  }, [isUnavailable, setActiveTab]);
 
   useEffect(() => {
     setOverviewTab(activeTab);
@@ -27,16 +33,15 @@ function Overview() {
   return (
     <>
       <BeatmapHeader>
-        <OverviewTabSelector tabs={TABS} value={activeTab} onChange={setActiveTab} />
+        <OverviewPicker section={activeTab} onSelect={setActiveTab} />
       </BeatmapHeader>
       <Box
         id="overview-panel"
-        role="tabpanel"
-        aria-labelledby={`overview-tab-${activeTab}`}
         style={{ flex: 1, overflow: 'clip', position: 'relative' }}
         bg="dark.6"
       >
-        {activeTab === 'Metadata' && <MetadataOverview />}
+        {activeTab === 'Summary' && <OverviewSummary onOpen={setActiveTab} />}
+        {activeTab === 'General' && <MetadataOverview />}
         {activeTab === 'Beatmap' && <BeatmapOverview />}
         {activeTab === 'Difficulty' && <DifficultyOverview />}
         {activeTab === 'Audio' && <AudioOverview />}

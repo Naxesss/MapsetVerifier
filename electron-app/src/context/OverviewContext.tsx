@@ -5,7 +5,7 @@ import type { Mode } from '../Types';
 interface OverviewContextValue {
   tab: OverviewTab;
   setTab: (tab: OverviewTab) => void;
-  /** Mode shown on Objects, Beatmap and Difficulty; unset until a hybrid mapset picks one. */
+  /** Mode shown on the summary, Objects, Beatmap and Difficulty; unset until a hybrid mapset picks one. */
   mode: Mode | undefined;
   setMode: (mode: Mode) => void;
   /** Difficulties picked to compare, by version, and the mapset they were picked in. */
@@ -26,7 +26,7 @@ const OverviewContext = createContext<OverviewContextValue | undefined>(undefine
  * next mapset doesn't have falls back to its first; picks only apply to the mapset they came from.
  */
 export function OverviewProvider({ children }: { children: ReactNode }) {
-  const [tab, setTab] = useState<OverviewTab>('Metadata');
+  const [tab, setTab] = useState<OverviewTab>('Summary');
   const [mode, setMode] = useState<Mode | undefined>();
   const [picks, setPicks] = useState<DifficultyPicks>({ folder: undefined, versions: new Set() });
 

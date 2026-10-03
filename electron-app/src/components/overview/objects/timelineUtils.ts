@@ -776,14 +776,6 @@ export function getSnappingColumns(difficulties: ObjectsOverviewDifficulty[]) {
     .sort((left, right) => left.divisor - right.divisor);
 }
 
-export function formatDuration(durationMs: number) {
-  const safeDuration = Math.max(0, durationMs);
-  const totalSeconds = Math.floor(safeDuration / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-}
-
 export function formatTime(timeMs: number) {
   const absoluteMs = Math.abs(timeMs);
   const totalSeconds = Math.floor(absoluteMs / 1000);
@@ -791,6 +783,11 @@ export function formatTime(timeMs: number) {
   const seconds = totalSeconds % 60;
   const sign = timeMs < 0 ? '−' : '';
   return `${sign}${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+/** A time down to the millisecond (`-00:01:000`), the way the editor and the checks write it. */
+export function formatPreciseTime(timeMs: number) {
+  return `${timeMs < 0 ? '−' : ''}${formatEditorTimestamp(Math.abs(timeMs))}`;
 }
 
 export function formatEditorTimestamp(timeMs: number) {

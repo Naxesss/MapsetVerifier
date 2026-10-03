@@ -5,16 +5,14 @@ import ObjectsTimelineComparison from './components/ObjectsTimelineComparison.ts
 import SnappingsOverview from './components/SnappingsOverview.tsx';
 import { isHitsoundViewAvailable } from './hitsoundUtils.ts';
 import { useObjectsAnalysis } from './hooks/useObjectsAnalysis.ts';
-import { formatDuration, formatTime } from './timelineUtils.ts';
+import { formatPreciseTime } from './timelineUtils.ts';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
 import { usePageHints } from '../../../context/PageHintsContext.tsx';
 import { useSettings } from '../../../context/SettingsContext.tsx';
-import { type Mode, type ObjectsOverviewDifficulty } from '../../../Types';
-import { MODE_ORDER, normalizeMode } from '../../../utils/gameMode';
-import GameModeSelector from '../../common/GameModeSelector.tsx';
+import { groupByMode } from '../../../utils/gameMode';
 import { StatLine } from '../../common/StatField.tsx';
 import AnalysisTab from '../AnalysisTab.tsx';
-import DifficultyPicks, { useDifficultyPicks } from '../DifficultyPicks.tsx';
+import { useDifficultyPicks } from '../useDifficultyPicks.ts';
 import { useOverviewMode } from '../useOverviewMode.ts';
 import type { ObjectsModeGroup } from './types.ts';
 
@@ -30,22 +28,7 @@ function ObjectsOverview() {
   const groupedDifficulties = useMemo<ObjectsModeGroup[]>(() => {
     if (!data?.success) return [];
 
-    const grouped = new Map<Mode, ObjectsOverviewDifficulty[]>();
-    for (const difficulty of data.difficulties) {
-      const mode = normalizeMode(difficulty.mode);
-      const modeDifficulties = grouped.get(mode);
-
-      if (modeDifficulties) {
-        modeDifficulties.push(difficulty);
-      } else {
-        grouped.set(mode, [difficulty]);
-      }
-    }
-
-    return MODE_ORDER.filter((mode) => grouped.has(mode)).map((mode) => ({
-      mode,
-      difficulties: grouped.get(mode) ?? [],
-    }));
+    return groupByMode(data.difficulties);
   }, [data]);
 
   const hasHitsoundModes = useMemo(
@@ -58,7 +41,7 @@ function ObjectsOverview() {
     return () => setObjectsHasHitsoundModes(false);
   }, [hasHitsoundModes, setObjectsHasHitsoundModes]);
 
-  const { selectedMode, setSelectedMode, selectedGroup } = useOverviewMode(groupedDifficulties);
+  const { selectedMode, selectedGroup } = useOverviewMode(groupedDifficulties);
   const modeDifficulties = useMemo(() => selectedGroup?.difficulties ?? [], [selectedGroup]);
   // The timeline and the tables show the difficulties picked to compare, or all of them.
   const { isShown } = useDifficultyPicks(modeDifficulties);
@@ -82,24 +65,16 @@ function ObjectsOverview() {
     >
       {(data) => (
         <>
-          <GameModeSelector
-            groupedDifficulties={groupedDifficulties}
-            selectedMode={selectedMode}
-            onModeChange={setSelectedMode}
-          />
-
           <StatLine
             items={[
               { label: 'Difficulties', value: String(data.difficulties.length) },
               { label: 'Hit objects', value: (objectCount ?? 0).toLocaleString() },
               {
-                label: `Timeline range (${formatDuration(data.endTimeMs - data.startTimeMs)})`,
-                value: `${formatTime(data.startTimeMs)} – ${formatTime(data.endTimeMs)}`,
+                label: `Timeline range (${formatPreciseTime(data.endTimeMs - data.startTimeMs)})`,
+                value: `${formatPreciseTime(data.startTimeMs)} – ${formatPreciseTime(data.endTimeMs)}`,
               },
             ]}
           />
-
-          <DifficultyPicks difficulties={modeDifficulties} />
 
           <ObjectsTimelineComparison
             startTimeMs={data.startTimeMs}

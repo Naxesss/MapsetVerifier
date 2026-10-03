@@ -255,8 +255,6 @@ export type AudioAnalysisResult = {
   channelAnalysis: ChannelAnalysisResult | null;
   formatAnalysis: FormatAnalysisResult | null;
   dynamicRangeAnalysis: DynamicRangeResult | null;
-  isCompliant: boolean;
-  complianceIssues: string[];
 };
 
 export type BitrateAnalysisResult = {
@@ -265,10 +263,6 @@ export type BitrateAnalysisResult = {
   minBitrate: number | null;
   maxBitrate: number | null;
   bitrateOverTime: BitrateDataPoint[];
-  isCompliant: boolean;
-  complianceMessage: string;
-  maxAllowedBitrate: number;
-  minAllowedBitrate: number;
 };
 
 export type BitrateDataPoint = {
@@ -310,9 +304,6 @@ export type FormatAnalysisResult = {
   fileSizeBytes: number;
   fileSizeFormatted: string;
   channels: number;
-  isCompliant: boolean;
-  complianceIssues: string[];
-  badgeType: string;
 };
 
 export type DynamicRangeResult = {
@@ -425,26 +416,6 @@ export type FrequencyMaskingResult = {
   description: string;
 };
 
-export type HitSoundBatchResult = {
-  totalFiles: number;
-  compliantFiles: number;
-  nonCompliantFiles: number;
-  results: HitSoundAnalysisResult[];
-};
-
-export type HitSoundAnalysisResult = {
-  filePath: string;
-  format: string;
-  bitrate: number;
-  durationMs: number;
-  channels: number;
-  sampleRate: number;
-  isCompliant: boolean;
-  issues: string[];
-  channelBalanceRatio: number;
-  hasImbalance: boolean;
-};
-
 // Metadata Analysis Types
 export type MetadataAnalysisResult = {
   success: boolean;
@@ -526,8 +497,6 @@ export type VideoAnalysisResult = {
   success: boolean;
   errorMessage: string | null;
   videos: VideoAnalysisEntry[];
-  complianceIssues: string[];
-  isCompliant: boolean;
 };
 
 export type VideoAnalysisEntry = {
@@ -553,9 +522,6 @@ export type VideoAnalysisEntry = {
   durationFormatted: string;
   offsetMs: number;
   usedByDifficulties: string[];
-  isCompliant: boolean;
-  complianceIssues: string[];
-  badgeType: string;
   canPreview: boolean;
   warnings: string[];
 };

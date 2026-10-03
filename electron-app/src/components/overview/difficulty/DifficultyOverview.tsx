@@ -4,24 +4,22 @@ import { useMemo } from 'react';
 import { DifficultyChartCard } from './DifficultyChartCard.tsx';
 import {
   buildCharts,
-  MODE_ORDER,
-  normalizeMode,
   SAMPLE_VOLUME_CHART_TITLE,
   STAR_RATING_CHART_TITLE,
   type DifficultyModeGroup,
 } from './difficultyChartModel.ts';
 import { DifficultySpreadSummary } from './DifficultySummaryCards.tsx';
 import AnalysisTab from '../AnalysisTab.tsx';
-import DifficultyPicks, { useDifficultyPicks } from '../DifficultyPicks.tsx';
+import { useDifficultyPicks } from '../useDifficultyPicks.ts';
 import { useDifficultyChartState } from './hooks/useDifficultyChartState.ts';
 import { useDifficultyOverview } from './hooks/useDifficultyOverview.ts';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
 import { useSettings } from '../../../context/SettingsContext.tsx';
+import { groupByMode } from '../../../utils/gameMode.ts';
 import EmptyState from '../../common/EmptyState.tsx';
-import GameModeSelector from '../../common/GameModeSelector.tsx';
 import { SectionTitle } from '../../common/Headings.tsx';
 import { useOverviewMode } from '../useOverviewMode.ts';
-import type { DifficultyOverviewDifficulty, Mode } from '../../../Types';
+import type { DifficultyOverviewDifficulty } from '../../../Types';
 
 const EMPTY_DIFFICULTIES: DifficultyOverviewDifficulty[] = [];
 
@@ -38,26 +36,10 @@ function DifficultyOverview() {
       return [];
     }
 
-    const grouped = new Map<Mode, DifficultyOverviewDifficulty[]>();
-
-    for (const difficulty of data.difficulties) {
-      const mode = normalizeMode(difficulty.mode);
-      const modeDifficulties = grouped.get(mode);
-
-      if (modeDifficulties) {
-        modeDifficulties.push(difficulty);
-      } else {
-        grouped.set(mode, [difficulty]);
-      }
-    }
-
-    return MODE_ORDER.filter((mode) => grouped.has(mode)).map((mode) => ({
-      mode,
-      difficulties: grouped.get(mode) ?? [],
-    }));
+    return groupByMode(data.difficulties);
   }, [data]);
 
-  const { setSelectedMode, selectedGroup } = useOverviewMode(groupedDifficulties);
+  const { selectedGroup } = useOverviewMode(groupedDifficulties);
   const modeDifficulties = selectedGroup?.difficulties ?? EMPTY_DIFFICULTIES;
   // The graphs show the difficulties picked to compare; the spread summary stays about all of them.
   const pickable = useMemo(
@@ -109,15 +91,7 @@ function DifficultyOverview() {
     >
       {() => (
         <>
-          <GameModeSelector
-            groupedDifficulties={groupedDifficulties}
-            selectedMode={selectedGroup?.mode}
-            onModeChange={setSelectedMode}
-          />
-
           <DifficultySpreadSummary difficulties={modeDifficulties} />
-
-          <DifficultyPicks difficulties={pickable} />
 
           <Stack gap="md">
             {charts.length > 0 ? (

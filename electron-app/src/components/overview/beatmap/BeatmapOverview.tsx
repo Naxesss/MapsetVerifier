@@ -5,10 +5,9 @@ import { useBeatmapAnalysis } from './hooks/useBeatmapAnalysis';
 import StatisticsInfo from './StatisticsInfo';
 import { useBeatmap } from '../../../context/BeatmapContext';
 import { useSettings } from '../../../context/SettingsContext';
-import { MODE_ORDER, normalizeMode } from '../../../utils/gameMode';
-import GameModeSelector from '../../common/GameModeSelector.tsx';
+import { groupByMode, normalizeMode } from '../../../utils/gameMode';
 import AnalysisTab from '../AnalysisTab.tsx';
-import DifficultyPicks, { useDifficultyPicks } from '../DifficultyPicks.tsx';
+import { useDifficultyPicks } from '../useDifficultyPicks.ts';
 import { useOverviewMode } from '../useOverviewMode.ts';
 
 function BeatmapOverview() {
@@ -22,14 +21,10 @@ function BeatmapOverview() {
 
   // Settings only compare within a mode, so a hybrid mapset shows one mode at a time.
   const groupedDifficulties = useMemo(() => {
-    const statistics = data?.success ? data.statistics : [];
-    return MODE_ORDER.map((mode) => ({
-      mode,
-      difficulties: statistics.filter((entry) => normalizeMode(entry.mode) === mode),
-    })).filter((group) => group.difficulties.length > 0);
+    return groupByMode(data?.success ? data.statistics : []);
   }, [data]);
 
-  const { selectedMode, setSelectedMode, selectedGroup } = useOverviewMode(groupedDifficulties);
+  const { selectedMode, selectedGroup } = useOverviewMode(groupedDifficulties);
   const modeDifficulties = useMemo(() => selectedGroup?.difficulties ?? [], [selectedGroup]);
   const starRatings = useMemo(
     () => new Map(modeDifficulties.map((entry) => [entry.version, entry.starRating ?? 0])),
@@ -50,12 +45,6 @@ function BeatmapOverview() {
     >
       {(data) => (
         <>
-          <GameModeSelector
-            groupedDifficulties={groupedDifficulties}
-            selectedMode={selectedMode}
-            onModeChange={setSelectedMode}
-          />
-          <DifficultyPicks difficulties={modeDifficulties} />
           <StatisticsInfo statistics={data.statistics.filter(isShown)} starRatings={starRatings} />
           <GeneralSettingsInfo
             generalSettings={data.generalSettings.filter(isShown)}
