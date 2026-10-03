@@ -528,98 +528,33 @@
   opacity: 1;
 }
 
-/* Overview section tab (OverviewTabSelector): a label on its segment of the difficulty picker's
-   track. The whole tab, track included, is the click target. The selected segment is raised in the
-   primary colour, a hovered one in dark-2, like the picker's segments. Hover only brightens the
-   label and raises the segment, so label and segment read as one control. */
-.mv-overview-tab {
-  flex: 1 1 0;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  /* Lets the icon hide when the tab gets too narrow for icon and label (see below). */
-  container-type: inline-size;
+/* Overview summary card (OverviewSummary): a card that opens its page. Hover and keyboard focus
+   look the same, a lighter border. */
+.mv-summary-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+
+  .mantine-Paper-root {
+    transition: border-color 0.12s ease;
+  }
+
+  &:hover .mantine-Paper-root,
+  &:focus-visible .mantine-Paper-root {
+    border-color: var(--mantine-color-dark-3);
+  }
 
   &:focus-visible {
-    outline: 2px solid var(--mantine-primary-color-filled);
-    outline-offset: 1px;
-    border-radius: var(--mantine-radius-default);
-  }
-}
-
-.mv-overview-tab__label {
-  height: var(--input-height-sm, 2.25rem);
-  display: flex;
-  /* The label sits at the bottom of its row, right on its segment, so the two read as one tab. */
-  align-items: flex-end;
-  justify-content: center;
-  gap: 5px;
-  padding-inline: 2px;
-  padding-bottom: var(--mantine-spacing-xs);
-  font-size: var(--mantine-font-size-sm);
-  font-weight: 700;
-  color: var(--mantine-color-dark-1);
-  white-space: nowrap;
-  transition: color 0.12s ease;
-}
-
-.mv-overview-tab__icon {
-  flex: none;
-  /* Sits on the text's baseline row rather than the bottom of the label. */
-  margin-bottom: 1px;
-}
-
-.mv-overview-tab__text {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* The longest label ("Metadata") with its icon needs about 87px; below that the icon goes first,
-   so labels are never cut off (a small window or a high UI zoom). */
-@container (max-width: 88px) {
-  .mv-overview-tab__icon {
-    display: none;
-  }
-}
-
-.mv-overview-tab__track {
-  /* 23px keeps the header 62px tall like Checks: 36px row + 23px - 5px bottom slack + 8px top. */
-  height: 23px;
-  display: flex;
-  /* Grows downward on hover and selection, so the label never moves. */
-  align-items: flex-start;
-}
-
-.mv-overview-tab__bar {
-  width: 100%;
-  height: 6px;
-  border-radius: 2px;
-  background-color: var(--mantine-color-dark-3);
-  transition:
-    height 0.12s ease,
-    background-color 0.12s ease;
-}
-
-.mv-overview-tab:hover {
-  .mv-overview-tab__label {
-    color: var(--mantine-color-white);
+    outline: none;
   }
 
-  .mv-overview-tab__bar {
-    height: 10px;
-    background-color: var(--mantine-color-dark-2);
-  }
-}
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
 
-.mv-overview-tab[data-active] {
-  .mv-overview-tab__label {
-    color: var(--mantine-color-white);
-  }
-
-  .mv-overview-tab__bar {
-    height: 10px;
-    background-color: var(--mantine-color-primary-2);
+    &:hover .mantine-Paper-root {
+      border-color: var(--mantine-color-default-border);
+    }
   }
 }
 
@@ -764,24 +699,6 @@
   }
 }
 
-/* The Overview's difficulty chips stay at the top of the tab while it scrolls. They take the
-   panel's colour edge to edge, so content passes cleanly underneath, and cast a shadow only while
-   something is under them. The side margins undo the tab's padding (md); the vertical ones undo
-   the bar's own padding, so it keeps the tab's usual gap to its neighbours. */
-.mv-sticky-picks {
-  position: sticky;
-  top: 0;
-  margin: calc(-1 * var(--mantine-spacing-sm)) calc(-1 * var(--mantine-spacing-md));
-  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
-  background-color: var(--mantine-color-dark-6);
-  transition: box-shadow 0.12s ease;
-
-  &[data-stuck] {
-    box-shadow: 0 8px 12px -10px rgba(0, 0, 0, 0.7);
-    border-bottom: 1px solid var(--mantine-color-dark-5);
-  }
-}
-
 /* Chosen level in the interpreted-as select. A row highlight stands in for the check icon. */
 .mv-level-option[data-checked],
 .mv-level-option[data-checked]:hover,
@@ -791,9 +708,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mv-status-segment__bar,
-  .mv-overview-tab__label,
-  .mv-overview-tab__bar {
+  .mv-status-segment__bar {
     transition: none;
   }
 }

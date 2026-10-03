@@ -5,7 +5,14 @@ import { getActiveNavRoute } from './navConfig.ts';
 import MinorIcon from '../icons/MinorIcon.tsx';
 import type { ReactNode } from 'react';
 
-export type OverviewTab = 'Metadata' | 'Beatmap' | 'Difficulty' | 'Audio' | 'Video' | 'Objects';
+export type OverviewTab =
+  | 'Summary'
+  | 'General'
+  | 'Beatmap'
+  | 'Difficulty'
+  | 'Audio'
+  | 'Video'
+  | 'Objects';
 
 export type PageHint = {
   id: string;
@@ -64,6 +71,18 @@ function difficultyStepHint(): PageHint {
     content: (
       <>
         Press <Kbd size="xs">[</Kbd> or <Kbd size="xs">]</Kbd> to go to the previous or next
+        difficulty.
+      </>
+    ),
+  };
+}
+
+function overviewPicksHint(): PageHint {
+  return {
+    id: 'overview-picks',
+    content: (
+      <>
+        <Kbd size="xs">Left Click</Kbd> a segment in the bar under the picker to show or hide that
         difficulty.
       </>
     ),
@@ -197,13 +216,18 @@ export function getPageHints(
   }
 
   if (route === '/overview') {
-    if (overviewTab === 'Audio' || overviewTab === 'Video' || overviewTab === 'Metadata') {
+    if (overviewTab === 'Audio' || overviewTab === 'Video' || overviewTab === 'General') {
       return [refreshBeatmapHint()];
+    }
+
+    if (overviewTab === 'Summary') {
+      return [refreshBeatmapHint(), overviewPicksHint()];
     }
 
     if (overviewTab === 'Objects') {
       const hints = [
         ...commonHints(isMac),
+        overviewPicksHint(),
         contextClickHint(
           'timeline-rclick',
           isMac,
@@ -273,6 +297,7 @@ export function getPageHints(
     if (overviewTab === 'Beatmap') {
       return [
         ...commonHints(isMac),
+        overviewPicksHint(),
         {
           id: 'cell-groups',
           content:
@@ -284,6 +309,7 @@ export function getPageHints(
     if (overviewTab === 'Difficulty') {
       return [
         ...commonHints(isMac),
+        overviewPicksHint(),
         {
           id: 'chart-zoom',
           content: (

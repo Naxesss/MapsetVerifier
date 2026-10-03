@@ -1,5 +1,5 @@
 import { clampColor, parseColor } from '../../../utils/color.ts';
-import { MODE_ORDER, normalizeMode } from '../../../utils/gameMode.ts';
+import { normalizeMode } from '../../../utils/gameMode.ts';
 import { getDifficultyColor } from '../../common/DifficultyColor.ts';
 import { formatChartTime } from '../../common/TimeAxis.tsx';
 import type {
@@ -444,5 +444,3 @@ function buildChartDefinition(
     ...(hideLowValuesThreshold !== undefined ? { hideLowValuesThreshold } : {}),
   };
 }
-
-export { MODE_ORDER, normalizeMode };

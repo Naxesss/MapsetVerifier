@@ -115,13 +115,6 @@ function DifficultyPicker({
     setDiffMenuOpened(true);
   };
 
-  const separator = (
-    <Text c="dimmed" fw={700} aria-hidden>
-      /
-    </Text>
-  );
-  const chevron = <IconChevronDown size={14} stroke={1.5} />;
-
   return (
     <Box>
       <Group gap="xs" wrap="nowrap">
@@ -137,49 +130,19 @@ function DifficultyPicker({
         </Button>
         {modes.length > 1 && (
           <>
-            {separator}
-            <Menu position="bottom-start" withinPortal>
-              <Menu.Target>
-                <Button
-                  variant="default"
-                  size="sm"
-                  leftSection={
-                    <Group gap={6} wrap="nowrap">
-                      {activeGroup && modeStatus?.(activeGroup.mode, activeGroup.difficulties)}
-                      {activeMode && <GameModeIcon mode={activeMode} size={18} />}
-                    </Group>
-                  }
-                  rightSection={chevron}
-                  style={{ flexShrink: 0 }}
-                >
-                  {activeMode && formatGameModeLabel(activeMode)}
-                </Button>
-              </Menu.Target>
-              <Menu.Dropdown>
-                {modes.map((group) => (
-                  <Menu.Item
-                    key={group.mode}
-                    leftSection={
-                      <Group gap={6} wrap="nowrap">
-                        {modeStatus?.(group.mode, group.difficulties)}
-                        <GameModeIcon mode={group.mode} size={18} />
-                      </Group>
-                    }
-                    rightSection={
-                      <Text size="xs" c="dimmed" style={{ fontVariantNumeric: 'tabular-nums' }}>
-                        {group.difficulties.length}
-                      </Text>
-                    }
-                    onClick={() => selectMode(group.mode)}
-                  >
-                    {formatGameModeLabel(group.mode)}
-                  </Menu.Item>
-                ))}
-              </Menu.Dropdown>
-            </Menu>
+            <PickerSeparator />
+            <ModeMenu
+              groups={modes.map((group) => ({
+                mode: group.mode,
+                count: group.difficulties.length,
+                status: modeStatus?.(group.mode, group.difficulties),
+              }))}
+              active={activeMode}
+              onSelect={selectMode}
+            />
           </>
         )}
-        {separator}
+        <PickerSeparator />
         <Menu
           position="bottom-start"
           withinPortal
@@ -198,7 +161,7 @@ function DifficultyPicker({
                   </Group>
                 )
               }
-              rightSection={chevron}
+              rightSection={PICKER_CHEVRON}
               maw={340}
               // Shrinks before anything else in a narrow window, cutting the name off with "…".
               style={{ minWidth: 0 }}
@@ -278,19 +241,8 @@ function DifficultyPicker({
           </Tooltip>
         </Group>
       </Group>
-      {/* One segment per difficulty in spread order: the same small gap between every segment, a
-          wider one after General and between modes. Each segment's click area is taller than its
-          bar; the row's margins take that extra height back, so the bars keep the header's usual
-          row gap (sm) above and below. */}
-      <Group
-        gap={SEGMENT_GAP}
-        wrap="nowrap"
-        align="center"
-        h={SEGMENT_HIT_HEIGHT}
-        mt={`calc(var(--mantine-spacing-sm) - ${SEGMENT_HIT_SLACK}px)`}
-        mb={-SEGMENT_HIT_SLACK}
-        aria-label="Difficulties at a glance"
-      >
+      {/* One segment per difficulty in spread order, a wider gap after General and between modes. */}
+      <StatusSegmentBar>
         <StatusSegment
           label="General"
           color={general.statusColor}
@@ -317,8 +269,73 @@ function DifficultyPicker({
             ))}
           </Fragment>
         ))}
-      </Group>
+      </StatusSegmentBar>
     </Box>
+  );
+}
+
+export const PICKER_CHEVRON = <IconChevronDown size={14} stroke={1.5} />;
+
+/** The "/" between a picker's buttons, which read left to right like a path. */
+export function PickerSeparator() {
+  return (
+    <Text c="dimmed" fw={700} aria-hidden>
+      /
+    </Text>
+  );
+}
+
+interface ModeMenuProps {
+  /** The modes to choose from, in order; `status` shows in front of the mode's icon. */
+  groups: { mode: Mode; count: number; status?: ReactNode }[];
+  active: Mode | undefined;
+  onSelect: (mode: Mode) => void;
+}
+
+/** The game mode menu of the difficulty pickers: the active mode, and each mode's difficulty count. */
+export function ModeMenu({ groups, active, onSelect }: ModeMenuProps) {
+  const activeGroup = groups.find((group) => group.mode === active);
+
+  return (
+    <Menu position="bottom-start" withinPortal>
+      <Menu.Target>
+        <Button
+          variant="default"
+          size="sm"
+          leftSection={
+            <Group gap={6} wrap="nowrap">
+              {activeGroup?.status}
+              {active && <GameModeIcon mode={active} size={18} />}
+            </Group>
+          }
+          rightSection={PICKER_CHEVRON}
+          style={{ flexShrink: 0 }}
+        >
+          {active && formatGameModeLabel(active)}
+        </Button>
+      </Menu.Target>
+      <Menu.Dropdown>
+        {groups.map((group) => (
+          <Menu.Item
+            key={group.mode}
+            leftSection={
+              <Group gap={6} wrap="nowrap">
+                {group.status}
+                <GameModeIcon mode={group.mode} size={18} />
+              </Group>
+            }
+            rightSection={
+              <Text size="xs" c="dimmed" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                {group.count}
+              </Text>
+            }
+            onClick={() => onSelect(group.mode)}
+          >
+            {formatGameModeLabel(group.mode)}
+          </Menu.Item>
+        ))}
+      </Menu.Dropdown>
+    </Menu>
   );
 }
 
@@ -328,6 +345,27 @@ const SEGMENT_GROUP_GAP = 10;
 const SEGMENT_HIT_HEIGHT = 20;
 /** Room between the tallest bar and the click area's edge, above and below. */
 const SEGMENT_HIT_SLACK = (SEGMENT_HIT_HEIGHT - 10) / 2;
+
+/**
+ * The row of segments under a picker: the same small gap between every segment. Each segment's
+ * click area is taller than its bar; the row's margins take that extra height back, so the bars
+ * keep the header's usual row gap (sm) above and below.
+ */
+export function StatusSegmentBar({ children }: { children: ReactNode }) {
+  return (
+    <Group
+      gap={SEGMENT_GAP}
+      wrap="nowrap"
+      align="center"
+      h={SEGMENT_HIT_HEIGHT}
+      mt={`calc(var(--mantine-spacing-sm) - ${SEGMENT_HIT_SLACK}px)`}
+      mb={-SEGMENT_HIT_SLACK}
+      aria-label="Difficulties at a glance"
+    >
+      {children}
+    </Group>
+  );
+}
 
 interface StatusSegmentProps {
   label: string;
@@ -346,7 +384,7 @@ interface StatusSegmentProps {
  * the bar to the selected look, so it reads as clickable. The selected bar is taller rather than
  * outlined: an outline spilled into the gaps next to it.
  */
-function StatusSegment({
+export function StatusSegment({
   label,
   groupStart,
   starRating,

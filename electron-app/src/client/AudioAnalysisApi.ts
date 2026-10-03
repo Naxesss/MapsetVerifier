@@ -1,9 +1,4 @@
-﻿import {
-  AudioAnalysisResult,
-  SpectralAnalysisResult,
-  FrequencyAnalysisResult,
-  HitSoundBatchResult,
-} from '../Types';
+﻿import { AudioAnalysisResult, SpectralAnalysisResult, FrequencyAnalysisResult } from '../Types';
 import { apiFetch, FetchError } from './ApiHelper';
 
 export interface AudioAnalysisRequest {
@@ -22,10 +17,6 @@ export interface FrequencyAnalysisRequest {
   beatmapSetFolder: string;
   audioFile?: string;
   fftSize?: number;
-}
-
-export interface HitSoundAnalysisRequest {
-  beatmapSetFolder: string;
 }
 
 const AudioAnalysisApi = {
@@ -99,32 +90,6 @@ const AudioAnalysisApi = {
 
       if (response.ok) {
         return data as FrequencyAnalysisResult;
-      } else {
-        const message = data?.message || data?.error || raw || `HTTP ${response.status}`;
-        const stackTrace = data?.stackTrace;
-        throw new FetchError(response, message, stackTrace);
-      }
-    });
-  },
-
-  analyzeHitSounds: async function analyzeHitSounds(request: HitSoundAnalysisRequest) {
-    return apiFetch('/audio/hitsounds', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(request),
-    }).then(async (response) => {
-      const raw = await response.text();
-      let data: any = undefined;
-      try {
-        data = raw ? JSON.parse(raw) : undefined;
-      } catch {
-        /* ignore parse errors */
-      }
-
-      if (response.ok) {
-        return data as HitSoundBatchResult;
       } else {
         const message = data?.message || data?.error || raw || `HTTP ${response.status}`;
         const stackTrace = data?.stackTrace;

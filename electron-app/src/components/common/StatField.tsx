@@ -1,4 +1,4 @@
-import { Divider, Group, Stack, Text, type MantineColor } from '@mantine/core';
+import { Box, Group, Stack, Text, type MantineColor } from '@mantine/core';
 import { MicroLabel } from './Headings.tsx';
 import SectionCard from './SectionCard.tsx';
 import type { ReactNode } from 'react';
@@ -60,19 +60,36 @@ type StatLineItem = Pick<StatFieldProps, 'label' | 'value' | 'note'>;
 /**
  * The few big numbers at the top of an Overview tab, side by side on one card with a divider
  * between them. The row wraps only when the panel runs out of room, instead of stacking a card per
- * number on the window's breakpoints.
+ * number on the window's breakpoints. Every item draws its own divider on its left, and the row is
+ * shifted left under a clipping wrapper, so the first item of every row (the first one, and each
+ * one that wrapped) loses its divider and starts flush with the card's padding.
  */
 export function StatLine({ items }: { items: StatLineItem[] }) {
   return (
     <SectionCard>
-      <Group gap="lg" align="flex-start" style={{ rowGap: 'var(--mantine-spacing-md)' }}>
-        {items.map((item, index) => (
-          <Group key={index} gap="lg" align="stretch" wrap="nowrap" style={{ minWidth: 0 }}>
-            {index > 0 && <Divider orientation="vertical" />}
-            <StatField label={item.label} value={item.value} note={item.note} size="lg" />
-          </Group>
-        ))}
-      </Group>
+      <Box style={{ overflow: 'hidden' }}>
+        <Group
+          gap={0}
+          align="flex-start"
+          style={{
+            marginLeft: 'calc(-1 * var(--mantine-spacing-lg) - 1px)',
+            rowGap: 'var(--mantine-spacing-md)',
+          }}
+        >
+          {items.map((item, index) => (
+            <Box
+              key={index}
+              style={{
+                minWidth: 0,
+                padding: '0 var(--mantine-spacing-lg)',
+                borderLeft: '1px solid var(--mantine-color-default-border)',
+              }}
+            >
+              <StatField label={item.label} value={item.value} note={item.note} size="lg" />
+            </Box>
+          ))}
+        </Group>
+      </Box>
     </SectionCard>
   );
 }
