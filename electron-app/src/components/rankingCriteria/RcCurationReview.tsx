@@ -298,7 +298,7 @@ export default function RcCurationReview() {
 
       {(overview.error || isError) && (
         <Alert icon={<IconAlertCircle />} color="red">
-          Failed to load the ranking criteria.
+          Couldn&apos;t load the ranking criteria.
         </Alert>
       )}
       {save.error && (

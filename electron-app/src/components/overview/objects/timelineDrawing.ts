@@ -28,14 +28,14 @@ import {
 import { resolveTimelineVisualTheme } from './timelineTheme/selection.ts';
 import {
   buildRoundedEdgeTimes,
+  collectTimingTicks,
   findLowerBoundIndex,
   getAlignedTimelineLineX,
   getObjectBodyWidth,
   getTimelineTimeFromX,
   getTimelineX,
-  getTimingTickStyle,
-  hasNearbyRoundedEdge,
   type TimelineRowDrawCache,
+  type TimelineTimingTick,
 } from './timelineUtils.ts';
 import { withAlpha } from '../../../utils/color.ts';
 import type { TimelineThemeVariant, TimelineVisualTheme } from './timelineTheme/types.ts';
@@ -157,6 +157,7 @@ export function drawTimelineRow(
   drawTimingGrid(ctx, {
     timingSegments: difficulty.timingSegments,
     roundedEdgeTimes,
+    timingTicks: rowDrawCache?.timingTicks,
     startTimeMs,
     endTimeMs,
     durationMs,
@@ -278,6 +279,7 @@ export function drawTimelineRow(
       visibleEndX: viewportEndX,
       height,
       primaryEdgeMarkers: resolvedHitsoundCache.primaryEdgeMarkers,
+      soundStrip: rowDrawCache?.soundStrip,
     });
   }
 
@@ -339,6 +341,36 @@ function getSliderSnapTimeMsAtX(
   return distToStart <= distToEnd ? timelineObject.startTimeMs : timelineObject.endTimeMs;
 }
 
+const OBJECT_HIT_SEARCH_PADDING_PX = 48;
+
+function getObjectScanRange(
+  objects: ObjectsTimelineObject[],
+  sortedObjects: ObjectsTimelineObject[] | undefined,
+  maxObjectDurationMs: number | undefined,
+  x: number,
+  startTimeMs: number,
+  durationMs: number,
+  timelineWidth: number
+): { list: ObjectsTimelineObject[]; start: number; end: number } {
+  if (!sortedObjects) {
+    return { list: objects, start: 0, end: objects.length };
+  }
+
+  const marginMs = (OBJECT_HIT_SEARCH_PADDING_PX / Math.max(timelineWidth, 1)) * durationMs;
+  const timeMs = getTimelineTimeFromX(x, startTimeMs, durationMs, timelineWidth);
+  const start = findLowerBoundIndex(
+    sortedObjects,
+    timeMs - marginMs - (maxObjectDurationMs ?? 0),
+    (object) => object.startTimeMs
+  );
+  const end = findLowerBoundIndex(
+    sortedObjects,
+    timeMs + marginMs + 1e-6,
+    (object) => object.startTimeMs
+  );
+  return { list: sortedObjects, start, end };
+}
+
 export function getTimelineTimestampAtX({
   difficulty,
   startTimeMs,
@@ -346,6 +378,8 @@ export function getTimelineTimestampAtX({
   timelineWidth,
   x,
   visualThemeVariant,
+  sortedObjects,
+  maxObjectDurationMs,
 }: {
   difficulty: ObjectsOverviewDifficulty;
   startTimeMs: number;
@@ -353,6 +387,8 @@ export function getTimelineTimestampAtX({
   timelineWidth: number;
   x: number;
   visualThemeVariant: TimelineThemeVariant;
+  sortedObjects?: ObjectsTimelineObject[];
+  maxObjectDurationMs?: number;
 }): number | null {
   const durationMs = Math.max(1, endTimeMs - startTimeMs);
   const visualTheme = resolveTimelineVisualTheme(difficulty.mode, visualThemeVariant);
@@ -367,7 +403,18 @@ export function getTimelineTimestampAtX({
     }
   };
 
-  for (const timelineObject of difficulty.timelineObjects) {
+  const scan = getObjectScanRange(
+    difficulty.timelineObjects,
+    sortedObjects,
+    maxObjectDurationMs,
+    x,
+    startTimeMs,
+    durationMs,
+    timelineWidth
+  );
+
+  for (let index = scan.start; index < scan.end; index += 1) {
+    const timelineObject = scan.list[index];
     if (timelineObject.objectType === 'Circle') {
       const centerX = getTimelineX(
         timelineObject.startTimeMs,
@@ -476,6 +523,8 @@ export function findTimelineObjectHeadAtX({
   timelineWidth,
   x,
   visualThemeVariant,
+  sortedObjects,
+  maxObjectDurationMs,
 }: {
   difficulty: ObjectsOverviewDifficulty;
   startTimeMs: number;
@@ -483,6 +532,8 @@ export function findTimelineObjectHeadAtX({
   timelineWidth: number;
   x: number;
   visualThemeVariant: TimelineThemeVariant;
+  sortedObjects?: ObjectsTimelineObject[];
+  maxObjectDurationMs?: number;
 }): TimelineObjectHeadHit | null {
   const durationMs = Math.max(1, endTimeMs - startTimeMs);
   const visualTheme = resolveTimelineVisualTheme(difficulty.mode, visualThemeVariant);
@@ -507,7 +558,18 @@ export function findTimelineObjectHeadAtX({
     bestHit = { object, edge, timeMs, anchorX: centerX, partLabel, showSnapLabel };
   };
 
-  for (const timelineObject of difficulty.timelineObjects) {
+  const scan = getObjectScanRange(
+    difficulty.timelineObjects,
+    sortedObjects,
+    maxObjectDurationMs,
+    x,
+    startTimeMs,
+    durationMs,
+    timelineWidth
+  );
+
+  for (let index = scan.start; index < scan.end; index += 1) {
+    const timelineObject = scan.list[index];
     if (timelineObject.objectType === 'Circle') {
       const centerX = getTimelineX(
         timelineObject.startTimeMs,
@@ -646,6 +708,7 @@ function drawTimingGrid(
   {
     timingSegments,
     roundedEdgeTimes,
+    timingTicks,
     startTimeMs,
     endTimeMs,
     durationMs,
@@ -656,6 +719,7 @@ function drawTimingGrid(
   }: {
     timingSegments: ObjectsTimingSegment[];
     roundedEdgeTimes: Set<number>;
+    timingTicks?: TimelineTimingTick[];
     startTimeMs: number;
     endTimeMs: number;
     durationMs: number;
@@ -665,11 +729,8 @@ function drawTimingGrid(
     height: number;
   }
 ) {
-  if (timingSegments.length === 0) return;
+  if (timingSegments.length === 0 && !timingTicks) return;
 
-  // Bound beat-sample generation to this tile's own window, not the full map duration — without
-  // this, every tile would regenerate the whole map's worth of beat-tick samples just to keep
-  // the handful that land within its small visible range.
   const tileWindowStartMs = Math.max(
     startTimeMs,
     getTimelineTimeFromX(visibleStartX - TICK_CULL_PADDING_PX, startTimeMs, durationMs, width)
@@ -678,42 +739,39 @@ function drawTimingGrid(
     endTimeMs,
     getTimelineTimeFromX(visibleEndX + TICK_CULL_PADDING_PX, startTimeMs, durationMs, width)
   );
+  const ticks =
+    timingTicks ??
+    collectTimingTicks(timingSegments, roundedEdgeTimes, tileWindowStartMs, tileWindowEndMs);
 
   const tickLines = new Map<
     string,
     { x: number; color: string; height: number; alpha: number; priority: number }
   >();
+  const tickStart = findLowerBoundIndex(ticks, tileWindowStartMs - 1, (tick) => tick.timeMs);
+  let tickEnd = findLowerBoundIndex(ticks, tileWindowEndMs, (tick) => tick.timeMs);
+  while (tickEnd < ticks.length && ticks[tickEnd].timeMs <= tileWindowEndMs + 1) {
+    tickEnd += 1;
+  }
 
-  for (const segment of timingSegments) {
-    const visibleStartMs = Math.max(tileWindowStartMs, segment.startTimeMs);
-    const visibleEndMs = Math.min(tileWindowEndMs, segment.endTimeMs);
-    const sampleStepMs = segment.msPerBeat / 48;
+  for (let index = tickStart; index < tickEnd; index += 1) {
+    const tick = ticks[index];
+    const rawX = getTimelineX(tick.timeMs, startTimeMs, durationMs, width);
+    if (rawX < visibleStartX - TICK_CULL_PADDING_PX || rawX > visibleEndX + TICK_CULL_PADDING_PX) {
+      continue;
+    }
 
-    if (visibleEndMs <= visibleStartMs || sampleStepMs <= 0) continue;
+    const x = getAlignedTimelineLineX(tick.timeMs, startTimeMs, durationMs, width);
+    const key = x.toFixed(1);
+    const existing = tickLines.get(key);
 
-    const startSampleIndex = Math.max(
-      0,
-      Math.ceil((visibleStartMs - segment.offsetMs) / sampleStepMs)
-    );
-    const endSampleIndex = Math.floor((visibleEndMs - segment.offsetMs) / sampleStepMs);
-
-    for (let sampleIndex = startSampleIndex; sampleIndex <= endSampleIndex; sampleIndex += 1) {
-      const sampleTimeMs = segment.offsetMs + sampleIndex * sampleStepMs;
-      const rawX = getTimelineX(sampleTimeMs, startTimeMs, durationMs, width);
-      if (rawX < visibleStartX - TICK_CULL_PADDING_PX || rawX > visibleEndX + TICK_CULL_PADDING_PX)
-        continue;
-
-      const hasNearbyEdge = hasNearbyRoundedEdge(roundedEdgeTimes, sampleTimeMs);
-      const tickStyle = getTimingTickStyle(sampleIndex, segment.meter, hasNearbyEdge);
-      if (!tickStyle) continue;
-
-      const x = getAlignedTimelineLineX(sampleTimeMs, startTimeMs, durationMs, width);
-      const key = x.toFixed(1);
-      const existing = tickLines.get(key);
-
-      if (!existing || tickStyle.priority >= existing.priority) {
-        tickLines.set(key, { x, ...tickStyle });
-      }
+    if (!existing || tick.priority >= existing.priority) {
+      tickLines.set(key, {
+        x,
+        color: tick.color,
+        height: tick.height,
+        alpha: tick.alpha,
+        priority: tick.priority,
+      });
     }
   }
 
@@ -892,18 +950,31 @@ function drawSliderTickDots(
   }
 
   const cullPadding = SLIDER_TICK_DOT_RADIUS + 1;
+  const visibleStartMs = getTimelineTimeFromX(
+    visibleStartX - cullPadding,
+    startTimeMs,
+    durationMs,
+    timelineWidth
+  );
+  const visibleEndMs = getTimelineTimeFromX(
+    visibleEndX + cullPadding,
+    startTimeMs,
+    durationMs,
+    timelineWidth
+  );
+  let rangeStart = visibleStartMs - 1;
+  let rangeEnd = visibleEndMs + 1;
+  if (startTimeFilterMs != null) {
+    rangeStart = Math.max(rangeStart, startTimeFilterMs - 1);
+  }
+  if (endTimeFilterMs != null) {
+    rangeEnd = Math.min(rangeEnd, endTimeFilterMs + 1);
+  }
 
-  // `samples` is sorted ascending by timeMs, so jump straight to the object's own time range
-  // instead of scanning every sample in the map for every slider drawn.
-  let startIndex = 0;
-  let endIndexExclusive = samples.length;
-  if (startTimeFilterMs != null && endTimeFilterMs != null) {
-    startIndex = findLowerBoundIndex(samples, startTimeFilterMs - 1, (sample) => sample.timeMs);
-    endIndexExclusive = findLowerBoundIndex(
-      samples,
-      endTimeFilterMs + 1 + 1e-6,
-      (sample) => sample.timeMs
-    );
+  const startIndex = findLowerBoundIndex(samples, rangeStart, (sample) => sample.timeMs);
+  let endIndexExclusive = findLowerBoundIndex(samples, rangeEnd, (sample) => sample.timeMs);
+  while (endIndexExclusive < samples.length && samples[endIndexExclusive].timeMs <= rangeEnd) {
+    endIndexExclusive += 1;
   }
 
   ctx.save();

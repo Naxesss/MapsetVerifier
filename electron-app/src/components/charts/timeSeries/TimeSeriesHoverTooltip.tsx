@@ -19,7 +19,7 @@ function TimeSeriesHoverTooltip({
   embedded = false,
 }: TimeSeriesHoverTooltipProps) {
   const content = (
-    <Stack gap={4}>
+    <Stack gap="xs">
       {showTimestamp ? (
         <Text size="xs" fw={700}>
           {formatEditorTimestamp(hover.timeMs)}

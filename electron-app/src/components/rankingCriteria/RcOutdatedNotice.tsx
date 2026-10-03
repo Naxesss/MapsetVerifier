@@ -1,7 +1,8 @@
 import { Alert, Anchor, Text } from '@mantine/core';
 import { IconAlertTriangle } from '@tabler/icons-react';
-import { openExternal, wikiCompareUrl } from './rcUtils';
+import { wikiCompareUrl } from './rcUtils';
 import { useRankingCriteriaOverview } from './useRankingCriteria';
+import { openExternal } from '../../hooks/useOpenExternal';
 import { ApiRcStatement } from '../../Types';
 
 /**

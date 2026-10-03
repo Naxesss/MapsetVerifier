@@ -183,6 +183,29 @@ export function hasAnySliderBodyAddition(flags: number): boolean {
   );
 }
 
+type IndexedSample = {
+  sample: ObjectsTimelineSample;
+  index: number;
+};
+
+function lowerBoundTime<T>(
+  items: readonly T[],
+  timeMs: number,
+  getTimeMs: (item: T) => number
+): number {
+  let lo = 0;
+  let hi = items.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >>> 1;
+    if (getTimeMs(items[mid]) < timeMs) {
+      lo = mid + 1;
+    } else {
+      hi = mid;
+    }
+  }
+  return lo;
+}
+
 function findPrimaryBodySampleInRange(
   bodySamples: ObjectsTimelineSample[],
   startTimeMs: number,
@@ -203,6 +226,130 @@ function findPrimaryBodySampleInRange(
   }
 
   return fallback;
+}
+
+/** Same winner as `findPrimaryBodySampleInRange`, scanning only the time slice. */
+function findPrimaryBodySampleIndexed(
+  sortedBodySamples: readonly IndexedSample[],
+  startTimeMs: number,
+  endTimeMs: number
+): ObjectsTimelineSample | null {
+  const rangeStart = startTimeMs - 1;
+  const rangeEnd = endTimeMs + 1;
+  const start = lowerBoundTime(sortedBodySamples, rangeStart, (item) => item.sample.timeMs);
+  let end = lowerBoundTime(sortedBodySamples, rangeEnd, (item) => item.sample.timeMs);
+  while (end < sortedBodySamples.length && sortedBodySamples[end].sample.timeMs <= rangeEnd) {
+    end += 1;
+  }
+
+  let bestBase: IndexedSample | null = null;
+  let bestAny: IndexedSample | null = null;
+
+  for (let index = start; index < end; index += 1) {
+    const item = sortedBodySamples[index];
+    if (item.sample.timeMs < rangeStart || item.sample.timeMs > rangeEnd) {
+      continue;
+    }
+
+    if (!bestAny || item.index < bestAny.index) {
+      bestAny = item;
+    }
+
+    if (isBaseBodySample(item.sample) && (!bestBase || item.index < bestBase.index)) {
+      bestBase = item;
+    }
+  }
+
+  return (bestBase ?? bestAny)?.sample ?? null;
+}
+
+function indexEdgeSamples(samples: ObjectsTimelineSample[]): Map<number, IndexedSample[]> {
+  const edgeSamplesByRoundedTime = new Map<number, IndexedSample[]>();
+
+  for (let index = 0; index < samples.length; index += 1) {
+    const sample = samples[index];
+    if (sample.source !== 'Edge') {
+      continue;
+    }
+
+    const key = Math.round(sample.timeMs);
+    const entry = { sample, index };
+    const bucket = edgeSamplesByRoundedTime.get(key);
+    if (bucket) {
+      bucket.push(entry);
+    } else {
+      edgeSamplesByRoundedTime.set(key, [entry]);
+    }
+  }
+
+  return edgeSamplesByRoundedTime;
+}
+
+/**
+ * Same winner as `getPrimaryEdgeSample`. Among equal distances the earlier sample wins,
+ * matching a forward scan that only replaces on a strictly smaller distance.
+ */
+function getPrimaryEdgeSampleFromIndex(
+  edgeSamplesByRoundedTime: Map<number, IndexedSample[]>,
+  edgeTimeMs: number,
+  toleranceMs = 2
+): ObjectsTimelineSample | null {
+  const rounded = Math.round(edgeTimeMs);
+  const radius = Math.ceil(toleranceMs) + 1;
+  let bestHitNormal: ObjectsTimelineSample | null = null;
+  let bestHitNormalDistance = Number.POSITIVE_INFINITY;
+  let bestHitNormalIndex = Number.POSITIVE_INFINITY;
+  let bestBase: ObjectsTimelineSample | null = null;
+  let bestBaseDistance = Number.POSITIVE_INFINITY;
+  let bestBaseIndex = Number.POSITIVE_INFINITY;
+  let bestAny: ObjectsTimelineSample | null = null;
+  let bestAnyDistance = Number.POSITIVE_INFINITY;
+  let bestAnyIndex = Number.POSITIVE_INFINITY;
+
+  for (let delta = -radius; delta <= radius; delta += 1) {
+    const bucket = edgeSamplesByRoundedTime.get(rounded + delta);
+    if (!bucket) {
+      continue;
+    }
+
+    for (const entry of bucket) {
+      const distance = Math.abs(entry.sample.timeMs - edgeTimeMs);
+      if (distance > toleranceMs) {
+        continue;
+      }
+
+      if (
+        distance < bestAnyDistance ||
+        (distance === bestAnyDistance && entry.index < bestAnyIndex)
+      ) {
+        bestAnyDistance = distance;
+        bestAnyIndex = entry.index;
+        bestAny = entry.sample;
+      }
+
+      if (
+        isBaseEdgeSample(entry.sample) &&
+        (distance < bestBaseDistance ||
+          (distance === bestBaseDistance && entry.index < bestBaseIndex))
+      ) {
+        bestBaseDistance = distance;
+        bestBaseIndex = entry.index;
+        bestBase = entry.sample;
+      }
+
+      if (
+        entry.sample.isBaseHitNormal &&
+        (distance < bestHitNormalDistance ||
+          (distance === bestHitNormalDistance && entry.index < bestHitNormalIndex))
+      ) {
+        bestHitNormalDistance = distance;
+        bestHitNormalIndex = entry.index;
+        bestHitNormal = entry.sample;
+      }
+    }
+  }
+
+  return bestHitNormal ?? bestBase ?? bestAny;
 }
 
 /**
@@ -261,10 +408,11 @@ export function getPrimaryEdgeMarkers(
   samples: ObjectsTimelineSample[]
 ): PrimaryEdgeMarker[] {
   const markers: PrimaryEdgeMarker[] = [];
+  const edgeSamplesByRoundedTime = indexEdgeSamples(samples);
 
   for (const object of timelineObjects) {
     for (const edge of object.edges) {
-      const primary = getPrimaryEdgeSample(samples, edge.timeMs);
+      const primary = getPrimaryEdgeSampleFromIndex(edgeSamplesByRoundedTime, edge.timeMs);
       if (!primary) {
         continue;
       }
@@ -288,12 +436,17 @@ export function buildHitsoundDrawCache(
   timelineObjects: ObjectsTimelineObject[],
   samples: ObjectsTimelineSample[]
 ): HitsoundDrawCache {
-  const bodySamples: ObjectsTimelineSample[] = [];
-  for (const sample of samples) {
+  const bodySamples: IndexedSample[] = [];
+  for (let index = 0; index < samples.length; index += 1) {
+    const sample = samples[index];
     if (sample.source === 'Body') {
-      bodySamples.push(sample);
+      bodySamples.push({ sample, index });
     }
   }
+
+  const sortedBodySamples = bodySamples
+    .slice()
+    .sort((left, right) => left.sample.timeMs - right.sample.timeMs || left.index - right.index);
 
   const bodySampleByObject = new Map<ObjectsTimelineObject, ObjectsTimelineSample | null>();
   for (const object of timelineObjects) {
@@ -303,7 +456,7 @@ export function buildHitsoundDrawCache(
 
     bodySampleByObject.set(
       object,
-      findPrimaryBodySampleInRange(bodySamples, object.startTimeMs, object.endTimeMs)
+      findPrimaryBodySampleIndexed(sortedBodySamples, object.startTimeMs, object.endTimeMs)
     );
   }
 

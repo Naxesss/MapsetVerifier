@@ -14,10 +14,10 @@ namespace MapsetVerifier.Snapshots.Translators
         /// </summary>
         public static readonly string[] FileSections =
         [
-            "Osu Files",
-            "Audio Files",
-            "Video Files",
-            "Other Files",
+            "osu! files",
+            "Audio files",
+            "Video files",
+            "Other files",
         ];
 
         private static readonly string[] AudioExtensions = [".mp3", ".wav", ".ogg", ".m4a"];
@@ -37,15 +37,15 @@ namespace MapsetVerifier.Snapshots.Translators
             var extension = Path.GetExtension(fileName);
 
             if (extension.Equals(".osu", StringComparison.OrdinalIgnoreCase))
-                return "Osu Files";
+                return "osu! files";
 
             if (AudioExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
-                return "Audio Files";
+                return "Audio files";
 
             if (VideoExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
-                return "Video Files";
+                return "Video files";
 
-            return "Other Files";
+            return "Other files";
         }
 
         public override IEnumerable<DiffInstance> Translate(

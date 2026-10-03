@@ -1,6 +1,7 @@
 import { Alert, Button, Group, Modal, Stack } from '@mantine/core';
 import { IconAlertTriangle } from '@tabler/icons-react';
 import React from 'react';
+import { Z_INDEX } from '../../theme/layers';
 
 interface AdvancedAudioWarningModalProps {
   opened: boolean;
@@ -15,7 +16,7 @@ const AdvancedAudioWarningModal: React.FC<AdvancedAudioWarningModalProps> = ({
 }) => {
   return (
     <Modal
-      zIndex={400}
+      zIndex={Z_INDEX.modal}
       opened={opened}
       onClose={onCancel}
       title="Enable advanced audio analysis?"

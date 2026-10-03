@@ -143,11 +143,17 @@ function registerIpc(getMainWindow) {
     await fs.mkdir(dir, { recursive: true });
     return dir;
   });
+  // Null when there is no such folder (yet), so the UI only offers it once a snapshot exists.
   ipcMain.handle('app:getSnapshotFolderPath', async (_e, beatmapSetId, subfolder) => {
     if (beatmapSetId == null || beatmapSetId === '') return null;
     const base = path.join(externalsFolderPath(), 'snapshots', String(beatmapSetId));
-    if (subfolder == null || subfolder === '') return base;
-    return path.join(base, String(subfolder));
+    const folder =
+      subfolder == null || subfolder === '' ? base : path.join(base, String(subfolder));
+    try {
+      return (await fs.stat(folder)).isDirectory() ? folder : null;
+    } catch {
+      return null;
+    }
   });
 
   sidecar.onLog((line) => {

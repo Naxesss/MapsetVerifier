@@ -206,90 +206,12 @@
   color: var(--mantine-color-black);
 }
 
-/* React Router view transitions — requires createBrowserRouter + RouterProvider
-   (BrowserRouter ignores viewTransition). See react-router.com/how-to/view-transitions */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: 220ms;
-  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Keep persistent chrome (header + sidebar nav) out of route snapshot morphing */
-::view-transition-old(app-header),
-::view-transition-new(app-header),
-::view-transition-old(app-sidebar),
-::view-transition-new(app-sidebar) {
-  animation: none;
-}
-
-/* Settings page: TOC slides from the left, content from the right */
-@keyframes mv-settings-toc-enter {
-  from {
-    opacity: 0;
-    transform: translateX(-18px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes mv-settings-toc-exit {
-  from {
-    opacity: 1;
-    transform: translateX(0);
-  }
-
-  to {
-    opacity: 0;
-    transform: translateX(-18px);
-  }
-}
-
-@keyframes mv-settings-content-enter {
-  from {
-    opacity: 0;
-    transform: translateX(18px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes mv-settings-content-exit {
-  from {
-    opacity: 1;
-    transform: translateX(0);
-  }
-
-  to {
-    opacity: 0;
-    transform: translateX(18px);
-  }
-}
-
-::view-transition-old(settings-toc) {
-  animation: mv-settings-toc-exit 220ms cubic-bezier(0.4, 0, 0.2, 1) both;
-}
-
-::view-transition-new(settings-toc) {
-  animation: mv-settings-toc-enter 220ms cubic-bezier(0.4, 0, 0.2, 1) both;
-}
-
-::view-transition-old(settings-content) {
-  animation: mv-settings-content-exit 220ms cubic-bezier(0.4, 0, 0.2, 1) both;
-}
-
-::view-transition-new(settings-content) {
-  animation: mv-settings-content-enter 220ms cubic-bezier(0.4, 0, 0.2, 1) 40ms both;
-}
-
 /* Window bar height — keep in sync with WindowBar `barHeight` */
 :root {
   --mv-window-bar-height: 32px;
+  /* Height of toolbar controls (Mantine `sm` inputs, buttons and segmented controls). Mantine only
+     defines --input-height-sm inside inputs, so rows that must match a control use this instead. */
+  --mv-control-height: 36px;
 }
 
 /* Mantine notifications (see https://mantine.dev/x/notifications — full surface color, no left accent) */
@@ -303,10 +225,8 @@
   top: calc(var(--mv-window-bar-height) + var(--mantine-spacing-sm));
 }
 
-.mv-notification {
-  width: fit-content !important;
-  max-width: min(calc(100vw - var(--mantine-spacing-md) * 2), var(--notifications-container-width));
-  align-items: center;
+/* The toast surface, shared with the inline copy bubble so both read as the same kind of feedback */
+@mixin mv-toast-surface {
   /* Tinted glass: muted color + blur what’s behind the toast */
   background: color-mix(
     in srgb,
@@ -321,6 +241,13 @@
   font-size: var(--mantine-font-size-xs);
   line-height: 1.35;
   color: var(--mantine-color-white);
+}
+
+.mv-notification {
+  width: fit-content !important;
+  max-width: min(calc(100vw - var(--mantine-spacing-md) * 2), var(--notifications-container-width));
+  align-items: center;
+  @include mv-toast-surface;
 
   /* Default theme uses ::before as colored strip — use full card color instead */
   &::before {
@@ -339,7 +266,44 @@
   }
 }
 
+/* Copy feedback above a timestamp chip (TimestampLink): a small success toast pinned to what was
+   copied. Floats up and fades out. */
+.mv-copy-bubble {
+  --notification-color: var(--mantine-color-green-filled);
+  @include mv-toast-surface;
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + var(--mantine-spacing-xs));
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding-inline: 0.5rem 0.65rem;
+  border-radius: var(--mantine-radius-default);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  transform: translate(-50%, 0);
+  transition:
+    opacity 300ms ease-out,
+    transform 300ms ease-out;
+
+  &[data-leaving] {
+    opacity: 0;
+    transform: translate(-50%, -10px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .mv-copy-bubble {
+    transition: opacity 300ms ease-out;
+
+    &[data-leaving] {
+      transform: translate(-50%, 0);
+    }
+  }
+
+  .mv-copy-bubble,
   .mv-notification {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
@@ -407,18 +371,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation-duration: 1ms;
-  }
-
-  ::view-transition-old(settings-toc),
-  ::view-transition-new(settings-toc),
-  ::view-transition-old(settings-content),
-  ::view-transition-new(settings-content) {
-    animation: none;
-  }
-
   .mv-route-outlet-wrap {
     animation: none;
   }
@@ -536,4 +488,324 @@
   .rc-heading {
     scroll-margin-top: var(--mantine-spacing-xl);
   }
+}
+
+/* Difficulty picker status bar (DifficultyPicker): a thin bar in a taller click area. Hover grows
+   and brightens it to the selected look, so the bar reads as clickable. */
+.mv-status-segment {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+
+  &[aria-disabled] {
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-primary-color-filled);
+    outline-offset: 1px;
+    border-radius: 2px;
+  }
+}
+
+.mv-status-segment__bar {
+  width: 100%;
+  height: 6px;
+  border-radius: 2px;
+  background-color: var(--segment-color);
+  opacity: 0.55;
+  transition:
+    height 0.12s ease,
+    opacity 0.12s ease;
+}
+
+.mv-status-segment[data-active] .mv-status-segment__bar,
+.mv-status-segment:not([aria-disabled]):hover .mv-status-segment__bar {
+  height: 10px;
+  opacity: 1;
+}
+
+/* Overview summary card (OverviewSummary): a card that opens its page. Hover and keyboard focus
+   look the same, a lighter border. */
+.mv-summary-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+
+  .mantine-Paper-root {
+    transition: border-color 0.12s ease;
+  }
+
+  &:hover .mantine-Paper-root,
+  &:focus-visible .mantine-Paper-root {
+    border-color: var(--mantine-color-dark-3);
+  }
+
+  &:focus-visible {
+    outline: none;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+
+    &:hover .mantine-Paper-root {
+      border-color: var(--mantine-color-default-border);
+    }
+  }
+}
+
+/* The one table style (AppTable). The card is the only surface: no header fill, no stripes, no
+   filled sticky column. Labels sit on a dark-4 hairline, rows are split by fainter dark-5 ones,
+   the sticky first column is left-aligned and every other column right-aligned in tabular
+   figures, so numbers line up. */
+.mv-table {
+  --table-border-color: var(--mantine-color-dark-5);
+  --table-highlight-on-hover-color: var(--mantine-color-dark-6);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+
+  th {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--mantine-color-dimmed);
+    text-align: right;
+  }
+
+  thead th {
+    vertical-align: bottom;
+    border-bottom: 1px solid var(--mantine-color-dark-4);
+  }
+
+  td {
+    text-align: right;
+  }
+
+  /* A header over a run of columns (Objects, Timing…): centred, on its own fainter hairline. */
+  th.mv-table-group {
+    text-align: center;
+    border-bottom-color: var(--mantine-color-dark-5);
+  }
+
+  .mv-table-left,
+  .mv-table-sticky {
+    text-align: left;
+  }
+
+  /* The difficulty column stays in view while the table scrolls sideways. It takes the card
+     colour and only casts a shadow once something is scrolled underneath it. */
+  .mv-table-sticky {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background-color: var(--mantine-color-body);
+    transition: box-shadow 0.12s ease;
+  }
+
+  th.mv-table-sticky {
+    z-index: 3;
+  }
+
+  tbody tr:hover .mv-table-sticky {
+    background-color: var(--table-highlight-on-hover-color);
+  }
+}
+
+.mv-table-scroll[data-scrolled] .mv-table-sticky {
+  box-shadow: 8px 0 12px -12px rgba(0, 0, 0, 0.8);
+}
+
+/* Settings as rows, difficulties as columns (ComparisonTable on the Beatmap tab). Each column is
+   only as wide as its values; its header is the difficulty name over a line in its star rating
+   colour. Long names wrap onto two lines, hyphenated, and the full name is in the tooltip. */
+.mv-table-transposed {
+  th,
+  td {
+    padding-inline: 6px;
+  }
+
+  /* Names wrap at 64px, so a column is as wide as its values rather than its name. */
+  thead th:not(.mv-table-sticky) {
+    min-width: 56px;
+  }
+
+  .mv-table-column-name {
+    max-width: 64px;
+    margin-left: auto;
+  }
+
+  /* The setting names: flush with the card's edge; a long name wraps onto two lines. */
+  .mv-table-sticky {
+    padding-left: 0;
+    padding-right: var(--mantine-spacing-sm);
+  }
+
+  tbody th.mv-table-sticky {
+    white-space: normal;
+    width: 96px;
+    min-width: 96px;
+    max-width: 96px;
+    line-height: 1.25;
+  }
+
+  .mv-table-column-name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    white-space: normal;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--mantine-color-text);
+  }
+
+  .mv-table-column-rating {
+    display: block;
+    height: 3px;
+    border-radius: 2px;
+    margin-top: 6px;
+  }
+
+  /* A cell that opens something: its content brings the padding and it lights up on hover. */
+  td.mv-table-clickable {
+    padding: 0;
+    cursor: pointer;
+    transition: background-color 0.12s ease;
+
+    &:hover {
+      background-color: var(--mantine-color-dark-5);
+    }
+  }
+
+  /* A group's name (Objects, Timing…) heads its rows. */
+  .mv-table-group-row th {
+    padding-top: var(--mantine-spacing-md);
+    font-size: 10.5px;
+    color: var(--mantine-color-dark-2);
+  }
+
+  .mv-table-group-row:hover th {
+    background-color: var(--mantine-color-body);
+  }
+}
+
+/* Chosen level in the interpreted-as select. A row highlight stands in for the check icon. */
+.mv-level-option[data-checked],
+.mv-level-option[data-checked]:hover,
+.mv-level-option[data-combobox-selected] {
+  background-color: var(--mantine-color-dark-5);
+  color: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mv-status-segment__bar {
+    transition: none;
+  }
+}
+
+/* Shared clickable row (ClickableRow): a row that opens something. Hover and keyboard focus look the same. */
+.mv-clickable-row {
+  background: var(--mantine-color-gray-light);
+  border-radius: var(--mantine-radius-default);
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    opacity 0.2s;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--mantine-color-blue-light);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-primary-color-filled);
+    outline-offset: 2px;
+  }
+
+  /* The chosen row in a list that keeps a selection (e.g. snapshot history). */
+  &[data-selected] {
+    background: var(--mantine-color-blue-light);
+    box-shadow: inset 0 0 0 1px var(--mantine-color-primary-2);
+  }
+
+  /* Only shown as context for other rows; full strength when pointed at. */
+  &[data-muted]:not(:hover):not(:focus-visible) {
+    opacity: 0.5;
+  }
+}
+
+/* Content that swaps in place (e.g. the mapset banner's art and title when switching mapsets) */
+@keyframes mv-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.mv-fade-in {
+  animation: mv-fade-in 250ms ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mv-fade-in {
+    animation: none;
+  }
+}
+
+/* Sidebar mapset card: art and shade in one layer behind the text (see BeatmapCard), so both are
+   clipped identically at the card's rounded corners and no light fringe shows there. The layer has
+   no radius of its own; only the card's clip rounds it, so hovering can zoom the art (`--mv-card-zoom`)
+   without its edge showing. The lift is a registered property so hover and selection fade smoothly
+   instead of jumping; it inherits so the layer sees the value while it animates. */
+@property --mv-card-lift {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+.mv-beatmap-card::before {
+  content: '';
+  position: absolute;
+  /* The padding box, inside the border, so the border's rounded edge only blends with the sidebar. */
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: linear-gradient(
+      90deg,
+      rgba(0, 0, 0, calc(0.85 - var(--mv-card-lift))) 0%,
+      rgba(0, 0, 0, calc(0.68 - var(--mv-card-lift))) 60%,
+      rgba(0, 0, 0, calc(0.5 - var(--mv-card-lift))) 100%
+    ),
+    var(--mv-card-art, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  transform: scale(var(--mv-card-zoom, 1));
+  transform-origin: center;
+  transition: transform 0.22s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mv-beatmap-card::before {
+    transform: none;
+  }
+}
+
+/* Keyboard focus on a sidebar mapset card, drawn like the other clickable rows. */
+.mv-beatmap-card:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 2px;
 }

@@ -1,21 +1,11 @@
-import {
-  Box,
-  Button,
-  Center,
-  Flex,
-  Group,
-  Loader,
-  Modal,
-  Paper,
-  Select,
-  Text,
-  useMantineTheme,
-} from '@mantine/core';
+import { Box, Button, Center, Group, Modal, Select, Text } from '@mantine/core';
 import { IconZoomIn } from '@tabler/icons-react';
 import { useCallback, useState } from 'react';
 import { useSpectrogram } from './hooks/useAudioAnalysis.ts';
 import SpectrogramCanvas, { ColorScheme } from './SpectrogramCanvas.tsx';
 import { InfoIconTooltip } from '../../common/InfoIconTooltip.tsx';
+import { BlockSkeleton } from '../../common/LoadingSkeletons.tsx';
+import SectionCard from '../../common/SectionCard.tsx';
 
 interface SpectrogramProps {
   folder: string;
@@ -28,7 +18,6 @@ function Spectrogram({ folder, songFolder }: SpectrogramProps) {
     folder,
     songFolder: songFolder,
   });
-  const theme = useMantineTheme();
   const [modalOpened, setModalOpened] = useState(false);
   const [colorScheme, setColorScheme] = useState<ColorScheme>('inferno');
 
@@ -73,23 +62,15 @@ function Spectrogram({ folder, songFolder }: SpectrogramProps) {
 
   if (isLoading) {
     return (
-      <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
-        <Text fw={600} mb="sm">
-          Spectrogram
-        </Text>
-        <Center h={250}>
-          <Loader size="lg" />
-        </Center>
-      </Paper>
+      <SectionCard title="Spectrogram">
+        <BlockSkeleton height={250} />
+      </SectionCard>
     );
   }
 
   if (isError) {
     return (
-      <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
-        <Text fw={600} mb="sm">
-          Spectrogram
-        </Text>
+      <SectionCard title="Spectrogram">
         <Center h={250}>
           <Text c="red">Error loading spectrogram: {error?.message}</Text>
           <Text c="red">{error?.stackTrace}</Text>
@@ -97,20 +78,17 @@ function Spectrogram({ folder, songFolder }: SpectrogramProps) {
             Retry
           </Button>
         </Center>
-      </Paper>
+      </SectionCard>
     );
   }
 
   if (!data) {
     return (
-      <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
-        <Text fw={600} mb="sm">
-          Spectrogram
-        </Text>
+      <SectionCard title="Spectrogram">
         <Center h={250}>
-          <Text c="dimmed">No spectrogram data available</Text>
+          <Text c="dimmed">No spectrogram data available.</Text>
         </Center>
-      </Paper>
+      </SectionCard>
     );
   }
 
@@ -119,7 +97,7 @@ function Spectrogram({ folder, songFolder }: SpectrogramProps) {
       <Group justify="space-between" mb="sm">
         <Group gap="xs" align="center" wrap="nowrap">
           <Text size="sm" c="dimmed">
-            Average Peak Frequency:{' '}
+            Average peak frequency:{' '}
             <Text span fw={500} c="cyan">
               {formatFreq(peakFreq)}
             </Text>
@@ -128,7 +106,7 @@ function Spectrogram({ folder, songFolder }: SpectrogramProps) {
         </Group>
         <Group>
           <Text size="sm" c="dimmed">
-            Color Scheme:
+            Colour scheme:
           </Text>
           <Select
             allowDeselect={false}
@@ -157,34 +135,27 @@ function Spectrogram({ folder, songFolder }: SpectrogramProps) {
 
   return (
     <>
-      <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
-        <Flex direction="column" gap="md">
-          <Group justify="space-between" align="center">
-            <Group gap="xs">
-              <Text fw={600}>Spectrogram</Text>
-              <InfoIconTooltip
-                label={`Displays the frequency content of the audio over time. The average peak frequency is based on a magnitude threshold of ${magnitudeThreshold} dB.`}
-                multiline
-                w={250}
-              />
-            </Group>
-            <Button
-              leftSection={<IconZoomIn size={16} />}
-              variant="light"
-              size="sm"
-              onClick={() => setModalOpened(true)}
-            >
-              Zoom
-            </Button>
-          </Group>
-          {spectrogramContent}
-        </Flex>
-      </Paper>
+      <SectionCard
+        title="Spectrogram"
+        info={`Displays the frequency content of the audio over time. The average peak frequency is based on a magnitude threshold of ${magnitudeThreshold} dB.`}
+        actions={
+          <Button
+            leftSection={<IconZoomIn size={16} />}
+            variant="light"
+            size="xs"
+            onClick={() => setModalOpened(true)}
+          >
+            Zoom
+          </Button>
+        }
+      >
+        {spectrogramContent}
+      </SectionCard>
 
       <Modal
         opened={modalOpened}
         onClose={() => setModalOpened(false)}
-        title="Spectrogram Analysis"
+        title="Spectrogram"
         size="100%"
         centered
       >

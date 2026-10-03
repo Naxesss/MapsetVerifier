@@ -40,9 +40,5 @@ export default function Settings() {
     return <Navigate to="/settings" replace />;
   }
 
-  return (
-    <Stack gap="md" py="md" px="md" style={{ viewTransitionName: 'settings-content' }}>
-      {renderSettingsSection(activeSection)}
-    </Stack>
-  );
+  return <Stack gap="md">{renderSettingsSection(activeSection)}</Stack>;
 }

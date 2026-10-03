@@ -1,6 +1,7 @@
-﻿import { Alert, Box, Progress, Stack, Text } from '@mantine/core';
-import { IconAlertCircle, IconEyeOff } from '@tabler/icons-react';
-import { useMemo } from 'react';
+﻿import { Alert, Anchor, Box, Progress, Stack, Text } from '@mantine/core';
+import { IconEyeOff } from '@tabler/icons-react';
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import CheckCategory from './CheckCategory.tsx';
 import CheckProgressTaskList from './CheckProgressTaskList.tsx';
 import {
@@ -9,19 +10,16 @@ import {
 } from './checkResultVisibility';
 import ChecksDeltaSummary from './ChecksDeltaSummary.tsx';
 import CheckSpeedStatsPanel from './CheckSpeedStatsPanel.tsx';
-import { FetchError } from '../../client/ApiHelper';
 import {
   ApiBeatmapSetCheckResult,
   ApiCategoryOverrideCheckResult,
   CheckProgress,
 } from '../../Types';
-import StackTraceMessage from '../common/StackTraceMessage.tsx';
+import type { DisplayLevel } from './utils/levelUtils';
 
 interface ChecksResultsProps {
   data?: ApiBeatmapSetCheckResult;
   isLoading: boolean;
-  isError: boolean;
-  error?: FetchError | null;
   progress?: CheckProgress | null;
   showMinor: boolean;
   hiddenMinorCheckIds: readonly number[];
@@ -37,8 +35,6 @@ interface ChecksResultsProps {
 function ChecksResults({
   data,
   isLoading,
-  isError,
-  error,
   progress,
   showMinor,
   hiddenMinorCheckIds,
@@ -50,6 +46,8 @@ function ChecksResults({
   onCheckRunHistoryCleared,
   showCheckSpeedStats = false,
 }: ChecksResultsProps) {
+  // Survives difficulty switches; CheckCategory remounts per difficulty and would drop it.
+  const [levelFilter, setLevelFilter] = useState<DisplayLevel | null>(null);
   const rawForCategory = useMemo(
     () =>
       data ? getRawCheckResultsForSelectedCategory(data, selectedCategory, overrideResult) : [],
@@ -75,7 +73,7 @@ function ChecksResults({
       {isLoading && (
         <Stack gap="xs" py="sm">
           <Text size="sm" c="dimmed">
-            Checking for...
+            Checking for…
           </Text>
           <CheckProgressTaskList progress={progress ?? null} />
           <Progress value={progressPercent} animated size="lg" radius="xl" />
@@ -87,17 +85,8 @@ function ChecksResults({
         </Stack>
       )}
 
-      {isError && (
-        <Alert icon={<IconAlertCircle />} color="red" title="Error loading checks">
-          <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
-            {error?.message}
-          </Text>
-          {error?.stackTrace && <StackTraceMessage stackTrace={error.stackTrace} />}
-        </Alert>
-      )}
-
       {data && (
-        <Stack gap="xs">
+        <Stack gap="sm">
           {showCheckSpeedStats && data.checkTimings ? (
             <CheckSpeedStatsPanel report={data.checkTimings} />
           ) : null}
@@ -118,7 +107,6 @@ function ChecksResults({
               color="gray"
               icon={<IconEyeOff size={16} />}
               p="xs"
-              my="sm"
               styles={{
                 wrapper: { alignItems: 'flex-start' },
                 icon: { marginTop: 2, marginRight: 4, marginLeft: 8 },
@@ -127,11 +115,11 @@ function ChecksResults({
               }}
             >
               <Text size="xs" c="dimmed" lh={2}>
-                Negligible issues exist for checks hidden in{' '}
-                <Text span fw={600} inherit>
-                  Settings → Negligible checks filter
-                </Text>
-                . They are omitted from this list.
+                Some negligible issues are hidden by your{' '}
+                <Anchor component={Link} to="/settings/checks" inherit fw={600}>
+                  negligible check filter
+                </Anchor>
+                .
               </Text>
             </Alert>
           ) : null}
@@ -142,16 +130,10 @@ function ChecksResults({
             hiddenMinorCheckIds={hiddenMinorCheckIds}
             selectedCategory={selectedCategory}
             overrideResult={overrideResult}
+            levelFilter={levelFilter}
+            onLevelFilterChange={setLevelFilter}
           />
         </Stack>
-      )}
-
-      {!isLoading && !isError && !data && (
-        <Box>
-          <Text size="sm" c="dimmed">
-            No data returned.
-          </Text>
-        </Box>
       )}
     </Box>
   );

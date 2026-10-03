@@ -35,8 +35,8 @@ type Status = 'idle' | 'starting' | 'ready' | 'error';
 type Stage = 'init' | 'health' | 'ready';
 
 const stageText: Record<Stage, string> = {
-  init: 'Initializing...',
-  health: 'Loading services...',
+  init: 'Initializing…',
+  health: 'Loading services…',
   ready: 'Ready!',
 };
 
@@ -233,7 +233,7 @@ const BackendGate: React.FC<BackendGateProps> = ({
 
   return (
     <MantineProvider defaultColorScheme="dark" theme={theme} cssVariablesResolver={cssVarResolver}>
-      <Container size="sm" pt={80}>
+      <Container size="sm" pt="xl">
         {starting && (
           <Stack
             h="100%"
@@ -296,7 +296,7 @@ const BackendGate: React.FC<BackendGateProps> = ({
 
                   <CopyButton value={`Error: ${errorMsg ?? ''}\n\n${sidecarLogs.join('\n')}`}>
                     {({ copied, copy }) => (
-                      <Tooltip label={copied ? 'Copied' : 'Copy output'} withArrow>
+                      <Tooltip label={copied ? 'Copied' : 'Copy output'}>
                         <Button
                           size="xs"
                           variant="light"

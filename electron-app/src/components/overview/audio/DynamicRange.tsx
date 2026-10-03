@@ -1,7 +1,9 @@
 ﻿import { AreaChart } from '@mantine/charts';
-import { Box, Text, Badge, Group, Paper, useMantineTheme, Stack, SimpleGrid } from '@mantine/core';
+import { Box, Text, Badge, Group, SimpleGrid } from '@mantine/core';
 import { useMemo } from 'react';
 import { DynamicRangeResult, LoudnessDataPoint, ClippingMarker } from '../../../Types';
+import SectionCard from '../../common/SectionCard.tsx';
+import { StatField } from '../../common/StatField.tsx';
 
 interface DynamicRangeProps {
   data: DynamicRangeResult;
@@ -24,8 +26,6 @@ function getCompressionColor(severity: string): string {
 }
 
 function DynamicRange({ data }: DynamicRangeProps) {
-  const theme = useMantineTheme();
-
   // Transform data for Mantine AreaChart - sample data for performance
   const chartData = useMemo(() => {
     if (!data.loudnessOverTime?.length) return [];
@@ -50,45 +50,24 @@ function DynamicRange({ data }: DynamicRangeProps) {
   }, [data.loudnessOverTime]);
 
   return (
-    <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
-      <Group justify="space-between" mb="sm">
-        <Text fw={600}>Dynamic Range Analysis</Text>
-        <Group gap="xs">
-          <Badge color={getCompressionColor(data.compressionSeverity)} variant="light">
-            {data.compressionSeverity} Compression
+    <SectionCard
+      title="Dynamic range"
+      actions={
+        <>
+          <Badge color={getCompressionColor(data.compressionSeverity)}>
+            {data.compressionSeverity} compression
           </Badge>
           {data.clippingDetected && (
-            <Badge color="red" variant="filled">
-              Clipping Detected ({data.clippingCount})
-            </Badge>
+            <Badge color="red">Clipping detected ({data.clippingCount})</Badge>
           )}
-        </Group>
-      </Group>
+        </>
+      }
+    >
       <SimpleGrid cols={4} mb="md">
-        <Stack gap={2}>
-          <Text size="xs" c="dimmed">
-            Loudness Range
-          </Text>
-          <Text fw={600}>{data.loudnessRange.toFixed(1)} LU</Text>
-        </Stack>
-        <Stack gap={2}>
-          <Text size="xs" c="dimmed">
-            Integrated
-          </Text>
-          <Text fw={600}>{data.integratedLoudness.toFixed(1)} LUFS</Text>
-        </Stack>
-        <Stack gap={2}>
-          <Text size="xs" c="dimmed">
-            True Peak
-          </Text>
-          <Text fw={600}>{data.truePeak.toFixed(1)} dBTP</Text>
-        </Stack>
-        <Stack gap={2}>
-          <Text size="xs" c="dimmed">
-            Dynamic Range
-          </Text>
-          <Text fw={600}>{data.dynamicRange.toFixed(1)} dB</Text>
-        </Stack>
+        <StatField label="Loudness range" value={`${data.loudnessRange.toFixed(1)} LU`} />
+        <StatField label="Integrated" value={`${data.integratedLoudness.toFixed(1)} LUFS`} />
+        <StatField label="True peak" value={`${data.truePeak.toFixed(1)} dBTP`} />
+        <StatField label="Dynamic range" value={`${data.dynamicRange.toFixed(1)} dB`} />
       </SimpleGrid>
       {chartData.length > 0 ? (
         <AreaChart
@@ -99,8 +78,8 @@ function DynamicRange({ data }: DynamicRangeProps) {
           areaChartProps={{ accessibilityLayer: false }}
           onMouseDownCapture={(e) => e.preventDefault()}
           series={[
-            { name: 'rms', label: 'RMS Level', color: 'blue.6' },
-            { name: 'peak', label: 'Peak Level', color: 'orange.5' },
+            { name: 'rms', label: 'RMS level', color: 'blue.6' },
+            { name: 'peak', label: 'Peak level', color: 'orange.5' },
           ]}
           curveType="monotone"
           withDots={false}
@@ -117,12 +96,12 @@ function DynamicRange({ data }: DynamicRangeProps) {
         />
       ) : (
         <Text c="dimmed" ta="center" py="xl">
-          No loudness data available
+          No loudness data available.
         </Text>
       )}
       {data.clippingDetected && data.clippingMarkers?.length > 0 && (
         <Group gap="md" mt="xs">
-          <Group gap={4}>
+          <Group gap="xs">
             <Box w={2} h={12} bg="red.5" />
             <Text size="xs" c="dimmed">
               Clipping at:{' '}
@@ -130,12 +109,12 @@ function DynamicRange({ data }: DynamicRangeProps) {
                 .slice(0, 5)
                 .map((m: ClippingMarker) => `${(m.timeMs / 1000).toFixed(1)}s`)
                 .join(', ')}
-              {data.clippingMarkers.length > 5 ? '...' : ''}
+              {data.clippingMarkers.length > 5 ? 'â€¦' : ''}
             </Text>
           </Group>
         </Group>
       )}
-    </Paper>
+    </SectionCard>
   );
 }
 
