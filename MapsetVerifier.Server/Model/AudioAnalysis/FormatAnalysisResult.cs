@@ -1,7 +1,7 @@
 ﻿namespace MapsetVerifier.Server.Model.AudioAnalysis;
 
 /// <summary>
-/// Result of audio format compliance analysis.
+/// Result of audio format analysis.
 /// </summary>
 public readonly struct FormatAnalysisResult
 {
@@ -54,19 +54,4 @@ public readonly struct FormatAnalysisResult
     /// Number of audio channels.
     /// </summary>
     public int Channels { get; init; }
-
-    /// <summary>
-    /// Whether the format is acceptable for ranking.
-    /// </summary>
-    public bool IsCompliant { get; init; }
-
-    /// <summary>
-    /// List of format compliance issues if any.
-    /// </summary>
-    public IEnumerable<string> ComplianceIssues { get; init; }
-
-    /// <summary>
-    /// Visual badge type for the format (success, warning, error).
-    /// </summary>
-    public string BadgeType { get; init; }
 }
