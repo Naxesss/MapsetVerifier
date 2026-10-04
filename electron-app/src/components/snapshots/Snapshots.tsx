@@ -1,209 +1,345 @@
-import { Alert, Text, Box, Flex, useMantineTheme } from '@mantine/core';
-import { IconAlertCircle, IconPhotoOff } from '@tabler/icons-react';
-import { useState, useMemo } from 'react';
-import { useSnapshots } from './hooks/useSnapshots';
-import SnapshotContent from './SnapshotContent';
-import {
-  difficultyHasChangesAtCommit,
-  difficultyHasSnapshot,
-  generalHasChangesAtCommit,
-  getSnapshotHistory,
-} from './snapshotHistory';
+import { Alert, Badge, Flex, Text, useMantineTheme } from '@mantine/core';
+import { IconAlertCircle, IconHistoryOff, IconPointer } from '@tabler/icons-react';
+import { useMemo, useState } from 'react';
+import CompareBar from './CompareBar';
+import DifficultyChanges from './DifficultyChanges';
+import GeneralChanges from './GeneralChanges';
+import { useSnapshotCompare } from './hooks/useSnapshotCompare';
+import { useSnapshotHistory } from './hooks/useSnapshotHistory';
+import PinModal from './PinModal';
+import { indexOfEntry, resolveBaseId, type RangePreset } from './range';
+import SnapshotHistoryList from './SnapshotHistoryList';
 import { useBeatmap } from '../../context/BeatmapContext';
 import { useSettings } from '../../context/SettingsContext';
-import { ApiSnapshotDifficulty } from '../../Types';
+import { notifyError } from '../../utils/notify';
 import BeatmapHeader from '../common/BeatmapHeader';
-import DifficultyPicker from '../common/DifficultyPicker';
+import DifficultyPicker, { GENERAL_TAB_ID } from '../common/DifficultyPicker';
 import EmptyState from '../common/EmptyState.tsx';
 import { HistorySkeleton } from '../common/LoadingSkeletons.tsx';
+import SectionCard from '../common/SectionCard.tsx';
 import SelectedDifficultyRow from '../common/SelectedDifficultyRow.tsx';
 import StackTraceMessage from '../common/StackTraceMessage.tsx';
 import StarRatingBadge from '../common/StarRatingBadge.tsx';
 import GameModeIcon from '../icons/GameModeIcon';
 import SnapshotDifficultyChangesIcon from '../icons/SnapshotDifficultyChangesIcon';
+import type { ApiSnapshotHistoryEntry, ApiSnapshotDifficultyComparison } from '../../Types';
+
+/** Width of the history list; enough for the time, its badges and the change counts. */
+const HISTORY_WIDTH = 300;
+
+function hasChanges(difficulty: ApiSnapshotDifficultyComparison) {
+  return difficulty.status !== 'Unchanged' && difficulty.counts.total > 0;
+}
 
 function Snapshots() {
   const theme = useMantineTheme();
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
-  const [selectedDifficulty, setSelectedDifficulty] = useState<string | undefined>('General');
-  const [selectedCommitId, setSelectedCommitId] = useState<string | undefined>();
+
+  const [selectedId, setSelectedId] = useState<string | undefined>();
+  const [preset, setPreset] = useState<RangePreset>('previous');
+  const [customBaseId, setCustomBaseId] = useState<string | undefined>();
+  const [targetId, setTargetId] = useState<string | undefined>();
+  const [pinning, setPinning] = useState<ApiSnapshotHistoryEntry | null>(null);
 
   const [prevFolder, setPrevFolder] = useState(folder);
-
   if (folder !== prevFolder) {
     setPrevFolder(folder);
-
-    // Reset selected difficulty when changing beatmap
-    if (folder) {
-      setSelectedDifficulty('General');
-      setSelectedCommitId(undefined);
-    }
+    setSelectedId(undefined);
+    setPreset('previous');
+    setCustomBaseId(undefined);
+    setTargetId(undefined);
   }
 
-  const { data, isLoading, isError, error } = useSnapshots({
-    folder,
-    songFolder: settings.songFolder,
-  });
+  const history = useSnapshotHistory({ folder, songFolder: settings.songFolder });
+  const entries = useMemo(() => history.data?.entries ?? [], [history.data]);
 
-  // The difficulties' own tabs; General has its own tab.
-  const snapshotDifficulties = useMemo(
-    (): ApiSnapshotDifficulty[] => data?.difficulties.filter((diff) => !diff.isGeneral) ?? [],
-    [data]
-  );
+  const effectiveTargetId = entries.some((e) => e.id === targetId) ? targetId : entries[0]?.id;
+  const baseId = resolveBaseId(entries, effectiveTargetId, preset, customBaseId);
+
+  const compare = useSnapshotCompare({
+    setKey: history.data?.setKey,
+    baseId,
+    targetId: effectiveTargetId,
+  });
+  const comparison = compare.data;
+
+  const pickerDifficulties = useMemo(() => {
+    if (comparison) {
+      return comparison.difficulties.map((d) => ({
+        id: d.key,
+        label: d.name,
+        mode: d.mode,
+        starRating:
+          d.starsAfter ??
+          d.starsBefore ??
+          history.data?.difficulties.find((h) => h.key === d.key)?.starRating,
+        changed: hasChanges(d),
+      }));
+    }
+
+    return (history.data?.difficulties ?? []).map((d) => ({
+      id: d.key,
+      label: d.name,
+      mode: d.mode,
+      starRating: d.starRating,
+      changed: false,
+    }));
+  }, [comparison, history.data]);
+
+  const validIds = new Set([GENERAL_TAB_ID, ...pickerDifficulties.map((d) => d.id)]);
+  const firstChanged = comparison?.difficulties.find(hasChanges)?.key;
+  const activeId =
+    selectedId && validIds.has(selectedId) ? selectedId : (firstChanged ?? GENERAL_TAB_ID);
+  const selectedDifficulty = comparison?.difficulties.find((d) => d.key === activeId);
 
   // The same colours as the changed and unchanged icons, for the picker's segments.
-  const changesColor = (hasChanges: boolean) =>
-    hasChanges ? theme.colors.blue[6] : theme.colors.dark[2];
+  const statusColor = (changed: boolean) => (changed ? theme.colors.blue[6] : theme.colors.dark[2]);
+  const generalChanged =
+    !!comparison &&
+    (comparison.general.rollups.length > 0 ||
+      comparison.general.settings.length > 0 ||
+      comparison.general.files.length > 0);
 
-  const selectedSnapshotDifficulty = useMemo(() => {
-    if (!data || selectedDifficulty === 'General') return undefined;
-    return data.difficulties.find((d) => d.name === selectedDifficulty);
-  }, [data, selectedDifficulty]);
+  const selectEntry = (id: string, asBase: boolean) => {
+    const index = indexOfEntry(entries, id);
+    const targetIndex = indexOfEntry(entries, effectiveTargetId);
 
-  const activeSnapshotHistory = useMemo(
-    () => (data ? getSnapshotHistory(data, selectedDifficulty) : null),
-    [data, selectedDifficulty]
-  );
-
-  // Starts empty rather than at the current history: with cached data the history is there on the
-  // first render, and the latest snapshot must still get selected.
-  const [prevActiveSnapshotHistory, setPrevActiveSnapshotHistory] =
-    useState<typeof activeSnapshotHistory>(null);
-
-  if (activeSnapshotHistory !== prevActiveSnapshotHistory) {
-    setPrevActiveSnapshotHistory(activeSnapshotHistory);
-
-    if (!activeSnapshotHistory?.commits.length) {
-      setSelectedCommitId(undefined);
-    } else {
-      setSelectedCommitId((current) => {
-        if (current && activeSnapshotHistory.commits.some((c) => c.id === current)) {
-          return current;
-        }
-        return activeSnapshotHistory.commits[0].id;
-      });
+    if (asBase && index > targetIndex) {
+      setPreset('custom');
+      setCustomBaseId(id);
+      return;
     }
-  }
+
+    setTargetId(index === 0 ? undefined : id);
+
+    // Moving the end of "all history" makes it a range of its own, from the same start.
+    if (preset === 'all' && baseId && indexOfEntry(entries, baseId) > index) {
+      setPreset('custom');
+      setCustomBaseId(baseId);
+      return;
+    }
+
+    // A hand-picked start stays only while it is still older than the new end.
+    if (preset === 'custom' && customBaseId && indexOfEntry(entries, customBaseId) <= index) {
+      setPreset('previous');
+    }
+  };
+
+  const savePin = (entry: ApiSnapshotHistoryEntry, name: string | null) =>
+    history.pin.mutate(
+      { id: entry.id, pin: name },
+      { onError: (error) => notifyError(error.message || "Couldn't pin the snapshot.") }
+    );
+
+  const showContent = !!history.data && entries.length > 0;
+  const hasRange = !!baseId && !!effectiveTargetId;
 
   return (
     <>
       <BeatmapHeader>
-        {data && !data.errorMessage && snapshotDifficulties.length > 0 && (
+        {showContent && pickerDifficulties.length > 0 && (
           <DifficultyPicker
-            difficulties={snapshotDifficulties.map((diff) => {
-              const hasSnapshot = difficultyHasSnapshot(data, diff.name);
-              const hasChanges =
-                hasSnapshot && difficultyHasChangesAtCommit(data, diff.name, selectedCommitId);
-              return {
-                id: diff.name,
-                label: diff.name,
-                mode: diff.mode ?? 'Standard',
-                starRating: diff.starRating,
-                icon: <SnapshotDifficultyChangesIcon hasChanges={hasChanges} size={18} />,
-                statusColor: changesColor(hasChanges),
-                disabled: !hasSnapshot,
-                disabledReason: 'No snapshots to compare',
-              };
-            })}
+            difficulties={pickerDifficulties.map((d) => ({
+              id: d.id,
+              label: d.label,
+              mode: d.mode,
+              starRating: d.starRating,
+              icon: <SnapshotDifficultyChangesIcon hasChanges={d.changed} size={18} />,
+              statusColor: statusColor(d.changed),
+            }))}
             general={{
-              icon: (
-                <SnapshotDifficultyChangesIcon
-                  hasChanges={generalHasChangesAtCommit(data, selectedCommitId)}
-                  size={18}
-                />
-              ),
-              statusColor: changesColor(generalHasChangesAtCommit(data, selectedCommitId)),
+              icon: <SnapshotDifficultyChangesIcon hasChanges={generalChanged} size={18} />,
+              statusColor: statusColor(generalChanged),
             }}
             modeStatus={(_, diffs) => (
               <SnapshotDifficultyChangesIcon
                 hasChanges={diffs.some(
-                  (d) => !d.disabled && difficultyHasChangesAtCommit(data, d.id, selectedCommitId)
+                  (d) => pickerDifficulties.find((p) => p.id === d.id)?.changed
                 )}
                 size={18}
               />
             )}
-            selectedId={selectedDifficulty}
-            onSelect={setSelectedDifficulty}
+            selectedId={activeId}
+            onSelect={setSelectedId}
           />
         )}
       </BeatmapHeader>
-      {isLoading && (
-        <Box bg="dark.6" style={{ flex: 1 }}>
+
+      {history.isLoading && (
+        <Flex bg="dark.6" style={{ flex: 1 }}>
           <HistorySkeleton />
-        </Box>
+        </Flex>
       )}
-      {data && (
-        // pt="sm": the selected difficulty row follows the picker at the header's row gap.
+
+      {history.isError && (
+        <Flex p="md" bg="dark.6">
+          <Alert icon={<IconAlertCircle />} color="red" title="Couldn't load the snapshots">
+            <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
+              {history.error?.message}
+            </Text>
+            {history.error?.stackTrace && (
+              <StackTraceMessage stackTrace={history.error.stackTrace} />
+            )}
+          </Alert>
+        </Flex>
+      )}
+
+      {history.data && entries.length === 0 && (
+        <Flex bg="dark.6" p="md" style={{ flex: 1 }}>
+          <EmptyState
+            icon={IconHistoryOff}
+            title="No snapshots yet"
+            description="Snapshots are taken when you open this page or run checks. Come back after the mapset changes to see what changed."
+            fullHeight
+          />
+        </Flex>
+      )}
+
+      {showContent && (
         <Flex
-          gap="sm"
+          gap="md"
           px="md"
           pb="md"
           pt="sm"
           direction="column"
-          style={{ flex: 1, overflow: 'hidden' }}
+          style={{ flex: 1, minWidth: 0 }}
           bg="dark.6"
         >
-          {data.errorMessage ? (
-            <EmptyState
-              icon={IconPhotoOff}
-              title="Snapshots unavailable"
-              description={data.errorMessage}
-            />
-          ) : (
-            <>
-              {/* The same row as on Checks, so both pages show the selection alike. */}
-              <SelectedDifficultyRow
-                icons={
-                  <>
-                    <SnapshotDifficultyChangesIcon
-                      hasChanges={
-                        selectedDifficulty === 'General'
-                          ? generalHasChangesAtCommit(data, selectedCommitId)
-                          : difficultyHasChangesAtCommit(
-                              data,
-                              selectedDifficulty!,
-                              selectedCommitId
-                            )
-                      }
-                      size={32}
+          <CompareBar
+            entries={entries}
+            baseId={baseId}
+            targetId={effectiveTargetId}
+            preset={preset}
+            onPreset={(next) => {
+              setPreset(next);
+            }}
+            onBase={(id) => {
+              setPreset('custom');
+              setCustomBaseId(id);
+            }}
+            onTarget={(id) => selectEntry(id, false)}
+          />
+
+          <Flex gap="md" align="flex-start" direction={{ base: 'column', md: 'row' }}>
+            <SectionCard
+              title="History"
+              actions={<Badge color="gray">{entries.length}</Badge>}
+              w={{ base: '100%', md: HISTORY_WIDTH }}
+              style={{ flexShrink: 0 }}
+            >
+              <SnapshotHistoryList
+                entries={entries}
+                difficulties={history.data?.difficulties ?? []}
+                targetId={effectiveTargetId}
+                baseId={baseId}
+                onSelect={selectEntry}
+                onPin={setPinning}
+                onUnpin={(entry) => savePin(entry, null)}
+              />
+            </SectionCard>
+
+            <Flex
+              direction="column"
+              gap="md"
+              style={{
+                flex: 1,
+                minWidth: 0,
+                // The last comparison stays up while the next one loads, a little dimmed.
+                opacity: compare.isPlaceholderData ? 0.55 : 1,
+                transition: 'opacity 0.15s',
+              }}
+              aria-busy={compare.isPlaceholderData}
+              w="100%"
+            >
+              {!hasRange ? (
+                <SectionCard title="Changes">
+                  <EmptyState
+                    icon={IconPointer}
+                    title="Only one snapshot so far"
+                    description="Once the mapset changes, this shows what changed since the snapshot before."
+                  />
+                </SectionCard>
+              ) : !comparison ? (
+                compare.isError ? (
+                  <Alert
+                    icon={<IconAlertCircle />}
+                    color="red"
+                    title="Couldn't compare the snapshots"
+                  >
+                    <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
+                      {compare.error?.message}
+                    </Text>
+                  </Alert>
+                ) : (
+                  <HistorySkeleton />
+                )
+              ) : (
+                <>
+                  <SelectedDifficultyRow
+                    icons={
+                      <>
+                        <SnapshotDifficultyChangesIcon
+                          hasChanges={
+                            selectedDifficulty ? hasChanges(selectedDifficulty) : generalChanged
+                          }
+                          size={32}
+                        />
+                        {selectedDifficulty && (
+                          <GameModeIcon
+                            mode={selectedDifficulty.mode}
+                            size={32}
+                            starRating={
+                              selectedDifficulty.starsAfter ?? selectedDifficulty.starsBefore
+                            }
+                          />
+                        )}
+                      </>
+                    }
+                    name={selectedDifficulty?.name ?? 'General'}
+                    badges={
+                      !!(selectedDifficulty?.starsAfter ?? selectedDifficulty?.starsBefore) && (
+                        <StarRatingBadge
+                          rating={
+                            (selectedDifficulty!.starsAfter ?? selectedDifficulty!.starsBefore)!
+                          }
+                        />
+                      )
+                    }
+                  />
+                  {selectedDifficulty ? (
+                    <DifficultyChanges
+                      key={`${selectedDifficulty.key}-${comparison.base.id}-${comparison.target.id}`}
+                      difficulty={selectedDifficulty}
+                      setKey={history.data!.setKey}
+                      baseId={comparison.base.id}
+                      targetId={comparison.target.id}
+                      general={comparison.general}
+                      onViewGeneral={() => setSelectedId(GENERAL_TAB_ID)}
                     />
-                    {selectedSnapshotDifficulty && (
-                      <GameModeIcon
-                        mode={selectedSnapshotDifficulty.mode ?? 'Standard'}
-                        size={32}
-                        starRating={selectedSnapshotDifficulty.starRating}
-                      />
-                    )}
-                  </>
-                }
-                name={selectedDifficulty}
-                badges={
-                  !!selectedSnapshotDifficulty?.starRating && (
-                    <StarRatingBadge rating={selectedSnapshotDifficulty.starRating} />
-                  )
-                }
-              />
-              <SnapshotContent
-                data={data}
-                selectedDifficulty={selectedDifficulty}
-                selectedCommitId={selectedCommitId}
-                onSelectCommitId={setSelectedCommitId}
-              />
-            </>
-          )}
+                  ) : (
+                    <GeneralChanges
+                      general={comparison.general}
+                      difficultyCount={comparison.difficulties.length}
+                    />
+                  )}
+                </>
+              )}
+            </Flex>
+          </Flex>
         </Flex>
       )}
-      {isError && (
-        <Flex p="md">
-          <Alert icon={<IconAlertCircle />} color="red" title="Couldn't load the snapshots">
-            <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
-              {error?.message}
-            </Text>
-            {error?.stackTrace && <StackTraceMessage stackTrace={error.stackTrace} />}
-          </Alert>
-        </Flex>
-      )}
+
+      <PinModal
+        key={pinning?.id ?? 'none'}
+        opened={pinning !== null}
+        initialName={pinning?.pin ?? ''}
+        onClose={() => setPinning(null)}
+        onSave={(name) => {
+          if (pinning) savePin(pinning, name);
+          setPinning(null);
+        }}
+      />
     </>
   );
 }

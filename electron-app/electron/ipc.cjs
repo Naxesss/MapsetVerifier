@@ -144,9 +144,14 @@ function registerIpc(getMainWindow) {
     return dir;
   });
   // Null when there is no such folder (yet), so the UI only offers it once a snapshot exists.
+  // A mapset's snapshots live in "set-<id>" (or "local-<id>" while it is unsubmitted); a plain id
+  // is taken as a set id.
   ipcMain.handle('app:getSnapshotFolderPath', async (_e, beatmapSetId, subfolder) => {
     if (beatmapSetId == null || beatmapSetId === '') return null;
-    const base = path.join(externalsFolderPath(), 'snapshots', String(beatmapSetId));
+    const key = /^(set|local)-/.test(String(beatmapSetId))
+      ? String(beatmapSetId)
+      : `set-${beatmapSetId}`;
+    const base = path.join(externalsFolderPath(), 'snapshots', key);
     const folder =
       subfolder == null || subfolder === '' ? base : path.join(base, String(subfolder));
     try {
