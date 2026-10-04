@@ -196,54 +196,236 @@ export type ApiFailedPlugin = {
 // Snapshot types
 export type DiffType = 'Added' | 'Removed' | 'Changed';
 
-export type ApiSnapshotResult = {
-  difficulties: ApiSnapshotDifficulty[];
-  general: ApiSnapshotHistory | null;
-  beatmapHistories: ApiSnapshotHistory[];
-  errorMessage: string | null;
+/** What a change is about, in the words a mapper uses; the tracks of the change map. */
+export type SnapshotChangeKind = 'Rhythm' | 'Placement' | 'Hitsound' | 'Timing';
+
+export type ApiSnapshotObjectRef = {
+  time: number;
+  /** Circle, Slider, Spinner or Hold note. */
+  type: string;
+  /** The osu! timestamp including the object, e.g. "00:41:210 (1,2) - ". */
+  stamp: string;
 };
 
-export type ApiSnapshotDifficulty = {
+/** One structured difference between two versions of a difficulty. */
+export type ApiSnapshotChange = {
+  kind: SnapshotChangeKind;
+  op: DiffType;
+  time: number;
+  endTime: number | null;
+  /** What changed: Time, Position, Column, NewCombo, Hitsound, Sv, Bpm, Kiai, ... */
+  field: string | null;
+  before: string | null;
+  after: string | null;
+  magnitude: number | null;
+  object: ApiSnapshotObjectRef | null;
+  minor: boolean;
+};
+
+export type ApiSnapshotRollup = {
+  kind: 'Offset';
+  amount: number;
+  absorbed: number;
+};
+
+export type ApiSnapshotSettingChange = {
+  section: string;
+  key: string;
+  op: DiffType;
+  before: string | null;
+  after: string | null;
+  added: string[] | null;
+  removed: string[] | null;
+  /** Above 0 when the same change happened in this many difficulties (shown once, in General). */
+  appliesTo: number;
+};
+
+export type ApiSnapshotFileChange = {
   name: string;
-  isGeneral: boolean;
-  starRating: number | null;
-  mode: Mode | null;
+  category: string;
+  op: DiffType;
+  sizeBefore: number | null;
+  sizeAfter: number | null;
+};
+
+export type ApiSnapshotTimeRange = { start: number; end: number };
+
+export type ApiSnapshotMark = {
+  kind: SnapshotChangeKind;
+  start: number;
+  end: number;
+  minor: boolean;
+};
+
+export type ApiSnapshotCounts = {
+  added: number;
+  removed: number;
+  changed: number;
+  total: number;
+};
+
+export type ApiSnapshotVisualObject = {
+  time: number;
+  endTime: number | null;
+  type: string;
+  x: number;
+  y: number;
+  column: number | null;
+  hitSound: string;
+  path: number[][] | null;
+  /** Where a repeating slider turns around (not its head or tail). */
+  edges: number[] | null;
+  /** Catch: the times of this object's fruits that start a hyperdash (they glow red in the game). */
+  hyperTimes: number[] | null;
+  /** osu!: the number the object shows in the editor (1 at each new combo). */
+  combo: number | null;
+  /** When the slider's ticks are, following the tick rate (osu! and catch). */
+  ticks: number[] | null;
+  /** The volume it plays at: its own, or the timing line's it inherits. */
+  volume: number | null;
+  /** A slider's sounds (osu! and catch): head, reverses, tail, and the body's whistle. */
+  sounds: ApiSnapshotSoundPart[] | null;
+};
+
+export type ApiSnapshotSoundPart = {
+  time: number;
+  kind: 'Head' | 'Repeat' | 'Tail' | 'Body';
+  hitSound: string;
+  /** Normal, Soft or Drum: where the sound comes from. */
+  sampleset: string;
+  /** Where the whistle, finish and clap come from. */
+  addition: string;
+};
+
+/** A red line: where a beat grid starts and how long a beat is. */
+export type ApiSnapshotTimingMark = {
+  offset: number;
+  beatLength: number;
+  meter: number;
+};
+
+export type ApiSnapshotHunkVisual = {
+  before: ApiSnapshotVisualObject[];
+  after: ApiSnapshotVisualObject[];
+  /** Too many objects to draw. */
+  truncated: boolean;
+  /** The beat grid under the objects, per side (it can differ after a retime). */
+  beforeTiming: ApiSnapshotTimingMark[];
+  afterTiming: ApiSnapshotTimingMark[];
+};
+
+/**
+ * A few objects of one difficulty around a change, before and after: some leading up to it, the
+ * changed ones, and some after, like the objects a player sees coming.
+ */
+export type ApiSnapshotWindow = {
+  from: number;
+  to: number;
+  /** How many objects the window shows. */
+  objects: number;
+  hasEarlier: boolean;
+  hasLater: boolean;
+  visual: ApiSnapshotHunkVisual;
+};
+
+export type SnapshotHunkLabel =
+  | 'Remapped'
+  | 'Rhythm'
+  | 'Placement'
+  | 'Hitsounding'
+  | 'Sv'
+  | 'Mixed';
+
+/** Changes close together in the song, shown as one row. */
+export type ApiSnapshotHunk = {
+  start: number;
+  end: number;
+  label: SnapshotHunkLabel;
+  kinds: SnapshotChangeKind[];
+  changes: ApiSnapshotChange[];
+  counts: ApiSnapshotCounts;
+};
+
+export type SnapshotDifficultyStatus = 'Unchanged' | 'Changed' | 'Added' | 'Removed';
+
+export type ApiSnapshotDifficultyComparison = {
+  key: string;
+  name: string;
+  mode: Mode;
   beatmapId: number | null;
+  status: SnapshotDifficultyStatus;
+  starsBefore: number | null;
+  starsAfter: number | null;
+  objectsBefore: number;
+  objectsAfter: number;
+  counts: ApiSnapshotCounts;
+  minorCount: number;
+  hunks: ApiSnapshotHunk[];
+  minor: ApiSnapshotChange[];
+  settings: ApiSnapshotSettingChange[];
+  rollups: ApiSnapshotRollup[];
+  marks: ApiSnapshotMark[];
+  kiai: ApiSnapshotTimeRange[];
+  breaks: ApiSnapshotTimeRange[];
+  lengthMs: number;
+};
+
+export type ApiSnapshotGeneralComparison = {
+  rollups: ApiSnapshotRollup[];
+  settings: ApiSnapshotSettingChange[];
+  files: ApiSnapshotFileChange[];
+  counts: ApiSnapshotCounts;
+};
+
+export type ApiSnapshotInfo = {
+  id: string;
+  time: string;
+  trigger: string;
+  pin: string | null;
+};
+
+export type ApiSnapshotComparison = {
+  base: ApiSnapshotInfo;
+  target: ApiSnapshotInfo;
+  general: ApiSnapshotGeneralComparison;
+  difficulties: ApiSnapshotDifficultyComparison[];
+};
+
+export type ApiSnapshotChecks = {
+  problems: number;
+  warnings: number;
+  minor: number;
+};
+
+export type ApiSnapshotHistoryEntry = {
+  id: string;
+  time: string;
+  /** checkRun, pageOpen, manual or import. */
+  trigger: string;
+  pin: string | null;
+  checks: ApiSnapshotChecks | null;
+  previousChecks: ApiSnapshotChecks | null;
+  /** Keys of the difficulties that changed since the snapshot before. */
+  changedDifficulties: string[];
+  counts: ApiSnapshotCounts;
+  fileChanges: number;
+  generalChanges: number;
+  isFirst: boolean;
+};
+
+export type ApiSnapshotHistoryDifficulty = {
+  key: string;
+  name: string;
+  mode: Mode;
+  beatmapId: number | null;
+  starRating: number | null;
 };
 
 export type ApiSnapshotHistory = {
-  difficultyName: string;
-  commits: ApiSnapshotCommit[];
-};
-
-export type ApiSnapshotCommit = {
-  date: string;
-  id: string;
-  /** False when this difficulty/General had no snapshot recorded yet at this date - as opposed
-   * to having one but showing no changes (totalChanges === 0 with hasSnapshot === true). */
-  hasSnapshot: boolean;
-  totalChanges: number;
-  additions: number;
-  removals: number;
-  modifications: number;
-  sections: ApiSnapshotSection[];
-};
-
-export type ApiSnapshotSection = {
-  name: string;
-  aggregatedDiffType: DiffType;
-  additions: number;
-  removals: number;
-  modifications: number;
-  diffs: ApiSnapshotDiff[];
-};
-
-export type ApiSnapshotDiff = {
-  message: string;
-  diffType: DiffType;
-  oldValue: string | null;
-  newValue: string | null;
-  details: string[];
+  setKey: string;
+  difficulties: ApiSnapshotHistoryDifficulty[];
+  /** Newest first. */
+  entries: ApiSnapshotHistoryEntry[];
 };
 
 // Audio Analysis Types

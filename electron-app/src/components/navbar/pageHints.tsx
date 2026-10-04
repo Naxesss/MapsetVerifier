@@ -65,6 +65,30 @@ function difficultyBarHint(): PageHint {
   };
 }
 
+function snapshotRangeHint(): PageHint {
+  return {
+    id: 'snapshot-range',
+    content: (
+      <>
+        <Kbd size="xs">Left Click</Kbd> a snapshot to see what changed up to it,{' '}
+        <Kbd size="xs">Shift</Kbd> + <Kbd size="xs">Left Click</Kbd> to start the comparison at it.
+      </>
+    ),
+  };
+}
+
+function changeMapHint(): PageHint {
+  return {
+    id: 'change-map',
+    content: (
+      <>
+        <Kbd size="xs">Left Click</Kbd> a row in the change map to open that difficulty, or drag
+        across a lane to look at one part of the song.
+      </>
+    ),
+  };
+}
+
 function difficultyStepHint(): PageHint {
   return {
     id: 'difficulty-step',
@@ -351,7 +375,8 @@ export function getPageHints(
       ...commonHints(isMac),
       difficultyBarHint(),
       difficultyStepHint(),
-      badgeFilterHint('diff-type-filter', 'changes by type'),
+      snapshotRangeHint(),
+      changeMapHint(),
     ];
   }
 
