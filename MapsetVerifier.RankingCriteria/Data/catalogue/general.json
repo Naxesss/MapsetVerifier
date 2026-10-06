@@ -1,6 +1,6 @@
 {
   "page": "general",
-  "commit": "05c7a5144955c4eb358124cfd337befc585a2217",
+  "commit": "517121c18abca0768d9ed36c8603396d70b4c862",
   "statements": [
     {
       "id": "general/no-two-hit-objects-placed",
@@ -754,7 +754,7 @@
         "kind": "rule",
         "lead": "An object which is wrongly snapped due to passing through or ending slightly before a new uninherited timing point must be snapped within the new timing section.",
         "fingerprint": "an object which is wrongly snapped due to passing through or ending slightly before a new uninherited timing point must be snapped within the new timing section",
-        "bodyHash": "9e59b015b91aa2e7",
+        "bodyHash": "675967c538d2acbc",
         "anchor": "timing",
         "startLine": 135,
         "endLine": 138,
@@ -762,6 +762,11 @@
       },
       "curation": {
         "automation": "automatable"
+      },
+      "lastReview": {
+        "commit": "05c7a5144955c4eb358124cfd337befc585a2217",
+        "bodyHash": "9e59b015b91aa2e7",
+        "kind": "rule"
       }
     },
     {
