@@ -90,6 +90,12 @@ public static class MetadataAnalysisService
                     usage.Format = AudioBASS.EnumToString(AudioBASS.GetFormat(fullPath));
                     usage.DurationMs = AudioBASS.GetDuration(fullPath);
                 }
+                catch (BadImageFormatException ex)
+                {
+                    // BASS couldn't open the file (corrupt, unsupported or empty audio). The size is
+                    // still reported; the checks flag the file itself, so no stack trace is needed.
+                    Log.Warning("Unreadable hit sound {File}: {Reason}", hsFile, ex.Message);
+                }
                 catch (Exception ex)
                 {
                     Log.Warning(ex, "Failed to get hit sound info for {File}", hsFile);
