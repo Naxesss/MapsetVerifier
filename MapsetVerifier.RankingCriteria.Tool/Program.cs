@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using MapsetVerifier.RankingCriteria;
+using System.Text.RegularExpressions;
 using MapsetVerifier.RankingCriteria.Model;
 using MapsetVerifier.RankingCriteria.Parsing;
 using MapsetVerifier.RankingCriteria.Sync;
@@ -75,13 +75,12 @@ internal static class Program
             );
 
         // Latest commit touching the ranking criteria, or the requested one, resolved to a full sha.
-        var commitsUrl =
-            commit == null
-                ? $"https://api.github.com/repos/{Repository}/commits?path=wiki/Ranking_criteria&per_page=1"
-                : $"https://api.github.com/repos/{Repository}/commits/{commit}";
-
-        using var commitJson = JsonDocument.Parse(await http.GetStringAsync(commitsUrl));
-        var commitElement = commit == null ? commitJson.RootElement[0] : commitJson.RootElement;
+        using var commitJson = JsonDocument.Parse(
+            await http.GetStringAsync(
+                $"https://api.github.com/repos/{Repository}/commits/{commit ?? await FindLatestCommit(http)}"
+            )
+        );
+        var commitElement = commitJson.RootElement;
         var sha = commitElement.GetProperty("sha").GetString()!;
         var date = commitElement
             .GetProperty("commit")
@@ -140,6 +139,47 @@ internal static class Program
             JsonSerializer.Serialize(source, RcJson.Options) + "\n"
         );
     }
+
+    /// <summary>
+    ///     Finds the latest commit touching the ranking criteria, skipping commits that only change translations
+    ///     (e.g. wiki/Ranking_criteria/fr.md) since only the English pages are snapshotted.
+    /// </summary>
+    private static async Task<string> FindLatestCommit(HttpClient http)
+    {
+        using var commitsJson = JsonDocument.Parse(
+            await http.GetStringAsync(
+                $"https://api.github.com/repos/{Repository}/commits?path=wiki/Ranking_criteria&per_page=30"
+            )
+        );
+
+        foreach (var entry in commitsJson.RootElement.EnumerateArray())
+        {
+            var sha = entry.GetProperty("sha").GetString()!;
+            using var detailJson = JsonDocument.Parse(
+                await http.GetStringAsync(
+                    $"https://api.github.com/repos/{Repository}/commits/{sha}"
+                )
+            );
+
+            var relevant = detailJson
+                .RootElement.GetProperty("files")
+                .EnumerateArray()
+                .Select(file => file.GetProperty("filename").GetString()!)
+                .Where(path => path.StartsWith("wiki/Ranking_criteria/"))
+                .Any(path => !IsTranslation(path));
+
+            if (relevant)
+                return sha;
+        }
+
+        throw new InvalidOperationException(
+            "No recent commit changed the ranking criteria beyond translations."
+        );
+    }
+
+    /// <summary> Whether the path is a non-English language page such as "wiki/Ranking_criteria/osu!/fr.md". </summary>
+    private static bool IsTranslation(string path) =>
+        Regex.IsMatch(Path.GetFileName(path), @"^(?!en\.md$)[a-z]{2,3}(-[a-z]+)?\.md$");
 
     private static void Reparse(string dataDir)
     {
