@@ -24,7 +24,12 @@ export function useDifficultyPicks(difficulties: readonly PickableDifficulty[]) 
     else next.add(version);
     setPicks({ folder: selectedFolder, versions: next });
   };
-  const clear = () => setPicks({ folder: selectedFolder, versions: new Set() });
+  /** Shows every difficulty of a mode, or only `version` of it; picks in other modes stay. */
+  const restart = (modeVersions: readonly string[], version?: string) => {
+    const next = new Set([...picked].filter((v) => !modeVersions.includes(v)));
+    if (version) next.add(version);
+    setPicks({ folder: selectedFolder, versions: next });
+  };
 
-  return { isShown, showAll, picked, toggle, clear };
+  return { isShown, showAll, picked, toggle, restart };
 }

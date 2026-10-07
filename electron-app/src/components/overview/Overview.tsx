@@ -6,7 +6,6 @@ import DifficultyOverview from './difficulty/DifficultyOverview.tsx';
 import MetadataOverview from './metadata/MetadataOverview.tsx';
 import ObjectsOverview from './objects/ObjectsOverview.tsx';
 import OverviewPicker from './OverviewPicker.tsx';
-import OverviewSummary from './OverviewSummary.tsx';
 import { useUnavailableSections } from './useUnavailableSections.ts';
 import VideoOverview from './video/VideoOverview.tsx';
 import { useOverviewState } from '../../context/OverviewContext.tsx';
@@ -22,7 +21,7 @@ function Overview() {
   const unavailable = useUnavailableSections();
   const isUnavailable = !!unavailable[activeTab];
   useEffect(() => {
-    if (isUnavailable) setActiveTab('Summary');
+    if (isUnavailable) setActiveTab('General');
   }, [isUnavailable, setActiveTab]);
 
   useEffect(() => {
@@ -33,14 +32,13 @@ function Overview() {
   return (
     <>
       <BeatmapHeader>
-        <OverviewPicker section={activeTab} onSelect={setActiveTab} />
+        <OverviewPicker section={activeTab} unavailable={unavailable} onSelect={setActiveTab} />
       </BeatmapHeader>
       <Box
         id="overview-panel"
         style={{ flex: 1, overflow: 'clip', position: 'relative' }}
         bg="dark.6"
       >
-        {activeTab === 'Summary' && <OverviewSummary onOpen={setActiveTab} />}
         {activeTab === 'General' && <MetadataOverview />}
         {activeTab === 'Beatmap' && <BeatmapOverview />}
         {activeTab === 'Difficulty' && <DifficultyOverview />}
