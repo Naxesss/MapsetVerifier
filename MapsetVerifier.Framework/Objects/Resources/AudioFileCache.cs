@@ -102,8 +102,18 @@ namespace MapsetVerifier.Framework.Objects.Resources
                 hitSoundFilePaths.Distinct(),
                 path =>
                 {
-                    GetFormat(path);
-                    GetPeaks(path);
+                    try
+                    {
+                        GetFormat(path);
+                        GetPeaks(path);
+                    }
+                    catch
+                    {
+                        // Unreadable audio (corrupt, mislabeled extension, unsupported) must not abort
+                        // the whole run. Lazy caches the exception, so each check calling the cache
+                        // for this file rethrows it and reports it through its own error handling.
+                    }
+
                     onFileWarmed?.Invoke();
                 }
             );
