@@ -1,7 +1,7 @@
-import { Text } from '@mantine/core';
 import { createHashRouter } from 'react-router-dom';
 import App from './App.tsx';
 import Checks from './components/checks/Checks.tsx';
+import NotFoundDisplay from './components/common/NotFoundDisplay.tsx';
 import RequireBeatmapSelection from './components/common/RequireBeatmapSelection.tsx';
 import RouterErrorDisplay from './components/common/RouterErrorDisplay.tsx';
 import Documentation from './components/documentation/Documentation.tsx';
@@ -41,7 +41,7 @@ export const router = createHashRouter([
           { path: 'overview', element: <Overview /> },
         ],
       },
-      { path: '*', element: <Text>404</Text> },
+      { path: '*', element: <NotFoundDisplay /> },
     ],
   },
 ]);

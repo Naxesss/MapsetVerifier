@@ -169,10 +169,10 @@ export function ChartHoverFloatingPanel({
         }}
       >
         <Group
-          gap={6}
+          gap="xs"
           wrap="nowrap"
           px="xs"
-          py={6}
+          py="xs"
           style={{
             cursor: active ? 'grabbing' : 'grab',
             borderBottom: '1px solid var(--mantine-color-dark-4)',
@@ -185,7 +185,7 @@ export function ChartHoverFloatingPanel({
             {headerTitle}
           </Text>
         </Group>
-        <Box p="xs" mx="sm" pt={8} onMouseDown={(event) => event.stopPropagation()}>
+        <Box p="xs" mx="sm" pt="sm" onMouseDown={(event) => event.stopPropagation()}>
           {hover ? (
             <TimeSeriesHoverTooltip
               hover={hover}

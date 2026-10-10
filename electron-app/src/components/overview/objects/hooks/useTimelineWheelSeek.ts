@@ -6,17 +6,19 @@ import {
   getTimestampAtPlayhead,
 } from '../timelineUtils.ts';
 
+type SnapSeekWindow = {
+  snapTicks: number[];
+  snapClampStartMs: number;
+  snapClampEndMs: number;
+};
+
 type UseTimelineWheelSeekOptions = {
   scrollRef: RefObject<HTMLDivElement | null>;
   timelineWidth: number;
   startTimeMs: number;
   endTimeMs: number;
-  snapTicks: number[];
-  /** Bounds `snapTicks` was actually built for — used to clamp seeking once ticks run
-   * out in the seek direction. Defaults to `startTimeMs`/`endTimeMs` when `snapTicks`
-   * covers the full timeline. */
-  snapClampStartMs?: number;
-  snapClampEndMs?: number;
+  /** Built from the live scroll position at seek time, so a stale React viewport cannot clamp the wrong way. */
+  resolveSnapTicks: () => SnapSeekWindow;
   tickStepCount?: number;
   adjustZoom?: (direction: -1 | 1) => void;
   enabled?: boolean;
@@ -29,9 +31,7 @@ export function useTimelineWheelSeek({
   timelineWidth,
   startTimeMs,
   endTimeMs,
-  snapTicks,
-  snapClampStartMs = startTimeMs,
-  snapClampEndMs = endTimeMs,
+  resolveSnapTicks,
   tickStepCount = 1,
   adjustZoom,
   enabled = true,
@@ -39,7 +39,12 @@ export function useTimelineWheelSeek({
   const seekByDirection = useCallback(
     (direction: 1 | -1): boolean => {
       const scrollElement = scrollRef.current;
-      if (!scrollElement || scrollElement.clientWidth <= 0 || snapTicks.length === 0) {
+      if (!scrollElement || scrollElement.clientWidth <= 0) {
+        return false;
+      }
+
+      const { snapTicks, snapClampStartMs, snapClampEndMs } = resolveSnapTicks();
+      if (snapTicks.length === 0) {
         return false;
       }
 
@@ -101,16 +106,7 @@ export function useTimelineWheelSeek({
 
       return false;
     },
-    [
-      endTimeMs,
-      scrollRef,
-      snapClampEndMs,
-      snapClampStartMs,
-      snapTicks,
-      startTimeMs,
-      tickStepCount,
-      timelineWidth,
-    ]
+    [endTimeMs, resolveSnapTicks, scrollRef, startTimeMs, tickStepCount, timelineWidth]
   );
 
   useEffect(() => {

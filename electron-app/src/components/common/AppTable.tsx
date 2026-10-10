@@ -1,89 +1,45 @@
-import { Box, Table, useMantineTheme } from '@mantine/core';
-import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react';
+import { Box, Table } from '@mantine/core';
+import { useState, type ComponentPropsWithoutRef, type CSSProperties, type ReactNode } from 'react';
 
 type AppTableProps = Omit<ComponentPropsWithoutRef<typeof Table>, 'children'> & {
   children: ReactNode;
   containerStyle?: CSSProperties;
 };
 
-export function DifficultyTableHeaderCell({
-  children = 'Difficulty',
-  style,
-  ...props
-}: ComponentPropsWithoutRef<typeof Table.Th>) {
-  const theme = useMantineTheme();
-
-  return (
-    <Table.Th
-      {...props}
-      style={{
-        position: 'sticky',
-        left: 0,
-        zIndex: 3,
-        textAlign: 'left',
-        backgroundColor: theme.colors.dark[5],
-        borderRight: `1px solid ${theme.colors.dark[4]}`,
-        boxShadow: `8px 0 12px -12px rgba(0, 0, 0, 0.8)`,
-        ...style,
-      }}
-    >
-      {children}
-    </Table.Th>
-  );
-}
-
-export function DifficultyTableCell({
-  style,
-  ...props
-}: ComponentPropsWithoutRef<typeof Table.Td>) {
-  const theme = useMantineTheme();
-
-  return (
-    <Table.Td
-      {...props}
-      style={{
-        position: 'sticky',
-        left: 0,
-        zIndex: 2,
-        textAlign: 'left',
-        backgroundColor: theme.colors.dark[5],
-        borderRight: `1px solid ${theme.colors.dark[4]}`,
-        boxShadow: `8px 0 12px -12px rgba(0, 0, 0, 0.8)`,
-        ...style,
-      }}
-    />
-  );
-}
-
+/**
+ * The one table style (`.mv-table` in global.scss): the card is the only surface, with no header
+ * fill, stripes or filled sticky column. Labels sit on a hairline, rows are split by fainter
+ * hairlines, the first column is left-aligned and every other column right-aligned in tabular
+ * figures, so numbers line up. The sticky first column only casts a shadow once the table is
+ * scrolled sideways, when there is something underneath it. Mark the first cell of each row
+ * `mv-table-sticky` to keep it in view (see ComparisonTable).
+ */
 function AppTable({
   children,
   containerStyle,
-  style,
-  styles,
-  striped = true,
+  className,
   highlightOnHover = true,
   horizontalSpacing = 'sm',
-  verticalSpacing = 'xs',
+  verticalSpacing = 'sm',
   ...props
 }: AppTableProps) {
+  const [scrolled, setScrolled] = useState(false);
+
   return (
-    <Box style={{ overflowX: 'auto', maxWidth: '100%', ...containerStyle }}>
+    <Box
+      className="mv-table-scroll"
+      data-scrolled={scrolled || undefined}
+      onScroll={(event) => setScrolled(event.currentTarget.scrollLeft > 0)}
+      style={{ overflowX: 'auto', maxWidth: '100%', ...containerStyle }}
+    >
       <Table
         {...props}
-        striped={striped}
+        className={['mv-table', className].filter(Boolean).join(' ')}
+        striped={false}
+        withRowBorders
         highlightOnHover={highlightOnHover}
         horizontalSpacing={horizontalSpacing}
         verticalSpacing={verticalSpacing}
-        styles={
-          styles ?? {
-            th: { textAlign: 'center' },
-            td: { textAlign: 'center' },
-          }
-        }
-        style={{
-          whiteSpace: 'nowrap',
-          ...style,
-        }}
       >
         {children}
       </Table>

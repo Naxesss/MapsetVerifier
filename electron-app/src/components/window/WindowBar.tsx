@@ -2,6 +2,7 @@ import { Group, ActionIcon, useMantineTheme, useMantineColorScheme, Badge } from
 import { IconMinus, IconSquare, IconX } from '@tabler/icons-react';
 import React, { useEffect, useState } from 'react';
 import iconUrl from '../../assets/icon.png';
+import { WINDOW_BAR_HEIGHT, Z_INDEX } from '../../theme/layers';
 import { isDevVersion, isSemverPreRelease } from '../../utils/isSemverPreRelease';
 
 const dragStyle = { WebkitAppRegion: 'drag' } as React.CSSProperties;
@@ -13,7 +14,6 @@ const WindowBar: React.FC = () => {
   const isDark = colorScheme === 'dark';
   const bgColor = isDark ? theme.colors.dark[8] : theme.colors.gray[0];
   const textColor = theme.colors.primary[2];
-  const barHeight = 32;
 
   const [version, setVersion] = useState<string>('unknown');
 
@@ -42,8 +42,8 @@ const WindowBar: React.FC = () => {
           top: 0,
           left: 0,
           width: '100%',
-          zIndex: 2000,
-          height: barHeight,
+          zIndex: Z_INDEX.windowBar,
+          height: WINDOW_BAR_HEIGHT,
           background: bgColor,
           color: textColor,
           alignItems: 'center',
@@ -55,7 +55,7 @@ const WindowBar: React.FC = () => {
       justify="flex-end"
     >
       <Group
-        gap={6}
+        gap="xs"
         align="center"
         wrap="nowrap"
         style={{ ...dragStyle, flex: 1 } as React.CSSProperties}
@@ -95,9 +95,7 @@ const WindowBar: React.FC = () => {
           {isDev && (
             <Badge
               color="red"
-              size="xs"
               radius="sm"
-              variant="filled"
               style={{ marginLeft: 8, verticalAlign: 'middle', opacity: 0.85 }}
             >
               DEV
@@ -106,9 +104,7 @@ const WindowBar: React.FC = () => {
           {isPrerelease && (
             <Badge
               color="orange"
-              size="xs"
               radius="sm"
-              variant="filled"
               style={{ marginLeft: 8, verticalAlign: 'middle', opacity: 0.85 }}
             >
               Beta

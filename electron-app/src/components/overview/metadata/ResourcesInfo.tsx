@@ -2,7 +2,6 @@
   Text,
   Badge,
   Group,
-  Paper,
   useMantineTheme,
   Stack,
   Accordion,
@@ -22,7 +21,7 @@ import {
 import { ResourcesInfo as ResourcesInfoType } from '../../../Types';
 import { countWord } from '../../../utils/countWord';
 import AppTable from '../../common/AppTable.tsx';
-import { InfoIconTooltip } from '../../common/InfoIconTooltip.tsx';
+import SectionCard from '../../common/SectionCard.tsx';
 
 interface ResourcesInfoProps {
   resources: ResourcesInfoType;
@@ -32,37 +31,30 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
   const theme = useMantineTheme();
 
   return (
-    <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
-      <Group justify="space-between" mb="md">
-        <Group gap="xs">
-          <Text fw={600}>Resources</Text>
-          <InfoIconTooltip label="Files and resources used by the beatmapset" multiline w={250} />
-        </Group>
-        <Badge color="blue" variant="light">
-          <Group gap={4}>
-            <IconFolder size={12} />
-            {resources.totalFolderSizeFormatted}
-          </Group>
+    <SectionCard
+      title="Resources"
+      info="Files the mapset uses, and whether they exist in its folder."
+      actions={
+        <Badge color="blue" leftSection={<IconFolder size={12} />}>
+          {resources.totalFolderSizeFormatted}
         </Badge>
-      </Group>
-
+      }
+    >
       <Stack gap="md">
         {/* Audio File */}
         {resources.audioFile && (
           <Box>
-            <Group gap="xs" mb={4}>
+            <Group gap="xs" mb="xs">
               <IconMusic size={14} style={{ color: theme.colors.blue[4] }} />
               <Text size="xs" c="dimmed">
-                Audio File
+                Audio file
               </Text>
             </Group>
             <Group gap="md">
               <Text size="sm" fw={500}>
                 {resources.audioFile.fileName}
               </Text>
-              <Badge size="xs" variant="light">
-                {resources.audioFile.format}
-              </Badge>
+              <Badge>{resources.audioFile.format}</Badge>
               <Text size="xs" c="dimmed">
                 {resources.audioFile.fileSizeFormatted}
               </Text>
@@ -79,7 +71,7 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
         {/* Backgrounds */}
         {resources.backgrounds.length > 0 && (
           <Box>
-            <Group gap="xs" mb={4}>
+            <Group gap="xs" mb="xs">
               <IconPhoto size={14} style={{ color: theme.colors.green[4] }} />
               <Text size="xs" c="dimmed">
                 Background{resources.backgrounds.length > 1 ? 's' : ''}
@@ -91,9 +83,7 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
                   <Text size="sm" fw={500}>
                     {bg.fileName}
                   </Text>
-                  <Badge size="xs" variant="light">
-                    {bg.resolution}
-                  </Badge>
+                  <Badge>{bg.resolution}</Badge>
                   <Text size="xs" c="dimmed">
                     {bg.fileSizeFormatted}
                   </Text>
@@ -111,7 +101,7 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
         {/* Videos */}
         {resources.videos.length > 0 && (
           <Box>
-            <Group gap="xs" mb={4}>
+            <Group gap="xs" mb="xs">
               <IconVideo size={14} style={{ color: theme.colors.violet[4] }} />
               <Text size="xs" c="dimmed">
                 Video{resources.videos.length > 1 ? 's' : ''}
@@ -123,9 +113,7 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
                   <Text size="sm" fw={500}>
                     {video.fileName}
                   </Text>
-                  <Badge size="xs" variant="light">
-                    {video.resolution}
-                  </Badge>
+                  <Badge>{video.resolution}</Badge>
                   <Text size="xs" c="dimmed">
                     {video.fileSizeFormatted}
                   </Text>
@@ -143,13 +131,9 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
                     </Text>
                   )}
                   <Text size="xs" c="dimmed">
-                    Offset: {video.offsetMs}ms
+                    Offset: {video.offsetMs} ms
                   </Text>
-                  {video.hasAudioTrack && (
-                    <Badge size="xs" variant="light" color="red">
-                      Audio track
-                    </Badge>
-                  )}
+                  {video.hasAudioTrack && <Badge color="gray">Audio track</Badge>}
                 </Group>
               ))}
             </Stack>
@@ -158,7 +142,7 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
 
         {/* Storyboard */}
         <Box>
-          <Group gap="xs" mb={4}>
+          <Group gap="xs" mb="xs">
             <Text size="xs" c="dimmed">
               Storyboard
             </Text>
@@ -183,16 +167,14 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
             </Group>
             {resources.storyboard.difficultySpecificStoryboards.some((d) => d.hasStoryboard) && (
               <Box>
-                <Text size="xs" c="dimmed" mb={2}>
+                <Text size="xs" c="dimmed" mb="2xs">
                   Difficulty-specific storyboards:
                 </Text>
                 {resources.storyboard.difficultySpecificStoryboards
                   .filter((d) => d.hasStoryboard)
                   .map((d, idx) => (
                     <Group key={idx} gap="xs">
-                      <Badge size="xs" variant="light">
-                        {d.version}
-                      </Badge>
+                      <Badge>{d.version}</Badge>
                       <Text size="xs">
                         {d.spriteCount} sprites, {d.animationCount} animations, {d.sampleCount}{' '}
                         samples
@@ -207,7 +189,7 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
         {/* Hit Sounds */}
         {resources.hitSounds.length > 0 && (
           <Box>
-            <Group gap="xs" mb={4}>
+            <Group gap="xs" mb="xs">
               <IconVolume size={14} style={{ color: theme.colors.orange[4] }} />
               <Text size="xs" c="dimmed">
                 Hit Sounds ({countWord(resources.hitSounds.length, 'file')})
@@ -220,9 +202,9 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
                 </Accordion.Control>
                 <Accordion.Panel>
                   <AppTable>
-                    <Table.Thead style={{ backgroundColor: theme.colors.dark[5] }}>
+                    <Table.Thead>
                       <Table.Tr>
-                        <Table.Th>File</Table.Th>
+                        <Table.Th className="mv-table-left">File</Table.Th>
                         <Table.Th>Format</Table.Th>
                         <Table.Th>Size</Table.Th>
                         <Table.Th>Duration</Table.Th>
@@ -232,13 +214,11 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
                     <Table.Tbody>
                       {resources.hitSounds.slice(0, 20).map((hs, idx) => (
                         <Table.Tr key={idx}>
-                          <Table.Td style={{ textAlign: 'left' }}>
+                          <Table.Td className="mv-table-left">
                             <Text size="xs">{hs.fileName}</Text>
                           </Table.Td>
                           <Table.Td>
-                            <Badge size="xs" variant="light">
-                              {hs.format}
-                            </Badge>
+                            <Badge>{hs.format}</Badge>
                           </Table.Td>
                           <Table.Td>
                             <Text size="xs">{hs.fileSizeFormatted}</Text>
@@ -264,7 +244,7 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
           </Box>
         )}
       </Stack>
-    </Paper>
+    </SectionCard>
   );
 }
 

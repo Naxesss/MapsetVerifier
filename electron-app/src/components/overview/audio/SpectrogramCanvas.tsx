@@ -1,4 +1,4 @@
-﻿import { Box, Flex, Paper, useMantineTheme } from '@mantine/core';
+﻿import { Box, Flex } from '@mantine/core';
 import * as d3 from 'd3';
 import { FunctionComponent, useCallback } from 'react';
 import { SpectralAnalysisResult, SpectrogramFrame } from '../../../Types.ts';
@@ -159,7 +159,6 @@ const averageMagnitudesPerPixel = (frames: SpectrogramFrame[], width: number, he
 };
 
 const SpectrogramCanvas: FunctionComponent<SpectrogramCanvasProps> = (props) => {
-  const theme = useMantineTheme();
   const colorScheme = props.colorScheme || 'inferno';
 
   const draw = useCallback(
@@ -282,7 +281,7 @@ const SpectrogramCanvas: FunctionComponent<SpectrogramCanvasProps> = (props) => 
     (props.data?.sampleRate ? props.data.sampleRate / 2 : 22050);
 
   return (
-    <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
+    <Box>
       <Flex direction="row" gap="md">
         {/* Container with relative positioning for axes */}
         <Box>
@@ -309,7 +308,7 @@ const SpectrogramCanvas: FunctionComponent<SpectrogramCanvasProps> = (props) => 
           <MagnitudeAxis minDb={-120} maxDb={0} width={50} />
         </Box>
       </Flex>
-    </Paper>
+    </Box>
   );
 };
 

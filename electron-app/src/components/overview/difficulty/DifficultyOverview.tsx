@@ -1,43 +1,32 @@
-import {
-  Alert,
-  Box,
-  Flex,
-  Grid,
-  LoadingOverlay,
-  Paper,
-  SimpleGrid,
-  Stack,
-  Text,
-  useMantineTheme,
-} from '@mantine/core';
-import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
-import { useMemo, useState } from 'react';
+import { Grid, Stack } from '@mantine/core';
+import { IconChartLine } from '@tabler/icons-react';
+import { useMemo } from 'react';
 import { DifficultyChartCard } from './DifficultyChartCard.tsx';
 import {
   buildCharts,
-  MODE_ORDER,
-  normalizeMode,
   SAMPLE_VOLUME_CHART_TITLE,
+  STAR_RATING_CHART_TITLE,
   type DifficultyModeGroup,
 } from './difficultyChartModel.ts';
-import { DifficultyGameModeSelector } from './DifficultyGameModeSelector.tsx';
-import { SummaryCard } from './DifficultySummaryCards.tsx';
+import { DifficultySpreadSummary } from './DifficultySummaryCards.tsx';
+import AnalysisTab from '../AnalysisTab.tsx';
+import { useDifficultyPicks } from '../useDifficultyPicks.ts';
 import { useDifficultyChartState } from './hooks/useDifficultyChartState.ts';
 import { useDifficultyOverview } from './hooks/useDifficultyOverview.ts';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
 import { useSettings } from '../../../context/SettingsContext.tsx';
-import NoBeatmapsetDisplay from '../../common/NoBeatmapsetDisplay.tsx';
-import StackTraceMessage from '../../common/StackTraceMessage.tsx';
-import type { DifficultyOverviewDifficulty, Mode } from '../../../Types';
+import { groupByMode } from '../../../utils/gameMode.ts';
+import EmptyState from '../../common/EmptyState.tsx';
+import { SectionTitle } from '../../common/Headings.tsx';
+import { useOverviewMode } from '../useOverviewMode.ts';
+import type { DifficultyOverviewDifficulty } from '../../../Types';
 
 const EMPTY_DIFFICULTIES: DifficultyOverviewDifficulty[] = [];
 
 function DifficultyOverview() {
-  const theme = useMantineTheme();
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
-  const [selectedMode, setSelectedMode] = useState<Mode | undefined>();
-  const { data, isLoading, isFetching, isError, error } = useDifficultyOverview({
+  const { data, isLoading, isError, error } = useDifficultyOverview({
     folder,
     songFolder: settings.songFolder,
   });
@@ -47,39 +36,25 @@ function DifficultyOverview() {
       return [];
     }
 
-    const grouped = new Map<Mode, DifficultyOverviewDifficulty[]>();
-
-    for (const difficulty of data.difficulties) {
-      const mode = normalizeMode(difficulty.mode);
-      const modeDifficulties = grouped.get(mode);
-
-      if (modeDifficulties) {
-        modeDifficulties.push(difficulty);
-      } else {
-        grouped.set(mode, [difficulty]);
-      }
-    }
-
-    return MODE_ORDER.filter((mode) => grouped.has(mode)).map((mode) => ({
-      mode,
-      difficulties: grouped.get(mode) ?? [],
-    }));
+    return groupByMode(data.difficulties);
   }, [data]);
 
-  if (groupedDifficulties.length === 0) {
-    if (selectedMode !== undefined) {
-      setSelectedMode(undefined);
-    }
-  } else if (!selectedMode || !groupedDifficulties.some((group) => group.mode === selectedMode)) {
-    setSelectedMode(groupedDifficulties[0].mode);
-  }
-
-  const selectedGroup =
-    groupedDifficulties.find((group) => group.mode === selectedMode) ?? groupedDifficulties[0];
-  const selectedDifficulties = selectedGroup?.difficulties ?? EMPTY_DIFFICULTIES;
+  const { selectedGroup } = useOverviewMode(groupedDifficulties);
+  const modeDifficulties = selectedGroup?.difficulties ?? EMPTY_DIFFICULTIES;
+  // The graphs show the difficulties picked to compare; the spread summary stays about all of them.
+  const pickable = useMemo(
+    () => modeDifficulties.map((d) => ({ version: d.label, starRating: d.starRating })),
+    [modeDifficulties]
+  );
+  const { isShown } = useDifficultyPicks(pickable);
+  const shownKey = modeDifficulties.map((d) => (isShown(d.label) ? '1' : '0')).join('');
+  const selectedDifficulties = useMemo(
+    () => modeDifficulties.filter((_, i) => shownKey[i] === '1'),
+    [modeDifficulties, shownKey]
+  );
   const charts = useMemo(
-    () => buildCharts(selectedDifficulties, data?.msPerPeak),
-    [data?.msPerPeak, selectedDifficulties]
+    () => buildCharts(selectedDifficulties, data?.msPerPeak, modeDifficulties),
+    [data?.msPerPeak, selectedDifficulties, modeDifficulties]
   );
 
   const durationMs = charts[0]?.durationMs ?? data?.msPerPeak ?? 0;
@@ -96,76 +71,27 @@ function DifficultyOverview() {
     folder ?? ''
   );
 
-  const starRatingChart = charts.find((c) => c.title === 'Star Rating');
+  const starRatingChart = charts.find((c) => c.title === STAR_RATING_CHART_TITLE);
   const sliderVelocityChart = charts.find((c) => c.title === 'Slider velocity');
   const sampleVolumeChart = charts.find((c) => c.title === SAMPLE_VOLUME_CHART_TITLE);
   const skillCharts = charts.filter(
     (c) =>
-      c.title !== 'Star Rating' &&
+      c.title !== STAR_RATING_CHART_TITLE &&
       c.title !== 'Slider velocity' &&
       c.title !== SAMPLE_VOLUME_CHART_TITLE
   );
-  const distinctSkillCount = useMemo(
-    () =>
-      new Set(
-        selectedDifficulties.flatMap((difficulty) =>
-          difficulty.skills.map((skill) => skill.skillName)
-        )
-      ).size,
-    [selectedDifficulties]
-  );
-
-  if (!folder) {
-    return <NoBeatmapsetDisplay />;
-  }
 
   return (
-    <Box>
-      <LoadingOverlay
-        visible={isLoading || isFetching}
-        zIndex={1000}
-        overlayProps={{ radius: 'sm', blur: 2 }}
-      />
-      {isError && (
-        <Flex p="md">
-          <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing difficulty overview">
-            <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
-              {error?.message}
-            </Text>
-            {error?.stackTrace && <StackTraceMessage stackTrace={error.stackTrace} />}
-          </Alert>
-        </Flex>
-      )}
-
-      {data && !data.success && (
-        <Flex p="md">
-          <Alert icon={<IconAlertTriangle />} color="yellow" title="Analysis failed">
-            <Text size="sm">{data.errorMessage}</Text>
-          </Alert>
-        </Flex>
-      )}
-
-      {data && data.success && (
-        <Flex gap="md" p="md" direction="column">
-          <DifficultyGameModeSelector
-            groupedDifficulties={groupedDifficulties}
-            selectedMode={selectedGroup?.mode}
-            onModeChange={setSelectedMode}
-          />
-
-          <SimpleGrid cols={{ base: 1, md: 3 }} spacing="md">
-            <SummaryCard label="Difficulties" value={String(selectedDifficulties.length)} />
-            <SummaryCard
-              label="Skill charts"
-              value={String(skillCharts.length)}
-              subValue={`${distinctSkillCount} unique skills`}
-            />
-            <SummaryCard
-              label="Peak interval"
-              value={`${(data.msPerPeak / 1000).toFixed(1)}s`}
-              subValue={`${data.msPerPeak}ms strain windows`}
-            />
-          </SimpleGrid>
+    <AnalysisTab
+      data={data}
+      isLoading={isLoading}
+      isError={isError}
+      error={error}
+      subject="difficulties"
+    >
+      {() => (
+        <>
+          <DifficultySpreadSummary difficulties={modeDifficulties} />
 
           <Stack gap="md">
             {charts.length > 0 ? (
@@ -181,9 +107,7 @@ function DifficultyOverview() {
                 )}
                 {skillCharts.length > 0 && (
                   <>
-                    <Text fw={600} c={theme.colors.gray[2]}>
-                      Skill Strain Analysis
-                    </Text>
+                    <SectionTitle>Skill strain</SectionTitle>
                     <Grid grow gutter="md">
                       {skillCharts.map((chart) => (
                         <Grid.Col key={chart.title} span={{ base: 12, lg: 6, xl: 4 }}>
@@ -195,16 +119,12 @@ function DifficultyOverview() {
                 )}
               </>
             ) : (
-              <Paper p="md" radius="md" withBorder>
-                <Text c="dimmed" ta="center">
-                  No difficulty strain data available.
-                </Text>
-              </Paper>
+              <EmptyState icon={IconChartLine} title="No difficulty strain data available" />
             )}
           </Stack>
-        </Flex>
+        </>
       )}
-    </Box>
+    </AnalysisTab>
   );
 }
 

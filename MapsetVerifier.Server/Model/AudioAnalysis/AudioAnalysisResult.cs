@@ -31,7 +31,7 @@ public readonly struct AudioAnalysisResult
     public ChannelAnalysisResult? ChannelAnalysis { get; init; }
 
     /// <summary>
-    /// Audio format compliance results.
+    /// Audio format details.
     /// </summary>
     public FormatAnalysisResult? FormatAnalysis { get; init; }
 
@@ -41,16 +41,6 @@ public readonly struct AudioAnalysisResult
     public DynamicRangeResult? DynamicRangeAnalysis { get; init; }
 
     /// <summary>
-    /// Overall compliance status for ranking criteria.
-    /// </summary>
-    public bool IsCompliant { get; init; }
-
-    /// <summary>
-    /// List of all compliance issues found.
-    /// </summary>
-    public IEnumerable<string> ComplianceIssues { get; init; }
-
-    /// <summary>
     /// Creates a successful result.
     /// </summary>
     public static AudioAnalysisResult CreateSuccess(
@@ -58,11 +48,9 @@ public readonly struct AudioAnalysisResult
         BitrateAnalysisResult bitrateAnalysis,
         ChannelAnalysisResult channelAnalysis,
         FormatAnalysisResult formatAnalysis,
-        DynamicRangeResult dynamicRangeAnalysis,
-        IEnumerable<string> complianceIssues
+        DynamicRangeResult dynamicRangeAnalysis
     )
     {
-        var enumerable = complianceIssues as string[] ?? complianceIssues.ToArray();
         return new AudioAnalysisResult
         {
             Success = true,
@@ -72,8 +60,6 @@ public readonly struct AudioAnalysisResult
             ChannelAnalysis = channelAnalysis,
             FormatAnalysis = formatAnalysis,
             DynamicRangeAnalysis = dynamicRangeAnalysis,
-            IsCompliant = enumerable.Length == 0,
-            ComplianceIssues = enumerable,
         };
     }
 
@@ -91,8 +77,6 @@ public readonly struct AudioAnalysisResult
             ChannelAnalysis = null,
             FormatAnalysis = null,
             DynamicRangeAnalysis = null,
-            IsCompliant = false,
-            ComplianceIssues = [errorMessage],
         };
     }
 }

@@ -108,30 +108,4 @@ public class AudioAnalysisController : ControllerBase
             );
         }
     }
-
-    /// <summary>
-    /// Performs batch analysis on all hit sounds in a beatmap set.
-    /// </summary>
-    [HttpPost("hitsounds")]
-    public ActionResult<HitSoundBatchResult> AnalyzeHitSounds(
-        [FromBody] HitSoundAnalysisRequest request
-    )
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(request.BeatmapSetFolder))
-                return BadRequest(new ApiError("Folder is required.", null));
-
-            var result = AudioAnalysisService.AnalyzeHitSounds(request.BeatmapSetFolder);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Failed to analyze hit sounds for {Folder}", request.BeatmapSetFolder);
-            return StatusCode(
-                500,
-                ApiErrorFactory.FromException(ex, "An error occurred during hit sound analysis.")
-            );
-        }
-    }
 }

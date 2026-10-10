@@ -8,16 +8,12 @@ using Serilog;
 namespace MapsetVerifier.Server.Service;
 
 /// <summary>
-/// Service for comprehensive audio analysis including bitrate, channel balance, format compliance,
+/// Service for comprehensive audio analysis including bitrate, channel balance, format,
 /// spectral analysis, and dynamic range.
 /// </summary>
 public static class AudioAnalysisService
 {
-    private const int MinAllowedBitrate = 128;
-    private const int MaxAllowedBitrateMp3 = 192;
-    private const int MaxAllowedBitrateOgg = 208;
     private const int StandardSampleRate = 44100;
-    private const int MaxAllowedSampleRate = 48000;
 
     /// <summary>
     /// Performs complete audio analysis on the main audio file of a beatmap set.
@@ -43,11 +39,9 @@ public static class AudioAnalysisService
                 );
             }
 
-            var complianceIssues = new List<string>();
-
-            var bitrateAnalysis = AnalyzeBitrate(audioPath, ref complianceIssues);
+            var bitrateAnalysis = AnalyzeBitrate(audioPath);
             var channelAnalysis = AnalyzeChannels(audioPath);
-            var formatAnalysis = AnalyzeFormat(audioPath, ref complianceIssues);
+            var formatAnalysis = AnalyzeFormat(audioPath);
             var dynamicRangeAnalysis = AnalyzeDynamicRange(audioPath);
 
             return AudioAnalysisResult.CreateSuccess(
@@ -55,8 +49,7 @@ public static class AudioAnalysisService
                 bitrateAnalysis,
                 channelAnalysis,
                 formatAnalysis,
-                dynamicRangeAnalysis,
-                complianceIssues
+                dynamicRangeAnalysis
             );
         }
         catch (Exception ex)
@@ -72,44 +65,9 @@ public static class AudioAnalysisService
     /// <summary>
     /// Analyzes bitrate and VBR characteristics.
     /// </summary>
-    private static BitrateAnalysisResult AnalyzeBitrate(
-        string audioPath,
-        ref List<string> complianceIssues
-    )
+    private static BitrateAnalysisResult AnalyzeBitrate(string audioPath)
     {
-        var format = AudioBASS.GetFormat(audioPath);
         var bitrate = Math.Round(AudioBASS.GetBitrate(audioPath));
-        var duration = AudioBASS.GetDuration(audioPath);
-
-        var formatName = GetFormatName(format);
-        var maxAllowed = format is ChannelType.MP3 ? MaxAllowedBitrateMp3 : MaxAllowedBitrateOgg;
-        var isCompliant = bitrate >= MinAllowedBitrate && bitrate <= maxAllowed;
-
-        string complianceMessage;
-        if (!isCompliant)
-        {
-            if (bitrate < MinAllowedBitrate)
-            {
-                var issue =
-                    $"Bitrate {bitrate} kbps is below minimum {MinAllowedBitrate} kbps (recommended for ranking)";
-                complianceIssues.Add(issue);
-                complianceMessage =
-                    $"Bitrate too low: {bitrate} kbps < {MinAllowedBitrate} kbps minimum. Use at least {MinAllowedBitrate} kbps if source quality allows.";
-            }
-            else
-            {
-                var issue =
-                    $"Bitrate {bitrate} kbps exceeds maximum {maxAllowed} kbps for {formatName}";
-                complianceIssues.Add(issue);
-                complianceMessage =
-                    $"Bitrate too high: {bitrate} kbps > {maxAllowed} kbps maximum for {formatName}. Re-encode to comply with ranking criteria.";
-            }
-        }
-        else
-        {
-            complianceMessage =
-                $"Bitrate is within acceptable range ({MinAllowedBitrate}-{maxAllowed} kbps for {formatName})";
-        }
 
         return new BitrateAnalysisResult
         {
@@ -117,10 +75,6 @@ public static class AudioAnalysisService
             IsVbr = false, // BASS doesn't easily expose VBR detection
             MinBitrate = null,
             MaxBitrate = null,
-            IsCompliant = isCompliant,
-            ComplianceMessage = complianceMessage,
-            MaxAllowedBitrate = maxAllowed,
-            MinAllowedBitrate = MinAllowedBitrate,
         };
     }
 
@@ -211,62 +165,26 @@ public static class AudioAnalysisService
     }
 
     /// <summary>
-    /// Analyzes audio format and compliance.
+    /// Analyzes audio format details.
     /// </summary>
-    private static FormatAnalysisResult AnalyzeFormat(
-        string audioPath,
-        ref List<string> complianceIssues
-    )
+    private static FormatAnalysisResult AnalyzeFormat(string audioPath)
     {
         var format = AudioBASS.GetFormat(audioPath);
         var info = AudioAnalyzer.GetAudioInfo(audioPath);
         var fileInfo = new FileInfo(audioPath);
 
-        var formatName = GetFormatName(format);
-        var isStandardSampleRate = info.SampleRate == StandardSampleRate;
-
-        var issues = new List<string>();
-
-        // Check if format is MP3 or Ogg Vorbis (required for ranking)
-        var isValidFormat = format is ChannelType.MP3 or ChannelType.OGG;
-        if (!isValidFormat)
-        {
-            issues.Add(
-                $"Audio format must be MP3 (.mp3) or Ogg Vorbis (.ogg), found: {formatName}"
-            );
-            complianceIssues.Add($"Invalid audio format: {formatName}. Must be MP3 or Ogg Vorbis");
-        }
-
-        // Check sample rate compliance (must not exceed 48 kHz)
-        if (info.SampleRate > MaxAllowedSampleRate)
-        {
-            issues.Add(
-                $"Sample rate {info.SampleRate} Hz exceeds maximum allowed {MaxAllowedSampleRate} Hz"
-            );
-            complianceIssues.Add(
-                $"Sample rate {info.SampleRate} Hz exceeds maximum {MaxAllowedSampleRate} Hz"
-            );
-        }
-
-        var badgeType = issues.Count == 0 ? "success" : "warning";
-        if (formatName == "Unknown" || !isValidFormat)
-            badgeType = "error";
-
         return new FormatAnalysisResult
         {
-            Format = formatName,
+            Format = GetFormatName(format),
             RawFormat = AudioBASS.EnumToString(format),
             SampleRate = info.SampleRate,
-            IsStandardSampleRate = isStandardSampleRate,
+            IsStandardSampleRate = info.SampleRate == StandardSampleRate,
             Codec = GetCodecInfo(format),
             DurationMs = info.DurationMs,
             DurationFormatted = FormatDuration(info.DurationMs),
             FileSizeBytes = fileInfo.Length,
             FileSizeFormatted = FormatFileSize(fileInfo.Length),
             Channels = info.Channels,
-            IsCompliant = issues.Count == 0,
-            ComplianceIssues = issues,
-            BadgeType = badgeType,
         };
     }
 
@@ -330,134 +248,6 @@ public static class AudioAnalysisService
             ClippingMarkers = clippingMarkers,
             LoudnessOverTime = loudnessOverTime,
         };
-    }
-
-    /// <summary>
-    /// Performs batch analysis on all hit sounds in a beatmap set.
-    /// </summary>
-    public static HitSoundBatchResult AnalyzeHitSounds(string beatmapSetFolder)
-    {
-        var beatmapSet = new BeatmapSet(beatmapSetFolder);
-        var results = new List<HitSoundAnalysisResult>();
-
-        foreach (var hsFile in beatmapSet.HitSoundFiles)
-        {
-            var hsPath = Path.Combine(beatmapSet.SongPath, hsFile);
-            results.Add(AnalyzeSingleHitSound(hsPath, hsFile));
-        }
-
-        return new HitSoundBatchResult
-        {
-            TotalFiles = results.Count,
-            CompliantFiles = results.Count(r => r.IsCompliant),
-            NonCompliantFiles = results.Count(r => !r.IsCompliant),
-            Results = results,
-        };
-    }
-
-    private static HitSoundAnalysisResult AnalyzeSingleHitSound(string hsPath, string relativePath)
-    {
-        try
-        {
-            var format = AudioBASS.GetFormat(hsPath);
-            var bitrate = Math.Round(AudioBASS.GetBitrate(hsPath));
-            var duration = AudioBASS.GetDuration(hsPath);
-            var channels = AudioBASS.GetChannels(hsPath);
-            var info = AudioAnalyzer.GetAudioInfo(hsPath);
-
-            var issues = new List<string>();
-            var hasImbalance = false;
-            double balanceRatio = 1.0;
-
-            // Check format compliance (MP3 or Ogg Vorbis)
-            var isValidFormat = format is ChannelType.MP3 or ChannelType.OGG;
-            if (!isValidFormat)
-            {
-                issues.Add($"Invalid format: {GetFormatName(format)}. Must be MP3 or Ogg Vorbis");
-            }
-
-            // Check sample rate compliance
-            if (info.SampleRate > MaxAllowedSampleRate)
-            {
-                issues.Add(
-                    $"Sample rate {info.SampleRate} Hz exceeds maximum {MaxAllowedSampleRate} Hz"
-                );
-            }
-
-            // Check bitrate for compressed formats
-            if (isValidFormat && bitrate < MinAllowedBitrate)
-            {
-                issues.Add($"Bitrate {bitrate} kbps is below minimum {MinAllowedBitrate} kbps");
-            }
-            else if (isValidFormat)
-            {
-                var maxAllowed =
-                    format is ChannelType.MP3 ? MaxAllowedBitrateMp3 : MaxAllowedBitrateOgg;
-                if (bitrate > maxAllowed)
-                {
-                    issues.Add(
-                        $"Bitrate {bitrate} kbps exceeds maximum {maxAllowed} kbps for {GetFormatName(format)}"
-                    );
-                }
-            }
-
-            // Check channel imbalance
-            if (channels >= 2)
-            {
-                var peaks = AudioBASS.GetPeaks(hsPath);
-                if (peaks.Count > 0)
-                {
-                    var leftSum = peaks.Sum(p => p[0]);
-                    var rightSum = peaks.Sum(p => p.Length > 1 ? p[1] : 0);
-
-                    if (leftSum > 0 && rightSum > 0)
-                    {
-                        balanceRatio = leftSum > rightSum ? leftSum / rightSum : rightSum / leftSum;
-                        if (balanceRatio >= 2)
-                        {
-                            hasImbalance = true;
-                            var louder = leftSum > rightSum ? "left" : "right";
-                            issues.Add($"Notable channel imbalance: {louder} channel is louder");
-                        }
-                    }
-                    else if (leftSum == 0 || rightSum == 0)
-                    {
-                        hasImbalance = true;
-                        issues.Add("One channel is completely silent");
-                    }
-                }
-            }
-
-            return new HitSoundAnalysisResult
-            {
-                FilePath = relativePath,
-                Format = GetFormatName(format),
-                Bitrate = bitrate,
-                DurationMs = duration,
-                Channels = channels,
-                SampleRate = info.SampleRate,
-                IsCompliant = issues.Count == 0,
-                Issues = issues,
-                ChannelBalanceRatio = balanceRatio,
-                HasImbalance = hasImbalance,
-            };
-        }
-        catch (Exception ex)
-        {
-            return new HitSoundAnalysisResult
-            {
-                FilePath = relativePath,
-                Format = "Error",
-                Bitrate = 0,
-                DurationMs = 0,
-                Channels = 0,
-                SampleRate = 0,
-                IsCompliant = false,
-                Issues = [$"Failed to analyze: {ex.Message}"],
-                ChannelBalanceRatio = 1.0,
-                HasImbalance = false,
-            };
-        }
     }
 
     /// <summary>
