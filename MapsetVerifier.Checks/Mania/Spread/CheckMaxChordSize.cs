@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using MathNet.Numerics;
 
 namespace MapsetVerifier.Checks.Mania.Spread
@@ -36,7 +37,7 @@ namespace MapsetVerifier.Checks.Mania.Spread
                         "Reasoning",
                         @"
                     Due to how many players do not dispose of keyboards capable of registering more than 6-7 keystrokes at once (A.K.A Ghosting), lower difficulties should not allow for more than 7 notes to be pressed at once to be as accessible as possible.
-                    <br><br>
+
                     Moreover, bigger chords in lower difficulties might be too daunting for players to read at their given skill level. Those should exclusively be used in >=Extra difficulties."
                     },
                 },
@@ -54,7 +55,16 @@ namespace MapsetVerifier.Checks.Mania.Spread
                         "timestamp - ",
                         "maxChordSize",
                         "keymode"
-                    ).WithCause("Chord bigger than expected.")
+                    )
+                        .WithCause("Chord bigger than expected.")
+                        .WithRule(
+                            RC.Mania.NotMore6NotesPressed,
+                            RC.Mania.Easy_AvoidChordsMore2Notes,
+                            RC.Mania.Normal_AvoidChordsMore2Notes,
+                            RC.Mania.Normal_AvoidChordsMore3Notes,
+                            RC.Mania.Hard_AvoidChordsMore3Notes,
+                            RC.Mania.Hard_AvoidChordsMore4Notes
+                        )
                 },
             };
         }

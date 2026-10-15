@@ -5,6 +5,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.Settings
 {
@@ -67,9 +68,14 @@ namespace MapsetVerifier.Checks.AllModes.Settings
                         Issue.Level.Problem,
                         "Combo colour {0} is way too dark.",
                         "number"
-                    ).WithCause(
-                        "The HSP luminosity value of a combo colour is lower than 30. These values are visible in the overview section as tooltips for each colour if you want to check them manually."
                     )
+                        .WithCause(
+                            "The HSP luminosity value of a combo colour is lower than 30. These values are visible in the overview section as tooltips for each colour if you want to check them manually."
+                        )
+                        .WithRule(
+                            RC.Osu.AvoidUsingComboColoursSlider,
+                            RC.Catch.AvoidUsingComboColours50
+                        )
                 },
                 {
                     "Warning Combo",
@@ -77,25 +83,28 @@ namespace MapsetVerifier.Checks.AllModes.Settings
                         Issue.Level.Warning,
                         "Combo colour {0} is really dark.",
                         "number"
-                    ).WithCause("Same as the first check, but lower than 43 instead.")
+                    )
+                        .WithCause("Same as the first check, but lower than 43 instead.")
+                        .WithRule(
+                            RC.Osu.AvoidUsingComboColoursSlider,
+                            RC.Catch.AvoidUsingComboColours50
+                        )
                 },
                 {
                     "Problem Border",
-                    new IssueTemplate(
-                        Issue.Level.Problem,
-                        "Slider border is way too dark."
-                    ).WithCause(
-                        "Same as the first check, except applies on the slider border instead."
-                    )
+                    new IssueTemplate(Issue.Level.Problem, "Slider border is way too dark.")
+                        .WithCause(
+                            "Same as the first check, except applies on the slider border instead."
+                        )
+                        .WithRule(RC.Osu.AvoidUsingComboColoursSlider)
                 },
                 {
                     "Warning Border",
-                    new IssueTemplate(
-                        Issue.Level.Warning,
-                        "Slider border is really dark."
-                    ).WithCause(
-                        "Same as the second check, except applies on the slider border instead."
-                    )
+                    new IssueTemplate(Issue.Level.Warning, "Slider border is really dark.")
+                        .WithCause(
+                            "Same as the second check, except applies on the slider border instead."
+                        )
+                        .WithRule(RC.Osu.AvoidUsingComboColoursSlider)
                 },
                 {
                     "Bright",
@@ -104,9 +113,14 @@ namespace MapsetVerifier.Checks.AllModes.Settings
                         "Combo colour {0} is really bright in kiai sections, see {1}.",
                         "number",
                         "example object"
-                    ).WithCause(
-                        "Same as the first check, but higher than 250 and requires that at least one hit object with the combo is in a kiai section."
                     )
+                        .WithCause(
+                            "Same as the first check, but higher than 250 and requires that at least one hit object with the combo is in a kiai section."
+                        )
+                        .WithRule(
+                            RC.Osu.AvoidUsingComboColoursCustom,
+                            RC.Catch.AvoidUsingComboColours220
+                        )
                 },
             };
 

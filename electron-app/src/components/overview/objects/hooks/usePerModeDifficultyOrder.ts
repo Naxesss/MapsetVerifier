@@ -1,5 +1,5 @@
 import { arrayMove } from '@dnd-kit/sortable';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { areStringArraysEqual, getDifficultyKey } from '../timelineUtils.ts';
 import type { Mode, ObjectsOverviewDifficulty } from '../../../../Types';
 import type { ObjectsModeGroup } from '../types.ts';
@@ -17,7 +17,11 @@ export function usePerModeDifficultyOrder({
     Partial<Record<Mode, string[]>>
   >({});
 
-  useEffect(() => {
+  const [prevGroupedDifficulties, setPrevGroupedDifficulties] = useState(groupedDifficulties);
+
+  if (groupedDifficulties !== prevGroupedDifficulties) {
+    setPrevGroupedDifficulties(groupedDifficulties);
+
     setDifficultyOrderByMode((current) => {
       let changed = false;
       const next: Partial<Record<Mode, string[]>> = { ...current };
@@ -45,7 +49,7 @@ export function usePerModeDifficultyOrder({
 
       return changed ? next : current;
     });
-  }, [groupedDifficulties]);
+  }
 
   const orderedDifficulties = useMemo(() => {
     const difficultyMap = new Map(

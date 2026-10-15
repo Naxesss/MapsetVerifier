@@ -1,14 +1,6 @@
-import {
-  Alert,
-  Text,
-  Box,
-  useMantineTheme,
-  Group,
-  Flex,
-  Collapse,
-} from '@mantine/core';
+import { Alert, Text, Box, useMantineTheme, Group, Flex, Collapse, Stack } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import BeatmapActionButtons from './BeatmapActionButtons';
 import ChecksResults from './ChecksResults';
 import DifficultyInfo from './DifficultyInfo';
@@ -21,9 +13,13 @@ import { useBeatmapChecks } from './hooks/useBeatmapChecks';
 import { useDifficultyOverride } from './hooks/useDifficultyOverride';
 import { getCategoryHighestLevel } from './utils/levelUtils';
 import { useBeatmap } from '../../context/BeatmapContext';
-import { useBeatmapReparse, useRegisterBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
+import {
+  useBeatmapReparse,
+  useRegisterBeatmapReparse,
+} from '../../context/BeatmapReparseRegistry.tsx';
 import { useSettings } from '../../context/SettingsContext';
 import { ApiCategoryCheckResult, Level, Mode } from '../../Types';
+import { resolveDevOnlySetting } from '../../utils/devSettings';
 import StackTraceMessage from '../common/StackTraceMessage.tsx';
 
 function Checks() {
@@ -31,6 +27,7 @@ function Checks() {
   const { selectedFolder: folder, beatmapInfo } = useBeatmap();
   const { triggerReparse } = useBeatmapReparse();
   const { settings } = useSettings();
+  const showCheckSpeedStats = resolveDevOnlySetting(settings.showCheckSpeedStats);
   const [selectedCategory, setSelectedCategory] = React.useState<string | undefined>('General');
   const [displayedCategory, setDisplayedCategory] = React.useState<string | undefined>('General');
   const [isDifficultyContentVisible, setIsDifficultyContentVisible] = React.useState(true);
@@ -41,7 +38,11 @@ function Checks() {
   const difficultyTransitionDurationMs = 220;
   const checkResultsTransitionDurationMs = 320;
 
-  useEffect(() => {
+  const [prevFolder, setPrevFolder] = React.useState(folder);
+
+  if (folder !== prevFolder) {
+    setPrevFolder(folder);
+
     // Reset selected category when changing beatmap
     if (folder) {
       setSelectedCategory('General');
@@ -49,14 +50,26 @@ function Checks() {
       setIsDifficultyContentVisible(true);
       setHoveredDifficulty(undefined);
     }
-  }, [folder]);
+  }
 
-  const { data, isLoading, isError, error, beatmapFolderPath, progress, structure } =
-    useBeatmapChecks({
-      folder,
-      songFolder: settings.songFolder,
-    });
-  const areCheckResultsExpanded = !!data && !isLoading;
+  const {
+    data,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    beatmapFolderPath,
+    progress,
+    structure,
+    refetch,
+  } = useBeatmapChecks({
+    folder,
+    songFolder: settings.songFolder,
+    includeCheckRunDelta: settings.showCheckRunDelta,
+    createSnapshot: settings.autoCreateSnapshotOnCheckRun,
+    includeCheckTimings: showCheckSpeedStats,
+  });
+  const areCheckResultsExpanded = !!data && !isLoading && !isFetching;
   const levelIconsLoading = isLoading;
 
   const { bgUrl } = useBeatmapBackground(folder, settings.songFolder);
@@ -74,21 +87,24 @@ function Checks() {
   useRegisterBeatmapReparse(
     useCallback(() => {
       resetOverrides();
-    }, [resetOverrides]),
+    }, [resetOverrides])
   );
 
-  const difficultiesForTabs = useMemo((): ApiCategoryCheckResult[] => {
-    if (data?.difficulties) return data.difficulties;
-    if (!structure?.difficulties) return [];
+  const dataDifficulties = data?.difficulties;
+  const structureDifficulties = structure?.difficulties;
 
-    return structure.difficulties.map((difficulty) => ({
+  const difficultiesForTabs = useMemo((): ApiCategoryCheckResult[] => {
+    if (dataDifficulties) return dataDifficulties;
+    if (!structureDifficulties) return [];
+
+    return structureDifficulties.map((difficulty) => ({
       category: difficulty.category,
       beatmapId: difficulty.beatmapId ?? undefined,
       checkResults: [],
       mode: difficulty.mode,
       starRating: difficulty.starRating ?? null,
     }));
-  }, [data?.difficulties, structure?.difficulties]);
+  }, [dataDifficulties, structureDifficulties]);
 
   const selectedDifficulty = difficultiesForTabs.find((d) => d.category === selectedCategory);
   const displayedDifficulty = data?.difficulties?.find((d) => d.category === displayedCategory);
@@ -98,31 +114,6 @@ function Checks() {
     : undefined;
   const currentOverrideLevel = displayedCategory ? getOverrideLevel(displayedCategory) : undefined;
 
-  useEffect(() => {
-    if (difficultiesForTabs.length === 0) return;
-
-    const nextCategory = selectedCategory ?? 'General';
-    const categoryExists =
-      nextCategory === 'General' ||
-      difficultiesForTabs.some((difficulty) => difficulty.category === nextCategory);
-
-    if (!categoryExists) {
-      setSelectedCategory('General');
-      setDisplayedCategory('General');
-      setIsDifficultyContentVisible(true);
-      return;
-    }
-
-    if (!data) return;
-
-    if (displayedCategory === nextCategory) {
-      setIsDifficultyContentVisible(true);
-      return;
-    }
-
-    setIsDifficultyContentVisible(false);
-  }, [data, difficultiesForTabs, selectedCategory, displayedCategory]);
-
   const handleDifficultyContentTransitionEnd = React.useCallback(() => {
     if (isDifficultyContentVisible) return;
 
@@ -130,6 +121,21 @@ function Checks() {
     setDisplayedCategory(nextCategory);
     setIsDifficultyContentVisible(true);
   }, [isDifficultyContentVisible, selectedCategory]);
+
+  const handleCheckRunHistoryCleared = React.useCallback(() => {
+    void refetch();
+  }, [refetch]);
+
+  const checkResultsSharedProps = {
+    showMinor: settings.showMinor,
+    hiddenMinorCheckIds: settings.hiddenMinorCheckIds,
+    selectedCategory: displayedCategory,
+    showCheckRunDelta: settings.showCheckRunDelta,
+    checkRunDeltaShowUnchanged: settings.checkRunDeltaShowUnchanged,
+    beatmapFolderPath,
+    onCheckRunHistoryCleared: handleCheckRunHistoryCleared,
+    showCheckSpeedStats,
+  };
 
   const categoryHighestLevels = useMemo(() => {
     if (!data) return {};
@@ -183,18 +189,51 @@ function Checks() {
     // Create ordered array of mode groups (only include modes that have difficulties)
     const orderedModes: Mode[] = ['Standard', 'Taiko', 'Catch', 'Mania'];
 
-    const result = orderedModes
+    return orderedModes
       .filter((mode) => modeGroups[mode].length > 0)
       .map((mode) => ({
         mode,
         difficulties: modeGroups[mode],
       }));
-    setSelectedMode(result[0].mode);
-
-    return result;
   }, [difficultiesForTabs]);
+
+  if (groupedDifficulties.length > 0 && !selectedMode) {
+    setSelectedMode(groupedDifficulties[0].mode);
+  }
+
   const selectedGroup =
     groupedDifficulties.find((g) => g.mode === selectedMode) ?? groupedDifficulties[0];
+
+  const [prevSyncToken, setPrevSyncToken] = React.useState({
+    data,
+    difficultiesForTabs,
+    selectedCategory,
+    displayedCategory,
+  });
+
+  if (
+    prevSyncToken.data !== data ||
+    prevSyncToken.difficultiesForTabs !== difficultiesForTabs ||
+    prevSyncToken.selectedCategory !== selectedCategory ||
+    prevSyncToken.displayedCategory !== displayedCategory
+  ) {
+    setPrevSyncToken({ data, difficultiesForTabs, selectedCategory, displayedCategory });
+
+    if (difficultiesForTabs.length > 0) {
+      const nextCategory = selectedCategory ?? 'General';
+      const categoryExists =
+        nextCategory === 'General' ||
+        difficultiesForTabs.some((difficulty) => difficulty.category === nextCategory);
+
+      if (!categoryExists) {
+        setSelectedCategory('General');
+        setDisplayedCategory('General');
+        setIsDifficultyContentVisible(true);
+      } else if (data) {
+        setIsDifficultyContentVisible(displayedCategory === nextCategory);
+      }
+    }
+  }
 
   if (!folder) {
     return (
@@ -228,6 +267,7 @@ function Checks() {
         <Group gap="sm">
           <BeatmapActionButtons
             beatmapFolderPath={beatmapFolderPath}
+            beatmapId={beatmapInfo?.beatmapId ?? undefined}
             beatmapSetId={beatmapInfo?.beatmapSetId ?? undefined}
             onReparse={triggerReparse}
           />
@@ -257,7 +297,7 @@ function Checks() {
             onHover={(id) =>
               setHoveredDifficulty(
                 id && id !== GENERAL_TAB_ID
-                  ? selectedGroup.difficulties.find((d) => d.category === id)
+                  ? difficultiesForTabs.find((d) => d.category === id)
                   : undefined
               )
             }
@@ -282,16 +322,14 @@ function Checks() {
           {error?.stackTrace && <StackTraceMessage stackTrace={error.stackTrace} />}
         </Alert>
       )}
-      {(isLoading || data) && (
+      {(isLoading || isFetching || data) && (
         <Flex gap="sm" p="md" direction="column" bg="dark.6">
-          {isLoading && (
+          {(isLoading || isFetching) && (
             <ChecksResults
               isLoading
               isError={false}
               progress={progress}
-              showMinor={settings.showMinor}
-              hiddenMinorCheckIds={settings.hiddenMinorCheckIds}
-              selectedCategory={displayedCategory}
+              {...checkResultsSharedProps}
             />
           )}
 
@@ -301,7 +339,7 @@ function Checks() {
             animateOpacity
           >
             {data && (
-              <>
+              <Stack gap="sm">
                 <DifficultyInfo
                   hoveredDifficulty={hoveredDifficulty}
                   selectedCategory={selectedCategory}
@@ -333,13 +371,11 @@ function Checks() {
                     isLoading={false}
                     isError={isError}
                     error={error}
-                    showMinor={settings.showMinor}
-                    hiddenMinorCheckIds={settings.hiddenMinorCheckIds}
-                    selectedCategory={displayedCategory}
                     overrideResult={displayedOverrideResult}
+                    {...checkResultsSharedProps}
                   />
                 </Collapse>
-              </>
+              </Stack>
             )}
           </Collapse>
         </Flex>

@@ -15,7 +15,7 @@ using osu.Game.Rulesets.Difficulty.Skills;
 
 namespace MapsetVerifier.Parser.Objects
 {
-    public class Beatmap
+    public partial class Beatmap
     {
         /// <summary> Which type of difficulty level the beatmap is considered. </summary>
         public enum Difficulty
@@ -37,7 +37,10 @@ namespace MapsetVerifier.Parser.Objects
             Mania,
         }
 
-        private static readonly int[] Divisors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 16];
+        /// <summary>
+        ///     Beat snap divisors supported by osu! and used by <see cref="GetLowestDivisor" />.
+        /// </summary>
+        public static readonly int[] SnapDivisors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 16];
 
         /// <summary>
         ///     A list of aliases for difficulty levels. Can't be ambigious with named top diffs, so something
@@ -174,6 +177,8 @@ namespace MapsetVerifier.Parser.Objects
                 }
             },
         };
+        private static readonly Dictionary<Mode, Dictionary<string, Difficulty>> DifficultyIndex =
+            new();
 
         public string Code { get; }
         public string SongPath { get; }
@@ -185,6 +190,11 @@ namespace MapsetVerifier.Parser.Objects
         /// </summary>
         public Difficulty? InterpretedDifficultyOverride { get; set; }
 
+        /// <summary>
+        ///     Set by <see cref="BeatmapSet" /> when the spread gives extra context for an otherwise ambiguous difficulty name.
+        /// </summary>
+        internal Difficulty? BeatmapSetDifficultyOverride { get; set; }
+
         // Difficulty is expensive; defer until StarRating/Skills are needed, or until overview calls EnsureTimedAttributesCalculated.
         private readonly object _difficultyLock = new();
         private DifficultyAttributes? _difficultyAttributes;
@@ -192,6 +202,12 @@ namespace MapsetVerifier.Parser.Objects
         private double _starRating;
         private bool _attributesCalculated;
         private bool _timedCalculated;
+
+        /// <summary>
+        ///     Set if the underlying difficulty calculator could not process this beatmap's file
+        ///     (e.g. a corrupted or empty .osu file). Star rating then falls back to 0 instead of throwing.
+        /// </summary>
+        public Exception? DifficultyCalculationError { get; private set; }
 
         // Star Rating: calculated lazily on first access (see EnsureAttributesCalculated).
         public double StarRating
@@ -214,6 +230,14 @@ namespace MapsetVerifier.Parser.Objects
 
         public Skill[] Skills { get; set; } = [];
 
+        /// <summary>
+        ///     Start/end times of the <c>DifficultyHitObject</c>s the ruleset actually processed, in
+        ///     processing order. Rulesets skip and reorder objects (and merge/split them, e.g. catch),
+        ///     so this is the only reliable way to anchor a skill's per-object difficulties - which are
+        ///     index-aligned with this list, see <c>Skill.GetObjectDifficulties</c> - to a timeline.
+        /// </summary>
+        public IReadOnlyList<DifficultyObjectTiming> DifficultyObjectTimings { get; set; } = [];
+
         // Settings
         public GeneralSettings GeneralSettings { get; }
         public MetadataSettings MetadataSettings { get; }
@@ -231,6 +255,25 @@ namespace MapsetVerifier.Parser.Objects
         // Objects
         public List<HitObject> HitObjects { get; }
         public List<TimingLine> TimingLines { get; }
+
+        static Beatmap()
+        {
+            foreach (var mode in NameDiffPairs)
+            {
+                var map = new Dictionary<string, Difficulty>();
+
+                foreach (var (difficulty, names) in mode.Value)
+                {
+                    foreach (var name in names)
+                    {
+                        var key = GetRelevantPartOfDifficultyName(name);
+                        map[key] = difficulty;
+                    }
+                }
+
+                DifficultyIndex[mode.Key] = map;
+            }
+        }
 
         public Beatmap(string code, string songPath, string mapPath)
         {
@@ -291,9 +334,19 @@ namespace MapsetVerifier.Parser.Objects
                 if (_attributesCalculated)
                     return;
 
-                var attributes = new LocalDifficultyCalculator().CalculateAttributes(this);
-                _difficultyAttributes = attributes;
-                _starRating = attributes.StarRating;
+                try
+                {
+                    var attributes = new LocalDifficultyCalculator().CalculateAttributes(this);
+                    _difficultyAttributes = attributes;
+                    _starRating = attributes.StarRating;
+                }
+                catch (Exception exception)
+                {
+                    DifficultyCalculationError = exception;
+                    _difficultyAttributes = null;
+                    _starRating = 0;
+                }
+
                 _attributesCalculated = true;
             }
         }
@@ -309,16 +362,30 @@ namespace MapsetVerifier.Parser.Objects
                 if (_timedCalculated)
                     return _timedAttributes!;
 
-                _timedAttributes = new LocalDifficultyCalculator().CalculateTimedAttributes(this);
-                _timedCalculated = true;
-
-                // Timed calc already produces final attributes/skills; skip a separate Calculate() pass.
-                if (_timedAttributes.Count > 0)
+                try
                 {
-                    _difficultyAttributes = _timedAttributes[^1].Attributes;
-                    _starRating = _difficultyAttributes.StarRating;
+                    _timedAttributes = new LocalDifficultyCalculator().CalculateTimedAttributes(
+                        this
+                    );
+
+                    // Timed calc already produces final attributes/skills; skip a separate Calculate() pass.
+                    if (_timedAttributes.Count > 0)
+                    {
+                        _difficultyAttributes = _timedAttributes[^1].Attributes;
+                        _starRating = _difficultyAttributes.StarRating;
+                        _attributesCalculated = true;
+                    }
+                }
+                catch (Exception exception)
+                {
+                    DifficultyCalculationError = exception;
+                    _timedAttributes = [];
+                    _difficultyAttributes = null;
+                    _starRating = 0;
                     _attributesCalculated = true;
                 }
+
+                _timedCalculated = true;
 
                 return _timedAttributes;
             }
@@ -334,6 +401,12 @@ namespace MapsetVerifier.Parser.Objects
             ThreadSafeCacheHelper<Slider>.cache.Clear();
             ThreadSafeCacheHelper<Spinner>.cache.Clear();
             ThreadSafeCacheHelper<HoldNote>.cache.Clear();
+
+            PrefixMaxEndTimeCacheHelper<HitObject>.cache.Clear();
+            PrefixMaxEndTimeCacheHelper<Circle>.cache.Clear();
+            PrefixMaxEndTimeCacheHelper<Slider>.cache.Clear();
+            PrefixMaxEndTimeCacheHelper<Spinner>.cache.Clear();
+            PrefixMaxEndTimeCacheHelper<HoldNote>.cache.Clear();
         }
 
         /// <summary>
@@ -357,6 +430,12 @@ namespace MapsetVerifier.Parser.Objects
             ClearCacheEntriesWhere<Slider>(normalizedSongPath, IsUnderSongPath);
             ClearCacheEntriesWhere<Spinner>(normalizedSongPath, IsUnderSongPath);
             ClearCacheEntriesWhere<HoldNote>(normalizedSongPath, IsUnderSongPath);
+
+            ClearPrefixMaxEndTimeCacheEntriesWhere<HitObject>(normalizedSongPath, IsUnderSongPath);
+            ClearPrefixMaxEndTimeCacheEntriesWhere<Circle>(normalizedSongPath, IsUnderSongPath);
+            ClearPrefixMaxEndTimeCacheEntriesWhere<Slider>(normalizedSongPath, IsUnderSongPath);
+            ClearPrefixMaxEndTimeCacheEntriesWhere<Spinner>(normalizedSongPath, IsUnderSongPath);
+            ClearPrefixMaxEndTimeCacheEntriesWhere<HoldNote>(normalizedSongPath, IsUnderSongPath);
         }
 
         private static void ClearCacheEntriesWhere<T>(
@@ -368,6 +447,18 @@ namespace MapsetVerifier.Parser.Objects
             {
                 if (isUnderSongPath(key.Item1, normalizedSongPathPrefix))
                     ThreadSafeCacheHelper<T>.cache.TryRemove(key, out _);
+            }
+        }
+
+        private static void ClearPrefixMaxEndTimeCacheEntriesWhere<T>(
+            string normalizedSongPathPrefix,
+            Func<string, string, bool> isUnderSongPath
+        )
+        {
+            foreach (var key in PrefixMaxEndTimeCacheHelper<T>.cache.Keys)
+            {
+                if (isUnderSongPath(key.Item1, normalizedSongPathPrefix))
+                    PrefixMaxEndTimeCacheHelper<T>.cache.TryRemove(key, out _);
             }
         }
 
@@ -730,6 +821,59 @@ namespace MapsetVerifier.Parser.Objects
             return list[index + 1];
         }
 
+        /// <summary>
+        ///     Returns whether any object of type T starts before <paramref name="end" /> and ends at or after
+        ///     <paramref name="start" />, i.e. whether its duration overlaps the given time range at any point,
+        ///     O(logn).
+        /// </summary>
+        public bool HasHitObjectOverlapping<T>(double start, double end)
+            where T : HitObject
+        {
+            var list = GetOrAdd(typeof(T), () => HitObjects.OfType<T>().ToList());
+
+            if (list.Count == 0)
+                return false;
+
+            var prefixMaxEndTime = GetOrAddPrefixMaxEndTime(typeof(T), list);
+
+            // Find the last object starting before `end` (BinaryTimeSearch allows equality, so back up
+            // past any objects starting exactly at `end`, since those shouldn't count).
+            var index = BinaryTimeSearch(list, obj => obj.time, end);
+
+            while (index >= 0 && list[index].time >= end)
+                --index;
+
+            if (index < 0)
+                return false;
+
+            // Since prefixMaxEndTime is a running maximum, this tells us whether any object up to and
+            // including `index` ends at or after `start`.
+            return prefixMaxEndTime[index] >= start;
+        }
+
+        private List<double> GetOrAddPrefixMaxEndTime<T>(Type t, List<T> list)
+            where T : HitObject
+        {
+            (string, Type) key = (GetCacheKey(), t);
+
+            return PrefixMaxEndTimeCacheHelper<T>.cache.GetOrAdd(
+                key,
+                _ =>
+                {
+                    var prefixMaxEndTime = new List<double>(list.Count);
+                    var maxEndTime = double.MinValue;
+
+                    foreach (var hitObject in list)
+                    {
+                        maxEndTime = Math.Max(maxEndTime, hitObject.GetEndTime());
+                        prefixMaxEndTime.Add(maxEndTime);
+                    }
+
+                    return prefixMaxEndTime;
+                }
+            );
+        }
+
         /// <summary> Returns the unsnap in ms of notes unsnapped by 2 ms or more, otherwise null. </summary>
         public double? GetUnsnapIssue(double time)
         {
@@ -805,10 +949,7 @@ namespace MapsetVerifier.Parser.Objects
         }
 
         /// <summary>
-        ///     Returns the interpreted difficulty level based on the star rating of the beatmap
-        ///     (may be inaccurate since recent sr reworks were done), can optionally consider diff names.
-        ///     When the name can be parsed, it wins if it disagrees with SR by at most one step on the
-        ///     Easy→Ultra scale; if the gap is two or more steps, SR is used instead.
+        /// Returns the interpreted difficulty level based on difficulty name or fallback on star rating
         /// </summary>
         public Difficulty GetDifficulty()
         {
@@ -816,31 +957,29 @@ namespace MapsetVerifier.Parser.Objects
             if (InterpretedDifficultyOverride is { } overridden)
                 return overridden;
 
-            var difficultyFromStarRating = GetDifficultyFromStarRating();
+            if (BeatmapSetDifficultyOverride is { } beatmapSetOverride)
+                return beatmapSetOverride;
+
             var difficultyFromName = GetDifficultyFromName();
 
-            if (difficultyFromName != null)
+            // We can't determine the difficulty by name so instead use star rating
+            if (difficultyFromName == null)
             {
-                var interpretedFromName = (Difficulty)difficultyFromName;
-                // Broad osu!taiko "Oni" labels map to Insane by name, but trust SR when it clearly maps to Expert or Ultra.
-                if (
-                    GeneralSettings.mode == Mode.Taiko
-                    && interpretedFromName == Difficulty.Insane
-                    && difficultyFromStarRating >= Difficulty.Expert
-                )
+                return GetDifficultyFromStarRating();
+            }
+
+            var interpretedFromName = (Difficulty)difficultyFromName;
+            // Broad osu!taiko "Oni" labels map to Insane by name, but trust SR when it clearly maps to Expert or Ultra.
+            if (GeneralSettings.mode == Mode.Taiko && interpretedFromName == Difficulty.Insane)
+            {
+                var difficultyFromStarRating = GetDifficultyFromStarRating();
+                if (difficultyFromStarRating >= Difficulty.Expert)
                 {
                     return difficultyFromStarRating;
                 }
-
-                var levelGap = Math.Abs((int)interpretedFromName - (int)difficultyFromStarRating);
-                if (levelGap >= 2)
-                    return difficultyFromStarRating;
-
-                return interpretedFromName;
             }
 
-            // We can't determine the difficulty by name so instead use star rating
-            return difficultyFromStarRating;
+            return interpretedFromName;
         }
 
         private Difficulty GetDifficultyFromStarRating()
@@ -856,24 +995,31 @@ namespace MapsetVerifier.Parser.Objects
             };
         }
 
+        private static string GetRelevantPartOfDifficultyName(string input)
+        {
+            input = input.ToLowerInvariant();
+
+            // Remove indication of ownership
+            input = OwnerPrefixRegex().Replace(input, "");
+            input = CollabRegex().Replace(input, "");
+
+            input = SpecialCharactersRegex().Replace(input, " ");
+            input = WhiteSpaceCleanupRegex().Replace(input, " ").Trim();
+
+            return input;
+        }
+
         public Difficulty? GetDifficultyFromName()
         {
-            var name = MetadataSettings.version;
+            var name = GetRelevantPartOfDifficultyName(MetadataSettings.version);
 
-            // Reverse order allows e.g. "Inner Oni"/"Black Another" to be looked for separately from just "Oni"/"Another".
-            var pairs = NameDiffPairs[GeneralSettings.mode].Reverse();
+            var map = DifficultyIndex[GeneralSettings.mode];
 
-            foreach (var pair in pairs)
-                // Allows difficulty names such as "Normal...!??" and ">{(__HARD;)}" to be detected,
-                // but still prevents "Normality" or similar inclusions.
-                if (
-                    pair.Value.Any(value =>
-                        new Regex(@$"(?i)(^| )[!-@\[-`{{-~]*{value}[!-@\[-`{{-~]*( |$)").IsMatch(
-                            name
-                        )
-                    )
-                )
-                    return pair.Key;
+            // Only do direct matching to avoid false positives
+            if (map.TryGetValue(name, out var diff))
+            {
+                return diff;
+            }
 
             return null;
         }
@@ -899,6 +1045,44 @@ namespace MapsetVerifier.Parser.Objects
                 default:
                     return "an Ultra";
             }
+        }
+
+        /// <summary>
+        ///     Returns the canonical difficulty tier name for this beatmap's game mode, for example
+        ///     "Kantan" for a Taiko Easy or "Platter" for a Catch Hard, falling back to the mode-agnostic
+        ///     name (e.g. "Easy") for modes without their own tier names.
+        /// </summary>
+        public string GetModeDifficultyName(Difficulty? difficulty = null)
+        {
+            var diff = difficulty ?? GetDifficulty();
+
+            return GeneralSettings.mode switch
+            {
+                Mode.Taiko => diff switch
+                {
+                    Difficulty.Easy => "Kantan",
+                    Difficulty.Normal => "Futsuu",
+                    Difficulty.Hard => "Muzukashii",
+                    Difficulty.Insane => "Oni",
+                    _ => "Inner Oni",
+                },
+                Mode.Catch => diff switch
+                {
+                    Difficulty.Easy => "Cup",
+                    Difficulty.Normal => "Salad",
+                    Difficulty.Hard => "Platter",
+                    Difficulty.Insane => "Rain",
+                    _ => "Overdose",
+                },
+                _ => diff switch
+                {
+                    Difficulty.Easy => "Easy",
+                    Difficulty.Normal => "Normal",
+                    Difficulty.Hard => "Hard",
+                    Difficulty.Insane => "Insane",
+                    _ => "Expert",
+                },
+            };
         }
 
         /// <summary> Returns the complete drain time of the beatmap, accounting for breaks. </summary>
@@ -1025,12 +1209,12 @@ namespace MapsetVerifier.Parser.Objects
             double GetAbsoluteUnsnap(int divisor) =>
                 Math.Abs(GetPracticalUnsnap(time, divisor, line));
 
-            var minUnsnap = Divisors.Min(GetAbsoluteUnsnap);
+            var minUnsnap = SnapDivisors.Min(GetAbsoluteUnsnap);
 
             if (minUnsnap > 2)
                 return 0;
 
-            return Divisors.First(divisor => GetAbsoluteUnsnap(divisor).AlmostEqual(minUnsnap));
+            return SnapDivisors.First(divisor => GetAbsoluteUnsnap(divisor).AlmostEqual(minUnsnap));
         }
 
         /// <summary> Returns the unsnap ignoring all of the game's rounding and other approximations. Can be negative. </summary>
@@ -1141,11 +1325,46 @@ namespace MapsetVerifier.Parser.Objects
         }
 
         /// <summary>
+        ///     Returns where the given time would sit were it snapped to the given divisor, relative to the given
+        ///     uninherited line.
+        ///     <para />
+        ///     Derived from the beat grid rather than as <c>time - theoreticalUnsnap</c>. The two are the same number
+        ///     mathematically, but that subtraction cancels away every significant digit, so a time we computed
+        ///     ourselves (slider edges above all, which carry noise from the float pixel length) lands a fraction of a
+        ///     nanosecond off the grid point instead of on it. Truncating that turns a perfectly snapped edge into a
+        ///     full 1 ms unsnap.
+        /// </summary>
+        private double GetSnappedTime(double time, int divisor, UninheritedLine line)
+        {
+            // Derived exactly as in GetTheoreticalUnsnap, so both agree on which grid point is the closest one.
+            var beatOffset = GetOffsetIntoBeat(time, line);
+            var currentFraction = beatOffset / line.msPerBeat;
+
+            var beat = (float)Math.Floor((time - line.Offset) / line.msPerBeat);
+
+            // Counting whole divisions from the line and dividing once at the very end leaves the grid point exact
+            // for every timing where it can be exact, instead of rounding once per term and landing beside it.
+            var divisions = beat * divisor + Math.Round(currentFraction * divisor);
+
+            return line.Offset + divisions * line.msPerBeat / divisor;
+        }
+
+        /// <summary>
         ///     Same as <see cref="GetTheoreticalUnsnap(double, int, UninheritedLine)" />, except accounts for the way
         ///     the game rounds ms times.
         /// </summary>
-        public double GetPracticalUnsnap(double time, int divisor, UninheritedLine? line = null) =>
-            time - Timestamp.Round(time - GetTheoreticalUnsnap(time, divisor, line));
+        public double GetPracticalUnsnap(double time, int divisor, UninheritedLine? line = null)
+        {
+            line ??= GetTimingLine<UninheritedLine>(time);
+            if (line == null)
+            {
+                throw new Exception($"No uninherited line found at {time}.");
+            }
+
+            // The game truncates ms times rather than rounding them, which is exactly why 1 ms unsnaps are so
+            // common in ranked maps, so we truncate too.
+            return time - Timestamp.Round(GetSnappedTime(time, divisor, line));
+        }
 
         /// <summary> Returns the combo number (the number you see on the notes), of a given hit object. </summary>
         public int GetCombo(HitObject hitObject)
@@ -1428,5 +1647,24 @@ namespace MapsetVerifier.Parser.Objects
             // Works under the assumption that hit objects and timing lines are immutable per beatmap id, which is the case.
             internal static readonly ConcurrentDictionary<(string, Type), List<T>> cache = new();
         }
+
+        private static class PrefixMaxEndTimeCacheHelper<T>
+        {
+            // Works under the assumption that hit objects are immutable per beatmap id, which is the case.
+            internal static readonly ConcurrentDictionary<(string, Type), List<double>> cache =
+                new();
+        }
+
+        [GeneratedRegex(@"^\s*\w+'s\s+")]
+        private static partial Regex OwnerPrefixRegex();
+
+        [GeneratedRegex(@"\bcollab\b")]
+        private static partial Regex CollabRegex();
+
+        [GeneratedRegex(@"[^a-z0-9\s]")]
+        private static partial Regex SpecialCharactersRegex();
+
+        [GeneratedRegex(@"\s+")]
+        private static partial Regex WhiteSpaceCleanupRegex();
     }
 }

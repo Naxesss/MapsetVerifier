@@ -2,6 +2,7 @@
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Taiko.Timing
 {
@@ -40,7 +41,9 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         "Group {0}: ({1})",
                         "Kiai Group #",
                         "List of Difficulties"
-                    ).WithCause("Kiai start and end times are not aligned across difficulties.")
+                    )
+                        .WithCause("Kiai start and end times are not aligned across difficulties.")
+                        .WithRule(RC.Taiko.KiaiTimeOnlyUsedChorus)
                 },
             };
 

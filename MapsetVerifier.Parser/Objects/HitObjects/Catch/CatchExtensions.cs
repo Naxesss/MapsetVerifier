@@ -90,6 +90,22 @@ public static class CatchExtensions
         );
     }
 
+    public static float GetCurrentDashTriggerDistance(
+        this ICatchHitObject current,
+        ICatchHitObject? next
+    )
+    {
+        return GetDashTriggerDistance(current, next) / current.DistanceToDash;
+    }
+
+    public static float GetDashTriggerDistance(this ICatchHitObject current, ICatchHitObject? next)
+    {
+        return GetTriggerDistance(current, next, CatchMovementType.Dash, current.DistanceToDash);
+    }
+
+    public static bool IsWalk(this ICatchHitObject current) =>
+        current.MovementType is CatchMovementType.Walk;
+
     private static float GetTriggerDistance(
         ICatchHitObject current,
         ICatchHitObject? next,
@@ -137,10 +153,17 @@ public static class CatchExtensions
     {
         var ms = next.Time - current.Time;
 
+        // A walk is never higher-snapped, the concept only applies to dashes and hyperdashes.
+        if (current.IsWalk())
+        {
+            return false;
+        }
+
         switch (difficulty)
         {
             case Beatmap.Difficulty.Normal:
-                return ms is < 250 and >= 125;
+                // Salad only allows dashes, hyperdashes are not allowed at all.
+                return current.MovementType == CatchMovementType.Dash && ms is < 250 and >= 125;
             case Beatmap.Difficulty.Hard:
                 if (current.MovementType == CatchMovementType.Hyperdash)
                 {
@@ -154,6 +177,23 @@ public static class CatchExtensions
                 // Other difficulties the higher-snapped concept does not exist
                 return false;
         }
+    }
+
+    /// <summary>
+    /// At 300ms, returns the max distance in pixels
+    /// At 180ms returns around half the pixels
+    /// At 0ms, returns 0 pixels
+    /// Applies a curve to make shorter time between objects result in less distance
+    /// </summary>
+    /// <param name="ms">The time between the two objects we want to get the curved distance for</param>
+    /// <param name="maxDistance">The maximum distance we want to return</param>
+    public static float GetCurvedDistance(double ms, float maxDistance)
+    {
+        // Clamp x to 0–300 range
+        var x = MathF.Max(0f, MathF.Min((float)ms, 300f));
+
+        // Apply curve
+        return (int)Math.Round(maxDistance * (1f - MathF.Pow(1f - (x / 300f), 0.75f)));
     }
 
     private const double SnapMargin = 4.0;

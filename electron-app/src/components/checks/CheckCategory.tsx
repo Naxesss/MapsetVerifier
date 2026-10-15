@@ -1,14 +1,22 @@
-﻿import { Badge, Group, Stack, Text } from '@mantine/core';
+import { Badge, Group, Stack, Text } from '@mantine/core';
 import React from 'react';
 import CheckGroup from './CheckGroup.tsx';
 import { groupChecks } from './groupChecks';
 import { ApiBeatmapSetCheckResult, ApiCategoryOverrideCheckResult, Level } from '../../Types';
 import { countWord } from '../../utils/countWord';
+import { getLevelLabel } from '../../utils/levelLabel';
 import { InfoIconTooltip } from '../common/InfoIconTooltip.tsx';
+import VirtualizedList from '../common/VirtualizedList.tsx';
 
 type DisplayLevel = Exclude<Level, 'Check'>;
 
+type CheckGroupUiState = {
+  isOpen: boolean;
+  showAll: boolean;
+};
+
 const LEVEL_ORDER: DisplayLevel[] = ['Error', 'Problem', 'Warning', 'Minor', 'Info'];
+const VIRTUAL_GROUP_OVERSCAN = 6;
 
 const LEVEL_BADGE_COLORS: Record<DisplayLevel, string> = {
   Error: 'gray',
@@ -46,6 +54,8 @@ interface CheckCategoryProps {
   overrideResult?: ApiCategoryOverrideCheckResult;
 }
 
+const defaultGroupState: CheckGroupUiState = { isOpen: true, showAll: false };
+
 const CheckCategory: React.FC<CheckCategoryProps> = ({
   data,
   showMinor,
@@ -54,18 +64,36 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
   overrideResult,
 }) => {
   const [levelFilter, setLevelFilter] = React.useState<DisplayLevel | null>(null);
+  const [groupUiState, setGroupUiState] = React.useState<Record<number, CheckGroupUiState>>({});
+  const [prevGroupUiToken, setPrevGroupUiToken] = React.useState({
+    levelFilter,
+    selectedCategory,
+    overrideResult,
+  });
+
+  if (
+    prevGroupUiToken.levelFilter !== levelFilter ||
+    prevGroupUiToken.selectedCategory !== selectedCategory ||
+    prevGroupUiToken.overrideResult !== overrideResult
+  ) {
+    setPrevGroupUiToken({ levelFilter, selectedCategory, overrideResult });
+    setGroupUiState({});
+  }
 
   const overrideCategoryResult = overrideResult?.categoryResult;
   const categoryData = React.useMemo(() => {
-    // If we have an override result for the selected category, use it
     if (overrideCategoryResult && overrideCategoryResult.category === selectedCategory) {
-      const groups = groupChecks(overrideCategoryResult.checkResults, showMinor, hiddenMinorCheckIds);
+      const groups = groupChecks(
+        overrideCategoryResult.checkResults,
+        showMinor,
+        hiddenMinorCheckIds
+      );
       const allLevels = groups.flatMap((g) => g.items.map((item) => item.level));
       const levelCounts = getLevelCounts(allLevels);
       const totalCount = LEVEL_ORDER.reduce((sum, level) => sum + levelCounts[level], 0);
       const sortedGroups = [...groups].sort((a, b) => {
-        const nameA = (data.checks[a.id]?.name ?? '').toLowerCase();
-        const nameB = (data.checks[b.id]?.name ?? '').toLowerCase();
+        const nameA = (overrideResult.checks[a.id]?.name ?? '').toLowerCase();
+        const nameB = (overrideResult.checks[b.id]?.name ?? '').toLowerCase();
         if (nameA && nameB) return nameA.localeCompare(nameB);
         if (nameA) return -1;
         if (nameB) return 1;
@@ -118,12 +146,11 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
     data.general.checkResults,
     data.difficulties,
     data.general.mode,
-    data.general.difficultyLevel,
-    data.general.starRating,
+    data.checks,
     showMinor,
     hiddenMinorCheckIds,
-    data.checks,
     selectedCategory,
+    overrideCategoryResult,
     overrideResult,
   ]);
 
@@ -136,6 +163,53 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
       }))
       .filter((g) => g.items.length > 0);
   }, [categoryData.groups, levelFilter]);
+
+  const categoryCheckDefinitions =
+    overrideCategoryResult && overrideCategoryResult.category === selectedCategory
+      ? overrideResult.checks
+      : data.checks;
+
+  const toggleGroupOpen = React.useCallback((id: number) => {
+    setGroupUiState((current) => {
+      const state = current[id] ?? defaultGroupState;
+      return {
+        ...current,
+        [id]: {
+          ...state,
+          isOpen: !state.isOpen,
+        },
+      };
+    });
+  }, []);
+
+  const toggleGroupShowAll = React.useCallback((id: number) => {
+    setGroupUiState((current) => {
+      const state = current[id] ?? defaultGroupState;
+      return {
+        ...current,
+        [id]: {
+          ...state,
+          showAll: !state.showAll,
+        },
+      };
+    });
+  }, []);
+
+  const renderVirtualGroup = (group: (typeof filteredGroups)[number]) => {
+    const state = groupUiState[group.id] ?? defaultGroupState;
+
+    return (
+      <CheckGroup
+        id={group.id}
+        items={group.items}
+        isOpen={state.isOpen}
+        name={categoryCheckDefinitions[group.id]?.name}
+        showAll={state.showAll}
+        onToggleOpen={toggleGroupOpen}
+        onToggleShowAll={toggleGroupShowAll}
+      />
+    );
+  };
 
   const toggleLevelFilter = (level: DisplayLevel) => {
     setLevelFilter((current) => (current === level ? null : level));
@@ -162,7 +236,9 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
               style={{ cursor: 'pointer' }}
               title={isSelected ? 'Show all severities' : `Filter by this type`}
             >
-              {level.toLowerCase() === "minor" ? `${count} Negligible` : countWord(count, level.toLowerCase())}
+              {level === 'Minor'
+                ? `${count} ${getLevelLabel(level)}`
+                : countWord(count, level.toLowerCase())}
             </Badge>
           );
         })}
@@ -172,20 +248,14 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
       </Group>
       {categoryData.totalCount > 0 ? (
         filteredGroups.length > 0 ? (
-          <Stack gap="sm">
-            {filteredGroups.map((g) => (
-              <CheckGroup
-                key={g.id}
-                id={g.id}
-                items={g.items}
-                name={
-                  overrideCategoryResult && overrideCategoryResult.category === selectedCategory
-                    ? overrideResult.checks[g.id]?.name
-                    : data.checks[g.id]?.name
-                }
-              />
-            ))}
-          </Stack>
+          <VirtualizedList
+            items={filteredGroups}
+            estimateSize={() => 104}
+            getItemKey={(group) => group.id}
+            renderItem={renderVirtualGroup}
+            overscan={VIRTUAL_GROUP_OVERSCAN}
+            rowGap="var(--mantine-spacing-sm)"
+          />
         ) : (
           <Text size="sm" c="dimmed">
             No issues match this severity.

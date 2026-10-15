@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Standard.Compose
 {
@@ -53,9 +54,16 @@ namespace MapsetVerifier.Checks.Standard.Compose
                         "{0} Reverse arrow {1} obscured.",
                         "timestamp -",
                         "(potentially)"
-                    ).WithCause(
-                        "An object before a reverse arrow ends over where it appears close in time."
                     )
+                        .WithCause(
+                            "An object before a reverse arrow ends over where it appears close in time."
+                        )
+                        .WithRule(
+                            RC.Osu.Easy_AvoidFullyCoveringSliderReverse,
+                            RC.Osu.Normal_AvoidFullyCoveringSliderReverse,
+                            RC.Osu.Hard_AvoidFullyCoveringSliderReverse,
+                            RC.Osu.Insane_AvoidFullyCoveringSliderReverse
+                        )
                 },
             };
 

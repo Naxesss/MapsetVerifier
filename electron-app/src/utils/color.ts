@@ -32,6 +32,25 @@ export function hexToRgb(hex: string) {
   };
 }
 
+/** Parses a `#rgb`/`#rrggbb` or `rgb()`/`rgba()` color into its channels. */
+export function parseColor(color: string) {
+  if (color.startsWith('#')) {
+    const normalized =
+      color.length === 4
+        ? `#${color[1]}${color[1]}${color[2]}${color[2]}${color[3]}${color[3]}`
+        : color;
+    return hexToRgb(normalized);
+  }
+
+  const [red, green, blue] = color
+    .replace(/^rgba?\(/, '')
+    .replace(/\)$/, '')
+    .split(',')
+    .map((channel) => Number.parseFloat(channel));
+
+  return { r: red || 0, g: green || 0, b: blue || 0 };
+}
+
 export function clampColor(value: number) {
   return Math.max(0, Math.min(255, Math.round(value)));
 }

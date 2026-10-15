@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.HitSounds
 {
@@ -61,9 +62,11 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
                     new IssueTemplate(
                         Issue.Level.Problem,
                         "This beatmap contains no hit sounds or sampleset changes."
-                    ).WithCause(
-                        "There are no hit sounds or sampleset changes anywhere in a difficulty."
                     )
+                        .WithCause(
+                            "There are no hit sounds or sampleset changes anywhere in a difficulty."
+                        )
+                        .WithRule(RC.General.Audio_BeatmapsHitsounded)
                 },
                 {
                     "Problem",
@@ -73,10 +76,12 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
                         "timestamp -",
                         "timestamp -",
                         "duration"
-                    ).WithCause(
-                        "The hit sound score value, based on the amount of hit objects and time between two points without hit sounds "
-                            + "or sampleset changes, is way too low."
                     )
+                        .WithCause(
+                            "The hit sound score value, based on the amount of hit objects and time between two points without hit sounds "
+                                + "or sampleset changes, is way too low."
+                        )
+                        .WithRule(RC.General.Audio_BeatmapsHitsounded)
                 },
                 {
                     "Warning",
@@ -86,9 +91,11 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
                         "timestamp -",
                         "timestamp -",
                         "duration"
-                    ).WithCause(
-                        "Same as the other check, but with a threshold which is higher, but still very low."
                     )
+                        .WithCause(
+                            "Same as the other check, but with a threshold which is higher, but still very low."
+                        )
+                        .WithRule(RC.General.Audio_BeatmapsHitsounded)
                 },
             };
 
@@ -101,6 +108,10 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
             HitSample.SamplesetType? prevSample = null;
 
             var issues = new List<Issue>();
+
+            // Cached once so the spinner lookup below doesn't rescan every hit object in the beatmap
+            // each time it's called, which made this check quadratic in the number of hit objects.
+            var spinners = beatmap.HitObjects.OfType<Spinner>().ToList();
 
             void ApplyFeedbackUpdate(
                 HitObject.HitSounds hitSound,
@@ -144,11 +155,9 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
                         otherBreak.endTime > prevTime && otherBreak.endTime < hitObject.time
                     );
 
-                    var spinner = beatmap
-                        .HitObjects.OfType<Spinner>()
-                        .FirstOrDefault(otherSpinner =>
-                            otherSpinner.endTime > prevTime && otherSpinner.endTime < hitObject.time
-                        );
+                    var spinner = spinners.FirstOrDefault(otherSpinner =>
+                        otherSpinner.endTime > prevTime && otherSpinner.endTime < hitObject.time
+                    );
 
                     var excludeStart = @break?.time ?? (spinner?.time ?? -1);
                     var excludeEnd = @break?.endTime ?? (spinner?.endTime ?? -1);

@@ -31,7 +31,7 @@ function resolveSidecarPath() {
   return path.join(__dirname, '..', '..', 'bin', 'server', 'dist', rid, exe);
 }
 
-function spawnSidecar() {
+function spawnSidecar(options = {}) {
   if (sidecarProcess) return sidecarProcess;
   const exePath = resolveSidecarPath();
   if (!fs.existsSync(exePath)) {
@@ -44,6 +44,11 @@ function spawnSidecar() {
       windowsHide: true,
       stdio: ['ignore', 'pipe', 'pipe'],
       cwd: path.dirname(exePath),
+      env: {
+        ...process.env,
+        MAPSET_VERIFIER_CUSTOM_CHECKS_ENABLED:
+          options.customChecksEnabled === false ? 'false' : 'true',
+      },
     });
   } catch (e) {
     emitLog(`[sidecar] failed to spawn: ${e && e.message ? e.message : e}`);

@@ -1,4 +1,9 @@
-import type { Mode, ObjectsOverviewDifficulty, ObjectsTypeBucket, ObjectsTypeEntry } from '../../../Types';
+import type {
+  Mode,
+  ObjectsOverviewDifficulty,
+  ObjectsTypeBucket,
+  ObjectsTypeEntry,
+} from '../../../Types';
 
 const HIT_SOUND_WHISTLE = 2;
 const HIT_SOUND_FINISH = 4;
@@ -26,7 +31,11 @@ export const OBJECT_PERCENTAGE_COLUMNS: Record<Mode, ObjectPercentageColumn[]> =
   Taiko: [
     { type: 'single', label: TAIKO_TYPE_LABELS.dons },
     { type: 'single', label: TAIKO_TYPE_LABELS.kats },
-    { type: 'combined', label: 'Dons + Kats', labels: [TAIKO_TYPE_LABELS.dons, TAIKO_TYPE_LABELS.kats] },
+    {
+      type: 'combined',
+      label: 'Dons + Kats',
+      labels: [TAIKO_TYPE_LABELS.dons, TAIKO_TYPE_LABELS.kats],
+    },
     { type: 'single', label: TAIKO_TYPE_LABELS.bigDons },
     { type: 'single', label: TAIKO_TYPE_LABELS.bigKats },
     {
@@ -116,7 +125,13 @@ function deriveObjectTypesFromTimeline(
     case 'Taiko':
       for (const object of difficulty.timelineObjects) {
         if (object.objectType === 'Spinner') {
-          addEntry(counts, entriesByLabel, TAIKO_TYPE_LABELS.spinners, object.startTimeMs, 'Spinner');
+          addEntry(
+            counts,
+            entriesByLabel,
+            TAIKO_TYPE_LABELS.spinners,
+            object.startTimeMs,
+            'Spinner'
+          );
           continue;
         }
 
@@ -130,13 +145,7 @@ function deriveObjectTypesFromTimeline(
         const flags = object.hitSoundFlags ?? 0;
         const isKat = (flags & HIT_SOUND_WHISTLE) !== 0 || (flags & HIT_SOUND_CLAP) !== 0;
         const isBig = object.hasFinishHitSound || (flags & HIT_SOUND_FINISH) !== 0;
-        const detail = isBig
-          ? isKat
-            ? 'Big Kat'
-            : 'Big Don'
-          : isKat
-            ? 'Kat'
-            : 'Don';
+        const detail = isBig ? (isKat ? 'Big Kat' : 'Big Don') : isKat ? 'Kat' : 'Don';
         const label = isBig
           ? isKat
             ? TAIKO_TYPE_LABELS.bigKats

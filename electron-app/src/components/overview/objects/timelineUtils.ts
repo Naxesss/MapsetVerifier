@@ -6,9 +6,19 @@ import {
   TIMING_SAMPLES_PER_BEAT,
   TIMELINE_INTERVAL_STEPS_MS,
 } from './constants.ts';
-import { getPrimaryEdgeSample, buildHitsoundDrawCache, type HitsoundDrawCache } from './hitsoundUtils.ts';
+import {
+  getPrimaryEdgeSample,
+  buildHitsoundDrawCache,
+  type HitsoundDrawCache,
+} from './hitsoundUtils.ts';
 import { normalizeMode } from '../../../utils/gameMode';
-import type { ObjectsOverviewDifficulty, ObjectsSnappingBucket, ObjectsTimelineEdge, ObjectsTimelineObject, ObjectsTimelineSample } from '../../../Types';
+import type {
+  ObjectsOverviewDifficulty,
+  ObjectsSnappingBucket,
+  ObjectsTimelineEdge,
+  ObjectsTimelineObject,
+  ObjectsTimelineSample,
+} from '../../../Types';
 
 /** Lenience matching server-side `HitObject.IsClose` (±2 ms). */
 const EDGE_TIME_MATCH_EPSILON_MS = 2;
@@ -99,6 +109,34 @@ export function getAlignedTimelineLineX(
   return Math.round(getTimelineX(timeMs, startTimeMs, durationMs, width)) + 0.5;
 }
 
+/** DOM highlight X for a snapped timestamp — matches canvas marker placement. */
+export function getTimelineHighlightX(
+  timestampMs: number,
+  difficulty: ObjectsOverviewDifficulty,
+  startTimeMs: number,
+  endTimeMs: number,
+  timelineWidth: number
+) {
+  const durationMs = Math.max(1, endTimeMs - startTimeMs);
+
+  for (const timelineObject of difficulty.timelineObjects) {
+    if (timelineObject.objectType === 'Circle') {
+      if (Math.abs(timelineObject.startTimeMs - timestampMs) <= EDGE_TIME_MATCH_EPSILON_MS) {
+        return getTimelineX(timestampMs, startTimeMs, durationMs, timelineWidth);
+      }
+      continue;
+    }
+
+    for (const edge of timelineObject.edges) {
+      if (Math.abs(edge.timeMs - timestampMs) <= EDGE_TIME_MATCH_EPSILON_MS) {
+        return getAlignedTimelineLineX(edge.timeMs, startTimeMs, durationMs, timelineWidth);
+      }
+    }
+  }
+
+  return getTimelineX(timestampMs, startTimeMs, durationMs, timelineWidth);
+}
+
 /** Next axis tick strictly after `timestampMs` (or the following grid line when already on a tick). */
 /** Next axis tick strictly after `timestampMs` (or the following grid line when already on a tick). */
 export function getNextTimelineTick(
@@ -170,49 +208,16 @@ export function getFirstNoteTimeMs(
   return earliest;
 }
 
-export function getPlayheadViewportX(
-  anchorTimeMs: number,
-  startTimeMs: number,
-  endTimeMs: number,
-  timelineWidth: number,
-  labelWidth: number
-) {
-  const durationMs = Math.max(1, endTimeMs - startTimeMs);
-  return labelWidth + getTimelineX(anchorTimeMs, startTimeMs, durationMs, timelineWidth);
-}
-
-export type TimelinePlayheadScrollPadding = {
-  padLeft: number;
-  padRight: number;
-};
-
-export const EMPTY_PLAYHEAD_SCROLL_PADDING: TimelinePlayheadScrollPadding = {
-  padLeft: 0,
-  padRight: 0,
-};
-
-export function getPlayheadScrollPadding(
-  playheadViewportX: number,
-  labelWidth: number,
-  viewportWidth: number
-): TimelinePlayheadScrollPadding {
-  return {
-    padLeft: playheadViewportX - labelWidth,
-    padRight: Math.max(0, viewportWidth - playheadViewportX),
-  };
-}
-
 export function getTimestampAtPlayhead(
   scrollLeft: number,
-  playheadViewportX: number,
+  anchorViewportX: number,
   labelWidth: number,
   timelineWidth: number,
   startTimeMs: number,
-  endTimeMs: number,
-  padding: TimelinePlayheadScrollPadding = EMPTY_PLAYHEAD_SCROLL_PADDING
+  endTimeMs: number
 ) {
   const durationMs = Math.max(1, endTimeMs - startTimeMs);
-  const timelineLocalX = scrollLeft + playheadViewportX - padding.padLeft - labelWidth;
+  const timelineLocalX = scrollLeft + anchorViewportX - labelWidth;
   const clampedX = Math.max(0, Math.min(timelineWidth, timelineLocalX));
   const timestampMs = getTimelineTimeFromX(clampedX, startTimeMs, durationMs, timelineWidth);
   return Math.max(startTimeMs, Math.min(endTimeMs, timestampMs));
@@ -224,13 +229,12 @@ export function getScrollLeftForTimestamp(
   labelWidth: number,
   timelineWidth: number,
   startTimeMs: number,
-  endTimeMs: number,
-  padding: TimelinePlayheadScrollPadding = EMPTY_PLAYHEAD_SCROLL_PADDING
+  endTimeMs: number
 ) {
   const durationMs = Math.max(1, endTimeMs - startTimeMs);
   const clampedTimestamp = Math.max(startTimeMs, Math.min(endTimeMs, timestampMs));
   const timelineLocalX = getTimelineX(clampedTimestamp, startTimeMs, durationMs, timelineWidth);
-  return timelineLocalX + padding.padLeft + labelWidth - anchorViewportX;
+  return timelineLocalX + labelWidth - anchorViewportX;
 }
 
 export function findNearestTimelineEdge(
@@ -352,6 +356,17 @@ export function buildRoundedEdgeTimes(timelineObjects: ObjectsTimelineObject[]):
 export type TimelineRowDrawCache = {
   roundedEdgeTimes: Set<number>;
   hitsound?: HitsoundDrawCache;
+  /** `timelineObjects` sorted ascending by `startTimeMs` — the raw array is sorted in practice
+   * (chronological hit-object order) but not contractually guaranteed, so we sort defensively
+   * once per difficulty instead of trusting call sites. */
+  sortedObjects: ObjectsTimelineObject[];
+  /** Longest object duration (slider/spinner extent) — used to widen a time-window lower bound
+   * so long objects starting just before the window still get included. */
+  maxObjectDurationMs: number;
+  /** Slider tick samples only, sorted ascending by `timeMs` (samples are already globally
+   * time-sorted server-side, but pre-filtering here avoids re-checking source/objectType per
+   * sample in the hot draw loop). */
+  sortedSliderTickSamples: ObjectsTimelineSample[];
 };
 
 export function buildTimelineRowDrawCache(
@@ -359,28 +374,77 @@ export function buildTimelineRowDrawCache(
   samples: ObjectsTimelineSample[] | undefined,
   isHitsoundView: boolean
 ): TimelineRowDrawCache {
+  const sortedObjects = timelineObjects
+    .slice()
+    .sort((left, right) => left.startTimeMs - right.startTimeMs);
+
+  let maxObjectDurationMs = 0;
+  for (const object of sortedObjects) {
+    const objectDurationMs = object.endTimeMs - object.startTimeMs;
+    if (objectDurationMs > maxObjectDurationMs) {
+      maxObjectDurationMs = objectDurationMs;
+    }
+  }
+
+  const sortedSliderTickSamples = (samples ?? [])
+    .filter((sample) => sample.source === 'Tick' && sample.objectType === 'Slider')
+    .sort((left, right) => left.timeMs - right.timeMs);
+
   return {
     roundedEdgeTimes: buildRoundedEdgeTimes(timelineObjects),
-    hitsound: isHitsoundView
-      ? buildHitsoundDrawCache(timelineObjects, samples ?? [])
-      : undefined,
+    hitsound: isHitsoundView ? buildHitsoundDrawCache(timelineObjects, samples ?? []) : undefined,
+    sortedObjects,
+    maxObjectDurationMs,
+    sortedSliderTickSamples,
   };
 }
 
+/** Index of the first element with `getTimeMs(item) >= timeMs`, assuming `items` is sorted
+ * ascending by that key. Returns `items.length` if none qualify. Pass `timeMs + epsilon` to get
+ * an exclusive upper bound instead (first index strictly greater than `timeMs`). */
+export function findLowerBoundIndex<T>(
+  items: T[],
+  timeMs: number,
+  getTimeMs: (item: T) => number
+): number {
+  let lo = 0;
+  let hi = items.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >>> 1;
+    if (getTimeMs(items[mid]) < timeMs) {
+      lo = mid + 1;
+    } else {
+      hi = mid;
+    }
+  }
+  return lo;
+}
+
 /** Visible timing-grid snap ticks (same rules as `drawTimingGrid`). */
-export function buildTimelineSnapTicks(
-  difficulties: ObjectsOverviewDifficulty[],
-  startTimeMs: number,
-  endTimeMs: number
-): number[] {
+/** O(objects) across all difficulties — independent of the visible time window, so callers
+ * should memoize this separately from the (potentially scroll-bound) window passed to
+ * `buildTimelineSnapTicks`. */
+export function buildAllRoundedEdgeTimes(difficulties: ObjectsOverviewDifficulty[]): Set<number> {
   const roundedEdgeTimes = new Set<number>();
-  const tickTimes = new Set<number>();
 
   for (const difficulty of difficulties) {
     for (const edgeTimeMs of buildRoundedEdgeTimes(difficulty.timelineObjects)) {
       roundedEdgeTimes.add(edgeTimeMs);
     }
+  }
 
+  return roundedEdgeTimes;
+}
+
+export function buildTimelineSnapTicks(
+  difficulties: ObjectsOverviewDifficulty[],
+  roundedEdgeTimes: Set<number>,
+  startTimeMs: number,
+  endTimeMs: number
+): number[] {
+  const tickTimes = new Set<number>();
+
+  for (const difficulty of difficulties) {
     for (const segment of difficulty.timingSegments) {
       const sampleStepMs = segment.msPerBeat / TIMING_SAMPLES_PER_BEAT;
       if (sampleStepMs <= 0) {
@@ -440,6 +504,28 @@ export function getAdjacentTimingSnapTick(
   }
 
   return startTimeMs;
+}
+
+export function getAdjacentTimingSnapTickBySteps(
+  sortedTicks: number[],
+  timestampMs: number,
+  direction: 1 | -1,
+  steps: number,
+  startTimeMs: number,
+  endTimeMs: number
+): number {
+  let result = timestampMs;
+
+  for (let step = 0; step < steps; step += 1) {
+    const next = getAdjacentTimingSnapTick(sortedTicks, result, direction, startTimeMs, endTimeMs);
+    if (next === result) {
+      break;
+    }
+
+    result = next;
+  }
+
+  return result;
 }
 
 /** Beat snap colors aligned with osu! editor / timeline tick grid. */
@@ -621,10 +707,7 @@ function isEdgeTimeMatch(leftMs: number, rightMs: number) {
 }
 
 /** Returns the snap label (e.g. `1/4`) or `Unsnapped` for an edge timestamp. */
-export function lookupEdgeSnapLabel(
-  difficulty: ObjectsOverviewDifficulty,
-  timeMs: number
-): string {
+export function lookupEdgeSnapLabel(difficulty: ObjectsOverviewDifficulty, timeMs: number): string {
   if (difficulty.unsnappedEdgeTimesMs?.some((candidate) => isEdgeTimeMatch(candidate, timeMs))) {
     return 'Unsnapped';
   }
@@ -637,4 +720,3 @@ export function lookupEdgeSnapLabel(
 
   return 'Unknown';
 }
-

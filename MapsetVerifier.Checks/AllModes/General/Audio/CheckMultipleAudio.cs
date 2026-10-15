@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.General.Audio
 {
@@ -39,11 +40,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             {
                 {
                     "Multiple",
-                    new IssueTemplate(
-                        Issue.Level.Problem,
-                        "{0}",
-                        "audio file : difficulties"
-                    ).WithCause("There is more than one audio file used between all difficulties.")
+                    new IssueTemplate(Issue.Level.Problem, "{0}", "audio file : difficulties")
+                        .WithCause(
+                            "There is more than one audio file used between all difficulties."
+                        )
+                        .WithRule(RC.General.Audio_BeatmapOnlyContainOneSong)
                 },
                 {
                     "Missing",

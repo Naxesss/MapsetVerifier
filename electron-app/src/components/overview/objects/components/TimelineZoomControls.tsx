@@ -16,12 +16,6 @@ export default function TimelineZoomControls() {
   const pendingZoomRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!dragging) {
-      setSliderZoom(zoom);
-    }
-  }, [dragging, zoom]);
-
-  useEffect(() => {
     return () => {
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
@@ -81,9 +75,11 @@ export default function TimelineZoomControls() {
 
   return (
     <Group gap="xs" align="center" wrap="nowrap">
-      <ActionIcon variant="default" aria-label="Zoom out" onClick={() => adjustZoom(-1)}>
-        <IconMinus size={16} />
-      </ActionIcon>
+      <Tooltip label="Zoom out timeline">
+        <ActionIcon variant="default" aria-label="Zoom out" onClick={() => adjustZoom(-1)}>
+          <IconMinus size={16} />
+        </ActionIcon>
+      </Tooltip>
       <Tooltip
         label={`${formatZoomLabel(displayZoom)}x`}
         opened={hovered || dragging}
@@ -107,10 +103,10 @@ export default function TimelineZoomControls() {
           onPointerCancel={endSliderDrag}
         >
           <Slider
-            value={sliderZoom}
+            value={displayZoom}
             min={MIN_ZOOM}
             max={MAX_ZOOM}
-            step={0.01}
+            step={1}
             onChange={handleSliderChange}
             label={null}
             styles={{
@@ -121,9 +117,11 @@ export default function TimelineZoomControls() {
           />
         </Box>
       </Tooltip>
-      <ActionIcon variant="default" aria-label="Zoom in" onClick={() => adjustZoom(1)}>
-        <IconPlus size={16} />
-      </ActionIcon>
+      <Tooltip label="Zoom in timeline">
+        <ActionIcon variant="default" aria-label="Zoom in" onClick={() => adjustZoom(1)}>
+          <IconPlus size={16} />
+        </ActionIcon>
+      </Tooltip>
     </Group>
   );
 }

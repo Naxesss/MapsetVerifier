@@ -1,20 +1,24 @@
 import { useCallback, useEffect, type RefObject } from 'react';
 import { LABEL_WIDTH } from '../constants.ts';
 import {
-  EMPTY_PLAYHEAD_SCROLL_PADDING,
-  getAdjacentTimingSnapTick,
-  getPlayheadScrollPadding,
+  getAdjacentTimingSnapTickBySteps,
   getScrollLeftForTimestamp,
   getTimestampAtPlayhead,
 } from '../timelineUtils.ts';
 
 type UseTimelineWheelSeekOptions = {
   scrollRef: RefObject<HTMLDivElement | null>;
-  playheadViewportX: number | null;
   timelineWidth: number;
   startTimeMs: number;
   endTimeMs: number;
   snapTicks: number[];
+  /** Bounds `snapTicks` was actually built for — used to clamp seeking once ticks run
+   * out in the seek direction. Defaults to `startTimeMs`/`endTimeMs` when `snapTicks`
+   * covers the full timeline. */
+  snapClampStartMs?: number;
+  snapClampEndMs?: number;
+  tickStepCount?: number;
+  adjustZoom?: (direction: -1 | 1) => void;
   enabled?: boolean;
 };
 
@@ -22,11 +26,14 @@ const MAX_SAME_PIXEL_STEPS = 512;
 
 export function useTimelineWheelSeek({
   scrollRef,
-  playheadViewportX,
   timelineWidth,
   startTimeMs,
   endTimeMs,
   snapTicks,
+  snapClampStartMs = startTimeMs,
+  snapClampEndMs = endTimeMs,
+  tickStepCount = 1,
+  adjustZoom,
   enabled = true,
 }: UseTimelineWheelSeekOptions) {
   const seekByDirection = useCallback(
@@ -37,11 +44,7 @@ export function useTimelineWheelSeek({
       }
 
       const viewportWidth = scrollElement.clientWidth;
-      const anchorViewportX = playheadViewportX ?? viewportWidth / 2;
-      const padding =
-        playheadViewportX !== null
-          ? getPlayheadScrollPadding(playheadViewportX, LABEL_WIDTH, viewportWidth)
-          : EMPTY_PLAYHEAD_SCROLL_PADDING;
+      const anchorViewportX = viewportWidth / 2;
 
       const currentTimestamp = getTimestampAtPlayhead(
         scrollElement.scrollLeft,
@@ -49,8 +52,7 @@ export function useTimelineWheelSeek({
         LABEL_WIDTH,
         timelineWidth,
         startTimeMs,
-        endTimeMs,
-        padding
+        endTimeMs
       );
 
       const startScrollLeft = scrollElement.scrollLeft;
@@ -59,12 +61,13 @@ export function useTimelineWheelSeek({
       let candidateTimestamp = currentTimestamp;
 
       for (let step = 0; step < MAX_SAME_PIXEL_STEPS; step += 1) {
-        const nextTimestamp = getAdjacentTimingSnapTick(
+        const nextTimestamp = getAdjacentTimingSnapTickBySteps(
           snapTicks,
           candidateTimestamp,
           direction,
-          startTimeMs,
-          endTimeMs
+          tickStepCount,
+          snapClampStartMs,
+          snapClampEndMs
         );
 
         if (nextTimestamp === candidateTimestamp) {
@@ -79,8 +82,7 @@ export function useTimelineWheelSeek({
           LABEL_WIDTH,
           timelineWidth,
           startTimeMs,
-          endTimeMs,
-          padding
+          endTimeMs
         );
         const clampedScrollLeft = Math.max(0, Math.min(maxScrollLeft, nextScrollLeft));
 
@@ -90,8 +92,8 @@ export function useTimelineWheelSeek({
         }
 
         if (
-          (direction === 1 && candidateTimestamp >= endTimeMs) ||
-          (direction === -1 && candidateTimestamp <= startTimeMs)
+          (direction === 1 && candidateTimestamp >= snapClampEndMs) ||
+          (direction === -1 && candidateTimestamp <= snapClampStartMs)
         ) {
           break;
         }
@@ -101,10 +103,12 @@ export function useTimelineWheelSeek({
     },
     [
       endTimeMs,
-      playheadViewportX,
       scrollRef,
+      snapClampEndMs,
+      snapClampStartMs,
       snapTicks,
       startTimeMs,
+      tickStepCount,
       timelineWidth,
     ]
   );
@@ -133,6 +137,20 @@ export function useTimelineWheelSeek({
         return;
       }
 
+      if (event.ctrlKey || event.metaKey) {
+        if (event.shiftKey) {
+          // Both modifiers held: neither zoom nor seek. Still swallow the event so it doesn't
+          // fall through to the browser/OS's native ctrl+scroll zoom.
+          event.preventDefault();
+          return;
+        }
+        if (adjustZoom && event.deltaY !== 0) {
+          event.preventDefault();
+          adjustZoom(event.deltaY < 0 ? 1 : -1);
+        }
+        return;
+      }
+
       const useHorizontalDelta = Math.abs(event.deltaX) > Math.abs(event.deltaY);
       if (!event.shiftKey && !useHorizontalDelta) {
         return;
@@ -154,5 +172,5 @@ export function useTimelineWheelSeek({
     return () => {
       scrollElement.removeEventListener('wheel', handleWheel);
     };
-  }, [enabled, scrollRef, seekByDirection]);
+  }, [adjustZoom, enabled, scrollRef, seekByDirection]);
 }

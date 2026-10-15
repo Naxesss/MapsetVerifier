@@ -39,9 +39,23 @@ public sealed class CheckTestContext : IDisposable
         return new CheckTestContext(tempPath);
     }
 
+    public static CheckTestContext CreateFromOsu(
+        OsuBuilder builder,
+        IEnumerable<string>? extraFiles = null,
+        IEnumerable<(string FileName, string Content)>? extraFileContents = null
+    ) => CreateFromOsu(builder.Build(), extraFiles, extraFileContents);
+
+    public static CheckTestContext CreateFromOsu(
+        string osuContent,
+        IEnumerable<string>? extraFiles = null,
+        IEnumerable<(string FileName, string Content)>? extraFileContents = null
+    ) => CreateFromOsuFiles([("test.osu", osuContent)], extraFiles, extraFileContents);
+
     public static CheckTestContext CreateFromOsuFiles(
         IEnumerable<(string FileName, string Content)> osuFiles,
-        IEnumerable<string>? extraFiles = null
+        IEnumerable<string>? extraFiles = null,
+        IEnumerable<(string FileName, string Content)>? extraFileContents = null,
+        IEnumerable<(string FileName, byte[] Content)>? extraBinaryFiles = null
     )
     {
         var tempPath = Path.Combine(
@@ -65,6 +79,32 @@ public sealed class CheckTestContext : IDisposable
                     Directory.CreateDirectory(dir);
 
                 File.WriteAllText(dest, string.Empty);
+            }
+        }
+
+        if (extraFileContents != null)
+        {
+            foreach (var (fileName, content) in extraFileContents)
+            {
+                var dest = Path.Combine(tempPath, fileName);
+                var dir = Path.GetDirectoryName(dest);
+                if (!string.IsNullOrEmpty(dir))
+                    Directory.CreateDirectory(dir);
+
+                File.WriteAllText(dest, content);
+            }
+        }
+
+        if (extraBinaryFiles != null)
+        {
+            foreach (var (fileName, content) in extraBinaryFiles)
+            {
+                var dest = Path.Combine(tempPath, fileName);
+                var dir = Path.GetDirectoryName(dest);
+                if (!string.IsNullOrEmpty(dir))
+                    Directory.CreateDirectory(dir);
+
+                File.WriteAllBytes(dest, content);
             }
         }
 

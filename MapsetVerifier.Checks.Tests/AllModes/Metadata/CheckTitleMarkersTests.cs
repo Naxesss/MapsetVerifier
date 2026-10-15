@@ -159,16 +159,14 @@ public class CheckTitleMarkersTests
     [Theory]
     [InlineData("song name (arrange ver.)")]
     [InlineData("SONG NAME (ARRANGE VER.)")]
+    [InlineData("clarity rmx (hayakou boutleg) (cut ver.)")]
     public void AllowsGuidelineVerCasingWhenTitleIsUniformlyStylised(string title)
     {
         using var context = CreateContext(title);
 
         var issues = context.RunGeneralCheck<CheckTitleMarkers>();
 
-        Assert.DoesNotContain(
-            issues,
-            issue => issue.message.Contains("should use guideline format")
-        );
+        Assert.Empty(issues);
     }
 
     [Theory]
@@ -218,12 +216,12 @@ public class CheckTitleMarkersTests
         );
     }
 
-    [Fact]
-    public void SkipsStylisedLongParenthetical()
+    [Theory]
+    [InlineData("Pippiquest (Pippi x Mocha Romantic Movie Remix Edition)")]
+    [InlineData("You Make My Life 1UP (x127 Long Ver.)")]
+    public void SkipsStylisedLongParenthetical(string title)
     {
-        using var context = CreateContext(
-            "Pippiquest (Pippi x Mocha Romantic Movie Remix Edition)"
-        );
+        using var context = CreateContext(title);
 
         var issues = context.RunGeneralCheck<CheckTitleMarkers>();
 
@@ -292,69 +290,89 @@ public class CheckTitleMarkersTests
     }
 
     [Fact]
+    public void FlagsMissingMarkerInUnicodeTitle()
+    {
+        using var context = CreateContextWithUnicodeTitle("Song (TV Size)", "歌曲");
+
+        var issues = context.RunGeneralCheck<CheckTitleMarkers>();
+
+        Assert.Single(
+            issues,
+            issue =>
+                issue.level == Issue.Level.Problem
+                && issue.message.Contains("Romanized title field includes \"(TV Size)\"")
+                && issue.message.Contains("Unicode title field does not")
+        );
+    }
+
+    [Fact]
+    public void FlagsMissingMarkerInRomanizedTitle()
+    {
+        using var context = CreateContextWithUnicodeTitle("Song", "歌曲 (TV Size)");
+
+        var issues = context.RunGeneralCheck<CheckTitleMarkers>();
+
+        Assert.Single(
+            issues,
+            issue =>
+                issue.level == Issue.Level.Problem
+                && issue.message.Contains("Unicode title field includes \"(TV Size)\"")
+                && issue.message.Contains("Romanized title field does not")
+        );
+    }
+
+    [Fact]
+    public void DoesNotFlagMatchingMarkersAcrossTitleFields()
+    {
+        using var context = CreateContextWithUnicodeTitle("Song (TV Size)", "歌曲 (TV Size)");
+
+        var issues = context.RunGeneralCheck<CheckTitleMarkers>();
+
+        Assert.DoesNotContain(issues, issue => issue.message.Contains("title field does not"));
+    }
+
+    [Fact]
+    public void DoesNotFlagTitleMarkerMismatchWhenUnicodeMatchesRomanized()
+    {
+        using var context = CreateContext("Song (TV Size)");
+
+        var issues = context.RunGeneralCheck<CheckTitleMarkers>();
+
+        Assert.DoesNotContain(issues, issue => issue.message.Contains("title field does not"));
+    }
+
+    [Fact]
     public void DoesNotFlagStylisedCombinedTempoMarkersOnUnicodeTitle()
     {
-        using var context = CheckTestContext.CreateFromOsuFiles([
-            (
-                "test.osu",
-                string.Join(
-                    "\n",
-                    "osu file format v14",
-                    "[General]",
-                    "AudioFilename:audio.mp3",
-                    "Mode: 0",
-                    "[Metadata]",
-                    "Title:SLYOZY (ANTVN BOOTLEG) (SPED UP & CUT VER.)",
-                    "TitleUnicode:СЛЁЗЫ (ANTVN BOOTLEG) (SPED UP & CUT VER.)",
-                    "Artist:Tests",
-                    "Creator:Tests",
-                    "Version:Test",
-                    "[Difficulty]",
-                    "CircleSize:4",
-                    "HPDrainRate:5",
-                    "OverallDifficulty:5",
-                    "ApproachRate:5",
-                    "SliderMultiplier:1.4",
-                    "SliderTickRate:1",
-                    "[Events]",
-                    "[TimingPoints]",
-                    "[HitObjects]"
-                )
-            ),
-        ]);
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Title("SLYOZY (ANTVN BOOTLEG) (SPED UP & CUT VER.)")
+                .TitleUnicode("СЛЁЗЫ (ANTVN BOOTLEG) (SPED UP & CUT VER.)")
+                .Artist("Tests")
+                .Creator("Tests")
+        );
 
         var issues = context.RunGeneralCheck<CheckTitleMarkers>();
 
         Assert.DoesNotContain(issues, issue => issue.level == Issue.Level.Problem);
     }
 
+    private static CheckTestContext CreateContextWithUnicodeTitle(
+        string title,
+        string titleUnicode,
+        string tags = ""
+    ) =>
+        CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Title(title)
+                .TitleUnicode(titleUnicode)
+                .Artist("Tests")
+                .Creator("Tests")
+                .Tags(tags)
+        );
+
     private static CheckTestContext CreateContext(string title, string tags = "") =>
-        CheckTestContext.CreateFromOsuFiles([
-            (
-                "test.osu",
-                string.Join(
-                    "\n",
-                    "osu file format v14",
-                    "[General]",
-                    "AudioFilename:audio.mp3",
-                    "Mode: 0",
-                    "[Metadata]",
-                    $"Title:{title}",
-                    "Artist:Tests",
-                    "Creator:Tests",
-                    "Version:Test",
-                    $"Tags:{tags}",
-                    "[Difficulty]",
-                    "CircleSize:4",
-                    "HPDrainRate:5",
-                    "OverallDifficulty:5",
-                    "ApproachRate:5",
-                    "SliderMultiplier:1.4",
-                    "SliderTickRate:1",
-                    "[Events]",
-                    "[TimingPoints]",
-                    "[HitObjects]"
-                )
-            ),
-        ]);
+        CheckTestContext.CreateFromOsu(
+            new OsuBuilder().Title(title).Artist("Tests").Creator("Tests").Tags(tags)
+        );
 }

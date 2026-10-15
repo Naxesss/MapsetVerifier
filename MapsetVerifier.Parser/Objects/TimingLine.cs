@@ -33,7 +33,7 @@ namespace MapsetVerifier.Parser.Objects
         public string Code { get; }
 
         // might not be explicit (depending on inherited or not)
-        public float SvMult { get; }
+        public double SvMult { get; }
         private int TimingLineIndex { get; set; }
 
         public TimingLine(string[] args, Beatmap beatmap)
@@ -94,23 +94,23 @@ namespace MapsetVerifier.Parser.Objects
             return 0;
         }
 
-        /// <summary> Returns the slider velocity multiplier (1 for uninherited lines). Fit into range 0.1 - 10 before returning. </summary>
-        public float GetSvMult(string[] args)
+        /// <summary>
+        ///     Returns the slider velocity multiplier (1 for uninherited lines).
+        ///     <para />
+        ///     Deliberately unclamped. The 0.1x - 10x range is an editor input limit, not a parsing limit; values outside
+        ///     it can be written by hand and are honoured by the game, so clamping here would desync slider durations,
+        ///     scroll speeds and SV comparisons from the actual beatmap.
+        /// </summary>
+        public double GetSvMult(string[] args)
         {
-            if (!IsUninherited(args))
-            {
-                var svMult = 1 / (float.Parse(args[1], CultureInfo.InvariantCulture) * -0.01f);
+            if (IsUninherited(args))
+                return 1;
 
-                // Min 0.1x, max 10x.
-                if (svMult > 10f)
-                    svMult = 10f;
-                if (svMult < 0.1f)
-                    svMult = 0.1f;
+            // Matches the reference decoder: only a negative beat length encodes an sv multiplier,
+            // anything else (0 included, which would otherwise divide to infinity) means 1x.
+            var beatLength = double.Parse(args[1], CultureInfo.InvariantCulture);
 
-                return svMult;
-            }
-
-            return 1;
+            return beatLength < 0 ? 100 / -beatLength : 1;
         }
 
         /// <summary> Returns the index of this timing line in the beatmap's timing line list, O(1). </summary>

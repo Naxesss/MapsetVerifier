@@ -2,6 +2,7 @@
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 using TagLib;
 
 namespace MapsetVerifier.Checks.AllModes.General.Audio
@@ -38,9 +39,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             {
                 {
                     "Audio",
-                    new IssueTemplate(Issue.Level.Problem, "\"{0}\"", "path").WithCause(
-                        "An audio track is present in one of the video files."
-                    )
+                    new IssueTemplate(Issue.Level.Problem, "\"{0}\"", "path")
+                        .WithCause("An audio track is present in one of the video files.")
+                        .WithRule(RC.General.VideoAndBackground_VideoAudioTrackRemovedVideo)
                 },
                 {
                     "Leaves Folder",

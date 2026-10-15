@@ -36,11 +36,7 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
       <Group justify="space-between" mb="md">
         <Group gap="xs">
           <Text fw={600}>Resources</Text>
-          <InfoIconTooltip
-            label="Files and resources used by the beatmapset"
-            multiline
-            w={250}
-          />
+          <InfoIconTooltip label="Files and resources used by the beatmapset" multiline w={250} />
         </Group>
         <Badge color="blue" variant="light">
           <Group gap={4}>
@@ -136,9 +132,24 @@ function ResourcesInfo({ resources }: ResourcesInfoProps) {
                   <Text size="xs" c="dimmed">
                     {video.durationFormatted}
                   </Text>
+                  {video.codec && (
+                    <Text size="xs" c="dimmed">
+                      {video.codec}
+                    </Text>
+                  )}
+                  {video.frameRate && (
+                    <Text size="xs" c="dimmed">
+                      {Number(video.frameRate.toFixed(3))} FPS
+                    </Text>
+                  )}
                   <Text size="xs" c="dimmed">
                     Offset: {video.offsetMs}ms
                   </Text>
+                  {video.hasAudioTrack && (
+                    <Badge size="xs" variant="light" color="red">
+                      Audio track
+                    </Badge>
+                  )}
                 </Group>
               ))}
             </Stack>

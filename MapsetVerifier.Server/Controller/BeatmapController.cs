@@ -3,6 +3,7 @@ using MapsetVerifier.Framework;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Server.Model;
 using MapsetVerifier.Server.Service;
+using MapsetVerifier.Server.Service.OsuRuntime;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 
@@ -17,7 +18,8 @@ public class BeatmapController : ControllerBase
         [FromQuery] string? songsFolder,
         [FromQuery] string? search,
         [FromQuery] int page = 0,
-        [FromQuery] int pageSize = 16
+        [FromQuery] int pageSize = 16,
+        [FromQuery] string? bookmarkedFolders = null
     )
     {
         if (string.IsNullOrWhiteSpace(songsFolder))
@@ -34,7 +36,21 @@ public class BeatmapController : ControllerBase
         if (pageSize > 100)
             pageSize = 100; // safety cap
 
-        var pageResult = BeatmapService.GetBeatmaps(songsFolder, search, page, pageSize);
+        HashSet<string>? bookmarkedFolderSet = null;
+        if (!string.IsNullOrWhiteSpace(bookmarkedFolders))
+        {
+            bookmarkedFolderSet = bookmarkedFolders
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .ToHashSet();
+        }
+
+        var pageResult = BeatmapService.GetBeatmaps(
+            songsFolder,
+            search,
+            page,
+            pageSize,
+            bookmarkedFolderSet
+        );
 
         // If we have items, always 200.
         if (pageResult.Items.Any())
@@ -64,10 +80,87 @@ public class BeatmapController : ControllerBase
         return Ok(new { songsFolder = folder });
     }
 
-    [HttpGet("lazer/current")]
-    public ActionResult<ApiLazerLookupResult> GetCurrentLazerBeatmap()
+    [HttpGet("lazer")]
+    public ActionResult<ApiBeatmapPage> GetLazerBeatmaps(
+        [FromQuery] string? search,
+        [FromQuery] int page = 0,
+        [FromQuery] int pageSize = 16,
+        [FromQuery] string? lazerDataDir = null
+    )
     {
-        var result = BeatmapService.GetCurrentLazerBeatmap();
+        if (page < 0)
+            page = 0;
+        if (pageSize <= 0)
+            pageSize = 16;
+        if (pageSize > 100)
+            pageSize = 100; // safety cap
+
+        var pageResult = BeatmapService.GetLazerBeatmaps(search, page, pageSize, lazerDataDir);
+
+        if (pageResult.Items.Any())
+            return Ok(pageResult);
+
+        if (page == 0 && !pageResult.HasMore)
+            return NotFound(
+                new ApiError(
+                    search != null
+                        ? "The search yielded no results."
+                        : "No mapsets could be found in the lazer library.",
+                    null
+                )
+            );
+
+        return Ok(pageResult);
+    }
+
+    [HttpGet("lazer/dataDir")]
+    public ActionResult GetLazerDataDir()
+    {
+        var folder = LazerRealmService.DetectLazerDataDirectory();
+        if (string.IsNullOrWhiteSpace(folder))
+            return NotFound(new ApiError("Lazer data folder could not be detected.", null));
+        return Ok(new { lazerDataDir = folder });
+    }
+
+    [HttpPost("lazer/materialize")]
+    public ActionResult<ApiLazerMaterializeResult> MaterializeLazerBeatmap(
+        [FromBody] MaterializeLazerBeatmapRequest request
+    )
+    {
+        try
+        {
+            var result = BeatmapService.MaterializeLazerBeatmap(
+                request.BeatmapSetId,
+                request.LazerDataDir
+            );
+            if (!result.Success)
+                return NotFound(new ApiError(result.ErrorMessage ?? "Beatmapset not found.", null));
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(
+                ex,
+                "Failed to materialize lazer beatmapset {BeatmapSetId}",
+                request.BeatmapSetId
+            );
+            return StatusCode(
+                500,
+                ApiErrorFactory.FromException(
+                    ex,
+                    "An error occurred while materializing the lazer beatmapset."
+                )
+            );
+        }
+    }
+
+    [HttpGet("lazer/current")]
+    public ActionResult<ApiLazerLookupResult> GetCurrentLazerBeatmap(
+        [FromQuery] string? lazerDataDir = null
+    )
+    {
+        var result = BeatmapService.GetCurrentLazerBeatmap(lazerDataDir);
         return Ok(result);
     }
 
@@ -78,6 +171,13 @@ public class BeatmapController : ControllerBase
     {
         var result = BeatmapService.GetCurrentStableBeatmap(songsFolder);
         return Ok(result);
+    }
+
+    [HttpGet("runningClients")]
+    public ActionResult<ApiRunningOsuClients> GetRunningClients()
+    {
+        var clients = OsuProcessClassifier.GetRunningClients();
+        return Ok(new ApiRunningOsuClients(clients.Stable, clients.Lazer));
     }
 
     [HttpGet("image")]
@@ -104,6 +204,32 @@ public class BeatmapController : ControllerBase
             // Return the in-memory resized image
             return File(result.DataStream, result.MimeType!);
         }
+
+        var stream = System.IO.File.OpenRead(result.ImagePath!);
+        return File(stream, result.MimeType!);
+    }
+
+    [HttpGet("lazer/image")]
+    public ActionResult GetLazerBeatmapImage(
+        [FromQuery] string id,
+        [FromQuery] bool original = false,
+        [FromQuery] string? lazerDataDir = null
+    )
+    {
+        var result = BeatmapService.GetLazerBeatmapImage(id, original, lazerDataDir);
+        if (!result.Success)
+            return NotFound(new ApiError(result.ErrorMessage ?? "Image not found", null));
+
+        Response.Headers.CacheControl = "public, max-age=86400";
+        if (!string.IsNullOrWhiteSpace(result.ETag))
+        {
+            Response.Headers.ETag = result.ETag;
+            if (Request.Headers.TryGetValue("If-None-Match", out var inm) && inm == result.ETag)
+                return StatusCode(304);
+        }
+
+        if (result.DataStream != null)
+            return File(result.DataStream, result.MimeType!);
 
         var stream = System.IO.File.OpenRead(result.ImagePath!);
         return File(stream, result.MimeType!);
@@ -137,7 +263,12 @@ public class BeatmapController : ControllerBase
     {
         try
         {
-            var result = BeatmapService.RunBeatmapSetChecks(request.Folder);
+            var result = BeatmapService.RunBeatmapSetChecks(
+                request.Folder,
+                includeCheckRunDelta: request.IncludeCheckRunDelta,
+                createSnapshot: request.CreateSnapshot,
+                includeCheckTimings: request.IncludeCheckTimings
+            );
             return Ok(result);
         }
         catch (Exception ex)
@@ -198,7 +329,13 @@ public class BeatmapController : ControllerBase
             {
                 try
                 {
-                    var result = BeatmapService.RunBeatmapSetChecks(beatmapSet, progress);
+                    var result = BeatmapService.RunBeatmapSetChecks(
+                        beatmapSet,
+                        progress,
+                        request.IncludeCheckRunDelta,
+                        request.CreateSnapshot,
+                        request.IncludeCheckTimings
+                    );
                     channel.Writer.TryWrite(("complete", result));
                 }
                 catch (Exception ex)
@@ -265,6 +402,31 @@ public class BeatmapController : ControllerBase
                 ApiErrorFactory.FromException(
                     ex,
                     "An error occurred while running beatmap check with override."
+                )
+            );
+        }
+    }
+
+    [HttpDelete("checkRunHistory")]
+    public ActionResult ClearCheckRunHistory([FromQuery] string folder)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(folder))
+                return BadRequest(new ApiError("Folder is required.", null));
+
+            var beatmapSet = BeatmapService.ParseBeatmapSet(folder).BeatmapSet;
+            CheckRunHistoryService.ClearHistory(beatmapSet);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to clear check run history for {Folder}", folder);
+            return StatusCode(
+                500,
+                ApiErrorFactory.FromException(
+                    ex,
+                    "An error occurred while clearing check run history."
                 )
             );
         }

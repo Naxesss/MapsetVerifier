@@ -71,143 +71,143 @@ export function createAppTheme(fontFamily: string) {
     headings: {
       fontFamily,
     },
-  defaultRadius: 5,
-  spacing: {
-    xs: '0.25em',
-    sm: '0.5em',
-    md: '1em',
-    lg: '2em',
-    xl: '4em',
-  },
-  colors: {
-    blue: blue,
-    green: green,
-    orange: orange,
-    dark: dark,
-    primary: primary,
-  },
-  components: {
-    NavLink: {
-      styles: {
-        root: {
-          transition: 'all 0.1s ease',
-          '&:hover': {
-            transform: 'translateY(-2px)',
+    defaultRadius: 5,
+    spacing: {
+      xs: '0.25em',
+      sm: '0.5em',
+      md: '1em',
+      lg: '2em',
+      xl: '4em',
+    },
+    colors: {
+      blue: blue,
+      green: green,
+      orange: orange,
+      dark: dark,
+      primary: primary,
+    },
+    components: {
+      NavLink: {
+        styles: {
+          root: {
+            transition: 'all 0.1s ease',
+            '&:hover': {
+              transform: 'translateY(-2px)',
+            },
+          },
+        },
+      },
+      Button: {
+        styles: {
+          root: {
+            transition: 'all 0.1s ease',
+            '&:hover': {
+              transform: 'translateY(-2px)',
+            },
+          },
+        },
+      },
+      ActionIcon: {
+        styles: {
+          root: {
+            transition: 'all 0.1s ease',
+            '&:hover': {
+              transform: 'translateY(-2px)',
+            },
+          },
+        },
+      },
+      Badge: {
+        styles: {
+          root: {
+            transition: 'all 0.1s ease',
+          },
+        },
+      },
+      Modal: {
+        styles: {
+          title: {
+            fontFamily,
+          },
+        },
+      },
+      Title: {
+        styles: {
+          root: {
+            fontFamily,
+          },
+        },
+      },
+      Tooltip: {
+        defaultProps: {
+          withArrow: true,
+        },
+        styles: {
+          tooltip: {
+            textAlign: 'center',
+          },
+        },
+      },
+      ScrollArea: {
+        styles: {
+          thumb: {
+            backgroundColor: 'var(--mantine-color-primary-2)',
+          },
+          scrollbar: {
+            '&:hover > .mantineScrollAreaThumb': {
+              backgroundColor: 'var(--mantine-color-primary-3)',
+            },
+          },
+        },
+      },
+      Notifications: {
+        classNames: {
+          root: 'mv-notifications-root',
+        },
+      },
+      Notification: {
+        defaultProps: {
+          withBorder: false,
+        },
+        classNames: {
+          root: 'mv-notification',
+        },
+        styles: {
+          body: {
+            flex: '0 1 auto',
+            width: 'auto',
+            minWidth: 0,
+          },
+          icon: {
+            background: 'none',
+            borderRadius: 0,
+            paddingTop: 'var(--mantine-spacing-md)',
+            paddingBottom: 'var(--mantine-spacing-md)',
+            boxShadow: 'none',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            width: '1.125rem',
+            height: '1.125rem',
+            margin: 0,
+            marginRight: 'var(--mantine-spacing-sm)',
+          },
+          loader: {
+            background: 'none',
+            paddingTop: 'var(--mantine-spacing-md)',
+            paddingBottom: 'var(--mantine-spacing-md)',
+            margin: 0,
+            marginRight: 'var(--mantine-spacing-sm)',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            display: 'flex',
+            width: '1.25rem',
+            height: '1.25rem',
           },
         },
       },
     },
-    Button: {
-      styles: {
-        root: {
-          transition: 'all 0.1s ease',
-          '&:hover': {
-            transform: 'translateY(-2px)',
-          },
-        },
-      },
-    },
-    ActionIcon: {
-      styles: {
-        root: {
-          transition: 'all 0.1s ease',
-          '&:hover': {
-            transform: 'translateY(-2px)',
-          },
-        },
-      },
-    },
-    Badge: {
-      styles: {
-        root: {
-          transition: 'all 0.1s ease',
-        },
-      },
-    },
-    Modal: {
-      styles: {
-        title: {
-          fontFamily,
-        },
-      },
-    },
-    Title: {
-      styles: {
-        root: {
-          fontFamily,
-        },
-      },
-    },
-    Tooltip: {
-      defaultProps: {
-        withArrow: true,
-      },
-      styles: {
-        tooltip: {
-          textAlign: 'center',
-        },
-      },
-    },
-    ScrollArea: {
-      styles: {
-        thumb: {
-          backgroundColor: 'var(--mantine-color-primary-2)',
-        },
-        scrollbar: {
-          '&:hover > .mantineScrollAreaThumb': {
-            backgroundColor: 'var(--mantine-color-primary-3)',
-          },
-        },
-      },
-    },
-    Notifications: {
-      classNames: {
-        root: 'mv-notifications-root',
-      },
-    },
-    Notification: {
-      defaultProps: {
-        withBorder: false,
-      },
-      classNames: {
-        root: 'mv-notification',
-      },
-      styles: {
-        body: {
-          flex: '0 1 auto',
-          width: 'auto',
-          minWidth: 0,
-        },
-        icon: {
-          background: 'none',
-          borderRadius: 0,
-          paddingTop: 'var(--mantine-spacing-md)',
-          paddingBottom: 'var(--mantine-spacing-md)',
-          boxShadow: 'none',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          width: '1.125rem',
-          height: '1.125rem',
-          margin: 0,
-          marginRight: 'var(--mantine-spacing-sm)',
-        },
-        loader: {
-          background: 'none',
-          paddingTop: 'var(--mantine-spacing-md)',
-          paddingBottom: 'var(--mantine-spacing-md)',
-          margin: 0,
-          marginRight: 'var(--mantine-spacing-sm)',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          display: 'flex',
-          width: '1.25rem',
-          height: '1.25rem',
-        },
-      },
-    },
-  },
   });
 
   return mergeMantineTheme(DEFAULT_THEME, themeOverride);

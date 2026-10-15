@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using MapsetVerifier.Checks.Taiko.Design;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Parser.Objects;
@@ -105,37 +106,166 @@ public class CheckBgOffsetIssuesTests
         Assert.Empty(issues);
     }
 
+    [Theory]
+    [InlineData(16, 9, 115, -136)]
+    [InlineData(4, 3, 200, -215)]
+    [InlineData(2, 1, 86, -109)]
+    public void VerticalOffsetLimitFollowsAspectRatio(
+        int width,
+        int height,
+        int expectedMax,
+        int expectedMin
+    )
+    {
+        Assert.Equal(expectedMax, CheckBgOffsetIssues.MaxVerticalOffset(width, height));
+        Assert.Equal(expectedMin, CheckBgOffsetIssues.MinVerticalOffset(width, height));
+    }
+
+    [Theory]
+    [InlineData(160, 90, 115, true)]
+    [InlineData(160, 90, 114, false)]
+    [InlineData(160, 120, 200, true)]
+    [InlineData(160, 120, 199, false)]
+    [InlineData(200, 100, 86, true)]
+    [InlineData(200, 100, 85, false)]
+    public void FlagsVerticalOffsetAtOrAboveTheAspectRatioLimit(
+        int width,
+        int height,
+        int yOffset,
+        bool shouldFlag
+    )
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles(
+            [("oni.osu", BuildTaikoOsu("Oni", $"0,0,\"bg.png\",0,{yOffset}"))],
+            extraBinaryFiles: [("bg.png", CreatePng(width, height))]
+        );
+
+        var issues = context
+            .RunBeatmapSetCheck<CheckBgOffsetIssues>()
+            .Where(issue => issue.message.Contains("vertical offset"))
+            .ToList();
+
+        if (!shouldFlag)
+        {
+            Assert.Empty(issues);
+            return;
+        }
+
+        var issue = Assert.Single(issues);
+        Assert.Equal(Issue.Level.Warning, issue.level);
+        Assert.Contains($"vertical offset ({yOffset})", issue.message);
+        Assert.Contains("below", issue.message);
+    }
+
+    [Theory]
+    [InlineData(160, 90, -136, false)]
+    [InlineData(160, 90, -137, true)]
+    [InlineData(160, 120, -215, false)]
+    [InlineData(160, 120, -216, true)]
+    [InlineData(200, 100, -109, false)]
+    [InlineData(200, 100, -110, true)]
+    public void FlagsVerticalOffsetPastTheNegativeAspectRatioLimit(
+        int width,
+        int height,
+        int yOffset,
+        bool shouldFlag
+    )
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles(
+            [("oni.osu", BuildTaikoOsu("Oni", $"0,0,\"bg.png\",0,{yOffset}"))],
+            extraBinaryFiles: [("bg.png", CreatePng(width, height))]
+        );
+
+        var issues = context
+            .RunBeatmapSetCheck<CheckBgOffsetIssues>()
+            .Where(issue => issue.message.Contains("vertical offset"))
+            .ToList();
+
+        if (!shouldFlag)
+        {
+            Assert.Empty(issues);
+            return;
+        }
+
+        var issue = Assert.Single(issues);
+        Assert.Equal(Issue.Level.Warning, issue.level);
+        Assert.Contains($"vertical offset ({yOffset})", issue.message);
+        Assert.Contains($"above {yOffset}", issue.message);
+    }
+
     private static string BuildTaikoOsu(string version, string backgroundLine) =>
         BuildOsu(Beatmap.Mode.Taiko, version, backgroundLine);
 
-    private static string BuildOsu(Beatmap.Mode mode, string version, string backgroundLine)
+    private static string BuildOsu(Beatmap.Mode mode, string version, string backgroundLine) =>
+        new OsuBuilder()
+            .Mode(mode)
+            .Title("Background Offset Test")
+            .Artist("MapsetVerifier")
+            .Version(version)
+            .Events(backgroundLine)
+            .WithDefaultTiming()
+            .WithDefaultHitObject()
+            .Build();
+
+    private static byte[] CreatePng(int width, int height)
     {
-        return string.Join(
-            "\n",
-            [
-                "osu file format v14",
-                "[General]",
-                "AudioFilename: audio.mp3",
-                $"Mode: {(int)mode}",
-                "[Metadata]",
-                "Title:Background Offset Test",
-                "Artist:MapsetVerifier",
-                "Creator:Tests",
-                $"Version:{version}",
-                "[Difficulty]",
-                "HPDrainRate:5",
-                "CircleSize:4",
-                "OverallDifficulty:5",
-                "ApproachRate:5",
-                "SliderMultiplier:1.4",
-                "SliderTickRate:1",
-                "[Events]",
-                backgroundLine,
-                "[TimingPoints]",
-                "0,500,4,2,0,100,1,0",
-                "[HitObjects]",
-                "256,192,1000,1,0,0:0:0:0:",
-            ]
-        );
+        var raw = new byte[height * (1 + width * 3)];
+        using var deflated = new MemoryStream();
+        using (var zlib = new ZLibStream(deflated, CompressionLevel.SmallestSize, true))
+            zlib.Write(raw);
+
+        var idat = deflated.ToArray();
+        using var png = new MemoryStream();
+        png.Write(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 });
+        WriteChunk(png, "IHDR", Ihdr(width, height));
+        WriteChunk(png, "IDAT", idat);
+        WriteChunk(png, "IEND", []);
+        return png.ToArray();
+    }
+
+    private static byte[] Ihdr(int width, int height)
+    {
+        var data = new byte[13];
+        WriteInt(data, 0, width);
+        WriteInt(data, 4, height);
+        data[8] = 8;
+        data[9] = 2;
+        return data;
+    }
+
+    private static void WriteChunk(Stream stream, string type, byte[] data)
+    {
+        var typeBytes = System.Text.Encoding.ASCII.GetBytes(type);
+        var crcSource = new byte[typeBytes.Length + data.Length];
+        typeBytes.CopyTo(crcSource, 0);
+        data.CopyTo(crcSource, typeBytes.Length);
+
+        Span<byte> length = stackalloc byte[4];
+        System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(length, data.Length);
+        stream.Write(length);
+        stream.Write(typeBytes);
+        stream.Write(data);
+
+        Span<byte> crc = stackalloc byte[4];
+        System.Buffers.Binary.BinaryPrimitives.WriteUInt32BigEndian(crc, PngCrc(crcSource));
+        stream.Write(crc);
+    }
+
+    private static void WriteInt(byte[] data, int offset, int value)
+    {
+        System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(data.AsSpan(offset, 4), value);
+    }
+
+    private static uint PngCrc(byte[] data)
+    {
+        uint crc = 0xFFFFFFFF;
+        foreach (var value in data)
+        {
+            crc ^= value;
+            for (var i = 0; i < 8; i++)
+                crc = (crc & 1) != 0 ? (crc >> 1) ^ 0xEDB88320 : crc >> 1;
+        }
+
+        return ~crc;
     }
 }

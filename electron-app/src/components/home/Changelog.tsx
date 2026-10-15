@@ -68,7 +68,7 @@ function loadEntries(): ChangelogEntry[] {
 
   return Object.entries(changelogFiles)
     .map(([path, raw]) => {
-      const match = path.match(/[\\/](\d+\.\d+\.\d+)\.md$/);
+      const match = path.match(/[\\/](\d+\.\d+)\.md$/);
       if (!match) return null;
       return parseEntry(raw, match[1]);
     })
@@ -107,13 +107,7 @@ export default function Changelog() {
         const isLatest = index === 0;
 
         return (
-          <Card
-            key={entry.version}
-            withBorder
-            padding="lg"
-            radius="md"
-            shadow="sm"
-          >
+          <Card key={entry.version} withBorder padding="lg" radius="md" shadow="sm">
             <Stack gap="sm">
               <div
                 role="button"

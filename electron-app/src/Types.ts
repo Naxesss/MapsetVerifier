@@ -16,6 +16,8 @@ export type ApiDocumentationCheckDetailsOutcome = {
   level: Level;
   description: string;
   cause?: string;
+  /** Ranking criteria statements this outcome enforces. */
+  ruleIds?: string[];
 };
 
 export type ApiBeatmapPage = {
@@ -32,6 +34,8 @@ export type Beatmap = {
   creator: string;
   beatmapID: string;
   beatmapSetID: string;
+  /** Relative lazer/stable image path from the API; may include a cache-bust `v` query. */
+  backgroundPath?: string;
 };
 
 export type LazerLookupStatus =
@@ -40,6 +44,7 @@ export type LazerLookupStatus =
   | 'ambiguous_client'
   | 'no_editor_title'
   | 'songs_folder_not_found'
+  | 'lazer_data_dir_not_found'
   | 'metadata_detected'
   | 'folder_found';
 
@@ -54,10 +59,19 @@ export type ApiLazerLookupResult = {
 
 export type ApiStableLookupResult = ApiLazerLookupResult;
 
+export type ApiLazerMaterializeResult = {
+  success: boolean;
+  folderPath: string | null;
+  errorMessage: string | null;
+  /** Realm set id actually materialized; may differ after delete+redownload. */
+  beatmapSetId?: string | null;
+};
+
 export type ApiBeatmapInfo = {
   title: string | null;
   artist: string | null;
   creator: string | null;
+  beatmapId: number | null;
   beatmapSetId: number | null;
 };
 
@@ -65,6 +79,23 @@ export type ApiBeatmapSetCheckResult = {
   general: ApiCategoryCheckResult;
   difficulties: ApiCategoryCheckResult[];
   checks: Record<number, ApiCheckDefinition>;
+  checkRunDelta?: ApiCheckRunDelta | null;
+  /** Populated only when the request opts in via `includeCheckTimings`. */
+  checkTimings?: ApiCheckTimingReport | null;
+};
+
+export type ApiCheckTimingReport = {
+  checks: ApiCheckTiming[];
+  /** Actual wall-clock duration of the whole check run; checks run in parallel, so the sum of
+   *  individual `elapsedMs` values will generally exceed this. */
+  totalElapsedMs: number;
+};
+
+export type ApiCheckTiming = {
+  checkName: string;
+  /** Null for general/beatmapset-wide checks that aren't tied to one difficulty. */
+  difficulty: string | null;
+  elapsedMs: number;
 };
 
 export type ApiBeatmapStructureDifficulty = {
@@ -108,11 +139,59 @@ export type ApiCheckResult = {
   id: number;
   level: Level;
   message: string;
+  /** Ranking criteria statements the issue's template enforces. */
+  ruleIds?: string[];
+};
+
+export type ApiCheckRunDelta = {
+  previousRunAt: string;
+  currentRunAt: string;
+  newIssues: ApiCheckDeltaIssue[];
+  resolvedIssues: ApiCheckDeltaIssue[];
+  worsenedIssues: ApiCheckDeltaIssue[];
+  improvedIssues: ApiCheckDeltaIssue[];
+  unchangedIssues: ApiCheckDeltaIssue[];
+};
+
+export type ApiCheckDeltaIssue = {
+  category: string;
+  id: number;
+  checkName: string;
+  level: Level;
+  previousLevel?: Level | null;
+  message: string;
 };
 
 export type DifficultyLevel = 'Easy' | 'Normal' | 'Hard' | 'Insane' | 'Expert' | 'Ultra';
 export type Mode = 'Standard' | 'Taiko' | 'Catch' | 'Mania';
 export type Level = 'Info' | 'Check' | 'Error' | 'Minor' | 'Warning' | 'Problem';
+
+export type ApiPluginReport = {
+  directoryPath: string;
+  customChecksEnabled: boolean;
+  loadedPlugins: ApiLoadedPlugin[];
+  failedPlugins: ApiFailedPlugin[];
+};
+
+export type ApiLoadedPlugin = {
+  fileName: string;
+  filePath: string;
+  assemblyName: string;
+  version: string | null;
+  authors: string[];
+  checkCount: number;
+  generalCheckCount: number;
+  beatmapCheckCount: number;
+  beatmapSetCheckCount: number;
+  checkNames: string[];
+};
+
+export type ApiFailedPlugin = {
+  fileName: string;
+  filePath: string;
+  message: string;
+  details: string;
+};
 
 // Snapshot types
 export type DiffType = 'Added' | 'Removed' | 'Changed';
@@ -140,6 +219,9 @@ export type ApiSnapshotHistory = {
 export type ApiSnapshotCommit = {
   date: string;
   id: string;
+  /** False when this difficulty/General had no snapshot recorded yet at this date - as opposed
+   * to having one but showing no changes (totalChanges === 0 with hasSnapshot === true). */
+  hasSnapshot: boolean;
   totalChanges: number;
   additions: number;
   removals: number;
@@ -433,7 +515,49 @@ export type VideoInfo = {
   durationMs: number;
   durationFormatted: string;
   offsetMs: number;
+  codec: string | null;
+  frameRate: number | null;
+  hasAudioTrack: boolean;
+  bitrateKbps: number;
   usedByDifficulties: string[];
+};
+
+export type VideoAnalysisResult = {
+  success: boolean;
+  errorMessage: string | null;
+  videos: VideoAnalysisEntry[];
+  complianceIssues: string[];
+  isCompliant: boolean;
+};
+
+export type VideoAnalysisEntry = {
+  fileName: string;
+  exists: boolean;
+  fileSizeBytes: number;
+  fileSizeFormatted: string;
+  container: string;
+  videoCodec: string | null;
+  videoCodecProfile: string | null;
+  width: number;
+  height: number;
+  resolution: string;
+  frameRate: number | null;
+  isVariableFrameRate: boolean;
+  videoBitrateKbps: number | null;
+  overallBitrateKbps: number;
+  hasAudioTrack: boolean;
+  audioCodec: string | null;
+  audioChannels: number;
+  audioSampleRate: number;
+  durationMs: number;
+  durationFormatted: string;
+  offsetMs: number;
+  usedByDifficulties: string[];
+  isCompliant: boolean;
+  complianceIssues: string[];
+  badgeType: string;
+  canPreview: boolean;
+  warnings: string[];
 };
 
 export type StoryboardInfo = {
@@ -525,6 +649,9 @@ export type DifficultyOverviewDifficulty = {
 export type DifficultySkillData = {
   skillName: string;
   strainSamples: DifficultySamplePoint[];
+  /** This skill's own aggregate difficulty contribution for the map (pre-Star-Rating-curve) -
+   *  how much it actually matters to the map's real difficulty. */
+  difficultyValue: number;
 };
 
 export type DifficultyChartDataPoint = {
@@ -622,6 +749,16 @@ export type ObjectsOverviewDifficulty = {
   hitsoundGapPeriods?: ObjectsHitsoundGapPeriod[];
   /** Populated by server analysis; omit if using an older API. */
   objectTypes?: ObjectsTypeBucket[];
+  /** Mania only; null or omitted for other modes. */
+  columnUsage?: ObjectsColumnUsage[] | null;
+};
+
+export type ObjectsColumnUsage = {
+  column: number;
+  noteCount: number;
+  holdNoteCount: number;
+  totalCount: number;
+  percentage: number;
 };
 
 export type ObjectsTypeBucket = {
@@ -649,6 +786,8 @@ export type ObjectsTimelineObject = {
   hasFinishHitSound: boolean;
   /** Bitfield: Normal=1, Whistle=2, Finish=4, Clap=8 */
   hitSoundFlags?: number;
+  /** Slider body hitsound bitfield; 0 for non-sliders. */
+  sliderBodyHitSoundFlags?: number;
   comboColourIndex: number | null;
   comboColourHex: string | null;
   edges: ObjectsTimelineEdge[];
@@ -669,6 +808,7 @@ export type ObjectsTimelineSample = {
   customIndex: number;
   partName: string | null;
   objectType: string | null;
+  isBaseHitNormal?: boolean;
 };
 
 export type ObjectsHitsoundGapPeriod = {
@@ -696,4 +836,78 @@ export type ObjectsSnappingBucket = {
   percentage: number;
   /** Edge timestamps for this snap column; omit if using an older API. */
   edgeTimesMs?: number[];
+};
+
+export type RcKind = 'Rule' | 'Guideline' | 'Allowance';
+export type RcAutomation = 'Unknown' | 'Automatable' | 'Partial' | 'Manual';
+export type RcCoverage =
+  | 'Covered'
+  | 'Partial'
+  | 'Outdated'
+  | 'Uncovered'
+  | 'Manual'
+  | 'Informational';
+
+/** How a statement read when its linked checks were last reviewed, if it changed since. */
+export type ApiRcReview = {
+  commit: string;
+  kind: RcKind;
+};
+
+export type ApiRcSource = {
+  repository: string;
+  commit: string;
+  commitDate?: string | null;
+};
+
+export type ApiRcPageSummary = {
+  key: string;
+  title: string;
+  wikiUrl: string;
+  modes: Mode[];
+  hasStatements: boolean;
+  coverage: Record<RcCoverage, number>;
+};
+
+export type ApiRcOverview = {
+  source: ApiRcSource;
+  pages: ApiRcPageSummary[];
+};
+
+export type ApiRcCheckLink = {
+  checkId: number;
+  checkName: string;
+  templateKey: string;
+  level: Level;
+};
+
+export type ApiRcStatement = {
+  id: string;
+  page: string;
+  pageTitle: string;
+  kind: RcKind;
+  lead: string;
+  path: string[];
+  wikiUrl: string;
+  startLine: number;
+  endLine: number;
+  parentId?: string | null;
+  parentLead?: string | null;
+  /** Only opens a sentence its nested statements finish, e.g. "The audio file of a beatmap must...". */
+  intro: boolean;
+  difficulties: DifficultyLevel[];
+  automation: RcAutomation;
+  notes?: string | null;
+  retired: boolean;
+  lastReview?: ApiRcReview | null;
+  coverage: RcCoverage;
+  links: ApiRcCheckLink[];
+};
+
+export type ApiRcPage = {
+  key: string;
+  title: string;
+  wikiUrl: string;
+  markdown: string;
+  statements: ApiRcStatement[];
 };

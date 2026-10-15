@@ -26,16 +26,25 @@ public static class CurrentBeatmapLookupService
     );
     private static readonly object StickyMetadataLock = new();
     private static readonly Dictionary<OsuClientKind, string> LastDetectedMetadataByClient = new();
+    private static readonly Dictionary<OsuClientKind, DateTime> LastSeenAtByClient = new();
 
-    public static ApiLazerLookupResult GetCurrentLazerBeatmap() =>
-        GetCurrentBeatmap(OsuClientKind.Lazer, null);
+    /// <summary>
+    /// How long a vanished editor title is tolerated before the sticky cache expires. Smooths
+    /// over a single missed poll/brief window-title flicker without making a genuinely closed
+    /// editor keep showing "currently open" forever.
+    /// </summary>
+    private static readonly TimeSpan StickyMetadataGracePeriod = TimeSpan.FromSeconds(4);
+
+    public static ApiLazerLookupResult GetCurrentLazerBeatmap(
+        string? lazerDataDirOverride = null
+    ) => GetCurrentBeatmap(OsuClientKind.Lazer, lazerDataDirOverride);
 
     public static ApiLazerLookupResult GetCurrentStableBeatmap(string? songsFolderOverride) =>
         GetCurrentBeatmap(OsuClientKind.Stable, songsFolderOverride);
 
     private static ApiLazerLookupResult GetCurrentBeatmap(
         OsuClientKind clientKind,
-        string? songsFolderOverride
+        string? pathOverride
     )
     {
         if (!OperatingSystem.IsWindows())
@@ -60,7 +69,7 @@ public static class CurrentBeatmapLookupService
             );
 
         if (clientKind == OsuClientKind.Stable)
-            return GetCurrentStableBeatmapFromAllOsuProcesses(processes, songsFolderOverride);
+            return GetCurrentStableBeatmapFromAllOsuProcesses(processes, pathOverride);
 
         var targetProcesses = processes.Where(p => p.ClientKind == clientKind).ToList();
         if (targetProcesses.Count == 0)
@@ -106,7 +115,7 @@ public static class CurrentBeatmapLookupService
                 null
             );
 
-        return ResolveLazerCurrentMap(metadata, liveMetadata, targetProcesses);
+        return ResolveLazerCurrentMap(metadata, liveMetadata, pathOverride);
     }
 
     private static ApiLazerLookupResult GetCurrentStableBeatmapFromAllOsuProcesses(
@@ -248,23 +257,50 @@ public static class CurrentBeatmapLookupService
         );
     }
 
+    private static readonly Regex EditorMetadataFilenameRegex = new(
+        @"^(?<artist>.+?)\s-\s(?<title>.+?)\s\((?<creator>.+?)\)\s\[(?<version>.+)\]\.osu$",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase
+    );
+
+    private static readonly object MaterializeCacheLock = new();
+    private static string? _lastMaterializedLazerSetId;
+    private static string? _lastMaterializedLazerSignature;
+    private static string? _lastMaterializedLazerFolderPath;
+
+    /// <summary>
+    /// Resolves the "currently open in the lazer editor" shortcut by matching the editor window
+    /// title's metadata against osu!lazer's realm library, instead of scanning OS temp
+    /// directories for a beatmap exported via "Edit externally". This means the shortcut works
+    /// even when the map was opened normally (not externally), and the underlying browse/open
+    /// flow no longer depends on it at all.
+    /// </summary>
     private static ApiLazerLookupResult ResolveLazerCurrentMap(
         string metadata,
         string? liveMetadata,
-        IReadOnlyList<OsuProcessSnapshot> lazerProcesses
+        string? lazerDataDirOverride = null
     )
     {
-        var resolved = TryFindLazerTempBeatmapFolder(metadata, lazerProcesses);
-        if (resolved == null)
-        {
-            var message =
-                liveMetadata == null
-                    ? "Using the last detected beatmap. In the osu! editor, go to File → Edit externally to load the beatmap."
-                    : "Beatmap detected. In the osu! editor, go to File → Edit externally to load the beatmap.";
+        var dataDir = LazerRealmService.ResolveLazerDataDirectory(lazerDataDirOverride);
+        if (string.IsNullOrWhiteSpace(dataDir))
+            return new ApiLazerLookupResult(
+                "lazer_data_dir_not_found",
+                "Lazer data folder could not be detected.",
+                metadata,
+                null,
+                null,
+                null
+            );
 
+        var parsed = TryParseEditorFilenameMetadata(metadata);
+        if (parsed == null)
+        {
+            var parseFailedMessage =
+                liveMetadata == null
+                    ? "Using the last detected beatmap. Its metadata could not be parsed."
+                    : "Beatmap detected, but its metadata could not be parsed.";
             return new ApiLazerLookupResult(
                 "metadata_detected",
-                message,
+                parseFailedMessage,
                 metadata,
                 null,
                 null,
@@ -272,14 +308,123 @@ public static class CurrentBeatmapLookupService
             );
         }
 
-        var beatmap = TryBuildBeatmapFromFolder(resolved.Value.FolderPath);
+        var match = LazerRealmService.FindBestMatchingBeatmap(
+            dataDir,
+            parsed.Value.Artist,
+            parsed.Value.Title,
+            parsed.Value.Creator,
+            parsed.Value.Version
+        );
+        if (match == null)
+        {
+            var noMatchMessage =
+                liveMetadata == null
+                    ? "Using the last detected beatmap. Could not find a matching mapset in your lazer library yet."
+                    : "Beatmap detected. Could not find a matching mapset in your lazer library yet.";
+            return new ApiLazerLookupResult(
+                "metadata_detected",
+                noMatchMessage,
+                metadata,
+                null,
+                null,
+                null
+            );
+        }
+
+        var folderPath = GetOrMaterializeCached(dataDir, match.Value.SetId);
+        if (string.IsNullOrWhiteSpace(folderPath))
+            return new ApiLazerLookupResult(
+                "metadata_detected",
+                "Beatmap matched, but its files could not be materialized.",
+                metadata,
+                null,
+                null,
+                null
+            );
+
+        var backgroundUrl =
+            $"/beatmap/lazer/image?id={Uri.EscapeDataString(match.Value.SetId)}&v={match.Value.VersionToken}";
+        var beatmap = new ApiBeatmap(
+            match.Value.SetId,
+            match.Value.Title,
+            match.Value.Artist,
+            match.Value.Creator,
+            match.Value.BeatmapId,
+            match.Value.BeatmapSetId,
+            backgroundUrl
+        );
+
         return new ApiLazerLookupResult(
             "folder_found",
             "Beatmap loaded!",
             metadata,
-            resolved.Value.FolderPath,
-            resolved.Value.LookupRoot,
+            folderPath,
+            dataDir,
             beatmap
+        );
+    }
+
+    /// <summary>
+    /// Materialization is a real file copy, so avoid blindly redoing it on every 1.5-5s poll from
+    /// the frontend "current map" panel. Instead, cheaply re-read the set's current file/hash
+    /// manifest from realm (no file I/O) on every call and only re-copy when that manifest
+    /// actually changed since the last materialize — e.g. the user saved new changes in the
+    /// editor. This keeps the shortcut correct without paying for a full re-copy on every poll.
+    /// </summary>
+    private static string? GetOrMaterializeCached(string dataDir, string setId)
+    {
+        var files = LazerRealmService.GetBeatmapSetFiles(dataDir, setId);
+        if (files == null)
+            return null;
+
+        var signature = string.Join(
+            '|',
+            files
+                .OrderBy(f => f.Filename, StringComparer.Ordinal)
+                .Select(f => $"{f.Filename}:{f.Hash}")
+        );
+
+        lock (MaterializeCacheLock)
+        {
+            if (
+                _lastMaterializedLazerSetId == setId
+                && _lastMaterializedLazerSignature == signature
+                && !string.IsNullOrWhiteSpace(_lastMaterializedLazerFolderPath)
+                && Directory.Exists(_lastMaterializedLazerFolderPath)
+            )
+                return _lastMaterializedLazerFolderPath;
+        }
+
+        var result = LazerBeatmapMaterializer.Materialize(dataDir, setId);
+        if (!result.Success || string.IsNullOrWhiteSpace(result.FolderPath))
+            return null;
+
+        lock (MaterializeCacheLock)
+        {
+            _lastMaterializedLazerSetId = setId;
+            _lastMaterializedLazerSignature = signature;
+            _lastMaterializedLazerFolderPath = result.FolderPath;
+        }
+
+        return result.FolderPath;
+    }
+
+    private static (
+        string? Artist,
+        string? Title,
+        string? Creator,
+        string? Version
+    )? TryParseEditorFilenameMetadata(string metadata)
+    {
+        var match = EditorMetadataFilenameRegex.Match(metadata);
+        if (!match.Success)
+            return null;
+
+        return (
+            match.Groups["artist"].Value.Trim(),
+            match.Groups["title"].Value.Trim(),
+            match.Groups["creator"].Value.Trim(),
+            match.Groups["version"].Value.Trim()
         );
     }
 
@@ -313,195 +458,6 @@ public static class CurrentBeatmapLookupService
         return string.IsNullOrWhiteSpace(selected) ? null : Path.GetDirectoryName(selected);
     }
 
-    private static (string FolderPath, string LookupRoot)? TryFindLazerTempBeatmapFolder(
-        string metadata,
-        IReadOnlyList<OsuProcessSnapshot> lazerProcesses
-    )
-    {
-        foreach (var root in GetLazerTempRoots(lazerProcesses))
-        {
-            var exact = TryFindExactMetadataOsuFile(root, metadata);
-            if (string.IsNullOrWhiteSpace(exact))
-                continue;
-
-            var parentFolder = Path.GetDirectoryName(exact);
-            if (!string.IsNullOrWhiteSpace(parentFolder))
-                return (parentFolder, root);
-        }
-
-        var metadataNoExtension = Path.GetFileNameWithoutExtension(metadata);
-        var normalizedMetadata = NormalizeLookupName(metadataNoExtension);
-        var best = GetLazerTempRoots(lazerProcesses)
-            .SelectMany(root =>
-                EnumerateOsuCandidates(root)
-                    .Select(candidate => new
-                    {
-                        Root = root,
-                        Path = candidate,
-                        Score = GetMetadataMatchScore(
-                            metadataNoExtension,
-                            normalizedMetadata,
-                            candidate
-                        ),
-                    })
-            )
-            .Where(x => x.Score > 0)
-            .OrderByDescending(x => x.Score)
-            .ThenByDescending(x => File.GetLastWriteTimeUtc(x.Path))
-            .FirstOrDefault();
-
-        if (best == null)
-            return null;
-
-        var bestFolder = Path.GetDirectoryName(best.Path);
-        if (string.IsNullOrWhiteSpace(bestFolder))
-            return null;
-
-        return (bestFolder, best.Root);
-    }
-
-    private static IEnumerable<string> GetLazerTempRoots(
-        IReadOnlyList<OsuProcessSnapshot> lazerProcesses
-    )
-    {
-        var roots = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var process in lazerProcesses)
-        {
-            if (string.IsNullOrWhiteSpace(process.ExecutablePath))
-                continue;
-
-            var exeDir = Path.GetDirectoryName(process.ExecutablePath);
-            if (string.IsNullOrWhiteSpace(exeDir))
-                continue;
-
-            var tempFromExe = Path.Combine(exeDir, "Temp");
-            if (Directory.Exists(tempFromExe))
-                roots.Add(tempFromExe);
-        }
-
-        var localAppData = Environment.GetEnvironmentVariable("LOCALAPPDATA");
-        if (!string.IsNullOrWhiteSpace(localAppData))
-        {
-            var windowsTemp = Path.Combine(localAppData, "Temp");
-            if (Directory.Exists(windowsTemp))
-                roots.Add(windowsTemp);
-
-            var osuTemp = Path.Combine(localAppData, "osu!", "Temp");
-            if (Directory.Exists(osuTemp))
-                roots.Add(osuTemp);
-        }
-
-        var systemTemp = Path.GetTempPath();
-        if (!string.IsNullOrWhiteSpace(systemTemp) && Directory.Exists(systemTemp))
-            roots.Add(systemTemp);
-
-        foreach (var root in roots)
-            yield return root;
-    }
-
-    private static string? TryFindExactMetadataOsuFile(string root, string metadata)
-    {
-        if (
-            string.IsNullOrWhiteSpace(root)
-            || string.IsNullOrWhiteSpace(metadata)
-            || !Directory.Exists(root)
-        )
-            return null;
-
-        try
-        {
-            return Directory
-                .EnumerateFiles(root, metadata, SearchOption.AllDirectories)
-                .OrderByDescending(File.GetLastWriteTimeUtc)
-                .FirstOrDefault();
-        }
-        catch (Exception)
-        {
-            return null;
-        }
-    }
-
-    private static IEnumerable<string> EnumerateOsuCandidates(string root)
-    {
-        if (!Directory.Exists(root))
-            yield break;
-
-        IEnumerable<DirectoryInfo> folders;
-        try
-        {
-            folders = new DirectoryInfo(root)
-                .GetDirectories()
-                .OrderByDescending(d => d.LastWriteTimeUtc)
-                .Take(150)
-                .ToList();
-        }
-        catch (Exception)
-        {
-            yield break;
-        }
-
-        foreach (var folder in folders)
-        {
-            IEnumerable<string> files;
-            try
-            {
-                files = Directory.EnumerateFiles(
-                    folder.FullName,
-                    "*.osu",
-                    SearchOption.AllDirectories
-                );
-            }
-            catch (Exception)
-            {
-                continue;
-            }
-
-            foreach (var file in files)
-                yield return file;
-        }
-    }
-
-    private static int GetMetadataMatchScore(
-        string metadataNoExtension,
-        string normalizedMetadata,
-        string osuFilePath
-    )
-    {
-        var fileName = Path.GetFileNameWithoutExtension(osuFilePath);
-        if (string.IsNullOrWhiteSpace(fileName))
-            return 0;
-
-        var normalizedFileName = NormalizeLookupName(fileName);
-        if (string.IsNullOrWhiteSpace(normalizedFileName))
-            return 0;
-
-        if (fileName.Equals(metadataNoExtension, StringComparison.OrdinalIgnoreCase))
-            return 100;
-        if (normalizedFileName.Equals(normalizedMetadata, StringComparison.Ordinal))
-            return 95;
-        if (
-            normalizedFileName.Contains(normalizedMetadata, StringComparison.Ordinal)
-            || normalizedMetadata.Contains(normalizedFileName, StringComparison.Ordinal)
-        )
-            return 75;
-
-        var editorLikeMetadata = TryBuildEditorLikeMetadata(osuFilePath);
-        var normalizedEditorLikeMetadata = NormalizeLookupName(editorLikeMetadata ?? string.Empty);
-        if (string.IsNullOrWhiteSpace(normalizedEditorLikeMetadata))
-            return 0;
-
-        if (normalizedEditorLikeMetadata.Equals(normalizedMetadata, StringComparison.Ordinal))
-            return 70;
-        if (
-            normalizedEditorLikeMetadata.Contains(normalizedMetadata, StringComparison.Ordinal)
-            || normalizedMetadata.Contains(normalizedEditorLikeMetadata, StringComparison.Ordinal)
-        )
-            return 60;
-
-        return 0;
-    }
-
     private static string NormalizeLookupName(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -515,40 +471,6 @@ public static class CurrentBeatmapLookupService
         }
 
         return sb.ToString();
-    }
-
-    private static string? TryBuildEditorLikeMetadata(string osuFilePath)
-    {
-        try
-        {
-            var folder = Path.GetDirectoryName(osuFilePath);
-            if (string.IsNullOrWhiteSpace(folder))
-                return null;
-
-            var content = File.ReadAllText(osuFilePath);
-            var meta = ParseBeatmapMetadata(folder, content);
-            if (
-                string.IsNullOrWhiteSpace(meta.artist)
-                || string.IsNullOrWhiteSpace(meta.title)
-                || string.IsNullOrWhiteSpace(meta.creator)
-            )
-                return null;
-
-            var difficulty = Path.GetFileNameWithoutExtension(osuFilePath)
-                .Split('[')
-                .Skip(1)
-                .FirstOrDefault()
-                ?.TrimEnd(']');
-
-            if (string.IsNullOrWhiteSpace(difficulty))
-                return null;
-
-            return $"{meta.artist} - {meta.title} ({meta.creator}) [{difficulty}]";
-        }
-        catch (Exception)
-        {
-            return null;
-        }
     }
 
     private static ApiBeatmap? TryBuildBeatmapFromFolder(string folderPath)
@@ -654,6 +576,8 @@ public static class CurrentBeatmapLookupService
         {
             if (!string.IsNullOrWhiteSpace(liveMetadata))
             {
+                LastSeenAtByClient[clientKind] = DateTime.UtcNow;
+
                 if (!LastDetectedMetadataByClient.TryGetValue(clientKind, out var oldValue))
                 {
                     LastDetectedMetadataByClient[clientKind] = liveMetadata;
@@ -665,6 +589,16 @@ public static class CurrentBeatmapLookupService
                     if (!string.Equals(normalizedCurrent, normalizedOld, StringComparison.Ordinal))
                         LastDetectedMetadataByClient[clientKind] = liveMetadata;
                 }
+            }
+            else if (
+                LastSeenAtByClient.TryGetValue(clientKind, out var lastSeenAt)
+                && DateTime.UtcNow - lastSeenAt > StickyMetadataGracePeriod
+            )
+            {
+                // The editor title has been gone for longer than a brief flicker - treat it as
+                // genuinely closed instead of sticking with a beatmap that's no longer open.
+                LastDetectedMetadataByClient.Remove(clientKind);
+                LastSeenAtByClient.Remove(clientKind);
             }
 
             return LastDetectedMetadataByClient.TryGetValue(clientKind, out var cached)

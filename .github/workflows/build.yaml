@@ -24,10 +24,10 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.x'
+          dotnet-version: '10.x'
 
       - name: Build .NET solution
-        run: dotnet build MapsetVerifier.sln -c Release
+        run: dotnet build MapsetVerifier.slnx -c Release
 
       - name: Restore tools
         run: dotnet tool restore
@@ -41,7 +41,7 @@ jobs:
           RUNTIMES=linux-x64 ./scripts/build-sidecars.sh
 
       - name: Run .NET solution tests
-        run: dotnet test MapsetVerifier.sln -c Release --logger "trx;LogFileName=test-results.trx" --results-directory TestResults
+        run: dotnet test MapsetVerifier.slnx -c Release --logger "trx;LogFileName=test-results.trx" --results-directory TestResults
 
       - name: Upload test results
         if: always()

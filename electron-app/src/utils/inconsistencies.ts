@@ -61,8 +61,7 @@ export function assignGroupColorIndices<T extends { version: string; mode: strin
   const maxCount = Math.max(...sortedByFirstIndex.map(([, group]) => group.count));
   const dominantGroups = sortedByFirstIndex.filter(([, group]) => group.count === maxCount);
 
-  const baselineKey =
-    dominantGroups.length === 1 ? dominantGroups[0][0] : sortedByFirstIndex[0][0];
+  const baselineKey = dominantGroups.length === 1 ? dominantGroups[0][0] : sortedByFirstIndex[0][0];
 
   const valueKeyToColor = new Map<string, number | null>();
   let colorIndex = 0;

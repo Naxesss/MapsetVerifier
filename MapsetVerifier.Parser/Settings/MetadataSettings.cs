@@ -46,8 +46,8 @@
             tags = GetValue(lines, "Tags") ?? "";
 
             // check to see if the ids are even there (don't exist in lower osu file versions, and aren't set on non-published maps)
-            beatmapId = GetBeatmapId(lines, "BeatmapID", 0);
-            beatmapSetId = GetBeatmapId(lines, "BeatmapSetID", -1);
+            beatmapId = GetBeatmapId(lines, "BeatmapID");
+            beatmapSetId = GetBeatmapId(lines, "BeatmapSetID");
         }
 
         private static string? GetValue(string[] lines, string key)
@@ -108,16 +108,17 @@
         /// <summary>
         /// Returns the beatmap id or null if it doesn't exist.
         /// Older osu file version don't use beatmap ids.
-        /// Additionally check if a default value is used as those are used as placeholder for non-published maps.
+        /// Non-published maps use placeholders (e.g. 0 or -1), which are treated as no id, as is
+        /// anything else that isn't a valid positive number.
         /// </summary>
-        public ulong? GetBeatmapId(string[] lines, string key, int defaultValue)
+        public ulong? GetBeatmapId(string[] lines, string key)
         {
             var value = GetValue(lines, key);
 
-            if (value == null || value == defaultValue.ToString())
+            if (!long.TryParse(value, out var id) || id <= 0)
                 return null;
 
-            return ulong.Parse(value);
+            return (ulong)id;
         }
     }
 }

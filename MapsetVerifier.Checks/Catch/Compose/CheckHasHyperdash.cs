@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects.Catch;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Catch.Compose
 {
@@ -53,9 +54,14 @@ namespace MapsetVerifier.Checks.Catch.Compose
                         "{0} {1} is a hyperdash.",
                         "timestamp -",
                         "object"
-                    ).WithCause(
-                        "Distance between the two objects is too high, triggering a hyperdash distance"
                     )
+                        .WithCause(
+                            "Distance between the two objects is too high, triggering a hyperdash distance"
+                        )
+                        .WithRule(
+                            RC.Catch.Cup_DashesHyperdashesKindDisallowed,
+                            RC.Catch.Salad_HyperdashesKindDisallowed
+                        )
                 },
                 {
                     "HyperdashSliderPart",
@@ -64,9 +70,11 @@ namespace MapsetVerifier.Checks.Catch.Compose
                         "{0} Slider hyperdash on {1}.",
                         "timestamp -",
                         "object"
-                    ).WithCause(
-                        "Distance between the two objects is too high, triggering a hyperdash distance"
                     )
+                        .WithCause(
+                            "Distance between the two objects is too high, triggering a hyperdash distance"
+                        )
+                        .WithRule(RC.Catch.Platter_HyperdashesUsedIndividualDropsSlider)
                 },
             };
         }

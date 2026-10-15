@@ -1,0 +1,218 @@
+using MapsetVerifier.Checks.Catch.Skinning;
+using MapsetVerifier.Framework.Objects;
+using MapsetVerifier.Parser.Objects;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using Xunit;
+
+namespace MapsetVerifier.Checks.Tests.Catch.Skinning;
+
+public class CheckSkinningCatchTests
+{
+    private static string BuildMinimalOsu(string? hitObject = null) =>
+        new OsuBuilder()
+            .Mode(Beatmap.Mode.Catch)
+            .Title("Title")
+            .Artist("Artist")
+            .Creator("Creator")
+            .StackLeniency(0.7f)
+            .WithDefaultTiming()
+            .HitObjects(hitObject ?? OsuBuilder.DefaultHitObject)
+            .Build();
+
+    private static string DropletHitObject =>
+        TestHitObjects.Slider(1000, curveType: "B", curvePoints: "300:200", length: 50);
+
+    private static string SpinnerHitObject => TestHitObjects.Spinner(1000, 2000);
+
+    private const string SkinIniV2 = "[General]\nVersion: 2";
+
+    [Fact]
+    public void CompleteCatcherSet_WithV2SkinIni_NoIssues()
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles(
+            [("test.osu", BuildMinimalOsu())],
+            [
+                "audio.mp3",
+                "fruit-catcher-fail.png",
+                "fruit-catcher-idle.png",
+                "fruit-catcher-kiai.png",
+            ],
+            [("skin.ini", SkinIniV2)]
+        );
+
+        var issues = context.RunBeatmapSetCheck<CheckSkinningCatch>();
+
+        Assert.Empty(issues);
+    }
+
+    [Fact]
+    public void IncompleteCatcherSet_EmitsProblem()
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles(
+            [("test.osu", BuildMinimalOsu())],
+            ["audio.mp3", "fruit-catcher-fail.png"],
+            [("skin.ini", SkinIniV2)]
+        );
+
+        var issues = context.RunBeatmapSetCheck<CheckSkinningCatch>();
+
+        Assert.Single(issues, issue => issue.level == Issue.Level.Problem);
+        Assert.Contains("Catcher", issues[0].message);
+    }
+
+    [Fact]
+    public void CustomCatcher_WithoutSkinIni_EmitsOldSkinVersionProblem()
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles(
+            [("test.osu", BuildMinimalOsu())],
+            [
+                "audio.mp3",
+                "fruit-catcher-fail.png",
+                "fruit-catcher-idle.png",
+                "fruit-catcher-kiai.png",
+            ]
+        );
+
+        var issues = context.RunBeatmapSetCheck<CheckSkinningCatch>();
+
+        Assert.Contains(
+            issues,
+            issue => issue.level == Issue.Level.Problem && issue.message.Contains("skin.ini")
+        );
+    }
+
+    [Fact]
+    public void CustomCatcher_WithV1SkinIni_EmitsOldSkinVersionProblem()
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles(
+            [("test.osu", BuildMinimalOsu())],
+            [
+                "audio.mp3",
+                "fruit-catcher-fail.png",
+                "fruit-catcher-idle.png",
+                "fruit-catcher-kiai.png",
+            ],
+            [("skin.ini", "[General]\nVersion: 1")]
+        );
+
+        var issues = context.RunBeatmapSetCheck<CheckSkinningCatch>();
+
+        Assert.Contains(
+            issues,
+            issue => issue.level == Issue.Level.Problem && issue.message.Contains("skin.ini")
+        );
+    }
+
+    [Fact]
+    public void DropFruitElementsNotRequired_WithoutDroplets()
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles(
+            [("test.osu", BuildMinimalOsu())],
+            [
+                "audio.mp3",
+                "fruit-apple.png",
+                "fruit-apple-overlay.png",
+                "fruit-grapes.png",
+                "fruit-grapes-overlay.png",
+                "fruit-orange.png",
+                "fruit-orange-overlay.png",
+                "fruit-pear.png",
+                "fruit-pear-overlay.png",
+            ]
+        );
+
+        var issues = context.RunBeatmapSetCheck<CheckSkinningCatch>();
+
+        Assert.Empty(issues);
+    }
+
+    [Fact]
+    public void DropFruitElements_IncompleteWithDroplets_EmitsProblem()
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles(
+            [("test.osu", BuildMinimalOsu(DropletHitObject))],
+            ["audio.mp3", "fruit-drop.png"]
+        );
+
+        var issues = context.RunBeatmapSetCheck<CheckSkinningCatch>();
+
+        Assert.Single(issues, issue => issue.level == Issue.Level.Problem);
+        Assert.Contains("Fruits", issues[0].message);
+    }
+
+    [Fact]
+    public void BananaElements_IncompleteWithSpinner_EmitsProblem()
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles(
+            [("test.osu", BuildMinimalOsu(SpinnerHitObject))],
+            ["audio.mp3", "fruit-bananas.png"]
+        );
+
+        var issues = context.RunBeatmapSetCheck<CheckSkinningCatch>();
+
+        Assert.Single(issues, issue => issue.level == Issue.Level.Problem);
+        Assert.Contains("Fruits", issues[0].message);
+    }
+
+    [Fact]
+    public void FruitWithCorrectDimensions_NoIssues()
+    {
+        var tempPath = CreateMapsetWithImage("fruit-apple.png", 128, 128);
+
+        try
+        {
+            var beatmapSet = new BeatmapSet(tempPath);
+            var issues = new CheckSkinningCatch().GetIssues(beatmapSet).ToList();
+
+            Assert.DoesNotContain(issues, issue => issue.message.Contains("Dimensions"));
+        }
+        finally
+        {
+            Directory.Delete(tempPath, true);
+        }
+    }
+
+    [Fact]
+    public void FruitWithIncorrectDimensions_EmitsProblem()
+    {
+        var tempPath = CreateMapsetWithImage("fruit-apple.png", 64, 64);
+
+        try
+        {
+            var beatmapSet = new BeatmapSet(tempPath);
+            var issues = new CheckSkinningCatch().GetIssues(beatmapSet).ToList();
+
+            Assert.Contains(
+                issues,
+                issue =>
+                    issue.level == Issue.Level.Problem
+                    && issue.message.Contains("fruit-apple.png")
+                    && issue.message.Contains("128x128")
+            );
+        }
+        finally
+        {
+            Directory.Delete(tempPath, true);
+        }
+    }
+
+    private static string CreateMapsetWithImage(string imageFileName, int width, int height)
+    {
+        var tempPath = Path.Combine(
+            Path.GetTempPath(),
+            "MapsetVerifierChecksTests",
+            "Generated",
+            Guid.NewGuid().ToString("N")
+        );
+        Directory.CreateDirectory(tempPath);
+
+        File.WriteAllText(Path.Combine(tempPath, "test.osu"), BuildMinimalOsu());
+        File.WriteAllText(Path.Combine(tempPath, "audio.mp3"), string.Empty);
+
+        using var image = new Image<Rgba32>(width, height);
+        image.SaveAsPng(Path.Combine(tempPath, imageFileName));
+
+        return tempPath;
+    }
+}

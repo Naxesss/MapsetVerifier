@@ -51,10 +51,10 @@ function BeatmapHeader({ bgUrl, children }: BeatmapHeaderProps) {
               <Text>
                 Beatmapset by{' '}
                 <Anchor
-                  href={`https://osu.ppy.sh/users/${creator}`}
+                  href={`https://osu.ppy.sh/users/@${creator}`}
                   onClick={(e) => {
                     e.preventDefault();
-                    void openExternal(`https://osu.ppy.sh/users/${creator}`);
+                    void openExternal(`https://osu.ppy.sh/users/@${creator}`);
                   }}
                 >
                   {creator}

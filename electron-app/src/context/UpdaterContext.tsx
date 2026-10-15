@@ -179,11 +179,9 @@ export const UpdaterProvider = ({ children }: { children: React.ReactNode }) => 
 
       return new Promise<UpdateInfo | null>((resolve) => {
         pendingCheck.current = { resolve, silent, openModalOnAvailable };
-        window.electronAPI!
-          .updater.check({ allowPrerelease })
-          .catch(() => {
-            // Errors are delivered via the 'error' event listener.
-          });
+        window.electronAPI!.updater.check({ allowPrerelease }).catch(() => {
+          // Errors are delivered via the 'error' event listener.
+        });
       });
     },
     [resetProgress, settings.receivePrereleases]
@@ -215,7 +213,16 @@ export const UpdaterProvider = ({ children }: { children: React.ReactNode }) => 
   useEffect(() => {
     if (!loaded || startupCheckTriggered) return;
     startupCheckTriggered = true;
-    void checkForUpdates({ silent: true, openModalOnAvailable: true });
+
+    let cancelled = false;
+
+    void Promise.resolve().then(() => {
+      if (!cancelled) void checkForUpdates({ silent: true, openModalOnAvailable: true });
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [checkForUpdates, loaded]);
 
   const value = useMemo<UpdaterContextType>(

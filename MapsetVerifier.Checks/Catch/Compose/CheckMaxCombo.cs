@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects.Catch;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using static MapsetVerifier.Parser.Objects.HitObject;
 
 namespace MapsetVerifier.Checks.Catch.Compose;
@@ -54,7 +55,14 @@ public class CheckMaxCombo : BeatmapCheck
                     "timestamp -",
                     "guideline combo",
                     "combo"
-                ).WithCause("The combo amount exceeds the guideline significantly.")
+                )
+                    .WithCause("The combo amount exceeds the guideline significantly.")
+                    .WithRule(
+                        RC.Catch.CombosNotReachUnreasonableLengths,
+                        RC.Catch.Cup_CombosNotExceed8Fruits,
+                        RC.Catch.Salad_CombosNotExceed10Fruits,
+                        RC.Catch.Platter_CombosNotExceed12Fruits
+                    )
             },
             {
                 "MaxCombo",
@@ -64,7 +72,14 @@ public class CheckMaxCombo : BeatmapCheck
                     "timestamp -",
                     "guideline combo",
                     "combo"
-                ).WithCause("The combo amount exceeds the guideline.")
+                )
+                    .WithCause("The combo amount exceeds the guideline.")
+                    .WithRule(
+                        RC.Catch.CombosNotReachUnreasonableLengths,
+                        RC.Catch.Cup_CombosNotExceed8Fruits,
+                        RC.Catch.Salad_CombosNotExceed10Fruits,
+                        RC.Catch.Platter_CombosNotExceed12Fruits
+                    )
             },
         };
     }

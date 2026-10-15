@@ -27,11 +27,13 @@ function formatFrequency(freq: number): string {
 function FrequencyAnalysis({ data, isLoading }: FrequencyAnalysisProps) {
   const theme = useMantineTheme();
 
+  const fftData = data?.fftData;
+
   // Transform FFT data for Mantine AreaChart
   // Since Mantine doesn't support log scale, we sample at log-spaced intervals
   const chartData = useMemo(() => {
-    if (!data?.fftData?.length) return [];
-    const rawData = data.fftData.filter((d: FftDataPoint) => d.frequencyHz >= 20);
+    if (!fftData?.length) return [];
+    const rawData = fftData.filter((d: FftDataPoint) => d.frequencyHz >= 20);
     if (!rawData.length) return [];
 
     // Sample at logarithmically spaced points for better visualization
@@ -55,15 +57,15 @@ function FrequencyAnalysis({ data, isLoading }: FrequencyAnalysisProps) {
       });
     }
     return result;
-  }, [data?.fftData]);
+  }, [fftData]);
 
   const yDomain = useMemo(() => {
-    if (!data?.fftData?.length) return [-80, 0];
-    const magnitudes = data.fftData.map((d: FftDataPoint) => d.magnitudeDb);
+    if (!fftData?.length) return [-80, 0];
+    const magnitudes = fftData.map((d: FftDataPoint) => d.magnitudeDb);
     const minVal = Math.min(...magnitudes);
     const maxVal = Math.max(...magnitudes);
     return [Math.floor(minVal / 10) * 10, Math.ceil(maxVal / 10) * 10];
-  }, [data?.fftData]);
+  }, [fftData]);
 
   if (isLoading) {
     return (

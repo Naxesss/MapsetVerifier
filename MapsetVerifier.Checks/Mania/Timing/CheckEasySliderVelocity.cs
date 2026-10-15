@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using static MapsetVerifier.Checks.Utils.ManiaUtils;
 
 namespace MapsetVerifier.Checks.Mania.Timing
@@ -48,7 +49,12 @@ namespace MapsetVerifier.Checks.Mania.Timing
                         "timestamp",
                         "correctMultiplier",
                         "currentMultiplier"
-                    ).WithCause("Wrongly normalized uninherited timing line.")
+                    )
+                        .WithCause("Wrongly normalized uninherited timing line.")
+                        .WithRule(
+                            RC.Mania.Easy_ScrollNormalisationDoneBeatmapsVariable,
+                            RC.Mania.Normal_ScrollNormalisationDoneBeatmapsVariable
+                        )
                 },
             };
         }

@@ -1,8 +1,5 @@
 import type { Mode, ObjectsOverviewDifficulty } from '../../../../Types';
-import type {
-  HitsoundLayerVisibility,
-  TimelineViewMode,
-} from '../hitsoundUtils.ts';
+import type { HitsoundLayerVisibility, TimelineViewMode } from '../hitsoundUtils.ts';
 import type { TimelineThemeVariant } from '../timelineTheme/types.ts';
 import type { ObjectsModeGroup } from '../types.ts';
 import type {
@@ -13,10 +10,6 @@ import type {
   SensorOptions,
 } from '@dnd-kit/core';
 import type { RefObject } from 'react';
-
-export type TimelineCrosshairState = {
-  timestampMs: number;
-};
 
 export type TimelineScaleValue = {
   startTimeMs: number;
@@ -83,9 +76,9 @@ export type TimelinePanValue = {
   stopDragging: () => void;
 };
 
-export type TimelineCrosshairValue = {
-  crosshair: TimelineCrosshairState | null;
-  setCrosshair: (state: TimelineCrosshairState | null) => void;
+export type TimelineViewportValue = {
+  startX: number;
+  endX: number;
 };
 
 export type TimelineFullViewValue = {
@@ -93,7 +86,5 @@ export type TimelineFullViewValue = {
   setViewMode: (mode: TimelineViewMode) => void;
   hitsoundLayers: HitsoundLayerVisibility;
   setHitsoundLayers: React.Dispatch<React.SetStateAction<HitsoundLayerVisibility>>;
-  playheadViewportX: number | null;
-  snapPlayheadToTimestamp: ((timestampMs: number) => void) | null;
   rowHeight: number;
 };

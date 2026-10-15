@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="MapsetVerifier.RankingCriteria.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MapsetVerifier.Parser\MapsetVerifier.Parser.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The snapshot and catalogue ship inside the assembly so the app never needs the wiki at runtime. -->
+    <EmbeddedResource Include="Data\**\*.md;Data\**\*.json">
+      <LogicalName>rc/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>

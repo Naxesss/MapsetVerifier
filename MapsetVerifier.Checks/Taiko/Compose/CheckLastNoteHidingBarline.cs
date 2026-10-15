@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using static MapsetVerifier.Checks.Utils.TaikoUtils;
 
 namespace MapsetVerifier.Checks.Taiko.Compose
@@ -46,7 +47,9 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                         Issue.Level.Minor,
                         "{0} Last spinner/slider end in the map is hiding its barline, due to being unsnapped 1ms early",
                         "timestamp -"
-                    ).WithCause("The spinner/slider end is unsnapped 1ms early.")
+                    )
+                        .WithCause("The spinner/slider end is unsnapped 1ms early.")
+                        .WithRule(RC.General.Timing_HitObjectsSnappedWithinLess)
                 },
                 {
                     Problem,
@@ -54,7 +57,9 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                         Issue.Level.Problem,
                         "{0} Last note in the map is hiding its barline, due to being unsnapped 1ms early",
                         "timestamp -"
-                    ).WithCause("The note is unsnapped 1ms early.")
+                    )
+                        .WithCause("The note is unsnapped 1ms early.")
+                        .WithRule(RC.General.Timing_HitObjectsSnappedWithinLess)
                 },
                 {
                     RoundingErrorWarning,
@@ -62,7 +67,9 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                         Issue.Level.Warning,
                         "{0} Last note in the map may have its barline hidden, due to rounding error. Doublecheck manually.",
                         "timestamp -"
-                    ).WithCause("Rounding error.")
+                    )
+                        .WithCause("Rounding error.")
+                        .WithRule(RC.General.Timing_HitObjectsSnappedWithinLess)
                 },
             };
 

@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef } from 'react';
+﻿import React, { useEffect, useLayoutEffect, useRef } from 'react';
 
 interface AutoResizeCanvasProps {
   draw: (ctx: CanvasRenderingContext2D, width: number, height: number) => void;
@@ -25,7 +25,10 @@ const AutoResizeCanvas: React.FC<AutoResizeCanvasProps> = ({
   const resizeTimeoutRef = useRef<number | null>(null);
   const rafRef = useRef<number | null>(null);
   const drawRef = useRef(draw);
-  drawRef.current = draw;
+
+  useLayoutEffect(() => {
+    drawRef.current = draw;
+  }, [draw]);
 
   useEffect(() => {
     const container = containerRef.current;

@@ -1,27 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 export function useSeriesVisibility(seriesIds: string[], resetKey?: string) {
   const [visibilityById, setVisibilityById] = useState<Record<string, boolean>>({});
+  // Unset ids already default to visible below, so a new `seriesIds` array (e.g. switching game
+  // modes, which uses a different id namespace per mode) doesn't need to wipe anything - only
+  // `resetKey` changing (e.g. switching to a different beatmapset) should forget toggles.
+  const [prevResetKey, setPrevResetKey] = useState(resetKey);
 
-  useEffect(() => {
-    setVisibilityById(Object.fromEntries(seriesIds.map((id) => [id, true])));
-  }, [resetKey, seriesIds]);
-
-  useEffect(() => {
-    setVisibilityById((current) => {
-      let changed = false;
-      const next = { ...current };
-
-      for (const id of seriesIds) {
-        if (!(id in next)) {
-          next[id] = true;
-          changed = true;
-        }
-      }
-
-      return changed ? next : current;
-    });
-  }, [seriesIds]);
+  if (prevResetKey !== resetKey) {
+    setPrevResetKey(resetKey);
+    setVisibilityById({});
+  }
 
   const toggleSeries = useCallback((seriesId: string) => {
     setVisibilityById((current) => ({
@@ -30,12 +19,20 @@ export function useSeriesVisibility(seriesIds: string[], resetKey?: string) {
     }));
   }, []);
 
-  const setAllVisible = useCallback(
-    (visible: boolean) => {
+  // Grafana-style legend click: isolate the clicked series (hide the rest), or - if it's
+  // already the only visible one - restore everyone. Ctrl/Cmd-click still uses `toggleSeries`
+  // for independent per-series toggling.
+  const toggleIsolateSeries = useCallback(
+    (seriesId: string) => {
       setVisibilityById((current) => {
-        const next = { ...current };
+        const isOnlyThisVisible = seriesIds.every((id) => {
+          const visible = current[id] !== false;
+          return id === seriesId ? visible : !visible;
+        });
+
+        const next: Record<string, boolean> = {};
         for (const id of seriesIds) {
-          next[id] = visible;
+          next[id] = isOnlyThisVisible ? true : id === seriesId;
         }
         return next;
       });
@@ -61,7 +58,7 @@ export function useSeriesVisibility(seriesIds: string[], resetKey?: string) {
   return {
     visibilityById,
     toggleSeries,
-    setAllVisible,
+    toggleIsolateSeries,
     isVisible,
     visibleSeriesIds,
   };

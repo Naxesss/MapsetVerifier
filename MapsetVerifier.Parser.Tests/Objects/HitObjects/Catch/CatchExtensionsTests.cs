@@ -13,6 +13,7 @@ namespace MapsetVerifier.Parser.Tests.Objects.HitObjects.Catch
             public double Time { get; set; }
             public Vector2 Position { get; set; }
             public float DistanceToHyper { get; set; }
+            public float DistanceToDash { get; set; }
             public CatchMovementType MovementType { get; set; }
             public CatchNoteDirection NoteDirection { get; set; }
 
@@ -45,6 +46,12 @@ namespace MapsetVerifier.Parser.Tests.Objects.HitObjects.Catch
         [InlineData(124, CatchMovementType.Hyperdash, Beatmap.Difficulty.Insane, true)] // higher-snapped
         [InlineData(62, CatchMovementType.Hyperdash, Beatmap.Difficulty.Insane, true)] // higher-snapped
         [InlineData(61, CatchMovementType.Hyperdash, Beatmap.Difficulty.Insane, false)] // below higher-snapped
+        // Walks are never higher-snapped, regardless of difficulty or snapping
+        [InlineData(200, CatchMovementType.Walk, Beatmap.Difficulty.Normal, false)]
+        [InlineData(100, CatchMovementType.Walk, Beatmap.Difficulty.Hard, false)]
+        [InlineData(100, CatchMovementType.Walk, Beatmap.Difficulty.Insane, false)]
+        // Salad does not allow hyperdashes, so they are never higher-snapped there
+        [InlineData(200, CatchMovementType.Hyperdash, Beatmap.Difficulty.Normal, false)]
         // Cup (Easy) - all not applicable
         [InlineData(200, CatchMovementType.Dash, Beatmap.Difficulty.Easy, false)]
         [InlineData(200, CatchMovementType.Hyperdash, Beatmap.Difficulty.Easy, false)]

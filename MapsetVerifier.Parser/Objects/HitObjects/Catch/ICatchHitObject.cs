@@ -17,6 +17,13 @@ public interface ICatchHitObject
     float DistanceToHyper { get; set; }
 
     /// <summary>
+    /// Amount of distance margin until a dash is required, i.e. until the next object can no longer be
+    /// reached at catcher walking speed. Negative implies a dash is required.
+    /// Positive infinity means no movement applies (last object, or a spinner is involved).
+    /// </summary>
+    float DistanceToDash { get; set; }
+
+    /// <summary>
     /// Movement classification required to reach the next object (Walk/Dash/Hyperdash).
     /// </summary>
     CatchMovementType MovementType { get; set; }

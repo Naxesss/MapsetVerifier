@@ -11,7 +11,7 @@ import {
   useMantineTheme,
 } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { DifficultyChartCard } from './DifficultyChartCard.tsx';
 import {
   buildCharts,
@@ -30,12 +30,14 @@ import NoBeatmapsetDisplay from '../../common/NoBeatmapsetDisplay.tsx';
 import StackTraceMessage from '../../common/StackTraceMessage.tsx';
 import type { DifficultyOverviewDifficulty, Mode } from '../../../Types';
 
+const EMPTY_DIFFICULTIES: DifficultyOverviewDifficulty[] = [];
+
 function DifficultyOverview() {
   const theme = useMantineTheme();
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
   const [selectedMode, setSelectedMode] = useState<Mode | undefined>();
-  const { data, isLoading, isError, error } = useDifficultyOverview({
+  const { data, isLoading, isFetching, isError, error } = useDifficultyOverview({
     folder,
     songFolder: settings.songFolder,
   });
@@ -64,20 +66,17 @@ function DifficultyOverview() {
     }));
   }, [data]);
 
-  useEffect(() => {
-    if (groupedDifficulties.length === 0) {
+  if (groupedDifficulties.length === 0) {
+    if (selectedMode !== undefined) {
       setSelectedMode(undefined);
-      return;
     }
-
-    if (!selectedMode || !groupedDifficulties.some((group) => group.mode === selectedMode)) {
-      setSelectedMode(groupedDifficulties[0].mode);
-    }
-  }, [groupedDifficulties, selectedMode]);
+  } else if (!selectedMode || !groupedDifficulties.some((group) => group.mode === selectedMode)) {
+    setSelectedMode(groupedDifficulties[0].mode);
+  }
 
   const selectedGroup =
     groupedDifficulties.find((group) => group.mode === selectedMode) ?? groupedDifficulties[0];
-  const selectedDifficulties = selectedGroup?.difficulties ?? [];
+  const selectedDifficulties = selectedGroup?.difficulties ?? EMPTY_DIFFICULTIES;
   const charts = useMemo(
     () => buildCharts(selectedDifficulties, data?.msPerPeak),
     [data?.msPerPeak, selectedDifficulties]
@@ -90,7 +89,12 @@ function DifficultyOverview() {
     [folder, selectedDifficulties, selectedGroup?.mode]
   );
 
-  const chartState = useDifficultyChartState(durationMs, selectedDifficulties, chartResetKey);
+  const chartState = useDifficultyChartState(
+    durationMs,
+    selectedDifficulties,
+    chartResetKey,
+    folder ?? ''
+  );
 
   const starRatingChart = charts.find((c) => c.title === 'Star Rating');
   const sliderVelocityChart = charts.find((c) => c.title === 'Slider velocity');
@@ -117,8 +121,11 @@ function DifficultyOverview() {
 
   return (
     <Box>
-      <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
-
+      <LoadingOverlay
+        visible={isLoading || isFetching}
+        zIndex={1000}
+        overlayProps={{ radius: 'sm', blur: 2 }}
+      />
       {isError && (
         <Flex p="md">
           <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing difficulty overview">

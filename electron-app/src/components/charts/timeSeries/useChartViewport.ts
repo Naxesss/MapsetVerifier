@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 export const MIN_DRAG_ZOOM_MS = 600;
 
@@ -6,10 +6,12 @@ type ZoomRange = { min: number; max: number };
 
 export function useChartViewport(durationMs: number, resetKey?: string) {
   const [zoom, setZoom] = useState<ZoomRange | null>(null);
+  const [prevResetToken, setPrevResetToken] = useState({ durationMs, resetKey });
 
-  useEffect(() => {
+  if (prevResetToken.durationMs !== durationMs || prevResetToken.resetKey !== resetKey) {
+    setPrevResetToken({ durationMs, resetKey });
     setZoom(null);
-  }, [durationMs, resetKey]);
+  }
 
   const viewMin = zoom?.min ?? 0;
   const viewMax = zoom?.max ?? Math.max(durationMs, 1);

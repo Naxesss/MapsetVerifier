@@ -13,7 +13,7 @@ function BeatmapOverview() {
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
 
-  const { data, isLoading, isError, error } = useBeatmapAnalysis({
+  const { data, isLoading, isFetching, isError, error } = useBeatmapAnalysis({
     folder,
     songFolder: settings.songFolder,
   });
@@ -24,7 +24,11 @@ function BeatmapOverview() {
 
   return (
     <Box>
-      <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
+      <LoadingOverlay
+        visible={isLoading || isFetching}
+        zIndex={1000}
+        overlayProps={{ radius: 'sm', blur: 2 }}
+      />
       {isError && (
         <Flex p="md">
           <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing beatmap">

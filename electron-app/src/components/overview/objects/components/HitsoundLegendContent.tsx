@@ -34,27 +34,15 @@ function EdgeMarkerPreview({ color }: { color: string }) {
   );
 }
 
-function BodyMarkerPreview({
-  color,
-  additionColor,
-  scale = 1,
-}: {
-  color: string;
-  additionColor?: string;
-  scale?: number;
-}) {
-  const width = BODY_MARKER_WIDTH * scale;
-  const height = BODY_MARKER_HEIGHT * scale;
-  const borderWidth = scale >= 2 ? 2 : 1.5;
-
+function BodyMarkerPreview({ color }: { color: string }) {
   return (
     <Box
       style={{
-        width,
-        height,
+        width: BODY_MARKER_WIDTH,
+        height: BODY_MARKER_HEIGHT,
         background: color,
         boxSizing: 'border-box',
-        border: additionColor ? `${borderWidth}px solid ${additionColor}` : undefined,
+        border: '1px solid rgba(255, 255, 255, 0.3)',
         flexShrink: 0,
       }}
     />
@@ -97,31 +85,6 @@ function HitsoundAdditionPreview({ color, label }: { color: string; label: strin
         {label}
       </Text>
     </Group>
-  );
-}
-
-function PlayheadPreview() {
-  return (
-    <Box
-      style={{
-        width: 14,
-        height: SOUND_STRIP_EDGE_LANE_HEIGHT - 4,
-        position: 'relative',
-        flexShrink: 0,
-      }}
-    >
-      <Box
-        style={{
-          position: 'absolute',
-          left: 6,
-          top: 0,
-          bottom: 0,
-          width: 0,
-          borderLeft: '2px solid var(--mantine-color-blue-4)',
-          boxShadow: '0 0 8px rgba(56, 189, 248, 0.35)',
-        }}
-      />
-    </Box>
   );
 }
 
@@ -214,15 +177,8 @@ export default function HitsoundLegendContent() {
   return (
     <Group gap={24} align="flex-start" wrap="wrap">
       <Stack gap={6}>
-        <LanePreview label="Playhead" height={SOUND_STRIP_EDGE_LANE_HEIGHT}>
-          <PlayheadPreview />
-          <Text size="xs" c="dimmed">
-            Seek cursor
-          </Text>
-        </LanePreview>
-
         <LanePreview label="Additions" height={SOUND_STRIP_EDGE_LANE_HEIGHT}>
-          <HitsoundAdditionPreview color={HITSOUND_COLORS.normal} label="Normal" />
+          <HitsoundAdditionPreview color={HITSOUND_COLORS.none} label="None" />
           <HitsoundAdditionPreview color={HITSOUND_COLORS.whistle} label="Whistle" />
           <HitsoundAdditionPreview color={HITSOUND_COLORS.finish} label="Finish" />
           <HitsoundAdditionPreview color={HITSOUND_COLORS.clap} label="Clap" />
@@ -239,19 +195,31 @@ export default function HitsoundLegendContent() {
           ))}
         </LanePreview>
 
+        <Group gap={8} wrap="nowrap" align="flex-start">
+          <Text size="xs" c="dimmed" w={92} style={{ flexShrink: 0, paddingTop: 2 }}>
+            Section tint
+          </Text>
+          <Stack gap={4}>
+            <Group gap="md" wrap="wrap">
+              <SectionTintPreview color={EDITOR_SAMPLE_BANK_COLORS.Normal} label="Normal section" />
+              <SectionTintPreview color={EDITOR_SAMPLE_BANK_COLORS.Soft} label="Soft section" />
+              <SectionTintPreview color={EDITOR_SAMPLE_BANK_COLORS.Drum} label="Drum section" />
+            </Group>
+          </Stack>
+        </Group>
+      </Stack>
+
+      <Stack gap={6}>
         <LanePreview label="Object body" height={SOUND_STRIP_EDGE_LANE_HEIGHT}>
           {sampleBanks.map((item) => (
             <Group key={item.label} gap={6} wrap="nowrap">
               <BodyTintPreview color={withAlpha(item.color, SAMPLESET_BODY_ALPHA)} />
               <Text size="xs" c="dimmed">
-                {item.label}
+                {item.label} sliderslide
               </Text>
             </Group>
           ))}
         </LanePreview>
-      </Stack>
-
-      <Stack gap={6}>
         <LanePreview
           label="Slider sounds"
           height={SOUND_STRIP_PASSIVE_LANE_HEIGHT + SOUND_STRIP_LANE_GAP}
@@ -259,43 +227,22 @@ export default function HitsoundLegendContent() {
           <Group gap={8} wrap="nowrap" align="center">
             <BodyMarkerPreview color={EDITOR_SAMPLE_BANK_COLORS.Soft} />
             <Text size="xs" c="dimmed">
-              Body slide
+              Sliderslide
             </Text>
           </Group>
           <Group gap={8} wrap="nowrap" align="center">
-            <BodyMarkerPreview
-              color={EDITOR_SAMPLE_BANK_COLORS.Soft}
-              additionColor={HITSOUND_COLORS.whistle}
-            />
+            <BodyMarkerPreview color={EDITOR_SAMPLE_BANK_COLORS.Drum} />
             <Text size="xs" c="dimmed">
-              Body whistle
+              Sliderwhistle
             </Text>
           </Group>
           <Group gap={8} wrap="nowrap" align="center">
             <TickMarkerPreview color={EDITOR_SAMPLE_BANK_COLORS.Drum} />
             <Text size="xs" c="dimmed">
-              Tick
+              Slidertick
             </Text>
           </Group>
-          <Text size="xs" c="dimmed">
-            Fill is sample bank; outline is body addition
-          </Text>
         </LanePreview>
-
-        <Group gap={8} wrap="nowrap" align="flex-start">
-          <Text size="xs" c="dimmed" w={92} style={{ flexShrink: 0, paddingTop: 2 }}>
-            Section tint
-          </Text>
-          <Stack gap={4}>
-            <Group gap="md" wrap="wrap">
-              <SectionTintPreview color={EDITOR_SAMPLE_BANK_COLORS.Soft} label="Soft section" />
-              <SectionTintPreview color={EDITOR_SAMPLE_BANK_COLORS.Drum} label="Drum section" />
-            </Group>
-            <Text size="xs" c="dimmed">
-              From timing points; Normal sections stay untinted
-            </Text>
-          </Stack>
-        </Group>
 
         <LanePreview label="Gap overlay" height={SOUND_STRIP_EDGE_LANE_HEIGHT}>
           <GapOverlayPreview color={gapOverlayColor} />

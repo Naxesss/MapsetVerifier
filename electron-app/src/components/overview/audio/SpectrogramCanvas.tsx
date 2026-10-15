@@ -1,7 +1,7 @@
 ﻿import { Box, Flex, Paper, useMantineTheme } from '@mantine/core';
 import * as d3 from 'd3';
 import { FunctionComponent, useCallback } from 'react';
-import { SpectralAnalysisResult } from '../../../Types.ts';
+import { SpectralAnalysisResult, SpectrogramFrame } from '../../../Types.ts';
 import AutoResizeCanvas from '../../common/AutoResizeCanvas.tsx';
 import FrequencyAxis from '../../common/FrequencyAxis.tsx';
 import MagnitudeAxis from '../../common/MagnitudeAxis.tsx';
@@ -129,6 +129,35 @@ const blitImageData = (
   ctx.drawImage(bitmap, 0, 0, width, height);
 };
 
+const averageMagnitudesPerPixel = (frames: SpectrogramFrame[], width: number, height: number) => {
+  const numBins = frames[0].magnitudes.length;
+  const cellWidth = width / frames.length;
+  const cellHeight = height / numBins;
+  const sums = new Float32Array(width * height);
+  const counts = new Uint32Array(width * height);
+
+  frames.forEach((frame, timeIdx) => {
+    const xStart = Math.floor(timeIdx * cellWidth);
+    const xEnd = Math.ceil((timeIdx + 1) * cellWidth);
+
+    frame.magnitudes.forEach((magnitude, freqIdx) => {
+      const yStart = Math.floor(height - (freqIdx + 1) * cellHeight);
+      const yEnd = Math.ceil(height - freqIdx * cellHeight);
+
+      for (let y = yStart; y < yEnd && y < height; y++) {
+        for (let x = xStart; x < xEnd && x < width; x++) {
+          const pixel = y * width + x;
+          sums[pixel] += magnitude;
+          counts[pixel]++;
+        }
+      }
+    });
+  });
+
+  const averages = sums.map((sum, pixel) => sum / counts[pixel]);
+  return averages;
+};
+
 const SpectrogramCanvas: FunctionComponent<SpectrogramCanvasProps> = (props) => {
   const theme = useMantineTheme();
   const colorScheme = props.colorScheme || 'inferno';
@@ -150,29 +179,16 @@ const SpectrogramCanvas: FunctionComponent<SpectrogramCanvasProps> = (props) => 
       const pixels = imageData.data;
 
       // Draw spectrogram using ImageData
-      const cellWidth = width / frames.length;
       const cellHeight = height / numBins;
+      const averages = averageMagnitudesPerPixel(frames, width, height);
 
-      frames.forEach((frame, timeIdx) => {
-        const xStart = Math.floor(timeIdx * cellWidth);
-        const xEnd = Math.floor((timeIdx + 1) * cellWidth);
-
-        frame.magnitudes.forEach((magnitude, freqIdx) => {
-          const yStart = Math.floor(height - (freqIdx + 1) * cellHeight);
-          const yEnd = Math.floor(height - freqIdx * cellHeight);
-          const color = getColor(magnitude, colorScheme);
-
-          // Fill the cell in the ImageData buffer
-          for (let y = yStart; y < yEnd && y < height; y++) {
-            for (let x = xStart; x < xEnd && x < width; x++) {
-              const pixelIndex = (y * width + x) * 4;
-              pixels[pixelIndex] = color.r;
-              pixels[pixelIndex + 1] = color.g;
-              pixels[pixelIndex + 2] = color.b;
-              pixels[pixelIndex + 3] = 255;
-            }
-          }
-        });
+      averages.forEach((magnitude, pixel) => {
+        const color = getColor(magnitude, colorScheme);
+        const pixelIndex = pixel * 4;
+        pixels[pixelIndex] = color.r;
+        pixels[pixelIndex + 1] = color.g;
+        pixels[pixelIndex + 2] = color.b;
+        pixels[pixelIndex + 3] = 255;
       });
 
       blitImageData(ctx, imageData, width, height);

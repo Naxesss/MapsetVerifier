@@ -8,8 +8,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-[assembly: CollectionBehavior(DisableTestParallelization = true)]
-
 namespace MapsetVerifier.Parser.Tests.Objects
 {
     public class HitObjectsTranslatorTests

@@ -1,4 +1,4 @@
-﻿import { Alert, Text, Box, Flex, LoadingOverlay, SimpleGrid } from '@mantine/core';
+﻿import { Alert, Text, Box, Flex, SimpleGrid, LoadingOverlay } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
 import ColourSettings from './ColourSettings';
 import { useMetadataAnalysis } from './hooks/useMetadataAnalysis';
@@ -13,7 +13,7 @@ function MetadataOverview() {
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
 
-  const { data, isLoading, isError, error } = useMetadataAnalysis({
+  const { data, isLoading, isFetching, isError, error } = useMetadataAnalysis({
     folder,
     songFolder: settings.songFolder,
   });
@@ -24,7 +24,11 @@ function MetadataOverview() {
 
   return (
     <Box>
-      <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
+      <LoadingOverlay
+        visible={isLoading || isFetching}
+        zIndex={1000}
+        overlayProps={{ radius: 'sm', blur: 2 }}
+      />
       {isError && (
         <Flex p="md">
           <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing metadata">

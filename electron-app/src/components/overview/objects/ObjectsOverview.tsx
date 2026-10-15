@@ -1,6 +1,7 @@
 ﻿import { Alert, Box, Flex, LoadingOverlay, SimpleGrid, Text } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle } from '@tabler/icons-react';
 import { useEffect, useMemo } from 'react';
+import ColumnUsageOverview from './components/ColumnUsageOverview.tsx';
 import ObjectPercentagesOverview from './components/ObjectPercentagesOverview.tsx';
 import ObjectsTimelineComparison from './components/ObjectsTimelineComparison.tsx';
 import SnappingsOverview from './components/SnappingsOverview.tsx';
@@ -22,7 +23,7 @@ function ObjectsOverview() {
   const { selectedFolder: folder } = useBeatmap();
   const { setObjectsHasHitsoundModes } = usePageHints();
   const { settings } = useSettings();
-  const { data, isLoading, isError, error } = useObjectsAnalysis({
+  const { data, isLoading, isFetching, isError, error } = useObjectsAnalysis({
     folder,
     songFolder: settings.songFolder,
   });
@@ -81,8 +82,11 @@ function ObjectsOverview() {
 
   return (
     <Box>
-      <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
-
+      <LoadingOverlay
+        visible={isLoading || isFetching}
+        zIndex={1000}
+        overlayProps={{ radius: 'sm', blur: 2 }}
+      />
       {isError && (
         <Flex p="md">
           <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing objects">
@@ -128,6 +132,12 @@ function ObjectsOverview() {
             difficulties={selectedGroup?.difficulties ?? []}
           />
           <ObjectPercentagesOverview
+            groupedDifficulties={groupedDifficulties}
+            selectedMode={selectedMode ?? selectedGroup?.mode}
+            onModeChange={setSelectedMode}
+            difficulties={selectedGroup?.difficulties ?? []}
+          />
+          <ColumnUsageOverview
             groupedDifficulties={groupedDifficulties}
             selectedMode={selectedMode ?? selectedGroup?.mode}
             onModeChange={setSelectedMode}

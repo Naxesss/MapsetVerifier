@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.Timing
 {
@@ -49,7 +50,9 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         Issue.Level.Problem,
                         "{0} First timing line is inherited.",
                         "timestamp -"
-                    ).WithCause("The first timing line of a beatmap is inherited.")
+                    )
+                        .WithCause("The first timing line of a beatmap is inherited.")
+                        .WithRule(RC.General.Timing_InheritedTimingPointPlacedBefore)
                 },
                 {
                     "Toggles Kiai",
@@ -57,7 +60,9 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         Issue.Level.Problem,
                         "{0} First timing line toggles kiai.",
                         "timestamp -"
-                    ).WithCause("The first timing line of a beatmap has kiai enabled.")
+                    )
+                        .WithCause("The first timing line of a beatmap has kiai enabled.")
+                        .WithRule(RC.General.Timing_BeatmapFirstUninheritedTimingPoint)
                 },
                 {
                     "No Lines",

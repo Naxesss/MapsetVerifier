@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.Timing
 {
@@ -48,7 +49,9 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "{0} Invalid timing line volume of {1}%.",
                         "timestamp -",
                         "volume"
-                    ).WithCause("A timing line has a sample volume below 5% or above 100%.")
+                    )
+                        .WithCause("A timing line has a sample volume below 5% or above 100%.")
+                        .WithRule(RC.General.Audio_HitsoundsAudible)
                 },
             };
 

@@ -5,6 +5,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using MathNet.Numerics;
 
 namespace MapsetVerifier.Checks.AllModes.Timing
@@ -15,7 +16,6 @@ namespace MapsetVerifier.Checks.AllModes.Timing
         // How close two edges must be to count as the same object across difficulties.
         private const double EdgeMatchToleranceMs = 3;
 
-        private readonly int[] divisors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 16];
         private HashSet<int> countMinorDivisors = [];
         private List<Tuple<int, string>> countMinorStamps = [];
 
@@ -63,18 +63,25 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                 {
                     "Snap Consistency",
                     new IssueTemplate(
-                        Issue.Level.Warning,
+                        Issue.Level.Minor,
                         "{0} (1/{1}) Different snapping, {2} (1/{3}), is used in {4}. Ensure this makes sense.",
                         "timestamp -",
                         "X",
                         "timestamp -",
                         "X",
                         "difficulty"
-                    ).WithCause(
-                        @"Two hit objects in separate difficulties do not have any object in the other difficulty at the same time, and are close enough in time to be mistaken for one another.
+                    )
+                        .WithCause(
+                            @"Two hit objects in separate difficulties do not have any object in the other difficulty at the same time, and are close enough in time to be mistaken for one another.
                                     > Ignores cases where the divisor on the lower difficulty is less than on the higher difficulty, since this is usually natural.
                                     > Cross-family snaps (e.g. 1/4 vs 1/6) and exotic divisors (e.g. 1/16) are more severe than mismatches within the 1/2–1/4–1/8 or 1/3–1/6 families."
-                    )
+                        )
+                        .WithRule(
+                            RC.Osu.CirclesSliderHeadsSnappedDistinct,
+                            RC.Catch.FruitsRepresentSoundExistingMusic,
+                            RC.Mania.NoteCorrelateSoundPresentMusic,
+                            RC.Taiko.NoteClearlyAssignableMusicalLayer
+                        )
                 },
                 {
                     "Snap Count",
@@ -83,9 +90,16 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "{0} 1/{1} is used 3 times or less, ensure this makes sense.",
                         "timestamp(s) -",
                         "X"
-                    ).WithCause(
-                        "The beat snap divisor a hit object is on is used less than or equal to 3 times in the same difficulty and is 1/6 or lower."
                     )
+                        .WithCause(
+                            "The beat snap divisor a hit object is on is used less than or equal to 3 times in the same difficulty and is 1/6 or lower."
+                        )
+                        .WithRule(
+                            RC.Osu.CirclesSliderHeadsSnappedDistinct,
+                            RC.Catch.FruitsRepresentSoundExistingMusic,
+                            RC.Mania.NoteCorrelateSoundPresentMusic,
+                            RC.Taiko.NoteClearlyAssignableMusicalLayer
+                        )
                 },
                 {
                     "Snap Percent",
@@ -94,9 +108,16 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "{0} 1/{1} makes out 0.5% or less of snappings, ensure this makes sense.",
                         "timestamp(s) -",
                         "X"
-                    ).WithCause(
-                        "The beat snap divisor a hit object is on is used less than or equal to 0.5% of all snappings in the same difficulty and is 1/6 or lower."
                     )
+                        .WithCause(
+                            "The beat snap divisor a hit object is on is used less than or equal to 0.5% of all snappings in the same difficulty and is 1/6 or lower."
+                        )
+                        .WithRule(
+                            RC.Osu.CirclesSliderHeadsSnappedDistinct,
+                            RC.Catch.FruitsRepresentSoundExistingMusic,
+                            RC.Mania.NoteCorrelateSoundPresentMusic,
+                            RC.Taiko.NoteClearlyAssignableMusicalLayer
+                        )
                 },
                 // minors
                 {
@@ -109,10 +130,17 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "timestamp -",
                         "X",
                         "difficulty"
-                    ).WithCause(
-                        @"Two hit objects in separate difficulties do not have any object in the other difficulty at the same time, and are close enough in time to be mistaken for one another, but both use divisors from the same common family (1/2–1/4–1/8 or 1/3–1/6).
-                                    > Ignores cases where the divisor on the lower difficulty is less than on the higher difficulty, since this is usually natural."
                     )
+                        .WithCause(
+                            @"Two hit objects in separate difficulties do not have any object in the other difficulty at the same time, and are close enough in time to be mistaken for one another, but both use divisors from the same common family (1/2–1/4–1/8 or 1/3–1/6).
+                                    > Ignores cases where the divisor on the lower difficulty is less than on the higher difficulty, since this is usually natural."
+                        )
+                        .WithRule(
+                            RC.Osu.CirclesSliderHeadsSnappedDistinct,
+                            RC.Catch.FruitsRepresentSoundExistingMusic,
+                            RC.Mania.NoteCorrelateSoundPresentMusic,
+                            RC.Taiko.NoteClearlyAssignableMusicalLayer
+                        )
                 },
                 {
                     "Minor Snap Count",
@@ -121,7 +149,14 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "{0} 1/{1} is used 7 times or less, ensure this makes sense.",
                         "timestamp(s) -",
                         "X"
-                    ).WithCause("Same as the other check, except with 7 as threshold instead.")
+                    )
+                        .WithCause("Same as the other check, except with 7 as threshold instead.")
+                        .WithRule(
+                            RC.Osu.CirclesSliderHeadsSnappedDistinct,
+                            RC.Catch.FruitsRepresentSoundExistingMusic,
+                            RC.Mania.NoteCorrelateSoundPresentMusic,
+                            RC.Taiko.NoteClearlyAssignableMusicalLayer
+                        )
                 },
                 {
                     "Minor Snap Percent",
@@ -130,7 +165,14 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "{0} 1/{1} makes out 5% or less of snappings, ensure this makes sense.",
                         "timestamp(s) -",
                         "X"
-                    ).WithCause("Same as the other check, except with 5% as threshold instead.")
+                    )
+                        .WithCause("Same as the other check, except with 5% as threshold instead.")
+                        .WithRule(
+                            RC.Osu.CirclesSliderHeadsSnappedDistinct,
+                            RC.Catch.FruitsRepresentSoundExistingMusic,
+                            RC.Mania.NoteCorrelateSoundPresentMusic,
+                            RC.Taiko.NoteClearlyAssignableMusicalLayer
+                        )
                 },
             };
 
@@ -418,47 +460,61 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             var sortedEdgeTimes = edgeTimes.OrderBy(time => time).ToList();
 
             // Edges with no counterpart within 3 ms in the other diff — computed once per direction.
-            var missingEdgeTimes = GetMissingEdgeTimes(edgeTimes, sortedOtherEdgeTimes);
-            var otherMissingEdgeTimes = GetMissingEdgeTimes(otherEdgeTimes, sortedEdgeTimes);
+            // Kept sorted so matching below can binary-search a narrow time window instead of scanning everything.
+            var missingEdgeTimes = GetMissingEdgeTimes(edgeTimes, sortedOtherEdgeTimes)
+                .OrderBy(time => time)
+                .ToList();
+            var otherMissingEdgeTimes = GetMissingEdgeTimes(otherEdgeTimes, sortedEdgeTimes)
+                .OrderBy(time => time)
+                .ToList();
 
             // Pair up nearby missing edges that could be mistaken for each other (see GetConsistencyRange).
             foreach (var missingEdgeTime in missingEdgeTimes)
-            foreach (var otherMissingEdgeTime in otherMissingEdgeTimes)
             {
-                var timeDifference = Math.Abs(missingEdgeTime - otherMissingEdgeTime);
-
-                if (timeDifference <= EdgeMatchToleranceMs)
-                    // If both maps somehow claim they have an object the other does not at the same time, we skip that case.
-                    continue;
-
                 var line = otherBeatmap.GetTimingLine<UninheritedLine>(missingEdgeTime);
                 if (line == null)
-                {
                     continue;
-                }
 
                 var msPerBeat = line.msPerBeat;
 
-                if (timeDifference >= msPerBeat)
-                    // Edges a beat apart or more should not be flagged as inconsistent, so skip those cases.
-                    continue;
+                // Only otherMissingEdgeTimes within one beat can ever satisfy the `timeDifference >= msPerBeat` check
+                // below, so we only need to scan that narrow window instead of every missing edge in the other diff.
+                var startIndex = LowerBound(otherMissingEdgeTimes, missingEdgeTime - msPerBeat);
 
-                var consistencyRange = GetConsistencyRange(
-                    otherBeatmap,
-                    missingEdgeTime,
-                    msPerBeat,
-                    otherMissingEdgeTime
-                );
+                for (var index = startIndex; index < otherMissingEdgeTimes.Count; index++)
+                {
+                    var otherMissingEdgeTime = otherMissingEdgeTimes[index];
 
-                if (
-                    missingEdgeTime + consistencyRange > otherMissingEdgeTime
-                    && missingEdgeTime - consistencyRange < otherMissingEdgeTime
-                )
-                    yield return new Inconsistency(
+                    if (otherMissingEdgeTime >= missingEdgeTime + msPerBeat)
+                        break;
+
+                    var timeDifference = Math.Abs(missingEdgeTime - otherMissingEdgeTime);
+
+                    if (timeDifference <= EdgeMatchToleranceMs)
+                        // If both maps somehow claim they have an object the other does not at the same time, we skip that case.
+                        continue;
+
+                    if (timeDifference >= msPerBeat)
+                        // Edges a beat apart or more should not be flagged as inconsistent, so skip those cases.
+                        continue;
+
+                    var consistencyRange = GetConsistencyRange(
+                        otherBeatmap,
                         missingEdgeTime,
-                        otherMissingEdgeTime,
-                        otherBeatmap
+                        msPerBeat,
+                        otherMissingEdgeTime
                     );
+
+                    if (
+                        missingEdgeTime + consistencyRange > otherMissingEdgeTime
+                        && missingEdgeTime - consistencyRange < otherMissingEdgeTime
+                    )
+                        yield return new Inconsistency(
+                            missingEdgeTime,
+                            otherMissingEdgeTime,
+                            otherBeatmap
+                        );
+                }
             }
         }
 
@@ -478,10 +534,12 @@ namespace MapsetVerifier.Checks.AllModes.Timing
 
             if (otherTime == null)
             {
-                var divisorIndex = Array.IndexOf(divisors, divisor);
+                var divisorIndex = Array.IndexOf(Beatmap.SnapDivisors, divisor);
 
-                var greaterDivisor = divisors.ElementAt(
-                    divisorIndex + 2 > divisors.Length - 1 ? divisors.Length - 1 : divisorIndex + 2
+                var greaterDivisor = Beatmap.SnapDivisors.ElementAt(
+                    divisorIndex + 2 > Beatmap.SnapDivisors.Length - 1
+                        ? Beatmap.SnapDivisors.Length - 1
+                        : divisorIndex + 2
                 );
 
                 const int unsnapMargin = 2;

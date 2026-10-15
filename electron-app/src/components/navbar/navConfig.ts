@@ -2,9 +2,10 @@ import {
   IconBook,
   IconCamera,
   IconCheck,
+  IconGavel,
   IconHome,
   IconTimeline,
-} from "@tabler/icons-react";
+} from '@tabler/icons-react';
 
 export interface NavEntry {
   to: string;
@@ -15,30 +16,35 @@ export interface NavEntry {
 
 export const navItems: NavEntry[] = [
   {
-    to: "/",
+    to: '/',
     icon: IconHome,
-    label: "Home",
+    label: 'Home',
   },
   {
-    to: "/documentation",
+    to: '/documentation',
     icon: IconBook,
-    label: "Documentation",
+    label: 'Documentation',
   },
   {
-    to: "/checks",
+    to: '/ranking-criteria',
+    icon: IconGavel,
+    label: 'Ranking criteria',
+  },
+  {
+    to: '/checks',
     icon: IconCheck,
-    label: "Checks",
+    label: 'Checks',
   },
   {
-    to: "/snapshots",
+    to: '/snapshots',
     icon: IconCamera,
-    label: "Snapshots",
+    label: 'Snapshots',
     disabled: false,
   },
   {
-    to: "/overview",
+    to: '/overview',
     icon: IconTimeline,
-    label: "Overview",
+    label: 'Overview',
     disabled: false,
   },
 ];
@@ -51,7 +57,7 @@ export function getActiveNavRoute(pathname: string): string {
       if (item.disabled) {
         return false;
       }
-      return item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
-    })?.to ?? "/"
+      return item.to === '/' ? pathname === '/' : pathname.startsWith(item.to);
+    })?.to ?? ''
   );
 }

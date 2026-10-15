@@ -1,6 +1,6 @@
 @font-face {
   font-family: 'Nunito';
-  src: url('../assets/fonts/Nunito-Light.ttf') format('truetype');
+  src: url('../assets/fonts/Nunito-Light.woff2') format('woff2');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
@@ -8,7 +8,7 @@
 
 @font-face {
   font-family: 'Nunito';
-  src: url('../assets/fonts/Nunito-LightItalic.ttf') format('truetype');
+  src: url('../assets/fonts/Nunito-LightItalic.woff2') format('woff2');
   font-weight: 300;
   font-style: italic;
   font-display: swap;
@@ -16,7 +16,7 @@
 
 @font-face {
   font-family: 'Nunito';
-  src: url('../assets/fonts/Nunito-Regular.ttf') format('truetype');
+  src: url('../assets/fonts/Nunito-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -24,7 +24,7 @@
 
 @font-face {
   font-family: 'Nunito';
-  src: url('../assets/fonts/Nunito-Italic.ttf') format('truetype');
+  src: url('../assets/fonts/Nunito-Italic.woff2') format('woff2');
   font-weight: 400;
   font-style: italic;
   font-display: swap;
@@ -32,7 +32,7 @@
 
 @font-face {
   font-family: 'Nunito';
-  src: url('../assets/fonts/Nunito-Medium.ttf') format('truetype');
+  src: url('../assets/fonts/Nunito-Medium.woff2') format('woff2');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -40,7 +40,7 @@
 
 @font-face {
   font-family: 'Nunito';
-  src: url('../assets/fonts/Nunito-MediumItalic.ttf') format('truetype');
+  src: url('../assets/fonts/Nunito-MediumItalic.woff2') format('woff2');
   font-weight: 500;
   font-style: italic;
   font-display: swap;
@@ -48,7 +48,7 @@
 
 @font-face {
   font-family: 'Nunito';
-  src: url('../assets/fonts/Nunito-SemiBold.ttf') format('truetype');
+  src: url('../assets/fonts/Nunito-SemiBold.woff2') format('woff2');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
@@ -56,7 +56,7 @@
 
 @font-face {
   font-family: 'Nunito';
-  src: url('../assets/fonts/Nunito-SemiBoldItalic.ttf') format('truetype');
+  src: url('../assets/fonts/Nunito-SemiBoldItalic.woff2') format('woff2');
   font-weight: 600;
   font-style: italic;
   font-display: swap;
@@ -64,7 +64,7 @@
 
 @font-face {
   font-family: 'Nunito';
-  src: url('../assets/fonts/Nunito-Bold.ttf') format('truetype');
+  src: url('../assets/fonts/Nunito-Bold.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -72,7 +72,7 @@
 
 @font-face {
   font-family: 'Nunito';
-  src: url('../assets/fonts/Nunito-BoldItalic.ttf') format('truetype');
+  src: url('../assets/fonts/Nunito-BoldItalic.woff2') format('woff2');
   font-weight: 700;
   font-style: italic;
   font-display: swap;
@@ -80,7 +80,7 @@
 
 @font-face {
   font-family: 'Noto Sans';
-  src: url('../assets/fonts/NotoSans-Light.ttf') format('truetype');
+  src: url('../assets/fonts/NotoSans-Light.woff2') format('woff2');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
@@ -88,7 +88,7 @@
 
 @font-face {
   font-family: 'Noto Sans';
-  src: url('../assets/fonts/NotoSans-LightItalic.ttf') format('truetype');
+  src: url('../assets/fonts/NotoSans-LightItalic.woff2') format('woff2');
   font-weight: 300;
   font-style: italic;
   font-display: swap;
@@ -96,7 +96,7 @@
 
 @font-face {
   font-family: 'Noto Sans';
-  src: url('../assets/fonts/NotoSans-Regular.ttf') format('truetype');
+  src: url('../assets/fonts/NotoSans-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -104,7 +104,7 @@
 
 @font-face {
   font-family: 'Noto Sans';
-  src: url('../assets/fonts/NotoSans-Italic.ttf') format('truetype');
+  src: url('../assets/fonts/NotoSans-Italic.woff2') format('woff2');
   font-weight: 400;
   font-style: italic;
   font-display: swap;
@@ -112,7 +112,7 @@
 
 @font-face {
   font-family: 'Noto Sans';
-  src: url('../assets/fonts/NotoSans-Medium.ttf') format('truetype');
+  src: url('../assets/fonts/NotoSans-Medium.woff2') format('woff2');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -120,7 +120,7 @@
 
 @font-face {
   font-family: 'Noto Sans';
-  src: url('../assets/fonts/NotoSans-MediumItalic.ttf') format('truetype');
+  src: url('../assets/fonts/NotoSans-MediumItalic.woff2') format('woff2');
   font-weight: 500;
   font-style: italic;
   font-display: swap;
@@ -128,7 +128,7 @@
 
 @font-face {
   font-family: 'Noto Sans';
-  src: url('../assets/fonts/NotoSans-SemiBold.ttf') format('truetype');
+  src: url('../assets/fonts/NotoSans-SemiBold.woff2') format('woff2');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
@@ -136,7 +136,7 @@
 
 @font-face {
   font-family: 'Noto Sans';
-  src: url('../assets/fonts/NotoSans-SemiBoldItalic.ttf') format('truetype');
+  src: url('../assets/fonts/NotoSans-SemiBoldItalic.woff2') format('woff2');
   font-weight: 600;
   font-style: italic;
   font-display: swap;
@@ -144,7 +144,7 @@
 
 @font-face {
   font-family: 'Noto Sans';
-  src: url('../assets/fonts/NotoSans-Bold.ttf') format('truetype');
+  src: url('../assets/fonts/NotoSans-Bold.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -152,7 +152,7 @@
 
 @font-face {
   font-family: 'Noto Sans';
-  src: url('../assets/fonts/NotoSans-BoldItalic.ttf') format('truetype');
+  src: url('../assets/fonts/NotoSans-BoldItalic.woff2') format('woff2');
   font-weight: 700;
   font-style: italic;
   font-display: swap;
@@ -160,7 +160,7 @@
 
 @font-face {
   font-family: 'Torus';
-  src: url('../assets/fonts/Torus-Regular.otf') format('opentype');
+  src: url('../assets/fonts/Torus-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -222,6 +222,71 @@
   animation: none;
 }
 
+/* Settings page: TOC slides from the left, content from the right */
+@keyframes mv-settings-toc-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes mv-settings-toc-exit {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+}
+
+@keyframes mv-settings-content-enter {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes mv-settings-content-exit {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+}
+
+::view-transition-old(settings-toc) {
+  animation: mv-settings-toc-exit 220ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+::view-transition-new(settings-toc) {
+  animation: mv-settings-toc-enter 220ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+::view-transition-old(settings-content) {
+  animation: mv-settings-content-exit 220ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+::view-transition-new(settings-content) {
+  animation: mv-settings-content-enter 220ms cubic-bezier(0.4, 0, 0.2, 1) 40ms both;
+}
+
 /* Window bar height — keep in sync with WindowBar `barHeight` */
 :root {
   --mv-window-bar-height: 32px;
@@ -230,10 +295,7 @@
 /* Mantine notifications (see https://mantine.dev/x/notifications — full surface color, no left accent) */
 .mv-notifications-root {
   width: max-content !important;
-  max-width: min(
-    calc(100vw - var(--mantine-spacing-md) * 2),
-    var(--notifications-container-width)
-  );
+  max-width: min(calc(100vw - var(--mantine-spacing-md) * 2), var(--notifications-container-width));
 }
 
 .mv-notifications-root[data-position='top-center'] {
@@ -243,10 +305,7 @@
 
 .mv-notification {
   width: fit-content !important;
-  max-width: min(
-    calc(100vw - var(--mantine-spacing-md) * 2),
-    var(--notifications-container-width)
-  );
+  max-width: min(calc(100vw - var(--mantine-spacing-md) * 2), var(--notifications-container-width));
   align-items: center;
   /* Tinted glass: muted color + blur what’s behind the toast */
   background: color-mix(
@@ -292,6 +351,46 @@
   }
 }
 
+/* Beatmap list cards: fade + rise in on mount (initial load, pagination) */
+@keyframes mv-beatmap-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mv-beatmap-card-enter {
+    animation: none !important;
+  }
+}
+
+/* Deferred heavy content (e.g. documentation check list): fade in once mounted a frame after the page itself */
+@keyframes mv-deferred-content-enter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.mv-deferred-content-enter {
+  animation: mv-deferred-content-enter 180ms ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mv-deferred-content-enter {
+    animation: none !important;
+  }
+}
+
 /* Same-route beatmap switch: outlet remounts when selectedFolder changes */
 .mv-route-outlet-wrap {
   animation: mv-beatmap-content-fade 220ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -308,10 +407,16 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   ::view-transition-old(root),
   ::view-transition-new(root) {
     animation-duration: 1ms;
+  }
+
+  ::view-transition-old(settings-toc),
+  ::view-transition-new(settings-toc),
+  ::view-transition-old(settings-content),
+  ::view-transition-new(settings-content) {
+    animation: none;
   }
 
   .mv-route-outlet-wrap {
@@ -368,12 +473,67 @@
     border: 1px solid var(--mantine-color-blue-6);
   }
 
-  .markdown-text-table {
-    width: 100%;
+  .markdown-text-table-wrapper {
+    width: fit-content;
+    max-width: 100%;
+    overflow-x: auto;
     margin-block: var(--mantine-spacing-md);
+    border: 1px solid var(--mantine-color-default-border);
+    border-radius: var(--mantine-radius-md);
+    background-color: var(--mantine-color-body);
 
-    &.markdown-text-table-first {
+    &.markdown-text-table-wrapper-first {
       margin-top: 0;
     }
+  }
+
+  .markdown-text-table {
+    width: auto;
+    border-collapse: collapse;
+    font-size: var(--mantine-font-size-sm);
+    line-height: 1.55;
+
+    thead th {
+      padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+      font-weight: 600;
+      text-align: left;
+      color: var(--mantine-color-text);
+      background-color: var(--mantine-color-default-hover);
+      border-bottom: 1px solid var(--mantine-color-default-border);
+      white-space: nowrap;
+    }
+
+    tbody td {
+      padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+      border-bottom: 1px solid var(--mantine-color-default-border);
+      vertical-align: top;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr {
+      transition: background-color 120ms ease;
+    }
+
+    tbody tr:hover {
+      background-color: var(--mantine-color-default-hover);
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: color-mix(in srgb, var(--mantine-color-default-hover) 35%, transparent);
+    }
+
+    tbody tr:nth-child(even):hover {
+      background-color: var(--mantine-color-default-hover);
+    }
+  }
+}
+
+/* Ranking criteria viewer. */
+.rc-markdown {
+  .rc-heading {
+    scroll-margin-top: var(--mantine-spacing-xl);
   }
 }

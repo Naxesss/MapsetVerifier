@@ -47,4 +47,11 @@ public class DifficultySkillData
 {
     public string SkillName { get; set; } = string.Empty;
     public List<DifficultySamplePoint> StrainSamples { get; set; } = [];
+
+    /// <summary>
+    ///     The skill's own aggregate difficulty contribution for this beatmap (before the
+    ///     ruleset's final nonlinear Star Rating combination) - how much this skill actually
+    ///     matters to the map's real difficulty, used to weight it in combined overlays.
+    /// </summary>
+    public double DifficultyValue { get; set; }
 }

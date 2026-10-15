@@ -8,8 +8,11 @@
   <a href="https://mv.mappersguild.com/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/Naxesss/MapsetVerifier/total"></a>
   <a href="https://mv.mappersguild.com/releases"><img src="https://img.shields.io/github/v/release/Naxesss/MapsetVerifier?label=latest%20release&display_name=release" alt="Latest release"></a>
   <a href="https://github.com/Naxesss/MapsetVerifier/releases"><img src="https://img.shields.io/github/v/release/Naxesss/MapsetVerifier?include_prereleases&label=latest%20beta" alt="Latest beta"></a>
+</p>
+<p align="center">
   <a href="https://github.com/Naxesss/MapsetVerifier"><img src="https://img.shields.io/github/stars/Naxesss/MapsetVerifier?style=flat&color=e3b341" alt="GitHub stars"></a>
-  <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-9-512BD4?logo=dotnet&logoColor=white" alt=".NET 9"></a>
+  <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white" alt=".NET 10"></a>
+  <a href="https://www.gnu.org/licenses/gpl-3.0" alt="License: GPLv3"><img src="https://img.shields.io/badge/License-GPL%20v3-blue.svg"></a>
   <a href="https://mv.mappersguild.com/releases"><img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-blue" alt="Platform"></a>
 </p>
 
@@ -23,11 +26,13 @@
   <a href="docs/DEVELOPMENT.md"><strong>Development</strong></a>
 </p>
 
+---
+
 Mapset Verifier (MV) is a desktop app which tests quantifyable issues in [beatmapsets](https://osu.ppy.sh/help/wiki/Beatmaps) from [osu!](https://en.wikipedia.org/wiki/Osu!), such as unsnapped objects and unused files. Many of these issues would otherwise disqualify the map from being [ranked](https://osu.ppy.sh/help/wiki/Beatmap_ranking_procedure#ranked). Although mainly aimed at [Beatmap Nominators](https://osu.ppy.sh/help/wiki/Beatmap%20Nominators), this can also be used by mapset creators and reviewers to speed up [the ranking process](https://osu.ppy.sh/help/wiki/Beatmap_ranking_procedure).
 
 MV is a successor to the game's built-in [AiMod](https://osu.ppy.sh/help/wiki/Beatmap_Editor/AiMod) and [Sieg's Modding Assistant](https://osu.ppy.sh/community/forums/topics/359381), providing more features and greater scalability. Some examples include auto-updates, plugin support, and integrated documentation and diff utilities.
 
-**MV 2.0** is a ground-up rewrite of the application: New React frontend, updated .NET 9 backend, a ton of new features, and built-in checks for all game modes!
+**MV 2.0** is a ground-up rewrite of the application: New React frontend, updated .NET 10 backend, a ton of new features, and built-in checks for all game modes!
 
 *This is currently being ported to osu!lazer. [You can track its progress here!](https://github.com/ppy/osu/issues/12091#issuecomment-878760791)*
 
@@ -70,7 +75,7 @@ These builds are from the pre-2.0 release line. Prefer the current download page
   - **Why:** Some antivirus tools flag the backend on first run and delete it before MV can use it.
 
 - **MV 1.x plugins do not load on MV 2.0**
-  - **Fix:** Rebuild plugins for .NET 9 against the current API, or remove legacy DLLs. Many former mode-specific plugins are now built into MV 2.0.
+  - **Fix:** Rebuild plugins for .NET 10 against the current API, or remove legacy DLLs. Many former mode-specific plugins are now built into MV 2.0.
   - **Why:** MV 2.0 changed the runtime, folder layout, and check API. See [Custom checks documentation](docs/CUSTOM_CHECKS.md).
 
 ## Plugins

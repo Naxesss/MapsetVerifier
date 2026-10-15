@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using MathNet.Numerics;
 using static MapsetVerifier.Checks.Utils.ManiaUtils;
 
@@ -45,7 +46,13 @@ namespace MapsetVerifier.Checks.Mania.Timing
                         Issue.Level.Warning,
                         "{0} Isn't normalized. Ensure that the value makes sense.",
                         "timestamp"
-                    ).WithCause("Unnormalized timing line found.")
+                    )
+                        .WithCause("Unnormalized timing line found.")
+                        .WithRule(
+                            RC.Mania.Easy_ScrollNormalisationDoneBeatmapsVariable,
+                            RC.Mania.Normal_ScrollNormalisationDoneBeatmapsVariable,
+                            RC.Mania.TimingChangesUnifiedScrollSpeed
+                        )
                 },
                 {
                     "Normalized Value Moved Problem",
@@ -54,7 +61,14 @@ namespace MapsetVerifier.Checks.Mania.Timing
                         "{0} Isn't on top of the previous uninherited timing line. Its offset should be set to {1}.",
                         "timestamp",
                         "newOffset"
-                    ).WithCause("Normalized timing line not on top of an uninherited timing line.")
+                    )
+                        .WithCause(
+                            "Normalized timing line not on top of an uninherited timing line."
+                        )
+                        .WithRule(
+                            RC.Mania.Easy_ScrollNormalisationDoneBeatmapsVariable,
+                            RC.Mania.Normal_ScrollNormalisationDoneBeatmapsVariable
+                        )
                 },
                 {
                     "Green Line Not Found",
@@ -63,7 +77,13 @@ namespace MapsetVerifier.Checks.Mania.Timing
                         "{0} Isn't followed by any normalizing green line. An inherited timing line with a multiplier of {1} should be added on top.",
                         "timestamp",
                         "multiplier"
-                    ).WithCause("Uninherited line is unnormalized.")
+                    )
+                        .WithCause("Uninherited line is unnormalized.")
+                        .WithRule(
+                            RC.Mania.Easy_ScrollNormalisationDoneBeatmapsVariable,
+                            RC.Mania.Normal_ScrollNormalisationDoneBeatmapsVariable,
+                            RC.Mania.TimingChangesUnifiedScrollSpeed
+                        )
                 },
             };
         }

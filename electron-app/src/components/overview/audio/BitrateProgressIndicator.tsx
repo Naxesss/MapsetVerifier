@@ -77,13 +77,7 @@ function BitrateProgressIndicator({ bitrateData }: BitrateProgressIndicatorProps
       </Box>
 
       <Box pos="relative" h={16}>
-        <Text
-          size="xs"
-          c="dimmed"
-          pos="absolute"
-          left="0%"
-          style={{ transform: 'translateX(0)' }}
-        >
+        <Text size="xs" c="dimmed" pos="absolute" left="0%" style={{ transform: 'translateX(0)' }}>
           64 kbps
         </Text>
         <Text

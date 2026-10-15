@@ -1,0 +1,2 @@
+# The ranking criteria snapshot is kept byte-for-byte as it is in ppy/osu-wiki.
+MapsetVerifier.RankingCriteria/Data/snapshots/** -text

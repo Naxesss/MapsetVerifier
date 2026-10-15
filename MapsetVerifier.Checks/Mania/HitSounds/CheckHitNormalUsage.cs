@@ -2,6 +2,7 @@ using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 using static MapsetVerifier.Checks.Utils.ManiaUtils;
 
 namespace MapsetVerifier.Checks.Mania.HitSounds
@@ -41,16 +42,26 @@ namespace MapsetVerifier.Checks.Mania.HitSounds
                     new IssueTemplate(
                         Issue.Level.Warning,
                         "No hitnormal sample found in beatmap folder"
-                    ).WithCause("Cannot find a hitnormal sample in the beatmap folder.")
+                    )
+                        .WithCause("Cannot find a hitnormal sample in the beatmap folder.")
+                        .WithRule(
+                            RC.General.Audio_BeatmapsHitsounded,
+                            RC.Mania.NotUseKeysoundsWithoutHitnormal
+                        )
                 },
                 {
                     "HitnormalOverride",
                     new IssueTemplate(
                         Issue.Level.Problem,
                         "Custom hitnormal isn't being overriden."
-                    ).WithCause(
-                        "A hitnormal file is present, but it's not overwriting the default hitnormal."
                     )
+                        .WithCause(
+                            "A hitnormal file is present, but it's not overwriting the default hitnormal."
+                        )
+                        .WithRule(
+                            RC.General.Audio_BeatmapsHitsounded,
+                            RC.Mania.NotUseKeysoundsWithoutHitnormal
+                        )
                 },
             };
         }
@@ -81,7 +92,7 @@ namespace MapsetVerifier.Checks.Mania.HitSounds
                             yield return new Issue(GetTemplate("HitnormalOverride"), beatmap);
 
                         var customIndex =
-                            timingLine.CustomIndex == 1 ? "" : timingLine.CustomIndex.ToString();
+                            timingLine.CustomIndex <= 1 ? "" : timingLine.CustomIndex.ToString();
                         var sample =
                             timingLine.Sampleset.ToString().ToLower() + "-hitnormal" + customIndex;
 

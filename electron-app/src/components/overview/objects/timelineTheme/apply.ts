@@ -51,6 +51,25 @@ export function drawThemedCircle(
   ctx.stroke();
 }
 
+/** Slider head/tail: normal circle with a small white center dot. */
+export function drawThemedSliderEndpoint(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  centerY: number,
+  radius: number,
+  objectColor: string,
+  circleTheme: TimelineCircleTheme
+): void {
+  drawThemedCircle(ctx, x, centerY, radius, objectColor, circleTheme);
+
+  const dotRadius = Math.max(1.4, radius * 0.18);
+
+  ctx.beginPath();
+  ctx.fillStyle = withAlpha('#ffffff', 0.95);
+  ctx.arc(x, centerY, dotRadius, 0, Math.PI * 2);
+  ctx.fill();
+}
+
 export function drawThemedLineBody(
   ctx: CanvasRenderingContext2D,
   startX: number,
@@ -110,8 +129,14 @@ export function drawThemedSpinnerMarker(
   ctx.save();
   ctx.beginPath();
   applyAlphaFill(ctx, markerTheme.ringFill, objectColor);
-  ctx.strokeStyle = withAlpha(resolveColor(markerTheme.ringStroke.color, objectColor), markerTheme.ringStroke.alpha);
-  ctx.lineWidth = Math.max(markerTheme.ringStrokeWidthMin, radius * markerTheme.ringStrokeWidthScale);
+  ctx.strokeStyle = withAlpha(
+    resolveColor(markerTheme.ringStroke.color, objectColor),
+    markerTheme.ringStroke.alpha
+  );
+  ctx.lineWidth = Math.max(
+    markerTheme.ringStrokeWidthMin,
+    radius * markerTheme.ringStrokeWidthScale
+  );
   ctx.arc(x, centerY, radius, 0, Math.PI * 2);
   ctx.fill();
   ctx.stroke();
@@ -153,7 +178,10 @@ export function drawThemedObjectMarkerEdge(
   markerTheme: TimelineObjectMarkerTheme
 ): void {
   applyAlphaStroke(ctx, markerTheme.edgeStroke, objectColor);
-  ctx.fillStyle = withAlpha(resolveColor(markerTheme.edgeStroke.color, objectColor), markerTheme.edgeStroke.alpha);
+  ctx.fillStyle = withAlpha(
+    resolveColor(markerTheme.edgeStroke.color, objectColor),
+    markerTheme.edgeStroke.alpha
+  );
 }
 
 export function drawThemedTailSquare(
@@ -173,22 +201,16 @@ export function drawThemedReverseArrow(
   size: number,
   arrowTheme: TimelineReverseArrowTheme
 ): void {
-  const leftX = x - size;
-  const middleX = x - size * 0.17;
-  const rightX = x + size * 0.67;
-  const yOffset = size * 0.89;
+  const arrowX = x - 1; // more visually centered
+  const middleX = arrowX - size * 0.14;
+  const rightX = arrowX + size * 0.56;
+  const yOffset = size * 0.68;
 
   ctx.save();
   ctx.strokeStyle = arrowTheme.stroke;
   ctx.lineWidth = Math.max(arrowTheme.lineWidthMin, size * arrowTheme.lineWidthScale);
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
-
-  ctx.beginPath();
-  ctx.moveTo(leftX, centerY - yOffset);
-  ctx.lineTo(middleX, centerY);
-  ctx.lineTo(leftX, centerY + yOffset);
-  ctx.stroke();
 
   ctx.beginPath();
   ctx.moveTo(middleX, centerY - yOffset);

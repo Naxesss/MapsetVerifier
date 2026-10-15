@@ -5,7 +5,7 @@ import ObjectsTimelineHelpModal from './ObjectsTimelineHelpModal.tsx';
 
 type ObjectsTimelineHelpButtonProps = {
   showHitsoundSection?: boolean;
-  size?: 'compact-xs' | 'xs' | 'sm';
+  size?: 'xs' | 'sm';
 };
 
 export default function ObjectsTimelineHelpButton({

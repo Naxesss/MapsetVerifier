@@ -17,8 +17,10 @@ namespace MapsetVerifier.Server.Service;
 
 public static class BeatmapAnalysisService
 {
-    private static readonly int[] SupportedSnapDivisors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 16];
     private const double TimelineMarginMs = 2000;
+
+    // osu!'s own strain section length, so the default grid is 1:1 with the underlying strain data
+    // rather than averaging several sections into one point.
     private const int MsPerPeak = 400;
     private const int MaxSamplePoints = 1500; // Widen the grid on long maps instead of sending thousands of chart points.
 
@@ -408,15 +410,6 @@ public static class BeatmapAnalysisService
         return Math.Max(timingMax, objectsMax);
     }
 
-    private static double GetFirstStrainSectionEndMs(Beatmap beatmap, int msPerPeak)
-    {
-        if (beatmap.HitObjects.Count == 0)
-            return msPerPeak;
-
-        var firstObjectTime = beatmap.HitObjects.Min(hitObject => hitObject.time);
-        return Math.Ceiling(firstObjectTime / msPerPeak) * msPerPeak;
-    }
-
     private static List<DifficultySamplePoint> GetStarRatingSamples(
         Beatmap beatmap,
         List<osu.Game.Rulesets.Difficulty.TimedDifficultyAttributes> timedAttributes,
@@ -539,40 +532,60 @@ public static class BeatmapAnalysisService
             return [];
 
         return beatmap
-            .Skills.OfType<StrainSkill>()
-            .Select(skill => new DifficultySkillData
+            .Skills.Select(skill => new DifficultySkillData
             {
                 SkillName = GetSkillName(skill, beatmap),
-                StrainSamples = GetStrainSkillSamples(skill, beatmap, pointCount, msPerPeak),
+                StrainSamples = ResampleToGrid(
+                    SkillStrainTimeline.Build(skill, beatmap),
+                    pointCount,
+                    msPerPeak
+                ),
+                DifficultyValue = skill.DifficultyValue(),
             })
+            // A skill with nothing to anchor to (e.g. an empty diff) has no timeline to chart.
+            .Where(data => data.StrainSamples.Count > 0)
             .ToList();
     }
 
-    private static List<DifficultySamplePoint> GetStrainSkillSamples(
-        StrainSkill skill,
-        Beatmap beatmap,
+    /// <summary>
+    ///     Flattens a skill's difficulty intervals onto the chart's uniform sample grid. Each sample
+    ///     at <c>t</c> is the highest value over <c>[t, t + msPerPeak)</c>, so spikes shorter than the
+    ///     grid still show up (rather than being missed by a point-in-time read) and the "Peak" stat
+    ///     matches the highest point actually drawn. Stretches with no intervals stay at zero, which is
+    ///     what makes breaks read as gaps.
+    /// </summary>
+    private static List<DifficultySamplePoint> ResampleToGrid(
+        List<StrainInterval> intervals,
         int pointCount,
         int msPerPeak
     )
     {
-        var peaks = skill.GetCurrentStrainPeaks().ToList();
-        var firstSectionEnd = GetFirstStrainSectionEndMs(beatmap, msPerPeak);
-        var samples = new List<DifficultySamplePoint>(pointCount);
+        if (intervals.Count == 0)
+            return [];
 
-        var peakIndex = 0;
-        var currentPeak = 0d;
+        var samples = new List<DifficultySamplePoint>(pointCount);
+        var intervalIndex = 0;
 
         for (var index = 0; index < pointCount; index++)
         {
-            var sampleTime = firstSectionEnd + index * msPerPeak;
+            var bucketStart = (double)index * msPerPeak;
+            var bucketEnd = bucketStart + msPerPeak;
 
-            while (peakIndex < peaks.Count && firstSectionEnd + peakIndex * msPerPeak <= sampleTime)
-            {
-                currentPeak = peaks[peakIndex];
-                peakIndex++;
-            }
+            // Intervals are chronological and contiguous, so the scan only ever moves forward.
+            while (
+                intervalIndex < intervals.Count && intervals[intervalIndex].EndTime <= bucketStart
+            )
+                intervalIndex++;
 
-            samples.Add(new DifficultySamplePoint { TimeMs = sampleTime, Value = currentPeak });
+            var value = 0d;
+            for (
+                var scanIndex = intervalIndex;
+                scanIndex < intervals.Count && intervals[scanIndex].StartTime < bucketEnd;
+                scanIndex++
+            )
+                value = Math.Max(value, intervals[scanIndex].Value);
+
+            samples.Add(new DifficultySamplePoint { TimeMs = bucketStart, Value = value });
         }
 
         return samples;
@@ -626,6 +639,7 @@ public static class BeatmapAnalysisService
                 ObjectType = hitObject.GetObjectType(),
                 HasFinishHitSound = hitObject.HasHitSound(HitObject.HitSounds.Finish),
                 HitSoundFlags = GetObjectHitSoundFlags(hitObject),
+                SliderBodyHitSoundFlags = GetSliderBodyHitSoundFlags(hitObject),
                 ComboColourIndex = GetObjectComboColourIndex(beatmap, hitObject),
                 ComboColourHex = GetObjectComboColourHex(beatmap, hitObject),
                 Edges = hitObject
@@ -676,8 +690,8 @@ public static class BeatmapAnalysisService
             .Where(period => period.EndTimeMs > period.StartTimeMs)
             .ToList();
 
-        var snappingCounts = SupportedSnapDivisors.ToDictionary(divisor => divisor, _ => 0);
-        var snappingEdgeTimes = SupportedSnapDivisors.ToDictionary(
+        var snappingCounts = Beatmap.SnapDivisors.ToDictionary(divisor => divisor, _ => 0);
+        var snappingEdgeTimes = Beatmap.SnapDivisors.ToDictionary(
             divisor => divisor,
             _ => new List<double>()
         );
@@ -715,6 +729,7 @@ public static class BeatmapAnalysisService
 
         var totalSnapPoints = Math.Max(1, edgeCount);
         var objectTypes = BuildObjectTypeBreakdown(beatmap);
+        var columnUsage = BuildColumnUsage(beatmap);
 
         return new ObjectsOverviewDifficulty
         {
@@ -731,8 +746,8 @@ public static class BeatmapAnalysisService
             UnsnappedEdgeTimesMs = unsnappedEdgeTimes,
             TimelineSamples = timelineSamples,
             HitsoundGapPeriods = hitsoundGapPeriods,
-            Snappings = SupportedSnapDivisors
-                .Select(divisor => new ObjectsSnappingBucket
+            Snappings = Beatmap
+                .SnapDivisors.Select(divisor => new ObjectsSnappingBucket
                 {
                     Divisor = divisor,
                     Label = $"1/{divisor}",
@@ -743,7 +758,50 @@ public static class BeatmapAnalysisService
                 })
                 .ToList(),
             ObjectTypes = objectTypes,
+            ColumnUsage = columnUsage,
         };
+    }
+
+    /// <summary> Per-column object counts for mania, mirroring what the column usage check evaluates. </summary>
+    private static List<ObjectsColumnUsage>? BuildColumnUsage(Beatmap beatmap)
+    {
+        if (beatmap.GeneralSettings.mode != Beatmap.Mode.Mania)
+            return null;
+
+        var keys = (int)beatmap.DifficultySettings.circleSize;
+
+        if (keys <= 0)
+            return null;
+
+        var noteCounts = new int[keys];
+        var holdNoteCounts = new int[keys];
+
+        foreach (var hitObject in beatmap.HitObjects)
+        {
+            var column = ManiaExtensions.GetColumn(hitObject, keys);
+
+            if (column < 0 || column >= keys)
+                continue;
+
+            if (hitObject is HoldNote)
+                holdNoteCounts[column]++;
+            else
+                noteCounts[column]++;
+        }
+
+        var total = Math.Max(1, beatmap.HitObjects.Count);
+
+        return Enumerable
+            .Range(0, keys)
+            .Select(column => new ObjectsColumnUsage
+            {
+                Column = column + 1,
+                NoteCount = noteCounts[column],
+                HoldNoteCount = holdNoteCounts[column],
+                TotalCount = noteCounts[column] + holdNoteCounts[column],
+                Percentage = (noteCounts[column] + holdNoteCounts[column]) * 100d / total,
+            })
+            .ToList();
     }
 
     private static List<ObjectsTypeBucket> BuildObjectTypeBreakdown(Beatmap beatmap)
@@ -923,6 +981,9 @@ public static class BeatmapAnalysisService
         return (int)hitObject.hitSound;
     }
 
+    private static int GetSliderBodyHitSoundFlags(HitObject hitObject) =>
+        hitObject is Slider slider ? (int)slider.hitSound : 0;
+
     private static int GetEdgeHitSoundFlags(HitObject hitObject, double edgeTime)
     {
         if (hitObject is Slider slider)
@@ -957,17 +1018,32 @@ public static class BeatmapAnalysisService
     {
         var objectType = hitObject.GetObjectType();
         var edgeTimes = hitObject.GetEdgeTimes().ToList();
+        var isTaikoMap = hitObject.beatmap.GeneralSettings.mode == Beatmap.Mode.Taiko;
 
         foreach (var sample in hitObject.usedHitSamples)
         {
+            // Standard objects also emit taiko conversion samples. Those use the object-level sampleset
+            // and the timing line offset rather than the edge's own sampleset and time, so they would
+            // masquerade as edge samples here and mask the real ones
+            if (sample.Taiko && !isTaikoMap)
+                continue;
+
             string? partName = null;
+            var isBaseHitNormal = false;
+
             if (sample.HitSource == HitSample.HitSourceType.Edge)
             {
-                var matchedEdge = edgeTimes.FirstOrDefault(edgeTime =>
-                    IsClose(edgeTime, sample.Time)
-                );
-                if (edgeTimes.Any(edgeTime => IsClose(edgeTime, sample.Time)))
-                    partName = hitObject.GetPartName(matchedEdge);
+                var matchedEdge = edgeTimes
+                    .Select(edgeTime => (double?)edgeTime)
+                    .FirstOrDefault(edgeTime => IsClose(edgeTime!.Value, sample.Time));
+
+                if (matchedEdge is { } edgeTime)
+                {
+                    partName = hitObject.GetPartName(edgeTime);
+                    isBaseHitNormal =
+                        sample.HitSound == HitObject.HitSounds.Normal
+                        && sample.Sampleset == GetEdgeSampleset(hitObject, edgeTime);
+                }
             }
 
             yield return new ObjectsTimelineSample
@@ -979,8 +1055,43 @@ public static class BeatmapAnalysisService
                 CustomIndex = sample.CustomIndex,
                 PartName = partName,
                 ObjectType = objectType,
+                IsBaseHitNormal = isBaseHitNormal,
             };
         }
+    }
+
+    /// <summary>
+    ///     Returns the hitnormal sampleset of the given edge (i.e. ignoring the addition, which never
+    ///     affects hitnormal). Returns null if the time does not line up with an edge.
+    /// </summary>
+    private static HitSample.SamplesetType? GetEdgeSampleset(HitObject hitObject, double edgeTime)
+    {
+        if (hitObject is Slider slider)
+        {
+            if (IsClose(hitObject.time, edgeTime))
+                return slider.GetStartSampleset();
+
+            if (IsClose(slider.EndTime, edgeTime))
+                return slider.GetEndSampleset();
+
+            var curveDuration = slider.GetCurveDuration();
+            for (var i = 0; i < slider.ReverseHitSounds.Count; i++)
+            {
+                var reverseTime = hitObject.time + curveDuration * (i + 1);
+                if (IsClose(reverseTime, edgeTime))
+                    return slider.GetReverseSampleset(i);
+            }
+
+            return null;
+        }
+
+        if (IsClose(hitObject.time, edgeTime))
+            return hitObject.GetStartSampleset();
+
+        if (IsClose(hitObject.GetEndTime(), edgeTime))
+            return hitObject.GetEndSampleset();
+
+        return null;
     }
 
     private static string? FormatHitSound(HitObject.HitSounds? hitSound)

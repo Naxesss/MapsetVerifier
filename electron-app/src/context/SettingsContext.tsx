@@ -2,24 +2,81 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { parseTimelineThemeVariant } from '../components/overview/objects/timelineTheme/selection.ts';
 import { BACKEND_BASE_URL } from '../Constants.ts';
 import { DEFAULT_UI_FONT_FAMILY, parseUiFontFamily, type UiFontFamily } from '../theme/fonts';
+import { DEFAULT_UI_ZOOM_PERCENT, parseUiZoomPercent } from '../theme/zoom';
 import { isSemverPreRelease } from '../utils/isSemverPreRelease';
 import type { TimelineThemeVariant } from '../components/overview/objects/timelineTheme/types.ts';
+import type { TimestampOpenTarget } from '../electron-env';
+
+/** What the Star Rating overview chart shows by default: the cumulative line, the strain overlay, or both. */
+export type DifficultyStrainDisplayMode = 'both' | 'starRatingOnly' | 'strainOnly';
+
+/** Which beatmap library/libraries the sidebar reads from. */
+export type BeatmapViewMode = 'stable' | 'lazer' | 'both';
+
+export type { TimestampOpenTarget };
+
+const TIMESTAMP_OPEN_TARGETS = new Set<TimestampOpenTarget>([
+  'current',
+  'stable',
+  'lazer',
+  'custom',
+]);
+
+export function parseTimestampOpenTarget(value: unknown): TimestampOpenTarget {
+  return TIMESTAMP_OPEN_TARGETS.has(value as TimestampOpenTarget)
+    ? (value as TimestampOpenTarget)
+    : 'current';
+}
 
 // Type-safe Settings type
 export type Settings = {
   songFolder?: string;
+  /** osu!(lazer) data folder (contains client.realm). Auto-detected when unset. */
+  lazerDataDir?: string;
   showMinor: boolean;
   /** When showMinor is on, Minor results for these check ids are hidden. When showMinor is off, ignored. */
   hiddenMinorCheckIds: number[];
+  /** Opens the issue details drawer and enables issue-row hover when clicking a check. */
+  displayIssueDetails: boolean;
   showGamemodeDifficultyNames: boolean;
   showAdvancedAudioAnalysis: boolean;
-  lazerLookupEnabled: boolean;
+  /** What the Star Rating overview chart shows by default. */
+  difficultyStrainDisplayMode: DifficultyStrainDisplayMode;
+  /** Which beatmap library/libraries the sidebar reads from. */
+  beatmapViewMode: BeatmapViewMode;
+  /** Which client timestamp clicks launch. Currently open client falls back to the osu:// handler. */
+  timestampOpenTarget: TimestampOpenTarget;
+  timestampOpenStablePath?: string;
+  timestampOpenLazerPath?: string;
+  timestampOpenCustomCommand?: string;
+  /** Last selected stable/lazer tab on the beatmaps list. Only used when beatmapViewMode is 'both'. */
+  beatmapLookupMode: 'stable' | 'lazer';
   receivePrereleases: boolean;
   uiFontFamily: UiFontFamily;
+  /** Zoom the app starts at and that Ctrl+0 resets to, in percent. */
+  uiZoomPercent: number;
   /** Objects overview timeline circle style (synced across game modes). */
   timelineThemeVariant: TimelineThemeVariant;
+  /** When enabled, switching mapsets navigates to the checks tab. */
+  goToChecksOnMapsetSwitch: boolean;
+  /** Show "what changed since last check run" on the checks tab. */
+  showCheckRunDelta: boolean;
+  /** Include the unchanged-issues tab in the check run delta panel. */
+  checkRunDeltaShowUnchanged: boolean;
+  /** Automatically create a snapshot before running checks. */
+  autoCreateSnapshotOnCheckRun: boolean;
+  /** Load external check DLLs from CustomChecks. */
+  customChecksEnabled: boolean;
+  /** Enables bookmarking/pinning beatmapsets for quick lookup in the sidebar. */
+  bookmarksEnabled: boolean;
+  /** Folder names of bookmarked beatmapsets. */
+  bookmarkedFolders: string[];
   // DEV-only: whether to gate Backend in development mode
   gateInDev: boolean;
+  /** Whether the user has completed the first-launch setup wizard. */
+  hasCompletedSetup: boolean;
+  /** Developer option: show per-check timing stats alongside check results. */
+  showCheckSpeedStats: boolean;
 };
 
 // Context type includes settings and setter
@@ -31,15 +88,33 @@ interface SettingsContextType {
 
 const defaultSettings: Settings = {
   songFolder: undefined,
+  lazerDataDir: undefined,
   showMinor: false,
   hiddenMinorCheckIds: [],
+  displayIssueDetails: true,
   showGamemodeDifficultyNames: true,
   showAdvancedAudioAnalysis: false,
-  lazerLookupEnabled: false,
+  difficultyStrainDisplayMode: 'strainOnly',
+  beatmapViewMode: 'stable',
+  beatmapLookupMode: 'stable',
+  timestampOpenTarget: 'current',
+  timestampOpenStablePath: undefined,
+  timestampOpenLazerPath: undefined,
+  timestampOpenCustomCommand: undefined,
   receivePrereleases: false,
   uiFontFamily: DEFAULT_UI_FONT_FAMILY,
+  uiZoomPercent: DEFAULT_UI_ZOOM_PERCENT,
   timelineThemeVariant: 'default',
+  goToChecksOnMapsetSwitch: true,
+  showCheckRunDelta: true,
+  checkRunDeltaShowUnchanged: false,
+  autoCreateSnapshotOnCheckRun: true,
+  customChecksEnabled: false,
+  bookmarksEnabled: false,
+  bookmarkedFolders: [],
   gateInDev: false,
+  hasCompletedSetup: false,
+  showCheckSpeedStats: false,
 };
 
 async function resolveDefaultReceivePrereleases() {
@@ -60,7 +135,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [loaded, setLoaded] = useState(false);
   const [settings, setSettings] = useState<Settings>(defaultSettings);
 
-  async function loadSettings(): Promise<string | undefined> {
+  async function loadSettings(): Promise<{
+    savedSongFolder?: string;
+    savedLazerDataDir?: string;
+  }> {
     const api = window.electronAPI;
     const inferredReceivePrereleases = await resolveDefaultReceivePrereleases();
 
@@ -70,7 +148,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         receivePrereleases: inferredReceivePrereleases,
       });
       setLoaded(true);
-      return undefined;
+      return {};
     }
 
     try {
@@ -80,20 +158,25 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
           ...defaultSettings,
           receivePrereleases: inferredReceivePrereleases,
         });
-        return undefined;
+        return {};
       }
 
       const loaded = JSON.parse(text);
 
-      if (
-        loaded?.lazerLookupEnabled === undefined &&
-        loaded?.experimentalLazerLookup !== undefined
-      ) {
-        loaded.lazerLookupEnabled = loaded.experimentalLazerLookup;
-      }
-
       if (loaded?.receivePrereleases === undefined) {
         loaded.receivePrereleases = inferredReceivePrereleases;
+      }
+
+      let beatmapViewMode: BeatmapViewMode = defaultSettings.beatmapViewMode;
+      if (
+        loaded?.beatmapViewMode === 'stable' ||
+        loaded?.beatmapViewMode === 'lazer' ||
+        loaded?.beatmapViewMode === 'both'
+      ) {
+        beatmapViewMode = loaded.beatmapViewMode;
+      } else if (typeof loaded?.lazerLookupEnabled === 'boolean') {
+        // Migrated from the old experimental toggle: enabled meant both libraries were browsable.
+        beatmapViewMode = loaded.lazerLookupEnabled ? 'both' : 'stable';
       }
 
       setSettings({
@@ -102,20 +185,44 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         hiddenMinorCheckIds: Array.isArray(loaded?.hiddenMinorCheckIds)
           ? loaded.hiddenMinorCheckIds
           : defaultSettings.hiddenMinorCheckIds,
+        bookmarkedFolders: Array.isArray(loaded?.bookmarkedFolders)
+          ? loaded.bookmarkedFolders
+          : defaultSettings.bookmarkedFolders,
+        beatmapViewMode,
+        beatmapLookupMode: loaded?.beatmapLookupMode === 'lazer' ? 'lazer' : 'stable',
+        timestampOpenTarget: parseTimestampOpenTarget(loaded?.timestampOpenTarget),
+        timestampOpenStablePath:
+          typeof loaded?.timestampOpenStablePath === 'string'
+            ? loaded.timestampOpenStablePath
+            : undefined,
+        timestampOpenLazerPath:
+          typeof loaded?.timestampOpenLazerPath === 'string'
+            ? loaded.timestampOpenLazerPath
+            : undefined,
+        timestampOpenCustomCommand:
+          typeof loaded?.timestampOpenCustomCommand === 'string'
+            ? loaded.timestampOpenCustomCommand
+            : undefined,
         uiFontFamily: parseUiFontFamily(loaded?.uiFontFamily),
+        uiZoomPercent: parseUiZoomPercent(loaded?.uiZoomPercent),
         timelineThemeVariant: parseTimelineThemeVariant(loaded?.timelineThemeVariant ?? null),
       });
 
       const savedSongFolder =
         typeof loaded?.songFolder === 'string' ? loaded.songFolder.trim() : undefined;
-      return savedSongFolder || undefined;
+      const savedLazerDataDir =
+        typeof loaded?.lazerDataDir === 'string' ? loaded.lazerDataDir.trim() : undefined;
+      return {
+        savedSongFolder: savedSongFolder || undefined,
+        savedLazerDataDir: savedLazerDataDir || undefined,
+      };
     } catch (e) {
       console.error('[Settings] Error loading settings. Using defaults.', e);
       setSettings({
         ...defaultSettings,
         receivePrereleases: inferredReceivePrereleases,
       });
-      return undefined;
+      return {};
     } finally {
       setLoaded(true);
     }
@@ -150,10 +257,39 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
+  async function findLazerDataDirAndSet(savedLazerDataDir?: string) {
+    if (savedLazerDataDir) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`${BACKEND_BASE_URL}/beatmap/lazer/dataDir`);
+
+      if (res.ok) {
+        const data = await res.json();
+        const lazerDataDir = data.lazerDataDir;
+        setSettings((prev) => ({ ...prev, lazerDataDir }));
+      }
+    } catch (e) {
+      console.error('[Settings] Error finding lazer data folder:', e);
+    }
+  }
+
   useEffect(() => {
-    loadSettings().then((savedSongFolder) => {
-      findOsuLocationAndSet(savedSongFolder);
+    let cancelled = false;
+
+    void Promise.resolve().then(() => {
+      if (cancelled) return;
+      loadSettings().then(({ savedSongFolder, savedLazerDataDir }) => {
+        if (cancelled) return;
+        findOsuLocationAndSet(savedSongFolder);
+        findLazerDataDirAndSet(savedLazerDataDir);
+      });
     });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -161,6 +297,12 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       saveSettings(settings);
     }
   }, [settings]);
+
+  // The window already starts at the saved zoom; this applies changes made in settings.
+  useEffect(() => {
+    if (!loaded) return;
+    void window.electronAPI?.window.setDefaultZoom(settings.uiZoomPercent);
+  }, [loaded, settings.uiZoomPercent]);
 
   return (
     <SettingsContext.Provider value={{ settings, loaded, setSettings }}>

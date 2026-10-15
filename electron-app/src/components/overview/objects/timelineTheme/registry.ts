@@ -3,7 +3,7 @@ import { maniaDefaultTheme, maniaOpaqueTheme } from './themes/mania.ts';
 import { standardDefaultTheme, standardOpaqueTheme } from './themes/standard.ts';
 import { taikoDefaultTheme, taikoOpaqueTheme } from './themes/taiko.ts';
 import { normalizeMode } from '../../../../utils/gameMode';
-import type { TimelineThemeVariant , TimelineVisualTheme } from './types.ts';
+import type { TimelineThemeVariant, TimelineVisualTheme } from './types.ts';
 import type { Mode } from '../../../../Types';
 
 const themes: Record<Mode, Record<TimelineThemeVariant, TimelineVisualTheme>> = {

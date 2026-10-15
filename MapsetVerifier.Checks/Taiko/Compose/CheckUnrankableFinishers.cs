@@ -6,6 +6,7 @@ using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Objects.HitObjects.Taiko;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using static MapsetVerifier.Checks.Utils.TaikoUtils;
 
 namespace MapsetVerifier.Checks.Taiko.Compose
@@ -127,15 +128,23 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                         Issue.Level.Warning,
                         "{0} Abnormal finisher, ensure this makes sense",
                         "timestamp -"
-                    ).WithCause("Finisher is potentially violating the Ranking Criteria")
+                    )
+                        .WithCause("Finisher is potentially violating the Ranking Criteria")
+                        .WithRule(
+                            RC.Taiko.Muzukashii_FinisherNotesNotUsed1,
+                            RC.Taiko.Oni_FinisherNotesNotUsed1,
+                            RC.Taiko.Oni_FinisherNotes14Patterns
+                        )
                 },
                 {
                     Problem,
-                    new IssueTemplate(
-                        Issue.Level.Problem,
-                        "{0} Unrankable finisher",
-                        "timestamp -"
-                    ).WithCause("Finisher is violating the Ranking Criteria")
+                    new IssueTemplate(Issue.Level.Problem, "{0} Unrankable finisher", "timestamp -")
+                        .WithCause("Finisher is violating the Ranking Criteria")
+                        .WithRule(
+                            RC.Taiko.Muzukashii_FinisherNotesNotUsed1,
+                            RC.Taiko.Oni_FinisherNotesNotUsed1,
+                            RC.Taiko.Oni_FinisherNotes14Patterns
+                        )
                 },
             };
 

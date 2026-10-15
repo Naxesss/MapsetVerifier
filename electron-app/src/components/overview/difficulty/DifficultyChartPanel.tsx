@@ -1,5 +1,6 @@
 import { Box, Stack, Text } from '@mantine/core';
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { useOpenOsuTimestamp } from '../../../hooks/useOpenOsuTimestamp.ts';
 import { formatAxisMetricValue } from '../../charts/timeSeries/sampleFormat.ts';
 import TimeSeriesChart from '../../charts/timeSeries/TimeSeriesChart.tsx';
 import TimeSeriesHoverTooltip from '../../charts/timeSeries/TimeSeriesHoverTooltip.tsx';
@@ -23,8 +24,10 @@ export type DifficultyChartPanelProps = {
   series: SeriesConfig[];
   durationMs: number;
   valueSuffix: string | undefined;
+  secondaryValueSuffix?: string;
   interpolation?: ChartInterpolation;
   showDataPoints?: boolean;
+  yAxisMode?: 'zeroBased' | 'fitToData';
   plotHeight?: number;
   chartState: DifficultyChartState;
   hover: ChartHoverPayload | null;
@@ -39,8 +42,10 @@ export function DifficultyChartPanel({
   series,
   durationMs,
   valueSuffix,
+  secondaryValueSuffix,
   interpolation = 'line',
   showDataPoints = false,
+  yAxisMode = 'zeroBased',
   plotHeight = INLINE_PLOT_HEIGHT,
   chartState,
   hover,
@@ -59,7 +64,7 @@ export function DifficultyChartPanel({
     visibleSeriesIds,
     isVisible,
     toggleSeries,
-    setAllVisible,
+    toggleIsolateSeries,
     isZoomed,
     resetZoom,
   } = chartState;
@@ -76,6 +81,11 @@ export function DifficultyChartPanel({
     [valueSuffix]
   );
 
+  const secondaryAxisValueFormatter = useCallback(
+    (value: number) => formatAxisMetricValue(value, secondaryValueSuffix),
+    [secondaryValueSuffix]
+  );
+
   const handleContextMenuPeak = useCallback((payload: ChartHoverPayload) => {
     const { peak, anchor } = payload;
     setContextMenu({
@@ -86,6 +96,8 @@ export function DifficultyChartPanel({
     });
   }, []);
 
+  const openOsuTimestamp = useOpenOsuTimestamp();
+
   const copyTimestamp = async () => {
     if (!contextMenu) return;
     await navigator.clipboard.writeText(formatEditorTimestamp(contextMenu.timeMs));
@@ -94,7 +106,7 @@ export function DifficultyChartPanel({
 
   const goToTimestamp = () => {
     if (!contextMenu) return;
-    window.location.href = `osu://edit/${formatEditorTimestamp(contextMenu.timeMs)}`;
+    void openOsuTimestamp(formatEditorTimestamp(contextMenu.timeMs));
     setContextMenu(null);
   };
 
@@ -164,6 +176,8 @@ export function DifficultyChartPanel({
           valueFormatter={axisValueFormatter}
           interpolation={interpolation}
           showDataPoints={showDataPoints}
+          yAxisMode={yAxisMode}
+          secondaryValueFormatter={secondaryAxisValueFormatter}
           hover={hover?.peak ?? null}
           onHover={onHover}
           onDragZoom={applyDragZoom}
@@ -194,8 +208,7 @@ export function DifficultyChartPanel({
         series={series}
         isVisible={isVisible}
         onToggle={toggleSeries}
-        onSelectAll={() => setAllVisible(true)}
-        onUnselectAll={() => setAllVisible(false)}
+        onIsolate={toggleIsolateSeries}
       />
     </Stack>
   );

@@ -5,6 +5,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Standard.Compose
 {
@@ -49,17 +50,33 @@ namespace MapsetVerifier.Checks.Standard.Compose
             {
                 {
                     "Definitely",
-                    new IssueTemplate(Issue.Level.Warning, "{0} Burai.", "timestamp -").WithCause(
-                        "The burai score of a slider shape, based on the distance and delta angle between intersecting parts of the curve, is very high."
-                    )
+                    new IssueTemplate(Issue.Level.Warning, "{0} Burai.", "timestamp -")
+                        .WithCause(
+                            "The burai score of a slider shape, based on the distance and delta angle between intersecting parts of the curve, is very high."
+                        )
+                        .WithRule(
+                            RC.Osu.Easy_UseStraightforwardEasilyUnderstandableSlider,
+                            RC.Osu.Normal_UseStraightforwardEasilyUnderstandableSlider,
+                            RC.Osu.Easy_SliderClearVisiblePathMovement,
+                            RC.Osu.Normal_SliderClearVisiblePathMovement,
+                            RC.Osu.Hard_SliderClearVisiblePathMovement,
+                            RC.Osu.Insane_SliderClearVisiblePathMovement,
+                            RC.Osu.Expert_SliderClearVisiblePathMovement
+                        )
                 },
                 {
                     "Potentially",
-                    new IssueTemplate(
-                        Issue.Level.Warning,
-                        "{0} Potentially burai.",
-                        "timestamp -"
-                    ).WithCause("Same as the other check, but with a lower score threshold.")
+                    new IssueTemplate(Issue.Level.Warning, "{0} Potentially burai.", "timestamp -")
+                        .WithCause("Same as the other check, but with a lower score threshold.")
+                        .WithRule(
+                            RC.Osu.Easy_UseStraightforwardEasilyUnderstandableSlider,
+                            RC.Osu.Normal_UseStraightforwardEasilyUnderstandableSlider,
+                            RC.Osu.Easy_SliderClearVisiblePathMovement,
+                            RC.Osu.Normal_SliderClearVisiblePathMovement,
+                            RC.Osu.Hard_SliderClearVisiblePathMovement,
+                            RC.Osu.Insane_SliderClearVisiblePathMovement,
+                            RC.Osu.Expert_SliderClearVisiblePathMovement
+                        )
                 },
             };
 
@@ -79,45 +96,70 @@ namespace MapsetVerifier.Checks.Standard.Compose
 
                 var buraiScores = new List<double>();
 
-                for (var i = 1; i < slider.PathPxPositions.Count; ++i)
+                var positions = slider.PathPxPositions;
+
+                // Only pairs of points closer together than maxDistance can ever be scored (anything farther
+                // is always skipped below), so bucket points into a grid and only compare points that share
+                // or neighbour a cell. This avoids an O(n^2) scan over every pair of path points, which gets
+                // very expensive on long sliders since the path is sampled roughly once per pixel.
+                var grid = new Dictionary<(int, int), List<int>>();
+
+                (int, int) CellOf(int index)
                 {
-                    var passedMargin = false;
+                    var pos = positions[index];
+                    return (
+                        (int)Math.Floor(pos.X / maxDistance),
+                        (int)Math.Floor(pos.Y / maxDistance)
+                    );
+                }
 
-                    // Only check places we haven't been yet for optimization.
-                    for (var j = i + 1; j < slider.PathPxPositions.Count - 1; ++j)
+                for (var index = 0; index < positions.Count; ++index)
+                {
+                    var cell = CellOf(index);
+                    if (!grid.TryGetValue(cell, out var cellIndices))
+                        grid[cell] = cellIndices = [];
+
+                    cellIndices.Add(index);
+                }
+
+                for (var i = 1; i < positions.Count; ++i)
+                {
+                    var (cx, cy) = CellOf(i);
+
+                    for (var ox = -1; ox <= 1; ++ox)
+                    for (var oy = -1; oy <= 1; ++oy)
                     {
-                        var distance = GetDistance(
-                            slider.PathPxPositions[i],
-                            slider.PathPxPositions[j]
-                        );
-
-                        // First ensure the point is far enough away to not be a small burai structure.
-                        if (!passedMargin && distance >= maxDistance)
-                            passedMargin = true;
-
-                        // Then if it returns, we know the slider is intersecting itself.
-                        if (passedMargin && distance >= maxDistance)
+                        if (!grid.TryGetValue((cx + ox, cy + oy), out var candidates))
                             continue;
 
-                        var angleIntersect = GetAngle(
-                            slider.PathPxPositions[i - 1],
-                            slider.PathPxPositions[i]
-                        );
-                        var otherAngleIntersect = GetAngle(
-                            slider.PathPxPositions[j],
-                            slider.PathPxPositions[j + 1]
-                        );
+                        foreach (var j in candidates)
+                        {
+                            // Same bounds as the original scan: j must come after i, and both j and j + 1
+                            // must be valid indices.
+                            if (j <= i || j >= positions.Count - 1)
+                                continue;
 
-                        // Compare the intersection angles, resets after 180 degrees since we're comparing tangents.
-                        var diffAngleIntersect = Math.Abs(
-                            WrapAngle(angleIntersect - otherAngleIntersect, 0.5)
-                        );
+                            var distance = GetDistance(positions[i], positions[j]);
 
-                        var distanceScore = 100 * Math.Sqrt(10) / Math.Pow(10, 2 * distance) / 125;
-                        var angleScore =
-                            1 / (Math.Pow(diffAngleIntersect / Math.PI * 20, 3) + 0.01) / 250;
+                            // Anything farther than maxDistance apart is never scored.
+                            if (distance >= maxDistance)
+                                continue;
 
-                        buraiScores.Add(angleScore * distanceScore);
+                            var angleIntersect = GetAngle(positions[i - 1], positions[i]);
+                            var otherAngleIntersect = GetAngle(positions[j], positions[j + 1]);
+
+                            // Compare the intersection angles, resets after 180 degrees since we're comparing tangents.
+                            var diffAngleIntersect = Math.Abs(
+                                WrapAngle(angleIntersect - otherAngleIntersect, 0.5)
+                            );
+
+                            var distanceScore =
+                                100 * Math.Sqrt(10) / Math.Pow(10, 2 * distance) / 125;
+                            var angleScore =
+                                1 / (Math.Pow(diffAngleIntersect / Math.PI * 20, 3) + 0.01) / 250;
+
+                            buraiScores.Add(angleScore * distanceScore);
+                        }
                     }
                 }
 
@@ -157,7 +199,7 @@ namespace MapsetVerifier.Checks.Standard.Compose
             return (radians >= 0 ? radians : Math.PI * 2 + radians) % Math.PI;
         }
 
-        /// <summary> Returns the euclidean distance between two 2D vectors. </summary>
+        /// <summary> Returns the Euclidean distance between two 2D vectors. </summary>
         private static double GetDistance(Vector2 vector, Vector2 otherVector) =>
             Math.Sqrt(
                 Math.Pow(vector.X - otherVector.X, 2) + Math.Pow(vector.Y - otherVector.Y, 2)

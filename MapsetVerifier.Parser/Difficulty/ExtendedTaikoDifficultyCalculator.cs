@@ -22,11 +22,14 @@ public class ExtendedTaikoDifficultyCalculator(
     protected override DifficultyAttributes CreateDifficultyAttributes(
         IBeatmap beatmap,
         Mod[] mods,
-        Skill[] skills,
-        double clockRate
+        Skill[] skills
     )
     {
         mvBeatmap.Skills = skills;
-        return base.CreateDifficultyAttributes(beatmap, mods, mvBeatmap.Skills, clockRate);
+        return base.CreateDifficultyAttributes(beatmap, mods, mvBeatmap.Skills);
     }
+
+    protected override IEnumerable<DifficultyHitObject> SortObjects(
+        IEnumerable<DifficultyHitObject> input
+    ) => DifficultyObjectTimingCapture.Capture(base.SortObjects(input), mvBeatmap);
 }

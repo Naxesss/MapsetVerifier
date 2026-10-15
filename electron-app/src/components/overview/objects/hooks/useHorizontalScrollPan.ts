@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+} from 'react';
 
 export function useHorizontalScrollPan() {
   const scrollRef = useRef<HTMLDivElement | null>(null);

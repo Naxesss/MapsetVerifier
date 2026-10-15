@@ -1,4 +1,4 @@
-﻿import { Alert, Text, Box, Flex, LoadingOverlay, Stack, SimpleGrid } from '@mantine/core';
+﻿import { Alert, Text, Box, Flex, Stack, SimpleGrid, LoadingOverlay } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle, IconRulerMeasure } from '@tabler/icons-react';
 import ChannelBalance from './ChannelBalance';
 import DynamicRange from './DynamicRange';
@@ -15,20 +15,12 @@ function AudioOverview() {
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
 
-  const {
-    data,
-    isLoading,
-    isError,
-    error,
-  } = useAudioAnalysis({
+  const { data, isLoading, isFetching, isError, error } = useAudioAnalysis({
     folder,
     songFolder: settings.songFolder,
   });
 
-  const {
-    data: frequencyData,
-    isLoading: frequencyLoading,
-  } = useFrequencyAnalysis({
+  const { data: frequencyData, isLoading: frequencyLoading } = useFrequencyAnalysis({
     folder,
     songFolder: settings.songFolder,
   });
@@ -42,7 +34,7 @@ function AudioOverview() {
   return (
     <Box>
       <LoadingOverlay
-        visible={isLoading || frequencyLoading}
+        visible={isLoading || isFetching}
         zIndex={1000}
         overlayProps={{ radius: 'sm', blur: 2 }}
       />

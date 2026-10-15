@@ -1,8 +1,11 @@
+using System.Globalization;
 using System.Numerics;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
+using MapsetVerifier.Framework.Objects.Resources;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Taiko.Design
 {
@@ -11,11 +14,28 @@ namespace MapsetVerifier.Checks.Taiko.Design
     {
         private const string Inconsistent = nameof(Inconsistent);
         private const string XOffset = nameof(XOffset);
+        private const string YOffset = nameof(YOffset);
+        private const string YOffsetLow = nameof(YOffsetLow);
+
+        // Scale every background to this width. The offset may consume whatever height is left
+        // after 140 pixels, which is the pair that yields 115 at 16:9 and 200 at 4:3.
+        private const double ScaledWidth = 1360d / 3d;
+        private const double CoveredHeight = 140;
+
+        // Last safe negative offset. 16:9 is still safe at -136 and 4:3 at -215.
+        private const double NegativeScaledWidth = 1264d / 3d;
+        private const double NegativeCoveredHeight = 101;
+
+        internal static int MaxVerticalOffset(double width, double height) =>
+            (int)Math.Floor(ScaledWidth * height / width - CoveredHeight);
+
+        internal static int MinVerticalOffset(double width, double height) =>
+            -(int)Math.Floor(NegativeScaledWidth * height / width - NegativeCoveredHeight);
 
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata()
             {
-                Author = "Nostril, Hivie",
+                Author = "Hivie, Nostril",
                 Category = "Design",
                 Modes = [Beatmap.Mode.Taiko],
                 Message = "Background offset issues",
@@ -31,7 +51,15 @@ namespace MapsetVerifier.Checks.Taiko.Design
                         @"
                     Background offset should generally be consistent across osu!taiko difficulties that share the same background.
                     
-                    In addition, horizontal (X axis) offset is very rare and often leaves black gaps in the playfield, so it should be double-checked when present."
+                    In addition, horizontal (X axis) offset is very rare and often leaves black gaps in the playfield, so it should be double-checked when present.
+
+                    Vertical offset also can't be too high, as it will cause a gap under the playfield. The limit changes depending on the aspect ratio, for example:
+                    - 16:9: 115
+                    - 4:3: 200
+
+                    A negative offset gaps from the other side. -136 is still safe for 16:9 and -215 is still safe for 4:3; the next step past either of those leaves a gap.
+
+                    Limit is intentionally slightly lower than the maximum possible value, to account for potential miscalculations."
                     },
                 },
             };
@@ -58,8 +86,34 @@ namespace MapsetVerifier.Checks.Taiko.Design
                         "\"{0}\" uses an X offset of {1}. Ensure this is intentional.",
                         "Filename",
                         "X offset"
+                    )
+                        .WithCause(
+                            "Horizontal background offset is rare in osu!taiko and often leaves black gaps in the playfield."
+                        )
+                        .WithRule(RC.Taiko.NotLeaveBlankSpaceBetween)
+                },
+                {
+                    YOffset,
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "\"{0}\"'s vertical offset ({1}) may cause a gap under the playfield. Consider using a value below {2}.",
+                        "Filename",
+                        "Vertical offset",
+                        "Limit"
                     ).WithCause(
-                        "Horizontal background offset is rare in osu!taiko and often leaves black gaps in the playfield."
+                        "Vertical offset is high enough that the background no longer covers the playfield for its aspect ratio."
+                    )
+                },
+                {
+                    YOffsetLow,
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "\"{0}\"'s vertical offset ({1}) may cause a gap below the background. Consider using a value above {2}.",
+                        "Filename",
+                        "Vertical offset",
+                        "Limit"
+                    ).WithCause(
+                        "Vertical offset is low enough that the background no longer covers the bottom of the screen for its aspect ratio."
                     )
                 },
             };
@@ -68,6 +122,9 @@ namespace MapsetVerifier.Checks.Taiko.Design
         {
             // Record known offsets for each unique BG file
             var files = new Dictionary<string, Dictionary<Vector2, HashSet<string>>>();
+            var imageSizes = new Dictionary<string, (int Width, int Height)?>(
+                StringComparer.OrdinalIgnoreCase
+            );
 
             // Filter to osu!taiko beatmaps only
             var taikoBeatmaps = beatmapSet
@@ -94,6 +151,44 @@ namespace MapsetVerifier.Checks.Taiko.Design
                         yield return new Issue(GetTemplate(XOffset), beatmap, path, castOffset.X);
                     }
 
+                    if (!imageSizes.TryGetValue(path, out var imageSize))
+                    {
+                        imageSize = ReadImageSize(beatmap, path);
+                        imageSizes[path] = imageSize;
+                    }
+
+                    if (imageSize is { Width: > 0, Height: > 0 } size)
+                    {
+                        if (castOffset.Y > 0)
+                        {
+                            var limit = MaxVerticalOffset(size.Width, size.Height);
+                            if (castOffset.Y >= limit)
+                            {
+                                yield return new Issue(
+                                    GetTemplate(YOffset),
+                                    beatmap,
+                                    path,
+                                    castOffset.Y,
+                                    limit.ToString(CultureInfo.InvariantCulture)
+                                );
+                            }
+                        }
+                        else if (castOffset.Y < 0)
+                        {
+                            var limit = MinVerticalOffset(size.Width, size.Height);
+                            if (castOffset.Y < limit)
+                            {
+                                yield return new Issue(
+                                    GetTemplate(YOffsetLow),
+                                    beatmap,
+                                    path,
+                                    castOffset.Y,
+                                    (limit - 1).ToString(CultureInfo.InvariantCulture)
+                                );
+                            }
+                        }
+                    }
+
                     files.TryAdd(path, new Dictionary<Vector2, HashSet<string>>());
                     var file = files[path];
                     file.TryAdd(castOffset, []);
@@ -115,16 +210,46 @@ namespace MapsetVerifier.Checks.Taiko.Design
                 foreach (var offset in offsets)
                 {
                     var offsetCoords = offset.Key;
+                    var offsetCoordsText = string.Create(
+                        CultureInfo.InvariantCulture,
+                        $"({offsetCoords.X}, {offsetCoords.Y})"
+                    );
                     var diffNames = string.Join(", ", offset.Value);
                     yield return new Issue(
                         GetTemplate(Inconsistent),
                         null,
                         fileName,
-                        offsetCoords,
+                        offsetCoordsText,
                         diffNames
                     );
                 }
             }
+        }
+
+        private static (int Width, int Height)? ReadImageSize(Beatmap beatmap, string relativePath)
+        {
+            if (string.IsNullOrWhiteSpace(beatmap.SongPath))
+                return null;
+
+            var fullPath = Path.Combine(
+                beatmap.SongPath,
+                relativePath
+                    .Replace('/', Path.DirectorySeparatorChar)
+                    .Replace('\\', Path.DirectorySeparatorChar)
+            );
+            if (!File.Exists(fullPath))
+                return null;
+
+            var tagFile = new FileAbstraction(fullPath).GetTagFile();
+            if (tagFile == null)
+                return null;
+
+            var width = tagFile.Properties.PhotoWidth;
+            var height = tagFile.Properties.PhotoHeight;
+            if (width <= 0 || height <= 0)
+                return null;
+
+            return (width, height);
         }
     }
 }

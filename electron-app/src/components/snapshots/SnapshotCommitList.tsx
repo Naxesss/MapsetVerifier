@@ -1,5 +1,4 @@
 ﻿import {
-  Box,
   Group,
   Stack,
   Text,
@@ -10,6 +9,7 @@
   ScrollArea,
   ActionIcon,
   Tooltip,
+  Box,
 } from '@mantine/core';
 import {
   IconGitCommit,
@@ -65,44 +65,17 @@ function SnapshotCommitList({
 }: SnapshotCommitListProps) {
   const theme = useMantineTheme();
   const viewportRef = useRef<HTMLDivElement>(null);
-  const commitRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
 
-  // Scroll to selected commit when it changes
-  useEffect(() => {
-    if (!selectedCommitId || !viewportRef.current) return;
-
-    const selectedElement = commitRefs.current.get(selectedCommitId);
-    if (!selectedElement) return;
-
-    const viewport = viewportRef.current;
-
-    // Check if viewport has overflow (scrollbar exists)
-    const hasOverflow = viewport.scrollWidth > viewport.clientWidth;
-    if (!hasOverflow) return;
-
-    // Calculate the position to scroll to center the selected commit
-    const viewportRect = viewport.getBoundingClientRect();
-    const elementRect = selectedElement.getBoundingClientRect();
-
-    // Calculate the scroll position to center the element
-    const scrollLeft =
-      viewport.scrollLeft +
-      elementRect.left -
-      viewportRect.left -
-      viewportRect.width / 2 +
-      elementRect.width / 2;
-
-    // Smooth scroll to the calculated position
-    viewport.scrollTo({
-      left: scrollLeft,
-      behavior: 'smooth',
-    });
-  }, [selectedCommitId]);
-
-  // Find the current index of the selected commit
   const currentIndex = selectedCommitId
     ? commits.findIndex((commit) => commit.id === selectedCommitId)
     : -1;
+
+  useEffect(() => {
+    if (!selectedCommitId) return;
+
+    const el = viewportRef.current?.querySelector(`[data-commit-id="${selectedCommitId}"]`);
+    el?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+  }, [selectedCommitId]);
 
   const isPreviousDisabled = currentIndex <= 0;
   const isNextDisabled = currentIndex === -1 || currentIndex >= commits.length - 1;
@@ -144,10 +117,12 @@ function SnapshotCommitList({
       <ScrollArea
         p="xs"
         bg={theme.colors.dark[8]}
+        scrollbars="x"
+        type="auto"
         style={{ borderRadius: theme.radius.md, flex: 1 }}
         viewportRef={viewportRef}
       >
-        <Flex gap="xs" wrap="nowrap">
+        <Group gap="xs" wrap="nowrap" align="stretch">
           {commits.map((commit, index) => {
             const isSelected = selectedCommitId === commit.id;
             const isFirst = index === 0;
@@ -155,20 +130,13 @@ function SnapshotCommitList({
             return (
               <UnstyledButton
                 key={commit.id}
-                ref={(el) => {
-                  if (el) {
-                    commitRefs.current.set(commit.id, el);
-                  } else {
-                    commitRefs.current.delete(commit.id);
-                  }
-                }}
+                data-commit-id={commit.id}
                 onClick={() => onSelectCommit(commit.id)}
                 style={{
                   borderTop: `2px solid ${isSelected ? theme.colors.blue[6] : theme.colors.dark[5]}`,
                   backgroundColor: isSelected ? theme.colors.dark[6] : theme.colors.dark[7],
                   transition: 'all 0.15s ease',
                   borderRadius: theme.radius.sm,
-                  minWidth: '145px',
                   flexShrink: 0,
                 }}
               >
@@ -184,13 +152,8 @@ function SnapshotCommitList({
                           />
                         </Box>
                       </Tooltip>
-                      <Group
-                        gap={4}
-                        wrap="nowrap"
-                        align="baseline"
-                        style={{ minWidth: 0, flex: 1 }}
-                      >
-                        <Text size="xs" fw={500} lh={1.1} truncate>
+                      <Group gap={4} wrap="nowrap" align="baseline">
+                        <Text size="xs" fw={500} lh={1.1}>
                           {formatDate(commit.date)}
                         </Text>
                         <Text c="dimmed" fz="10px" lh={1.1} style={{ flexShrink: 0 }}>
@@ -199,7 +162,12 @@ function SnapshotCommitList({
                       </Group>
                     </Group>
                     <Group gap={4} wrap="nowrap">
-                      {commit.totalChanges === 0 && (
+                      {!commit.hasSnapshot && (
+                        <Badge size="xs" variant="light" color="orange">
+                          No snapshot
+                        </Badge>
+                      )}
+                      {commit.hasSnapshot && commit.totalChanges === 0 && (
                         <Badge size="xs" variant="light" color="gray">
                           No changes
                         </Badge>
@@ -240,7 +208,7 @@ function SnapshotCommitList({
               </UnstyledButton>
             );
           })}
-        </Flex>
+        </Group>
       </ScrollArea>
       <ActionIcon
         variant="default"

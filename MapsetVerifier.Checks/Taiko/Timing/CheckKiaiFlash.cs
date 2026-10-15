@@ -1,11 +1,11 @@
-﻿using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Checks.Utils;
+using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
-using static MapsetVerifier.Checks.Utils.GeneralUtils;
-using static MapsetVerifier.Checks.Utils.TaikoUtils;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Taiko.Timing
 {
@@ -27,7 +27,16 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                     {
                         "Purpose",
                         @"
-                    Ensuring that kiai flash usage is not too drastic."
+                    Ensuring that kiai flash usage is not too drastic.
+
+                    **Thresholds**:
+
+                    | Severity | Maximum flash length |
+                    | :-: | :-- |
+                    | **Warning** | ≤ 1/3 beat |
+                    | **Minor** | ≤ 1/2 beat, but longer than the warning threshold |
+
+                    Flashes longer than 1/2 beat are not flagged."
                     },
                     {
                         "Reasoning",
@@ -44,17 +53,23 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                     Minor,
                     new IssueTemplate(
                         Issue.Level.Minor,
-                        "{0} Kiai flash ",
-                        "timestamp -"
-                    ).WithCause("A kiai flash exists, but is not too drastic")
+                        "{0} Kiai flash ({1}).",
+                        "timestamp -",
+                        "1/X"
+                    )
+                        .WithCause("A kiai flash exists, but is not too drastic")
+                        .WithRule(RC.Taiko.KiaiTimeOnlyUsedChorus)
                 },
                 {
                     Warning,
                     new IssueTemplate(
                         Issue.Level.Warning,
-                        "{0} Kiai flash",
-                        "timestamp -"
-                    ).WithCause("A kiai flash that's too drastic exists")
+                        "{0} Kiai flash ({1}).",
+                        "timestamp -",
+                        "1/X"
+                    )
+                        .WithCause("A kiai flash that's too drastic exists")
+                        .WithRule(RC.Taiko.KiaiTimeOnlyUsedChorus)
                 },
             };
 
@@ -78,13 +93,15 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                     var normalizedMsPerBeat = timing.GetNormalizedMsPerBeat();
                     var kiaiToggle = kiaiToggles[nextIndex];
                     double gap = kiaiToggle.Offset - toggle.Offset;
+                    var snap = TimingUtils.FormatClosestBeatSnap(gap, normalizedMsPerBeat);
 
-                    if (gap <= Math.Ceiling(normalizedMsPerBeat / 2.5))
+                    if (gap <= Math.Ceiling(normalizedMsPerBeat / 3))
                     {
                         yield return new Issue(
                             GetTemplate(Warning),
                             beatmap,
-                            Timestamp.Get(toggle.Offset)
+                            Timestamp.Get(toggle.Offset),
+                            snap
                         );
                     }
                     else if (gap <= Math.Ceiling(normalizedMsPerBeat / 2))
@@ -92,7 +109,8 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         yield return new Issue(
                             GetTemplate(Minor),
                             beatmap,
-                            Timestamp.Get(toggle.Offset)
+                            Timestamp.Get(toggle.Offset),
+                            snap
                         );
                     }
                 }

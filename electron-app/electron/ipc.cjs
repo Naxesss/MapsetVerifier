@@ -2,6 +2,8 @@ const { ipcMain, shell, dialog, BrowserWindow, app } = require('electron');
 const fs = require('fs/promises');
 const path = require('path');
 const sidecar = require('./sidecar.cjs');
+const osuLauncher = require('./osuLauncher.cjs');
+const zoom = require('./zoom.cjs');
 
 const SETTINGS_FILE = 'settings.json';
 const EXTERNALS_FOLDER_NAME = 'Mapset Verifier Externals';
@@ -44,6 +46,7 @@ function registerIpc(getMainWindow) {
     const w = focusedWindow(e);
     return w ? w.isMaximized() : false;
   });
+  ipcMain.handle('window:setDefaultZoom', (e, percent) => zoom.setDefaultZoom(e.sender, percent));
 
   ipcMain.handle('shell:openPath', async (_e, p) => {
     if (!p || typeof p !== 'string') return 'invalid path';
@@ -53,11 +56,32 @@ function registerIpc(getMainWindow) {
     if (!url || typeof url !== 'string') return;
     await shell.openExternal(url);
   });
+  ipcMain.handle('shell:openOsuUrl', async (_e, options) => {
+    return osuLauncher.openOsuUrl(options);
+  });
+  ipcMain.handle('shell:detectOsuExecutable', async (_e, options) => {
+    return osuLauncher.detectOsuExecutable(options);
+  });
 
   ipcMain.handle('dialog:openFolder', async (e) => {
     const w = focusedWindow(e);
     const result = await dialog.showOpenDialog(w || undefined, {
       properties: ['openDirectory'],
+    });
+    if (result.canceled || !result.filePaths.length) return null;
+    return result.filePaths[0];
+  });
+  ipcMain.handle('dialog:openFile', async (e) => {
+    const w = focusedWindow(e);
+    const filters =
+      process.platform === 'win32'
+        ? [{ name: 'Executables', extensions: ['exe', 'cmd', 'bat'] }]
+        : process.platform === 'darwin'
+          ? [{ name: 'Applications', extensions: ['app'] }]
+          : undefined;
+    const result = await dialog.showOpenDialog(w || undefined, {
+      properties: ['openFile'],
+      filters,
     });
     if (result.canceled || !result.filePaths.length) return null;
     return result.filePaths[0];
@@ -81,17 +105,30 @@ function registerIpc(getMainWindow) {
       throw e;
     }
   });
-  ipcMain.handle('settings:write', async (_e, text) => {
-    await ensureConfigDir();
-    await fs.writeFile(settingsPath(), typeof text === 'string' ? text : JSON.stringify(text, null, 2), 'utf-8');
+  let settingsWriteQueue = Promise.resolve();
+  ipcMain.handle('settings:write', (_e, text) => {
+    const payload = typeof text === 'string' ? text : JSON.stringify(text, null, 2);
+    // Chain onto the previous write so concurrent invokes can't land out of order
+    // and silently revert an earlier save with a stale snapshot (see issue #122).
+    settingsWriteQueue = settingsWriteQueue
+      .then(async () => {
+        await ensureConfigDir();
+        await fs.writeFile(settingsPath(), payload, 'utf-8');
+      })
+      .catch((e) => {
+        console.error('[Settings] Error writing settings:', e);
+      });
+    return settingsWriteQueue;
   });
 
   ipcMain.handle('backend:status', () => ({
     running: sidecar.isRunning(),
     port: sidecar.BACKEND_PORT,
   }));
-  ipcMain.handle('backend:start', () => {
-    sidecar.spawnSidecar();
+  ipcMain.handle('backend:start', (_e, options) => {
+    sidecar.spawnSidecar({
+      customChecksEnabled: options?.customChecksEnabled !== false,
+    });
   });
 
   ipcMain.handle('app:version', () => app.getVersion());
@@ -121,4 +158,4 @@ function registerIpc(getMainWindow) {
   });
 }
 
-module.exports = { registerIpc };
+module.exports = { registerIpc, settingsPath };

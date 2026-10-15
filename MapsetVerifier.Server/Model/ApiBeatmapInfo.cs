@@ -4,11 +4,13 @@ public readonly struct ApiBeatmapInfo(
     string? title,
     string? artist,
     string? creator,
+    ulong? beatmapId,
     ulong? beatmapSetId
 )
 {
     public string? Title { get; } = title;
     public string? Artist { get; } = artist;
     public string? Creator { get; } = creator;
+    public ulong? BeatmapId { get; } = beatmapId;
     public ulong? BeatmapSetId { get; } = beatmapSetId;
 }

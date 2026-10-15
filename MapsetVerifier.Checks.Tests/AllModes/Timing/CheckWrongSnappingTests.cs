@@ -1,6 +1,5 @@
 using MapsetVerifier.Checks.AllModes.Timing;
 using MapsetVerifier.Framework.Objects;
-using MapsetVerifier.Parser.Objects;
 using Xunit;
 
 namespace MapsetVerifier.Checks.Tests.AllModes.Timing;
@@ -78,26 +77,26 @@ public class CheckWrongSnappingTests
         using var context = CheckTestContext.CreateFromOsuFiles([
             (
                 "easy.osu",
-                BuildOsu(
-                    version: "Easy",
-                    overallDifficulty: 4,
-                    timingPoints: ["0,600,4,2,0,100,1,0"],
-                    hitObjects:
-                    [
+                new OsuBuilder()
+                    .Title("Wrong Snapping")
+                    .Version("Easy")
+                    .OD(4)
+                    .TimingPoints("0,600,4,2,0,100,1,0")
+                    .HitObjects(
                         "256,192,600,1,0,0:0:0:0:",
                         "256,192,1200,1,0,0:0:0:0:",
-                        "256,192,1800,1,0,0:0:0:0:",
-                    ]
-                )
+                        "256,192,1800,1,0,0:0:0:0:"
+                    )
+                    .Build()
             ),
             (
                 "hard.osu",
-                BuildOsu(
-                    version: "Hard",
-                    overallDifficulty: 8,
-                    timingPoints: ["0,600,4,2,0,100,1,0"],
-                    hitObjects:
-                    [
+                new OsuBuilder()
+                    .Title("Wrong Snapping")
+                    .Version("Hard")
+                    .OD(8)
+                    .TimingPoints("0,600,4,2,0,100,1,0")
+                    .HitObjects(
                         "256,192,700,1,0,0:0:0:0:",
                         "256,192,1300,1,0,0:0:0:0:",
                         "256,192,1900,1,0,0:0:0:0:",
@@ -105,9 +104,9 @@ public class CheckWrongSnappingTests
                         "256,192,3000,1,0,0:0:0:0:",
                         "256,192,3600,1,0,0:0:0:0:",
                         "256,192,4200,1,0,0:0:0:0:",
-                        "256,192,4800,1,0,0:0:0:0:",
-                    ]
-                )
+                        "256,192,4800,1,0,0:0:0:0:"
+                    )
+                    .Build()
             ),
         ]);
 
@@ -121,7 +120,7 @@ public class CheckWrongSnappingTests
         Assert.Contains(
             issues,
             issue =>
-                issue.level == Issue.Level.Warning
+                issue.level == Issue.Level.Minor
                 && issue.message.Contains("Different snapping")
                 && issue.message.Contains("Hard")
         );
@@ -133,27 +132,30 @@ public class CheckWrongSnappingTests
         using var context = CheckTestContext.CreateFromOsuFiles([
             (
                 "easy.osu",
-                BuildOsu(
-                    version: "Easy",
-                    overallDifficulty: 4,
-                    hitObjects: ["256,192,1000,1,0,0:0:0:0:", "256,192,2000,1,0,0:0:0:0:"]
-                )
+                new OsuBuilder()
+                    .Title("Wrong Snapping")
+                    .Version("Easy")
+                    .OD(4)
+                    .WithDefaultTiming()
+                    .HitObjects("256,192,1000,1,0,0:0:0:0:", "256,192,2000,1,0,0:0:0:0:")
+                    .Build()
             ),
             (
                 "hard.osu",
-                BuildOsu(
-                    version: "Hard",
-                    overallDifficulty: 8,
-                    hitObjects:
-                    [
+                new OsuBuilder()
+                    .Title("Wrong Snapping")
+                    .Version("Hard")
+                    .OD(8)
+                    .WithDefaultTiming()
+                    .HitObjects(
                         "256,192,1000,1,0,0:0:0:0:",
                         "256,192,2000,1,0,0:0:0:0:",
                         "256,192,3000,1,0,0:0:0:0:",
                         "256,192,4000,1,0,0:0:0:0:",
                         "256,192,5000,1,0,0:0:0:0:",
-                        "256,192,6000,1,0,0:0:0:0:",
-                    ]
-                )
+                        "256,192,6000,1,0,0:0:0:0:"
+                    )
+                    .Build()
             ),
         ]);
 
@@ -168,22 +170,18 @@ public class CheckWrongSnappingTests
     [Fact]
     public void FlagsRareSnapDivisorUsage()
     {
-        using var context = CheckTestContext.CreateFromOsuFiles([
-            (
-                "test.osu",
-                BuildOsu(
-                    version: "Test",
-                    hitObjects:
-                    [
-                        "256,192,0,1,0,0:0:0:0:",
-                        "256,192,500,1,0,0:0:0:0:",
-                        "256,192,1000,1,0,0:0:0:0:",
-                        "256,192,1500,1,0,0:0:0:0:",
-                        "256,192,166.666666666667,1,0,0:0:0:0:",
-                    ]
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Title("Wrong Snapping")
+                .WithDefaultTiming()
+                .HitObjects(
+                    "256,192,0,1,0,0:0:0:0:",
+                    "256,192,500,1,0,0:0:0:0:",
+                    "256,192,1000,1,0,0:0:0:0:",
+                    "256,192,1500,1,0,0:0:0:0:",
+                    "256,192,166.666666666667,1,0,0:0:0:0:"
                 )
-            ),
-        ]);
+        );
 
         var issues = context.RunBeatmapSetCheck<CheckWrongSnapping>();
 
@@ -196,41 +194,5 @@ public class CheckWrongSnappingTests
                     || issue.message.Contains("0.5% or less")
                 )
         );
-    }
-
-    private static string BuildOsu(
-        string version,
-        float overallDifficulty = 5,
-        IEnumerable<string>? timingPoints = null,
-        IEnumerable<string>? hitObjects = null
-    )
-    {
-        var lines = new List<string>
-        {
-            "osu file format v14",
-            "[General]",
-            "AudioFilename: audio.mp3",
-            "Mode: 0",
-            "[Metadata]",
-            "Title:Wrong Snapping",
-            "Artist:MapsetVerifier",
-            "Creator:Tests",
-            $"Version:{version}",
-            "[Difficulty]",
-            "CircleSize:4",
-            "HPDrainRate:5",
-            $"OverallDifficulty:{overallDifficulty}",
-            "ApproachRate:5",
-            "SliderMultiplier:1.4",
-            "SliderTickRate:1",
-            "[Events]",
-            "[TimingPoints]",
-        };
-
-        lines.AddRange(timingPoints ?? ["0,500,4,2,0,100,1,0"]);
-        lines.Add("[HitObjects]");
-        lines.AddRange(hitObjects ?? ["256,192,1000,1,0,0:0:0:0:"]);
-
-        return string.Join("\n", lines);
     }
 }

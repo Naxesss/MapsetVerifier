@@ -42,6 +42,16 @@ public class ObjectsOverviewDifficulty
     public List<double> UnsnappedEdgeTimesMs { get; set; } = [];
     public List<ObjectsTimelineSample> TimelineSamples { get; set; } = [];
     public List<ObjectsHitsoundGapPeriod> HitsoundGapPeriods { get; set; } = [];
+    public List<ObjectsColumnUsage>? ColumnUsage { get; set; } // null for non-Mania
+}
+
+public class ObjectsColumnUsage
+{
+    public int Column { get; set; }
+    public int NoteCount { get; set; }
+    public int HoldNoteCount { get; set; }
+    public int TotalCount { get; set; }
+    public double Percentage { get; set; }
 }
 
 public class ObjectsBreakPeriod
@@ -57,6 +67,7 @@ public class ObjectsTimelineObject
     public string ObjectType { get; set; } = string.Empty;
     public bool HasFinishHitSound { get; set; }
     public int HitSoundFlags { get; set; }
+    public int SliderBodyHitSoundFlags { get; set; }
     public int? ComboColourIndex { get; set; }
     public string? ComboColourHex { get; set; }
     public List<ObjectsTimelineEdge> Edges { get; set; } = [];
@@ -78,6 +89,9 @@ public class ObjectsTimelineSample
     public int CustomIndex { get; set; }
     public string? PartName { get; set; }
     public string? ObjectType { get; set; }
+
+    /// <summary> Whether this is the edge's own hitnormal, i.e. the sample defining the edge's sample bank. </summary>
+    public bool IsBaseHitNormal { get; set; }
 }
 
 public class ObjectsHitsoundGapPeriod

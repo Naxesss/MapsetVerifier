@@ -1,5 +1,5 @@
 import { Box, Transition } from '@mantine/core';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import BeatmapCard from './BeatmapCard.tsx';
 import { Beatmap } from '../../Types.ts';
 
@@ -13,6 +13,8 @@ interface CurrentBeatmapCardProps {
   current: CurrentBeatmapData | null;
   selectedFolderPath?: string;
   onSelectFolderPath: (folderPath?: string) => void;
+  source?: 'stable' | 'lazer';
+  lazerDataDir?: string;
 }
 
 const SWAP_DURATION_MS = 220;
@@ -27,33 +29,33 @@ export default function CurrentBeatmapCard({
   current,
   selectedFolderPath,
   onSelectFolderPath,
+  source = 'stable',
+  lazerDataDir,
 }: CurrentBeatmapCardProps) {
-  const [renderedCurrent, setRenderedCurrent] = useState<CurrentBeatmapData | null>(null);
-  const [visible, setVisible] = useState(false);
-  const pendingRef = useRef<CurrentBeatmapData | null>(null);
+  // Settings unmounts the sidebar. On return the cached mapset is already here, and
+  // prevKey starts equal to it, so the sync below never copies it unless we seed.
+  const [renderedCurrent, setRenderedCurrent] = useState<CurrentBeatmapData | null>(current);
+  const [visible, setVisible] = useState(current != null);
+  const [pending, setPending] = useState<CurrentBeatmapData | null>(null);
   const currentKey = current?.folderPath ?? null;
+  const [prevKey, setPrevKey] = useState(currentKey);
 
-  useEffect(() => {
+  if (currentKey !== prevKey) {
+    setPrevKey(currentKey);
+
     if (!current) {
-      pendingRef.current = null;
+      setPending(null);
       setVisible(false);
-      return;
-    }
-
-    if (!renderedCurrent) {
+    } else if (!renderedCurrent) {
       setRenderedCurrent(current);
       setVisible(true);
-      return;
-    }
-
-    if (renderedCurrent.folderPath === current.folderPath) {
+    } else if (renderedCurrent.folderPath === current.folderPath) {
       setRenderedCurrent(current);
-      return;
+    } else {
+      setPending(current);
+      setVisible(false);
     }
-
-    pendingRef.current = current;
-    setVisible(false);
-  }, [currentKey]);
+  }
 
   return (
     <Transition
@@ -62,9 +64,9 @@ export default function CurrentBeatmapCard({
       duration={SWAP_DURATION_MS}
       timingFunction="ease"
       onExited={() => {
-        if (pendingRef.current) {
-          setRenderedCurrent(pendingRef.current);
-          pendingRef.current = null;
+        if (pending) {
+          setRenderedCurrent(pending);
+          setPending(null);
           setVisible(true);
         } else {
           setRenderedCurrent(null);
@@ -78,6 +80,8 @@ export default function CurrentBeatmapCard({
               <BeatmapCard
                 beatmap={renderedCurrent.beatmap}
                 songFolder={renderedCurrent.lookupRoot}
+                source={source}
+                lazerDataDir={lazerDataDir}
                 isSelectedOverride={selectedFolderPath === renderedCurrent.folderPath}
                 onSelect={() => onSelectFolderPath(renderedCurrent.folderPath)}
               />

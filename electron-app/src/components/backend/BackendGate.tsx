@@ -13,10 +13,10 @@
   Stack,
 } from '@mantine/core';
 import { IconAlertCircle, IconCheck, IconCopy, IconTerminal2 } from '@tabler/icons-react';
-import React, { useEffect, useState, useRef, useCallback, ReactNode } from 'react';
-import { cssVarResolver } from '../../App';
+import React, { useEffect, useState, useRef, useCallback, useReducer, ReactNode } from 'react';
 import { BACKEND_BASE_URL } from '../../Constants.ts';
 import { useSettings } from '../../context/SettingsContext';
+import { cssVarResolver } from '../../theme/cssVarResolver';
 import { useAppTheme } from '../../theme/useAppTheme';
 
 interface BackendGateProps {
@@ -39,6 +39,38 @@ const stageText: Record<Stage, string> = {
   health: 'Loading services...',
   ready: 'Ready!',
 };
+
+interface GateState {
+  status: Status;
+  stage: Stage;
+  errorMsg: string | null;
+}
+
+const initialGateState: GateState = { status: 'idle', stage: 'init', errorMsg: null };
+
+type GateAction =
+  | { type: 'reset' }
+  | { type: 'stage'; stage: Stage }
+  | { type: 'status'; status: Status }
+  | { type: 'ready' }
+  | { type: 'error'; message: string };
+
+function gateReducer(state: GateState, action: GateAction): GateState {
+  switch (action.type) {
+    case 'reset':
+      return initialGateState;
+    case 'stage':
+      return { ...state, stage: action.stage };
+    case 'status':
+      return { ...state, status: action.status };
+    case 'ready':
+      return { status: 'ready', stage: 'ready', errorMsg: null };
+    case 'error':
+      return { status: 'error', stage: 'init', errorMsg: action.message };
+    default:
+      return state;
+  }
+}
 
 async function isHealthy(baseUrl: string, timeoutMs: number): Promise<boolean> {
   const controller = new AbortController();
@@ -80,9 +112,7 @@ const BackendGate: React.FC<BackendGateProps> = ({
   const { settings, loaded } = useSettings();
   const theme = useAppTheme();
 
-  const [status, setStatus] = useState<Status>('idle');
-  const [stage, setStage] = useState<Stage>('init');
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [{ status, stage, errorMsg }, dispatch] = useReducer(gateReducer, initialGateState);
   const [sidecarLogs, setSidecarLogs] = useState<string[]>([]);
 
   const startingRef = useRef(false);
@@ -95,9 +125,7 @@ const BackendGate: React.FC<BackendGateProps> = ({
   }, []);
 
   const markReady = useCallback((persist = true) => {
-    setStatus('ready');
-    setStage('ready');
-    setErrorMsg(null);
+    dispatch({ type: 'ready' });
 
     if (persist) {
       window.__BACKEND_GATE__ = { ready: true };
@@ -105,16 +133,12 @@ const BackendGate: React.FC<BackendGateProps> = ({
   }, []);
 
   const markError = useCallback((message: string) => {
-    setStatus('error');
-    setStage('init');
-    setErrorMsg(message);
+    dispatch({ type: 'error', message });
     window.__BACKEND_GATE__ = { ready: false };
   }, []);
 
   const reset = useCallback(() => {
-    setStatus('idle');
-    setStage('init');
-    setErrorMsg(null);
+    dispatch({ type: 'reset' });
   }, []);
 
   const startBackend = useCallback(async () => {
@@ -134,9 +158,11 @@ const BackendGate: React.FC<BackendGateProps> = ({
     reset();
 
     try {
-      setStatus('starting');
+      dispatch({ type: 'status', status: 'starting' });
 
-      await window.electronAPI?.backend.start();
+      await window.electronAPI?.backend.start({
+        customChecksEnabled: settings.customChecksEnabled,
+      });
       setSidecarLogs([]);
 
       const preHealthy = await isHealthy(BACKEND_BASE_URL, 2500);
@@ -146,7 +172,7 @@ const BackendGate: React.FC<BackendGateProps> = ({
         return;
       }
 
-      setStage('health');
+      dispatch({ type: 'stage', stage: 'health' });
 
       const healthy = await waitForHealthy(healthTimeoutMs, probeIntervalMs, () =>
         isHealthy(BACKEND_BASE_URL, 2500)
@@ -176,16 +202,20 @@ const BackendGate: React.FC<BackendGateProps> = ({
   }, [appendLog]);
 
   useEffect(() => {
-    if (shouldGate === null) return;
+    if (!shouldGate) return;
 
-    if (!shouldGate) {
-      markReady(false);
-      return;
-    }
+    let cancelled = false;
 
-    reset();
-    startBackend();
-  }, [shouldGate, markReady, reset, startBackend]);
+    void Promise.resolve().then(() => {
+      if (cancelled) return;
+      reset();
+      startBackend();
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [shouldGate, reset, startBackend]);
 
   if (shouldGate === null) {
     return null;

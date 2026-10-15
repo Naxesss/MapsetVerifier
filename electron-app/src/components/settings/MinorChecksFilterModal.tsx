@@ -12,7 +12,7 @@ import {
   FocusTrap,
 } from '@mantine/core';
 import { IconSearch } from '@tabler/icons-react';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useSettings } from '../../context/SettingsContext';
 import {
   dedupeDocumentationChecksById,
@@ -27,7 +27,9 @@ interface MinorChecksFilterModalProps {
   onClose: () => void;
 }
 
-function minorCapableDocumentationChecks(allChecks: ApiDocumentationCheck[]): ApiDocumentationCheck[] {
+function minorCapableDocumentationChecks(
+  allChecks: ApiDocumentationCheck[]
+): ApiDocumentationCheck[] {
   const minors = allChecks.filter((c) => c.outcomes.includes('Minor'));
   return dedupeDocumentationChecksById(minors).sort((a, b) =>
     a.description.localeCompare(b.description, undefined, { sensitivity: 'base' })
@@ -35,7 +37,10 @@ function minorCapableDocumentationChecks(allChecks: ApiDocumentationCheck[]): Ap
 }
 
 /** Same fields as catalogue search, plus id substring match (e.g. "12" matches id 124). */
-function filterMinorChecksList(checks: ApiDocumentationCheck[], query: string): ApiDocumentationCheck[] {
+function filterMinorChecksList(
+  checks: ApiDocumentationCheck[],
+  query: string
+): ApiDocumentationCheck[] {
   const q = query.trim();
   if (!q) return checks;
 
@@ -54,9 +59,12 @@ const MinorChecksFilterModal: React.FC<MinorChecksFilterModalProps> = ({ opened,
 
   const minorChecksList = useMemo(() => minorCapableDocumentationChecks(allChecks), [allChecks]);
 
-  useEffect(() => {
+  const [prevOpened, setPrevOpened] = useState(opened);
+
+  if (opened !== prevOpened) {
+    setPrevOpened(opened);
     if (!opened) setSearchQuery('');
-  }, [opened]);
+  }
 
   const filteredMinorChecks = useMemo(
     () => filterMinorChecksList(minorChecksList, searchQuery),
@@ -97,7 +105,7 @@ const MinorChecksFilterModal: React.FC<MinorChecksFilterModalProps> = ({ opened,
             }
           />
         </FocusTrap>
-        <ScrollArea.Autosize mah={420} offsetScrollbars type="always">
+        <ScrollArea.Autosize mah={420} offsetScrollbars type="always" scrollbars="y">
           <Stack gap={0}>
             {minorChecksList.length === 0 ? (
               <Text size="sm" c="dimmed" py="md">
@@ -112,10 +120,11 @@ const MinorChecksFilterModal: React.FC<MinorChecksFilterModalProps> = ({ opened,
                 <Group
                   key={check.id}
                   justify="space-between"
-                  align="flex-start"
+                  align="center"
                   wrap="nowrap"
                   gap="sm"
                   py="xs"
+                  pr="xs"
                   style={{ borderBottom: '1px solid var(--mantine-color-dark-5)' }}
                 >
                   <Stack gap={4} style={{ minWidth: 0, flex: 1 }}>

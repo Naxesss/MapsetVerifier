@@ -2,6 +2,7 @@
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.General.Resources
 {
@@ -40,13 +41,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
             {
                 {
                     "Multiple",
-                    new IssueTemplate(
-                        Issue.Level.Problem,
-                        "{0}",
-                        "video offset : difficulties"
-                    ).WithCause(
-                        "There is more than one video offset used between all difficulties."
-                    )
+                    new IssueTemplate(Issue.Level.Problem, "{0}", "video offset : difficulties")
+                        .WithCause(
+                            "There is more than one video offset used between all difficulties."
+                        )
+                        .WithRule(RC.General.VideoAndBackground_VideoOffsetCorrectSynchronizesSong)
                 },
             };
 

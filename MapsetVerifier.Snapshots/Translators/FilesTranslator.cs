@@ -8,6 +8,46 @@ namespace MapsetVerifier.Snapshots.Translators
     {
         public override string Section => "Files";
 
+        /// <summary>
+        /// Section names this translator can assign to individual diffs, based on the
+        /// changed file's extension. Used by consumers to identify file-based sections.
+        /// </summary>
+        public static readonly string[] FileSections =
+        [
+            "Osu Files",
+            "Audio Files",
+            "Video Files",
+            "Other Files",
+        ];
+
+        private static readonly string[] AudioExtensions = [".mp3", ".wav", ".ogg", ".m4a"];
+        private static readonly string[] VideoExtensions =
+        [
+            ".mp4",
+            ".avi",
+            ".mov",
+            ".flv",
+            ".wmv",
+            ".webm",
+            ".mkv",
+        ];
+
+        private static string GetFileSection(string fileName)
+        {
+            var extension = Path.GetExtension(fileName);
+
+            if (extension.Equals(".osu", StringComparison.OrdinalIgnoreCase))
+                return "Osu Files";
+
+            if (AudioExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
+                return "Audio Files";
+
+            if (VideoExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
+                return "Video Files";
+
+            return "Other Files";
+        }
+
         public override IEnumerable<DiffInstance> Translate(
             IEnumerable<DiffInstance> diffs,
             Beatmap beatmap
@@ -25,13 +65,15 @@ namespace MapsetVerifier.Snapshots.Translators
                     new Setting(diff.Diff).key == setting.key
                 );
 
+                var fileSection = GetFileSection(setting.key);
+
                 if (removal != null)
                 {
                     removed.Remove(removal);
 
                     yield return new DiffInstance(
                         "\"" + setting.key + "\" was modified.",
-                        Section,
+                        fileSection,
                         DiffType.Changed,
                         new List<string>(),
                         addition.SnapshotCreationDate
@@ -41,7 +83,7 @@ namespace MapsetVerifier.Snapshots.Translators
                 {
                     yield return new DiffInstance(
                         "\"" + setting.key + "\" was added.",
-                        Section,
+                        fileSection,
                         DiffType.Added,
                         new List<string>(),
                         addition.SnapshotCreationDate
@@ -55,7 +97,7 @@ namespace MapsetVerifier.Snapshots.Translators
 
                 yield return new DiffInstance(
                     "\"" + setting.key + "\" was removed.",
-                    Section,
+                    GetFileSection(setting.key),
                     DiffType.Removed,
                     new List<string>(),
                     removal.SnapshotCreationDate

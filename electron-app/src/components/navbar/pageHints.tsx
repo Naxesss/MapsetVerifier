@@ -1,9 +1,10 @@
 import { Box, Kbd } from '@mantine/core';
+import { IconPin } from '@tabler/icons-react';
 import { getActiveNavRoute } from './navConfig.ts';
 import MinorIcon from '../icons/MinorIcon.tsx';
 import type { ReactNode } from 'react';
 
-export type OverviewTab = 'Metadata' | 'Beatmap' | 'Difficulty' | 'Audio' | 'Objects';
+export type OverviewTab = 'Metadata' | 'Beatmap' | 'Difficulty' | 'Audio' | 'Video' | 'Objects';
 
 export type PageHint = {
   id: string;
@@ -15,7 +16,8 @@ function copyTimestampHint(isMac: boolean): PageHint {
     id: 'copy-timestamp',
     content: (
       <>
-        {isMac ? <Kbd size="xs">⌘</Kbd> : <Kbd size="xs">Ctrl</Kbd>} + <Kbd size="xs">Left Click</Kbd> to copy a timestamp.
+        {isMac ? <Kbd size="xs">⌘</Kbd> : <Kbd size="xs">Ctrl</Kbd>} +{' '}
+        <Kbd size="xs">Left Click</Kbd> to copy a timestamp.
       </>
     ),
   };
@@ -63,9 +65,65 @@ function minorChecksDisabledHint(): PageHint {
           }}
         >
           <MinorIcon size={16} />
-          minor checks
+          negligible checks
         </Box>
         ? Enable them in Settings.
+      </>
+    ),
+  };
+}
+
+function bookmarkHint(bookmarksEnabled: boolean): PageHint {
+  if (bookmarksEnabled) {
+    return {
+      id: 'bookmark-pin',
+      content:
+        'Use the pin icon on a beatmapset in the sidebar to bookmark it, then filter the list to show bookmarked sets only.',
+    };
+  }
+
+  return {
+    id: 'bookmarks-disabled',
+    content: (
+      <>
+        Looking to{' '}
+        <Box
+          component="span"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+            verticalAlign: 'middle',
+          }}
+        >
+          <IconPin size={16} />
+          pin beatmapsets
+        </Box>
+        ? Enable bookmarks in Experimental Settings.
+      </>
+    ),
+  };
+}
+
+function issueDetailsSidebarHint(): PageHint {
+  return {
+    id: 'issue-details-sidebar',
+    content: (
+      <>
+        <Kbd size="xs">Left Click</Kbd> an issue to open its details and documentation in the
+        sidebar.
+      </>
+    ),
+  };
+}
+
+function checkRunDeltaDisabledHint(): PageHint {
+  return {
+    id: 'check-run-delta-disabled',
+    content: (
+      <>
+        Want to see what changed since your last check run? Enable &quot;Show check changes since
+        last run&quot; in Settings.
       </>
     ),
   };
@@ -80,37 +138,49 @@ export function getPageHints(
   overviewTab: OverviewTab | null,
   objectsHasHitsoundModes: boolean,
   isMac: boolean,
-  showMinor: boolean
+  showMinor: boolean,
+  bookmarksEnabled: boolean,
+  showCheckRunDelta: boolean
 ): PageHint[] {
   const route = getActiveNavRoute(pathname);
 
-  if (route === '/documentation' || route === '/') {
+  if (!route) {
+    return [];
+  }
+
+  if (route === '/documentation' || route === '/ranking-criteria' || route === '/') {
     return [];
   }
 
   if (route === '/overview') {
-    if (overviewTab === 'Audio' || overviewTab === 'Metadata') {
+    if (overviewTab === 'Audio' || overviewTab === 'Video' || overviewTab === 'Metadata') {
       return [refreshBeatmapHint()];
     }
 
     if (overviewTab === 'Objects') {
       const hints = [
         ...commonHints(isMac),
-        contextClickHint('timeline-rclick', isMac, 'an object in the timeline to copy its timestamp.'),
+        contextClickHint(
+          'timeline-rclick',
+          isMac,
+          'an object in the timeline to copy its timestamp.'
+        ),
         {
           id: 'timeline-scroll-mode',
           content: (
             <>
               Hold <Kbd size="xs">Shift</Kbd> over the timeline for{' '}
-              <strong>timeline scroll mode</strong>. While <Kbd size="xs">Shift</Kbd> is held, the wheel steps timing snap ticks.
+              <strong>timeline scroll mode</strong>. While <Kbd size="xs">Shift</Kbd> is held, the
+              wheel steps timing snap ticks.
             </>
           ),
         },
         ...(objectsHasHitsoundModes
           ? [
               {
-                id: 'hitsound-full-view',
-                content: 'Use the timeline\'s full view to access the hitsounding overview.',
+                id: 'hitsound-view',
+                content:
+                  'Use the Structure / Hitsounding toggle in the timeline to access the hitsounding overview.',
               } satisfies PageHint,
             ]
           : []),
@@ -118,7 +188,8 @@ export function getPageHints(
           id: 'table-cell',
           content: (
             <>
-              <Kbd size="xs">Left Click</Kbd> on a cell in the tables to view a list of all related objects.
+              <Kbd size="xs">Left Click</Kbd> on a cell in the tables to view a list of all related
+              objects.
             </>
           ),
         },
@@ -131,7 +202,8 @@ export function getPageHints(
         ...commonHints(isMac),
         {
           id: 'cell-groups',
-          content: 'Certain matching values across difficulties share the same cell highlight color.',
+          content:
+            'Certain matching values across difficulties share the same cell highlight color.',
         },
       ];
     }
@@ -155,7 +227,10 @@ export function getPageHints(
   if (route === '/checks') {
     return [
       ...commonHints(isMac),
+      issueDetailsSidebarHint(),
+      bookmarkHint(bookmarksEnabled),
       ...(!showMinor ? [minorChecksDisabledHint()] : []),
+      ...(!showCheckRunDelta ? [checkRunDeltaDisabledHint()] : []),
     ];
   }
 

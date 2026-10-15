@@ -33,6 +33,7 @@ public class JuiceStream : Slider, ICatchHitObject
 
     public double Time => time;
     public float DistanceToHyper { get; set; } = float.PositiveInfinity;
+    public float DistanceToDash { get; set; } = float.PositiveInfinity;
     public CatchMovementType MovementType { get; set; }
     public CatchNoteDirection NoteDirection { get; set; }
 
@@ -74,6 +75,7 @@ public class JuiceStream : Slider, ICatchHitObject
         public PartKind Kind { get; } = kind;
         public double Time => time;
         public float DistanceToHyper { get; set; } = float.PositiveInfinity;
+        public float DistanceToDash { get; set; } = float.PositiveInfinity;
         public CatchMovementType MovementType { get; set; }
         public CatchNoteDirection NoteDirection { get; set; }
 

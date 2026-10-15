@@ -24,15 +24,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
     toggleMaximize: () => ipcRenderer.invoke('window:toggleMaximize'),
     close: () => ipcRenderer.invoke('window:close'),
     isMaximized: () => ipcRenderer.invoke('window:isMaximized'),
+    setDefaultZoom: (percent) => ipcRenderer.invoke('window:setDefaultZoom', percent),
   },
 
   shell: {
     openPath: (p) => ipcRenderer.invoke('shell:openPath', p),
     openExternal: (url) => ipcRenderer.invoke('shell:openExternal', url),
+    openOsuUrl: (options) => ipcRenderer.invoke('shell:openOsuUrl', options),
+    detectOsuExecutable: (options) => ipcRenderer.invoke('shell:detectOsuExecutable', options),
   },
 
   dialog: {
     openFolder: () => ipcRenderer.invoke('dialog:openFolder'),
+    openFile: () => ipcRenderer.invoke('dialog:openFile'),
   },
 
   settings: {
@@ -43,7 +47,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   backend: {
     status: () => ipcRenderer.invoke('backend:status'),
-    start: () => ipcRenderer.invoke('backend:start'),
+    start: (options) => ipcRenderer.invoke('backend:start', options),
     onLog: (cb) => on('backend:log', cb),
   },
 

@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 using Serilog;
 
 namespace MapsetVerifier.Checks.AllModes.General.Files
@@ -43,9 +44,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
             {
                 {
                     "0-byte",
-                    new IssueTemplate(Issue.Level.Problem, "\"{0}\"", "path").WithCause(
-                        "A file in the song folder contains no data; consists of 0 bytes."
-                    )
+                    new IssueTemplate(Issue.Level.Problem, "\"{0}\"", "path")
+                        .WithCause(
+                            "A file in the song folder contains no data; consists of 0 bytes."
+                        )
+                        .WithRule(RC.General.NotUnusedFiles0Byte)
                 },
                 {
                     "Exception",
@@ -61,6 +64,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Files
         {
             foreach (var filePath in beatmapSet.SongFilePaths)
             {
+                // Empty .osu files are excluded from the beatmap set entirely and flagged by
+                // CheckEmptyDifficultyFile instead, with a message relevant to difficulty files.
+                if (filePath.EndsWith(".osu"))
+                    continue;
+
                 Issue? errorIssue = null;
                 FileInfo? file = null;
 

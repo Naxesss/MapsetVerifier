@@ -1,7 +1,7 @@
 ﻿import { Badge, Flex, Group, Text, useMantineTheme } from '@mantine/core';
 import { useState } from 'react';
-import DocumentationCheckModal from './DocumentationCheckModal';
 import { ApiDocumentationCheck } from '../../Types.ts';
+import DetailModal from '../details/DetailModal';
 import GameModeIcon from '../icons/GameModeIcon.tsx';
 import LevelIcon from '../icons/LevelIcon.tsx';
 
@@ -56,10 +56,9 @@ function DocumentationCheck({ check }: DocumentationCheckProps) {
           </Text>
         </Flex>
       </Group>
-      <DocumentationCheckModal
-        opened={modalOpen}
+      <DetailModal
+        view={modalOpen ? { kind: 'check', check } : null}
         onClose={() => setModalOpen(false)}
-        check={check}
       />
     </>
   );

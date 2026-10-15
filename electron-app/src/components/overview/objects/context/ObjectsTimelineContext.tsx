@@ -1,20 +1,19 @@
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import { createContext, useContext, type ReactNode } from 'react';
 import { ROW_HEIGHT } from '../constants.ts';
 import { DEFAULT_HITSOUND_LAYERS } from '../hitsoundUtils.ts';
 import type {
   TimelineControllerValue,
-  TimelineCrosshairValue,
   TimelineFullViewValue,
   TimelinePanValue,
+  TimelineViewportValue,
 } from './types.ts';
 
 const TimelineControllerContext = createContext<TimelineControllerValue | null>(null);
 const TimelinePanContext = createContext<TimelinePanValue | null>(null);
 const TimelineFullViewContext = createContext<TimelineFullViewValue | null>(null);
-const TimelineCrosshairStateContext = createContext<TimelineCrosshairValue['crosshair']>(null);
-const TimelineCrosshairActionsContext = createContext<
-  Pick<TimelineCrosshairValue, 'setCrosshair'> | null
->(null);
+const TimelineViewportContext = createContext<TimelineViewportValue | null>(null);
+
+const FULL_TIMELINE_VIEWPORT: TimelineViewportValue = { startX: -Infinity, endX: Infinity };
 
 export function TimelineControllerProvider({
   value,
@@ -37,9 +36,7 @@ export function TimelinePanProvider({
   value: TimelinePanValue;
   children: ReactNode;
 }) {
-  return (
-    <TimelinePanContext.Provider value={value}>{children}</TimelinePanContext.Provider>
-  );
+  return <TimelinePanContext.Provider value={value}>{children}</TimelinePanContext.Provider>;
 }
 
 export function TimelineFullViewProvider({
@@ -51,26 +48,6 @@ export function TimelineFullViewProvider({
 }) {
   return (
     <TimelineFullViewContext.Provider value={value}>{children}</TimelineFullViewContext.Provider>
-  );
-}
-
-export function TimelineCrosshairProvider({
-  crosshair,
-  setCrosshair,
-  children,
-}: {
-  crosshair: TimelineCrosshairValue['crosshair'];
-  setCrosshair: TimelineCrosshairValue['setCrosshair'];
-  children: ReactNode;
-}) {
-  const actions = useMemo(() => ({ setCrosshair }), [setCrosshair]);
-
-  return (
-    <TimelineCrosshairStateContext.Provider value={crosshair}>
-      <TimelineCrosshairActionsContext.Provider value={actions}>
-        {children}
-      </TimelineCrosshairActionsContext.Provider>
-    </TimelineCrosshairStateContext.Provider>
   );
 }
 
@@ -90,6 +67,22 @@ export function useTimelinePan(): TimelinePanValue {
   return context;
 }
 
+export function TimelineViewportProvider({
+  value,
+  children,
+}: {
+  value: TimelineViewportValue;
+  children: ReactNode;
+}) {
+  return (
+    <TimelineViewportContext.Provider value={value}>{children}</TimelineViewportContext.Provider>
+  );
+}
+
+export function useTimelineViewport(): TimelineViewportValue {
+  return useContext(TimelineViewportContext) ?? FULL_TIMELINE_VIEWPORT;
+}
+
 function useOptionalTimelineFullView(): TimelineFullViewValue | null {
   return useContext(TimelineFullViewContext);
 }
@@ -98,18 +91,6 @@ export function useTimelineFullView(): TimelineFullViewValue {
   const context = useOptionalTimelineFullView();
   if (!context) {
     throw new Error('useTimelineFullView must be used within TimelineFullViewProvider');
-  }
-  return context;
-}
-
-export function useTimelineCrosshairState() {
-  return useContext(TimelineCrosshairStateContext);
-}
-
-export function useTimelineCrosshairActions() {
-  const context = useContext(TimelineCrosshairActionsContext);
-  if (!context) {
-    throw new Error('useTimelineCrosshairActions must be used within TimelineCrosshairProvider');
   }
   return context;
 }
@@ -134,8 +115,6 @@ export function useTimelineDisplay() {
     viewMode: fullView?.viewMode ?? ('structure' as const),
     hitsoundLayers: fullView?.hitsoundLayers ?? DEFAULT_HITSOUND_LAYERS,
     rowHeight: fullView?.rowHeight ?? ROW_HEIGHT,
-    playheadViewportX: fullView?.playheadViewportX ?? null,
-    snapPlayheadToTimestamp: fullView?.snapPlayheadToTimestamp ?? null,
   };
 }
 

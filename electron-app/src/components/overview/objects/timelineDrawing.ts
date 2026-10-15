@@ -1,4 +1,4 @@
-import { REVERSE_ARROW_ICON_SIZE } from './constants.ts';
+import { REVERSE_ARROW_ICON_SIZE, SLIDER_TICK_DOT_RADIUS } from './constants.ts';
 import {
   buildHitsoundDrawCache,
   getDominantHitsoundColor,
@@ -6,7 +6,6 @@ import {
   getHitsoundCircleOuterRadius,
   getSamplesetColor,
   getSecondaryHitsoundColors,
-  hasSliderBodyAddition,
   SAMPLESET_BODY_ALPHA,
   type HitsoundLayerVisibility,
   type TimelineViewMode,
@@ -22,21 +21,24 @@ import {
   drawThemedLineBody,
   drawThemedObjectMarkerEdge,
   drawThemedReverseArrow,
+  drawThemedSliderEndpoint,
   drawThemedSpinnerMarker,
   drawThemedTailSquare,
 } from './timelineTheme/apply.ts';
 import { resolveTimelineVisualTheme } from './timelineTheme/selection.ts';
 import {
   buildRoundedEdgeTimes,
+  findLowerBoundIndex,
   getAlignedTimelineLineX,
   getObjectBodyWidth,
+  getTimelineTimeFromX,
   getTimelineX,
   getTimingTickStyle,
   hasNearbyRoundedEdge,
   type TimelineRowDrawCache,
 } from './timelineUtils.ts';
 import { withAlpha } from '../../../utils/color.ts';
-import type { TimelineThemeVariant , TimelineVisualTheme } from './timelineTheme/types.ts';
+import type { TimelineThemeVariant, TimelineVisualTheme } from './timelineTheme/types.ts';
 import type {
   ObjectsBreakPeriod,
   ObjectsOverviewDifficulty,
@@ -46,6 +48,14 @@ import type {
   ObjectsTimingSegment,
 } from '../../../Types';
 import type { MantineTheme } from '@mantine/core';
+
+const SLIDER_TICK_DOT_ALPHA = 0.65;
+// Visibility-check padding for markers/ticks near a tile's edge — must cover the largest radius
+// a marker (slider head/tail circle, reverse arrow) is drawn at, so both neighboring tiles
+// attempt to draw a boundary-straddling marker and their clips split it correctly (as already
+// happens for plain hit circles in drawTimelineObject).
+const MARKER_CULL_PADDING_PX = 40;
+const TICK_CULL_PADDING_PX = 8;
 
 export type DrawTimelineRowOptions = {
   difficulty: ObjectsOverviewDifficulty;
@@ -93,14 +103,10 @@ export function drawTimelineRow(
   const neutralBodyColor = theme.colors.dark[4];
   const roundedEdgeTimes =
     rowDrawCache?.roundedEdgeTimes ?? buildRoundedEdgeTimes(difficulty.timelineObjects);
-  const resolvedHitsoundCache =
-    isHitsoundView
-      ? (rowDrawCache?.hitsound ??
-        buildHitsoundDrawCache(
-          difficulty.timelineObjects,
-          difficulty.timelineSamples ?? []
-        ))
-      : undefined;
+  const resolvedHitsoundCache = isHitsoundView
+    ? (rowDrawCache?.hitsound ??
+      buildHitsoundDrawCache(difficulty.timelineObjects, difficulty.timelineSamples ?? []))
+    : undefined;
 
   ctx.clearRect(0, 0, viewportWidth, height);
   ctx.save();
@@ -167,7 +173,53 @@ export function drawTimelineRow(
   ctx.lineTo(viewportEndX, centerY);
   ctx.stroke();
 
-  for (const timelineObject of difficulty.timelineObjects) {
+  const { timelineObjects } = difficulty;
+  const drawnMarkers = new Set<string>();
+  const timelineSamples = difficulty.timelineSamples ?? [];
+  const sliderTickSamples = rowDrawCache?.sortedSliderTickSamples ?? timelineSamples;
+
+  // Draw only objects overlapping this tile's viewport instead of scanning every object in the
+  // difficulty — the extra margin covers visual radius/marker overhang plus the longest
+  // slider/spinner that could start just before the window and still extend into it.
+  const CULL_MARGIN_PX = 96;
+  const windowStartMs = getTimelineTimeFromX(
+    viewportStartX - CULL_MARGIN_PX,
+    startTimeMs,
+    durationMs,
+    timelineWidth
+  );
+  const windowEndMs = getTimelineTimeFromX(
+    viewportEndX + CULL_MARGIN_PX,
+    startTimeMs,
+    durationMs,
+    timelineWidth
+  );
+
+  let drawObjects: ObjectsTimelineObject[];
+  let drawStartIndex: number;
+  let drawEndIndexExclusive: number;
+
+  if (rowDrawCache) {
+    const { sortedObjects, maxObjectDurationMs } = rowDrawCache;
+    drawObjects = sortedObjects;
+    drawStartIndex = findLowerBoundIndex(
+      sortedObjects,
+      windowStartMs - maxObjectDurationMs,
+      (object) => object.startTimeMs
+    );
+    drawEndIndexExclusive = findLowerBoundIndex(
+      sortedObjects,
+      windowEndMs + 1e-6,
+      (object) => object.startTimeMs
+    );
+  } else {
+    drawObjects = timelineObjects;
+    drawStartIndex = 0;
+    drawEndIndexExclusive = timelineObjects.length;
+  }
+
+  for (let index = drawEndIndexExclusive - 1; index >= drawStartIndex; index -= 1) {
+    const timelineObject = drawObjects[index];
     drawTimelineObject(
       ctx,
       timelineObject,
@@ -182,33 +234,35 @@ export function drawTimelineRow(
       neutralBodyColor,
       resolvedHitsoundCache?.bodySampleByObject.get(timelineObject) ?? null
     );
-  }
 
-  const drawnMarkers = new Set<string>();
-  for (const timelineObject of difficulty.timelineObjects) {
-    if (timelineObject.objectType === 'Circle') {
-      continue;
+    if (!isHitsoundView && timelineObject.objectType === 'Slider') {
+      drawSliderTickDots(ctx, {
+        samples: sliderTickSamples,
+        startTimeMs,
+        durationMs,
+        timelineWidth,
+        centerY,
+        visibleStartX: viewportStartX,
+        visibleEndX: viewportEndX,
+        startTimeFilterMs: timelineObject.startTimeMs,
+        endTimeFilterMs: timelineObject.endTimeMs,
+      });
     }
 
-    for (const edge of timelineObject.edges) {
-      const rawX = getTimelineX(edge.timeMs, startTimeMs, durationMs, timelineWidth);
-      if (rawX < viewportStartX || rawX > viewportEndX) continue;
-
-      const x = getAlignedTimelineLineX(edge.timeMs, startTimeMs, durationMs, timelineWidth);
-      const markerKey = `${timelineObject.objectType}-${edge.partName}-${x}`;
-      if (drawnMarkers.has(markerKey)) continue;
-
-      drawnMarkers.add(markerKey);
-      drawObjectMarker(
+    if (timelineObject.objectType !== 'Circle') {
+      drawTimelineObjectMarkers(
         ctx,
         timelineObject,
         visualTheme,
-        edge.partName,
-        x,
+        startTimeMs,
+        durationMs,
+        timelineWidth,
         centerY,
+        viewportStartX,
+        viewportEndX,
         isHitsoundView,
-        edge.hitSoundFlags ?? 0,
-        neutralBodyColor
+        neutralBodyColor,
+        drawnMarkers
       );
     }
   }
@@ -228,6 +282,61 @@ export function drawTimelineRow(
   }
 
   ctx.restore();
+}
+
+function interpolateTimelineBodyTimeMs(
+  timelineObject: ObjectsTimelineObject,
+  x: number,
+  startX: number,
+  endX: number
+): number {
+  if (startX === endX) {
+    return timelineObject.startTimeMs;
+  }
+
+  return (
+    timelineObject.startTimeMs +
+    ((x - startX) / (endX - startX)) * (timelineObject.endTimeMs - timelineObject.startTimeMs)
+  );
+}
+
+/** Nearest slider head, reverse, or tail by horizontal distance (right-click snap). */
+function getSliderSnapTimeMsAtX(
+  timelineObject: ObjectsTimelineObject,
+  x: number,
+  startTimeMs: number,
+  durationMs: number,
+  timelineWidth: number
+): number {
+  let bestTimeMs = timelineObject.startTimeMs;
+  let bestDistance = Number.POSITIVE_INFINITY;
+
+  for (const edge of timelineObject.edges) {
+    if (!isHoverableTimelineEdge(timelineObject.objectType, edge.partName)) {
+      continue;
+    }
+
+    const edgeX = getTimelineX(edge.timeMs, startTimeMs, durationMs, timelineWidth);
+    const distance = Math.abs(x - edgeX);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestTimeMs = edge.timeMs;
+    }
+  }
+
+  if (
+    timelineObject.edges.some((edge) =>
+      isHoverableTimelineEdge(timelineObject.objectType, edge.partName)
+    )
+  ) {
+    return bestTimeMs;
+  }
+
+  const startX = getTimelineX(timelineObject.startTimeMs, startTimeMs, durationMs, timelineWidth);
+  const endX = getTimelineX(timelineObject.endTimeMs, startTimeMs, durationMs, timelineWidth);
+  const distToStart = Math.abs(x - startX);
+  const distToEnd = Math.abs(x - endX);
+  return distToStart <= distToEnd ? timelineObject.startTimeMs : timelineObject.endTimeMs;
 }
 
 export function getTimelineTimestampAtX({
@@ -278,11 +387,9 @@ export function getTimelineTimestampAtX({
     const distanceToBody =
       x >= minX && x <= maxX ? 0 : Math.min(Math.abs(x - minX), Math.abs(x - maxX));
     const bodyTimeMs =
-      startX === endX
-        ? timelineObject.startTimeMs
-        : timelineObject.startTimeMs +
-          ((x - startX) / (endX - startX)) *
-            (timelineObject.endTimeMs - timelineObject.startTimeMs);
+      timelineObject.objectType === 'Slider'
+        ? getSliderSnapTimeMsAtX(timelineObject, x, startTimeMs, durationMs, timelineWidth)
+        : interpolateTimelineBodyTimeMs(timelineObject, x, startX, endX);
     consider(bodyTimeMs, distanceToBody, 8);
 
     for (const edge of timelineObject.edges) {
@@ -304,6 +411,7 @@ export type TimelineObjectHeadHit = {
   timeMs: number;
   anchorX: number;
   partLabel: string;
+  showSnapLabel: boolean;
 };
 
 function isHoverableTimelineEdge(objectType: string, partName: string) {
@@ -314,7 +422,12 @@ function isHoverableTimelineEdge(objectType: string, partName: string) {
   }
 
   if (objectType === 'Slider') {
-    return lower.includes('reverse') || lower.includes('tail') || lower.includes('end');
+    return (
+      lower.includes('reverse') ||
+      lower.includes('repeat') ||
+      lower.includes('tail') ||
+      lower.includes('end')
+    );
   }
 
   if (objectType === 'Spinner') {
@@ -333,6 +446,27 @@ function getTimelineMarkerHitThreshold(
   }
 
   return visualTheme.circleRadius(timelineObject) + 4;
+}
+
+function getNearestHoverableMarkerDistanceAtX(
+  timelineObject: ObjectsTimelineObject,
+  x: number,
+  startTimeMs: number,
+  durationMs: number,
+  timelineWidth: number
+): number {
+  let nearest = Number.POSITIVE_INFINITY;
+
+  for (const edge of timelineObject.edges) {
+    if (!isHoverableTimelineEdge(timelineObject.objectType, edge.partName)) {
+      continue;
+    }
+
+    const centerX = getTimelineX(edge.timeMs, startTimeMs, durationMs, timelineWidth);
+    nearest = Math.min(nearest, Math.abs(x - centerX));
+  }
+
+  return nearest;
 }
 
 export function findTimelineObjectHeadAtX({
@@ -361,15 +495,16 @@ export function findTimelineObjectHeadAtX({
     timeMs: number,
     centerX: number,
     threshold: number,
-    partLabel: string
+    partLabel: string,
+    showSnapLabel = true,
+    hitDistance = Math.abs(x - centerX)
   ) => {
-    const distance = Math.abs(x - centerX);
-    if (distance > threshold || distance >= bestDistance) {
+    if (hitDistance > threshold || hitDistance >= bestDistance) {
       return;
     }
 
-    bestDistance = distance;
-    bestHit = { object, edge, timeMs, anchorX: centerX, partLabel };
+    bestDistance = hitDistance;
+    bestHit = { object, edge, timeMs, anchorX: centerX, partLabel, showSnapLabel };
   };
 
   for (const timelineObject of difficulty.timelineObjects) {
@@ -381,14 +516,7 @@ export function findTimelineObjectHeadAtX({
         timelineWidth
       );
       const radius = visualTheme.circleRadius(timelineObject);
-      consider(
-        timelineObject,
-        null,
-        timelineObject.startTimeMs,
-        centerX,
-        radius + 4,
-        'Circle'
-      );
+      consider(timelineObject, null, timelineObject.startTimeMs, centerX, radius + 4, 'Circle');
       continue;
     }
 
@@ -401,6 +529,53 @@ export function findTimelineObjectHeadAtX({
       const threshold = getTimelineMarkerHitThreshold(timelineObject, visualTheme);
       consider(timelineObject, edge, edge.timeMs, centerX, threshold, edge.partName);
     }
+
+    if (timelineObject.endTimeMs <= timelineObject.startTimeMs) {
+      continue;
+    }
+
+    const startX = getTimelineX(timelineObject.startTimeMs, startTimeMs, durationMs, timelineWidth);
+    const endX = getTimelineX(timelineObject.endTimeMs, startTimeMs, durationMs, timelineWidth);
+    const minX = Math.min(startX, endX);
+    const maxX = Math.max(startX, endX);
+    const distanceToBody =
+      x >= minX && x <= maxX ? 0 : Math.min(Math.abs(x - minX), Math.abs(x - maxX));
+
+    if (distanceToBody > 8) {
+      continue;
+    }
+
+    const markerThreshold = getTimelineMarkerHitThreshold(timelineObject, visualTheme);
+    const nearestMarkerDistance = getNearestHoverableMarkerDistanceAtX(
+      timelineObject,
+      x,
+      startTimeMs,
+      durationMs,
+      timelineWidth
+    );
+    // Inside the span, body distance is 0 and would beat every marker edge globally.
+    // Inflate it when a head/repeat/tail on this object is close so markers keep priority.
+    const bodyHitDistance =
+      nearestMarkerDistance <= markerThreshold ? markerThreshold + 0.5 : distanceToBody;
+
+    const bodyTimeMs = interpolateTimelineBodyTimeMs(timelineObject, x, startX, endX);
+    const bodyPartLabel =
+      timelineObject.objectType === 'Slider'
+        ? 'Slider body'
+        : timelineObject.objectType === 'Spinner'
+          ? 'Spinner body'
+          : 'Hold note body';
+
+    consider(
+      timelineObject,
+      null,
+      bodyTimeMs,
+      x,
+      8,
+      bodyPartLabel,
+      timelineObject.objectType !== 'Slider',
+      bodyHitDistance
+    );
   }
 
   return bestHit;
@@ -492,14 +667,26 @@ function drawTimingGrid(
 ) {
   if (timingSegments.length === 0) return;
 
+  // Bound beat-sample generation to this tile's own window, not the full map duration — without
+  // this, every tile would regenerate the whole map's worth of beat-tick samples just to keep
+  // the handful that land within its small visible range.
+  const tileWindowStartMs = Math.max(
+    startTimeMs,
+    getTimelineTimeFromX(visibleStartX - TICK_CULL_PADDING_PX, startTimeMs, durationMs, width)
+  );
+  const tileWindowEndMs = Math.min(
+    endTimeMs,
+    getTimelineTimeFromX(visibleEndX + TICK_CULL_PADDING_PX, startTimeMs, durationMs, width)
+  );
+
   const tickLines = new Map<
     string,
     { x: number; color: string; height: number; alpha: number; priority: number }
   >();
 
   for (const segment of timingSegments) {
-    const visibleStartMs = Math.max(startTimeMs, segment.startTimeMs);
-    const visibleEndMs = Math.min(endTimeMs, segment.endTimeMs);
+    const visibleStartMs = Math.max(tileWindowStartMs, segment.startTimeMs);
+    const visibleEndMs = Math.min(tileWindowEndMs, segment.endTimeMs);
     const sampleStepMs = segment.msPerBeat / 48;
 
     if (visibleEndMs <= visibleStartMs || sampleStepMs <= 0) continue;
@@ -513,7 +700,8 @@ function drawTimingGrid(
     for (let sampleIndex = startSampleIndex; sampleIndex <= endSampleIndex; sampleIndex += 1) {
       const sampleTimeMs = segment.offsetMs + sampleIndex * sampleStepMs;
       const rawX = getTimelineX(sampleTimeMs, startTimeMs, durationMs, width);
-      if (rawX < visibleStartX || rawX > visibleEndX) continue;
+      if (rawX < visibleStartX - TICK_CULL_PADDING_PX || rawX > visibleEndX + TICK_CULL_PADDING_PX)
+        continue;
 
       const hasNearbyEdge = hasNearbyRoundedEdge(roundedEdgeTimes, sampleTimeMs);
       const tickStyle = getTimingTickStyle(sampleIndex, segment.meter, hasNearbyEdge);
@@ -591,9 +779,7 @@ function drawTimelineObject(
   neutralBodyColor: string,
   bodySample: ObjectsTimelineSample | null
 ) {
-  const color = isHitsoundView
-    ? neutralBodyColor
-    : visualTheme.resolveObjectColor(timelineObject);
+  const color = isHitsoundView ? neutralBodyColor : visualTheme.resolveObjectColor(timelineObject);
   const circleRadius = visualTheme.circleRadius(timelineObject);
 
   if (timelineObject.objectType === 'Circle') {
@@ -606,13 +792,7 @@ function drawTimelineObject(
     }
 
     if (isHitsoundView) {
-      drawHitsoundCircle(
-        ctx,
-        x,
-        centerY,
-        circleRadius,
-        timelineObject.hitSoundFlags ?? 0
-      );
+      drawHitsoundCircle(ctx, x, centerY, circleRadius, timelineObject.hitSoundFlags ?? 0);
       return;
     }
 
@@ -634,6 +814,118 @@ function drawTimelineObject(
     neutralBodyColor,
     bodySample
   );
+}
+
+function drawTimelineObjectMarkers(
+  ctx: CanvasRenderingContext2D,
+  timelineObject: ObjectsTimelineObject,
+  visualTheme: TimelineVisualTheme,
+  startTimeMs: number,
+  durationMs: number,
+  timelineWidth: number,
+  centerY: number,
+  visibleStartX: number,
+  visibleEndX: number,
+  isHitsoundView: boolean,
+  neutralBodyColor: string,
+  drawnMarkers: Set<string>
+) {
+  const { edges } = timelineObject;
+  // Padded like the circle check in drawTimelineObject: a marker (slider head/tail, reverse
+  // arrow, spinner) is drawn as a circle up to MARKER_CULL_PADDING_PX wide, so an unpadded check
+  // here would let a marker near a tile boundary be attempted by only one tile — whose clip then
+  // cuts off the half that belonged to the (never-drawn-by) neighboring tile.
+  for (let edgeIndex = edges.length - 1; edgeIndex >= 0; edgeIndex -= 1) {
+    const edge = edges[edgeIndex];
+    const rawX = getTimelineX(edge.timeMs, startTimeMs, durationMs, timelineWidth);
+    if (
+      rawX < visibleStartX - MARKER_CULL_PADDING_PX ||
+      rawX > visibleEndX + MARKER_CULL_PADDING_PX
+    )
+      continue;
+
+    const x = getAlignedTimelineLineX(edge.timeMs, startTimeMs, durationMs, timelineWidth);
+    const markerKey = `${timelineObject.objectType}-${edge.partName}-${x}`;
+    if (drawnMarkers.has(markerKey)) continue;
+
+    drawnMarkers.add(markerKey);
+    drawObjectMarker(
+      ctx,
+      timelineObject,
+      visualTheme,
+      edge.partName,
+      x,
+      centerY,
+      isHitsoundView,
+      edge.hitSoundFlags ?? 0,
+      neutralBodyColor
+    );
+  }
+}
+
+function drawSliderTickDots(
+  ctx: CanvasRenderingContext2D,
+  {
+    samples,
+    startTimeMs,
+    durationMs,
+    timelineWidth,
+    centerY,
+    visibleStartX,
+    visibleEndX,
+    startTimeFilterMs,
+    endTimeFilterMs,
+  }: {
+    samples: ObjectsTimelineSample[];
+    startTimeMs: number;
+    durationMs: number;
+    timelineWidth: number;
+    centerY: number;
+    visibleStartX: number;
+    visibleEndX: number;
+    startTimeFilterMs?: number;
+    endTimeFilterMs?: number;
+  }
+) {
+  if (samples.length === 0) {
+    return;
+  }
+
+  const cullPadding = SLIDER_TICK_DOT_RADIUS + 1;
+
+  // `samples` is sorted ascending by timeMs, so jump straight to the object's own time range
+  // instead of scanning every sample in the map for every slider drawn.
+  let startIndex = 0;
+  let endIndexExclusive = samples.length;
+  if (startTimeFilterMs != null && endTimeFilterMs != null) {
+    startIndex = findLowerBoundIndex(samples, startTimeFilterMs - 1, (sample) => sample.timeMs);
+    endIndexExclusive = findLowerBoundIndex(
+      samples,
+      endTimeFilterMs + 1 + 1e-6,
+      (sample) => sample.timeMs
+    );
+  }
+
+  ctx.save();
+  ctx.fillStyle = withAlpha('#ffffff', SLIDER_TICK_DOT_ALPHA);
+
+  for (let index = startIndex; index < endIndexExclusive; index += 1) {
+    const sample = samples[index];
+    if (sample.source !== 'Tick' || sample.objectType !== 'Slider') {
+      continue;
+    }
+
+    const x = getTimelineX(sample.timeMs, startTimeMs, durationMs, timelineWidth);
+    if (x < visibleStartX - cullPadding || x > visibleEndX + cullPadding) {
+      continue;
+    }
+
+    ctx.beginPath();
+    ctx.arc(x, centerY, SLIDER_TICK_DOT_RADIUS, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
 }
 
 function drawObjectBody(
@@ -664,9 +956,14 @@ function drawObjectBody(
   if (!bodyBounds) return;
 
   const color = isHitsoundView
-    ? bodySample
-      ? withAlpha(getSamplesetColor(bodySample.sampleset), SAMPLESET_BODY_ALPHA)
-      : neutralBodyColor
+    ? timelineObject.objectType === 'Slider'
+      ? withAlpha(
+          getDominantHitsoundColor(timelineObject.sliderBodyHitSoundFlags ?? 0),
+          SAMPLESET_BODY_ALPHA
+        )
+      : bodySample
+        ? withAlpha(getSamplesetColor(bodySample.sampleset), SAMPLESET_BODY_ALPHA)
+        : neutralBodyColor
     : visualTheme.resolveObjectColor(timelineObject);
 
   if (timelineObject.objectType === 'Spinner') {
@@ -701,24 +998,6 @@ function drawObjectBody(
     color,
     visualTheme.sliderBody
   );
-
-  if (
-    isHitsoundView &&
-    timelineObject.objectType === 'Slider' &&
-    hasSliderBodyAddition(timelineObject.hitSoundFlags ?? 0)
-  ) {
-    ctx.save();
-    ctx.strokeStyle = withAlpha(
-      getDominantHitsoundColor(timelineObject.hitSoundFlags ?? 0),
-      0.85
-    );
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.moveTo(bodyBounds.startX, centerY);
-    ctx.lineTo(bodyBounds.endX, centerY);
-    ctx.stroke();
-    ctx.restore();
-  }
 }
 
 function drawObjectMarker(
@@ -733,9 +1012,7 @@ function drawObjectMarker(
   neutralBodyColor: string
 ) {
   const lowerPart = partName.toLowerCase();
-  const color = isHitsoundView
-    ? neutralBodyColor
-    : visualTheme.resolveObjectColor(timelineObject);
+  const color = isHitsoundView ? neutralBodyColor : visualTheme.resolveObjectColor(timelineObject);
   const isSlider = timelineObject.objectType === 'Slider';
   const circleRadius = visualTheme.circleRadius(timelineObject);
 
@@ -756,27 +1033,15 @@ function drawObjectMarker(
     return;
   }
 
-  if (lowerPart.includes('reverse')) {
+  if (lowerPart.includes('reverse') || lowerPart.includes('repeat')) {
     if (isHitsoundView) {
       drawHitsoundCircle(ctx, x, centerY, circleRadius, edgeHitSoundFlags);
-      drawThemedReverseArrow(
-        ctx,
-        x,
-        centerY,
-        REVERSE_ARROW_ICON_SIZE,
-        visualTheme.reverseArrow
-      );
+      drawThemedReverseArrow(ctx, x, centerY, REVERSE_ARROW_ICON_SIZE, visualTheme.reverseArrow);
       return;
     }
 
     drawThemedCircle(ctx, x, centerY, circleRadius, color, visualTheme.circle);
-    drawThemedReverseArrow(
-      ctx,
-      x,
-      centerY,
-      REVERSE_ARROW_ICON_SIZE,
-      visualTheme.reverseArrow
-    );
+    drawThemedReverseArrow(ctx, x, centerY, REVERSE_ARROW_ICON_SIZE, visualTheme.reverseArrow);
     return;
   }
 
@@ -787,7 +1052,7 @@ function drawObjectMarker(
         return;
       }
 
-      drawThemedCircle(ctx, x, centerY, circleRadius, color, visualTheme.circle);
+      drawThemedSliderEndpoint(ctx, x, centerY, circleRadius, color, visualTheme.circle);
       return;
     }
 
@@ -798,6 +1063,11 @@ function drawObjectMarker(
 
   if (isHitsoundView) {
     drawHitsoundCircle(ctx, x, centerY, circleRadius, edgeHitSoundFlags);
+    return;
+  }
+
+  if (isSlider) {
+    drawThemedSliderEndpoint(ctx, x, centerY, circleRadius, color, visualTheme.circle);
     return;
   }
 

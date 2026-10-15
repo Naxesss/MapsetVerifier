@@ -152,9 +152,7 @@ export function ObjectTypeEntriesPopover({
                   color={isActive ? 'blue' : 'gray'}
                   size="sm"
                   style={{ cursor: 'pointer' }}
-                  onClick={() =>
-                    setDetailFilter((current) => (current === detail ? null : detail))
-                  }
+                  onClick={() => setDetailFilter((current) => (current === detail ? null : detail))}
                 >
                   {detail}: {count.toLocaleString()}
                 </Badge>

@@ -24,7 +24,8 @@ const AdvancedAudioWarningModal: React.FC<AdvancedAudioWarningModalProps> = ({
       <Stack gap="md">
         <Alert icon={<IconAlertTriangle />} color="yellow" variant="light" title="Warning">
           This displays additional and highly-technical audio analysis information which is not
-          necessary for most modding purposes, and might not even be correct. Are you sure you want to enable this?
+          necessary for most modding purposes, and might not even be correct. Are you sure you want
+          to enable this?
         </Alert>
 
         <Group justify="flex-end">

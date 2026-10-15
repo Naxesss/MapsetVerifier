@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Standard.Compose
 {
@@ -45,9 +46,11 @@ namespace MapsetVerifier.Checks.Standard.Compose
                         Issue.Level.Problem,
                         "{0} Spinner is too short, auto cannot achieve 1000 points on this.",
                         "timestamp -"
-                    ).WithCause(
-                        "A spinner is predicted to, based on the OD and BPM, not be able to achieve 1000 points on this, and by a margin to account for any inconsistencies."
                     )
+                        .WithCause(
+                            "A spinner is predicted to, based on the OD and BPM, not be able to achieve 1000 points on this, and by a margin to account for any inconsistencies."
+                        )
+                        .WithRule(RC.Osu.SpinnersLongEnoughAutoAchieve)
                 },
                 {
                     "Warning",
@@ -55,9 +58,11 @@ namespace MapsetVerifier.Checks.Standard.Compose
                         Issue.Level.Warning,
                         "{0} Spinner may be too short, ensure auto can achieve 1000 points on this.",
                         "timestamp -"
-                    ).WithCause(
-                        "Same as the other check, but without the margin, meaning the threshold is lower."
                     )
+                        .WithCause(
+                            "Same as the other check, but without the margin, meaning the threshold is lower."
+                        )
+                        .WithRule(RC.Osu.SpinnersLongEnoughAutoAchieve)
                 },
             };
 

@@ -8,22 +8,43 @@ import { buildBeatmapFolderPath } from '../../../utils/buildBeatmapFolderPath';
 interface UseBeatmapChecksArgs {
   folder?: string;
   songFolder?: string;
+  includeCheckRunDelta?: boolean;
+  createSnapshot?: boolean;
+  includeCheckTimings?: boolean;
 }
 
-export function useBeatmapChecks({ folder, songFolder }: UseBeatmapChecksArgs) {
+export function useBeatmapChecks({
+  folder,
+  songFolder,
+  includeCheckRunDelta = true,
+  createSnapshot = true,
+  includeCheckTimings = false,
+}: UseBeatmapChecksArgs) {
   const beatmapFolderPath = buildBeatmapFolderPath(songFolder, folder);
   const [progress, setProgress] = useState<CheckProgress | null>(null);
   const [structure, setStructure] = useState<ApiBeatmapStructure | null>(null);
   const activeRequestPathRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    activeRequestPathRef.current = beatmapFolderPath ?? null;
+  const [prevBeatmapFolderPath, setPrevBeatmapFolderPath] = useState(beatmapFolderPath);
+
+  if (beatmapFolderPath !== prevBeatmapFolderPath) {
+    setPrevBeatmapFolderPath(beatmapFolderPath);
     setProgress(null);
     setStructure(null);
+  }
+
+  useEffect(() => {
+    activeRequestPathRef.current = beatmapFolderPath ?? null;
   }, [beatmapFolderPath]);
 
   const query = useQuery<ApiBeatmapSetCheckResult, FetchError>({
-    queryKey: ['beatmap-checks', beatmapFolderPath || 'unavailable'],
+    queryKey: [
+      'beatmap-checks',
+      beatmapFolderPath || 'unavailable',
+      includeCheckRunDelta,
+      createSnapshot,
+      includeCheckTimings,
+    ],
     queryFn: ({ signal }) => {
       if (!beatmapFolderPath) throw new Error('Beatmap folder path unavailable');
 
@@ -36,6 +57,9 @@ export function useBeatmapChecks({ folder, songFolder }: UseBeatmapChecksArgs) {
       setStructure(null);
 
       return BeatmapApi.runChecksStream(beatmapFolderPath, {
+        includeCheckRunDelta,
+        createSnapshot,
+        includeCheckTimings,
         signal,
         onProgress: (update) => {
           if (!isCurrentRequest()) return;

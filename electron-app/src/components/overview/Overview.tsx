@@ -5,6 +5,7 @@ import BeatmapOverview from './beatmap/BeatmapOverview.tsx';
 import DifficultyOverview from './difficulty/DifficultyOverview.tsx';
 import MetadataOverview from './metadata/MetadataOverview.tsx';
 import ObjectsOverview from './objects/ObjectsOverview.tsx';
+import VideoOverview from './video/VideoOverview.tsx';
 import { useBeatmap } from '../../context/BeatmapContext.tsx';
 import { useBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
 import { usePageHints } from '../../context/PageHintsContext.tsx';
@@ -14,7 +15,7 @@ import { useBeatmapBackground } from '../checks/hooks/useBeatmapBackground.ts';
 import BeatmapHeader from '../common/BeatmapHeader.tsx';
 import type { OverviewTab } from '../navbar/pageHints.tsx';
 
-const TABS: OverviewTab[] = ['Metadata', 'Objects', 'Beatmap', 'Difficulty', 'Audio'];
+const TABS: OverviewTab[] = ['Metadata', 'Objects', 'Beatmap', 'Difficulty', 'Audio', 'Video'];
 
 function Overview() {
   const theme = useMantineTheme();
@@ -45,11 +46,11 @@ function Overview() {
         justifyContent: 'flex-start',
       }}
     >
-      <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
       <BeatmapHeader bgUrl={bgUrl}>
         <Group gap="sm" justify="space-between" style={{ width: '100%' }}>
           <BeatmapActionButtons
             beatmapFolderPath={beatmapFolderPath}
+            beatmapId={beatmapInfo?.beatmapId ?? undefined}
             beatmapSetId={beatmapInfo?.beatmapSetId ?? undefined}
             onReparse={triggerReparse}
           />
@@ -61,11 +62,17 @@ function Overview() {
           />
         </Group>
       </BeatmapHeader>
-      <Box style={{ flex: 1, overflow: 'auto' }} bg="dark.6">
+      <Box style={{ flex: 1, overflow: 'auto', position: 'relative' }} bg="dark.6">
+        <LoadingOverlay
+          visible={isLoading}
+          zIndex={1000}
+          overlayProps={{ radius: 'sm', blur: 2 }}
+        />
         {activeTab === 'Metadata' && <MetadataOverview />}
         {activeTab === 'Beatmap' && <BeatmapOverview />}
         {activeTab === 'Difficulty' && <DifficultyOverview />}
         {activeTab === 'Audio' && <AudioOverview />}
+        {activeTab === 'Video' && <VideoOverview />}
         {activeTab === 'Objects' && <ObjectsOverview />}
       </Box>
     </Box>

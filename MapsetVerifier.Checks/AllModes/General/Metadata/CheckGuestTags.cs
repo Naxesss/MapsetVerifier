@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.General.Metadata
 {
@@ -11,6 +12,12 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
     {
         private readonly char[] collabChars = [',', '&', '|', '/'];
         private readonly Regex possessorRegex = new(@"(.+)(?:'s|(s)')", RegexOptions.IgnoreCase);
+        private readonly Dictionary<char, char> wrappingBrackets = new()
+        {
+            ['('] = ')',
+            ['['] = ']',
+            ['{'] = '}',
+        };
 
         public override CheckMetadata GetMetadata() =>
             new()
@@ -45,9 +52,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         "\"{0}\" is possessive but \"{1}\" isn't in the tags, ignore if not a user.",
                         "guest's diff",
                         "guest"
-                    ).WithCause(
-                        "A difficulty name is prefixed by text containing an apostrophe (') before or after the character \"s\", which is not in the tags."
                     )
+                        .WithCause(
+                            "A difficulty name is prefixed by text containing an apostrophe (') before or after the character \"s\", which is not in the tags."
+                        )
+                        .WithRule(RC.Metadata.Tags_NamesGuestDifficultyCreatorsHitsounders)
                 },
             };
 
@@ -56,8 +65,10 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             foreach (var beatmap in beatmapSet.Beatmaps)
             foreach (var possessor in GetAllPossessors(beatmap.MetadataSettings.version))
             {
+                var possessorTag = BuildPossessorTag(possessor);
+
                 if (
-                    beatmap.MetadataSettings.IsCoveredByTags(possessor)
+                    beatmap.MetadataSettings.IsCoveredByTags(possessorTag)
                     || beatmap.MetadataSettings.creator.ToLower() == possessor.ToLower()
                 )
                     continue;
@@ -66,9 +77,19 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     GetTemplate("Warning"),
                     null,
                     beatmap.MetadataSettings.version,
-                    possessor.ToLower().Replace(" ", "_")
+                    possessorTag
                 );
             }
+        }
+
+        private string BuildPossessorTag(string possessor)
+        {
+            var components = possessor.Split(" ");
+            bool hasSingleCharacterComponents = components.Any(p => p.Length == 1);
+
+            return hasSingleCharacterComponents
+                ? string.Join("_", components).ToLower()
+                : possessor.ToLower();
         }
 
         /// <summary>
@@ -95,7 +116,35 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                 // If e.g. "Naxess' Insane", group 1 is "Naxes" and group 2 is the remaining "s".
                 possessor += match.Groups[2].Value;
 
+            // Strip leading brackets that wrap the whole difficulty name (e.g. "(" in
+            // "(Take's Hard)"), but keep them if unbalanced, since they're then likely part of
+            // a stylized username instead (e.g. "[[[[[['s Easy").
+            possessor = StripWrappingBrackets(possessor, text);
+
             return possessor.Trim();
+        }
+
+        /// <summary>
+        ///     Strips leading bracket characters from <paramref name="possessor" /> as long as
+        ///     they have a matching, balanced closing bracket somewhere in the full <paramref name="text" />.
+        /// </summary>
+        private string StripWrappingBrackets(string possessor, string text)
+        {
+            while (
+                possessor.Length > 0
+                && wrappingBrackets.TryGetValue(possessor[0], out var closeChar)
+            )
+            {
+                var openCount = text.Count(c => c == possessor[0]);
+                var closeCount = text.Count(c => c == closeChar);
+
+                if (openCount != closeCount)
+                    break;
+
+                possessor = possessor[1..];
+            }
+
+            return possessor;
         }
 
         /// <summary>
@@ -104,7 +153,10 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
         /// </summary>
         private IEnumerable<string> GetAllPossessors(string text)
         {
-            return text.Split(collabChars).Select(GetPossessor).OfType<string>();
+            return text.Split(collabChars)
+                .Select(GetPossessor)
+                .Where(p => !string.IsNullOrEmpty(p))
+                .OfType<string>();
         }
     }
 }

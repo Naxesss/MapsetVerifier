@@ -2,6 +2,7 @@
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.General.Resources
 {
@@ -45,9 +46,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                         "file name",
                         "width",
                         "height"
-                    ).WithCause(
-                        "A video has a width exceeding 1280 pixels or a height exceeding 720 pixels."
                     )
+                        .WithCause(
+                            "A video has a width exceeding 1280 pixels or a height exceeding 720 pixels."
+                        )
+                        .WithRule(RC.General.VideoAndBackground_VideoDimensionsNotExceedWidth)
                 },
                 {
                     "Leaves Folder",

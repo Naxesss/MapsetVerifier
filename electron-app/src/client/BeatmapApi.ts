@@ -5,6 +5,7 @@ import {
   ApiBeatmapStructure,
   ApiCategoryOverrideCheckResult,
   ApiLazerLookupResult,
+  ApiLazerMaterializeResult,
   CheckProgress,
 } from '../Types.ts';
 import { apiFetch, FetchError } from './ApiHelper.ts';
@@ -47,8 +48,62 @@ const BeatmapApi = {
       }
     });
   },
-  getLazerCurrent: async function getLazerCurrent() {
-    return apiFetch('/beatmap/lazer/current').then(async (response) => {
+  getLazerList: async function getLazerList(params: URLSearchParams) {
+    return apiFetch(`/beatmap/lazer?${params.toString()}`).then(async (response) => {
+      const data = await response.json();
+
+      if (response.ok) {
+        return data;
+      } else {
+        throw new FetchError(response);
+      }
+    }) as Promise<ApiBeatmapPage>;
+  },
+  getLazerDataDir: async function getLazerDataDir() {
+    return apiFetch('/beatmap/lazer/dataDir').then(async (response) => {
+      const data = await response.json();
+
+      if (response.ok) {
+        return data as { lazerDataDir: string };
+      } else {
+        throw new FetchError(response);
+      }
+    });
+  },
+  materializeLazer: async function materializeLazer(beatmapSetId: string, lazerDataDir?: string) {
+    return apiFetch('/beatmap/lazer/materialize', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ beatmapSetId, lazerDataDir }),
+    }).then(async (response) => {
+      const raw = await response.text();
+      let data: any = undefined;
+      try {
+        data = raw ? JSON.parse(raw) : undefined;
+      } catch {
+        /* ignore parse errors */
+      }
+
+      if (response.ok) {
+        return data as ApiLazerMaterializeResult;
+      } else {
+        const message = data?.message || data?.error || raw || `HTTP ${response.status}`;
+        const stackTrace = data?.stackTrace;
+        throw new FetchError(response, message, stackTrace);
+      }
+    });
+  },
+  getLazerCurrent: async function getLazerCurrent(lazerDataDir?: string) {
+    const params = new URLSearchParams();
+    if (lazerDataDir) {
+      params.set('lazerDataDir', lazerDataDir);
+    }
+
+    const query = params.toString();
+    const path = query ? `/beatmap/lazer/current?${query}` : '/beatmap/lazer/current';
+    return apiFetch(path).then(async (response) => {
       const data = await response.json();
 
       if (response.ok) {
@@ -76,12 +131,15 @@ const BeatmapApi = {
       }
     });
   },
-  runChecks: async function runChecks(folder: string) {
-    return BeatmapApi.runChecksStream(folder);
+  runChecks: async function runChecks(folder: string, includeCheckRunDelta = true) {
+    return BeatmapApi.runChecksStream(folder, { includeCheckRunDelta });
   },
   runChecksStream: async function runChecksStream(
     folder: string,
     options?: {
+      includeCheckRunDelta?: boolean;
+      createSnapshot?: boolean;
+      includeCheckTimings?: boolean;
       signal?: AbortSignal;
       onProgress?: (progress: CheckProgress) => void;
       onStructure?: (structure: ApiBeatmapStructure) => void;
@@ -99,7 +157,12 @@ const BeatmapApi = {
         'Content-Type': 'application/json',
         Accept: 'text/event-stream',
       },
-      body: JSON.stringify({ folder }),
+      body: JSON.stringify({
+        folder,
+        includeCheckRunDelta: options?.includeCheckRunDelta ?? true,
+        createSnapshot: options?.createSnapshot ?? true,
+        includeCheckTimings: options?.includeCheckTimings ?? false,
+      }),
       signal,
     });
 
@@ -211,6 +274,25 @@ const BeatmapApi = {
         const details = data?.details;
         throw new FetchError(response, message, stackTrace, details);
       }
+    });
+  },
+  clearCheckRunHistory: async function clearCheckRunHistory(folder: string) {
+    const params = new URLSearchParams({ folder });
+    return apiFetch(`/beatmap/checkRunHistory?${params.toString()}`, {
+      method: 'DELETE',
+    }).then(async (response) => {
+      if (response.ok || response.status === 204) return;
+      const raw = await response.text();
+      let data: any = undefined;
+      try {
+        data = raw ? JSON.parse(raw) : undefined;
+      } catch {
+        /* ignore */
+      }
+      throw new FetchError(
+        response,
+        data?.message || data?.error || raw || `HTTP ${response.status}`
+      );
     });
   },
 };

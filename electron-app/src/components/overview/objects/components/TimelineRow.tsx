@@ -1,17 +1,28 @@
 import { Box, useMantineTheme } from '@mantine/core';
-import { memo, useCallback, useMemo, useState, type MouseEvent as ReactMouseEvent } from 'react';
+import {
+  memo,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+} from 'react';
 import TimelineObjectContextMenu from './TimelineObjectContextMenu.tsx';
 import TimelineObjectHeadHovercard from './TimelineObjectHeadHovercard.tsx';
+import { useOpenOsuTimestamp } from '../../../../hooks/useOpenOsuTimestamp.ts';
 import AutoResizeCanvas from '../../../common/AutoResizeCanvas.tsx';
+import {
+  TIMELINE_VIEW_MODE_TRANSITION_EASING,
+  TIMELINE_VIEW_MODE_TRANSITION_MS,
+} from '../constants.ts';
 import {
   useTimelineDisplay,
   useTimelinePan,
   useTimelineScale,
+  useTimelineViewport,
 } from '../context/ObjectsTimelineContext.tsx';
-import {
-  type HitsoundLayerVisibility,
-  type TimelineViewMode,
-} from '../hitsoundUtils.ts';
+import { type HitsoundLayerVisibility, type TimelineViewMode } from '../hitsoundUtils.ts';
+import { useElementVisibility } from '../hooks/useElementVisibility.ts';
 import {
   drawTimelineRow,
   findTimelineObjectHeadAtX,
@@ -22,7 +33,7 @@ import {
   buildTimelineRowDrawCache,
   formatEditorTimestamp,
   getTimelineCanvasTiles,
-  getTimelineX,
+  getTimelineHighlightX,
   type TimelineRowDrawCache,
 } from '../timelineUtils.ts';
 import type { ObjectsOverviewDifficulty } from '../../../../Types';
@@ -147,12 +158,39 @@ const TimelineCanvasTile = memo(function TimelineCanvasTile({
 });
 
 function TimelineRow({ difficulty, height }: TimelineRowProps) {
+  const openOsuTimestamp = useOpenOsuTimestamp();
   const theme = useMantineTheme();
   const { startTimeMs, endTimeMs, timelineWidth } = useTimelineScale();
   const { isPanningTimeline } = useTimelinePan();
-  const { timelineThemeVariant, viewMode, hitsoundLayers, snapPlayheadToTimestamp } =
-    useTimelineDisplay();
+  const { timelineThemeVariant, viewMode, hitsoundLayers } = useTimelineDisplay();
+  const viewport = useTimelineViewport();
+  const rowRef = useRef<HTMLDivElement | null>(null);
+  const isRowVerticallyVisible = useElementVisibility(rowRef);
   const canvasTiles = useMemo(() => getTimelineCanvasTiles(timelineWidth), [timelineWidth]);
+  const visibleCanvasTiles = useMemo(() => {
+    // Each tile's canvas is hard-clipped to its own pixel bounds, so an object straddling the
+    // boundary between two tiles only renders whole if BOTH tiles are mounted (each draws its
+    // own clipped half). Padding the range by one extra tile on each side — instead of filtering
+    // by pixel overlap alone — guarantees every included tile's neighbor is included too, so
+    // boundary-straddling objects never get cut off mid-shape.
+    let firstIndex = -1;
+    let lastIndex = -1;
+    for (let index = 0; index < canvasTiles.length; index += 1) {
+      const tile = canvasTiles[index];
+      if (tile.startX + tile.width > viewport.startX && tile.startX < viewport.endX) {
+        if (firstIndex === -1) {
+          firstIndex = index;
+        }
+        lastIndex = index;
+      }
+    }
+    if (firstIndex === -1) {
+      return [];
+    }
+    const paddedStart = Math.max(0, firstIndex - 1);
+    const paddedEnd = Math.min(canvasTiles.length - 1, lastIndex + 1);
+    return canvasTiles.slice(paddedStart, paddedEnd + 1);
+  }, [canvasTiles, viewport.startX, viewport.endX]);
   const rowDrawCache = useMemo(
     () =>
       buildTimelineRowDrawCache(
@@ -239,88 +277,51 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
   const goToObject = () => {
     if (!contextMenuState) return;
     const timestamp = formatEditorTimestamp(contextMenuState.timestampMs);
-    window.location.href = `osu://edit/${timestamp}`;
+    void openOsuTimestamp(timestamp);
     setContextMenuState(null);
   };
 
-  const handleMouseDown = (event: ReactMouseEvent<HTMLDivElement>) => {
-    if (event.detail >= 2) {
-      event.stopPropagation();
-    }
-  };
-
-  const handleDoubleClick = (event: ReactMouseEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-
-    if (viewMode !== 'hitsounding' || !snapPlayheadToTimestamp) {
-      return;
-    }
-
-    const bounds = event.currentTarget.getBoundingClientRect();
-    const localX = event.clientX - bounds.left;
-    const headHit = findTimelineObjectHeadAtX({
-      difficulty,
-      startTimeMs,
-      endTimeMs,
-      timelineWidth,
-      x: localX,
-      visualThemeVariant: timelineThemeVariant,
-    });
-
-    if (headHit) {
-      snapPlayheadToTimestamp(headHit.timeMs);
-      return;
-    }
-
-    const timestampMs = getTimelineTimestampAtX({
-      difficulty,
-      startTimeMs,
-      endTimeMs,
-      timelineWidth,
-      x: localX,
-      visualThemeVariant: timelineThemeVariant,
-    });
-
-    if (timestampMs !== null) {
-      snapPlayheadToTimestamp(timestampMs);
-    }
-  };
-
   const selectedTimestampX = contextMenuState
-    ? getTimelineX(
+    ? getTimelineHighlightX(
         contextMenuState.timestampMs,
+        difficulty,
         startTimeMs,
-        Math.max(1, endTimeMs - startTimeMs),
+        endTimeMs,
         timelineWidth
       )
     : undefined;
 
   return (
     <Box
+      ref={rowRef}
       onContextMenu={handleContextMenu}
-      onMouseDown={handleMouseDown}
-      onDoubleClick={handleDoubleClick}
       onMouseMove={updateHeadHover}
       onMouseLeave={clearHeadHover}
-      style={{ position: 'relative', width: timelineWidth, height, overflow: 'hidden' }}
+      style={{
+        position: 'relative',
+        width: timelineWidth,
+        height,
+        overflow: 'hidden',
+        transition: `height ${TIMELINE_VIEW_MODE_TRANSITION_MS}ms ${TIMELINE_VIEW_MODE_TRANSITION_EASING}`,
+      }}
     >
-      {canvasTiles.map((tile) => (
-        <TimelineCanvasTile
-          key={tile.startX}
-          tile={tile}
-          difficulty={difficulty}
-          startTimeMs={startTimeMs}
-          endTimeMs={endTimeMs}
-          width={timelineWidth}
-          height={height}
-          theme={theme}
-          visualThemeVariant={timelineThemeVariant}
-          viewMode={viewMode}
-          hitsoundLayers={hitsoundLayers}
-          rowDrawCache={rowDrawCache}
-        />
-      ))}
+      {isRowVerticallyVisible &&
+        visibleCanvasTiles.map((tile) => (
+          <TimelineCanvasTile
+            key={tile.startX}
+            tile={tile}
+            difficulty={difficulty}
+            startTimeMs={startTimeMs}
+            endTimeMs={endTimeMs}
+            width={timelineWidth}
+            height={height}
+            theme={theme}
+            visualThemeVariant={timelineThemeVariant}
+            viewMode={viewMode}
+            hitsoundLayers={hitsoundLayers}
+            rowDrawCache={rowDrawCache}
+          />
+        ))}
       {contextMenuState && (
         <>
           <Box
@@ -331,7 +332,8 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
               top: 0,
               bottom: 0,
               width: 0,
-              borderLeft: `2px solid ${theme.colors.blue[4]}`,
+              transform: 'translateX(-50%)',
+              borderLeft: `1px solid ${theme.colors.blue[4]}`,
               boxShadow: `0 0 0 1px ${theme.colors.blue[3]}, 0 0 12px ${theme.colors.blue[7]}`,
               zIndex: 8,
             }}
@@ -369,6 +371,8 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
         hover={headHover}
         opened={headHover !== null && !isPanningTimeline && contextMenuState === null}
         anchorY={height / 2}
+        viewMode={viewMode}
+        hitsoundLayers={hitsoundLayers}
       />
     </Box>
   );

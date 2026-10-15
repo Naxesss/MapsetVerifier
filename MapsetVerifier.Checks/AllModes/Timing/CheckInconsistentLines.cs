@@ -5,7 +5,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
-using MathNet.Numerics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.Timing
 {
@@ -52,9 +52,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "difficulty",
                         "bpm",
                         "meter"
-                    ).WithCause(
-                        "A beatmap does not have an uninherited line which the reference beatmap does, or visa versa."
                     )
+                        .WithCause(
+                            "A beatmap does not have an uninherited line which the reference beatmap does, or visa versa."
+                        )
+                        .WithRule(RC.General.Timing_UninheritedTimingPointsSameDifficulty)
                 },
                 {
                     "Missing Minor",
@@ -65,9 +67,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "offset",
                         "difficulty",
                         "reference offset"
-                    ).WithCause(
-                        "Same as the first check, except includes issues caused by decimal unsnaps of uninherited lines."
                     )
+                        .WithCause(
+                            "Same as the first check, except includes issues caused by decimal unsnaps of uninherited lines."
+                        )
+                        .WithRule(RC.General.Timing_UninheritedTimingPointsSameDifficulty)
                 },
                 {
                     "Inconsistent Meter",
@@ -78,9 +82,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "meter",
                         "difficulty",
                         "reference meter"
-                    ).WithCause(
-                        "The meter signature of an uninherited timing line is different from the reference beatmap."
                     )
+                        .WithCause(
+                            "The meter signature of an uninherited timing line is different from the reference beatmap."
+                        )
+                        .WithRule(RC.General.Timing_UninheritedTimingPointsSameDifficulty)
                 },
                 {
                     "Inconsistent BPM",
@@ -91,7 +97,9 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "bpm",
                         "difficulty",
                         "reference bpm"
-                    ).WithCause("Same as the meter check, except checks BPM instead.")
+                    )
+                        .WithCause("Same as the meter check, except checks BPM instead.")
+                        .WithRule(RC.General.Timing_UninheritedTimingPointsSameDifficulty)
                 },
             };
 
@@ -103,13 +111,14 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             {
                 foreach (var line in refBeatmap.TimingLines.OfType<UninheritedLine>())
                 {
+                    // Use a consistent tolerance for comparing timestamps
                     var respectiveLine = beatmap
                         .TimingLines.OfType<UninheritedLine>()
                         .FirstOrDefault(otherLine =>
-                            Timestamp.Round(otherLine.Offset) == Timestamp.Round(line.Offset)
+                            Math.Abs(otherLine.Offset - line.Offset) < 0.001 // 1ms tolerance
                         );
 
-                    double offset = Timestamp.Round(line.Offset);
+                    double offset = line.Offset; // Use original offset for reporting
 
                     if (respectiveLine == null)
                     {
@@ -134,7 +143,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                                 FormatMeter(line.Meter)
                             );
 
-                        if (!line.msPerBeat.AlmostEqual(respectiveLine.msPerBeat))
+                        if (Math.Abs(line.msPerBeat - respectiveLine.msPerBeat) > 0.001)
                             yield return new Issue(
                                 GetTemplate("Inconsistent BPM"),
                                 beatmap,
@@ -144,10 +153,12 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                                 FormatBpm(line.bpm)
                             );
 
-                        // Including decimal unsnaps
+                        // Including decimal unsnaps - use the same tolerance approach
                         var respectiveLineExact = beatmap
                             .TimingLines.OfType<UninheritedLine>()
-                            .FirstOrDefault(otherLine => otherLine.Offset.AlmostEqual(line.Offset));
+                            .FirstOrDefault(otherLine =>
+                                Math.Abs(otherLine.Offset - line.Offset) < 0.001
+                            ); // Same tolerance
 
                         if (respectiveLineExact == null)
                             yield return new Issue(
@@ -167,10 +178,10 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     var respectiveLine = refBeatmap
                         .TimingLines.OfType<UninheritedLine>()
                         .FirstOrDefault(otherLine =>
-                            Timestamp.Round(otherLine.Offset) == Timestamp.Round(line.Offset)
+                            Math.Abs(otherLine.Offset - line.Offset) < 0.001 // Same tolerance
                         );
 
-                    double offset = Timestamp.Round(line.Offset);
+                    double offset = line.Offset; // Use original offset for reporting
 
                     if (respectiveLine == null)
                     {
@@ -185,10 +196,12 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     }
                     else
                     {
-                        // Including decimal unsnaps
+                        // Including decimal unsnaps - use the same tolerance approach
                         var respectiveLineExact = refBeatmap
                             .TimingLines.OfType<UninheritedLine>()
-                            .FirstOrDefault(otherLine => otherLine.Offset.AlmostEqual(line.Offset));
+                            .FirstOrDefault(otherLine =>
+                                Math.Abs(otherLine.Offset - line.Offset) < 0.001
+                            ); // Same tolerance
 
                         if (respectiveLineExact == null)
                             yield return new Issue(

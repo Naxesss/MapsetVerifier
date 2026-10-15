@@ -6,6 +6,8 @@ namespace MapsetVerifier.Framework.Objects
 
         private readonly string format;
 
+        private readonly List<string> ruleIds = [];
+
         public string? Cause { get; private set; }
 
         /// <summary>
@@ -47,6 +49,23 @@ namespace MapsetVerifier.Framework.Objects
         public IssueTemplate WithCause(string cause)
         {
             Cause = cause;
+
+            return this;
+        }
+
+        /// <summary> Ids of the ranking criteria statements this template enforces, see <see cref="WithRule" />. </summary>
+        public IReadOnlyList<string> RuleIds => ruleIds;
+
+        /// <summary>
+        ///     Links this template to the ranking criteria statement(s) it enforces, so users can be pointed to the exact
+        ///     rule or guideline. Use the constants in <c>MapsetVerifier.RankingCriteria.RC</c>, e.g.
+        ///     <c>.WithRule(RC.Osu.HitObjectsNeverOffScreen)</c>.
+        /// </summary>
+        public IssueTemplate WithRule(params string[] ids)
+        {
+            foreach (var id in ids)
+                if (!ruleIds.Contains(id))
+                    ruleIds.Add(id);
 
             return this;
         }

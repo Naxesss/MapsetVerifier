@@ -703,13 +703,7 @@ public static class AudioAnalysisService
         };
     }
 
-    private static string FormatDuration(double durationMs)
-    {
-        var ts = TimeSpan.FromMilliseconds(durationMs);
-        return ts.Hours > 0
-            ? $"{ts.Hours}:{ts.Minutes:D2}:{ts.Seconds:D2}"
-            : $"{ts.Minutes}:{ts.Seconds:D2}";
-    }
+    private static string FormatDuration(double durationMs) => DurationFormatter.Format(durationMs);
 
     private static string FormatFileSize(long bytes)
     {

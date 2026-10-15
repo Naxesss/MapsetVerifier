@@ -15,6 +15,8 @@ import { useDebouncedValue } from '@mantine/hooks';
 import {
   IconAlertCircle,
   IconListDetails,
+  IconPin,
+  IconPinFilled,
   IconRefresh,
   IconSearchOff,
   IconSettings,
@@ -27,6 +29,7 @@ import PlaceholderBeatmapCard from './PlaceholderBeatmapCard.tsx';
 import { FetchError } from '../../client/ApiHelper.ts';
 import BeatmapApi from '../../client/BeatmapApi.ts';
 import { useBeatmap } from '../../context/BeatmapContext.tsx';
+import { useSettings } from '../../context/SettingsContext.tsx';
 import { ApiBeatmapPage, ApiLazerLookupResult, Beatmap } from '../../Types.ts';
 
 interface Props {
@@ -36,22 +39,35 @@ interface Props {
 
 export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Props) {
   const { selectedFolderPath, setSelectedFolderPath } = useBeatmap();
+  const { settings } = useSettings();
   const [search, setSearch] = useState('');
   const [debouncedSearch] = useDebouncedValue(search, 300);
+  const [bookmarkedOnly, setBookmarkedOnly] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const queryClient = useQueryClient();
   const stepSize = 16;
 
+  const bookmarkedFolders = settings.bookmarkedFolders;
+  const filterByBookmarks = bookmarkedOnly && settings.bookmarksEnabled;
+  const hasNoBookmarks = filterByBookmarks && bookmarkedFolders.length === 0;
+
   const { data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } =
     useInfiniteQuery<ApiBeatmapPage, FetchError>({
-      queryKey: ['beatmaps', songFolder, debouncedSearch, stepSize],
-      enabled: !!songFolder,
+      queryKey: [
+        'beatmaps',
+        songFolder,
+        debouncedSearch,
+        stepSize,
+        filterByBookmarks ? bookmarkedFolders : null,
+      ],
+      enabled: !!songFolder && !hasNoBookmarks,
       initialPageParam: 0,
       queryFn: async ({ pageParam }) => {
         const params = new URLSearchParams();
         if (songFolder) params.append('songsFolder', songFolder);
         if (debouncedSearch) params.append('search', debouncedSearch);
+        if (filterByBookmarks) params.append('bookmarkedFolders', bookmarkedFolders.join(','));
         params.append('page', String(pageParam));
         params.append('pageSize', stepSize.toString());
         try {
@@ -151,13 +167,23 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
 
     if (showNextPagePlaceholder) return null;
 
+    if (hasNoBookmarks) {
+      return (
+        <Alert icon={<IconPin />} color="gray" title="No bookmarks yet" mt="xs" variant="light">
+          Pin a beatmapset from the list to find it here quickly.
+        </Alert>
+      );
+    }
+
     if (error) {
       const status = error.res?.status;
       const msg =
         status === 404
           ? debouncedSearch
             ? 'The search yielded no results.'
-            : 'No mapsets could be found in the songs folder.'
+            : filterByBookmarks
+              ? 'None of your bookmarks match the current filters.'
+              : 'No mapsets could be found in the songs folder.'
           : error.message || 'Failed to load beatmaps.';
       return (
         <Alert icon={<IconAlertCircle />} color="red" title="Error" mt="xs">
@@ -174,7 +200,9 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
         <Alert icon={<IconSearchOff />} color="gray" title="No results" mt="xs" variant="light">
           {debouncedSearch
             ? 'The search yielded no results.'
-            : 'No mapsets could be found in the songs folder.'}
+            : filterByBookmarks
+              ? 'None of your bookmarks match the current filters.'
+              : 'No mapsets could be found in the songs folder.'}
         </Alert>
       );
     }
@@ -228,6 +256,19 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
               />
             }
           />
+          {settings.bookmarksEnabled && (
+            <Tooltip label={bookmarkedOnly ? 'Show all beatmapsets' : 'Show bookmarked only'}>
+              <ActionIcon
+                variant={bookmarkedOnly ? 'light' : 'default'}
+                color="yellow"
+                onClick={() => setBookmarkedOnly((prev) => !prev)}
+                size="36"
+                aria-label={bookmarkedOnly ? 'Show all beatmapsets' : 'Show bookmarked only'}
+              >
+                {bookmarkedOnly ? <IconPinFilled /> : <IconPin />}
+              </ActionIcon>
+            </Tooltip>
+          )}
           <Tooltip label="Refresh beatmap search">
             <ActionIcon
               variant="default"
@@ -266,43 +307,53 @@ export default function StableBeatmapsPanel({ songFolder, onOpenSettings }: Prop
         )}
         {renderTopStatus()}
       </Flex>
-      {!error && !!songFolder && (
+      {!error && !!songFolder && !hasNoBookmarks && (
         <>
           <Divider />
           <ScrollArea
-            type="auto"
-            offsetScrollbars="present"
+            type="always"
+            scrollbars="y"
+            offsetScrollbars="y"
             viewportRef={scrollRef}
-            className="flipped-scrollbar"
             p="xs"
             style={{ flex: '1 1 auto' }}
           >
             <Flex direction="column" gap="xs" w="100%" style={{ justifyContent: 'center' }}>
               {renderStableCurrentMap()}
-              {!firstPageLoaded && <PlaceholderBeatmapCard />}
-              {beatmaps.map((bm) => (
-                <BeatmapCard key={bm.folder + bm.title} beatmap={bm} songFolder={songFolder} />
+              {!firstPageLoaded &&
+                Array.from({ length: 6 }).map((_, i) => <PlaceholderBeatmapCard key={i} />)}
+              {beatmaps.map((bm, i) => (
+                <BeatmapCard
+                  key={bm.folder + bm.title}
+                  beatmap={bm}
+                  songFolder={songFolder}
+                  enterIndex={i}
+                />
               ))}
               <div ref={sentinelRef} style={{ height: 1 }} />
               {showNextPagePlaceholder && <PlaceholderBeatmapCard />}
-              {beatmaps.length > 0 && !hasNextPage && !isFetchingNextPage && !error && (
-                <Alert
-                  icon={<IconListDetails />}
-                  color="gray"
-                  title="No more beatmaps"
-                  variant="light"
-                >
-                  You have reached the last available beatmap.
-                  <Button
-                    size="xs"
-                    mt="xs"
-                    variant="default"
-                    onClick={() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+              {beatmaps.length > 0 &&
+                !hasNextPage &&
+                !isFetchingNextPage &&
+                !error &&
+                !filterByBookmarks && (
+                  <Alert
+                    icon={<IconListDetails />}
+                    color="gray"
+                    title="No more beatmaps"
+                    variant="light"
                   >
-                    Back to top
-                  </Button>
-                </Alert>
-              )}
+                    You have reached the last available beatmap.
+                    <Button
+                      size="xs"
+                      mt="xs"
+                      variant="default"
+                      onClick={() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+                    >
+                      Back to top
+                    </Button>
+                  </Alert>
+                )}
             </Flex>
           </ScrollArea>
         </>

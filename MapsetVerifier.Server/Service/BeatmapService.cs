@@ -4,10 +4,7 @@ using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Server.Model;
 using MapsetVerifier.Server.Service.OsuRuntime;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.Processing;
+using Serilog;
 
 namespace MapsetVerifier.Server.Service;
 
@@ -17,12 +14,6 @@ public static class BeatmapService
         "0,0,\"(?<file>[^\"]+)\"",
         RegexOptions.Compiled
     );
-    private static readonly string[] SupportedImageExtensions = [".jpg", ".jpeg", ".png", ".gif"];
-
-    /// <summary>
-    /// Desired thumbnail height
-    /// </summary>
-    private const int MaxImageHeight = 126;
 
     public static string? DetectSongsFolder()
     {
@@ -80,24 +71,36 @@ public static class BeatmapService
         return DetectSongsFolder();
     }
 
-    public static ApiLazerLookupResult GetCurrentLazerBeatmap() =>
-        CurrentBeatmapLookupService.GetCurrentLazerBeatmap();
+    public static ApiLazerLookupResult GetCurrentLazerBeatmap(
+        string? lazerDataDirOverride = null
+    ) => CurrentBeatmapLookupService.GetCurrentLazerBeatmap(lazerDataDirOverride);
 
     public static ApiLazerLookupResult GetCurrentStableBeatmap(string? songsFolderOverride) =>
         CurrentBeatmapLookupService.GetCurrentStableBeatmap(songsFolderOverride);
+
+    private static readonly object FolderScanLock = new();
+    private static string? _cachedSongsFolder;
+    private static int _cachedFolderCount;
+    private static DateTime _cachedFolderScanAtUtc;
+    private static List<DirectoryInfo>? _cachedSortedFolders;
+    private static readonly TimeSpan FolderScanTtl = TimeSpan.FromSeconds(5);
 
     public static ApiBeatmapPage GetBeatmaps(
         string songsFolder,
         string? search,
         int page,
-        int pageSize
+        int pageSize,
+        IReadOnlySet<string>? bookmarkedFolders = null
     )
     {
         if (!Directory.Exists(songsFolder))
             return new ApiBeatmapPage([], page, pageSize, false);
 
         var dirInfo = new DirectoryInfo(songsFolder);
-        var folders = dirInfo.GetDirectories().OrderByDescending(d => d.LastWriteTimeUtc).ToList();
+        var folders = GetSortedFolders(dirInfo);
+
+        if (bookmarkedFolders is { Count: > 0 })
+            folders = folders.Where(f => bookmarkedFolders.Contains(f.Name)).ToList();
 
         var skipped = page * pageSize;
         var pageFolders = folders.Skip(skipped).Take(pageSize + 1).ToList();
@@ -109,7 +112,7 @@ public static class BeatmapService
                 var osuFiles = Directory.GetFiles(folder.FullName, "*.osu");
                 if (osuFiles.Length == 0)
                     continue;
-                var content = File.ReadAllText(osuFiles[0]);
+                var content = ReadFirstNonEmptyOsuContent(osuFiles) ?? string.Empty;
                 var meta = ParseBeatmapMetadata(folder.FullName, content);
                 if (MatchesSearch(meta, search))
                 {
@@ -138,17 +141,89 @@ public static class BeatmapService
         return new ApiBeatmapPage(results, page, pageSize, hasMore);
     }
 
+    /// <summary>
+    /// Computing the effective mtime for every folder (<see cref="GetEffectiveLastWriteTimeUtc"/>)
+    /// walks each folder's top-level files, which gets expensive across a large library when
+    /// repeated on every request (debounced search keystrokes, quick page flips). Cache the sorted
+    /// result, invalidating immediately when the folder count changes (a set was added/removed)
+    /// and otherwise bounding staleness with a short TTL — in-place file edits don't bump a
+    /// folder's own mtime, so they can only be picked up by actually rescanning.
+    /// </summary>
+    private static List<DirectoryInfo> GetSortedFolders(DirectoryInfo dirInfo)
+    {
+        var currentDirs = dirInfo.GetDirectories();
+
+        // The lock spans the whole scan (not just the cache check) so that concurrent cold
+        // callers block and share one scan instead of each running their own duplicate pass over
+        // the same library. The scan itself is still parallelized internally (AsParallel) since
+        // it's I/O-bound and independent per folder.
+        lock (FolderScanLock)
+        {
+            if (
+                _cachedSortedFolders != null
+                && _cachedSongsFolder == dirInfo.FullName
+                && _cachedFolderCount == currentDirs.Length
+                && DateTime.UtcNow - _cachedFolderScanAtUtc < FolderScanTtl
+            )
+                return _cachedSortedFolders;
+
+            var sorted = currentDirs
+                .AsParallel()
+                .Select(d => (Dir: d, Mtime: GetEffectiveLastWriteTimeUtc(d)))
+                .OrderByDescending(x => x.Mtime)
+                .Select(x => x.Dir)
+                .ToList();
+
+            _cachedSongsFolder = dirInfo.FullName;
+            _cachedFolderCount = currentDirs.Length;
+            _cachedFolderScanAtUtc = DateTime.UtcNow;
+            _cachedSortedFolders = sorted;
+
+            return sorted;
+        }
+    }
+
+    /// <summary>
+    /// A folder's own LastWriteTimeUtc isn't updated by NTFS when an existing file inside it is
+    /// edited in place (only file creation/deletion/rename bumps it), so sorting "most recently
+    /// changed" purely on folder mtime misses in-place edits. Fall back to the newest top-level
+    /// file's mtime when it's more recent than the folder's own. Only `.osu` files are checked —
+    /// those are what the editor rewrites on every save, and a mapset folder can otherwise contain
+    /// far more (audio/video/image/hitsound) files that would multiply the scan cost for no benefit.
+    /// </summary>
+    private static DateTime GetEffectiveLastWriteTimeUtc(DirectoryInfo folder)
+    {
+        var latest = folder.LastWriteTimeUtc;
+        try
+        {
+            foreach (var file in folder.EnumerateFiles("*.osu"))
+            {
+                if (file.LastWriteTimeUtc > latest)
+                    latest = file.LastWriteTimeUtc;
+            }
+        }
+        catch (Exception)
+        {
+            // Ignore inaccessible folders; fall back to the folder's own timestamp.
+        }
+        return latest;
+    }
+
     public static ApiBeatmapInfo? GetBeatmapInfo(string beatmapSetFolder)
     {
         if (!Directory.Exists(beatmapSetFolder))
             return null;
 
-        var osuFile = Directory.GetFiles(beatmapSetFolder, "*.osu").FirstOrDefault();
-        if (string.IsNullOrWhiteSpace(osuFile))
+        var osuFiles = Directory.GetFiles(beatmapSetFolder, "*.osu");
+        if (osuFiles.Length == 0)
             return null;
 
-        var content = File.ReadAllText(osuFile);
+        var content = ReadFirstNonEmptyOsuContent(osuFiles) ?? string.Empty;
         var meta = ParseBeatmapMetadata(beatmapSetFolder, content);
+
+        ulong? beatmapId = null;
+        if (ulong.TryParse(meta.beatmapId, out var parsedBeatmapId))
+            beatmapId = parsedBeatmapId;
 
         ulong? beatmapSetId = null;
         if (ulong.TryParse(meta.beatmapSetId, out var parsedBeatmapSetId))
@@ -158,6 +233,7 @@ public static class BeatmapService
             title: meta.title,
             artist: meta.artist,
             creator: meta.creator,
+            beatmapId: beatmapId,
             beatmapSetId: beatmapSetId
         );
     }
@@ -179,6 +255,24 @@ public static class BeatmapService
         var searchable =
             $"{meta.title} - {meta.artist} | {meta.creator} ({meta.beatmapId} {meta.beatmapSetId})";
         return searchable.Contains(search, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Directory.GetFiles returns files in an arbitrary/filesystem order (typically alphabetical on
+    /// Windows), which doesn't correlate with which difficulty has valid data. A corrupted/empty
+    /// .osu file that happens to sort first would otherwise blank out the title/artist for the
+    /// whole set. Returns null only if every file is empty.
+    /// </summary>
+    private static string? ReadFirstNonEmptyOsuContent(string[] osuFiles)
+    {
+        foreach (var osuFile in osuFiles)
+        {
+            var content = File.ReadAllText(osuFile);
+            if (!string.IsNullOrWhiteSpace(content))
+                return content;
+        }
+
+        return null;
     }
 
     private static (
@@ -230,7 +324,6 @@ public static class BeatmapService
         string? songsFolderOverride = null
     )
     {
-        const int maxHeight = MaxImageHeight; // use constant
         var songsFolder = ResolveSongsFolder(songsFolderOverride);
         if (string.IsNullOrWhiteSpace(songsFolder))
             return BeatmapImageResult.Error("Songs folder could not be detected.");
@@ -242,64 +335,71 @@ public static class BeatmapService
         if (imagePath == null)
             return BeatmapImageResult.Error("No background image found.");
 
-        var extLower = Path.GetExtension(imagePath).ToLowerInvariant();
+        return BeatmapImageProcessing.BuildResult(imagePath, original);
+    }
 
-        var fi = new FileInfo(imagePath);
-        var baseEtagCore = fi.Exists
-            ? $"{fi.LastWriteTimeUtc.Ticks:x}-{fi.Length:x}"
-            : Path.GetFileName(imagePath);
+    /// <summary>
+    /// Resolves and streams a lazer beatmapset's background image directly from its
+    /// content-addressed file, without materializing the whole set to disk.
+    /// </summary>
+    public static BeatmapImageResult GetLazerBeatmapImage(
+        string beatmapSetId,
+        bool original = false,
+        string? lazerDataDirOverride = null
+    )
+    {
+        var dataDir = LazerRealmService.ResolveLazerDataDirectory(lazerDataDirOverride);
+        if (string.IsNullOrWhiteSpace(dataDir))
+            return BeatmapImageResult.Error("Lazer data folder could not be detected.");
 
-        var originalHeight = 0;
-        try
-        {
-            var info = Image.Identify(imagePath);
-            originalHeight = info.Height;
-        }
-        catch (Exception)
-        {
-            // ignore identify errors
-        }
+        var backgroundFile = LazerRealmService.GetBackgroundFilename(dataDir, beatmapSetId);
+        if (string.IsNullOrWhiteSpace(backgroundFile))
+            return BeatmapImageResult.Error("No background image found.");
 
-        var needsResize = !original && originalHeight > maxHeight;
+        var extension = Path.GetExtension(backgroundFile);
+        if (!BeatmapImageProcessing.IsSupportedImageFile(backgroundFile))
+            return BeatmapImageResult.Error("No background image found.");
 
-        if (!needsResize)
-        {
-            var mimeOriginal = extLower == ".png" ? "image/png" : "image/jpeg";
-            var etagOriginal = '"' + baseEtagCore + '"';
-            return BeatmapImageResult.SuccessResult(imagePath, mimeOriginal, etagOriginal);
-        }
+        var files = LazerRealmService.GetBeatmapSetFiles(dataDir, beatmapSetId);
+        var hash = files
+            ?.FirstOrDefault(f =>
+                string.Equals(f.Filename, backgroundFile, StringComparison.OrdinalIgnoreCase)
+            )
+            .Hash;
+        if (string.IsNullOrWhiteSpace(hash))
+            return BeatmapImageResult.Error("Background image file could not be resolved.");
 
-        // Perform in-memory resize
-        try
-        {
-            using var img = Image.Load(imagePath);
-            var ratio = (double)maxHeight / img.Height;
-            var targetW = Math.Max(1, (int)Math.Round(img.Width * ratio));
-            var targetH = maxHeight;
-            img.Mutate(c =>
-                c.Resize(
-                    new ResizeOptions
-                    {
-                        Mode = ResizeMode.Max,
-                        Size = new Size(targetW, targetH),
-                        Sampler = KnownResamplers.Lanczos3,
-                    }
-                )
-            );
-            var ms = new MemoryStream();
-            if (extLower == ".png")
-                img.Save(ms, new PngEncoder());
-            else
-                img.Save(ms, new JpegEncoder { Quality = 85 });
-            ms.Position = 0; // reset for reading
-            var mime = extLower == ".png" ? "image/png" : "image/jpeg";
-            var etag = '"' + baseEtagCore + $"-h{maxHeight}" + '"';
-            return BeatmapImageResult.SuccessStreamResult(ms, mime, etag);
-        }
-        catch (Exception ex)
-        {
-            return BeatmapImageResult.Error("Failed to resize image: " + ex.Message);
-        }
+        var imagePath = LazerRealmService.ResolveFilePathFromHash(dataDir, hash);
+        if (!File.Exists(imagePath))
+            return BeatmapImageResult.Error("Background image file is missing on disk.");
+
+        return BeatmapImageProcessing.BuildResult(imagePath, original, extension);
+    }
+
+    public static ApiBeatmapPage GetLazerBeatmaps(
+        string? search,
+        int page,
+        int pageSize,
+        string? lazerDataDirOverride = null
+    )
+    {
+        var dataDir = LazerRealmService.ResolveLazerDataDirectory(lazerDataDirOverride);
+        if (string.IsNullOrWhiteSpace(dataDir))
+            return new ApiBeatmapPage([], page, pageSize, false);
+
+        return LazerRealmService.GetBeatmapSets(dataDir, search, page, pageSize);
+    }
+
+    public static ApiLazerMaterializeResult MaterializeLazerBeatmap(
+        string beatmapSetId,
+        string? lazerDataDirOverride = null
+    )
+    {
+        var dataDir = LazerRealmService.ResolveLazerDataDirectory(lazerDataDirOverride);
+        if (string.IsNullOrWhiteSpace(dataDir))
+            return ApiLazerMaterializeResult.Error("Lazer data folder could not be detected.");
+
+        return LazerBeatmapMaterializer.Materialize(dataDir, beatmapSetId);
     }
 
     private static string? GetConfiguredBackgroundImagePath(string beatmapSetFolder)
@@ -316,7 +416,10 @@ public static class BeatmapService
                 var beatmap = new Beatmap(code, beatmapSetFolder, Path.GetFileName(osuFile));
                 var backgroundPath = beatmap.GetBackgroundFilePath();
 
-                if (backgroundPath != null && IsSupportedImageFile(backgroundPath))
+                if (
+                    backgroundPath != null
+                    && BeatmapImageProcessing.IsSupportedImageFile(backgroundPath)
+                )
                     return backgroundPath;
             }
             catch (Exception)
@@ -327,9 +430,6 @@ public static class BeatmapService
 
         return null;
     }
-
-    private static bool IsSupportedImageFile(string filePath) =>
-        SupportedImageExtensions.Contains(Path.GetExtension(filePath).ToLowerInvariant());
 
     public static ApiBeatmapStructure GetBeatmapSetStructure(string beatmapSetFolder)
     {
@@ -347,20 +447,60 @@ public static class BeatmapService
 
     public static ApiBeatmapSetCheckResult RunBeatmapSetChecks(
         string beatmapSetFolder,
-        IProgress<CheckProgress>? progress = null
+        IProgress<CheckProgress>? progress = null,
+        bool includeCheckRunDelta = true,
+        bool createSnapshot = true,
+        bool includeCheckTimings = false
     )
     {
         var (beatmapSet, _) = ParseBeatmapSet(beatmapSetFolder);
-        return RunBeatmapSetChecks(beatmapSet, progress);
+        return RunBeatmapSetChecks(
+            beatmapSet,
+            progress,
+            includeCheckRunDelta,
+            createSnapshot,
+            includeCheckTimings
+        );
     }
 
     public static ApiBeatmapSetCheckResult RunBeatmapSetChecks(
         BeatmapSet beatmapSet,
-        IProgress<CheckProgress>? progress = null
+        IProgress<CheckProgress>? progress = null,
+        bool includeCheckRunDelta = true,
+        bool createSnapshot = true,
+        bool includeCheckTimings = false
     )
     {
-        var issues = Checker.GetBeatmapSetIssues(beatmapSet, progress);
-        return BuildBeatmapSetCheckResult(beatmapSet, issues);
+        if (createSnapshot)
+        {
+            try
+            {
+                SnapshotService.SnapshotCurrentBeatmapSet(beatmapSet);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to snapshot beatmap set before running checks.");
+            }
+        }
+
+        var issues = Checker.GetBeatmapSetIssues(
+            beatmapSet,
+            progress,
+            includeCheckTimings,
+            out var checkTimings
+        );
+        var result = BuildBeatmapSetCheckResult(beatmapSet, issues);
+        var delta = includeCheckRunDelta
+            ? CheckRunHistoryService.BuildDeltaAndRememberCurrent(beatmapSet, result)
+            : null;
+
+        return new ApiBeatmapSetCheckResult(
+            general: result.General,
+            difficulties: result.Difficulties,
+            checks: result.Checks,
+            checkRunDelta: delta,
+            checkTimings: checkTimings
+        );
     }
 
     private static BeatmapSet CreateBeatmapSet(string beatmapSetFolder)
@@ -416,7 +556,8 @@ public static class BeatmapService
                     return new ApiCheckResult(
                         id: checkId,
                         level: issue.level,
-                        message: issue.message
+                        message: issue.message,
+                        ruleIds: RankingCriteriaService.RuleIdsFor(issue)
                     );
                 });
 
@@ -443,7 +584,12 @@ public static class BeatmapService
                     .FirstOrDefault(c => c.Value.GetType() == issue.CheckOrigin?.GetType())
                     .Key;
 
-                return new ApiCheckResult(id: checkId, level: issue.level, message: issue.message);
+                return new ApiCheckResult(
+                    id: checkId,
+                    level: issue.level,
+                    message: issue.message,
+                    ruleIds: RankingCriteriaService.RuleIdsFor(issue)
+                );
             })
             .ToList();
 
@@ -522,7 +668,12 @@ public static class BeatmapService
                     .FirstOrDefault(c => c.Value.GetType() == issue.CheckOrigin?.GetType())
                     .Key;
 
-                return new ApiCheckResult(id: checkId, level: issue.level, message: issue.message);
+                return new ApiCheckResult(
+                    id: checkId,
+                    level: issue.level,
+                    message: issue.message,
+                    ruleIds: RankingCriteriaService.RuleIdsFor(issue)
+                );
             })
             .ToList();
 

@@ -9,11 +9,7 @@ export default function RouteErrorBoundary({ children }: Props) {
   const [resetKey, setResetKey] = useState(0);
 
   return (
-    <ErrorBoundary
-      key={resetKey}
-      showHomeLink
-      onReset={() => setResetKey((key) => key + 1)}
-    >
+    <ErrorBoundary key={resetKey} showHomeLink onReset={() => setResetKey((key) => key + 1)}>
       {children}
     </ErrorBoundary>
   );

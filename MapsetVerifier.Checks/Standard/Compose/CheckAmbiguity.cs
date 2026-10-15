@@ -5,6 +5,7 @@ using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
+using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.Standard.Compose
 {
@@ -51,9 +52,17 @@ namespace MapsetVerifier.Checks.Standard.Compose
                         Issue.Level.Warning,
                         "{0} Slider edges are almost perfectly overlapping.",
                         "timestamp -"
-                    ).WithCause(
-                        "The edges of a slider curve are 5 px or less apart, and a slider tick is 2 circle radii from the head."
                     )
+                        .WithCause(
+                            "The edges of a slider curve are 5 px or less apart, and a slider tick is 2 circle radii from the head."
+                        )
+                        .WithRule(
+                            RC.Osu.Easy_SliderClearVisiblePathMovement,
+                            RC.Osu.Normal_SliderClearVisiblePathMovement,
+                            RC.Osu.Hard_SliderClearVisiblePathMovement,
+                            RC.Osu.Insane_SliderClearVisiblePathMovement,
+                            RC.Osu.Expert_SliderClearVisiblePathMovement
+                        )
                 },
                 {
                     "Anchor",
@@ -62,10 +71,18 @@ namespace MapsetVerifier.Checks.Standard.Compose
                         "{0} {1} and red anchor overlap is possibly ambigious.",
                         "timestamp -",
                         "Head/tail"
-                    ).WithCause(
-                        "The head or tail of a slider is a distance of 10 px or less to a red node, having been more than 30 px away "
-                            + "at a point in time between the two."
                     )
+                        .WithCause(
+                            "The head or tail of a slider is a distance of 10 px or less to a red node, having been more than 30 px away "
+                                + "at a point in time between the two."
+                        )
+                        .WithRule(
+                            RC.Osu.Easy_SliderClearVisiblePathMovement,
+                            RC.Osu.Normal_SliderClearVisiblePathMovement,
+                            RC.Osu.Hard_SliderClearVisiblePathMovement,
+                            RC.Osu.Insane_SliderClearVisiblePathMovement,
+                            RC.Osu.Expert_SliderClearVisiblePathMovement
+                        )
                 },
             };
 

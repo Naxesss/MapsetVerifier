@@ -1,6 +1,7 @@
 import { Blockquote, Stack, Text } from '@mantine/core';
 import MantineMarkdown from './MantineMarkdown';
 import LevelIcon from '../icons/LevelIcon';
+import RuleReferences from '../rankingCriteria/RuleReferences';
 import type { ApiDocumentationCheckDetailsOutcome, Level } from '../../Types';
 
 const BLOCKQUOTE_COLOR_BY_LEVEL: Record<Level, string> = {
@@ -14,10 +15,13 @@ const BLOCKQUOTE_COLOR_BY_LEVEL: Record<Level, string> = {
 
 interface DocumentationOutcomeBlockquoteProps {
   outcome: ApiDocumentationCheckDetailsOutcome;
+  /** Whether to list the ranking criteria the outcome enforces. */
+  showRules?: boolean;
 }
 
 export default function DocumentationOutcomeBlockquote({
   outcome,
+  showRules = true,
 }: DocumentationOutcomeBlockquoteProps) {
   const color = BLOCKQUOTE_COLOR_BY_LEVEL[outcome.level] ?? 'gray';
 
@@ -35,6 +39,7 @@ export default function DocumentationOutcomeBlockquote({
             Cause: {outcome.cause}
           </Text>
         )}
+        {showRules && <RuleReferences ruleIds={outcome.ruleIds} />}
       </Stack>
     </Blockquote>
   );

@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -11,6 +11,7 @@
     <ProjectReference Include="..\MapsetVerifier.Framework\MapsetVerifier.Framework.csproj" />
     <ProjectReference Include="..\MapsetVerifier.Parser\MapsetVerifier.Parser.csproj" />
     <ProjectReference Include="..\MapsetVerifier.Logging\MapsetVerifier.Logging.csproj" />
+    <ProjectReference Include="..\MapsetVerifier.RankingCriteria\MapsetVerifier.RankingCriteria.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />

@@ -20,7 +20,27 @@ export interface BackendStatus {
   port: number;
 }
 
+export interface BackendStartOptions {
+  customChecksEnabled?: boolean;
+}
+
 export type Unsubscribe = () => void;
+
+export type TimestampOpenTarget = 'current' | 'stable' | 'lazer' | 'custom';
+
+export interface OpenOsuUrlOptions {
+  url: string;
+  target: TimestampOpenTarget;
+  stablePath?: string;
+  lazerPath?: string;
+  customCommand?: string;
+  songsFolder?: string;
+}
+
+export interface OpenOsuUrlResult {
+  ok: boolean;
+  error?: string;
+}
 
 export interface ElectronAPI {
   platform: NodeJS.Platform;
@@ -41,15 +61,23 @@ export interface ElectronAPI {
     toggleMaximize(): Promise<boolean>;
     close(): Promise<void>;
     isMaximized(): Promise<boolean>;
+    /** Sets the zoom the app starts at and that Ctrl+0 resets to, and applies it now. */
+    setDefaultZoom(percent: number): Promise<void>;
   };
 
   shell: {
     openPath(path: string): Promise<string>;
     openExternal(url: string): Promise<void>;
+    openOsuUrl(options: OpenOsuUrlOptions): Promise<OpenOsuUrlResult>;
+    detectOsuExecutable(options: {
+      client: 'stable' | 'lazer';
+      songsFolder?: string;
+    }): Promise<string | null>;
   };
 
   dialog: {
     openFolder(): Promise<string | null>;
+    openFile(): Promise<string | null>;
   };
 
   settings: {
@@ -60,7 +88,7 @@ export interface ElectronAPI {
 
   backend: {
     status(): Promise<BackendStatus>;
-    start(): Promise<void>;
+    start(options?: BackendStartOptions): Promise<void>;
     onLog(cb: (line: string) => void): Unsubscribe;
   };
 
