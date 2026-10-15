@@ -3,9 +3,8 @@ using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
 using MapsetVerifier.Snapshots.Objects;
 using MathNet.Numerics;
-using Serilog;
-using System.Text;
 using static MapsetVerifier.Snapshots.Snapshotter;
+using static MapsetVerifier.Snapshots.Translators.SnapshotTranslation;
 
 namespace MapsetVerifier.Snapshots.Translators
 {
@@ -123,89 +122,11 @@ namespace MapsetVerifier.Snapshots.Translators
             List<TimingLine> newList,
             double globalShift,
             double maxWindow = 5000.0
-        )
-        {
-            int n = oldList.Count;
-            int m = newList.Count;
-
-            double[,] dp = new double[n + 1, m + 1];
-            double gapPenalty = 300.0;
-
-            for (int i = 0; i <= n; i++)
-                dp[i, 0] = i * gapPenalty;
-            for (int j = 0; j <= m; j++)
-                dp[0, j] = j * gapPenalty;
-
-            for (int i = 1; i <= n; i++)
-            {
-                var oldLine = oldList[i - 1];
-                for (int j = 1; j <= m; j++)
-                {
-                    var newLine = newList[j - 1];
-                    double timeDiff = Math.Abs(oldLine.Offset - newLine.Offset);
-
-                    if (timeDiff <= maxWindow)
-                    {
-                        double matchCost = GetDistance(oldLine, newLine, globalShift);
-                        double optMatch = dp[i - 1, j - 1] + matchCost;
-                        double optDelete = dp[i - 1, j] + gapPenalty;
-                        double optInsert = dp[i, j - 1] + gapPenalty;
-
-                        dp[i, j] = Math.Min(optMatch, Math.Min(optDelete, optInsert));
-                    }
-                    else
-                    {
-                        double optDelete = dp[i - 1, j] + gapPenalty;
-                        double optInsert = dp[i, j - 1] + gapPenalty;
-                        dp[i, j] = Math.Min(optDelete, optInsert);
-                    }
-                }
-            }
-
-            var path = new List<Tuple<int, int>>();
-            int currI = n;
-            int currJ = m;
-
-            while (currI > 0 || currJ > 0)
-            {
-                if (currI > 0 && currJ > 0)
-                {
-                    var oldLine = oldList[currI - 1];
-                    var newLine = newList[currJ - 1];
-                    double timeDiff = Math.Abs(oldLine.Offset - newLine.Offset);
-
-                    if (timeDiff <= maxWindow)
-                    {
-                        double matchCost = GetDistance(oldLine, newLine, globalShift);
-                        if (Math.Abs(dp[currI, currJ] - (dp[currI - 1, currJ - 1] + matchCost)) < 1e-5)
-                        {
-                            path.Add(new Tuple<int, int>(currI - 1, currJ - 1));
-                            currI--;
-                            currJ--;
-                            continue;
-                        }
-                    }
-                }
-
-                if (currI > 0 && Math.Abs(dp[currI, currJ] - (dp[currI - 1, currJ] + gapPenalty)) < 1e-5)
-                {
-                    path.Add(new Tuple<int, int>(currI - 1, -1));
-                    currI--;
-                }
-                else if (currJ > 0)
-                {
-                    path.Add(new Tuple<int, int>(-1, currJ - 1));
-                    currJ--;
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            path.Reverse();
-            return path;
-        }
+        ) => SequenceAlignment.Align(
+            oldList, newList, line => line.Offset,
+            (oldLine, newLine) => GetDistance(oldLine, newLine, globalShift),
+            maxWindow
+        );
 
         public override IEnumerable<DiffInstance> Translate(
             IEnumerable<DiffInstance> diffs,
@@ -220,31 +141,7 @@ namespace MapsetVerifier.Snapshots.Translators
                 yield break;
 
             var snapshotCreationDate = diffsList.First().SnapshotCreationDate;
-            string? oldCode = null;
-            string? newCode = null;
-            var beatmapSetId = beatmap.MetadataSettings.beatmapSetId?.ToString();
-            var beatmapId = beatmap.MetadataSettings.beatmapId?.ToString();
-
-            if (beatmapSetId != null && beatmapId != null)
-            {
-                try
-                {
-                    var snapshots = GetSnapshots(beatmapSetId, beatmapId).OrderBy(s => s.creationTime).ToList();
-                    var snapshotIndex = snapshots.FindIndex(s => s.creationTime == snapshotCreationDate);
-                    if (snapshotIndex != -1)
-                    {
-                        oldCode = snapshots[snapshotIndex].code;
-                        if (snapshotIndex + 1 < snapshots.Count)
-                        {
-                            newCode = snapshots[snapshotIndex + 1].code;
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e, "Could not load snapshot for DTW alignment");
-                }
-            }
+            var (oldCode, newCode) = LoadSnapshotCodes(beatmap, snapshotCreationDate);
 
             if (string.IsNullOrEmpty(oldCode))
             {
@@ -358,36 +255,8 @@ namespace MapsetVerifier.Snapshots.Translators
                 yield break;
             }
 
-            // Parse old and new timing lines
-            var oldTimingLines = ParseTimingLinesFromCode(oldCode, beatmap);
-            var newTimingLines = !string.IsNullOrEmpty(newCode)
-                ? ParseTimingLinesFromCode(newCode, beatmap)
-                : beatmap.TimingLines;
-
-            // Use hit objects as the primary/fixed criteria to estimate the global shift.
-            // Under osu!, timing and hit objects shift together. Estimating them independently
-            // can result in inconsistent alignment, especially on maps with sparse timing points.
             double globalShiftHint = HitObjectsTranslator.GetCachedShiftSections(beatmap, oldCode, newCode).globalShiftHint;
-
-            // Align old and new timing lines
-            var alignment = AlignTimingLines(oldTimingLines, newTimingLines, globalShiftHint, 5000.0);
-
-            // Convert alignment into UnifiedSteps
-            var steps = new List<UnifiedStep>();
-            foreach (var step in alignment)
-            {
-                var unified = new UnifiedStep();
-                if (step.Item1 != -1)
-                    unified.OldLine = oldTimingLines[step.Item1];
-                if (step.Item2 != -1)
-                    unified.NewLine = newTimingLines[step.Item2];
-                steps.Add(unified);
-            }
-
-            // Detect the dominant shift via RANSAC voting across all matched pairs.
-            // Independent of any hit-object shift: timing can shift without objects shifting
-            // (e.g. mp3 offset adjustment on a sparse map) and vice versa.
-            var sections = BuildShiftSections(steps, globalShiftHint, beatmap);
+            var sections = GetShiftSections(beatmap, oldCode, newCode, globalShiftHint);
 
             // Build a governing-shift timeline from real section shifts so singletons
             // can show the expected timestamp based on the locally-applicable shift
@@ -654,28 +523,6 @@ namespace MapsetVerifier.Snapshots.Translators
         // RANSAC needs at least 2 matched pairs voting for the same shift to call it a section.
         private const int MinShiftInliers = 2;
 
-        // Per-step drift report uses 1/32 of the active beat as the tolerance, so sub-snap
-        // jitter is absorbed into the section shift while real snap-level drift surfaces.
-        // Falls back to ShiftTolerance if no uninherited line is active.
-        private static double GetSnapTolerance(Beatmap beatmap, double time)
-        {
-            var uninherited = beatmap.GetTimingLine<UninheritedLine>(time);
-            if (uninherited == null) return ShiftTolerance;
-            return uninherited.msPerBeat / 32.0;
-        }
-
-        // Returns (prefix, suffix) for an orphan-removed entry. Prefix carries the
-        // (shifted, if any) timestamp; suffix carries the "(originally <old>)"
-        // cross-reference appended after the message body.
-        // No shift -> suffix is empty (would just repeat the primary stamp).
-        private static (string prefix, string suffix) BuildRemovedStamp(double oldTime, double shift)
-        {
-            if (Math.Abs(shift) < 1.0)
-                return (Timestamp.Get(oldTime), "");
-            string oldTrim = Timestamp.Get(oldTime).TrimEnd(' ', '-');
-            return (Timestamp.Get(oldTime + shift), $" (originally {oldTrim})");
-        }
-
         // Cluster every matched step's shift greedily within +/-ShiftTolerance. Any cluster
         // with >= MinShiftInliers becomes its own section (so e.g. seven lines all shifted
         // by -15ms collapse into a single "Section shifted by -15 ms" entry). Singleton
@@ -844,28 +691,26 @@ namespace MapsetVerifier.Snapshots.Translators
             string? newCode
         )
         {
-            var oldTimingLines = ParseTimingLinesFromCode(oldCode, beatmap);
-            var newTimingLines = !string.IsNullOrEmpty(newCode)
+            var shift = HitObjectsTranslator.GetCachedShiftSections(beatmap, oldCode, newCode).globalShiftHint;
+            return GetShiftSections(beatmap, oldCode, newCode, shift)
+                .Select(section => (section.StartTime, section.EndTime, section.Shift)).ToList();
+        }
+
+        private static List<ShiftSection> GetShiftSections(
+            Beatmap beatmap, string oldCode, string? newCode, double globalShift
+        )
+        {
+            var oldLines = ParseTimingLinesFromCode(oldCode, beatmap);
+            var newLines = !string.IsNullOrEmpty(newCode)
                 ? ParseTimingLinesFromCode(newCode, beatmap)
                 : beatmap.TimingLines;
-
-            double globalShiftHint = HitObjectsTranslator.GetCachedShiftSections(beatmap, oldCode, newCode).globalShiftHint;
-
-            var alignment = AlignTimingLines(oldTimingLines, newTimingLines, globalShiftHint, 5000.0);
-
-            var steps = new List<UnifiedStep>();
-            foreach (var step in alignment)
-            {
-                var unified = new UnifiedStep();
-                if (step.Item1 != -1)
-                    unified.OldLine = oldTimingLines[step.Item1];
-                if (step.Item2 != -1)
-                    unified.NewLine = newTimingLines[step.Item2];
-                steps.Add(unified);
-            }
-
-            var sections = BuildShiftSections(steps, globalShiftHint, beatmap);
-            return sections.Select(s => (s.StartTime, s.EndTime, s.Shift)).ToList();
+            var steps = AlignTimingLines(oldLines, newLines, globalShift)
+                .Select(pair => new UnifiedStep
+                {
+                    OldLine = pair.Item1 < 0 ? null : oldLines[pair.Item1],
+                    NewLine = pair.Item2 < 0 ? null : newLines[pair.Item2],
+                }).ToList();
+            return BuildShiftSections(steps, globalShift, beatmap);
         }
 
         private static string GetTimestampPrefix(string message)
