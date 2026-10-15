@@ -87,6 +87,7 @@ namespace MapsetVerifier.Parser.Tests.Objects
             var sectionDiff = result[1];
             Assert.Contains("Section shifted in time by +5 ms", sectionDiff.Diff);
             Assert.Empty(sectionDiff.Details);
+            Assert.All(result, diff => Assert.Equal("Timing", diff.Section));
         }
 
         [Fact]

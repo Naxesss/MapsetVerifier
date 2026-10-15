@@ -382,7 +382,7 @@ namespace MapsetVerifier.Snapshots.Translators
                 var sign = printShift > 0 ? "+" : "";
                 yield return new DiffInstance(
                     $"Global object offset shifted by {sign}{printShift:0.##} ms.",
-                    Section,
+                    "Timing",
                     DiffType.Changed,
                     new List<string>(),
                     snapshotCreationDate
@@ -401,7 +401,7 @@ namespace MapsetVerifier.Snapshots.Translators
 
                     yield return new DiffInstance(
                         stamp + $"Section shifted in time by {sign}{section.Shift:0.##} ms ({matchedCount} objects).",
-                        Section,
+                        "Timing",
                         DiffType.Changed,
                         new List<string>(),
                         snapshotCreationDate

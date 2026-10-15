@@ -112,10 +112,24 @@ public class SnapshotAlignmentTests
         var newCode = oldCode
             .Replace("0,500,4,2", $"{timingShift},500,4,2")
             .Replace("100,100,1000,", "120,100,1000,");
+        var result = TranslateObjectChanges(oldCode, newCode);
+        Assert.DoesNotContain(result, item => item.Diff.Contains("Global object offset shifted"));
+        Assert.Contains(result, item => item.Details.Any(detail => detail.Contains("Moved from")));
+    }
+
+    [Fact]
+    public void ObjectTimeShiftsAreReportedOnlyInTiming()
+    {
+        var result = TranslateObjectChanges(BuildOsu(0), BuildOsu(16));
+        Assert.NotEmpty(result);
+        Assert.All(result, diff => Assert.Equal("Timing", diff.Section));
+    }
+
+    private static List<DiffInstance> TranslateObjectChanges(string oldCode, string newCode)
+    {
         var beatmap = new Beatmap(newCode, "", "test.osu");
         beatmap.MetadataSettings.beatmapSetId = 123;
         beatmap.MetadataSettings.beatmapId = 456;
-        var creationDate = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         var path = Path.Combine(
             Path.GetTempPath(),
             "MapsetVerifierSnapshotsTests",
@@ -127,24 +141,9 @@ public class SnapshotAlignmentTests
             var directory = Path.Combine(path, "test", "snapshots", "123", "456");
             Directory.CreateDirectory(directory);
             File.WriteAllText(Path.Combine(directory, "2026-01-01 00-00-00.osu"), oldCode);
-            var diff = new DiffInstance(
-                "120,100,1000,1,0,0:0:0:0:",
-                "HitObjects",
-                Snapshotter.DiffType.Added,
-                new List<string>(),
-                creationDate
-            );
-
-            var result = new HitObjectsTranslator().Translate(new[] { diff }, beatmap).ToList();
-
-            Assert.DoesNotContain(
-                result,
-                item => item.Diff.Contains("Global object offset shifted")
-            );
-            Assert.Contains(
-                result,
-                item => item.Details.Any(detail => detail.Contains("Moved from"))
-            );
+            var snapshot = Snapshotter.GetSnapshots(beatmap).Single();
+            var diffs = Snapshotter.Compare(snapshot, newCode).Where(diff => diff.Section == "HitObjects");
+            return new HitObjectsTranslator().Translate(diffs, beatmap).ToList();
         }
         finally
         {
