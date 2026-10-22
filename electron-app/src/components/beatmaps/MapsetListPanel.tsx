@@ -7,6 +7,7 @@ import {
   MapsetListEnd,
   MapsetListError,
   MapsetListToolbar,
+  notifySlowScan,
 } from './MapsetListParts.tsx';
 import PlaceholderBeatmapCard from './PlaceholderBeatmapCard.tsx';
 import { FetchError } from '../../client/ApiHelper.ts';
@@ -116,6 +117,8 @@ export default function MapsetListPanel({
   const firstPageLoaded = data?.pages?.[0];
   const noResults = !isFetching && !isFetchingNextPage && beatmaps.length === 0 && !error;
   const lastPage = data?.pages[data.pages.length - 1];
+  // Any loaded page in folder-date order makes the list's order unreliable until it reloads.
+  const scanWarning = data?.pages.find((p) => p.scanWarning)?.scanWarning ?? null;
   const showNextPagePlaceholder =
     isFetchingNextPage || (lastPage && lastPage.items.length === 0 && lastPage.hasMore);
 
@@ -142,6 +145,21 @@ export default function MapsetListPanel({
     observer.observe(el);
     return () => observer.disconnect();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // Toasts once per set of slow folders, so refetches and page loads don't repeat it.
+  const shownScanWarningRef = useRef<string | null>(null);
+  const scanWarningKey = scanWarning
+    ? scanWarning.slowFolders.map((f) => f.folder).join('|')
+    : null;
+  useEffect(() => {
+    if (!scanWarning || scanWarningKey === null) {
+      shownScanWarningRef.current = null;
+      return;
+    }
+    if (shownScanWarningRef.current === scanWarningKey) return;
+    shownScanWarningRef.current = scanWarningKey;
+    notifySlowScan(scanWarning, () => void queryClient.resetQueries({ queryKey: listKey }));
+  }, [scanWarning, scanWarningKey, queryClient, listKey]);
 
   const listKeyToken = JSON.stringify(listKey);
   useEffect(() => {

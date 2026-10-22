@@ -25,6 +25,13 @@ export type ApiBeatmapPage = {
   page: number;
   pageSize: number;
   hasMore: boolean;
+  /** Set when sorting by last edit didn't finish in time and the page is in folder-date order. */
+  scanWarning?: ApiFolderScanWarning | null;
+};
+
+export type ApiFolderScanWarning = {
+  /** Folders still being read, slowest first; empty when the library as a whole is slow. */
+  slowFolders: { folder: string; seconds: number }[];
 };
 
 export type Beatmap = {
