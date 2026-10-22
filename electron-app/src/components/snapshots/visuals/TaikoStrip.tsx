@@ -9,13 +9,16 @@ import {
   type PairedObject,
 } from './pairing';
 import PairTip from './PairTip';
+import { LabelledPlot } from './PlotLabels';
 import SnapGrid, { hunkDivisors, SnapLegend } from './SnapGrid';
-import { formatClock } from '../describe';
 import type { ApiSnapshotHunkVisual, ApiSnapshotVisualObject } from '../../../Types';
 
 const WIDTH = 640;
 const LEFT = 58;
 const RIGHT = 16;
+/** The part of the drawing the picture shows: the two strips. */
+const VIEW_TOP = 10;
+const VIEW_HEIGHT = 98;
 const DON = '#F2503F';
 const KAT = '#3FA4D8';
 
@@ -114,72 +117,58 @@ export default function TaikoStrip({
 
   return (
     <div>
-      <svg
-        viewBox={`0 0 ${WIDTH} 124`}
-        role="img"
-        aria-label="Taiko notes before and after on the beat grid"
-        style={{ display: 'block', width: '100%', maxWidth: WIDTH, height: 'auto' }}
-      >
-        <clipPath id={clipId}>
-          <rect x={LEFT - 8} y={0} width={WIDTH - LEFT - RIGHT + 16} height={124} rx={4} />
-        </clipPath>
-        {rows.map((row) => (
-          <g key={row.label}>
-            <text x={0} y={row.y + 4} fontSize={10.5} fontWeight={700} fill="#8695AB">
-              {row.label}
-            </text>
-            <rect
-              x={LEFT - 8}
-              y={row.y - 24}
-              width={WIDTH - LEFT - RIGHT + 16}
-              height={48}
-              rx={4}
-              fill="#121923"
-            />
-            <g clipPath={`url(#${clipId})`}>
-              <SnapGrid
-                timing={row.timing}
-                divisors={divisors}
-                from={start}
-                to={end}
-                place={xOf}
-                across={{ start: row.y - 22, end: row.y + 22, vertical: true }}
-              />
-              {pairs.map((pair, i) => {
-                const object = pair[row.side];
-                if (!object) return null;
-
-                return (
-                  <PairTip key={i} pair={pair}>
-                    <g>
-                      <Note
-                        object={object}
-                        x={xOf(object.time)}
-                        endX={object.endTime != null ? xOf(object.endTime) : null}
-                        cy={row.y}
-                        status={pair.status}
-                      />
-                    </g>
-                  </PairTip>
-                );
-              })}
-            </g>
-          </g>
-        ))}
-        <text x={LEFT} y={120} fontSize={10} fill="#8695AB" fontFamily="monospace">
-          {formatClock(start)}
-        </text>
-        <text
-          x={WIDTH - RIGHT}
-          y={120}
-          fontSize={10}
-          textAnchor="end"
-          fill="#8695AB"
-          fontFamily="monospace"
+      <LabelledPlot rows={rows} view={[VIEW_TOP, VIEW_HEIGHT]} start={start} end={end}>
+        <svg
+          viewBox={`${LEFT - 8} ${VIEW_TOP} ${WIDTH - LEFT - RIGHT + 16} ${VIEW_HEIGHT}`}
+          role="img"
+          aria-label="Taiko notes before and after on the beat grid"
+          style={{ display: 'block', width: '100%', height: 'auto' }}
         >
-          {formatClock(end)}
-        </text>
-      </svg>
+          <clipPath id={clipId}>
+            <rect x={LEFT - 8} y={0} width={WIDTH - LEFT - RIGHT + 16} height={124} rx={4} />
+          </clipPath>
+          {rows.map((row) => (
+            <g key={row.label}>
+              <rect
+                x={LEFT - 8}
+                y={row.y - 24}
+                width={WIDTH - LEFT - RIGHT + 16}
+                height={48}
+                rx={4}
+                fill="#121923"
+              />
+              <g clipPath={`url(#${clipId})`}>
+                <SnapGrid
+                  timing={row.timing}
+                  divisors={divisors}
+                  from={start}
+                  to={end}
+                  place={xOf}
+                  across={{ start: row.y - 22, end: row.y + 22, vertical: true }}
+                />
+                {pairs.map((pair, i) => {
+                  const object = pair[row.side];
+                  if (!object) return null;
+
+                  return (
+                    <PairTip key={i} pair={pair}>
+                      <g>
+                        <Note
+                          object={object}
+                          x={xOf(object.time)}
+                          endX={object.endTime != null ? xOf(object.endTime) : null}
+                          cy={row.y}
+                          status={pair.status}
+                        />
+                      </g>
+                    </PairTip>
+                  );
+                })}
+              </g>
+            </g>
+          ))}
+        </svg>
+      </LabelledPlot>
       <Group gap="md" mt="xs" wrap="wrap">
         <Text size="xs" c="dimmed">
           Red don, blue kat, big notes are larger

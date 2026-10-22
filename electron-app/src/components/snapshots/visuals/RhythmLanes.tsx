@@ -2,13 +2,16 @@ import { useId, useMemo } from 'react';
 import { fitDivisors } from './beatGrid';
 import { PALETTE, pairObjects, STATUS_COLOR } from './pairing';
 import PairTip from './PairTip';
+import { LabelledPlot } from './PlotLabels';
 import SnapGrid, { hunkDivisors, SnapLegend } from './SnapGrid';
-import { formatClock } from '../describe';
 import type { ApiSnapshotHunkVisual } from '../../../Types';
 
 const WIDTH = 640;
 const LEFT = 56;
 const RIGHT = 8;
+/** The part of the drawing the picture shows: the two lanes. */
+const VIEW_TOP = 14;
+const VIEW_HEIGHT = 68;
 /** The space a dot needs between its neighbours to show its number. */
 const NUMBER_ROOM = 19;
 
@@ -64,154 +67,142 @@ export default function RhythmLanes({
     return result;
   }, [pairs, start, end]);
 
+  const lanes = [
+    { label: 'BEFORE', y: 30, timing: visual.beforeTiming },
+    { label: 'AFTER', y: 66, timing: visual.afterTiming },
+  ];
+
   return (
     <div>
-      <svg
-        viewBox={`0 0 ${WIDTH} 96`}
-        role="img"
-        aria-label="Rhythm before and after"
-        style={{ display: 'block', width: '100%', maxWidth: WIDTH, height: 'auto' }}
-      >
-        {[
-          { label: 'BEFORE', y: 30, timing: visual.beforeTiming },
-          { label: 'AFTER', y: 66, timing: visual.afterTiming },
-        ].map((lane) => (
-          <g key={lane.label}>
-            <text x={0} y={lane.y + 4} fontSize={10.5} fontWeight={700} fill={PALETTE.dim}>
-              {lane.label}
-            </text>
-            <rect
-              x={LEFT}
-              y={lane.y - 14}
-              width={WIDTH - LEFT - RIGHT}
-              height={28}
-              rx={4}
-              fill={PALETTE.surface}
-            />
-            <SnapGrid
-              timing={lane.timing}
-              divisors={divisors}
-              from={start}
-              to={end}
-              place={x}
-              across={{ start: lane.y - 14, end: lane.y + 14, vertical: true }}
-            />
-          </g>
-        ))}
+      <LabelledPlot rows={lanes} view={[VIEW_TOP, VIEW_HEIGHT]} start={start} end={end}>
+        <svg
+          viewBox={`${LEFT} ${VIEW_TOP} ${WIDTH - LEFT} ${VIEW_HEIGHT}`}
+          role="img"
+          aria-label="Rhythm before and after"
+          style={{ display: 'block', width: '100%', height: 'auto' }}
+        >
+          {lanes.map((lane) => (
+            <g key={lane.label}>
+              <rect
+                x={LEFT}
+                y={lane.y - 14}
+                width={WIDTH - LEFT - RIGHT}
+                height={28}
+                rx={4}
+                fill={PALETTE.surface}
+              />
+              <SnapGrid
+                timing={lane.timing}
+                divisors={divisors}
+                from={start}
+                to={end}
+                place={x}
+                across={{ start: lane.y - 14, end: lane.y + 14, vertical: true }}
+              />
+            </g>
+          ))}
 
-        <clipPath id={clipId}>
-          <rect x={LEFT} y={0} width={WIDTH - LEFT - RIGHT} height={80} />
-        </clipPath>
-        <g clipPath={`url(#${clipId})`}>
-          {pairs.map((pair, i) => {
-            const draw = (side: 'before' | 'after') => {
-              const object = pair[side];
-              if (!object) return null;
+          <clipPath id={clipId}>
+            <rect x={LEFT} y={0} width={WIDTH - LEFT - RIGHT} height={80} />
+          </clipPath>
+          <g clipPath={`url(#${clipId})`}>
+            {pairs.map((pair, i) => {
+              const draw = (side: 'before' | 'after') => {
+                const object = pair[side];
+                if (!object) return null;
 
-              const y = side === 'before' ? 30 : 66;
-              const color = STATUS_COLOR[pair.status];
-              const dim = pair.status === 'same';
-              const x1 = x(object.time);
-              const x2 = object.endTime != null ? x(object.endTime) : x1;
-              const numbered = object.combo != null && !crowded.has(object);
+                const y = side === 'before' ? 30 : 66;
+                const color = STATUS_COLOR[pair.status];
+                const dim = pair.status === 'same';
+                const x1 = x(object.time);
+                const x2 = object.endTime != null ? x(object.endTime) : x1;
+                const numbered = object.combo != null && !crowded.has(object);
+
+                return (
+                  <PairTip key={`${side}-${i}`} pair={pair}>
+                    <g>
+                      {x2 - x1 > 3 && (
+                        <rect
+                          x={x1}
+                          y={y - 5}
+                          width={x2 - x1}
+                          height={10}
+                          rx={5}
+                          fill={color}
+                          fillOpacity={0.4}
+                          stroke={color}
+                        />
+                      )}
+                      {object.edges?.map((time) => (
+                        <line
+                          key={`edge-${time}`}
+                          x1={x(time)}
+                          x2={x(time)}
+                          y1={y - 7}
+                          y2={y + 7}
+                          stroke={color}
+                          strokeWidth={2}
+                        />
+                      ))}
+                      {object.ticks?.map((time) => (
+                        <circle
+                          key={`tick-${time}`}
+                          cx={x(time)}
+                          cy={y}
+                          r={2}
+                          fill="var(--mantine-color-gray-0)"
+                          fillOpacity={0.9}
+                        />
+                      ))}
+                      <circle
+                        cx={x1}
+                        cy={y}
+                        r={numbered ? 9 : 5.5}
+                        fill={dim ? '#5A677C' : color}
+                        stroke="#161D28"
+                        strokeWidth={1.5}
+                      />
+                      {numbered && (
+                        <text
+                          x={x1}
+                          y={y + 3.5}
+                          textAnchor="middle"
+                          fontSize={10}
+                          fontWeight={800}
+                          fill="#11161D"
+                        >
+                          {object.combo}
+                        </text>
+                      )}
+                    </g>
+                  </PairTip>
+                );
+              };
 
               return (
-                <PairTip key={`${side}-${i}`} pair={pair}>
-                  <g>
-                    {x2 - x1 > 3 && (
-                      <rect
-                        x={x1}
-                        y={y - 5}
-                        width={x2 - x1}
-                        height={10}
-                        rx={5}
-                        fill={color}
-                        fillOpacity={0.4}
-                        stroke={color}
-                      />
-                    )}
-                    {object.edges?.map((time) => (
+                <g key={i}>
+                  {pair.before &&
+                    pair.after &&
+                    pair.status === 'changed' &&
+                    Math.abs(pair.before.time - pair.after.time) > 1 && (
                       <line
-                        key={`edge-${time}`}
-                        x1={x(time)}
-                        x2={x(time)}
-                        y1={y - 7}
-                        y2={y + 7}
-                        stroke={color}
-                        strokeWidth={2}
+                        x1={x(pair.before.time)}
+                        y1={36}
+                        x2={x(pair.after.time)}
+                        y2={60}
+                        stroke={STATUS_COLOR.changed}
+                        strokeWidth={1.5}
+                        strokeDasharray="3 3"
                       />
-                    ))}
-                    {object.ticks?.map((time) => (
-                      <circle
-                        key={`tick-${time}`}
-                        cx={x(time)}
-                        cy={y}
-                        r={2}
-                        fill="var(--mantine-color-gray-0)"
-                        fillOpacity={0.9}
-                      />
-                    ))}
-                    <circle
-                      cx={x1}
-                      cy={y}
-                      r={numbered ? 9 : 5.5}
-                      fill={dim ? '#5A677C' : color}
-                      stroke="#161D28"
-                      strokeWidth={1.5}
-                    />
-                    {numbered && (
-                      <text
-                        x={x1}
-                        y={y + 3.5}
-                        textAnchor="middle"
-                        fontSize={10}
-                        fontWeight={800}
-                        fill="#11161D"
-                      >
-                        {object.combo}
-                      </text>
                     )}
-                  </g>
-                </PairTip>
+                  {draw('before')}
+                  {draw('after')}
+                </g>
               );
-            };
-
-            return (
-              <g key={i}>
-                {pair.before &&
-                  pair.after &&
-                  pair.status === 'changed' &&
-                  Math.abs(pair.before.time - pair.after.time) > 1 && (
-                    <line
-                      x1={x(pair.before.time)}
-                      y1={36}
-                      x2={x(pair.after.time)}
-                      y2={60}
-                      stroke={STATUS_COLOR.changed}
-                      strokeWidth={1.5}
-                      strokeDasharray="3 3"
-                    />
-                  )}
-                {draw('before')}
-                {draw('after')}
-              </g>
-            );
-          })}
-        </g>
-        <text x={LEFT} y={94} fontSize={10} fill={PALETTE.dim} fontFamily="monospace">
-          {formatClock(start)}
-        </text>
-        <text
-          x={WIDTH - RIGHT}
-          y={94}
-          fontSize={10}
-          textAnchor="end"
-          fill={PALETTE.dim}
-          fontFamily="monospace"
-        >
-          {formatClock(end)}
-        </text>
-      </svg>
+            })}
+          </g>
+        </svg>
+      </LabelledPlot>
       <SnapLegend divisors={divisors} />
     </div>
   );

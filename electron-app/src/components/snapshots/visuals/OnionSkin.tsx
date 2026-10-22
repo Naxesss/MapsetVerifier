@@ -181,7 +181,7 @@ export default function OnionSkin({
         viewBox={`${-PAD} ${-PAD} ${FIELD_WIDTH + PAD * 2} ${FIELD_HEIGHT + PAD * 2}`}
         role="img"
         aria-label="Objects of this change on the playfield, before and after"
-        style={{ display: 'block', width: '100%', maxWidth: 520, height: 'auto' }}
+        style={{ display: 'block', width: '100%', height: 'auto' }}
       >
         <defs>
           <marker
