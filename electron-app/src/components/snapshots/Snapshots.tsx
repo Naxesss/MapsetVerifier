@@ -1,18 +1,8 @@
-import {
-  Alert,
-  Text,
-  Box,
-  useMantineTheme,
-  Flex,
-  LoadingOverlay,
-  Group,
-  Title,
-} from '@mantine/core';
+import { Alert, Text, Box, Flex, useMantineTheme } from '@mantine/core';
 import { IconAlertCircle, IconPhotoOff } from '@tabler/icons-react';
 import { useState, useMemo } from 'react';
 import { useSnapshots } from './hooks/useSnapshots';
 import SnapshotContent from './SnapshotContent';
-import SnapshotGameModeSelector from './SnapshotGameModeSelector';
 import {
   difficultyHasChangesAtCommit,
   difficultyHasSnapshot,
@@ -20,30 +10,23 @@ import {
   getSnapshotHistory,
 } from './snapshotHistory';
 import { useBeatmap } from '../../context/BeatmapContext';
-import { useBeatmapReparse } from '../../context/BeatmapReparseRegistry.tsx';
 import { useSettings } from '../../context/SettingsContext';
-import { ApiSnapshotDifficulty, Mode } from '../../Types';
-import BeatmapActionButtons, { SnapshotFolderTarget } from '../checks/BeatmapActionButtons';
-import { useBeatmapBackground } from '../checks/hooks/useBeatmapBackground';
+import { ApiSnapshotDifficulty } from '../../Types';
 import BeatmapHeader from '../common/BeatmapHeader';
-import DifficultyTabSelector from '../common/DifficultyTabSelector';
-import NoBeatmapsetDisplay from '../common/NoBeatmapsetDisplay.tsx';
+import DifficultyPicker from '../common/DifficultyPicker';
+import EmptyState from '../common/EmptyState.tsx';
+import { HistorySkeleton } from '../common/LoadingSkeletons.tsx';
+import SelectedDifficultyRow from '../common/SelectedDifficultyRow.tsx';
 import StackTraceMessage from '../common/StackTraceMessage.tsx';
+import StarRatingBadge from '../common/StarRatingBadge.tsx';
 import GameModeIcon from '../icons/GameModeIcon';
 import SnapshotDifficultyChangesIcon from '../icons/SnapshotDifficultyChangesIcon';
 
-interface ModeGroup {
-  mode: Mode;
-  difficulties: ApiSnapshotDifficulty[];
-}
-
 function Snapshots() {
   const theme = useMantineTheme();
-  const { selectedFolder: folder, beatmapFolderPath, beatmapInfo } = useBeatmap();
-  const { triggerReparse } = useBeatmapReparse();
+  const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
   const [selectedDifficulty, setSelectedDifficulty] = useState<string | undefined>('General');
-  const [selectedMode, setSelectedMode] = useState<Mode | undefined>();
   const [selectedCommitId, setSelectedCommitId] = useState<string | undefined>();
 
   const [prevFolder, setPrevFolder] = useState(folder);
@@ -63,43 +46,15 @@ function Snapshots() {
     songFolder: settings.songFolder,
   });
 
-  const { bgUrl } = useBeatmapBackground(folder, settings.songFolder);
+  // The difficulties' own tabs; General has its own tab.
+  const snapshotDifficulties = useMemo(
+    (): ApiSnapshotDifficulty[] => data?.difficulties.filter((diff) => !diff.isGeneral) ?? [],
+    [data]
+  );
 
-  const dataDifficulties = data?.difficulties;
-
-  // Group difficulties by mode (excluding General which is handled separately)
-  const groupedDifficulties = useMemo((): ModeGroup[] => {
-    if (!dataDifficulties) return [];
-
-    // Group difficulties by mode
-    const modeGroups: Record<Mode, ApiSnapshotDifficulty[]> = {
-      Standard: [],
-      Taiko: [],
-      Catch: [],
-      Mania: [],
-    };
-
-    dataDifficulties.forEach((diff) => {
-      if (!diff.isGeneral && diff.mode) {
-        modeGroups[diff.mode].push(diff);
-      }
-    });
-
-    // Return only modes that have difficulties
-    return (['Standard', 'Taiko', 'Catch', 'Mania'] as Mode[])
-      .filter((mode) => modeGroups[mode].length > 0)
-      .map((mode) => ({
-        mode,
-        difficulties: modeGroups[mode],
-      }));
-  }, [dataDifficulties]);
-
-  if (groupedDifficulties.length > 0 && !selectedMode) {
-    setSelectedMode(groupedDifficulties[0].mode);
-  }
-
-  const selectedGroup =
-    groupedDifficulties.find((g) => g.mode === selectedMode) ?? groupedDifficulties[0];
+  // The same colours as the changed and unchanged icons, for the picker's segments.
+  const changesColor = (hasChanges: boolean) =>
+    hasChanges ? theme.colors.blue[6] : theme.colors.dark[2];
 
   const selectedSnapshotDifficulty = useMemo(() => {
     if (!data || selectedDifficulty === 'General') return undefined;
@@ -111,22 +66,10 @@ function Snapshots() {
     [data, selectedDifficulty]
   );
 
-  const snapshotFolder = useMemo((): SnapshotFolderTarget | null => {
-    const beatmapSetId = beatmapInfo?.beatmapSetId;
-    if (!beatmapSetId || beatmapSetId < 0) return null;
-    if (isLoading || !data || data.errorMessage) return null;
-
-    if (selectedDifficulty === 'General') {
-      return { beatmapSetId, subfolder: 'files' };
-    }
-
-    const beatmapId = selectedSnapshotDifficulty?.beatmapId;
-    if (!beatmapId) return null;
-
-    return { beatmapSetId, subfolder: String(beatmapId) };
-  }, [beatmapInfo?.beatmapSetId, data, isLoading, selectedDifficulty, selectedSnapshotDifficulty]);
-
-  const [prevActiveSnapshotHistory, setPrevActiveSnapshotHistory] = useState(activeSnapshotHistory);
+  // Starts empty rather than at the current history: with cached data the history is there on the
+  // first render, and the latest snapshot must still get selected.
+  const [prevActiveSnapshotHistory, setPrevActiveSnapshotHistory] =
+    useState<typeof activeSnapshotHistory>(null);
 
   if (activeSnapshotHistory !== prevActiveSnapshotHistory) {
     setPrevActiveSnapshotHistory(activeSnapshotHistory);
@@ -143,103 +86,104 @@ function Snapshots() {
     }
   }
 
-  if (!folder) {
-    return <NoBeatmapsetDisplay />;
-  }
-
   return (
-    <Box
-      h="100%"
-      style={{
-        fontFamily: theme.headings.fontFamily,
-        position: 'relative',
-        width: '100%',
-        borderRadius: theme.radius.lg,
-        overflow: 'hidden',
-        boxShadow: '0 4px 32px rgba(0,0,0,0.4)',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-start',
-      }}
-    >
-      <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
-      <BeatmapHeader bgUrl={bgUrl}>
-        <Group gap="sm">
-          <BeatmapActionButtons
-            beatmapFolderPath={beatmapFolderPath}
-            beatmapId={beatmapInfo?.beatmapId ?? undefined}
-            beatmapSetId={beatmapInfo?.beatmapSetId ?? undefined}
-            onReparse={triggerReparse}
-            snapshotFolder={snapshotFolder}
-          />
-          <SnapshotGameModeSelector
-            groupedDifficulties={groupedDifficulties}
-            selectedMode={selectedMode}
-            onModeChange={setSelectedMode}
-          />
-        </Group>
-        {data?.difficulties && !data.errorMessage && selectedGroup && (
-          <DifficultyTabSelector
-            generalLeading={
-              <SnapshotDifficultyChangesIcon
-                hasChanges={generalHasChangesAtCommit(data, selectedCommitId)}
-                size={24}
-              />
-            }
-            tabs={selectedGroup.difficulties.map((diff) => {
+    <>
+      <BeatmapHeader>
+        {data && !data.errorMessage && snapshotDifficulties.length > 0 && (
+          <DifficultyPicker
+            difficulties={snapshotDifficulties.map((diff) => {
               const hasSnapshot = difficultyHasSnapshot(data, diff.name);
+              const hasChanges =
+                hasSnapshot && difficultyHasChangesAtCommit(data, diff.name, selectedCommitId);
               return {
                 id: diff.name,
                 label: diff.name,
+                mode: diff.mode ?? 'Standard',
                 starRating: diff.starRating,
-                leading: hasSnapshot ? (
-                  <SnapshotDifficultyChangesIcon
-                    hasChanges={difficultyHasChangesAtCommit(data, diff.name, selectedCommitId)}
-                    size={24}
-                  />
-                ) : undefined,
+                icon: <SnapshotDifficultyChangesIcon hasChanges={hasChanges} size={18} />,
+                statusColor: changesColor(hasChanges),
                 disabled: !hasSnapshot,
-                disabledTooltip: 'This difficulty has no other snapshots to compare against',
+                disabledReason: 'No snapshots to compare',
               };
             })}
+            general={{
+              icon: (
+                <SnapshotDifficultyChangesIcon
+                  hasChanges={generalHasChangesAtCommit(data, selectedCommitId)}
+                  size={18}
+                />
+              ),
+              statusColor: changesColor(generalHasChangesAtCommit(data, selectedCommitId)),
+            }}
+            modeStatus={(_, diffs) => (
+              <SnapshotDifficultyChangesIcon
+                hasChanges={diffs.some(
+                  (d) => !d.disabled && difficultyHasChangesAtCommit(data, d.id, selectedCommitId)
+                )}
+                size={18}
+              />
+            )}
             selectedId={selectedDifficulty}
             onSelect={setSelectedDifficulty}
-            sortByStarRating
           />
         )}
       </BeatmapHeader>
+      {isLoading && (
+        <Box bg="dark.6" style={{ flex: 1 }}>
+          <HistorySkeleton />
+        </Box>
+      )}
       {data && (
+        // pt="sm": the selected difficulty row follows the picker at the header's row gap.
         <Flex
           gap="sm"
-          p="md"
+          px="md"
+          pb="md"
+          pt="sm"
           direction="column"
           style={{ flex: 1, overflow: 'hidden' }}
           bg="dark.6"
         >
           {data.errorMessage ? (
-            <Alert icon={<IconPhotoOff />} color="yellow" title="Snapshots unavailable">
-              <Text size="sm">{data.errorMessage}</Text>
-            </Alert>
+            <EmptyState
+              icon={IconPhotoOff}
+              title="Snapshots unavailable"
+              description={data.errorMessage}
+            />
           ) : (
             <>
-              <Flex gap="xs" align="center">
-                <SnapshotDifficultyChangesIcon
-                  hasChanges={
-                    selectedDifficulty === 'General'
-                      ? generalHasChangesAtCommit(data, selectedCommitId)
-                      : difficultyHasChangesAtCommit(data, selectedDifficulty!, selectedCommitId)
-                  }
-                  size={30}
-                />
-                {selectedSnapshotDifficulty && (
-                  <GameModeIcon
-                    mode={selectedSnapshotDifficulty.mode ?? 'Standard'}
-                    size={28}
-                    starRating={selectedSnapshotDifficulty.starRating}
-                  />
-                )}
-                <Title order={3}>{selectedDifficulty}</Title>
-              </Flex>
+              {/* The same row as on Checks, so both pages show the selection alike. */}
+              <SelectedDifficultyRow
+                icons={
+                  <>
+                    <SnapshotDifficultyChangesIcon
+                      hasChanges={
+                        selectedDifficulty === 'General'
+                          ? generalHasChangesAtCommit(data, selectedCommitId)
+                          : difficultyHasChangesAtCommit(
+                              data,
+                              selectedDifficulty!,
+                              selectedCommitId
+                            )
+                      }
+                      size={32}
+                    />
+                    {selectedSnapshotDifficulty && (
+                      <GameModeIcon
+                        mode={selectedSnapshotDifficulty.mode ?? 'Standard'}
+                        size={32}
+                        starRating={selectedSnapshotDifficulty.starRating}
+                      />
+                    )}
+                  </>
+                }
+                name={selectedDifficulty}
+                badges={
+                  !!selectedSnapshotDifficulty?.starRating && (
+                    <StarRatingBadge rating={selectedSnapshotDifficulty.starRating} />
+                  )
+                }
+              />
               <SnapshotContent
                 data={data}
                 selectedDifficulty={selectedDifficulty}
@@ -252,7 +196,7 @@ function Snapshots() {
       )}
       {isError && (
         <Flex p="md">
-          <Alert icon={<IconAlertCircle />} color="red" title="Error loading snapshots">
+          <Alert icon={<IconAlertCircle />} color="red" title="Couldn't load the snapshots">
             <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
               {error?.message}
             </Text>
@@ -260,7 +204,7 @@ function Snapshots() {
           </Alert>
         </Flex>
       )}
-    </Box>
+    </>
   );
 }
 

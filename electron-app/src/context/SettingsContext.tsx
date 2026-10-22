@@ -3,6 +3,7 @@ import { parseTimelineThemeVariant } from '../components/overview/objects/timeli
 import { BACKEND_BASE_URL } from '../Constants.ts';
 import { DEFAULT_UI_FONT_FAMILY, parseUiFontFamily, type UiFontFamily } from '../theme/fonts';
 import { DEFAULT_UI_ZOOM_PERCENT, parseUiZoomPercent } from '../theme/zoom';
+import { detectClockFormat, parseClockFormat, type ClockFormat } from '../utils/dateTime';
 import { isSemverPreRelease } from '../utils/isSemverPreRelease';
 import type { TimelineThemeVariant } from '../components/overview/objects/timelineTheme/types.ts';
 import type { TimestampOpenTarget } from '../electron-env';
@@ -55,6 +56,8 @@ export type Settings = {
   uiFontFamily: UiFontFamily;
   /** Zoom the app starts at and that Ctrl+0 resets to, in percent. */
   uiZoomPercent: number;
+  /** 12- or 24-hour clock for every wall-clock time in the app. Defaults to the system locale. */
+  clockFormat: ClockFormat;
   /** Objects overview timeline circle style (synced across game modes). */
   timelineThemeVariant: TimelineThemeVariant;
   /** When enabled, switching mapsets navigates to the checks tab. */
@@ -104,6 +107,7 @@ const defaultSettings: Settings = {
   receivePrereleases: false,
   uiFontFamily: DEFAULT_UI_FONT_FAMILY,
   uiZoomPercent: DEFAULT_UI_ZOOM_PERCENT,
+  clockFormat: detectClockFormat(),
   timelineThemeVariant: 'default',
   goToChecksOnMapsetSwitch: true,
   showCheckRunDelta: true,
@@ -205,6 +209,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
             : undefined,
         uiFontFamily: parseUiFontFamily(loaded?.uiFontFamily),
         uiZoomPercent: parseUiZoomPercent(loaded?.uiZoomPercent),
+        clockFormat: parseClockFormat(loaded?.clockFormat),
         timelineThemeVariant: parseTimelineThemeVariant(loaded?.timelineThemeVariant ?? null),
       });
 

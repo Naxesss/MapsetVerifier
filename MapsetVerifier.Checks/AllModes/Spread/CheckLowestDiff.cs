@@ -188,8 +188,8 @@ namespace MapsetVerifier.Checks.AllModes.Spread
                             lowestBeatmap.GetModeDifficultyName(disallowedDifficulties[0]),
                             usesBreakTime ? "drain + break" : "drain",
                             beatmap,
-                            Timestamp.Get(thresholds[i]),
-                            Timestamp.Get(effectiveTime),
+                            FormatDuration(thresholds[i]),
+                            FormatDuration(effectiveTime),
                         ];
 
                         var issue = canRelyOnSpread
@@ -210,6 +210,16 @@ namespace MapsetVerifier.Checks.AllModes.Spread
         {
             // Thresholds need to be in milliseconds
             return (minutes * 60 + seconds) * 1000;
+        }
+
+        /// <summary>
+        /// Formats a duration as minutes and seconds (e.g. "3:30"). Not a <see cref="Timestamp"/>, since
+        /// a drain or play time is a length, not a point in the map to jump to.
+        /// </summary>
+        private static string FormatDuration(double durationMs)
+        {
+            var duration = TimeSpan.FromMilliseconds(durationMs);
+            return $"{(int)duration.TotalMinutes}:{duration.Seconds:D2}";
         }
     }
 }

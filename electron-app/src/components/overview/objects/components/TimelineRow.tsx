@@ -29,6 +29,7 @@ import {
   getTimelineTimestampAtX,
   type TimelineObjectHeadHit,
 } from '../timelineDrawing.ts';
+import { buildSoundStripDrawCache } from '../timelineHitsoundDrawing.ts';
 import {
   buildTimelineRowDrawCache,
   formatEditorTimestamp,
@@ -39,6 +40,23 @@ import {
 import type { ObjectsOverviewDifficulty } from '../../../../Types';
 import type { TimelineThemeVariant } from '../timelineTheme/types.ts';
 import type { MantineTheme } from '@mantine/core';
+
+function sameHeadHit(current: TimelineObjectHeadHit | null, next: TimelineObjectHeadHit | null) {
+  if (current === next) {
+    return true;
+  }
+  if (!current || !next) {
+    return false;
+  }
+  return (
+    current.object === next.object &&
+    current.edge === next.edge &&
+    current.timeMs === next.timeMs &&
+    current.anchorX === next.anchorX &&
+    current.partLabel === next.partLabel &&
+    current.showSnapLabel === next.showSnapLabel
+  );
+}
 
 interface TimelineRowProps {
   difficulty: ObjectsOverviewDifficulty;
@@ -148,6 +166,7 @@ const TimelineCanvasTile = memo(function TimelineCanvasTile({
       }}
     >
       <AutoResizeCanvas
+        maxPixelRatio={1}
         fixedWidth={tile.width}
         fixedHeight={height}
         draw={draw}
@@ -167,39 +186,29 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
   const rowRef = useRef<HTMLDivElement | null>(null);
   const isRowVerticallyVisible = useElementVisibility(rowRef);
   const canvasTiles = useMemo(() => getTimelineCanvasTiles(timelineWidth), [timelineWidth]);
-  const visibleCanvasTiles = useMemo(() => {
-    // Each tile's canvas is hard-clipped to its own pixel bounds, so an object straddling the
-    // boundary between two tiles only renders whole if BOTH tiles are mounted (each draws its
-    // own clipped half). Padding the range by one extra tile on each side — instead of filtering
-    // by pixel overlap alone — guarantees every included tile's neighbor is included too, so
-    // boundary-straddling objects never get cut off mid-shape.
-    let firstIndex = -1;
-    let lastIndex = -1;
-    for (let index = 0; index < canvasTiles.length; index += 1) {
-      const tile = canvasTiles[index];
-      if (tile.startX + tile.width > viewport.startX && tile.startX < viewport.endX) {
-        if (firstIndex === -1) {
-          firstIndex = index;
-        }
-        lastIndex = index;
-      }
-    }
-    if (firstIndex === -1) {
-      return [];
-    }
-    const paddedStart = Math.max(0, firstIndex - 1);
-    const paddedEnd = Math.min(canvasTiles.length - 1, lastIndex + 1);
-    return canvasTiles.slice(paddedStart, paddedEnd + 1);
-  }, [canvasTiles, viewport.startX, viewport.endX]);
-  const rowDrawCache = useMemo(
+  const visibleCanvasTiles = useMemo(
     () =>
-      buildTimelineRowDrawCache(
-        difficulty.timelineObjects,
-        difficulty.timelineSamples,
-        viewMode === 'hitsounding'
+      canvasTiles.filter(
+        (tile) => tile.startX + tile.width > viewport.startX && tile.startX < viewport.endX
       ),
-    [difficulty.timelineObjects, difficulty.timelineSamples, viewMode]
+    [canvasTiles, viewport.startX, viewport.endX]
   );
+  const rowDrawCache = useMemo(() => {
+    const cache = buildTimelineRowDrawCache(
+      difficulty.timelineObjects,
+      difficulty.timelineSamples,
+      viewMode === 'hitsounding',
+      difficulty.timingSegments
+    );
+    if (cache.hitsound) {
+      cache.soundStrip = buildSoundStripDrawCache(
+        difficulty.timelineSamples ?? [],
+        difficulty.timelineObjects,
+        cache.hitsound.primaryEdgeMarkers
+      );
+    }
+    return cache;
+  }, [difficulty.timelineObjects, difficulty.timelineSamples, difficulty.timingSegments, viewMode]);
   const [contextMenuState, setContextMenuState] = useState<{
     localX: number;
     localY: number;
@@ -223,14 +232,18 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
         timelineWidth,
         x: localX,
         visualThemeVariant: timelineThemeVariant,
+        sortedObjects: rowDrawCache.sortedObjects,
+        maxObjectDurationMs: rowDrawCache.maxObjectDurationMs,
       });
-      setHeadHover(hit);
+      setHeadHover((current) => (sameHeadHit(current, hit) ? current : hit));
     },
     [
       contextMenuState,
       difficulty,
       endTimeMs,
       isPanningTimeline,
+      rowDrawCache.maxObjectDurationMs,
+      rowDrawCache.sortedObjects,
       startTimeMs,
       timelineThemeVariant,
       timelineWidth,
@@ -251,6 +264,8 @@ function TimelineRow({ difficulty, height }: TimelineRowProps) {
       timelineWidth,
       x: localX,
       visualThemeVariant: timelineThemeVariant,
+      sortedObjects: rowDrawCache.sortedObjects,
+      maxObjectDurationMs: rowDrawCache.maxObjectDurationMs,
     });
 
     if (timestampMs === null) {

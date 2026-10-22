@@ -48,9 +48,13 @@ export const OBJECT_PERCENTAGE_COLUMNS: Record<Mode, ObjectPercentageColumn[]> =
   ],
   Catch: [
     { type: 'single', label: 'Fruits' },
-    { type: 'single', label: 'Slider heads' },
+    // Every slider has one head and one tail, so they share a column.
+    {
+      type: 'combined',
+      label: 'Slider heads & tails',
+      labels: ['Slider heads', 'Slider tails'],
+    },
     { type: 'single', label: 'Slider repeats' },
-    { type: 'single', label: 'Slider tails' },
     { type: 'single', label: 'Droplets' },
     { type: 'single', label: 'Spinners' },
   ],

@@ -6,12 +6,13 @@ interface DifficultyNameProps {
   mode: Mode | undefined;
 }
 
-function DifficultyName({ difficulty, mode }: DifficultyNameProps) {
-  const { settings } = useSettings();
-
-  if (!settings.showGamemodeDifficultyNames) {
-    return difficulty;
-  }
+export function formatDifficultyName(
+  difficulty: DifficultyLevel | string | null | undefined,
+  mode: Mode | undefined,
+  showGamemodeDifficultyNames: boolean
+): string {
+  if (!difficulty) return '';
+  if (!showGamemodeDifficultyNames) return difficulty;
 
   switch (mode) {
     case 'Standard':
@@ -66,6 +67,11 @@ function DifficultyName({ difficulty, mode }: DifficultyNameProps) {
     default:
       return difficulty;
   }
+}
+
+function DifficultyName({ difficulty, mode }: DifficultyNameProps) {
+  const { settings } = useSettings();
+  return formatDifficultyName(difficulty, mode, settings.showGamemodeDifficultyNames);
 }
 
 export default DifficultyName;

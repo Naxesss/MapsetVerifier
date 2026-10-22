@@ -14,7 +14,6 @@ export type UseObjectsTimelineControllerInput = {
   groupedDifficulties: ObjectsModeGroup[];
   difficulties: ObjectsOverviewDifficulty[];
   selectedMode?: Mode;
-  onModeChange: (mode: Mode) => void;
   stopPanning: () => void;
 };
 
@@ -24,7 +23,6 @@ export function useObjectsTimelineController({
   groupedDifficulties,
   difficulties,
   selectedMode,
-  onModeChange,
   stopPanning,
 }: UseObjectsTimelineControllerInput): TimelineControllerValue {
   const durationMs = Math.max(1, endTimeMs - startTimeMs);
@@ -81,10 +79,9 @@ export function useObjectsTimelineController({
     () => ({
       groupedDifficulties,
       selectedMode,
-      onModeChange,
       activeMode,
     }),
-    [groupedDifficulties, selectedMode, onModeChange, activeMode]
+    [groupedDifficulties, selectedMode, activeMode]
   );
 
   const rows = useMemo(() => ({ orderedDifficulties }), [orderedDifficulties]);

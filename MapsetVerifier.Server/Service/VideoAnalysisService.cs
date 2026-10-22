@@ -7,14 +7,10 @@ namespace MapsetVerifier.Server.Service;
 
 /// <summary>
 /// Service for video analysis, surfacing the container details of the videos a beatmap set uses and
-/// how they line up with the song. The compliance issues mirror the video checks, so the overview
-/// and the check results never disagree.
+/// how they line up with the song. Judging them is left to the video checks.
 /// </summary>
 public static class VideoAnalysisService
 {
-    private const int MaxAllowedWidth = 1280;
-    private const int MaxAllowedHeight = 720;
-
     /// <summary>
     /// Analyzes every video referenced by the beatmap set, both by its difficulties and its
     /// storyboard.
@@ -25,19 +21,15 @@ public static class VideoAnalysisService
         {
             var beatmapSet = new BeatmapSet(beatmapSetFolder);
 
-            if (beatmapSet.Beatmaps.Count == 0)
+            if (beatmapSet.InOverviewOrder().Count == 0)
                 return VideoAnalysisResult.CreateError("No beatmaps found in folder.");
 
             var references = CollectReferences(beatmapSet);
-            var complianceIssues = new List<string>();
-
             var videos = references
                 .Select(reference => AnalyzeVideo(beatmapSet, reference))
                 .ToList();
 
-            AddSetWideIssues(beatmapSet, videos, complianceIssues);
-
-            return VideoAnalysisResult.CreateSuccess(videos, complianceIssues);
+            return VideoAnalysisResult.CreateSuccess(videos);
         }
         catch (Exception ex)
         {
@@ -86,7 +78,7 @@ public static class VideoAnalysisService
     {
         var references = new Dictionary<string, VideoReference>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var beatmap in beatmapSet.Beatmaps)
+        foreach (var beatmap in beatmapSet.InOverviewOrder())
         {
             foreach (var video in beatmap.Videos)
             {
@@ -139,10 +131,6 @@ public static class VideoAnalysisService
         if (!File.Exists(fullPath))
         {
             entry.Exists = false;
-            entry.BadgeType = "error";
-            entry.ComplianceIssues.Add(
-                "This video is referenced but not present in the folder, so it could not be checked. Make sure you downloaded the mapset with video."
-            );
 
             return entry;
         }
@@ -175,58 +163,7 @@ public static class VideoAnalysisService
         entry.Warnings = metadata.Warnings.ToList();
         entry.CanPreview = CanBrowserPlay(metadata);
 
-        AddVideoIssues(entry);
-
         return entry;
-    }
-
-    /// <summary>
-    /// Mirrors the resolution and audio track checks, which are the ones that apply per video.
-    /// </summary>
-    private static void AddVideoIssues(VideoAnalysisEntry entry)
-    {
-        if (entry.Width > MaxAllowedWidth || entry.Height > MaxAllowedHeight)
-            entry.ComplianceIssues.Add(
-                $"Resolution is greater than {MaxAllowedWidth} x {MaxAllowedHeight} ({entry.Width} x {entry.Height})."
-            );
-
-        if (entry.HasAudioTrack)
-            entry.ComplianceIssues.Add(
-                "An audio track is present, which is never played but still takes up file size."
-            );
-
-        entry.IsCompliant = entry.ComplianceIssues.Count == 0;
-
-        if (!entry.IsCompliant)
-            entry.BadgeType = "error";
-        else if (entry.Warnings.Count > 0 || entry.Width == 0)
-            entry.BadgeType = "warning";
-    }
-
-    /// <summary>
-    /// Mirrors the checks that look at the set as a whole rather than a single file.
-    /// </summary>
-    private static void AddSetWideIssues(
-        BeatmapSet beatmapSet,
-        List<VideoAnalysisEntry> videos,
-        List<string> complianceIssues
-    )
-    {
-        if (videos.Count > 1)
-            complianceIssues.Add(
-                $"The set uses {videos.Count} different videos, where only one is expected."
-            );
-
-        var offsets = beatmapSet
-            .Beatmaps.Where(beatmap => beatmap.Videos.Count > 0)
-            .Select(beatmap => beatmap.Videos[0].offset)
-            .Distinct()
-            .ToList();
-
-        if (offsets.Count > 1)
-            complianceIssues.Add(
-                $"Difficulties use inconsistent video offsets ({string.Join(", ", offsets.Order())} ms)."
-            );
     }
 
     /// <summary>

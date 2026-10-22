@@ -2,13 +2,16 @@ import { Title, Text, Code, Divider, List, Anchor, Alert, Blockquote } from '@ma
 import { IconInfoCircleFilled } from '@tabler/icons-react';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { ReactNode } from 'react';
+import { openExternal } from '../../hooks/useOpenExternal';
+import type { ComponentProps, ReactNode } from 'react';
 
 interface MantineMarkdownProps {
   children: string;
   notesForBlockquotes?: boolean;
   /** Overrides for individual elements, merged over the default Mantine styled ones. */
   components?: Components;
+  /** Extra remark plugins, run after GitHub markdown. */
+  remarkPlugins?: ComponentProps<typeof ReactMarkdown>['remarkPlugins'];
 }
 
 function hasLeadingContent(node: unknown): boolean {
@@ -25,11 +28,12 @@ export default function MantineMarkdown({
   children,
   notesForBlockquotes = false,
   components,
+  remarkPlugins,
 }: MantineMarkdownProps) {
   return (
     <div className="markdown-text">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={[remarkGfm, ...(remarkPlugins ?? [])]}
         components={{
           h1: ({ node, children }: { node?: unknown; children?: ReactNode }) => (
             <Title order={2} mt={hasLeadingContent(node) ? 'md' : 0} mb="xs">
@@ -66,13 +70,7 @@ export default function MantineMarkdown({
             const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
               e.preventDefault();
 
-              if (href) {
-                if (window.electronAPI?.shell.openExternal) {
-                  return window.electronAPI.shell.openExternal(href);
-                }
-
-                window.open(href, '_blank', 'noopener,noreferrer');
-              }
+              if (href) void openExternal(href);
             };
 
             return (

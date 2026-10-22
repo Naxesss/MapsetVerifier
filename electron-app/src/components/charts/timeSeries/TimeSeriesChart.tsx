@@ -25,6 +25,7 @@ const MARGIN = { top: 8, right: 16, bottom: 32, left: 52 };
 const MARGIN_WITH_SECONDARY_AXIS = { ...MARGIN, right: 48 };
 const MAX_FULL_RES_RENDER_ROWS = 1000;
 const MAX_PEAK_DOTS = 100;
+const FADED_SERIES_OPACITY = 0.2;
 
 type TimeSeriesChartProps = {
   data: TimeSeriesRow[];
@@ -35,6 +36,8 @@ type TimeSeriesChartProps = {
   durationMs: number;
   plotHeight: number;
   visibleSeriesIds: Set<string>;
+  /** Visibility id of a series to draw on top at full strength, fading the others. */
+  emphasizedSeriesId?: string | null;
   valueFormatter: (value: number) => string;
   interpolation?: ChartInterpolation;
   /** Draw circles at each sample when the viewport has at most MAX_PEAK_DOTS rows. */
@@ -66,6 +69,7 @@ function TimeSeriesChartInner({
   spanMs,
   plotHeight,
   visibleSeriesIds,
+  emphasizedSeriesId = null,
   valueFormatter,
   interpolation = 'line',
   showDataPoints = false,
@@ -109,6 +113,7 @@ function TimeSeriesChartInner({
     (rows: TimeSeriesRow[]) => {
       const paths: {
         id: string;
+        visibilityId: string;
         color: string;
         dashed?: boolean;
         useSecondaryAxis?: boolean;
@@ -131,6 +136,7 @@ function TimeSeriesChartInner({
         if (points.length > 0) {
           paths.push({
             id: item.id,
+            visibilityId: item.visibilityId ?? item.id,
             color: item.color,
             dashed: item.dashed,
             useSecondaryAxis: item.useSecondaryAxis,
@@ -145,6 +151,19 @@ function TimeSeriesChartInner({
   );
 
   const seriesPaths = useMemo(() => buildSeriesPoints(renderRows), [buildSeriesPoints, renderRows]);
+  const hasEmphasis =
+    !!emphasizedSeriesId && seriesPaths.some((path) => path.visibilityId === emphasizedSeriesId);
+  // The emphasized line is drawn last so it sits on top of the faded ones.
+  const orderedPaths = useMemo(
+    () =>
+      hasEmphasis
+        ? [
+            ...seriesPaths.filter((path) => path.visibilityId !== emphasizedSeriesId),
+            ...seriesPaths.filter((path) => path.visibilityId === emphasizedSeriesId),
+          ]
+        : seriesPaths,
+    [emphasizedSeriesId, hasEmphasis, seriesPaths]
+  );
   const primaryPaths = useMemo(
     () => seriesPaths.filter((path) => !path.useSecondaryAxis),
     [seriesPaths]
@@ -425,7 +444,7 @@ function TimeSeriesChartInner({
             strokeOpacity={0.6}
             tickValues={xTicks}
           />
-          {seriesPaths.map((path) => (
+          {orderedPaths.map((path) => (
             <LinePath
               key={path.id}
               data={path.points}
@@ -433,6 +452,9 @@ function TimeSeriesChartInner({
               y={(d) => (path.useSecondaryAxis ? secondaryYScale(d.value) : yScale(d.value)) ?? 0}
               curve={lineCurve}
               stroke={path.color}
+              strokeOpacity={
+                hasEmphasis && path.visibilityId !== emphasizedSeriesId ? FADED_SERIES_OPACITY : 1
+              }
               strokeWidth={2.5}
               strokeDasharray={path.dashed ? '6,4' : undefined}
               fill="none"

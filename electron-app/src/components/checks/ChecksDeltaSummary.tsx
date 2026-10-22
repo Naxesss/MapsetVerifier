@@ -1,9 +1,8 @@
 import {
   ActionIcon,
+  Anchor,
   Badge,
-  Box,
   Collapse,
-  Flex,
   Group,
   ScrollArea,
   Stack,
@@ -14,7 +13,6 @@ import {
 } from '@mantine/core';
 import {
   IconChevronDown,
-  IconChevronRight,
   IconCircleCheck,
   IconDelta,
   IconPlus,
@@ -25,14 +23,19 @@ import {
 import { useMemo, useState } from 'react';
 import { getGroupCopyText } from './CheckGroup';
 import IssueDetailDrawer, { copyToClipboard } from './IssueDetailDrawer';
+import IssueGroupLayout from './IssueGroupLayout';
 import IssueRow from './IssueRow';
+import { getHighestIssueLevel, normalizeLevel } from './utils/levelUtils';
 import BeatmapApi from '../../client/BeatmapApi';
-import { ApiCheckDeltaIssue, ApiCheckResult, ApiCheckRunDelta, Level } from '../../Types';
+import { useDateTimeFormat } from '../../hooks/useDateTimeFormat';
+import { ApiCheckDeltaIssue, ApiCheckResult, ApiCheckRunDelta } from '../../Types';
 import { countWord } from '../../utils/countWord';
+import { notifyError } from '../../utils/notify';
+import { CardTitle } from '../common/Headings';
+import SectionCard from '../common/SectionCard';
 import { useDocumentationChecks } from '../documentation/hooks/useDocumentationChecks';
 import LevelIcon from '../icons/LevelIcon';
 
-const VISIBLE_ISSUE_COUNT = 5;
 const PANEL_MAX_HEIGHT = 360;
 
 type DeltaTabId = 'new' | 'resolved' | 'worsened' | 'improved' | 'unchanged';
@@ -73,26 +76,6 @@ function isVisibleIssue(
   return !hiddenMinorCheckIds.includes(issue.id);
 }
 
-function formatRunTime(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-
-  return date.toLocaleString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
-function highestLevel(items: ApiCheckDeltaIssue[]): Level {
-  const order: Level[] = ['Error', 'Problem', 'Warning', 'Minor', 'Info', 'Check'];
-  for (const level of order) {
-    if (items.some((item) => item.level === level)) return level;
-  }
-  return 'Info';
-}
-
 function groupIssues(issues: ApiCheckDeltaIssue[], mapsetWide: boolean): IssueGroup[] {
   const groups = new Map<string, IssueGroup>();
 
@@ -129,12 +112,12 @@ function renderDeltaIssueLevelChange(issue: ApiCheckDeltaIssue) {
   }
 
   return (
-    <Group gap={6}>
-      <LevelIcon level={issue.previousLevel === 'Check' ? 'Info' : issue.previousLevel} size={14} />
+    <Group gap="xs">
+      <LevelIcon level={normalizeLevel(issue.previousLevel)} size={14} />
       <Text size="xs" c="dimmed">
         to
       </Text>
-      <LevelIcon level={issue.level === 'Check' ? 'Info' : issue.level} size={14} />
+      <LevelIcon level={normalizeLevel(issue.level)} size={14} />
     </Group>
   );
 }
@@ -150,76 +133,26 @@ function DeltaIssueGroup({
 }) {
   const [open, setOpen] = useState(true);
   const [showAll, setShowAll] = useState(false);
-  const highest = highestLevel(group.items);
-  const firstItems = group.items.slice(0, VISIBLE_ISSUE_COUNT);
-  const extraItems = group.items.slice(VISIBLE_ISSUE_COUNT);
 
   return (
-    <Stack gap={0}>
-      <UnstyledButton
-        onClick={() => setOpen((value) => !value)}
-        style={{ cursor: 'pointer', userSelect: 'none', width: '100%' }}
-      >
-        <Flex gap="xs" align="center" style={{ minWidth: 0 }}>
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
-              transition: 'transform 200ms ease',
-            }}
-          >
-            <IconChevronRight size={16} />
-          </span>
-          <LevelIcon level={highest === 'Check' ? 'Info' : highest} size={16} />
-          {mapsetWide ? (
-            <Badge size="xs" variant="light" color="gray">
-              {group.category}
-            </Badge>
-          ) : null}
-          <Text size="sm" fw={700} style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
-            {group.checkName}
-          </Text>
-        </Flex>
-      </UnstyledButton>
-
-      <Collapse in={open}>
-        <Stack gap="0" ml="xl">
-          {firstItems.map((issue, index) => (
-            <IssueRow
-              key={`${group.key}-${index}`}
-              item={{ id: issue.id, level: issue.level, message: issue.message }}
-              onOpen={() => onIssueOpen(issue)}
-              prefix={renderDeltaIssueLevelChange(issue)}
-            />
-          ))}
-          <Collapse in={showAll}>
-            <Stack gap="0">
-              {extraItems.map((issue, index) => (
-                <IssueRow
-                  key={`${group.key}-extra-${index}`}
-                  item={{ id: issue.id, level: issue.level, message: issue.message }}
-                  onOpen={() => onIssueOpen(issue)}
-                  prefix={renderDeltaIssueLevelChange(issue)}
-                />
-              ))}
-            </Stack>
-          </Collapse>
-          {extraItems.length > 0 ? (
-            <Text
-              size="sm"
-              role="button"
-              tabIndex={0}
-              onClick={() => setShowAll((value) => !value)}
-              style={{ cursor: 'pointer', color: 'var(--mantine-color-blue-6)', fontWeight: 500 }}
-            >
-              {showAll ? 'Hide extra issues' : `Show ${extraItems.length} more`}
-            </Text>
-          ) : null}
-        </Stack>
-      </Collapse>
-    </Stack>
+    <IssueGroupLayout
+      name={group.checkName}
+      level={getHighestIssueLevel(group.items.map((item) => item.level))}
+      badge={mapsetWide ? <Badge color="gray">{group.category}</Badge> : undefined}
+      items={group.items}
+      renderItem={(issue, index) => (
+        <IssueRow
+          key={`${group.key}-${index}`}
+          item={{ id: issue.id, level: issue.level, message: issue.message }}
+          onOpen={() => onIssueOpen(issue)}
+          prefix={renderDeltaIssueLevelChange(issue)}
+        />
+      )}
+      isOpen={open}
+      onToggleOpen={() => setOpen((value) => !value)}
+      showAll={showAll}
+      onToggleShowAll={() => setShowAll((value) => !value)}
+    />
   );
 }
 
@@ -237,6 +170,7 @@ export default function ChecksDeltaSummary({
   const [clearing, setClearing] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState<ApiCheckDeltaIssue | null>(null);
   const { getCheckById } = useDocumentationChecks();
+  const { formatDateTime } = useDateTimeFormat();
 
   const category = selectedCategory ?? 'General';
 
@@ -358,7 +292,7 @@ export default function ChecksDeltaSummary({
 
   if (!delta) return null;
 
-  const previousRunAt = formatRunTime(delta.previousRunAt);
+  const previousRunAt = formatDateTime(delta.previousRunAt, { withYear: false });
   const activeTab = scopedTabs.find((tab) => tab.issues.length > 0)?.id ?? scopedTabs[0]?.id;
   const summaryCounts = showMapsetWide ? mapsetWideCounts : scopedCounts;
 
@@ -377,6 +311,9 @@ export default function ChecksDeltaSummary({
     try {
       await BeatmapApi.clearCheckRunHistory(beatmapFolderPath);
       onHistoryCleared?.();
+    } catch (e) {
+      console.error('Failed to reset the check run baseline:', e);
+      notifyError("Couldn't reset the comparison baseline.");
     } finally {
       setClearing(false);
     }
@@ -393,15 +330,7 @@ export default function ChecksDeltaSummary({
     : null;
 
   return (
-    <Box
-      p="sm"
-      mb="sm"
-      style={{
-        border: '1px solid var(--mantine-color-dark-4)',
-        borderRadius: 'var(--mantine-radius-sm)',
-        background: 'var(--mantine-color-dark-7)',
-      }}
-    >
+    <SectionCard padding="sm">
       <Stack gap="xs">
         <Group justify="space-between" gap="xs" wrap="nowrap">
           <UnstyledButton
@@ -416,9 +345,7 @@ export default function ChecksDeltaSummary({
                   transition: 'transform 200ms ease',
                 }}
               />
-              <Text size="sm" fw={800}>
-                What changed since last check run?
-              </Text>
+              <CardTitle component="span">Changes since the last run</CardTitle>
               {!expanded && summaryLine ? (
                 <Text size="xs" c="dimmed">
                   {summaryLine}
@@ -457,24 +384,24 @@ export default function ChecksDeltaSummary({
                 </Text>
               ) : null}
               {!showMapsetWide && otherDifficultyCount > 0 ? (
-                <Text
+                <Anchor
+                  component="button"
+                  type="button"
                   size="xs"
-                  c="blue"
-                  style={{ cursor: 'pointer' }}
                   onClick={() => setShowMapsetWide(true)}
                 >
                   {countWord(otherDifficultyCount, 'change')} on other difficulties
-                </Text>
+                </Anchor>
               ) : null}
               {showMapsetWide ? (
-                <Text
+                <Anchor
+                  component="button"
+                  type="button"
                   size="xs"
-                  c="blue"
-                  style={{ cursor: 'pointer' }}
                   onClick={() => setShowMapsetWide(false)}
                 >
                   Show only {category}
-                </Text>
+                </Anchor>
               ) : null}
             </Group>
 
@@ -482,11 +409,9 @@ export default function ChecksDeltaSummary({
               <Tabs.List style={{ flexWrap: 'wrap' }}>
                 {scopedTabs.map((tab) => (
                   <Tabs.Tab key={tab.id} value={tab.id} leftSection={tab.icon}>
-                    <Group gap={6}>
+                    <Group gap="xs">
                       <span>{tab.label}</span>
-                      <Badge size="xs" color={tab.color} variant="light">
-                        {tab.issues.length}
-                      </Badge>
+                      <Badge color={tab.color}>{tab.issues.length}</Badge>
                     </Group>
                   </Tabs.Tab>
                 ))}
@@ -533,6 +458,6 @@ export default function ChecksDeltaSummary({
           );
         }}
       />
-    </Box>
+    </SectionCard>
   );
 }

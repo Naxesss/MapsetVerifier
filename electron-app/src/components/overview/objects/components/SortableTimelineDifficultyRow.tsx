@@ -5,7 +5,7 @@ import { IconEye, IconEyeOff, IconGripVertical } from '@tabler/icons-react';
 import { memo } from 'react';
 import TimelineRow from './TimelineRow.tsx';
 import { withAlpha } from '../../../../utils/color.ts';
-import { formatGameModeLabel, getModeAccentColor, normalizeMode } from '../../../../utils/gameMode';
+import { getModeAccentColor, normalizeMode } from '../../../../utils/gameMode';
 import GameModeIcon from '../../../icons/GameModeIcon.tsx';
 import {
   HIDDEN_ROW_HEIGHT,
@@ -95,7 +95,7 @@ function SortableTimelineDifficultyRow({
           transition: rowHeightTransition,
         }}
       >
-        <Flex align="center" gap={8} style={{ width: '100%', minWidth: 0, overflow: 'hidden' }}>
+        <Flex align="center" gap="sm" style={{ width: '100%', minWidth: 0, overflow: 'hidden' }}>
           <Box
             ref={setActivatorNodeRef}
             aria-label={`Reorder ${difficulty.version}`}
@@ -117,7 +117,7 @@ function SortableTimelineDifficultyRow({
             <IconGripVertical size={16} />
           </Box>
           <Group
-            gap={8}
+            gap="sm"
             wrap="nowrap"
             style={{
               flex: 1,
@@ -133,13 +133,24 @@ function SortableTimelineDifficultyRow({
               starRating={difficulty.starRating}
               color={getModeAccentColor(normalizeMode(difficulty.mode))}
             />
+            {/* The mode is already in the icon and the page's mode control, so the name gets both
+                lines of the row instead of being cut off after one. */}
             <Stack gap={0} style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-              <Text fw={600} size="sm" truncate style={{ width: '100%', minWidth: 0 }}>
+              <Text
+                fw={600}
+                size="sm"
+                lh={1.2}
+                lineClamp={isVisible ? 2 : 1}
+                title={difficulty.version}
+                style={{ width: '100%', minWidth: 0, overflowWrap: 'anywhere' }}
+              >
                 {difficulty.version}
               </Text>
-              <Text size="xs" c="dimmed" truncate style={{ width: '100%', minWidth: 0 }}>
-                {isVisible ? formatGameModeLabel(difficulty.mode) : 'Hidden'}
-              </Text>
+              {!isVisible && (
+                <Text size="xs" c="dimmed">
+                  Hidden
+                </Text>
+              )}
             </Stack>
           </Group>
           <ActionIcon

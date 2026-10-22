@@ -85,7 +85,6 @@ export default function TimelineZoomControls() {
         opened={hovered || dragging}
         withinPortal
         position="top"
-        withArrow
         transitionProps={{ duration: 0 }}
         events={{ hover: false, focus: false, touch: false }}
       >

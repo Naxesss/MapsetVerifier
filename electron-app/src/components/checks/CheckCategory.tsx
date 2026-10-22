@@ -1,34 +1,23 @@
-import { Badge, Group, Stack, Text } from '@mantine/core';
+import { Group, Stack, Text, useMantineTheme } from '@mantine/core';
+import { IconCircleCheck } from '@tabler/icons-react';
 import React from 'react';
 import CheckGroup from './CheckGroup.tsx';
 import { groupChecks } from './groupChecks';
+import { DisplayLevel, normalizeLevel, SEVERITY_ORDER } from './utils/levelUtils';
 import { ApiBeatmapSetCheckResult, ApiCategoryOverrideCheckResult, Level } from '../../Types';
-import { countWord } from '../../utils/countWord';
 import { getLevelLabel } from '../../utils/levelLabel';
-import { InfoIconTooltip } from '../common/InfoIconTooltip.tsx';
+import EmptyState from '../common/EmptyState.tsx';
+import FilterChip from '../common/FilterChip.tsx';
 import VirtualizedList from '../common/VirtualizedList.tsx';
-
-type DisplayLevel = Exclude<Level, 'Check'>;
+import { levelColorName } from '../icons/levelColor';
+import LevelIcon from '../icons/LevelIcon.tsx';
 
 type CheckGroupUiState = {
   isOpen: boolean;
   showAll: boolean;
 };
 
-const LEVEL_ORDER: DisplayLevel[] = ['Error', 'Problem', 'Warning', 'Minor', 'Info'];
 const VIRTUAL_GROUP_OVERSCAN = 6;
-
-const LEVEL_BADGE_COLORS: Record<DisplayLevel, string> = {
-  Error: 'gray',
-  Problem: 'red',
-  Warning: 'orange',
-  Minor: 'lime',
-  Info: 'teal',
-};
-
-function normalizeLevel(level: Level): DisplayLevel {
-  return level === 'Check' ? 'Info' : level;
-}
 
 function getLevelCounts(levels: Level[]): Record<DisplayLevel, number> {
   const counts: Record<DisplayLevel, number> = {
@@ -52,6 +41,9 @@ interface CheckCategoryProps {
   hiddenMinorCheckIds: readonly number[];
   selectedCategory?: string;
   overrideResult?: ApiCategoryOverrideCheckResult;
+  /** Kept by the parent so it survives switching difficulties. */
+  levelFilter: DisplayLevel | null;
+  onLevelFilterChange: (level: DisplayLevel | null) => void;
 }
 
 const defaultGroupState: CheckGroupUiState = { isOpen: true, showAll: false };
@@ -62,8 +54,10 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
   hiddenMinorCheckIds,
   selectedCategory,
   overrideResult,
+  levelFilter,
+  onLevelFilterChange,
 }) => {
-  const [levelFilter, setLevelFilter] = React.useState<DisplayLevel | null>(null);
+  const theme = useMantineTheme();
   const [groupUiState, setGroupUiState] = React.useState<Record<number, CheckGroupUiState>>({});
   const [prevGroupUiToken, setPrevGroupUiToken] = React.useState({
     levelFilter,
@@ -90,7 +84,7 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
       );
       const allLevels = groups.flatMap((g) => g.items.map((item) => item.level));
       const levelCounts = getLevelCounts(allLevels);
-      const totalCount = LEVEL_ORDER.reduce((sum, level) => sum + levelCounts[level], 0);
+      const totalCount = SEVERITY_ORDER.reduce((sum, level) => sum + levelCounts[level], 0);
       const sortedGroups = [...groups].sort((a, b) => {
         const nameA = (overrideResult.checks[a.id]?.name ?? '').toLowerCase();
         const nameB = (overrideResult.checks[b.id]?.name ?? '').toLowerCase();
@@ -132,7 +126,7 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
     const groups = groupChecks(cat.checks, showMinor, hiddenMinorCheckIds);
     const allLevels = groups.flatMap((g) => g.items.map((item) => item.level));
     const levelCounts = getLevelCounts(allLevels);
-    const totalCount = LEVEL_ORDER.reduce((sum, level) => sum + levelCounts[level], 0);
+    const totalCount = SEVERITY_ORDER.reduce((sum, level) => sum + levelCounts[level], 0);
     const sortedGroups = [...groups].sort((a, b) => {
       const nameA = (data.checks[a.id]?.name ?? '').toLowerCase();
       const nameB = (data.checks[b.id]?.name ?? '').toLowerCase();
@@ -212,39 +206,38 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
   };
 
   const toggleLevelFilter = (level: DisplayLevel) => {
-    setLevelFilter((current) => (current === level ? null : level));
+    onLevelFilterChange(levelFilter === level ? null : level);
   };
 
+  // Rows on this page are all `sm` apart: the difficulty row, the severity badges and each check.
   return (
-    <Stack gap="md">
+    <Stack gap="sm">
       <Group wrap="wrap" gap="xs" align="center">
-        {LEVEL_ORDER.map((level) => {
+        {SEVERITY_ORDER.map((level) => {
           const count = categoryData.levelCounts[level];
-          if (count === 0) return null;
-
           const isSelected = levelFilter === level;
+          // A selected severity stays visible at 0 after a difficulty switch. Turning it off hides it.
+          if (count === 0 && !isSelected) return null;
 
           return (
-            <Badge
+            <FilterChip
               key={level}
-              component="button"
-              type="button"
-              size="xs"
-              color={LEVEL_BADGE_COLORS[level]}
-              variant={isSelected ? 'filled' : 'light'}
+              label={
+                <>
+                  {getLevelLabel(level)}{' '}
+                  <Text span fz="0.85em" c="dimmed" ml="xs">
+                    ({count})
+                  </Text>
+                </>
+              }
+              color={levelColorName(level)}
+              icon={<LevelIcon level={level} size={14} />}
+              active={isSelected}
+              radius={theme.defaultRadius}
               onClick={() => toggleLevelFilter(level)}
-              style={{ cursor: 'pointer' }}
-              title={isSelected ? 'Show all severities' : `Filter by this type`}
-            >
-              {level === 'Minor'
-                ? `${count} ${getLevelLabel(level)}`
-                : countWord(count, level.toLowerCase())}
-            </Badge>
+            />
           );
         })}
-        {categoryData.totalCount > 0 && (
-          <InfoIconTooltip label="Click a badge to filter issues by severity" />
-        )}
       </Group>
       {categoryData.totalCount > 0 ? (
         filteredGroups.length > 0 ? (
@@ -262,7 +255,7 @@ const CheckCategory: React.FC<CheckCategoryProps> = ({
           </Text>
         )
       ) : (
-        <Text>No issues found.</Text>
+        <EmptyState icon={IconCircleCheck} title="No issues found" />
       )}
     </Stack>
   );

@@ -29,7 +29,6 @@ export type TimelineZoomValue = {
 export type TimelineModeValue = {
   groupedDifficulties: ObjectsModeGroup[];
   selectedMode?: Mode;
-  onModeChange: (mode: Mode) => void;
   activeMode: Mode | undefined;
 };
 

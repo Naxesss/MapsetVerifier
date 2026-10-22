@@ -13,6 +13,14 @@ export function normalizeMode(mode: string): Mode {
   return MODE_ORDER.includes(mode as Mode) ? (mode as Mode) : 'Standard';
 }
 
+/** Splits difficulties by game mode, in the usual mode order and without the modes that have none. */
+export function groupByMode<T extends { mode: string }>(difficulties: readonly T[]) {
+  return MODE_ORDER.map((mode) => ({
+    mode,
+    difficulties: difficulties.filter((d) => normalizeMode(d.mode) === mode),
+  })).filter((group) => group.difficulties.length > 0);
+}
+
 export function formatGameModeLabel(mode: Mode | string): string {
   if (mode in LABELS) {
     return LABELS[mode as Mode];

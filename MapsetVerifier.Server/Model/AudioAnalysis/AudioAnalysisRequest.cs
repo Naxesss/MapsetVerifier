@@ -18,17 +18,6 @@ public class AudioAnalysisRequest
 }
 
 /// <summary>
-/// Request model for hit sound batch analysis.
-/// </summary>
-public class HitSoundAnalysisRequest
-{
-    /// <summary>
-    /// The folder path of the beatmap set to analyze.
-    /// </summary>
-    public string BeatmapSetFolder { get; set; } = string.Empty;
-}
-
-/// <summary>
 /// Request model for spectrogram generation with configurable parameters.
 /// </summary>
 public class SpectrogramRequest

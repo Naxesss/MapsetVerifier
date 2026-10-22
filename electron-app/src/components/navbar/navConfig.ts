@@ -11,7 +11,6 @@ export interface NavEntry {
   to: string;
   icon: typeof IconHome;
   label: string;
-  disabled?: boolean;
 }
 
 export const navItems: NavEntry[] = [
@@ -39,25 +38,22 @@ export const navItems: NavEntry[] = [
     to: '/snapshots',
     icon: IconCamera,
     label: 'Snapshots',
-    disabled: false,
   },
   {
     to: '/overview',
     icon: IconTimeline,
     label: 'Overview',
-    disabled: false,
   },
 ];
 
 export const NAV_INDICATOR_TRANSITION_MS = 220;
 
+/** Height of every navbar control (page links, sidebar toggle, tips and settings buttons). */
+export const NAV_CONTROL_SIZE = 38;
+
 export function getActiveNavRoute(pathname: string): string {
   return (
-    navItems.find((item) => {
-      if (item.disabled) {
-        return false;
-      }
-      return item.to === '/' ? pathname === '/' : pathname.startsWith(item.to);
-    })?.to ?? ''
+    navItems.find((item) => (item.to === '/' ? pathname === '/' : pathname.startsWith(item.to)))
+      ?.to ?? ''
   );
 }

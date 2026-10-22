@@ -1,5 +1,4 @@
-﻿import { Alert, Text, Box, Flex, Stack, SimpleGrid, LoadingOverlay } from '@mantine/core';
-import { IconAlertCircle, IconAlertTriangle, IconRulerMeasure } from '@tabler/icons-react';
+﻿import { SimpleGrid } from '@mantine/core';
 import ChannelBalance from './ChannelBalance';
 import DynamicRange from './DynamicRange';
 import FormatInfo from './FormatInfo';
@@ -8,14 +7,14 @@ import { useAudioAnalysis, useFrequencyAnalysis } from './hooks/useAudioAnalysis
 import Spectrogram from './Spectrogram';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
 import { useSettings } from '../../../context/SettingsContext.tsx';
-import NoBeatmapsetDisplay from '../../common/NoBeatmapsetDisplay.tsx';
-import StackTraceMessage from '../../common/StackTraceMessage.tsx';
+import { SectionTitle } from '../../common/Headings.tsx';
+import AnalysisTab from '../AnalysisTab.tsx';
 
 function AudioOverview() {
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
 
-  const { data, isLoading, isFetching, isError, error } = useAudioAnalysis({
+  const { data, isLoading, isError, error } = useAudioAnalysis({
     folder,
     songFolder: settings.songFolder,
   });
@@ -25,51 +24,12 @@ function AudioOverview() {
     songFolder: settings.songFolder,
   });
 
-  if (!folder) {
-    return <NoBeatmapsetDisplay />;
-  }
-
   const durationMs = data?.formatAnalysis?.durationMs || 0;
 
   return (
-    <Box>
-      <LoadingOverlay
-        visible={isLoading || isFetching}
-        zIndex={1000}
-        overlayProps={{ radius: 'sm', blur: 2 }}
-      />
-      {isError && (
-        <Flex p="md">
-          <Alert icon={<IconAlertCircle />} color="red" title="Error analyzing audio">
-            <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
-              {error?.message}
-            </Text>
-            {error?.stackTrace && <StackTraceMessage stackTrace={error.stackTrace} />}
-          </Alert>
-        </Flex>
-      )}
-
-      {data && !data.success && (
-        <Flex p="md">
-          <Alert icon={<IconAlertTriangle />} color="yellow" title="Analysis failed">
-            <Text size="sm">{data.errorMessage}</Text>
-          </Alert>
-        </Flex>
-      )}
-
-      {data && data.success && (
-        <Flex gap="md" p="md" direction="column">
-          {data.complianceIssues?.length > 0 && (
-            <Alert icon={<IconRulerMeasure />} color="yellow" title="Compliance Issues">
-              <Stack gap="xs">
-                {data.complianceIssues.map((issue: string, idx: number) => (
-                  <Text key={idx} size="sm">
-                    • {issue}
-                  </Text>
-                ))}
-              </Stack>
-            </Alert>
-          )}
+    <AnalysisTab data={data} isLoading={isLoading} isError={isError} error={error} subject="audio">
+      {(data) => (
+        <>
           <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="md">
             {data.formatAnalysis && (
               <FormatInfo
@@ -78,12 +38,12 @@ function AudioOverview() {
                 bitrateData={data.bitrateAnalysis}
               />
             )}
-            <Spectrogram folder={folder} songFolder={settings.songFolder ?? ''} />
+            {folder && <Spectrogram folder={folder} songFolder={settings.songFolder ?? ''} />}
           </SimpleGrid>
 
           {settings.showAdvancedAudioAnalysis && (
             <>
-              <Text fw={600}>Advanced Audio Analysis</Text>
+              <SectionTitle>Advanced audio analysis</SectionTitle>
               <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="md">
                 {data.channelAnalysis && (
                   <ChannelBalance data={data.channelAnalysis} durationMs={durationMs} />
@@ -95,9 +55,9 @@ function AudioOverview() {
               </SimpleGrid>
             </>
           )}
-        </Flex>
+        </>
       )}
-    </Box>
+    </AnalysisTab>
   );
 }
 

@@ -1,16 +1,10 @@
 import { Badge, Box, Flex, Group, Text, Tooltip, useMantineTheme } from '@mantine/core';
-import {
-  IconAlertTriangleFilled,
-  IconCircleCheckFilled,
-  IconCircleDashed,
-  IconCircleHalf2,
-  IconUser,
-} from '@tabler/icons-react';
-import { useState } from 'react';
+import { COVERAGE_STATUSES, isCoverageStatus } from './coverageStatus';
 import RcLeadText from './RcLeadText';
 import { difficultyStarRating, KIND_COLOR, linkedCheckNames, pageMode } from './rcUtils';
 import { ApiRcStatement } from '../../Types';
 import { countWord } from '../../utils/countWord';
+import ClickableRow from '../common/ClickableRow';
 import GameModeIcon from '../icons/GameModeIcon';
 
 interface RcStatementRowProps {
@@ -34,57 +28,15 @@ const LABEL_LINE = 'var(--mantine-font-size-sm) * var(--mantine-line-height-sm)'
 function StatusIcon({ statement }: { statement: ApiRcStatement }) {
   const theme = useMantineTheme();
 
-  switch (statement.coverage) {
-    case 'Partial':
-      return (
-        <Tooltip label="Partly covered by checks" withinPortal>
-          <IconCircleHalf2
-            size={STATUS_ICON_SIZE}
-            color={theme.colors.yellow[6]}
-            aria-label="Partly covered"
-          />
-        </Tooltip>
-      );
-    case 'Covered':
-      return (
-        <Tooltip label="Covered by a check" withinPortal>
-          <IconCircleCheckFilled
-            size={STATUS_ICON_SIZE}
-            color={theme.colors.green[6]}
-            aria-label="Covered"
-          />
-        </Tooltip>
-      );
-    case 'Outdated':
-      return (
-        <Tooltip label="Changed on the wiki since its checks were reviewed" withinPortal>
-          <IconAlertTriangleFilled
-            size={STATUS_ICON_SIZE}
-            color={theme.colors.red[6]}
-            aria-label="Outdated"
-          />
-        </Tooltip>
-      );
-    case 'Manual':
-      return (
-        <Tooltip label="Needs human judgement" withinPortal>
-          <IconUser size={STATUS_ICON_SIZE} color={theme.colors.gray[6]} aria-label="Manual" />
-        </Tooltip>
-      );
-    case 'Uncovered':
-      return (
-        <Tooltip label="No check yet" withinPortal>
-          <IconCircleDashed
-            size={STATUS_ICON_SIZE}
-            color={theme.colors.gray[6]}
-            aria-label="Not covered"
-          />
-        </Tooltip>
-      );
-    default:
-      // Allowances have nothing to cover; keep the space so rows stay aligned.
-      return <Box w={STATUS_ICON_SIZE} />;
-  }
+  // Allowances have nothing to cover; keep the space so rows stay aligned.
+  if (!isCoverageStatus(statement.coverage)) return <Box w={STATUS_ICON_SIZE} />;
+
+  const { icon: Icon, color, label, description } = COVERAGE_STATUSES[statement.coverage];
+  return (
+    <Tooltip label={description} withinPortal>
+      <Icon size={STATUS_ICON_SIZE} color={theme.colors[color][6]} aria-label={label} />
+    </Tooltip>
+  );
 }
 
 /** The status icon in words, plain so the icon stays the only colour on the row. */
@@ -147,11 +99,6 @@ export default function RcStatementRow({
   onOpen,
 }: RcStatementRowProps) {
   const theme = useMantineTheme();
-  const [hovered, setHovered] = useState(false);
-  const background = hovered
-    ? theme.variantColorResolver({ variant: 'light', theme, color: 'blue' }).background
-    : theme.variantColorResolver({ variant: 'light', theme, color: 'gray' }).background;
-
   const mode = pageMode(statement.page);
   const showParentLead = !!statement.parentLead && !hideParentLead;
   const label = statusLabel(statement);
@@ -162,31 +109,15 @@ export default function RcStatementRow({
     `calc(${showParentLead ? PARENT_LEAD_LINE : '0px'} + (${TITLE_LINE} - ${height}) / 2)`;
 
   return (
-    <Group
+    // Muted rows are shown only as context for the matching statements nested in them.
+    <ClickableRow
       align="flex-start"
-      style={{
-        background,
-        borderRadius: theme.defaultRadius,
-        cursor: 'pointer',
-        transition: 'background 0.2s, opacity 0.2s',
-        // Shown only as context for the matching statements nested in it; full strength on hover.
-        opacity: muted && !hovered ? 0.5 : 1,
-      }}
-      p="sm"
       gap="sm"
       wrap="nowrap"
+      w="auto"
       ml={statement.parentId ? 'xl' : 0}
-      role="button"
-      tabIndex={0}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      muted={muted}
       onClick={() => onOpen(statement)}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          onOpen(statement);
-        }
-      }}
     >
       <Box
         style={{
@@ -213,13 +144,12 @@ export default function RcStatementRow({
                 size={16}
                 mode={mode}
                 starRating={difficultyStarRating(statement.difficulties[0])}
+                withTooltip
               />
             ) : (
-              <GameModeIcon size={16} mode={mode} color={theme.colors.gray[5]} />
+              <GameModeIcon size={16} mode={mode} color={theme.colors.gray[5]} withTooltip />
             ))}
-          <Badge size="xs" variant="light" color={KIND_COLOR[statement.kind]}>
-            {statement.kind}
-          </Badge>
+          <Badge color={KIND_COLOR[statement.kind]}>{statement.kind}</Badge>
           {showPage && (
             <Text size="xs" c="dimmed">
               {[statement.pageTitle, ...statement.path].join(' › ')}
@@ -236,6 +166,6 @@ export default function RcStatementRow({
           {label}
         </Text>
       )}
-    </Group>
+    </ClickableRow>
   );
 }

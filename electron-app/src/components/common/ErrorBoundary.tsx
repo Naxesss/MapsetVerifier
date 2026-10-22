@@ -104,7 +104,7 @@ function ErrorFallback({ error, errorInfo, onRetry, title, showHomeLink }: Error
 
       <Stack gap="xs" align="center" w="100%">
         <UnstyledButton onClick={toggleDetails} c="dimmed" fz="sm">
-          <Flex align="center" gap={4}>
+          <Flex align="center" gap="xs">
             <IconChevronDown
               size={14}
               style={{

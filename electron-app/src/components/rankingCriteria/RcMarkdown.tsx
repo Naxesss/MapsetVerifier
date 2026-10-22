@@ -1,13 +1,22 @@
-import { Anchor, Box, List, Text, Title } from '@mantine/core';
+import { Alert, Anchor, Box, List, Text, Title } from '@mantine/core';
+import {
+  IconAlertTriangleFilled,
+  IconBulbFilled,
+  IconExclamationCircleFilled,
+  IconInfoCircleFilled,
+  IconSpeakerphone,
+} from '@tabler/icons-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   headingAnchor,
-  openExternal,
   parseDifficultyIcon,
+  parseModeIcon,
   rankingCriteriaRoute,
   resolveWikiLink,
 } from './rcUtils';
+import { remarkWikiAlerts } from './remarkWikiAlerts';
+import { openExternal } from '../../hooks/useOpenExternal';
 import { ApiRcPage } from '../../Types';
 import MantineMarkdown from '../documentation/MantineMarkdown';
 import GameModeIcon from '../icons/GameModeIcon';
@@ -54,7 +63,7 @@ function RcHeading({
         fw={700}
         c={order <= 3 ? undefined : 'dimmed'}
         mt={order === 1 ? 0 : 'sm'}
-        mb={4}
+        mb="xs"
         className="rc-heading"
       >
         {children}
@@ -72,6 +81,40 @@ function RcHeading({
     >
       {children}
     </Title>
+  );
+}
+
+const WIKI_ALERTS: Record<string, { color: string; icon: typeof IconInfoCircleFilled }> = {
+  note: { color: 'blue', icon: IconInfoCircleFilled },
+  tip: { color: 'green', icon: IconBulbFilled },
+  notice: { color: 'pink', icon: IconSpeakerphone },
+  warning: { color: 'red', icon: IconExclamationCircleFilled },
+  caution: { color: 'yellow', icon: IconAlertTriangleFilled },
+};
+
+/** An osu-wiki `::: alert-*` container. */
+function WikiAlert({
+  kind,
+  title,
+  children,
+}: {
+  kind?: string;
+  title?: string;
+  children?: ReactNode;
+}) {
+  const alert = WIKI_ALERTS[kind ?? ''] ?? WIKI_ALERTS.note;
+  const Icon = alert.icon;
+
+  return (
+    <Alert
+      variant="light"
+      color={alert.color}
+      icon={<Icon size={18} />}
+      title={title || undefined}
+      mb="md"
+    >
+      {children}
+    </Alert>
   );
 }
 
@@ -113,12 +156,12 @@ export default function RcMarkdown({ page, compact }: RcMarkdownProps) {
       ),
       ...(compact && {
         ul: ({ children }) => (
-          <List size="sm" spacing={2} mb="xs" withPadding>
+          <List size="sm" spacing="2xs" mb="xs" withPadding>
             {children}
           </List>
         ),
         ol: ({ children }) => (
-          <List size="sm" spacing={2} mb="xs" type="ordered" withPadding>
+          <List size="sm" spacing="2xs" mb="xs" type="ordered" withPadding>
             {children}
           </List>
         ),
@@ -130,12 +173,14 @@ export default function RcMarkdown({ page, compact }: RcMarkdownProps) {
         </Text>
       ),
       img: ({ src, alt }) => {
-        const icon = parseDifficultyIcon(typeof src === 'string' ? src : undefined);
-        if (icon) {
+        const source = typeof src === 'string' ? src : undefined;
+        const icon = parseDifficultyIcon(source);
+        const mode = icon?.mode ?? parseModeIcon(source);
+        if (mode) {
           return (
             <GameModeIcon
-              mode={icon.mode}
-              starRating={icon.starRating}
+              mode={mode}
+              starRating={icon?.starRating}
               size={compact ? 16 : 22}
               style={{ verticalAlign: 'middle', marginRight: 6 }}
             />
@@ -145,6 +190,19 @@ export default function RcMarkdown({ page, compact }: RcMarkdownProps) {
         const resolved =
           typeof src === 'string' && src.startsWith('/') ? 'https://osu.ppy.sh' + src : src;
         return <img src={resolved} alt={alt} />;
+      },
+      div: ({ className, children, ...rest }) => {
+        if (className !== 'rc-wiki-alert') {
+          return <div className={className}>{children}</div>;
+        }
+
+        const kind = 'data-kind' in rest ? String(rest['data-kind'] ?? '') : '';
+        const title = 'data-title' in rest ? String(rest['data-title'] ?? '') : '';
+        return (
+          <WikiAlert kind={kind} title={title}>
+            {children}
+          </WikiAlert>
+        );
       },
       a: ({ href, children }) => {
         if (!href) return <>{children}</>;
@@ -173,7 +231,9 @@ export default function RcMarkdown({ page, compact }: RcMarkdownProps) {
 
   return (
     <Box className="rc-markdown">
-      <MantineMarkdown components={components}>{page.markdown}</MantineMarkdown>
+      <MantineMarkdown components={components} remarkPlugins={[remarkWikiAlerts]}>
+        {page.markdown}
+      </MantineMarkdown>
     </Box>
   );
 }

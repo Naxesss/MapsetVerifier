@@ -1,12 +1,28 @@
-import { Box, Transition } from '@mantine/core';
+import { Transition } from '@mantine/core';
 import { useState } from 'react';
 import BeatmapCard from './BeatmapCard.tsx';
-import { Beatmap } from '../../Types.ts';
+import { ApiLazerLookupResult, Beatmap } from '../../Types.ts';
 
 export interface CurrentBeatmapData {
   beatmap: Beatmap;
   folderPath: string;
   lookupRoot: string;
+}
+
+/** The mapset a lookup of the open osu! client found, or null while it found none. */
+export function toCurrentBeatmap(
+  result: ApiLazerLookupResult | undefined
+): CurrentBeatmapData | null {
+  if (
+    result?.status !== 'folder_found' ||
+    !result.beatmap ||
+    !result.folderPath ||
+    !result.lookupRoot
+  ) {
+    return null;
+  }
+
+  return { beatmap: result.beatmap, folderPath: result.folderPath, lookupRoot: result.lookupRoot };
 }
 
 interface CurrentBeatmapCardProps {
@@ -76,16 +92,14 @@ export default function CurrentBeatmapCard({
       {(styles) => (
         <div style={styles}>
           {renderedCurrent && (
-            <Box mb="12px">
-              <BeatmapCard
-                beatmap={renderedCurrent.beatmap}
-                songFolder={renderedCurrent.lookupRoot}
-                source={source}
-                lazerDataDir={lazerDataDir}
-                isSelectedOverride={selectedFolderPath === renderedCurrent.folderPath}
-                onSelect={() => onSelectFolderPath(renderedCurrent.folderPath)}
-              />
-            </Box>
+            <BeatmapCard
+              beatmap={renderedCurrent.beatmap}
+              songFolder={renderedCurrent.lookupRoot}
+              source={source}
+              lazerDataDir={lazerDataDir}
+              isSelectedOverride={selectedFolderPath === renderedCurrent.folderPath}
+              onSelect={() => onSelectFolderPath(renderedCurrent.folderPath)}
+            />
           )}
         </div>
       )}

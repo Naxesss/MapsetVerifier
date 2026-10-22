@@ -54,7 +54,7 @@ export function MainNavRail({ activeRoute }: MainNavRailProps) {
           styles={{
             root: {
               backgroundColor: selectionFill,
-              borderRadius: 5,
+              borderRadius: 'var(--mantine-radius-default)',
               boxShadow: 'none',
               zIndex: 0,
               pointerEvents: 'none',

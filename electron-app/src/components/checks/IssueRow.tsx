@@ -4,12 +4,15 @@ import { useSettings } from '../../context/SettingsContext';
 import { ApiCheckResult } from '../../Types';
 import OsuLink from '../common/OsuLink';
 import LevelIcon from '../icons/LevelIcon';
+import { normalizeLevel } from './utils/levelUtils';
 
 interface IssueRowProps {
   item: ApiCheckResult;
   onOpen?: () => void;
   prefix?: React.ReactNode;
 }
+
+const ROW_PADDING = 'var(--mantine-spacing-2xs) var(--mantine-spacing-xs)';
 
 const IssueRow: React.FC<IssueRowProps> = ({ item, onOpen, prefix }) => {
   const theme = useMantineTheme();
@@ -47,7 +50,7 @@ const IssueRow: React.FC<IssueRowProps> = ({ item, onOpen, prefix }) => {
       }}
     >
       <div style={{ flexShrink: 0, userSelect: 'none' }}>
-        <LevelIcon level={item.level === 'Check' ? 'Info' : item.level} size={16} />
+        <LevelIcon level={normalizeLevel(item.level)} size={16} />
       </div>
       <Text
         component="span"
@@ -71,8 +74,9 @@ const IssueRow: React.FC<IssueRowProps> = ({ item, onOpen, prefix }) => {
     </Stack>
   );
 
+  // Same padding either way, so rows line up whether or not they open the details drawer.
   if (!isInteractive) {
-    return content;
+    return <Box style={{ padding: ROW_PADDING }}>{content}</Box>;
   }
 
   return (
@@ -88,7 +92,7 @@ const IssueRow: React.FC<IssueRowProps> = ({ item, onOpen, prefix }) => {
         maxWidth: '100%',
         borderRadius: theme.radius.sm,
         cursor: 'pointer',
-        padding: '2px 4px',
+        padding: ROW_PADDING,
         backgroundColor: hovered ? 'var(--mantine-color-default-hover)' : undefined,
         transition: 'background-color 120ms ease',
       }}

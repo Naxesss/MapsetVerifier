@@ -10,6 +10,8 @@ interface AutoResizeCanvasProps {
   minHeight?: number | string;
   /** When provided, redraw only when these values change instead of when `draw` identity changes. */
   redrawDeps?: readonly unknown[];
+  /** Caps backing-store resolution. Timeline tiles pass 1 so a 4096px tile is not doubled on retina. */
+  maxPixelRatio?: number;
 }
 
 const AutoResizeCanvas: React.FC<AutoResizeCanvasProps> = ({
@@ -19,6 +21,7 @@ const AutoResizeCanvas: React.FC<AutoResizeCanvasProps> = ({
   fixedWidth,
   fixedHeight,
   redrawDeps,
+  maxPixelRatio,
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -49,7 +52,10 @@ const AutoResizeCanvas: React.FC<AutoResizeCanvasProps> = ({
 
     // If fixed dimensions are provided, use them and scale with CSS
     if (fixedWidth && fixedHeight) {
-      const ratio = window.devicePixelRatio || 1;
+      const ratio = Math.min(
+        window.devicePixelRatio || 1,
+        maxPixelRatio ?? Number.POSITIVE_INFINITY
+      );
 
       // Set canvas internal resolution to fixed size (high quality)
       canvas.width = fixedWidth * ratio;
@@ -77,7 +83,10 @@ const AutoResizeCanvas: React.FC<AutoResizeCanvasProps> = ({
       // Skip if dimensions are invalid
       if (width === 0 || height === 0) return;
 
-      const ratio = window.devicePixelRatio || 1;
+      const ratio = Math.min(
+        window.devicePixelRatio || 1,
+        maxPixelRatio ?? Number.POSITIVE_INFINITY
+      );
 
       // Adjust canvas internal resolution (crisp on retina screens)
       canvas.width = width * ratio;
@@ -128,7 +137,7 @@ const AutoResizeCanvas: React.FC<AutoResizeCanvasProps> = ({
         window.cancelAnimationFrame(rafRef.current);
       }
     };
-  }, [fixedWidth, fixedHeight, ...(redrawDeps ?? [draw])]);
+  }, [fixedWidth, fixedHeight, maxPixelRatio, ...(redrawDeps ?? [draw])]);
 
   return (
     <div

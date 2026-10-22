@@ -32,8 +32,8 @@ function CheckSpeedStatsPanel({ report }: CheckSpeedStatsPanelProps) {
         backgroundColor: 'var(--mantine-color-dark-7)',
       }}
     >
-      <Group justify="space-between" mb={6}>
-        <Group gap={6}>
+      <Group justify="space-between" mb="xs">
+        <Group gap="xs">
           <IconClockBolt size={16} />
           <Text size="sm" fw={600}>
             Check speed stats
@@ -54,7 +54,7 @@ function CheckSpeedStatsPanel({ report }: CheckSpeedStatsPanelProps) {
           </Text>
         </Group>
       </Group>
-      <Text size="xs" c="dimmed" mb={6}>
+      <Text size="xs" c="dimmed" mb="xs">
         Checks run in parallel, so combined check time will usually exceed the total run time.
       </Text>
       <ScrollArea.Autosize mah={260}>
@@ -72,9 +72,7 @@ function CheckSpeedStatsPanel({ report }: CheckSpeedStatsPanelProps) {
                 <Table.Td>{check.checkName}</Table.Td>
                 <Table.Td>
                   {check.difficulty ? (
-                    <Badge size="xs" variant="light" color="gray">
-                      {check.difficulty}
-                    </Badge>
+                    <Badge color="gray">{check.difficulty}</Badge>
                   ) : (
                     <Text size="xs" c="dimmed">
                       —

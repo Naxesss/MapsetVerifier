@@ -100,9 +100,11 @@ namespace MapsetVerifier.Checks.Taiko.Design
                         "Filename",
                         "Vertical offset",
                         "Limit"
-                    ).WithCause(
-                        "Vertical offset is high enough that the background no longer covers the playfield for its aspect ratio."
                     )
+                        .WithCause(
+                            "Vertical offset is high enough that the background no longer covers the playfield for its aspect ratio."
+                        )
+                        .WithRule(RC.Taiko.NotLeaveBlankSpaceBetween)
                 },
                 {
                     YOffsetLow,
@@ -112,9 +114,11 @@ namespace MapsetVerifier.Checks.Taiko.Design
                         "Filename",
                         "Vertical offset",
                         "Limit"
-                    ).WithCause(
-                        "Vertical offset is low enough that the background no longer covers the bottom of the screen for its aspect ratio."
                     )
+                        .WithCause(
+                            "Vertical offset is low enough that the background no longer covers the bottom of the screen for its aspect ratio."
+                        )
+                        .WithRule(RC.Taiko.NotLeaveBlankSpaceBetween)
                 },
             };
 

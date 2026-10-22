@@ -24,6 +24,8 @@ export type SeriesConfig = {
   useSecondaryAxis?: boolean;
   /** Overrides the chart-wide value suffix for this series only. */
   valueSuffix?: string;
+  /** Shown dimmed after the label in the legend, e.g. a difficulty's star rating. */
+  legendNote?: string;
 };
 
 export type PeakHoverState = {

@@ -70,7 +70,7 @@ function TickMarkerPreview({ color, scale = 1 }: { color: string; scale?: number
 
 function HitsoundAdditionPreview({ color, label }: { color: string; label: string }) {
   return (
-    <Group gap={6} wrap="nowrap">
+    <Group gap="xs" wrap="nowrap">
       <Box
         style={{
           width: 12,
@@ -90,7 +90,7 @@ function HitsoundAdditionPreview({ color, label }: { color: string; label: strin
 
 function SectionTintPreview({ color, label }: { color: string; label: string }) {
   return (
-    <Group gap={6} wrap="nowrap">
+    <Group gap="xs" wrap="nowrap">
       <Box
         style={{
           width: 28,
@@ -143,7 +143,7 @@ function LanePreview({
   children: ReactNode;
 }) {
   return (
-    <Group gap={8} wrap="nowrap" align="center">
+    <Group gap="sm" wrap="nowrap" align="center">
       <Text size="xs" c="dimmed" w={92} style={{ flexShrink: 0 }}>
         {label}
       </Text>
@@ -175,8 +175,8 @@ export default function HitsoundLegendContent() {
   const gapOverlayColor = withAlpha(HITSOUND_GAP_OVERLAY_COLOR, HITSOUND_GAP_OVERLAY_ALPHA);
 
   return (
-    <Group gap={24} align="flex-start" wrap="wrap">
-      <Stack gap={6}>
+    <Group gap="lg" align="flex-start" wrap="wrap">
+      <Stack gap="xs">
         <LanePreview label="Additions" height={SOUND_STRIP_EDGE_LANE_HEIGHT}>
           <HitsoundAdditionPreview color={HITSOUND_COLORS.none} label="None" />
           <HitsoundAdditionPreview color={HITSOUND_COLORS.whistle} label="Whistle" />
@@ -186,7 +186,7 @@ export default function HitsoundLegendContent() {
 
         <LanePreview label="Strip bank" height={SOUND_STRIP_EDGE_LANE_HEIGHT}>
           {sampleBanks.map((item) => (
-            <Group key={item.label} gap={6} wrap="nowrap">
+            <Group key={item.label} gap="xs" wrap="nowrap">
               <EdgeMarkerPreview color={item.color} />
               <Text size="xs" c="dimmed">
                 {item.label}
@@ -195,11 +195,11 @@ export default function HitsoundLegendContent() {
           ))}
         </LanePreview>
 
-        <Group gap={8} wrap="nowrap" align="flex-start">
+        <Group gap="sm" wrap="nowrap" align="flex-start">
           <Text size="xs" c="dimmed" w={92} style={{ flexShrink: 0, paddingTop: 2 }}>
             Section tint
           </Text>
-          <Stack gap={4}>
+          <Stack gap="xs">
             <Group gap="md" wrap="wrap">
               <SectionTintPreview color={EDITOR_SAMPLE_BANK_COLORS.Normal} label="Normal section" />
               <SectionTintPreview color={EDITOR_SAMPLE_BANK_COLORS.Soft} label="Soft section" />
@@ -209,10 +209,10 @@ export default function HitsoundLegendContent() {
         </Group>
       </Stack>
 
-      <Stack gap={6}>
+      <Stack gap="xs">
         <LanePreview label="Object body" height={SOUND_STRIP_EDGE_LANE_HEIGHT}>
           {sampleBanks.map((item) => (
-            <Group key={item.label} gap={6} wrap="nowrap">
+            <Group key={item.label} gap="xs" wrap="nowrap">
               <BodyTintPreview color={withAlpha(item.color, SAMPLESET_BODY_ALPHA)} />
               <Text size="xs" c="dimmed">
                 {item.label} sliderslide
@@ -224,19 +224,19 @@ export default function HitsoundLegendContent() {
           label="Slider sounds"
           height={SOUND_STRIP_PASSIVE_LANE_HEIGHT + SOUND_STRIP_LANE_GAP}
         >
-          <Group gap={8} wrap="nowrap" align="center">
+          <Group gap="sm" wrap="nowrap" align="center">
             <BodyMarkerPreview color={EDITOR_SAMPLE_BANK_COLORS.Soft} />
             <Text size="xs" c="dimmed">
               Sliderslide
             </Text>
           </Group>
-          <Group gap={8} wrap="nowrap" align="center">
+          <Group gap="sm" wrap="nowrap" align="center">
             <BodyMarkerPreview color={EDITOR_SAMPLE_BANK_COLORS.Drum} />
             <Text size="xs" c="dimmed">
               Sliderwhistle
             </Text>
           </Group>
-          <Group gap={8} wrap="nowrap" align="center">
+          <Group gap="sm" wrap="nowrap" align="center">
             <TickMarkerPreview color={EDITOR_SAMPLE_BANK_COLORS.Drum} />
             <Text size="xs" c="dimmed">
               Slidertick

@@ -2,6 +2,7 @@ import { Box, Group, Stack, Text, UnstyledButton, useMantineTheme } from '@manti
 import { IconArrowsExchange, IconMinus, IconPlus } from '@tabler/icons-react';
 import { ReactNode, useState } from 'react';
 import { ApiSnapshotDiff, DiffType } from '../../Types';
+import { MicroLabel } from '../common/Headings.tsx';
 import OsuLink from '../common/OsuLink.tsx';
 
 export function getDiffTypeIcon(diffType: DiffType, size: number = 16) {
@@ -77,7 +78,7 @@ function SnapshotDiffLine({ diff }: SnapshotDiffLineProps) {
 
     if (parsed.type === 'transition') {
       return (
-        <Group gap={8} wrap="nowrap" align="flex-start">
+        <Group gap="sm" wrap="nowrap" align="flex-start">
           <Text
             size="xs"
             c="dimmed"
@@ -100,16 +101,8 @@ function SnapshotDiffLine({ diff }: SnapshotDiffLineProps) {
 
     if (parsed.type === 'keyValue') {
       return (
-        <Group gap={8} wrap="nowrap" align="flex-start">
-          <Text
-            size="10px"
-            tt="uppercase"
-            fw={700}
-            c="dimmed"
-            style={{ letterSpacing: '0.04em', flexShrink: 0, paddingTop: 2 }}
-          >
-            {parsed.key}
-          </Text>
+        <Group gap="sm" wrap="nowrap" align="flex-start">
+          <MicroLabel style={{ flexShrink: 0, paddingTop: 2 }}>{parsed.key}</MicroLabel>
           <Text size="xs" style={{ flex: 1, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
             <OsuLink text={parsed.value} />
           </Text>
@@ -128,8 +121,8 @@ function SnapshotDiffLine({ diff }: SnapshotDiffLineProps) {
     <Box
       p="sm"
       style={{
-        borderRadius: theme.radius.sm,
-        backgroundColor: theme.colors.dark[6],
+        borderRadius: theme.defaultRadius,
+        backgroundColor: theme.colors.dark[7],
         border: `1px solid ${theme.colors.dark[4]}`,
         boxShadow: `inset 3px 0 0 0 ${diffTypeColor}`,
         transition: 'border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease',
@@ -138,7 +131,7 @@ function SnapshotDiffLine({ diff }: SnapshotDiffLineProps) {
       <Stack gap="sm">
         <Group justify="space-between" align="flex-start" gap="sm" wrap="nowrap">
           <Group gap="xs" wrap="nowrap" style={{ minWidth: 0, flex: 1 }}>
-            <Box mt={2} style={{ display: 'flex', flexShrink: 0 }}>
+            <Box mt="2xs" style={{ display: 'flex', flexShrink: 0 }}>
               {getDiffTypeIcon(diff.diffType, 14)}
             </Box>
             <Text
@@ -152,13 +145,13 @@ function SnapshotDiffLine({ diff }: SnapshotDiffLineProps) {
         </Group>
 
         {visibleDetails.length > 0 && (
-          <Stack gap={6} pl="lg">
+          <Stack gap="xs" pl="lg">
             {visibleDetails.map((detail, index) => (
               <Box
                 key={index}
-                p={6}
+                p="xs"
                 style={{
-                  borderRadius: theme.radius.sm,
+                  borderRadius: theme.defaultRadius,
                   backgroundColor: theme.colors.dark[8],
                   border: `1px solid ${theme.colors.dark[4]}`,
                 }}

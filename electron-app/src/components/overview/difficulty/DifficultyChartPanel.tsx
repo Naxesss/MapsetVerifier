@@ -32,7 +32,6 @@ export type DifficultyChartPanelProps = {
   chartState: DifficultyChartState;
   hover: ChartHoverPayload | null;
   onHover: (hover: ChartHoverPayload | null) => void;
-  showZoomHint?: boolean;
   /** Inline card: crosshair tooltip above plot. Full view uses ChartHoverFloatingPanel instead. */
   showInlineHoverTooltip?: boolean;
 };
@@ -50,9 +49,9 @@ export function DifficultyChartPanel({
   chartState,
   hover,
   onHover,
-  showZoomHint = true,
   showInlineHoverTooltip = true,
 }: DifficultyChartPanelProps) {
+  const [highlightedSeriesId, setHighlightedSeriesId] = useState<string | null>(null);
   const chartAreaRef = useRef<HTMLDivElement>(null);
   const tooltipMeasureRef = useRef<HTMLDivElement>(null);
   const [tooltipLeft, setTooltipLeft] = useState(0);
@@ -133,7 +132,7 @@ export function DifficultyChartPanel({
   if (data.length === 0) {
     return (
       <Text c="dimmed" ta="center" py="xl">
-        No chart data available
+        No chart data available.
       </Text>
     );
   }
@@ -173,6 +172,7 @@ export function DifficultyChartPanel({
           durationMs={durationMs}
           plotHeight={plotHeight}
           visibleSeriesIds={visibleSeriesIds}
+          emphasizedSeriesId={highlightedSeriesId}
           valueFormatter={axisValueFormatter}
           interpolation={interpolation}
           showDataPoints={showDataPoints}
@@ -199,16 +199,12 @@ export function DifficultyChartPanel({
           withinPortal={false}
         />
       </Box>
-      {showZoomHint && !isZoomed ? (
-        <Text size="xs" c="dimmed" ta="center" style={{ lineHeight: 1.35 }}>
-          Click and drag on the chart to zoom in. Right-click a peak for timestamp actions.
-        </Text>
-      ) : null}
       <TimeSeriesLegend
         series={series}
         isVisible={isVisible}
         onToggle={toggleSeries}
         onIsolate={toggleIsolateSeries}
+        onHighlight={setHighlightedSeriesId}
       />
     </Stack>
   );

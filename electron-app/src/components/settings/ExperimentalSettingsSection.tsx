@@ -1,9 +1,10 @@
-import { Badge, Button, Group, Select, Switch, Text, TextInput, Tooltip } from '@mantine/core';
-import { IconAlertTriangle, IconAnalyze, IconFolder, IconSearch } from '@tabler/icons-react';
+import { Button, Group, Select, Switch, TextInput } from '@mantine/core';
+import { IconAnalyze, IconFolder, IconSearch } from '@tabler/icons-react';
 import { useState } from 'react';
 import AdvancedAudioWarningModal from './AdvancedAudioWarningModal';
-import { SettingsRow, SettingsSection } from './SettingsSection';
+import { SettingsRow, SettingsSection, SettingsSubRows } from './SettingsSection';
 import { parseTimestampOpenTarget, useSettings } from '../../context/SettingsContext';
+import { notifyError } from '../../utils/notify.tsx';
 import type { TimestampOpenTarget } from '../../electron-env';
 
 const TIMESTAMP_OPEN_OPTIONS: { label: string; value: TimestampOpenTarget }[] = [
@@ -19,25 +20,6 @@ function timestampPathKey(
   if (target === 'stable') return 'timestampOpenStablePath';
   if (target === 'lazer') return 'timestampOpenLazerPath';
   return 'timestampOpenCustomCommand';
-}
-
-function ExperimentalLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <Group gap="xs" align="center" wrap="nowrap">
-      <Text size="sm">{children}</Text>
-      <Tooltip label="Experimental">
-        <Badge
-          size="xs"
-          radius="xl"
-          variant="light"
-          color="yellow"
-          px={6}
-          aria-label="Experimental setting"
-          leftSection={<IconAlertTriangle size={11} />}
-        />
-      </Tooltip>
-    </Group>
-  );
 }
 
 export default function ExperimentalSettingsSection() {
@@ -61,7 +43,7 @@ export default function ExperimentalSettingsSection() {
     } catch (e: any) {
       console.error('[Settings] File pick failed:', e);
       const msg = typeof e === 'string' ? e : e?.message || 'Unknown error';
-      alert('File picker failed: ' + msg);
+      notifyError(`Couldn't open the file picker: ${msg}`);
     }
   };
 
@@ -77,15 +59,15 @@ export default function ExperimentalSettingsSection() {
         setSettings((prev) => ({ ...prev, [key]: result }));
         return;
       }
-      alert(
+      notifyError(
         timestampTarget === 'stable'
-          ? 'Could not find osu!(stable). Browse to osu!.exe, or osu-wine on Linux.'
-          : 'Could not find osu!(lazer). Browse to the Lazer executable or app.'
+          ? "Couldn't find osu!(stable). Browse to osu!.exe, or osu-wine on Linux."
+          : "Couldn't find osu!(lazer). Browse to the lazer executable or app."
       );
     } catch (e: any) {
       console.error('[Settings] Client detect failed:', e);
       const msg = typeof e === 'string' ? e : e?.message || 'Unknown error';
-      alert('Could not detect the client: ' + msg);
+      notifyError(`Couldn't detect the client: ${msg}`);
     }
   };
 
@@ -97,7 +79,7 @@ export default function ExperimentalSettingsSection() {
         description="Optional features that are still being tested or may not be useful for every workflow."
       >
         <SettingsRow
-          title={<ExperimentalLabel>Show advanced audio analysis</ExperimentalLabel>}
+          title="Show advanced audio analysis"
           description="Displays additional technical audio information in the overview."
           control={
             <Switch
@@ -117,8 +99,8 @@ export default function ExperimentalSettingsSection() {
           }
         />
         <SettingsRow
-          title={<ExperimentalLabel>Bookmark beatmapsets</ExperimentalLabel>}
-          description="Pin beatmapsets for quick lookup in the sidebar, without scrolling to find them."
+          title="Bookmark mapsets"
+          description="Pin mapsets for quick lookup in the sidebar, without scrolling to find them."
           control={
             <Switch
               checked={settings.bookmarksEnabled}
@@ -130,7 +112,7 @@ export default function ExperimentalSettingsSection() {
           }
         />
         <SettingsRow
-          title={<ExperimentalLabel>Open timestamps with</ExperimentalLabel>}
+          title="Open timestamps with"
           description="Which client timestamp clicks launch. Currently open client uses the running osu!, and falls back to the system osu:// handler if both or neither are open."
           control={
             <Select
@@ -148,47 +130,49 @@ export default function ExperimentalSettingsSection() {
           }
         />
         {timestampTarget !== 'current' && (
-          <Group align="flex-end" gap="sm" wrap="nowrap">
-            <TextInput
-              label={timestampTarget === 'custom' ? 'Custom command' : 'Client path'}
-              description={
-                timestampTarget === 'custom'
-                  ? 'Use {url} for the timestamp link, or it is appended.'
-                  : 'Leave empty to auto-detect. Browse to pin a path.'
-              }
-              placeholder={
-                timestampTarget === 'custom'
-                  ? 'osu-wine --osuhandler {url}'
-                  : timestampTarget === 'stable'
-                    ? 'osu!.exe or osu-wine'
-                    : 'osu! Lazer executable or app'
-              }
-              value={timestampPath}
-              style={{ flex: 1, minWidth: 0 }}
-              onChange={(event) => {
-                const key = timestampPathKey(timestampTarget);
-                setSettings((prev) => ({ ...prev, [key]: event.currentTarget.value }));
-              }}
-            />
-            <Button
-              size="sm"
-              variant="light"
-              leftSection={<IconFolder size={18} />}
-              onClick={pickTimestampPath}
-            >
-              Browse
-            </Button>
-            {timestampTarget !== 'custom' && (
+          <SettingsSubRows>
+            <Group align="flex-end" gap="sm" wrap="nowrap">
+              <TextInput
+                label={timestampTarget === 'custom' ? 'Custom command' : 'Client path'}
+                description={
+                  timestampTarget === 'custom'
+                    ? 'Use {url} for the timestamp link, or it is appended.'
+                    : 'Leave empty to auto-detect. Browse to pin a path.'
+                }
+                placeholder={
+                  timestampTarget === 'custom'
+                    ? 'osu-wine --osuhandler {url}'
+                    : timestampTarget === 'stable'
+                      ? 'osu!.exe or osu-wine'
+                      : 'osu!(lazer) executable or app'
+                }
+                value={timestampPath}
+                style={{ flex: 1, minWidth: 0 }}
+                onChange={(event) => {
+                  const key = timestampPathKey(timestampTarget);
+                  setSettings((prev) => ({ ...prev, [key]: event.currentTarget.value }));
+                }}
+              />
               <Button
                 size="sm"
                 variant="light"
-                leftSection={<IconSearch size={18} />}
-                onClick={() => void detectTimestampPath()}
+                leftSection={<IconFolder size={18} />}
+                onClick={pickTimestampPath}
               >
-                Detect
+                Browse
               </Button>
-            )}
-          </Group>
+              {timestampTarget !== 'custom' && (
+                <Button
+                  size="sm"
+                  variant="light"
+                  leftSection={<IconSearch size={18} />}
+                  onClick={() => void detectTimestampPath()}
+                >
+                  Detect
+                </Button>
+              )}
+            </Group>
+          </SettingsSubRows>
         )}
       </SettingsSection>
       <AdvancedAudioWarningModal

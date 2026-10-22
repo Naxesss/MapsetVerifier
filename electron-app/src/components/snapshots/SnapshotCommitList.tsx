@@ -1,26 +1,9 @@
-﻿import {
-  Group,
-  Stack,
-  Text,
-  UnstyledButton,
-  Badge,
-  useMantineTheme,
-  Flex,
-  ScrollArea,
-  ActionIcon,
-  Tooltip,
-  Box,
-} from '@mantine/core';
-import {
-  IconGitCommit,
-  IconPlus,
-  IconMinus,
-  IconArrowsExchange,
-  IconChevronLeft,
-  IconChevronRight,
-} from '@tabler/icons-react';
-import { useEffect, useRef } from 'react';
+﻿import { Badge, Group, ScrollArea, Stack, Text, UnstyledButton } from '@mantine/core';
+import { Fragment, useEffect, useRef, type KeyboardEvent } from 'react';
+import { useDateTimeFormat } from '../../hooks/useDateTimeFormat';
 import { ApiSnapshotCommit } from '../../Types';
+import { formatDate } from '../../utils/dateTime';
+import { MicroLabel } from '../common/Headings.tsx';
 
 interface SnapshotCommitListProps {
   commits: ApiSnapshotCommit[];
@@ -28,201 +11,143 @@ interface SnapshotCommitListProps {
   onSelectCommit: (commitId: string) => void;
 }
 
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+/** Tall enough for about ten snapshots; longer histories scroll inside the list. */
+const LIST_MAX_HEIGHT = 520;
 
-  if (diffDays === 0) {
-    return 'Today';
-  } else if (diffDays === 1) {
-    return 'Yesterday';
-  } else if (diffDays < 7) {
-    return `${diffDays} days ago`;
-  } else {
-    return date.toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  }
+function dayKey(dateString: string) {
+  return new Date(dateString).toDateString();
 }
 
-function formatTime(dateString: string): string {
+function formatDay(dateString: string): string {
   const date = new Date(dateString);
-  return date.toLocaleTimeString(undefined, {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  });
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+
+  if (date.toDateString() === today.toDateString()) return 'Today';
+  if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+
+  return formatDate(date) ?? '';
 }
 
-function SnapshotCommitList({
-  commits,
-  selectedCommitId,
-  onSelectCommit,
-}: SnapshotCommitListProps) {
-  const theme = useMantineTheme();
-  const viewportRef = useRef<HTMLDivElement>(null);
-
-  const currentIndex = selectedCommitId
-    ? commits.findIndex((commit) => commit.id === selectedCommitId)
-    : -1;
-
-  useEffect(() => {
-    if (!selectedCommitId) return;
-
-    const el = viewportRef.current?.querySelector(`[data-commit-id="${selectedCommitId}"]`);
-    el?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
-  }, [selectedCommitId]);
-
-  const isPreviousDisabled = currentIndex <= 0;
-  const isNextDisabled = currentIndex === -1 || currentIndex >= commits.length - 1;
-
-  const handlePrevious = () => {
-    if (!isPreviousDisabled) {
-      onSelectCommit(commits[currentIndex - 1].id);
-    }
-  };
-
-  const handleNext = () => {
-    if (!isNextDisabled) {
-      onSelectCommit(commits[currentIndex + 1].id);
-    }
-  };
-
-  if (commits.length === 0) {
+/** Added, removed and changed counts as coloured numbers, or why there are none. */
+export function CommitChangeSummary({ commit }: { commit: ApiSnapshotCommit }) {
+  if (!commit.hasSnapshot) {
     return (
-      <Text c="dimmed" size="sm" ta="center" py="md">
-        No snapshot history available.
+      <Text size="xs" c="dimmed">
+        No snapshot
+      </Text>
+    );
+  }
+
+  if (commit.totalChanges === 0) {
+    return (
+      <Text size="xs" c="dimmed">
+        No changes
       </Text>
     );
   }
 
   return (
-    <Flex gap="xs" align="stretch">
-      <ActionIcon
-        variant="default"
-        onClick={handlePrevious}
-        disabled={isPreviousDisabled}
-        style={{
-          alignSelf: 'stretch',
-          height: 'auto',
-          borderRadius: theme.radius.md,
-        }}
-      >
-        <IconChevronLeft size={20} />
-      </ActionIcon>
-      <ScrollArea
-        p="xs"
-        bg={theme.colors.dark[8]}
-        scrollbars="x"
-        type="auto"
-        style={{ borderRadius: theme.radius.md, flex: 1 }}
-        viewportRef={viewportRef}
-      >
-        <Group gap="xs" wrap="nowrap" align="stretch">
-          {commits.map((commit, index) => {
-            const isSelected = selectedCommitId === commit.id;
-            const isFirst = index === 0;
+    <Group gap="xs" wrap="nowrap">
+      {commit.additions > 0 && (
+        <Text size="xs" fw={600} c="green.5">
+          +{commit.additions}
+        </Text>
+      )}
+      {commit.removals > 0 && (
+        <Text size="xs" fw={600} c="red.5">
+          −{commit.removals}
+        </Text>
+      )}
+      {commit.modifications > 0 && (
+        <Text size="xs" fw={600} c="yellow.5">
+          ~{commit.modifications}
+        </Text>
+      )}
+    </Group>
+  );
+}
 
-            return (
+/**
+ * Snapshots newest first, grouped by day. Arrow keys move through them, like scrolling a log.
+ */
+function SnapshotCommitList({
+  commits,
+  selectedCommitId,
+  onSelectCommit,
+}: SnapshotCommitListProps) {
+  const { formatTime } = useDateTimeFormat();
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const currentIndex = commits.findIndex((commit) => commit.id === selectedCommitId);
+
+  useEffect(() => {
+    if (!selectedCommitId) return;
+    const el = viewportRef.current?.querySelector(`[data-commit-id="${selectedCommitId}"]`);
+    el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [selectedCommitId]);
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const step = event.key === 'ArrowDown' ? 1 : event.key === 'ArrowUp' ? -1 : 0;
+    if (step === 0) return;
+
+    event.preventDefault();
+    const next = commits[Math.min(Math.max(currentIndex + step, 0), commits.length - 1)];
+    if (next) {
+      onSelectCommit(next.id);
+      viewportRef.current
+        ?.querySelector<HTMLElement>(`[data-commit-id="${next.id}"]`)
+        ?.focus({ preventScroll: true });
+    }
+  };
+
+  // offsetScrollbars keeps room for the scrollbar, so it never covers the change counts.
+  return (
+    <ScrollArea.Autosize
+      mah={LIST_MAX_HEIGHT}
+      type="auto"
+      scrollbars="y"
+      offsetScrollbars="y"
+      viewportRef={viewportRef}
+    >
+      <Stack gap="xs" p="2xs" role="listbox" aria-label="Snapshots" onKeyDown={handleKeyDown}>
+        {commits.map((commit, index) => {
+          const isSelected = commit.id === selectedCommitId;
+          const startsDay = index === 0 || dayKey(commits[index - 1].date) !== dayKey(commit.date);
+
+          return (
+            <Fragment key={commit.id}>
+              {startsDay && (
+                <MicroLabel pt={index === 0 ? 0 : 'sm'} px="sm" pb="2xs">
+                  {formatDay(commit.date)}
+                </MicroLabel>
+              )}
               <UnstyledButton
-                key={commit.id}
+                className="mv-clickable-row"
                 data-commit-id={commit.id}
+                data-selected={isSelected || undefined}
+                role="option"
+                aria-selected={isSelected}
+                tabIndex={isSelected || (currentIndex === -1 && index === 0) ? 0 : -1}
+                px="sm"
+                py="xs"
                 onClick={() => onSelectCommit(commit.id)}
-                style={{
-                  borderTop: `2px solid ${isSelected ? theme.colors.blue[6] : theme.colors.dark[5]}`,
-                  backgroundColor: isSelected ? theme.colors.dark[6] : theme.colors.dark[7],
-                  transition: 'all 0.15s ease',
-                  borderRadius: theme.radius.sm,
-                  flexShrink: 0,
-                }}
               >
-                <Box px="xs" py={6}>
-                  <Stack gap="sm">
-                    <Group gap={6} wrap="nowrap" align="center">
-                      <Tooltip label="Latest Snapshot" disabled={!isFirst}>
-                        <Box style={{ display: 'flex', flexShrink: 0 }}>
-                          <IconGitCommit
-                            size={15}
-                            color={isFirst ? theme.colors.green[5] : theme.colors.dark[3]}
-                            stroke={isFirst ? 3 : 2}
-                          />
-                        </Box>
-                      </Tooltip>
-                      <Group gap={4} wrap="nowrap" align="baseline">
-                        <Text size="xs" fw={500} lh={1.1}>
-                          {formatDate(commit.date)}
-                        </Text>
-                        <Text c="dimmed" fz="10px" lh={1.1} style={{ flexShrink: 0 }}>
-                          {formatTime(commit.date)}
-                        </Text>
-                      </Group>
-                    </Group>
-                    <Group gap={4} wrap="nowrap">
-                      {!commit.hasSnapshot && (
-                        <Badge size="xs" variant="light" color="orange">
-                          No snapshot
-                        </Badge>
-                      )}
-                      {commit.hasSnapshot && commit.totalChanges === 0 && (
-                        <Badge size="xs" variant="light" color="gray">
-                          No changes
-                        </Badge>
-                      )}
-                      {commit.additions > 0 && (
-                        <Badge
-                          size="xs"
-                          variant="light"
-                          color="green"
-                          leftSection={<IconPlus size={8} />}
-                        >
-                          {commit.additions}
-                        </Badge>
-                      )}
-                      {commit.removals > 0 && (
-                        <Badge
-                          size="xs"
-                          variant="light"
-                          color="red"
-                          leftSection={<IconMinus size={8} />}
-                        >
-                          {commit.removals}
-                        </Badge>
-                      )}
-                      {commit.modifications > 0 && (
-                        <Badge
-                          size="xs"
-                          variant="light"
-                          color="yellow"
-                          leftSection={<IconArrowsExchange size={8} />}
-                        >
-                          {commit.modifications}
-                        </Badge>
-                      )}
-                    </Group>
-                  </Stack>
-                </Box>
+                <Group justify="space-between" gap="sm" wrap="nowrap">
+                  <Group gap="xs" wrap="nowrap">
+                    <Text size="sm" fw={500}>
+                      {formatTime(commit.date)}
+                    </Text>
+                    {index === 0 && <Badge color="green">Latest</Badge>}
+                  </Group>
+                  <CommitChangeSummary commit={commit} />
+                </Group>
               </UnstyledButton>
-            );
-          })}
-        </Group>
-      </ScrollArea>
-      <ActionIcon
-        variant="default"
-        onClick={handleNext}
-        disabled={isNextDisabled}
-        style={{
-          alignSelf: 'stretch',
-          height: 'auto',
-          borderRadius: theme.radius.md,
-        }}
-      >
-        <IconChevronRight size={20} />
-      </ActionIcon>
-    </Flex>
+            </Fragment>
+          );
+        })}
+      </Stack>
+    </ScrollArea.Autosize>
   );
 }
 

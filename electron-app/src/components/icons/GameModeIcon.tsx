@@ -1,4 +1,4 @@
-﻿import { Box, useMantineTheme } from '@mantine/core';
+﻿import { Box, Tooltip, useMantineTheme } from '@mantine/core';
 import React from 'react';
 import { Mode } from '../../Types';
 import { formatGameModeLabel } from '../../utils/gameMode';
@@ -11,6 +11,8 @@ export interface GameModeIconProps {
   color?: string;
   style?: React.CSSProperties;
   starRating?: number | null;
+  /** Name the mode on hover. Off by default: modals and dense tables already say the mode. */
+  withTooltip?: boolean;
 }
 
 // Inline SVG components for each game mode
@@ -153,6 +155,7 @@ export default function GameModeIcon({
   style,
   starRating,
   color,
+  withTooltip = false,
 }: GameModeIconProps) {
   const theme = useMantineTheme();
 
@@ -166,11 +169,12 @@ export default function GameModeIcon({
     (iconComponents as Record<string, React.FC<{ size: number; color: string }>>)[mode] ||
     iconComponents.Standard;
 
-  return (
+  const label = formatGameModeLabel(mode);
+  const icon = (
     <Box
       component="span"
       role="img"
-      aria-label={formatGameModeLabel(mode)}
+      aria-label={label}
       className={className}
       style={{
         display: 'inline-flex',
@@ -184,4 +188,6 @@ export default function GameModeIcon({
       <IconComponent size={size} color={customColor} />
     </Box>
   );
+
+  return withTooltip ? <Tooltip label={label}>{icon}</Tooltip> : icon;
 }

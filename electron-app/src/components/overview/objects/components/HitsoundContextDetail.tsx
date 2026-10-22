@@ -1,4 +1,5 @@
 import { Box, Group, Stack, Text, Tooltip } from '@mantine/core';
+import { MicroLabel } from '../../../common/Headings.tsx';
 import {
   formatSampleBankLine,
   getHitsoundTypesFromFlags,
@@ -16,7 +17,7 @@ function HitsoundTypeSwatch({ type }: { type: HitsoundTypeDisplay }) {
 
   return (
     <Tooltip label={isSecondary ? 'Stacked addition' : 'Primary addition'}>
-      <Group gap={4} wrap="nowrap" style={{ cursor: 'help' }}>
+      <Group gap="xs" wrap="nowrap" style={{ cursor: 'help' }}>
         <Box
           style={{
             width: 10,
@@ -50,7 +51,7 @@ function SampleBankLine({
   hint?: string;
 }) {
   return (
-    <Group gap={6} wrap="nowrap" align="flex-start">
+    <Group gap="xs" wrap="nowrap" align="flex-start">
       <Box
         style={{
           width: 10,
@@ -90,11 +91,7 @@ function MatchKindBadge({ kind }: { kind: CrosshairResolvedRow['matchKind'] }) {
     return null;
   }
 
-  return (
-    <Text size="xs" c="dimmed" tt="uppercase" fw={600} style={{ letterSpacing: '0.04em' }}>
-      {label}
-    </Text>
-  );
+  return <MicroLabel>{label}</MicroLabel>;
 }
 
 export function HitsoundContextDetail({
@@ -126,7 +123,7 @@ export function HitsoundContextDetail({
   return (
     <Stack gap={compact ? 3 : 4}>
       {!compact ? (
-        <Group gap={8} wrap="wrap" align="center">
+        <Group gap="sm" wrap="wrap" align="center">
           <Text size="sm" fw={500}>
             {resolved.partName}
           </Text>
@@ -137,8 +134,8 @@ export function HitsoundContextDetail({
       )}
 
       {isEdge ? (
-        <Stack gap={4}>
-          <Group gap={6} wrap="wrap" align="center">
+        <Stack gap="xs">
+          <Group gap="xs" wrap="wrap" align="center">
             <Text size="xs" c="dimmed">
               Edge additions
             </Text>
@@ -162,9 +159,9 @@ export function HitsoundContextDetail({
       ) : null}
 
       {isSliderBody || isLongBody ? (
-        <Stack gap={4}>
+        <Stack gap="xs">
           {showBodyAdditions ? (
-            <Group gap={6} wrap="wrap" align="center">
+            <Group gap="xs" wrap="wrap" align="center">
               <Text size="xs" c="dimmed">
                 Body additions
               </Text>
