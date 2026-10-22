@@ -1,5 +1,21 @@
-import { Alert, Badge, Flex, Text, useMantineTheme } from '@mantine/core';
-import { IconAlertCircle, IconHistoryOff, IconPointer } from '@tabler/icons-react';
+import {
+  ActionIcon,
+  Alert,
+  Badge,
+  Flex,
+  Group,
+  Text,
+  Tooltip,
+  useMantineTheme,
+} from '@mantine/core';
+import { useLocalStorage } from '@mantine/hooks';
+import {
+  IconAlertCircle,
+  IconHistoryOff,
+  IconLayoutSidebarLeftCollapse,
+  IconLayoutSidebarLeftExpand,
+  IconPointer,
+} from '@tabler/icons-react';
 import { useMemo, useState } from 'react';
 import CompareBar from './CompareBar';
 import DifficultyChanges from './DifficultyChanges';
@@ -41,6 +57,12 @@ function Snapshots() {
   const [customBaseId, setCustomBaseId] = useState<string | undefined>();
   const [targetId, setTargetId] = useState<string | undefined>();
   const [pinning, setPinning] = useState<ApiSnapshotHistoryEntry | null>(null);
+  // The history can be put away so the changes get the whole width; the compare bar still picks
+  // the range then.
+  const [historyOpen, setHistoryOpen] = useLocalStorage({
+    key: 'mv-snapshots-history-open',
+    defaultValue: true,
+  });
 
   const [prevFolder, setPrevFolder] = useState(folder);
   if (folder !== prevFolder) {
@@ -206,38 +228,57 @@ function Snapshots() {
           style={{ flex: 1, minWidth: 0 }}
           bg="dark.6"
         >
-          <CompareBar
-            entries={entries}
-            baseId={baseId}
-            targetId={effectiveTargetId}
-            preset={preset}
-            onPreset={(next) => {
-              setPreset(next);
-            }}
-            onBase={(id) => {
-              setPreset('custom');
-              setCustomBaseId(id);
-            }}
-            onTarget={(id) => selectEntry(id, false)}
-          />
+          <Group gap="xs" wrap="nowrap" align="center">
+            <Tooltip label={historyOpen ? 'Hide history' : 'Show history'}>
+              <ActionIcon
+                variant="subtle"
+                color="gray"
+                onClick={() => setHistoryOpen((open) => !open)}
+                aria-label={historyOpen ? 'Hide history' : 'Show history'}
+                aria-expanded={historyOpen}
+              >
+                {historyOpen ? (
+                  <IconLayoutSidebarLeftCollapse size={18} />
+                ) : (
+                  <IconLayoutSidebarLeftExpand size={18} />
+                )}
+              </ActionIcon>
+            </Tooltip>
+            <CompareBar
+              entries={entries}
+              baseId={baseId}
+              targetId={effectiveTargetId}
+              preset={preset}
+              onPreset={(next) => {
+                setPreset(next);
+              }}
+              onBase={(id) => {
+                setPreset('custom');
+                setCustomBaseId(id);
+              }}
+              onTarget={(id) => selectEntry(id, false)}
+            />
+          </Group>
 
           <Flex gap="md" align="flex-start" direction={{ base: 'column', md: 'row' }}>
-            <SectionCard
-              title="History"
-              actions={<Badge color="gray">{entries.length}</Badge>}
-              w={{ base: '100%', md: HISTORY_WIDTH }}
-              style={{ flexShrink: 0 }}
-            >
-              <SnapshotHistoryList
-                entries={entries}
-                difficulties={history.data?.difficulties ?? []}
-                targetId={effectiveTargetId}
-                baseId={baseId}
-                onSelect={selectEntry}
-                onPin={setPinning}
-                onUnpin={(entry) => savePin(entry, null)}
-              />
-            </SectionCard>
+            {historyOpen && (
+              <SectionCard
+                title="History"
+                actions={<Badge color="gray">{entries.length}</Badge>}
+                w={{ base: '100%', md: HISTORY_WIDTH }}
+                style={{ flexShrink: 0 }}
+              >
+                <SnapshotHistoryList
+                  entries={entries}
+                  difficulties={history.data?.difficulties ?? []}
+                  targetId={effectiveTargetId}
+                  baseId={baseId}
+                  onSelect={selectEntry}
+                  onPin={setPinning}
+                  onUnpin={(entry) => savePin(entry, null)}
+                />
+              </SectionCard>
+            )}
 
             <Flex
               direction="column"

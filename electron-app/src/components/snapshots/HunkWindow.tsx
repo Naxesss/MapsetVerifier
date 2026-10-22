@@ -28,12 +28,13 @@ const WHEEL_PX_PER_STEP = 60;
 /** A fast wheel flick never jumps more than this many steps at once. */
 const MAX_STEPS_PER_WHEEL_EVENT = 3;
 
-/** A picture sits on its own darker card, at a fixed size however wide the page is. */
+/** A picture sits on its own darker card and fills the width it gets; `width` is its share of a row it shares with another card. */
 function VizCard({ width, children }: { width: number; children: React.ReactNode }) {
   return (
     <div
       style={{
-        width: `min(100%, ${width}px)`,
+        flex: `1 1 ${width}px`,
+        width: '100%',
         padding: 8,
         borderRadius: 5,
         background: 'var(--mantine-color-dark-8)',

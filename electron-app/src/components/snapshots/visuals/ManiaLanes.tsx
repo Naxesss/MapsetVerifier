@@ -3,6 +3,7 @@ import { useId, useMemo } from 'react';
 import { fitDivisors } from './beatGrid';
 import { pairObjects, STATUS_COLOR, type PairedObject } from './pairing';
 import PairTip from './PairTip';
+import { PlotLabel } from './PlotLabels';
 import SnapGrid, { hunkDivisors, SnapLegend } from './SnapGrid';
 import type {
   ApiSnapshotHunkVisual,
@@ -16,7 +17,6 @@ const FIELD_HEIGHT = 300;
 const GAP = 40;
 
 function Field({
-  x0,
   label,
   columns,
   height,
@@ -28,7 +28,6 @@ function Field({
   to,
   clipId,
 }: {
-  x0: number;
   label: string;
   columns: number;
   height: number;
@@ -47,84 +46,84 @@ function Field({
   const width = columns * LANE;
 
   return (
-    <g>
-      <text
-        x={x0 + width / 2}
-        y={12}
-        textAnchor="middle"
-        fontSize={10.5}
-        fontWeight={700}
-        fill="#8695AB"
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <Group justify="center" mb={6}>
+        <PlotLabel>{label}</PlotLabel>
+      </Group>
+      <svg
+        viewBox={`-1 19 ${width + 2} ${height + 2}`}
+        role="img"
+        aria-label={`Mania notes ${label.toLowerCase()}`}
+        style={{ display: 'block', width: '100%', height: 'auto' }}
       >
-        {label}
-      </text>
-      <rect x={x0} y={20} width={width} height={height} rx={4} fill="#121923" stroke="#353F52" />
-      <clipPath id={clipId}>
-        <rect x={x0} y={20} width={width} height={height} rx={4} />
-      </clipPath>
-      <g clipPath={`url(#${clipId})`}>
-        {Array.from({ length: columns - 1 }, (_, i) => (
-          <line
-            key={i}
-            x1={x0 + (i + 1) * LANE}
-            x2={x0 + (i + 1) * LANE}
-            y1={20}
-            y2={20 + height}
-            stroke="#1B2330"
+        <rect x={0} y={20} width={width} height={height} rx={4} fill="#121923" stroke="#353F52" />
+        <clipPath id={clipId}>
+          <rect x={0} y={20} width={width} height={height} rx={4} />
+        </clipPath>
+        <g clipPath={`url(#${clipId})`}>
+          {Array.from({ length: columns - 1 }, (_, i) => (
+            <line
+              key={i}
+              x1={(i + 1) * LANE}
+              x2={(i + 1) * LANE}
+              y1={20}
+              y2={20 + height}
+              stroke="#1B2330"
+            />
+          ))}
+          <SnapGrid
+            timing={timing}
+            divisors={divisors}
+            from={from}
+            to={to}
+            place={scale}
+            across={{ start: 0, end: width }}
           />
-        ))}
-        <SnapGrid
-          timing={timing}
-          divisors={divisors}
-          from={from}
-          to={to}
-          place={scale}
-          across={{ start: x0, end: x0 + width }}
-        />
-        {items.map(({ object, status, pair }, i) => (
-          <PairTip key={i} pair={pair}>
-            {(() => {
-              const column = object.column ?? 0;
-              const y = scale(object.time);
-              const x = x0 + column * LANE + 3;
-              const outline = status === 'same' ? null : STATUS_COLOR[status];
-              const fill = column === 1 || column === columns - 2 ? '#8FB8F0' : '#E9EDF3';
-              const top = object.endTime != null ? scale(object.endTime) : y;
+          {items.map(({ object, status, pair }, i) => (
+            <PairTip key={i} pair={pair}>
+              {(() => {
+                const column = object.column ?? 0;
+                const y = scale(object.time);
+                const x = column * LANE + 3;
+                const outline = status === 'same' ? null : STATUS_COLOR[status];
+                const fill = column === 1 || column === columns - 2 ? '#8FB8F0' : '#E9EDF3';
+                const top = object.endTime != null ? scale(object.endTime) : y;
 
-              return (
-                <g key={i}>
-                  {object.endTime != null && (
-                    <rect
-                      x={x + 6}
-                      y={top}
-                      width={LANE - 18}
-                      height={Math.max(y - top, 2)}
-                      rx={3}
-                      fill={fill}
-                      fillOpacity={0.35}
-                    />
-                  )}
-                  <rect x={x} y={y - 4.5} width={LANE - 6} height={9} rx={2} fill={fill} />
-                  {outline && (
-                    <rect
-                      x={x - 2.5}
-                      y={top - 7}
-                      width={LANE - 1}
-                      height={y - top + 14}
-                      rx={4}
-                      fill="none"
-                      stroke={outline}
-                      strokeWidth={2}
-                      strokeDasharray={status === 'removed' ? '4 3' : undefined}
-                    />
-                  )}
-                </g>
-              );
-            })()}
-          </PairTip>
-        ))}
-      </g>
-    </g>
+                return (
+                  <g key={i}>
+                    {object.endTime != null && (
+                      <rect
+                        x={x + 6}
+                        y={top}
+                        width={LANE - 18}
+                        height={Math.max(y - top, 2)}
+                        rx={3}
+                        fill={fill}
+                        fillOpacity={0.35}
+                      />
+                    )}
+                    <rect x={x} y={y - 4.5} width={LANE - 6} height={9} rx={2} fill={fill} />
+                    {outline && (
+                      <rect
+                        x={x - 2.5}
+                        y={top - 7}
+                        width={LANE - 1}
+                        height={y - top + 14}
+                        rx={4}
+                        fill="none"
+                        stroke={outline}
+                        strokeWidth={2}
+                        strokeDasharray={status === 'removed' ? '4 3' : undefined}
+                      />
+                    )}
+                  </g>
+                );
+              })()}
+            </PairTip>
+          ))}
+        </g>
+      </svg>
+    </div>
   );
 }
 
@@ -173,19 +172,11 @@ export default function ManiaLanes({
 
   const used = useMemo(() => hunkDivisors(visual), [visual]);
   const divisors = fitDivisors(visual.afterTiming, used, start, lastTime, scale);
-  const fieldWidth = columns * LANE;
-  const width = fieldWidth * 2 + GAP + 8;
 
   return (
     <div>
-      <svg
-        viewBox={`0 0 ${width} ${height + 28}`}
-        role="img"
-        aria-label="Mania notes before and after"
-        style={{ display: 'block', width: '100%', maxWidth: width, height: 'auto' }}
-      >
+      <div style={{ display: 'flex', gap: GAP / 2 }}>
         <Field
-          x0={4}
           label="BEFORE"
           columns={columns}
           height={height}
@@ -198,7 +189,6 @@ export default function ManiaLanes({
           clipId={`${clipId}-before`}
         />
         <Field
-          x0={4 + fieldWidth + GAP}
           label="AFTER"
           columns={columns}
           height={height}
@@ -210,7 +200,7 @@ export default function ManiaLanes({
           to={lastTime}
           clipId={`${clipId}-after`}
         />
-      </svg>
+      </div>
       <Group gap="md" mt="xs" wrap="wrap">
         <Text size="xs" c="dimmed">
           Outline: yellow moved or lengthened, green added, red removed

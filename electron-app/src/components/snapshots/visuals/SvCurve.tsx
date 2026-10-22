@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { formatClock } from '../describe';
+import { LabelledPlot } from './PlotLabels';
 import type { ApiSnapshotChange } from '../../../Types';
 
 const WIDTH = 640;
@@ -60,49 +60,40 @@ export default function SvCurve({
 
   const ticks = [lo + 0.05, (lo + hi) / 2, hi - 0.05];
 
+  const plotHeight = HEIGHT - BOTTOM + 6;
+
   return (
-    <svg
-      viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-      role="img"
-      aria-label="Slider velocity before and after"
-      style={{ display: 'block', width: '100%', maxWidth: WIDTH, height: 'auto' }}
+    <LabelledPlot
+      rows={ticks.map((v) => ({ label: `${v.toFixed(2)}x`, y: y(v) }))}
+      view={[0, plotHeight]}
+      mono
+      start={start}
+      end={end}
     >
-      {ticks.map((v) => (
-        <g key={v}>
-          <line x1={LEFT} x2={WIDTH - RIGHT} y1={y(v)} y2={y(v)} stroke="#232C3A" />
-          <text
-            x={LEFT - 6}
-            y={y(v) + 4}
-            textAnchor="end"
-            fontSize={10.5}
-            fill="#8695AB"
-            fontFamily="monospace"
-          >
-            {v.toFixed(2)}x
-          </text>
-        </g>
-      ))}
-      <path d={path('before')} fill="none" stroke="#A3ADBD" strokeWidth={2} strokeDasharray="6 5" />
-      <path
-        d={path('after')}
-        fill="none"
-        stroke="#FF922B"
-        strokeWidth={2.5}
-        strokeLinejoin="round"
-      />
-      <text x={LEFT} y={HEIGHT - 8} fontSize={10} fill="#8695AB" fontFamily="monospace">
-        {formatClock(start)}
-      </text>
-      <text
-        x={WIDTH - RIGHT}
-        y={HEIGHT - 8}
-        fontSize={10}
-        textAnchor="end"
-        fill="#8695AB"
-        fontFamily="monospace"
+      <svg
+        viewBox={`${LEFT} 0 ${WIDTH - LEFT} ${plotHeight}`}
+        role="img"
+        aria-label="Slider velocity before and after"
+        style={{ display: 'block', width: '100%', height: 'auto' }}
       >
-        {formatClock(end)}
-      </text>
-    </svg>
+        {ticks.map((v) => (
+          <line key={v} x1={LEFT} x2={WIDTH - RIGHT} y1={y(v)} y2={y(v)} stroke="#232C3A" />
+        ))}
+        <path
+          d={path('before')}
+          fill="none"
+          stroke="#A3ADBD"
+          strokeWidth={2}
+          strokeDasharray="6 5"
+        />
+        <path
+          d={path('after')}
+          fill="none"
+          stroke="#FF922B"
+          strokeWidth={2.5}
+          strokeLinejoin="round"
+        />
+      </svg>
+    </LabelledPlot>
   );
 }

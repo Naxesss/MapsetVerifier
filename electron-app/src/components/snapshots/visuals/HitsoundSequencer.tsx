@@ -2,6 +2,7 @@ import { Group, Stack, Text, Tooltip } from '@mantine/core';
 import { useId, useMemo } from 'react';
 import { fitDivisors } from './beatGrid';
 import { PALETTE, pairObjects, STATUS_COLOR, type PairedObject } from './pairing';
+import { LabelledPlot } from './PlotLabels';
 import SnapGrid, { hunkDivisors, SnapLegend } from './SnapGrid';
 import { formatClock } from '../describe';
 import type {
@@ -231,33 +232,29 @@ export default function HitsoundSequencer({
   const height = showVolume ? volumeY + VOLUME_HEIGHT + 14 : volumeY + 6;
   const bar = (volume: number) => Math.max(2, (volume / 100) * (VOLUME_HEIGHT - 6));
 
+  const rows = [
+    { label: 'Objects', y: OBJECTS_Y },
+    ...SOUNDS.map((sound, i) => ({ label: sound, y: rowY(i) + ROW / 2 })),
+    ...(showSampleset ? [{ label: 'Sampleset', y: samplesetY + ROW / 2 }] : []),
+    ...(showVolume ? [{ label: 'Volume', y: volumeY + VOLUME_HEIGHT / 2 }] : []),
+  ];
+
   return (
     <Stack gap="xs">
-      <svg
-        viewBox={`0 0 ${WIDTH} ${height}`}
-        role="img"
-        aria-label="Hitsounds before and after"
-        style={{ display: 'block', width: '100%', maxWidth: WIDTH, height: 'auto' }}
-      >
-        <clipPath id={clipId}>
-          <rect x={LEFT} y={0} width={WIDTH - LEFT - RIGHT} height={height} />
-        </clipPath>
+      <LabelledPlot rows={rows} view={[0, height]}>
+        <svg
+          viewBox={`${LEFT} 0 ${WIDTH - LEFT} ${height}`}
+          role="img"
+          aria-label="Hitsounds before and after"
+          style={{ display: 'block', width: '100%', height: 'auto' }}
+        >
+          <clipPath id={clipId}>
+            <rect x={LEFT} y={0} width={WIDTH - LEFT - RIGHT} height={height} />
+          </clipPath>
 
-        <text x={0} y={OBJECTS_Y + 4} fontSize={10.5} fontWeight={700} fill={PALETTE.dim}>
-          Objects
-        </text>
-        {SOUNDS.map((sound, i) => (
-          <g key={sound}>
-            <text
-              x={0}
-              y={rowY(i) + ROW / 2 + 4}
-              fontSize={10.5}
-              fontWeight={700}
-              fill={PALETTE.dim}
-            >
-              {sound}
-            </text>
+          {SOUNDS.map((sound, i) => (
             <rect
+              key={sound}
               x={LEFT}
               y={rowY(i)}
               width={WIDTH - LEFT - RIGHT}
@@ -265,19 +262,8 @@ export default function HitsoundSequencer({
               rx={4}
               fill={PALETTE.surface}
             />
-          </g>
-        ))}
-        {showSampleset && (
-          <g>
-            <text
-              x={0}
-              y={samplesetY + ROW / 2 + 4}
-              fontSize={10.5}
-              fontWeight={700}
-              fill={PALETTE.dim}
-            >
-              Sampleset
-            </text>
+          ))}
+          {showSampleset && (
             <rect
               x={LEFT}
               y={samplesetY}
@@ -286,19 +272,8 @@ export default function HitsoundSequencer({
               rx={4}
               fill={PALETTE.surface}
             />
-          </g>
-        )}
-        {showVolume && (
-          <g>
-            <text
-              x={0}
-              y={volumeY + VOLUME_HEIGHT / 2 + 4}
-              fontSize={10.5}
-              fontWeight={700}
-              fill={PALETTE.dim}
-            >
-              Volume
-            </text>
+          )}
+          {showVolume && (
             <rect
               x={LEFT}
               y={volumeY}
@@ -307,203 +282,203 @@ export default function HitsoundSequencer({
               rx={4}
               fill={PALETTE.surface}
             />
-          </g>
-        )}
+          )}
 
-        <g clipPath={`url(#${clipId})`}>
-          <SnapGrid
-            timing={visual.afterTiming}
-            divisors={divisors}
-            from={start}
-            to={end}
-            place={xOf}
-            across={{ start: TOP - 4, end: height - 10, vertical: true }}
-          />
+          <g clipPath={`url(#${clipId})`}>
+            <SnapGrid
+              timing={visual.afterTiming}
+              divisors={divisors}
+              from={start}
+              to={end}
+              place={xOf}
+              across={{ start: TOP - 4, end: height - 10, vertical: true }}
+            />
 
-          {pairs.map((pair, i) => {
-            const object = (pair.after ?? pair.before)!;
-            const x = xOf(object.time);
-            const lone = !pair.before || !pair.after;
-            const slots = slotsOf(pair);
-            const notes = describe(pair, slots);
-            const dot = pair.status === 'same' ? PALETTE.dot : STATUS_COLOR[pair.status];
+            {pairs.map((pair, i) => {
+              const object = (pair.after ?? pair.before)!;
+              const x = xOf(object.time);
+              const lone = !pair.before || !pair.after;
+              const slots = slotsOf(pair);
+              const notes = describe(pair, slots);
+              const dot = pair.status === 'same' ? PALETTE.dot : STATUS_COLOR[pair.status];
 
-            const column = (
-              <g>
-                {object.endTime != null && (
-                  <line
-                    x1={x}
-                    x2={xOf(object.endTime)}
-                    y1={OBJECTS_Y}
-                    y2={OBJECTS_Y}
-                    stroke={dot}
-                    strokeOpacity={0.5}
-                    strokeWidth={2}
-                  />
-                )}
-                {object.ticks?.map((time) => (
-                  <circle key={time} cx={xOf(time)} cy={OBJECTS_Y} r={2} fill={dot} />
-                ))}
-                {slots
-                  .filter((slot) => slot.kind !== 'Body')
-                  .map((slot) => (
-                    <circle
-                      key={slot.key}
-                      cx={xOf(slot.time)}
-                      cy={OBJECTS_Y}
-                      r={slot.kind === 'Head' ? 5 : 3.5}
-                      fill={dot}
+              const column = (
+                <g>
+                  {object.endTime != null && (
+                    <line
+                      x1={x}
+                      x2={xOf(object.endTime)}
+                      y1={OBJECTS_Y}
+                      y2={OBJECTS_Y}
+                      stroke={dot}
+                      strokeOpacity={0.5}
+                      strokeWidth={2}
                     />
+                  )}
+                  {object.ticks?.map((time) => (
+                    <circle key={time} cx={xOf(time)} cy={OBJECTS_Y} r={2} fill={dot} />
                   ))}
-                {slots.map((slot) =>
-                  SOUNDS.map((sound, r) => {
-                    // The body only ever has a slide whistle.
-                    if (slot.kind === 'Body' && sound !== 'Whistle') return null;
+                  {slots
+                    .filter((slot) => slot.kind !== 'Body')
+                    .map((slot) => (
+                      <circle
+                        key={slot.key}
+                        cx={xOf(slot.time)}
+                        cy={OBJECTS_Y}
+                        r={slot.kind === 'Head' ? 5 : 3.5}
+                        fill={dot}
+                      />
+                    ))}
+                  {slots.map((slot) =>
+                    SOUNDS.map((sound, r) => {
+                      // The body only ever has a slide whistle.
+                      if (slot.kind === 'Body' && sound !== 'Whistle') return null;
 
-                    const was = hasSound(slot.before?.hitSound, sound);
-                    const now = hasSound(slot.after?.hitSound, sound);
-                    const color = STATUS_COLOR[pair.status];
+                      const was = hasSound(slot.before?.hitSound, sound);
+                      const now = hasSound(slot.after?.hitSound, sound);
+                      const color = STATUS_COLOR[pair.status];
 
-                    if (slot.kind === 'Body') {
-                      if (!was && !now) return null;
-                      const x2 = xOf(object.endTime ?? object.time);
+                      if (slot.kind === 'Body') {
+                        if (!was && !now) return null;
+                        const x2 = xOf(object.endTime ?? object.time);
+
+                        return (
+                          <rect
+                            key={`${slot.key}-${sound}`}
+                            x={xOf(slot.time)}
+                            y={rowY(r) + ROW / 2 - 3}
+                            width={Math.max(x2 - xOf(slot.time), 4)}
+                            height={6}
+                            rx={3}
+                            fill={now ? (was ? PALETTE.dot : STATUS_COLOR.added) : 'none'}
+                            fillOpacity={lone ? 0.6 : 1}
+                            stroke={now ? 'none' : STATUS_COLOR.removed}
+                            strokeWidth={1.5}
+                            strokeDasharray={now ? undefined : '3 3'}
+                          />
+                        );
+                      }
 
                       return (
-                        <rect
+                        <Cell
                           key={`${slot.key}-${sound}`}
                           x={xOf(slot.time)}
-                          y={rowY(r) + ROW / 2 - 3}
-                          width={Math.max(x2 - xOf(slot.time), 4)}
-                          height={6}
-                          rx={3}
-                          fill={now ? (was ? PALETTE.dot : STATUS_COLOR.added) : 'none'}
-                          fillOpacity={lone ? 0.6 : 1}
-                          stroke={now ? 'none' : STATUS_COLOR.removed}
-                          strokeWidth={1.5}
-                          strokeDasharray={now ? undefined : '3 3'}
+                          y={rowY(r)}
+                          width={slot.kind === 'Head' ? cell : Math.max(5, cell - 6)}
+                          was={was}
+                          now={now}
+                          lone={lone}
+                          color={color}
                         />
                       );
-                    }
+                    })
+                  )}
+                  {showSampleset &&
+                    slots
+                      .filter((slot) => slot.kind !== 'Body' && slot.after)
+                      .map((slot) => {
+                        const changed = samplesetChanged(slot);
+                        const width = slot.kind === 'Head' ? cell : Math.max(5, cell - 6);
+                        const color = SAMPLESET_COLOR[slot.after!.sampleset] ?? PALETTE.dot;
 
-                    return (
-                      <Cell
-                        key={`${slot.key}-${sound}`}
-                        x={xOf(slot.time)}
-                        y={rowY(r)}
-                        width={slot.kind === 'Head' ? cell : Math.max(5, cell - 6)}
-                        was={was}
-                        now={now}
-                        lone={lone}
-                        color={color}
-                      />
-                    );
-                  })
-                )}
-                {showSampleset &&
-                  slots
-                    .filter((slot) => slot.kind !== 'Body' && slot.after)
-                    .map((slot) => {
-                      const changed = samplesetChanged(slot);
-                      const width = slot.kind === 'Head' ? cell : Math.max(5, cell - 6);
-                      const color = SAMPLESET_COLOR[slot.after!.sampleset] ?? PALETTE.dot;
-
-                      return (
-                        <g key={`${slot.key}-sampleset`}>
-                          {changed && (
+                        return (
+                          <g key={`${slot.key}-sampleset`}>
+                            {changed && (
+                              <rect
+                                x={xOf(slot.time) - width / 2 - 1}
+                                y={samplesetY + 1}
+                                width={width + 2}
+                                height={ROW - 2}
+                                rx={4}
+                                fill="none"
+                                stroke={STATUS_COLOR.changed}
+                                strokeWidth={2}
+                              />
+                            )}
                             <rect
-                              x={xOf(slot.time) - width / 2 - 1}
-                              y={samplesetY + 1}
-                              width={width + 2}
-                              height={ROW - 2}
-                              rx={4}
-                              fill="none"
-                              stroke={STATUS_COLOR.changed}
-                              strokeWidth={2}
+                              x={xOf(slot.time) - width / 2}
+                              y={samplesetY + 3}
+                              width={width}
+                              height={ROW - 6}
+                              rx={3}
+                              fill={color}
+                              fillOpacity={changed ? 1 : 0.45}
                             />
-                          )}
-                          <rect
-                            x={xOf(slot.time) - width / 2}
-                            y={samplesetY + 3}
-                            width={width}
-                            height={ROW - 6}
-                            rx={3}
-                            fill={color}
-                            fillOpacity={changed ? 1 : 0.45}
-                          />
-                          {width >= 12 && (
-                            <text
-                              x={xOf(slot.time)}
-                              y={samplesetY + ROW / 2 + 3.5}
-                              textAnchor="middle"
-                              fontSize={9.5}
-                              fontWeight={800}
-                              fill={PALETTE.ink}
-                            >
-                              {samplesetLetter(slot.after!.sampleset)}
-                            </text>
-                          )}
-                        </g>
-                      );
-                    })}
-                {showVolume && pair.after?.volume != null && (
-                  <g>
-                    {pair.before?.volume != null && pair.before.volume !== pair.after.volume && (
+                            {width >= 12 && (
+                              <text
+                                x={xOf(slot.time)}
+                                y={samplesetY + ROW / 2 + 3.5}
+                                textAnchor="middle"
+                                fontSize={9.5}
+                                fontWeight={800}
+                                fill={PALETTE.ink}
+                              >
+                                {samplesetLetter(slot.after!.sampleset)}
+                              </text>
+                            )}
+                          </g>
+                        );
+                      })}
+                  {showVolume && pair.after?.volume != null && (
+                    <g>
+                      {pair.before?.volume != null && pair.before.volume !== pair.after.volume && (
+                        <rect
+                          x={x - cell / 2 + 1}
+                          y={volumeY + VOLUME_HEIGHT - 3 - bar(pair.before.volume)}
+                          width={cell - 2}
+                          height={bar(pair.before.volume)}
+                          rx={2}
+                          fill="none"
+                          stroke={PALETTE.muted}
+                          strokeDasharray="3 3"
+                        />
+                      )}
                       <rect
-                        x={x - cell / 2 + 1}
-                        y={volumeY + VOLUME_HEIGHT - 3 - bar(pair.before.volume)}
-                        width={cell - 2}
-                        height={bar(pair.before.volume)}
+                        x={x - cell / 2 + 3}
+                        y={volumeY + VOLUME_HEIGHT - 3 - bar(pair.after.volume)}
+                        width={Math.max(2, cell - 6)}
+                        height={bar(pair.after.volume)}
                         rx={2}
-                        fill="none"
-                        stroke={PALETTE.muted}
-                        strokeDasharray="3 3"
+                        fill={
+                          pair.before && pair.before.volume !== pair.after.volume
+                            ? STATUS_COLOR.changed
+                            : PALETTE.dot
+                        }
                       />
-                    )}
-                    <rect
-                      x={x - cell / 2 + 3}
-                      y={volumeY + VOLUME_HEIGHT - 3 - bar(pair.after.volume)}
-                      width={Math.max(2, cell - 6)}
-                      height={bar(pair.after.volume)}
-                      rx={2}
-                      fill={
-                        pair.before && pair.before.volume !== pair.after.volume
-                          ? STATUS_COLOR.changed
-                          : PALETTE.dot
-                      }
-                    />
-                  </g>
-                )}
-              </g>
-            );
+                    </g>
+                  )}
+                </g>
+              );
 
-            return notes.length === 0 ? (
-              <g key={i}>{column}</g>
-            ) : (
-              <Tooltip
-                key={i}
-                withinPortal
-                multiline
-                position="top"
-                openDelay={80}
-                label={
-                  <Stack gap={2}>
-                    <Text size="xs" fw={700}>
-                      {object.type} at {formatClock(object.time)}
-                    </Text>
-                    {notes.map((note) => (
-                      <Text key={note} size="xs">
-                        {note}
+              return notes.length === 0 ? (
+                <g key={i}>{column}</g>
+              ) : (
+                <Tooltip
+                  key={i}
+                  withinPortal
+                  multiline
+                  position="top"
+                  openDelay={80}
+                  label={
+                    <Stack gap={2}>
+                      <Text size="xs" fw={700}>
+                        {object.type} at {formatClock(object.time)}
                       </Text>
-                    ))}
-                  </Stack>
-                }
-              >
-                {column}
-              </Tooltip>
-            );
-          })}
-        </g>
-      </svg>
+                      {notes.map((note) => (
+                        <Text key={note} size="xs">
+                          {note}
+                        </Text>
+                      ))}
+                    </Stack>
+                  }
+                >
+                  {column}
+                </Tooltip>
+              );
+            })}
+          </g>
+        </svg>
+      </LabelledPlot>
       <Group gap="md" wrap="wrap">
         <Text size="xs" c="dimmed">
           Green added, red outline removed, grey unchanged, yellow changed (N normal, S soft, D
