@@ -1,5 +1,4 @@
 import {
-  ActionIcon,
   Box,
   Button,
   Group,
@@ -10,8 +9,17 @@ import {
   useMantineTheme,
 } from '@mantine/core';
 import { useHotkeys } from '@mantine/hooks';
-import { IconChevronDown, IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
-import { Fragment, useState, type ReactNode } from 'react';
+import { IconChevronDown } from '@tabler/icons-react';
+import {
+  Fragment,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ReactNode,
+  type Ref,
+  type RefObject,
+} from 'react';
 import {
   getDifficultyBorderColor,
   getDifficultyColor,
@@ -19,7 +27,6 @@ import {
   getDifficultyTextColor,
 } from './DifficultyColor';
 import DifficultyColorPill from './DifficultyColorPill';
-import ShortcutLabel from './ShortcutLabel';
 import StarRatingBadge from './StarRatingBadge';
 import { formatGameModeLabel, MODE_ORDER } from '../../utils/gameMode';
 import GameModeIcon from '../icons/GameModeIcon';
@@ -43,24 +50,25 @@ export type PickerDifficulty = {
 interface DifficultyPickerProps {
   difficulties: PickerDifficulty[];
   general: { icon: ReactNode; statusColor: string };
-  /** Summary status of a mode's difficulties, shown in the mode menu. */
+  /** Summary status of a mode's difficulties, shown in its heading in the menu. */
   modeStatus?: (mode: Mode, difficulties: PickerDifficulty[]) => ReactNode;
   selectedId?: string;
   onSelect: (id: string) => void;
 }
 
-/** Difficulties the menu shows before it scrolls; its height fits that many rows. */
-const DIFF_MENU_MAX_VISIBLE = 12;
-const DIFF_MENU_MAX_HEIGHT = 360;
+/** Rows (difficulties and headings) the menu shows before it scrolls; its height fits that many. */
+const MENU_MAX_VISIBLE = 12;
+const MENU_MAX_HEIGHT = 360;
 
 const byStarRating = (a: PickerDifficulty, b: PickerDifficulty) =>
   (a.starRating ?? 0) - (b.starRating ?? 0);
 
 /**
- * Picks the difficulty on Checks and Snapshots: General, then mode and difficulty as two menus
- * read left to right (osu! / normal), with previous and next. Underneath, one segment per
- * difficulty in spread order, coloured by its status, so every difficulty's state stays in view
- * and any of them is one click away. `[` and `]` step through the spread.
+ * Picks the difficulty on Checks and Snapshots: General on the left, and on the right one menu with
+ * every difficulty, under a heading per game mode on hybrid sets, so any difficulty is two clicks
+ * away. Underneath, one segment per difficulty in spread order, coloured by its status, so every
+ * difficulty's state stays in view and any of them is one click away. `[` and `]` step through
+ * the spread.
  */
 function DifficultyPicker({
   difficulties,
@@ -70,25 +78,22 @@ function DifficultyPicker({
   onSelect,
 }: DifficultyPickerProps) {
   const theme = useMantineTheme();
-  const [browsedMode, setBrowsedMode] = useState<Mode>();
-  const [diffMenuOpened, setDiffMenuOpened] = useState(false);
+  const [menuOpened, setMenuOpened] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
+  useScrollToPicked(listRef, menuOpened);
 
   const modes = MODE_ORDER.map((mode) => ({
     mode,
     difficulties: difficulties.filter((d) => d.mode === mode).sort(byStarRating),
   })).filter((group) => group.difficulties.length > 0);
+  const isHybrid = modes.length > 1;
   // Spread order: General, then each mode from easiest to hardest.
   const ordered = modes.flatMap((group) => group.difficulties);
 
   const isGeneral = !selectedId || selectedId === GENERAL_TAB_ID;
   const selected = ordered.find((d) => d.id === selectedId);
-  // The mode shown in the breadcrumb: the selected difficulty's, or the last one browsed to.
-  const activeMode =
-    selected?.mode ??
-    (browsedMode && modes.some((g) => g.mode === browsedMode) ? browsedMode : modes[0]?.mode);
-  const activeGroup = modes.find((g) => g.mode === activeMode);
   // Every star badge in the menu takes the width of the widest one, so they line up.
-  const menuStarRatings = activeGroup?.difficulties.flatMap((d) =>
+  const menuStarRatings = ordered.flatMap((d) =>
     d.starRating != null && !d.disabled ? [d.starRating] : []
   );
 
@@ -104,17 +109,6 @@ function DifficultyPicker({
     [']', () => step(1)],
   ]);
 
-  // Choosing a mode moves off a difficulty of another mode (its easiest one takes over) and opens
-  // the difficulty menu, since picking a difficulty is what comes next.
-  const selectMode = (mode: Mode) => {
-    setBrowsedMode(mode);
-    if (selected && selected.mode !== mode) {
-      const easiest = modes.find((g) => g.mode === mode)?.difficulties.find((d) => !d.disabled);
-      onSelect(easiest?.id ?? GENERAL_TAB_ID);
-    }
-    setDiffMenuOpened(true);
-  };
-
   return (
     <Box>
       <Group gap="xs" wrap="nowrap">
@@ -128,117 +122,85 @@ function DifficultyPicker({
         >
           General
         </Button>
-        {modes.length > 1 && (
-          <>
-            <PickerSeparator />
-            <ModeMenu
-              groups={modes.map((group) => ({
-                mode: group.mode,
-                count: group.difficulties.length,
-                status: modeStatus?.(group.mode, group.difficulties),
-              }))}
-              active={activeMode}
-              onSelect={selectMode}
-            />
-          </>
-        )}
-        <PickerSeparator />
-        <Menu
-          position="bottom-start"
-          withinPortal
-          opened={diffMenuOpened}
-          onChange={setDiffMenuOpened}
-        >
-          <Menu.Target>
-            <Button
-              variant="default"
-              size="sm"
-              leftSection={
-                selected && (
-                  <Group gap={6} wrap="nowrap">
-                    {selected.icon}
-                    <DifficultyColorPill color={getDifficultyColor(selected.starRating ?? 0)} />
-                  </Group>
-                )
-              }
-              rightSection={PICKER_CHEVRON}
-              maw={340}
-              // Shrinks before anything else in a narrow window, cutting the name off with "…".
-              style={{ minWidth: 0 }}
-              styles={{ inner: { minWidth: 0 }, label: { minWidth: 0, overflow: 'hidden' } }}
-            >
-              <Text span inherit truncate c={selected ? undefined : 'dimmed'} display="block">
-                {selected ? selected.label : 'Pick a difficulty'}
-              </Text>
-            </Button>
-          </Menu.Target>
-          <Menu.Dropdown>
-            {/* Only a list that can't fit scrolls. Always making it scrollable let a few pixels of
-                icon overflow turn into a scrollbar even for one difficulty. The native scrollbar
-                takes its own space, so it never covers the star ratings. */}
-            <Box
-              mah={DIFF_MENU_MAX_HEIGHT}
-              style={
-                (activeGroup?.difficulties.length ?? 0) > DIFF_MENU_MAX_VISIBLE
-                  ? { overflowY: 'auto', overflowX: 'hidden' }
-                  : undefined
-              }
-            >
-              {activeGroup?.difficulties.map((d) => (
-                <Menu.Item
-                  key={d.id}
-                  disabled={d.disabled}
-                  leftSection={
+        {/* The difficulty sits on the right, apart from General. */}
+        <Group gap="xs" wrap="nowrap" ml="auto" style={{ minWidth: 0 }}>
+          <Menu position="bottom-end" withinPortal opened={menuOpened} onChange={setMenuOpened}>
+            <Menu.Target>
+              <Button
+                variant="default"
+                size="sm"
+                leftSection={
+                  selected && (
                     <Group gap={6} wrap="nowrap">
-                      {d.icon}
-                      <DifficultyColorPill color={getDifficultyColor(d.starRating ?? 0)} />
+                      {isHybrid && <GameModeIcon mode={selected.mode} size={18} />}
+                      {selected.icon}
+                      <DifficultyColorPill color={getDifficultyColor(selected.starRating ?? 0)} />
                     </Group>
-                  }
-                  rightSection={
-                    d.disabled ? (
-                      <Text size="xs" c="dimmed">
-                        {d.disabledReason}
-                      </Text>
-                    ) : (
-                      d.starRating != null && (
-                        <StarRatingBadge rating={d.starRating} size="xs" sizeTo={menuStarRatings} />
-                      )
-                    )
-                  }
-                  style={
-                    d.id === selectedId ? { background: 'var(--mantine-color-dark-5)' } : undefined
-                  }
-                  onClick={() => onSelect(d.id)}
-                >
-                  {d.label}
-                </Menu.Item>
-              ))}
-            </Box>
-          </Menu.Dropdown>
-        </Menu>
-        <Group gap="xs" wrap="nowrap" ml="auto" style={{ flexShrink: 0 }}>
-          <Tooltip label={<ShortcutLabel label="Previous difficulty" keys={['[']} />}>
-            <ActionIcon
-              variant="default"
-              size="input-sm"
-              aria-label="Previous difficulty"
-              disabled={stepIndex <= 0}
-              onClick={() => step(-1)}
-            >
-              <IconChevronLeft size={18} stroke={1.5} />
-            </ActionIcon>
-          </Tooltip>
-          <Tooltip label={<ShortcutLabel label="Next difficulty" keys={[']']} />}>
-            <ActionIcon
-              variant="default"
-              size="input-sm"
-              aria-label="Next difficulty"
-              disabled={stepIndex < 0 || stepIndex >= steps.length - 1}
-              onClick={() => step(1)}
-            >
-              <IconChevronRight size={18} stroke={1.5} />
-            </ActionIcon>
-          </Tooltip>
+                  )
+                }
+                rightSection={PICKER_CHEVRON}
+                maw={340}
+                // Shrinks before anything else in a narrow window, cutting the name off with "…".
+                style={{ minWidth: 0 }}
+                styles={{ inner: { minWidth: 0 }, label: { minWidth: 0, overflow: 'hidden' } }}
+              >
+                <Text span inherit truncate c={selected ? undefined : 'dimmed'} display="block">
+                  {selected ? selected.label : 'Pick a difficulty'}
+                </Text>
+              </Button>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <PickerList ref={listRef} rows={ordered.length + (isHybrid ? modes.length : 0)}>
+                {modes.map((group, i) => (
+                  <PickerModeGroup
+                    key={group.mode}
+                    mode={group.mode}
+                    count={group.difficulties.length}
+                    status={modeStatus?.(group.mode, group.difficulties)}
+                    withHeading={isHybrid}
+                    divided={i > 0}
+                  >
+                    {group.difficulties.map((d) => (
+                      <Menu.Item
+                        key={d.id}
+                        disabled={d.disabled}
+                        data-picked={d.id === selectedId || undefined}
+                        leftSection={
+                          <Group gap={6} wrap="nowrap">
+                            {d.icon}
+                            <DifficultyColorPill color={getDifficultyColor(d.starRating ?? 0)} />
+                          </Group>
+                        }
+                        rightSection={
+                          d.disabled ? (
+                            <Text size="xs" c="dimmed">
+                              {d.disabledReason}
+                            </Text>
+                          ) : (
+                            d.starRating != null && (
+                              <StarRatingBadge
+                                rating={d.starRating}
+                                size="xs"
+                                sizeTo={menuStarRatings}
+                              />
+                            )
+                          )
+                        }
+                        style={
+                          d.id === selectedId
+                            ? { background: 'var(--mantine-color-dark-5)' }
+                            : undefined
+                        }
+                        onClick={() => onSelect(d.id)}
+                      >
+                        {d.label}
+                      </Menu.Item>
+                    ))}
+                  </PickerModeGroup>
+                ))}
+              </PickerList>
+            </Menu.Dropdown>
+          </Menu>
         </Group>
       </Group>
       {/* One segment per difficulty in spread order, a wider gap after General and between modes. */}
@@ -276,67 +238,100 @@ function DifficultyPicker({
 
 export const PICKER_CHEVRON = <IconChevronDown size={14} stroke={1.5} />;
 
-/** The "/" between a picker's buttons, which read left to right like a path. */
-export function PickerSeparator() {
+/**
+ * The scrolling list inside a picker's menu. Only a list that can't fit scrolls: always making it
+ * scrollable let a few pixels of icon overflow turn into a scrollbar even for one difficulty. The
+ * native scrollbar takes its own space, so it never covers the star ratings.
+ */
+export function PickerList({
+  rows,
+  ref,
+  children,
+}: {
+  /** Rows in the list, headings included. */
+  rows: number;
+  ref?: Ref<HTMLDivElement>;
+  children: ReactNode;
+}) {
   return (
-    <Text c="dimmed" fw={700} aria-hidden>
-      /
-    </Text>
+    <Box
+      ref={ref}
+      mah={MENU_MAX_HEIGHT}
+      style={rows > MENU_MAX_VISIBLE ? { overflowY: 'auto', overflowX: 'hidden' } : undefined}
+    >
+      {children}
+    </Box>
   );
 }
 
-interface ModeMenuProps {
-  /** The modes to choose from, in order; `status` shows in front of the mode's icon. */
-  groups: { mode: Mode; count: number; status?: ReactNode }[];
-  active: Mode | undefined;
-  onSelect: (mode: Mode) => void;
+interface PickerModeGroupProps {
+  mode: Mode;
+  count: number;
+  /** Shown in front of the mode's icon, such as the worst check level among its difficulties. */
+  status?: ReactNode;
+  /** Hybrid sets only: a set with one mode needs no heading. */
+  withHeading: boolean;
+  /** A divider above the heading, for every mode after the first. */
+  divided: boolean;
+  children: ReactNode;
 }
 
-/** The game mode menu of the difficulty pickers: the active mode, and each mode's difficulty count. */
-export function ModeMenu({ groups, active, onSelect }: ModeMenuProps) {
-  const activeGroup = groups.find((group) => group.mode === active);
+/**
+ * One game mode's difficulties in a picker's menu, under a heading with the mode's icon, name and
+ * count. The heading stays in view while its difficulties scroll past, and labels the group, so a
+ * screen reader announces the mode before its difficulties.
+ */
+export function PickerModeGroup({
+  mode,
+  count,
+  status,
+  withHeading,
+  divided,
+  children,
+}: PickerModeGroupProps) {
+  const headingId = useId();
+  if (!withHeading) return <>{children}</>;
 
   return (
-    <Menu position="bottom-start" withinPortal>
-      <Menu.Target>
-        <Button
-          variant="default"
-          size="sm"
-          leftSection={
-            <Group gap={6} wrap="nowrap">
-              {activeGroup?.status}
-              {active && <GameModeIcon mode={active} size={18} />}
-            </Group>
-          }
-          rightSection={PICKER_CHEVRON}
-          style={{ flexShrink: 0 }}
-        >
-          {active && formatGameModeLabel(active)}
-        </Button>
-      </Menu.Target>
-      <Menu.Dropdown>
-        {groups.map((group) => (
-          <Menu.Item
-            key={group.mode}
-            leftSection={
-              <Group gap={6} wrap="nowrap">
-                {group.status}
-                <GameModeIcon mode={group.mode} size={18} />
-              </Group>
-            }
-            rightSection={
-              <Text size="xs" c="dimmed" style={{ fontVariantNumeric: 'tabular-nums' }}>
-                {group.count}
-              </Text>
-            }
-            onClick={() => onSelect(group.mode)}
-          >
-            {formatGameModeLabel(group.mode)}
-          </Menu.Item>
-        ))}
-      </Menu.Dropdown>
-    </Menu>
+    <div role="group" aria-labelledby={headingId}>
+      {divided && <Menu.Divider />}
+      <Menu.Label
+        id={headingId}
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 1,
+          background: 'var(--mantine-color-dark-6)',
+        }}
+      >
+        <Group gap={6} wrap="nowrap">
+          {status}
+          <GameModeIcon mode={mode} size={16} />
+          <Text span inherit style={{ flex: 1 }}>
+            {formatGameModeLabel(mode)}
+          </Text>
+          <Text span inherit style={{ fontVariantNumeric: 'tabular-nums' }}>
+            {count}
+          </Text>
+        </Group>
+      </Menu.Label>
+      {children}
+    </div>
   );
+}
+
+/**
+ * Opens a picker's menu scrolled to its pick (the first item marked `data-picked`), which can sit
+ * well down the list on a hybrid set.
+ */
+export function useScrollToPicked(listRef: RefObject<HTMLDivElement | null>, opened: boolean) {
+  useEffect(() => {
+    if (!opened) return;
+    const frame = requestAnimationFrame(() => {
+      listRef.current?.querySelector('[data-picked]')?.scrollIntoView({ block: 'nearest' });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [listRef, opened]);
 }
 
 const SEGMENT_GAP = 3;

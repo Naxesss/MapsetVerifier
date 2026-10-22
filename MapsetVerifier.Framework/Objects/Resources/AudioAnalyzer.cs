@@ -242,7 +242,7 @@ public static class AudioAnalyzer
     {
         lock (Locks.GetOrAdd(filePath, new object()))
         {
-            var stream = CreateStream(filePath);
+            var stream = CreateStream(filePath, BassFlags.Decode | BassFlags.Float);
             try
             {
                 Bass.ChannelGetInfo(stream, out var channelInfo);
@@ -316,10 +316,12 @@ public static class AudioAnalyzer
         }
     }
 
-    private static int CreateStream(string filePath)
+    private static int CreateStream(string filePath) => CreateStream(filePath, BassFlags.Decode);
+
+    private static int CreateStream(string filePath, BassFlags flags)
     {
         AudioBASS.EnsureInitialized();
-        var stream = Bass.CreateStream(filePath, 0, 0, BassFlags.Decode);
+        var stream = Bass.CreateStream(filePath, 0, 0, flags);
         if (stream == 0)
             throw new BadImageFormatException(
                 $"Could not create stream of \"{Path.GetFileName(filePath)}\", error \"{Bass.LastError}\"."
