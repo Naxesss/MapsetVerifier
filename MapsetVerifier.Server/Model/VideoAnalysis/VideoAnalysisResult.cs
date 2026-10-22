@@ -20,30 +20,11 @@ public class VideoAnalysisResult
     /// </summary>
     public List<VideoAnalysisEntry> Videos { get; set; } = [];
 
-    /// <summary>
-    /// Compliance issues that apply to the set as a whole rather than a single video.
-    /// </summary>
-    public List<string> ComplianceIssues { get; set; } = [];
-
-    /// <summary>
-    /// Whether every video is compliant and no set-wide issues were found.
-    /// </summary>
-    public bool IsCompliant =>
-        ComplianceIssues.Count == 0 && Videos.All(video => video.IsCompliant);
-
     public static VideoAnalysisResult CreateError(string message) =>
         new() { Success = false, ErrorMessage = message };
 
-    public static VideoAnalysisResult CreateSuccess(
-        List<VideoAnalysisEntry> videos,
-        List<string> complianceIssues
-    ) =>
-        new()
-        {
-            Success = true,
-            Videos = videos,
-            ComplianceIssues = complianceIssues,
-        };
+    public static VideoAnalysisResult CreateSuccess(List<VideoAnalysisEntry> videos) =>
+        new() { Success = true, Videos = videos };
 }
 
 /// <summary>
@@ -109,14 +90,6 @@ public class VideoAnalysisEntry
     /// Difficulty names using this video, or "(Storyboard)" when it comes from the .osb.
     /// </summary>
     public List<string> UsedByDifficulties { get; set; } = [];
-
-    public bool IsCompliant { get; set; }
-    public List<string> ComplianceIssues { get; set; } = [];
-
-    /// <summary>
-    /// Badge colour hint for the client, one of "success", "warning" or "error".
-    /// </summary>
-    public string BadgeType { get; set; } = "success";
 
     /// <summary>
     /// Whether the browser can be expected to play this file in the preview player.

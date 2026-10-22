@@ -6,7 +6,7 @@ import type { DifficultyStrainDisplayMode } from '../../context/SettingsContext'
 
 const DISPLAY_MODE_OPTIONS: { value: DifficultyStrainDisplayMode; label: string }[] = [
   { value: 'strainOnly', label: 'Strain' },
-  { value: 'starRatingOnly', label: 'SR' },
+  { value: 'starRatingOnly', label: 'Star rating' },
   { value: 'both', label: 'Both' },
 ];
 
@@ -20,11 +20,10 @@ export default function OverviewSettingsSection() {
       description="Controls what's displayed on the beatmap overview page."
     >
       <SettingsRow
-        title="Star Rating chart"
-        description="Whether the Star Rating overview chart shows the cumulative line, the difficulty strain overlay, or both, by default."
+        title="Star rating chart"
+        description="Whether the star rating chart on the Difficulty tab shows the cumulative line, the difficulty strain overlay, or both, by default."
         control={
           <SegmentedControl
-            size="xs"
             data={DISPLAY_MODE_OPTIONS}
             value={settings.difficultyStrainDisplayMode}
             onChange={(value) =>

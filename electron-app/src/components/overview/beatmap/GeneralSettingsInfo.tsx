@@ -1,37 +1,18 @@
-﻿import { Badge, Group, Paper, Stack, Table, Text, Tooltip, useMantineTheme } from '@mantine/core';
-import { IconAlertTriangle } from '@tabler/icons-react';
-import { useGroupCellStyle } from './utils/useGroupCellStyle';
+import { Badge, Text, Tooltip } from '@mantine/core';
 import { countWord } from '../../../utils/countWord.ts';
-import { formatNullable } from '../../../utils/formatters';
-import { formatGameModeLabel, getModeAccentColor } from '../../../utils/gameMode';
-import { itemKey } from '../../../utils/inconsistencies';
-import AppTable, {
-  DifficultyTableCell,
-  DifficultyTableHeaderCell,
-} from '../../common/AppTable.tsx';
 import OsuLink from '../../common/OsuLink.tsx';
-import GameModeIcon from '../../icons/GameModeIcon.tsx';
+import ComparisonTable, { type ComparisonRow } from '../ComparisonTable.tsx';
 import type { DifficultyGeneralSettings } from '../../../Types';
-import type { InconsistencyField } from '../../../utils/inconsistencies';
 
 interface GeneralSettingsInfoProps {
   generalSettings: DifficultyGeneralSettings[];
+  /** Star rating per difficulty version, for the column headers. */
+  starRatings: Map<string, number>;
 }
 
-const CONSISTENCY_FIELDS: InconsistencyField<DifficultyGeneralSettings>[] = [
-  { id: 'previewTime', getValue: (settings) => settings.previewTime },
-];
+const text = (value: string) => <Text size="sm">{value}</Text>;
 
-function ModeCell({ mode }: { mode: string }) {
-  return (
-    <Group gap={6} wrap="nowrap" justify="center">
-      <GameModeIcon mode={mode} size={16} color={getModeAccentColor(mode)} />
-      <Text size="sm">{formatGameModeLabel(mode)}</Text>
-    </Group>
-  );
-}
-
-function StatusBadge({ value }: { value: boolean }) {
+function YesNoBadge({ value }: { value: boolean }) {
   return (
     <Badge color={value ? 'green' : 'gray'} variant={value ? 'light' : 'outline'}>
       {value ? 'Yes' : 'No'}
@@ -41,121 +22,114 @@ function StatusBadge({ value }: { value: boolean }) {
 
 function CountdownCell({ settings }: { settings: DifficultyGeneralSettings }) {
   if (!settings.countdownSpeed) {
-    return (
-      <Badge color="gray" variant="outline">
-        No
-      </Badge>
-    );
+    return <Badge color="gray">No</Badge>;
   }
 
+  // Enabled but with no room before the first object, osu! never plays it.
   if (settings.countdownInsufficientTime) {
     return (
       <Tooltip
         multiline
         w={260}
-        label="Countdown is enabled, but there is insufficient time before the first object for it to work"
+        label="Enabled, but there isn't enough time before the first object for it to play."
       >
-        <Badge color="yellow" variant="light" leftSection={<IconAlertTriangle size={12} />}>
-          {settings.countdownSpeed}
-        </Badge>
+        <Badge color="gray">{settings.countdownSpeed}, not played</Badge>
       </Tooltip>
     );
   }
 
-  return (
-    <Badge color="green" variant="light">
-      {settings.countdownSpeed}
-    </Badge>
-  );
+  return <Badge>{settings.countdownSpeed}</Badge>;
 }
 
-function GeneralSettingsInfo({ generalSettings }: GeneralSettingsInfoProps) {
-  const theme = useMantineTheme();
-  const groupCell = useGroupCellStyle(generalSettings, CONSISTENCY_FIELDS);
+// A null value means the setting doesn't apply (e.g. stack leniency outside osu!), so the row
+// is left out.
+const ROWS: ComparisonRow<DifficultyGeneralSettings>[] = [
+  {
+    id: 'audioFileName',
+    label: 'Audio file',
+    value: (s) => s.audioFileName,
+    render: (s) => text(s.audioFileName),
+  },
+  {
+    id: 'audioLeadIn',
+    label: 'Lead-in',
+    value: (s) => s.audioLeadIn,
+    render: (s) => text(`${s.audioLeadIn.toLocaleString()} ms`),
+  },
+  {
+    id: 'previewTime',
+    label: 'Preview',
+    groupColours: true,
+    value: (s) => s.previewTime,
+    render: (s) => (
+      <Text size="sm">
+        <OsuLink text={s.previewTimeFormatted} disableSeparators />
+      </Text>
+    ),
+  },
+  {
+    id: 'stackLeniency',
+    label: 'Stack leniency',
+    value: (s) => s.stackLeniency,
+    render: (s) => text(s.stackLeniency ?? 'N/A'),
+  },
+  {
+    id: 'countdown',
+    label: 'Countdown',
+    value: (s) => `${s.countdownSpeed ?? ''}|${s.countdownInsufficientTime}`,
+    render: (s) => <CountdownCell settings={s} />,
+  },
+  {
+    id: 'countdownOffset',
+    label: 'Countdown offset',
+    value: (s) => (s.countdownSpeed !== null ? s.countdownOffset : null),
+    render: (s) =>
+      text(
+        s.countdownSpeed !== null && s.countdownOffset !== null
+          ? countWord(s.countdownOffset, 'beat')
+          : 'N/A'
+      ),
+  },
+  {
+    id: 'letterboxInBreaks',
+    label: 'Letterbox in breaks',
+    value: (s) => s.letterboxInBreaks,
+    render: (s) => <YesNoBadge value={s.letterboxInBreaks} />,
+  },
+  {
+    id: 'widescreenStoryboard',
+    label: 'Widescreen storyboard',
+    value: (s) => s.widescreenStoryboard,
+    render: (s) => <YesNoBadge value={s.widescreenStoryboard} />,
+  },
+  {
+    id: 'useSkinSprites',
+    label: 'Use skin sprites',
+    value: (s) => s.useSkinSprites,
+    render: (s) => text(s.useSkinSprites ?? 'N/A'),
+  },
+  {
+    id: 'skinPreference',
+    label: 'Skin preference',
+    value: (s) => s.skinPreference,
+    render: (s) => text(s.skinPreference || 'None'),
+  },
+  {
+    id: 'epilepsyWarning',
+    label: 'Epilepsy warning',
+    value: (s) => s.epilepsyWarning,
+    render: (s) => text(s.epilepsyWarning ?? 'N/A'),
+  },
+];
 
-  if (generalSettings.length === 0) {
-    return null;
-  }
-
+function GeneralSettingsInfo({ generalSettings, starRatings }: GeneralSettingsInfoProps) {
   return (
-    <Paper p="md" radius="md" withBorder>
-      <Stack gap="md">
-        <Text fw={600}>General Settings</Text>
-
-        <AppTable>
-          <Table.Thead style={{ backgroundColor: theme.colors.dark[5] }}>
-            <Table.Tr>
-              <DifficultyTableHeaderCell>Difficulty</DifficultyTableHeaderCell>
-              <Table.Th>Mode</Table.Th>
-              <Table.Th>Audio File</Table.Th>
-              <Table.Th>Lead-in</Table.Th>
-              <Table.Th>Preview</Table.Th>
-              <Table.Th>Stack Leniency</Table.Th>
-              <Table.Th>Countdown</Table.Th>
-              <Table.Th>Countdown Offset</Table.Th>
-              <Table.Th>Letterbox in Breaks</Table.Th>
-              <Table.Th>Widescreen Storyboard</Table.Th>
-              <Table.Th>Use Skin Sprites</Table.Th>
-              <Table.Th>Skin Preference</Table.Th>
-              <Table.Th>Epilepsy Warning</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {generalSettings.map((settings) => (
-              <Table.Tr key={itemKey(settings)}>
-                <DifficultyTableCell>
-                  <Text size="sm" fw={600}>
-                    {settings.version}
-                  </Text>
-                </DifficultyTableCell>
-                <Table.Td>
-                  <ModeCell mode={settings.mode} />
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm">{settings.audioFileName}</Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm">{settings.audioLeadIn.toLocaleString()} ms</Text>
-                </Table.Td>
-                <Table.Td style={groupCell(settings, 'previewTime')}>
-                  <Text size="sm">
-                    <OsuLink text={settings.previewTimeFormatted} disableSeparators />
-                  </Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm">{formatNullable(settings.stackLeniency)}</Text>
-                </Table.Td>
-                <Table.Td>
-                  <CountdownCell settings={settings} />
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm">
-                    {settings.countdownSpeed !== null && settings.countdownOffset !== null
-                      ? countWord(settings.countdownOffset, 'beat')
-                      : 'N/A'}
-                  </Text>
-                </Table.Td>
-                <Table.Td>
-                  <StatusBadge value={settings.letterboxInBreaks} />
-                </Table.Td>
-                <Table.Td>
-                  <StatusBadge value={settings.widescreenStoryboard} />
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm">{formatNullable(settings.useSkinSprites)}</Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm">{formatNullable(settings.skinPreference, '(none)')}</Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm">{formatNullable(settings.epilepsyWarning)}</Text>
-                </Table.Td>
-              </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </AppTable>
-      </Stack>
-    </Paper>
+    <ComparisonTable
+      starRatings={starRatings}
+      title="General settings"
+      items={generalSettings}
+      rows={ROWS}
+    />
   );
 }
 

@@ -1,4 +1,4 @@
-import { Alert, Box, Button, Group, Paper, Text, useMantineTheme } from '@mantine/core';
+import { Box, Button, useMantineTheme } from '@mantine/core';
 import { IconExternalLink, IconVideoOff } from '@tabler/icons-react';
 import { useState } from 'react';
 import { VideoAnalysisEntry } from '../../../Types';
@@ -6,7 +6,9 @@ import {
   buildBeatmapFolderPath,
   buildBeatmapVideoUrl,
 } from '../../../utils/buildBeatmapFolderPath.ts';
-import { InfoIconTooltip } from '../../common/InfoIconTooltip.tsx';
+import { openPathOrNotify } from '../../../utils/notify.tsx';
+import EmptyState from '../../common/EmptyState.tsx';
+import SectionCard from '../../common/SectionCard.tsx';
 
 interface VideoPreviewProps {
   beatmapFolderPath: string;
@@ -25,46 +27,36 @@ function VideoPreview({ beatmapFolderPath, data }: VideoPreviewProps) {
     const filePath = buildBeatmapFolderPath(beatmapFolderPath, data.fileName);
     if (!filePath) return;
 
-    try {
-      const err = await window.electronAPI?.shell.openPath(filePath);
-      if (err) throw new Error(err);
-    } catch (e) {
-      console.error('Failed to open video:', e);
-      alert('Failed to open the video. See console for details.');
-    }
+    await openPathOrNotify(filePath, "Couldn't open the video.");
   };
 
   return (
-    <Paper p="md" radius="md" bg={theme.colors.dark[5]}>
-      <Group justify="space-between" mb="md">
-        <Group gap="xs">
-          <Text fw={600}>Preview</Text>
-          <InfoIconTooltip
-            label="Plays the video file straight from the beatmap folder, so you can check how it lines up with the song."
-            multiline
-            w={250}
-          />
-        </Group>
-        {data.exists && (
+    <SectionCard
+      title="Preview"
+      info="Plays the video file straight from the mapset folder, so you can check how it lines up with the song."
+      actions={
+        data.exists && (
           <Button
             size="xs"
-            variant="default"
+            variant="light"
             leftSection={<IconExternalLink size={14} />}
             onClick={openInDefaultPlayer}
           >
             Open in default player
           </Button>
-        )}
-      </Group>
-
+        )
+      }
+    >
       {unsupported ? (
-        <Alert icon={<IconVideoOff />} color="gray">
-          <Text size="sm">
-            {!data.exists
-              ? 'The video file is missing, so there is nothing to preview.'
-              : `${data.container} files cannot be played here, since the browser has no ${data.container} demuxer. Open it in your default player instead.`}
-          </Text>
-        </Alert>
+        <EmptyState
+          icon={IconVideoOff}
+          title={data.exists ? "Can't preview this video" : 'Video file missing'}
+          description={
+            data.exists
+              ? `${data.container} files can't be played here. Open it in your default player instead.`
+              : 'The video file is missing, so there is nothing to preview.'
+          }
+        />
       ) : (
         <Box
           style={{ borderRadius: theme.radius.sm, overflow: 'hidden' }}
@@ -80,7 +72,7 @@ function VideoPreview({ beatmapFolderPath, data }: VideoPreviewProps) {
           />
         </Box>
       )}
-    </Paper>
+    </SectionCard>
   );
 }
 

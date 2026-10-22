@@ -1,5 +1,6 @@
-import { Button, Group, Select, SegmentedControl, TextInput } from '@mantine/core';
-import { IconFolder, IconSettings } from '@tabler/icons-react';
+import { Select, SegmentedControl } from '@mantine/core';
+import { IconSettings } from '@tabler/icons-react';
+import FolderField from './FolderField';
 import { SettingsRow, SettingsSection } from './SettingsSection';
 import { BeatmapViewMode, useSettings } from '../../context/SettingsContext';
 import {
@@ -8,38 +9,17 @@ import {
   parseUiFontFamily,
 } from '../../theme/fonts';
 import { UI_ZOOM_OPTIONS, parseUiZoomPercent } from '../../theme/zoom';
+import { isWindowsPlatform } from '../../utils/platform.ts';
+import type { ClockFormat } from '../../utils/dateTime';
+
+const LIBRARY_DESCRIPTION = 'Which beatmap library the sidebar reads from.';
+const LIBRARY_DESCRIPTION_NON_WINDOWS = `${LIBRARY_DESCRIPTION} Set the lazer data folder manually below; showing the mapset open in the editor only works on Windows.`;
 
 export default function GeneralSettingsSection() {
   const { settings, setSettings } = useSettings();
   const viewMode = settings.beatmapViewMode;
   const showLazerDataDir = viewMode === 'lazer' || viewMode === 'both';
   const showSongFolder = viewMode === 'stable' || viewMode === 'both';
-
-  const pickFolder = async () => {
-    try {
-      const result = await window.electronAPI?.dialog.openFolder();
-      if (typeof result === 'string') {
-        setSettings((prev) => ({ ...prev, songFolder: result }));
-      }
-    } catch (e: any) {
-      console.error('[Settings] Folder pick failed:', e);
-      const msg = typeof e === 'string' ? e : e?.message || 'Unknown error';
-      alert('Folder picker failed: ' + msg);
-    }
-  };
-
-  const pickLazerDataDir = async () => {
-    try {
-      const result = await window.electronAPI?.dialog.openFolder();
-      if (typeof result === 'string') {
-        setSettings((prev) => ({ ...prev, lazerDataDir: result }));
-      }
-    } catch (e: any) {
-      console.error('[Settings] Lazer data folder pick failed:', e);
-      const msg = typeof e === 'string' ? e : e?.message || 'Unknown error';
-      alert('Folder picker failed: ' + msg);
-    }
-  };
 
   return (
     <SettingsSection
@@ -49,7 +29,7 @@ export default function GeneralSettingsSection() {
     >
       <SettingsRow
         title="Beatmap library"
-        description="Which beatmap library the sidebar reads from. On macOS/Linux, set the lazer data folder manually below; the 'currently open in editor' shortcut is Windows-only."
+        description={isWindowsPlatform() ? LIBRARY_DESCRIPTION : LIBRARY_DESCRIPTION_NON_WINDOWS}
         control={
           <SegmentedControl
             data={[
@@ -65,43 +45,19 @@ export default function GeneralSettingsSection() {
         }
       />
       {showSongFolder && (
-        <Group align="flex-end" gap="sm" wrap="nowrap">
-          <TextInput
-            label="osu! Songs Folder"
-            value={settings.songFolder ?? ''}
-            readOnly
-            style={{ flex: 1, minWidth: 0 }}
-            onClick={() => !settings.songFolder && pickFolder()}
-          />
-          <Button
-            size="sm"
-            variant="light"
-            leftSection={<IconFolder size={18} />}
-            onClick={pickFolder}
-          >
-            Browse
-          </Button>
-        </Group>
+        <FolderField
+          label="osu! Songs folder"
+          value={settings.songFolder}
+          onChange={(songFolder) => setSettings((prev) => ({ ...prev, songFolder }))}
+        />
       )}
       {showLazerDataDir && (
-        <Group align="flex-end" gap="sm" wrap="nowrap">
-          <TextInput
-            label="osu!(lazer) data folder"
-            description="Contains client.realm. Auto-detected when left empty."
-            value={settings.lazerDataDir ?? ''}
-            readOnly
-            style={{ flex: 1, minWidth: 0 }}
-            onClick={() => !settings.lazerDataDir && pickLazerDataDir()}
-          />
-          <Button
-            size="sm"
-            variant="light"
-            leftSection={<IconFolder size={18} />}
-            onClick={pickLazerDataDir}
-          >
-            Browse
-          </Button>
-        </Group>
+        <FolderField
+          label="osu!(lazer) data folder"
+          description="Contains client.realm. Auto-detected when left empty."
+          value={settings.lazerDataDir}
+          onChange={(lazerDataDir) => setSettings((prev) => ({ ...prev, lazerDataDir }))}
+        />
       )}
       <SettingsRow
         title="Font"
@@ -132,6 +88,22 @@ export default function GeneralSettingsSection() {
               const uiZoomPercent = parseUiZoomPercent(value);
               setSettings((prev) => ({ ...prev, uiZoomPercent }));
             }}
+          />
+        }
+      />
+      <SettingsRow
+        title="Time format"
+        description="How times are shown throughout the app, such as in snapshots and check runs."
+        control={
+          <SegmentedControl
+            data={[
+              { label: '24-hour', value: '24h' },
+              { label: '12-hour', value: '12h' },
+            ]}
+            value={settings.clockFormat}
+            onChange={(value) =>
+              setSettings((prev) => ({ ...prev, clockFormat: value as ClockFormat }))
+            }
           />
         }
       />

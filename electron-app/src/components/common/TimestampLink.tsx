@@ -1,5 +1,5 @@
-import { Anchor, Box, Text, useMantineTheme } from '@mantine/core';
-import { IconCopy } from '@tabler/icons-react';
+import { Anchor, Box, useMantineTheme } from '@mantine/core';
+import { IconCheck } from '@tabler/icons-react';
 import React from 'react';
 import {
   buildOsuEditHref,
@@ -9,6 +9,7 @@ import {
 } from './osuLinkUtils.ts';
 import { useFadeUpCopyFeedback } from './useFadeUpCopyFeedback.ts';
 import { useOpenOsuTimestamp } from '../../hooks/useOpenOsuTimestamp.ts';
+import { notifyError } from '../../utils/notify.tsx';
 
 interface TimestampLinkProps {
   displayTimestamp: string;
@@ -29,7 +30,7 @@ const TimestampLink: React.FC<TimestampLinkProps> = ({ displayTimestamp }) => {
         await navigator.clipboard.writeText(displayTimestamp);
         triggerCopyFeedback();
       } catch {
-        // Clipboard may be unavailable; ignore.
+        notifyError('Clipboard is unavailable.');
       }
       return;
     }
@@ -71,38 +72,14 @@ const TimestampLink: React.FC<TimestampLinkProps> = ({ displayTimestamp }) => {
         {displayTimestamp}
       </Anchor>
       {showCopied ? (
-        <Text
-          component="span"
+        <span
+          className="mv-copy-bubble"
           aria-live="polite"
-          style={{
-            position: 'absolute',
-            left: '50%',
-            bottom: 'calc(100% + 6px)',
-            transform: `translate(-50%, ${copiedAnimating ? -10 : 0}px)`,
-            opacity: copiedAnimating ? 0 : 1,
-            transition: 'opacity 600ms ease-out, transform 600ms ease-out',
-            fontSize: theme.fontSizes.xs,
-            lineHeight: 1.25,
-            fontWeight: 600,
-            letterSpacing: '0.02em',
-            color: theme.colors.green[4],
-            backgroundColor: theme.colors.dark[7],
-            padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-            borderRadius: theme.radius.md,
-            border: `1px solid ${theme.colors.dark[4]}`,
-            boxShadow: theme.shadows.sm,
-            pointerEvents: 'none',
-            whiteSpace: 'nowrap',
-            zIndex: 10,
-            userSelect: 'none',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 4,
-          }}
+          data-leaving={copiedAnimating || undefined}
         >
-          <IconCopy size={12} stroke={2.25} aria-hidden />
-          copied!
-        </Text>
+          <IconCheck size={14} aria-hidden />
+          Copied
+        </span>
       ) : null}
     </Box>
   );

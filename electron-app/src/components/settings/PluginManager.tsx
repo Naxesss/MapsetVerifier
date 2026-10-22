@@ -28,6 +28,7 @@ import { useDocumentation } from '../../context/DocumentationContext.tsx';
 import { useSettings } from '../../context/SettingsContext.tsx';
 import { useOpenExternal } from '../../hooks/useOpenExternal';
 import { ApiPluginReport } from '../../Types.ts';
+import { notifyError, openPathOrNotify } from '../../utils/notify.tsx';
 
 interface PluginManagerProps {
   opened: boolean;
@@ -45,11 +46,10 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
     try {
       const folderPath = await getPath();
       if (!folderPath) return;
-      const err = await window.electronAPI?.shell.openPath(folderPath);
-      if (err) throw new Error(err);
+      await openPathOrNotify(folderPath, "Couldn't open the folder.");
     } catch (e) {
       console.error('[Settings] Failed to open folder:', e);
-      alert('Failed to open folder. See console for details.');
+      notifyError("Couldn't open the folder.");
     }
   };
 
@@ -66,7 +66,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
       setReport(await PluginApi.getPlugins());
     } catch (e: any) {
       console.error('[PluginManager] Failed to load plugins:', e);
-      setError(e?.message ?? 'Failed to load plugin status.');
+      setError(e?.message ?? "Couldn't load the plugin status.");
     } finally {
       setLoading(false);
     }
@@ -81,7 +81,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
       await reloadDocumentation();
     } catch (e: any) {
       console.error('[PluginManager] Failed to reload plugins:', e);
-      setError(e?.message ?? 'Failed to reload plugins.');
+      setError(e?.message ?? "Couldn't reload the plugins.");
     } finally {
       setLoading(false);
     }
@@ -98,7 +98,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
         await reloadDocumentation();
       } catch (e: any) {
         console.error('[PluginManager] Failed to toggle custom checks:', e);
-        setError(e?.message ?? 'Failed to toggle custom checks.');
+        setError(e?.message ?? "Couldn't turn custom checks on or off.");
       } finally {
         setLoading(false);
       }
@@ -197,18 +197,14 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
           disabled={loading}
         />
       </Group>
-      <Paper withBorder p="sm" radius="sm">
+      <Paper withBorder p="sm" radius="md">
         <Stack gap="xs">
           <Group gap="xs">
-            <Badge variant="light" color="green">
-              {totals.pluginCount} loaded
-            </Badge>
-            <Badge variant="light" color={totals.failedCount > 0 ? 'red' : 'gray'}>
+            <Badge color="green">{totals.pluginCount} loaded</Badge>
+            <Badge color={totals.failedCount > 0 ? 'red' : 'gray'}>
               {totals.failedCount} failed
             </Badge>
-            <Badge variant="light" color="blue">
-              {totals.checkCount} checks
-            </Badge>
+            <Badge color="blue">{totals.checkCount} checks</Badge>
           </Group>
           <Text size="sm" c="dimmed" truncate>
             Folder: {report?.directoryPath || 'Not configured'}
@@ -244,7 +240,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
             {report.loadedPlugins.map((plugin) => (
               <Table.Tr key={plugin.filePath}>
                 <Table.Td>
-                  <Stack gap={2}>
+                  <Stack gap="2xs">
                     <Text size="sm" fw={500}>
                       {plugin.assemblyName}
                     </Text>
@@ -262,24 +258,16 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
                   </Text>
                 </Table.Td>
                 <Table.Td>
-                  <Group gap={4}>
-                    <Badge size="sm" variant="light">
-                      {plugin.checkCount} total
-                    </Badge>
+                  <Group gap="xs">
+                    <Badge>{plugin.checkCount} total</Badge>
                     {plugin.generalCheckCount > 0 && (
-                      <Badge size="sm" variant="outline">
-                        {plugin.generalCheckCount} general
-                      </Badge>
+                      <Badge>{plugin.generalCheckCount} general</Badge>
                     )}
                     {plugin.beatmapCheckCount > 0 && (
-                      <Badge size="sm" variant="outline">
-                        {plugin.beatmapCheckCount} beatmap
-                      </Badge>
+                      <Badge>{plugin.beatmapCheckCount} beatmap</Badge>
                     )}
                     {plugin.beatmapSetCheckCount > 0 && (
-                      <Badge size="sm" variant="outline">
-                        {plugin.beatmapSetCheckCount} set
-                      </Badge>
+                      <Badge>{plugin.beatmapSetCheckCount} set</Badge>
                     )}
                   </Group>
                 </Table.Td>
@@ -297,7 +285,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ opened }) => {
               <Accordion.Item key={plugin.filePath} value={plugin.filePath}>
                 <Accordion.Control>{plugin.assemblyName}</Accordion.Control>
                 <Accordion.Panel>
-                  <Stack gap={4}>
+                  <Stack gap="xs">
                     <List>
                       {plugin.checkNames.map((checkName) => (
                         <List.Item key={checkName}>{checkName}</List.Item>

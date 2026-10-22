@@ -12,7 +12,6 @@ export interface NavBarTabProps {
 
 export function NavBarTab({ item, activeRoute, controlRef }: NavBarTabProps) {
   const theme = useMantineTheme();
-  const disabled = item.disabled ?? false;
   const [hovered, setHovered] = useState(false);
 
   const isActive =
@@ -23,13 +22,12 @@ export function NavBarTab({ item, activeRoute, controlRef }: NavBarTabProps) {
     () => ({
       position: 'relative' as const,
       zIndex: 1,
-      borderRadius: 5,
+      borderRadius: 'var(--mantine-radius-default)',
       fontFamily: theme.headings.fontFamily,
       fontWeight: 500 as const,
       fontSize: theme.fontSizes.sm,
       lineHeight: 1,
       color: labelColor,
-      viewTransitionName: 'none',
       transition: `color ${NAV_INDICATOR_TRANSITION_MS}ms ease, background-color 120ms ease`,
     }),
     [labelColor, theme.fontSizes.sm, theme.headings.fontFamily]
@@ -59,28 +57,11 @@ export function NavBarTab({ item, activeRoute, controlRef }: NavBarTabProps) {
     </Group>
   );
 
-  if (disabled) {
-    return (
-      <UnstyledButton
-        ref={controlRef}
-        type="button"
-        disabled
-        aria-disabled
-        data-nav-route={item.to}
-        opacity={0.45}
-        style={shellStyles}
-      >
-        {labelBody}
-      </UnstyledButton>
-    );
-  }
-
   return (
     <UnstyledButton
       ref={controlRef}
       component={Link}
       to={item.to}
-      viewTransition
       data-nav-route={item.to}
       data-active={isActive || undefined}
       onMouseEnter={() => setHovered(true)}

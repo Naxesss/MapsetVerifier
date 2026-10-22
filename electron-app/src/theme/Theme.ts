@@ -65,6 +65,9 @@ const primary: MantineColorsTuple = [
   '#0068b6',
 ] as const;
 
+/** Gap between a control and what opens from it (menus, popovers, dropdowns, tooltips). */
+const FLOATING_OFFSET = 4;
+
 export function createAppTheme(fontFamily: string) {
   const themeOverride = createTheme({
     fontFamily,
@@ -72,12 +75,16 @@ export function createAppTheme(fontFamily: string) {
       fontFamily,
     },
     defaultRadius: 5,
+    // rem, not em: an em gap shrinks inside small text (a 4px xs became 3.5px in 14px rows).
+    // xs inside a row, sm between rows, md between cards and blocks, lg between sections.
+    // 2xs is only for a title and the subtitle right below it.
     spacing: {
-      xs: '0.25em',
-      sm: '0.5em',
-      md: '1em',
-      lg: '2em',
-      xl: '4em',
+      '2xs': '0.125rem',
+      xs: '0.25rem',
+      sm: '0.5rem',
+      md: '1rem',
+      lg: '2rem',
+      xl: '4rem',
     },
     colors: {
       blue: blue,
@@ -117,11 +124,22 @@ export function createAppTheme(fontFamily: string) {
           },
         },
       },
+      // Information badges are light and xs everywhere; the star-rating badge is the one exception.
       Badge: {
+        defaultProps: {
+          size: 'xs',
+          variant: 'light',
+        },
         styles: {
           root: {
             transition: 'all 0.1s ease',
           },
+        },
+      },
+      // 36px, like the other toolbar inputs.
+      SegmentedControl: {
+        defaultProps: {
+          size: 'sm',
         },
       },
       Modal: {
@@ -138,13 +156,47 @@ export function createAppTheme(fontFamily: string) {
           },
         },
       },
-      Tooltip: {
+      // Anything that opens from a control sits one small step (xs, 4px) from it, so it reads as
+      // attached instead of floating; Mantine's default is 8px.
+      Menu: {
         defaultProps: {
-          withArrow: true,
+          offset: FLOATING_OFFSET,
         },
+      },
+      Popover: {
+        defaultProps: {
+          offset: FLOATING_OFFSET,
+        },
+      },
+      HoverCard: {
+        defaultProps: {
+          offset: FLOATING_OFFSET,
+        },
+      },
+      Combobox: {
+        defaultProps: {
+          offset: FLOATING_OFFSET,
+        },
+      },
+      Tooltip: {
+        // No arrow, like the menus and popovers: Mantine's 4px arrow barely showed and only read
+        // as a glitch. The one exception is the timeline object tooltip, which points at a spot.
+        defaultProps: {
+          offset: FLOATING_OFFSET,
+        },
+        // The same surface as the app's popovers and menus (dark with a thin border) instead of
+        // Mantine's light tooltip, so keys drawn with Kbd inside a tooltip match the page tips.
         styles: {
           tooltip: {
             textAlign: 'center',
+            backgroundColor: 'var(--mantine-color-dark-6)',
+            color: 'var(--mantine-color-text)',
+            border: '1px solid var(--mantine-color-dark-4)',
+            boxShadow: 'var(--mantine-shadow-md)',
+          },
+          // Kept for the tooltips that still draw an arrow, so it matches the border.
+          arrow: {
+            border: '1px solid var(--mantine-color-dark-4)',
           },
         },
       },
@@ -178,11 +230,13 @@ export function createAppTheme(fontFamily: string) {
             width: 'auto',
             minWidth: 0,
           },
+          // Fixed sizes rather than theme spacing: these were tuned when spacing was em-based and the
+          // toast text is xs (1em = 12px). The rem scale made the toast taller and the icon gap wider.
           icon: {
             background: 'none',
             borderRadius: 0,
-            paddingTop: 'var(--mantine-spacing-md)',
-            paddingBottom: 'var(--mantine-spacing-md)',
+            paddingTop: '0.75rem',
+            paddingBottom: '0.75rem',
             boxShadow: 'none',
             alignItems: 'center',
             justifyContent: 'center',
@@ -190,14 +244,14 @@ export function createAppTheme(fontFamily: string) {
             width: '1.125rem',
             height: '1.125rem',
             margin: 0,
-            marginRight: 'var(--mantine-spacing-sm)',
+            marginRight: '0.375rem',
           },
           loader: {
             background: 'none',
-            paddingTop: 'var(--mantine-spacing-md)',
-            paddingBottom: 'var(--mantine-spacing-md)',
+            paddingTop: '0.75rem',
+            paddingBottom: '0.75rem',
             margin: 0,
-            marginRight: 'var(--mantine-spacing-sm)',
+            marginRight: '0.375rem',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,

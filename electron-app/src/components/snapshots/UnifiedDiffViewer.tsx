@@ -1,9 +1,10 @@
-import { Accordion, Badge, Group, Text, useMantineTheme } from '@mantine/core';
-import { IconX } from '@tabler/icons-react';
-import { MouseEvent, useMemo, useState } from 'react';
+import { Accordion, Group, Text, useMantineTheme } from '@mantine/core';
+import { IconEqual } from '@tabler/icons-react';
+import { useMemo, useState } from 'react';
 import SnapshotDiffLine, { getDiffTypeIcon } from './SnapshotDiffLine';
 import { ApiSnapshotCommit, ApiSnapshotSection, DiffType } from '../../Types';
-import { InfoIconTooltip } from '../common/InfoIconTooltip.tsx';
+import EmptyState from '../common/EmptyState.tsx';
+import FilterChip from '../common/FilterChip.tsx';
 import VirtualizedList from '../common/VirtualizedList.tsx';
 
 interface UnifiedDiffViewerProps {
@@ -22,47 +23,39 @@ function SectionAccordion({ section }: { section: ApiSnapshotSection }) {
     [activeDiffFilter, section.diffs]
   );
 
-  const handleBadgeClick = (event: MouseEvent<HTMLElement>, diffType: DiffType) => {
-    event.preventDefault();
-    event.stopPropagation();
+  const toggleFilter = (diffType: DiffType) =>
     setActiveDiffFilter((current) => (current === diffType ? null : diffType));
-  };
 
-  const renderFilterBadge = (count: number, label: string, color: string, diffType: DiffType) => {
-    if (count <= 0) {
-      return null;
-    }
-
-    const isActive = activeDiffFilter === diffType;
-    return (
-      <Badge
-        size="sm"
+  const filterChip = (count: number, color: string, diffType: DiffType) =>
+    count > 0 && (
+      <FilterChip
+        label={diffType}
+        count={count}
         color={color}
-        variant={isActive ? 'filled' : 'light'}
-        style={{ cursor: 'pointer', userSelect: 'none' }}
-        onClick={(event) => handleBadgeClick(event, diffType)}
-      >
-        <Group gap={4} wrap="nowrap">
-          <Text inherit>{count}</Text>
-          <Text inherit>{label}</Text>
-          {isActive && <IconX size={12} />}
-        </Group>
-      </Badge>
+        icon={getDiffTypeIcon(diffType, 14)}
+        active={activeDiffFilter === diffType}
+        onClick={() => toggleFilter(diffType)}
+      />
     );
-  };
 
   return (
     <Accordion.Item value={section.name}>
-      <Accordion.Control>
-        <Group gap="sm">
-          {getDiffTypeIcon(section.aggregatedDiffType, 18)}
-          <Text fw={500}>{section.name}</Text>
-          {renderFilterBadge(section.additions, 'Added', 'green', 'Added')}
-          {renderFilterBadge(section.removals, 'Removed', 'red', 'Removed')}
-          {renderFilterBadge(section.modifications, 'Changed', 'yellow', 'Changed')}
-          <InfoIconTooltip label="Click badges to filter by diff type" />
+      {/* The filters sit beside the control rather than in it: buttons can't nest in its button. */}
+      <Group gap="xs" wrap="nowrap" pr="sm">
+        <Accordion.Control style={{ flex: 1, minWidth: 0 }}>
+          <Group gap="sm" wrap="nowrap">
+            {getDiffTypeIcon(section.aggregatedDiffType, 18)}
+            <Text size="sm" fw={600}>
+              {section.name}
+            </Text>
+          </Group>
+        </Accordion.Control>
+        <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
+          {filterChip(section.additions, 'green', 'Added')}
+          {filterChip(section.removals, 'red', 'Removed')}
+          {filterChip(section.modifications, 'yellow', 'Changed')}
         </Group>
-      </Accordion.Control>
+      </Group>
       <Accordion.Panel>
         <VirtualizedList
           items={visibleDiffs}
@@ -89,9 +82,11 @@ function UnifiedDiffViewer({ commit }: UnifiedDiffViewerProps) {
 
   if (commit.sections.length === 0) {
     return (
-      <Text c="dimmed" size="sm" py="md">
-        This difficulty did not change while the mapset was snapshotted at this time.
-      </Text>
+      <EmptyState
+        icon={IconEqual}
+        title="No changes"
+        description="This difficulty did not change in this snapshot."
+      />
     );
   }
 
@@ -99,15 +94,16 @@ function UnifiedDiffViewer({ commit }: UnifiedDiffViewerProps) {
     <Accordion
       variant="separated"
       multiple
+      chevronPosition="left"
       value={expandedSections}
       onChange={setExpandedSections}
       styles={{
+        // Sections sit inside the Changes card, so they are a step lighter than it.
         root: {
-          backgroundColor: theme.colors.dark[6],
           border: 0,
         },
         item: {
-          backgroundColor: theme.colors.dark[7],
+          backgroundColor: theme.colors.dark[6],
           borderRadius: theme.radius.md,
           border: 0,
           boxShadow: 'none',

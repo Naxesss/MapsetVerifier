@@ -1,31 +1,31 @@
 ﻿import {
-  Alert,
+  ActionIcon,
   Box,
-  CloseButton,
   Group,
-  Loader,
-  Skeleton,
-  SimpleGrid,
-  Space,
+  Popover,
   Stack,
-  Tabs,
   Text,
-  TextInput,
+  Tooltip,
   useMantineTheme,
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
-import { IconAlertCircle, IconSearch } from '@tabler/icons-react';
+import { IconHelpCircle, IconListSearch, IconSearchOff } from '@tabler/icons-react';
 import React, { useEffect, useMemo, useState } from 'react';
-import BeatmapChecks from './BeatmapChecks.tsx';
-import DocumentationCheck from './DocumentationCheck';
+import DocumentationCheckList from './DocumentationCheckList';
+import DocumentationModeSelect, {
+  documentationCategoryLabel,
+  type DocumentationCategory,
+} from './DocumentationModeSelect';
 import {
   dedupeDocumentationChecksById,
   filterDocumentationChecks,
 } from './filterDocumentationChecks';
-import GeneralChecks from './GeneralChecks';
 import { useDocumentationChecks } from './hooks/useDocumentationChecks';
 import { countWord, pluralize } from '../../utils/countWord';
-import { formatGameModeLabel } from '../../utils/gameMode';
+import EmptyState from '../common/EmptyState.tsx';
+import { MicroLabel } from '../common/Headings.tsx';
+import SearchInput from '../common/SearchInput.tsx';
+import StickyToolbar from '../common/StickyToolbar.tsx';
 import ErrorIcon from '../icons/ErrorIcon.tsx';
 import InfoLevelIcon from '../icons/InfoLevelIcon.tsx';
 import MinorIcon from '../icons/MinorIcon.tsx';
@@ -34,46 +34,6 @@ import ProblemIcon from '../icons/ProblemIcon.tsx';
 import SnapshotHasChangesIcon from '../icons/SnapshotHasChangesIcon.tsx';
 import SnapshotNoChangesIcon from '../icons/SnapshotNoChangesIcon.tsx';
 import WarningIcon from '../icons/WarningIcon.tsx';
-import type { ApiDocumentationCheck, Mode } from '../../Types';
-
-/**
- * Mounting the check list is CPU-heavy (per-row theme resolution across 100+ checks). Waiting
- * two rAFs lets the route swap paint first, so navigation feels instant and the list pops in
- * right after instead of blocking the transition.
- */
-function useDeferredReady() {
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    let inner = 0;
-    const outer = requestAnimationFrame(() => {
-      inner = requestAnimationFrame(() => setReady(true));
-    });
-    return () => {
-      cancelAnimationFrame(outer);
-      cancelAnimationFrame(inner);
-    };
-  }, []);
-
-  return ready;
-}
-
-function CheckListSkeleton({ rows = 6 }: { rows?: number }) {
-  return (
-    <Stack gap="xs" w="100%">
-      {Array.from({ length: rows }).map((_, i) => (
-        <Skeleton key={i} height={56} radius="var(--mantine-radius-md)" />
-      ))}
-    </Stack>
-  );
-}
-
-const BEATMAP_TAB_TO_MODE: Record<string, Mode> = {
-  standard: 'Standard',
-  taiko: 'Taiko',
-  catch: 'Catch',
-  mania: 'Mania',
-};
 
 interface InfoIconExplanationProp {
   icon: React.ReactNode;
@@ -94,19 +54,18 @@ function DocumentationIconExplanation(props: InfoIconExplanationProp) {
     <Group
       wrap="nowrap"
       align="center"
-      gap="md"
-      p="sm"
+      gap="sm"
+      p="xs"
       w="100%"
-      style={{ background, borderRadius: theme.defaultRadius, minWidth: 0, height: '100%' }}
+      style={{ background, borderRadius: theme.defaultRadius, minWidth: 0 }}
     >
       <Box style={{ flexShrink: 0, lineHeight: 0 }}>{props.icon}</Box>
-      <Stack gap={0} style={{ flexShrink: 0 }}>
-        <Text fw="bold">{props.title}</Text>
-        <Text fs="italic" size="xs" c="dimmed">
-          {props.category}
-        </Text>
-      </Stack>
-      <Text style={{ flex: 1, minWidth: 0 }}>{props.description}</Text>
+      <Text size="sm" fw={600} w={90} style={{ flexShrink: 0 }}>
+        {props.title}
+      </Text>
+      <Text size="sm" style={{ flex: 1, minWidth: 0 }}>
+        {props.description}
+      </Text>
     </Group>
   );
 }
@@ -162,19 +121,36 @@ const DOCUMENTATION_ICON_EXPLANATIONS: InfoIconExplanationProp[] = [
   },
 ];
 
-/** Static header: not a child of search state, so it does not re-render on every keystroke. */
-function DocumentationIconsSection() {
+const ICON_LEGEND_LABEL = 'What do the icons mean?';
+
+/** The icon legend, folded into a popover next to the search so the checks start at the top. */
+function DocumentationIconLegend() {
+  const categories = [...new Set(DOCUMENTATION_ICON_EXPLANATIONS.map((item) => item.category))];
+
   return (
-    <Stack gap="xs">
-      <Text fw={700} size="md">
-        Icons
-      </Text>
-      <SimpleGrid cols={2} spacing="xs">
-        {DOCUMENTATION_ICON_EXPLANATIONS.map((item) => (
-          <DocumentationIconExplanation key={`${item.category}-${item.title}`} {...item} />
-        ))}
-      </SimpleGrid>
-    </Stack>
+    <Popover position="bottom-end" shadow="md" width={440} withinPortal>
+      <Tooltip label={ICON_LEGEND_LABEL}>
+        <Popover.Target>
+          <ActionIcon variant="default" size="input-sm" aria-label={ICON_LEGEND_LABEL}>
+            <IconHelpCircle size={18} stroke={1.5} />
+          </ActionIcon>
+        </Popover.Target>
+      </Tooltip>
+      <Popover.Dropdown p="sm">
+        <Stack gap="sm">
+          {categories.map((category) => (
+            <Stack key={category} gap="xs">
+              <MicroLabel>{category}</MicroLabel>
+              {DOCUMENTATION_ICON_EXPLANATIONS.filter((item) => item.category === category).map(
+                (item) => (
+                  <DocumentationIconExplanation key={`${item.category}-${item.title}`} {...item} />
+                )
+              )}
+            </Stack>
+          ))}
+        </Stack>
+      </Popover.Dropdown>
+    </Popover>
   );
 }
 
@@ -193,32 +169,24 @@ function DocumentationSearchField({ onSearchApplied }: DocumentationSearchFieldP
   }, [debouncedSearchQuery, onSearchApplied]);
 
   return (
-    <TextInput
-      placeholder="Search all checks (name, category, author, mode)…"
+    <SearchInput
+      style={{ flex: 1, minWidth: 220 }}
+      placeholder="Search checks…"
+      hint="Searches check name, category, author and mode across all modes."
       value={searchInput}
-      onChange={(e) => setSearchInput(e.currentTarget.value)}
-      leftSection={<IconSearch size={18} stroke={1.5} />}
-      rightSection={
-        searchInput ? (
-          <CloseButton
-            aria-label="Clear search"
-            onClick={() => {
-              setSearchInput('');
-              onSearchApplied('');
-            }}
-            size="sm"
-          />
-        ) : null
-      }
-      mb="md"
+      onChange={(value) => {
+        setSearchInput(value);
+        // Clearing applies right away instead of waiting for the debounce.
+        if (value === '') onSearchApplied('');
+      }}
     />
   );
 }
 
-/** Lists + data hooks: re-renders when applied search or tabs change, not on every keystroke. */
+/** Lists + data hooks: re-renders when applied search or the category change, not on every keystroke. */
 function DocumentationChecksBrowser() {
   const [appliedSearchQuery, setAppliedSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('general');
+  const [category, setCategory] = useState<DocumentationCategory>('general');
   const {
     allChecks,
     generalChecks,
@@ -234,121 +202,63 @@ function DocumentationChecksBrowser() {
   );
 
   const isSearching = appliedSearchQuery.trim().length > 0;
-  const ready = useDeferredReady();
 
-  const categoryCountSummary = useMemo(() => {
-    if (allChecksLoading) return 'Loading check counts…';
-    if (activeTab === 'general') {
-      const n = generalChecks?.length ?? 0;
-      return `Showing ${countWord(n, 'check')} (General).`;
-    }
-    const mode = BEATMAP_TAB_TO_MODE[activeTab];
-    if (!mode) return '';
-    const n = beatmapChecks[mode]?.length ?? 0;
-    return `Showing ${countWord(n, 'check')} (${formatGameModeLabel(mode)}).`;
-  }, [activeTab, allChecksLoading, generalChecks, beatmapChecks]);
+  const countOf = (value: DocumentationCategory) => {
+    if (allChecksLoading) return null;
+    return value === 'general' ? (generalChecks?.length ?? 0) : (beatmapChecks[value]?.length ?? 0);
+  };
+  const categoryCount = countOf(category);
+  const categoryLabel = documentationCategoryLabel(category);
 
+  // Laid out like Ranking criteria: a sticky toolbar (what to browse, search, help; then what the
+  // list shows), the list below.
   return (
-    <>
-      <DocumentationSearchField onSearchApplied={setAppliedSearchQuery} />
-      {isSearching ? (
-        <Group gap="xs">
-          {allChecksLoading && <Loader size="sm" />}
-          {allChecksError && (
-            <Alert icon={<IconAlertCircle />} color="red">
-              Failed to load checks for search.
-            </Alert>
-          )}
-          {!allChecksLoading && !allChecksError && !ready && <CheckListSkeleton />}
-          {!allChecksLoading && !allChecksError && ready && (
-            <Box className="mv-deferred-content-enter" w="100%">
-              <Text size="xs" c="dimmed">
-                Showing {filteredAllChecks.length} of {dedupedChecks.length}{' '}
-                {pluralize(dedupedChecks.length, 'check')} across all categories
-              </Text>
-              {filteredAllChecks.length === 0 ? (
-                <Text size="xs" c="dimmed">
-                  No checks match your search.
-                </Text>
-              ) : (
-                filteredAllChecks.map((check: ApiDocumentationCheck) => (
-                  <DocumentationCheck key={check.id} check={check} />
-                ))
-              )}
-            </Box>
-          )}
+    <Stack gap="sm">
+      <StickyToolbar>
+        <Group gap="sm" wrap="nowrap">
+          <DocumentationModeSelect
+            value={category}
+            disabled={isSearching}
+            countOf={countOf}
+            onChange={setCategory}
+          />
+          <DocumentationSearchField onSearchApplied={setAppliedSearchQuery} />
+          <DocumentationIconLegend />
         </Group>
+        <Text size="xs" c="dimmed">
+          {isSearching
+            ? `Showing ${filteredAllChecks.length} of ${dedupedChecks.length} ${pluralize(dedupedChecks.length, 'check')} across all categories`
+            : categoryCount === null
+              ? 'Loading check counts…'
+              : `Showing ${countWord(categoryCount, 'check')} (${documentationCategoryLabel(category)})`}
+        </Text>
+      </StickyToolbar>
+      {isSearching ? (
+        <DocumentationCheckList
+          checks={filteredAllChecks}
+          isLoading={allChecksLoading}
+          isError={allChecksError}
+          errorMessage="Couldn't load the checks to search."
+          emptyState={<EmptyState icon={IconSearchOff} title="No checks match your search" />}
+        />
       ) : (
-        <Tabs value={activeTab} onChange={(v) => setActiveTab(v ?? 'general')} keepMounted={false}>
-          <Tabs.List grow>
-            <Tabs.Tab value="general">General</Tabs.Tab>
-            <Tabs.Tab value="standard">{formatGameModeLabel('Standard')}</Tabs.Tab>
-            <Tabs.Tab value="taiko">{formatGameModeLabel('Taiko')}</Tabs.Tab>
-            <Tabs.Tab value="catch">{formatGameModeLabel('Catch')}</Tabs.Tab>
-            <Tabs.Tab value="mania">{formatGameModeLabel('Mania')}</Tabs.Tab>
-          </Tabs.List>
-          <Text size="xs" c="dimmed" mt="md">
-            {categoryCountSummary}
-          </Text>
-          <Tabs.Panel value="general" pt="sm">
-            {ready ? (
-              <Box className="mv-deferred-content-enter" w="100%">
-                <GeneralChecks />
-              </Box>
-            ) : (
-              <CheckListSkeleton />
-            )}
-          </Tabs.Panel>
-          <Tabs.Panel value="standard" pt="sm">
-            {ready ? (
-              <Box className="mv-deferred-content-enter" w="100%">
-                <BeatmapChecks mode="Standard" />
-              </Box>
-            ) : (
-              <CheckListSkeleton />
-            )}
-          </Tabs.Panel>
-          <Tabs.Panel value="taiko" pt="sm">
-            {ready ? (
-              <Box className="mv-deferred-content-enter" w="100%">
-                <BeatmapChecks mode="Taiko" />
-              </Box>
-            ) : (
-              <CheckListSkeleton />
-            )}
-          </Tabs.Panel>
-          <Tabs.Panel value="catch" pt="sm">
-            {ready ? (
-              <Box className="mv-deferred-content-enter" w="100%">
-                <BeatmapChecks mode="Catch" />
-              </Box>
-            ) : (
-              <CheckListSkeleton />
-            )}
-          </Tabs.Panel>
-          <Tabs.Panel value="mania" pt="sm">
-            {ready ? (
-              <Box className="mv-deferred-content-enter" w="100%">
-                <BeatmapChecks mode="Mania" />
-              </Box>
-            ) : (
-              <CheckListSkeleton />
-            )}
-          </Tabs.Panel>
-        </Tabs>
+        <DocumentationCheckList
+          key={category}
+          checks={category === 'general' ? generalChecks : beatmapChecks[category]}
+          isLoading={allChecksLoading}
+          isError={allChecksError}
+          errorMessage={`Couldn't load the ${categoryLabel} checks.`}
+          emptyState={
+            <EmptyState icon={IconListSearch} title={`No ${categoryLabel} checks found`} />
+          }
+        />
       )}
-    </>
+    </Stack>
   );
 }
 
 function Documentation() {
-  return (
-    <>
-      <DocumentationIconsSection />
-      <Space h="md" />
-      <DocumentationChecksBrowser />
-    </>
-  );
+  return <DocumentationChecksBrowser />;
 }
 
 export default Documentation;

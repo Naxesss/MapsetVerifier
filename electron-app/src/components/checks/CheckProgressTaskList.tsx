@@ -42,7 +42,7 @@ function CheckProgressTaskList({ progress }: CheckProgressTaskListProps) {
   return (
     <Box
       pos="relative"
-      mt={4}
+      mt="xs"
       style={{
         height: containerHeight,
         transition: `height ${TRANSITION_MS}ms ${TRANSITION_EASING}`,

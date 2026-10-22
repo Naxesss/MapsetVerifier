@@ -1,33 +1,14 @@
-import { Stack, Text } from '@mantine/core';
 import { IconGhost2 } from '@tabler/icons-react';
+import EmptyState from './EmptyState.tsx';
 
 function NoBeatmapsetDisplay() {
   return (
-    <Stack
-      h="100%"
-      mih={280}
-      justify="center"
-      align="center"
-      gap="sm"
-      style={{ textAlign: 'center' }}
-    >
-      <IconGhost2
-        size={112}
-        stroke={1.4}
-        style={{
-          opacity: 0.22,
-          color: 'var(--mantine-color-primary-2)',
-          userSelect: 'none',
-          pointerEvents: 'none',
-        }}
-      />
-      <Text fw={700} size="lg">
-        No mapset selected...
-      </Text>
-      <Text size="sm" c="dimmed">
-        Please select a mapset on the left side menu
-      </Text>
-    </Stack>
+    <EmptyState
+      fullHeight
+      icon={IconGhost2}
+      title="No mapset selected"
+      description="Pick a mapset from the list on the left. The mapset open in osu! is shown at the top of the list."
+    />
   );
 }
 

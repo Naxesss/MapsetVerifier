@@ -1,4 +1,4 @@
-import { Button, ColorSwatch, Group, Stack, useMantineTheme } from '@mantine/core';
+import { Button, ColorSwatch, Group, Stack, Text, useMantineTheme } from '@mantine/core';
 import { memo } from 'react';
 import type { SeriesConfig } from './types.ts';
 
@@ -7,9 +7,17 @@ type TimeSeriesLegendProps = {
   isVisible: (seriesId: string) => boolean;
   onToggle: (seriesId: string) => void;
   onIsolate: (seriesId: string) => void;
+  /** Called with a series' visibility id while its entry is hovered or focused, null after. */
+  onHighlight?: (seriesId: string | null) => void;
 };
 
-function TimeSeriesLegend({ series, isVisible, onToggle, onIsolate }: TimeSeriesLegendProps) {
+function TimeSeriesLegend({
+  series,
+  isVisible,
+  onToggle,
+  onIsolate,
+  onHighlight,
+}: TimeSeriesLegendProps) {
   const theme = useMantineTheme();
   const legendSeries = series.filter((item) => !item.hideFromLegend);
 
@@ -47,7 +55,10 @@ function TimeSeriesLegend({ series, isVisible, onToggle, onIsolate }: TimeSeries
                 }
               }}
               aria-pressed={visible}
-              title="Click to isolate, Ctrl/Cmd+click to toggle just this one"
+              onMouseEnter={() => onHighlight?.(visibilityId)}
+              onMouseLeave={() => onHighlight?.(null)}
+              onFocus={() => onHighlight?.(visibilityId)}
+              onBlur={() => onHighlight?.(null)}
               leftSection={
                 <ColorSwatch
                   color={item.color}
@@ -81,6 +92,11 @@ function TimeSeriesLegend({ series, isVisible, onToggle, onIsolate }: TimeSeries
               }}
             >
               {item.label}
+              {item.legendNote && (
+                <Text span inherit c="dimmed" ml={6}>
+                  {item.legendNote}
+                </Text>
+              )}
             </Button>
           );
         })}

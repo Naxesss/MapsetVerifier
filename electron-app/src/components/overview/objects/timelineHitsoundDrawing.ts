@@ -13,7 +13,13 @@ import {
   type HitsoundLayerVisibility,
   type PrimaryEdgeMarker,
 } from './hitsoundUtils.ts';
-import { getTimelineX, getObjectBodyWidth } from './timelineUtils.ts';
+import {
+  findLowerBoundIndex,
+  getObjectBodyWidth,
+  getTimelineTimeFromX,
+  getTimelineX,
+  type TimelineSoundStripCache,
+} from './timelineUtils.ts';
 import { withAlpha } from '../../../utils/color.ts';
 import type {
   ObjectsHitsoundGapPeriod,
@@ -268,48 +274,122 @@ function getBodyMarkerX(
   return x;
 }
 
+function isNonDecreasingTime(samples: ObjectsTimelineSample[]): boolean {
+  for (let index = 1; index < samples.length; index += 1) {
+    if (samples[index].timeMs < samples[index - 1].timeMs) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function sliceTimeRange(
+  samples: ObjectsTimelineSample[],
+  rangeStart: number,
+  rangeEnd: number
+): ObjectsTimelineSample[] {
+  const start = findLowerBoundIndex(samples, rangeStart, (sample) => sample.timeMs);
+  let end = findLowerBoundIndex(samples, rangeEnd, (sample) => sample.timeMs);
+  while (end < samples.length && samples[end].timeMs <= rangeEnd) {
+    end += 1;
+  }
+
+  return samples.slice(start, end);
+}
+
+function findFirstBaseEdgeNear(
+  baseEdgesByTime: { sample: ObjectsTimelineSample; index: number }[],
+  timeMs: number
+): ObjectsTimelineSample | undefined {
+  const start = findLowerBoundIndex(baseEdgesByTime, timeMs - 2, (entry) => entry.sample.timeMs);
+  let end = findLowerBoundIndex(baseEdgesByTime, timeMs + 2, (entry) => entry.sample.timeMs);
+  while (end < baseEdgesByTime.length && baseEdgesByTime[end].sample.timeMs <= timeMs + 2) {
+    end += 1;
+  }
+
+  let bestIndex = Number.POSITIVE_INFINITY;
+  let best: ObjectsTimelineSample | undefined;
+
+  for (let index = start; index < end; index += 1) {
+    const entry = baseEdgesByTime[index];
+    if (Math.abs(entry.sample.timeMs - timeMs) > 2 || entry.index >= bestIndex) {
+      continue;
+    }
+
+    best = entry.sample;
+    bestIndex = entry.index;
+  }
+
+  return best;
+}
+
+function orderIndicesByTime(items: { timeMs: number }[]): number[] {
+  const order = items.map((_, index) => index);
+  order.sort((left, right) => items[left].timeMs - items[right].timeMs || left - right);
+  return order;
+}
+
 export function enrichBodySamplesForDisplay(
   samples: ObjectsTimelineSample[],
   timelineObjects: ObjectsTimelineObject[]
 ): ObjectsTimelineSample[] {
   const enriched = [...samples];
   const whistleTimes = new Set<number>();
+  const whistleSamples: ObjectsTimelineSample[] = [];
+  const baseBodySamples: ObjectsTimelineSample[] = [];
+  const baseEdges: { sample: ObjectsTimelineSample; index: number }[] = [];
 
-  for (const sample of samples) {
+  for (let index = 0; index < samples.length; index += 1) {
+    const sample = samples[index];
     if (isSliderWhistleSample(sample)) {
       whistleTimes.add(sample.timeMs);
+      whistleSamples.push(sample);
+    }
+
+    if (sample.source === 'Body' && isBaseBodySample(sample)) {
+      baseBodySamples.push(sample);
+    }
+
+    if (sample.source === 'Edge' && isBaseEdgeSample(sample)) {
+      baseEdges.push({ sample, index });
     }
   }
+
+  const whistleSamplesByTime = whistleSamples
+    .slice()
+    .sort((left, right) => left.timeMs - right.timeMs);
+  const baseEdgesByTime = baseEdges
+    .slice()
+    .sort((left, right) => left.sample.timeMs - right.sample.timeMs || left.index - right.index);
+  const baseBodyIsTimeSorted = isNonDecreasingTime(baseBodySamples);
 
   for (const object of timelineObjects) {
     if (object.objectType !== 'Slider') {
       continue;
     }
 
-    const inRangeBaseSamples = samples.filter(
-      (sample) =>
-        sample.source === 'Body' &&
-        isBaseBodySample(sample) &&
-        sample.timeMs >= object.startTimeMs - 1 &&
-        sample.timeMs <= object.endTimeMs + 1
+    const rangeStart = object.startTimeMs - 1;
+    const rangeEnd = object.endTimeMs + 1;
+    const inRangeBaseSamples = baseBodyIsTimeSorted
+      ? sliceTimeRange(baseBodySamples, rangeStart, rangeEnd)
+      : baseBodySamples.filter(
+          (sample) => sample.timeMs >= rangeStart && sample.timeMs <= rangeEnd
+        );
+    const whistleStart = findLowerBoundIndex(
+      whistleSamplesByTime,
+      rangeStart,
+      (sample) => sample.timeMs
     );
-    const hasWhistleInRange = samples.some(
-      (sample) =>
-        isSliderWhistleSample(sample) &&
-        sample.timeMs >= object.startTimeMs - 1 &&
-        sample.timeMs <= object.endTimeMs + 1
-    );
+    const hasWhistleInRange =
+      whistleStart < whistleSamplesByTime.length &&
+      whistleSamplesByTime[whistleStart].timeMs <= rangeEnd;
 
     if (
       inRangeBaseSamples.length === 0 &&
       hasSliderBodyWhistle(object.sliderBodyHitSoundFlags ?? 0)
     ) {
-      const headSample = samples.find(
-        (sample) =>
-          sample.source === 'Edge' &&
-          Math.abs(sample.timeMs - object.startTimeMs) <= 2 &&
-          isBaseEdgeSample(sample)
-      );
+      const headSample = findFirstBaseEdgeNear(baseEdgesByTime, object.startTimeMs);
       const fallbackSampleset = headSample?.sampleset ?? 'Normal';
 
       enriched.push({
@@ -344,6 +424,40 @@ export function enrichBodySamplesForDisplay(
   return enriched;
 }
 
+export function buildSoundStripDrawCache(
+  samples: ObjectsTimelineSample[],
+  timelineObjects: ObjectsTimelineObject[],
+  primaryEdgeMarkers: PrimaryEdgeMarker[]
+): TimelineSoundStripCache {
+  const passiveSamples = enrichBodySamplesForDisplay(samples, timelineObjects);
+  return {
+    passiveSamples,
+    pairedBodyTimes: buildPairedBodyTimes(passiveSamples),
+    passiveOrder: orderIndicesByTime(passiveSamples),
+    edgeOrder: orderIndicesByTime(primaryEdgeMarkers),
+  };
+}
+
+function forEachInTimeWindow<T extends { timeMs: number }>(
+  items: T[],
+  order: number[],
+  startMs: number,
+  endMs: number,
+  visit: (item: T) => void
+) {
+  const start = findLowerBoundIndex(order, startMs, (index) => items[index].timeMs);
+  let end = findLowerBoundIndex(order, endMs, (index) => items[index].timeMs);
+  while (end < order.length && items[order[end]].timeMs <= endMs) {
+    end += 1;
+  }
+
+  const visible = order.slice(start, end);
+  visible.sort((left, right) => left - right);
+  for (const index of visible) {
+    visit(items[index]);
+  }
+}
+
 export function drawSoundStrip(
   ctx: CanvasRenderingContext2D,
   {
@@ -356,6 +470,7 @@ export function drawSoundStrip(
     visibleEndX,
     height,
     primaryEdgeMarkers,
+    soundStrip,
   }: {
     difficulty: ObjectsOverviewDifficulty;
     layers: HitsoundLayerVisibility;
@@ -366,31 +481,31 @@ export function drawSoundStrip(
     visibleEndX: number;
     height: number;
     primaryEdgeMarkers: PrimaryEdgeMarker[];
+    soundStrip?: TimelineSoundStripCache;
   }
 ) {
-  const samples = enrichBodySamplesForDisplay(
-    difficulty.timelineSamples ?? [],
-    difficulty.timelineObjects
-  );
-  const pairedBodyTimes = buildPairedBodyTimes(samples);
+  const samples =
+    soundStrip?.passiveSamples ??
+    enrichBodySamplesForDisplay(difficulty.timelineSamples ?? [], difficulty.timelineObjects);
+  const pairedBodyTimes = soundStrip?.pairedBodyTimes ?? buildPairedBodyTimes(samples);
   const bounds = getSoundStripBounds(height);
+  const cullMargin = getPassiveMarkerCullMargin();
 
   drawLaneDivider(ctx, bounds, visibleStartX, visibleEndX);
 
-  for (const sample of samples) {
+  const drawPassiveSample = (sample: ObjectsTimelineSample) => {
     if (sample.source === 'Body' && !layers.body) {
-      continue;
+      return;
     }
     if (sample.source === 'Tick' && !layers.ticks) {
-      continue;
+      return;
     }
     if (sample.source !== 'Body' && sample.source !== 'Tick') {
-      continue;
+      return;
     }
 
     const x = getTimelineX(sample.timeMs, startTimeMs, durationMs, width);
-    const cullMargin = getPassiveMarkerCullMargin();
-    if (x < visibleStartX - cullMargin || x > visibleEndX + cullMargin) continue;
+    if (x < visibleStartX - cullMargin || x > visibleEndX + cullMargin) return;
 
     if (sample.source === 'Tick') {
       const color = withAlpha(getSamplesetColor(sample.sampleset), 0.9);
@@ -402,13 +517,48 @@ export function drawSoundStrip(
       );
       drawBodyMarker(ctx, getBodyMarkerX(sample, x, pairedBodyTimes), bounds, bodyColor);
     }
+  };
+
+  if (soundStrip) {
+    const windowStartMs =
+      getTimelineTimeFromX(visibleStartX - cullMargin, startTimeMs, durationMs, width) - 1;
+    const windowEndMs =
+      getTimelineTimeFromX(visibleEndX + cullMargin, startTimeMs, durationMs, width) + 1;
+    forEachInTimeWindow(
+      samples,
+      soundStrip.passiveOrder,
+      windowStartMs,
+      windowEndMs,
+      drawPassiveSample
+    );
+  } else {
+    for (const sample of samples) {
+      drawPassiveSample(sample);
+    }
   }
 
-  for (const marker of primaryEdgeMarkers) {
+  const drawEdge = (marker: PrimaryEdgeMarker) => {
     const x = getTimelineX(marker.timeMs, startTimeMs, durationMs, width);
-    if (x < visibleStartX - 4 || x > visibleEndX + 4) continue;
+    if (x < visibleStartX - 4 || x > visibleEndX + 4) return;
 
     drawEdgeMarker(ctx, x, bounds, getSamplesetColor(marker.sampleset));
+  };
+
+  if (soundStrip) {
+    const windowStartMs =
+      getTimelineTimeFromX(visibleStartX - 4, startTimeMs, durationMs, width) - 1;
+    const windowEndMs = getTimelineTimeFromX(visibleEndX + 4, startTimeMs, durationMs, width) + 1;
+    forEachInTimeWindow(
+      primaryEdgeMarkers,
+      soundStrip.edgeOrder,
+      windowStartMs,
+      windowEndMs,
+      drawEdge
+    );
+  } else {
+    for (const marker of primaryEdgeMarkers) {
+      drawEdge(marker);
+    }
   }
 }
 

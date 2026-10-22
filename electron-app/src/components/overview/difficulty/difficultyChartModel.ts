@@ -1,5 +1,5 @@
 import { clampColor, parseColor } from '../../../utils/color.ts';
-import { MODE_ORDER, normalizeMode } from '../../../utils/gameMode.ts';
+import { normalizeMode } from '../../../utils/gameMode.ts';
 import { getDifficultyColor } from '../../common/DifficultyColor.ts';
 import { formatChartTime } from '../../common/TimeAxis.tsx';
 import type {
@@ -47,7 +47,53 @@ export type DifficultyModeGroup = {
   difficulties: DifficultyOverviewDifficulty[];
 };
 
+/**
+ * The star-rating colour, the same one used everywhere else a difficulty is coloured. Two
+ * difficulties that land on the same colour are nudged apart so their lines stay distinct, and
+ * the nudge follows the full list so hiding a difficulty doesn't recolour the ones still shown.
+ */
+function buildSeriesColours(difficulties: DifficultyOverviewDifficulty[]): Map<string, string> {
+  const previousRatings: number[] = [];
+  const colours = new Map<string, string>();
+
+  for (const difficulty of difficulties) {
+    colours.set(difficulty.label, getGraphColor(difficulty.starRating, previousRatings));
+    previousRatings.push(difficulty.starRating);
+  }
+
+  return colours;
+}
+
+function getGraphColor(starRating: number, previousRatings: number[]): string {
+  const baseValue = getDifficultyColor(starRating);
+  const baseColor = parseColor(baseValue);
+  const sameColorCount = previousRatings.filter(
+    (rating) => getDifficultyColor(rating) === baseValue
+  ).length;
+
+  let red = baseColor.r;
+  let green = baseColor.g;
+  let blue = baseColor.b;
+  const dominant = Math.max(baseColor.r, baseColor.g, baseColor.b);
+
+  for (let index = 0; index < sameColorCount; index += 1) {
+    const mult = 0.7;
+    const multInverse = 1 / mult;
+
+    red *= mult;
+    green *= mult;
+    blue *= mult;
+
+    if (baseColor.r === dominant) red *= multInverse;
+    else if (baseColor.g === dominant) green *= multInverse;
+    else blue *= multInverse;
+  }
+
+  return `rgb(${clampColor(red)}, ${clampColor(green)}, ${clampColor(blue)})`;
+}
+
 export const SAMPLE_VOLUME_CHART_TITLE = 'Sample volume';
+export const STAR_RATING_CHART_TITLE = 'Star rating';
 
 export type ChartDefinition = {
   title: string;
@@ -81,13 +127,19 @@ function toChartPoints(samples: DifficultySamplePoint[]): DifficultyChartDataPoi
 
 export function buildCharts(
   difficulties: DifficultyOverviewDifficulty[],
-  msPerPeak?: number
+  msPerPeak?: number,
+  /** Every difficulty of the mode, when `difficulties` is only the ones picked to compare, so a
+   *  difficulty keeps its colour however many others are shown. */
+  colourDifficulties: DifficultyOverviewDifficulty[] = difficulties
 ): ChartDefinition[] {
   if (!msPerPeak || difficulties.length === 0) {
     return [];
   }
 
   const chartSeries: ChartDefinition[] = [];
+  const colours = buildSeriesColours(colourDifficulties);
+  const colourFor = (series: DifficultyChartSeries) =>
+    colours.get(series.label.replace(/ \(strain\)$/, '')) ?? getDifficultyColor(series.starRating);
   const starRatingSeries = difficulties
     .map((difficulty) => buildStarRatingSeries(difficulty))
     .filter((series) => series.points.length > 0);
@@ -99,7 +151,8 @@ export function buildCharts(
   if (starRatingSeries.length > 0 || starRatingStrainSeries.length > 0) {
     chartSeries.push(
       buildChartDefinition(
-        'Star Rating',
+        STAR_RATING_CHART_TITLE,
+        colourFor,
         starRatingSeries,
         msPerPeak,
         '★',
@@ -122,6 +175,7 @@ export function buildCharts(
     chartSeries.push(
       buildChartDefinition(
         'Slider velocity',
+        colourFor,
         sliderVelocitySeries,
         msPerPeak,
         '×',
@@ -141,6 +195,7 @@ export function buildCharts(
     chartSeries.push(
       buildChartDefinition(
         SAMPLE_VOLUME_CHART_TITLE,
+        colourFor,
         volumeSeries,
         msPerPeak,
         '%',
@@ -169,7 +224,7 @@ export function buildCharts(
   }
 
   for (const [skillName, skillSeries] of skillSeriesMap.entries()) {
-    chartSeries.push(buildChartDefinition(skillName, skillSeries, msPerPeak));
+    chartSeries.push(buildChartDefinition(skillName, colourFor, skillSeries, msPerPeak));
   }
 
   return chartSeries;
@@ -177,7 +232,7 @@ export function buildCharts(
 
 function buildStarRatingSeries(difficulty: DifficultyOverviewDifficulty): DifficultyChartSeries {
   return {
-    skillName: 'Star Rating',
+    skillName: STAR_RATING_CHART_TITLE,
     label: difficulty.label,
     mode: difficulty.mode,
     difficultyLevel: difficulty.difficultyLevel,
@@ -279,6 +334,7 @@ function buildSkillSeries(
 
 function buildChartDefinition(
   title: string,
+  colourFor: (series: DifficultyChartSeries) => string,
   series: DifficultyChartSeries[],
   msPerPeak: number,
   valueSuffix?: string,
@@ -290,13 +346,13 @@ function buildChartDefinition(
   yAxisMode: 'zeroBased' | 'fitToData' = 'zeroBased',
   secondaryValueSuffix?: string
 ): ChartDefinition {
-  const displaySeries: ChartDisplaySeries[] = series.map((item, index) => {
+  const displaySeries: ChartDisplaySeries[] = series.map((item) => {
     const id = getDifficultySeriesId(item.mode, item.label);
     return {
       ...item,
       id,
       key: id,
-      color: getGraphColor(item, series.slice(0, index)),
+      color: colourFor(item),
       // Different series in the same chart can sample at different times, so a hovered
       // timestamp may not have a real point for every series. Forward-fill a hover-only value so
       // every series still shows "its last known value" instead of going blank when hovering on
@@ -314,7 +370,7 @@ function buildChartDefinition(
       ...item,
       id: strainId,
       key: strainId,
-      color: matchingPrimary?.color ?? getGraphColor(item, []),
+      color: matchingPrimary?.color ?? colourFor(item),
       dashed: true,
       visibilityId: baseId,
       hideFromLegend: true,
@@ -388,37 +444,3 @@ function buildChartDefinition(
     ...(hideLowValuesThreshold !== undefined ? { hideLowValuesThreshold } : {}),
   };
 }
-
-function getGraphColor(
-  series: DifficultyChartSeries,
-  previousSeries: DifficultyChartSeries[]
-): string {
-  const baseValue = getDifficultyColor(series.starRating);
-  const baseColor = parseColor(baseValue);
-  const sameColorCount = previousSeries.filter(
-    (item) => getDifficultyColor(item.starRating) === baseValue
-  ).length;
-
-  let red = baseColor.r;
-  let green = baseColor.g;
-  let blue = baseColor.b;
-
-  const dominant = Math.max(baseColor.r, baseColor.g, baseColor.b);
-
-  for (let index = 0; index < sameColorCount; index += 1) {
-    const mult = 0.7;
-    const multInverse = 1 / mult;
-
-    red *= mult;
-    green *= mult;
-    blue *= mult;
-
-    if (baseColor.r === dominant) red *= multInverse;
-    else if (baseColor.g === dominant) green *= multInverse;
-    else blue *= multInverse;
-  }
-
-  return `rgb(${clampColor(red)}, ${clampColor(green)}, ${clampColor(blue)})`;
-}
-
-export { MODE_ORDER, normalizeMode };

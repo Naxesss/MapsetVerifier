@@ -5,7 +5,6 @@ import {
   AudioAnalysisResult,
   SpectralAnalysisResult,
   FrequencyAnalysisResult,
-  HitSoundBatchResult,
 } from '../../../../Types';
 import { buildBeatmapFolderPath } from '../../../../utils/buildBeatmapFolderPath';
 
@@ -67,25 +66,6 @@ export function useFrequencyAnalysis({ folder, songFolder }: UseAudioAnalysisArg
         beatmapSetFolder: beatmapFolderPath,
         fftSize: 4096,
       });
-    },
-    enabled: !!beatmapFolderPath,
-    retry: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    refetchOnMount: false,
-  });
-
-  return { ...query, beatmapFolderPath };
-}
-
-export function useHitSoundAnalysis({ folder, songFolder }: UseAudioAnalysisArgs) {
-  const beatmapFolderPath = buildBeatmapFolderPath(songFolder, folder);
-
-  const query = useQuery<HitSoundBatchResult, FetchError>({
-    queryKey: ['hitsound-analysis', beatmapFolderPath || 'unavailable'],
-    queryFn: () => {
-      if (!beatmapFolderPath) throw new Error('Beatmap folder path unavailable');
-      return AudioAnalysisApi.analyzeHitSounds({ beatmapSetFolder: beatmapFolderPath });
     },
     enabled: !!beatmapFolderPath,
     retry: false,
