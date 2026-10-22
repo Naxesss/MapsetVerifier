@@ -1,7 +1,6 @@
 import {
   IconAdjustmentsHorizontal,
   IconChartLine,
-  IconLayoutDashboard,
   IconMusic,
   IconInfoCircle,
   IconTimeline,
@@ -11,7 +10,6 @@ import {
 import type { OverviewTab } from '../navbar/pageHints.tsx';
 
 export const SECTION_ICONS: Record<OverviewTab, Icon> = {
-  Summary: IconLayoutDashboard,
   General: IconInfoCircle,
   Objects: IconTimeline,
   Beatmap: IconAdjustmentsHorizontal,
@@ -20,10 +18,17 @@ export const SECTION_ICONS: Record<OverviewTab, Icon> = {
   Video: IconVideo,
 };
 
-/**
- * The pages that compare difficulties, and so follow the game mode and difficulty picks. The
- * summary always covers every difficulty.
- */
+/** The Overview's pages in the order the views list them. */
+export const OVERVIEW_SECTIONS: OverviewTab[] = [
+  'General',
+  'Objects',
+  'Beatmap',
+  'Difficulty',
+  'Audio',
+  'Video',
+];
+
+/** The pages that compare difficulties, and so follow the game mode and difficulty picks. */
 const DIFFICULTY_SECTIONS = new Set<OverviewTab>(['Objects', 'Beatmap', 'Difficulty']);
 
 export const usesDifficultyPicks = (section: OverviewTab) => DIFFICULTY_SECTIONS.has(section);

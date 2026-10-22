@@ -528,36 +528,6 @@
   opacity: 1;
 }
 
-/* Overview summary card (OverviewSummary): a card that opens its page. Hover and keyboard focus
-   look the same, a lighter border. */
-.mv-summary-card {
-  display: block;
-  width: 100%;
-  text-align: left;
-
-  .mantine-Paper-root {
-    transition: border-color 0.12s ease;
-  }
-
-  &:hover .mantine-Paper-root,
-  &:focus-visible .mantine-Paper-root {
-    border-color: var(--mantine-color-dark-3);
-  }
-
-  &:focus-visible {
-    outline: none;
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-
-    &:hover .mantine-Paper-root {
-      border-color: var(--mantine-color-default-border);
-    }
-  }
-}
-
 /* The one table style (AppTable). The card is the only surface: no header fill, no stripes, no
    filled sticky column. Labels sit on a dark-4 hairline, rows are split by fainter dark-5 ones,
    the sticky first column is left-aligned and every other column right-aligned in tabular

@@ -5,14 +5,7 @@ import { getActiveNavRoute } from './navConfig.ts';
 import MinorIcon from '../icons/MinorIcon.tsx';
 import type { ReactNode } from 'react';
 
-export type OverviewTab =
-  | 'Summary'
-  | 'General'
-  | 'Beatmap'
-  | 'Difficulty'
-  | 'Audio'
-  | 'Video'
-  | 'Objects';
+export type OverviewTab = 'General' | 'Beatmap' | 'Difficulty' | 'Audio' | 'Video' | 'Objects';
 
 export type PageHint = {
   id: string;
@@ -107,7 +100,7 @@ function overviewPicksHint(): PageHint {
     content: (
       <>
         <Kbd size="xs">Left Click</Kbd> a segment in the bar under the picker to show or hide that
-        difficulty.
+        difficulty. On hybrid sets, a grey segment switches to its game mode.
       </>
     ),
   };
@@ -242,10 +235,6 @@ export function getPageHints(
   if (route === '/overview') {
     if (overviewTab === 'Audio' || overviewTab === 'Video' || overviewTab === 'General') {
       return [refreshBeatmapHint()];
-    }
-
-    if (overviewTab === 'Summary') {
-      return [refreshBeatmapHint(), overviewPicksHint()];
     }
 
     if (overviewTab === 'Objects') {
