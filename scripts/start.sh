@@ -5,7 +5,7 @@ set -euo pipefail
 # build sidecar and install npm dependencies if needed
 # then starts the sidecar and runs the frontend
 
-PROJECT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/.."
 
 source "${PROJECT_ROOT}/scripts/detect-system.sh"
 
