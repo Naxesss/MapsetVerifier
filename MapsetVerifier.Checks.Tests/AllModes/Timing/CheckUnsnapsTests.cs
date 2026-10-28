@@ -76,6 +76,28 @@ public class CheckUnsnapsTests
         Assert.Empty(issues);
     }
 
+    [Theory]
+    [InlineData(Beatmap.Mode.Standard)]
+    [InlineData(Beatmap.Mode.Catch)]
+    public void ClampsSvBelowTheEditorMinimumForSliders(Beatmap.Mode mode)
+    {
+        // Regression for Flower Garden (set 2103123): osu! and catch still play sliders at 0.1x under a
+        // -1100 line, so this slider ends at 4553.375, a 1/4 snap. Taken unclamped (0.0909x) it lasted
+        // until 4574.6, near a 1/3 instead, and was reported as unsnapped.
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Mode(mode)
+                .Title("Unsnap Test")
+                .SliderMultiplier(1.9f)
+                .TimingPoints("413,312.5,4,2,11,65,1,0", "4163,-1100,4,2,11,70,0,0")
+                .HitObjects("128,196,4319,2,0,L|128:212,1,14.25")
+        );
+
+        var issues = context.RunBeatmapCheck<CheckUnsnaps>("Test");
+
+        Assert.Empty(issues);
+    }
+
     [Fact]
     public void DoesNotFlagSliderTailLandingExactlyOnAWholeMs()
     {

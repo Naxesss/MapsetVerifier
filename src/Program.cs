@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using MapsetVerifier.Framework;
 using MapsetVerifier.Logging;
 using MapsetVerifier.Server;
-using MapsetVerifier.Snapshots;
+using MapsetVerifier.Snapshots.Store;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 
@@ -46,7 +46,7 @@ namespace MapsetVerifier
                 Log.Information("App data root resolved to: {AppDataPath}", appDataPath);
 
                 Checker.ConfigureCustomChecksPath(appDataPath, ExternalsFolderName);
-                Snapshotter.ConfigurePath(appDataPath, ExternalsFolderName);
+                SnapshotStore.ConfigurePath(appDataPath, ExternalsFolderName);
 
                 Log.Information("Loading default checks...");
                 Checker.LoadDefaultChecks();
