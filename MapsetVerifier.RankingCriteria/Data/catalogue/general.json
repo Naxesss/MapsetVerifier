@@ -762,11 +762,6 @@
       },
       "curation": {
         "automation": "automatable"
-      },
-      "lastReview": {
-        "commit": "05c7a5144955c4eb358124cfd337befc585a2217",
-        "bodyHash": "9e59b015b91aa2e7",
-        "kind": "rule"
       }
     },
     {

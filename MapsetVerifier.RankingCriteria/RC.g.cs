@@ -90,7 +90,6 @@ public static class RC
         /// <summary> Rule: Hit objects must be snapped within less than 2 ms of any timeline tick. </summary>
         public const string Timing_HitObjectsSnappedWithinLess = "general/timing/hit-objects-snapped-within-less";
         /// <summary> Rule: An object which is wrongly snapped due to passing through or ending slightly before a new uninherited timing point must be snapped within the new timing section. </summary>
-        [System.Obsolete("Outdated: changed on the osu! wiki since its checks were reviewed at 05c7a514. Update the checks, then run `update-ranking-criteria review general/timing/object-wrongly-snapped-due-passing`.")]
         public const string Timing_ObjectWronglySnappedDuePassing = "general/timing/object-wrongly-snapped-due-passing";
         /// <summary> Rule: The audio file of a beatmap must... </summary>
         public const string Audio_AudioFileBeatmap = "general/audio/audio-file-beatmap";

@@ -222,7 +222,7 @@ internal static class Program
             );
         }
 
-        WriteConstants(dataDir, pages);
+        RcCatalogueFiles.WriteConstants(dataDir, pages);
 
         // The change report goes to stdout so it can be piped into a pull request description later.
         foreach (var group in allChanges.GroupBy(change => change.Type).OrderBy(group => group.Key))
@@ -235,68 +235,32 @@ internal static class Program
     }
 
     /// <summary>
-    ///     Lists statements waiting for a review, or clears the last review of the given ones and re-writes the RC
-    ///     constants, which drops the obsolete warning from the checks linking to them.
+    ///     Lists statements waiting for a review, or marks the given ones as reviewed. The app's curation review does
+    ///     the same in a Debug build.
     /// </summary>
     private static int Review(string dataDir, List<string> ids)
     {
-        var catalogueDir = Path.Combine(dataDir, "catalogue");
-        var remaining = ids.ToHashSet();
-        var pages = new List<RcCataloguePage>();
-
-        foreach (var rcPage in RcPages.All.Where(page => page.HasStatements))
+        if (ids.Count == 0)
         {
-            var path = Path.Combine(catalogueDir, rcPage.Key + ".json");
-            var page = JsonSerializer.Deserialize<RcCataloguePage>(
-                File.ReadAllText(path),
-                RcJson.Options
-            )!;
-            pages.Add(page);
-
-            var pending = page
-                .Statements.Where(statement => statement.LastReview != null && !statement.IsRetired)
-                .ToList();
-
-            if (ids.Count == 0)
-            {
-                foreach (var statement in pending)
-                    Console.WriteLine(
-                        $"{statement.Id} (changed since {statement.LastReview!.Commit[..8]}): {statement.Upstream.Lead}"
-                    );
-                continue;
-            }
-
-            var reviewed = pending.Where(statement => remaining.Remove(statement.Id)).ToList();
-            if (reviewed.Count == 0)
-                continue;
-
-            foreach (var statement in reviewed)
-            {
-                statement.LastReview = null;
-                Console.Error.WriteLine($"Reviewed {statement.Id}");
-            }
-
-            File.WriteAllText(path, JsonSerializer.Serialize(page, RcJson.Options) + "\n");
+            foreach (
+                var statement in RcCatalogueFiles
+                    .ReadPages(dataDir)
+                    .SelectMany(RcCatalogueFiles.PendingReview)
+            )
+                Console.WriteLine(
+                    $"{statement.Id} (changed since {statement.LastReview!.Commit[..8]}): {statement.Upstream.Lead}"
+                );
+            return 0;
         }
 
-        if (ids.Count > 0)
-            WriteConstants(dataDir, pages);
+        var reviewed = RcCatalogueFiles.MarkReviewed(dataDir, ids);
+        foreach (var id in reviewed)
+            Console.Error.WriteLine($"Reviewed {id}");
 
+        var remaining = ids.Except(reviewed).ToList();
         foreach (var id in remaining)
             Console.Error.WriteLine($"{id} is not waiting for a review.");
 
         return remaining.Count == 0 ? 0 : 1;
-    }
-
-    private static void WriteConstants(string dataDir, List<RcCataloguePage> pages)
-    {
-        var source = JsonSerializer.Deserialize<RcSource>(
-            File.ReadAllText(Path.Combine(dataDir, "source.json")),
-            RcJson.Options
-        )!;
-        File.WriteAllText(
-            Path.Combine(dataDir, "..", "RC.g.cs"),
-            RcConstantsWriter.Write(source, pages)
-        );
     }
 }

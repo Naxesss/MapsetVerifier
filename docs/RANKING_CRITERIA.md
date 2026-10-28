@@ -54,12 +54,16 @@ The tool downloads the pages, parses them and merges the result into the catalog
 
 When a statement's wording or kind changes at a new osu-wiki commit, the merge keeps what it was as `lastReview` (the commit and hash of the wording before). A statement with linked checks and a `lastReview` shows as **Outdated** in the app, with a link to the wiki changes since that commit, until its checks are reviewed against the new wording. Its `RC` constant is also marked `[Obsolete]`, so every check linking to it gets a compiler warning pointing at the `.WithRule(...)` to update, and the change report lists it under `Outdated`. Re-parsing the same commit never marks anything outdated, and a statement that changes back to the reviewed wording is no longer outdated.
 
+The easiest way is the app in a dev build (`npm run dev` against a Debug backend). Open the curation review from the ranking criteria page and pick the **Outdated** filter. Each notice links to the wiki changes and has a **Mark as reviewed** button, which writes the catalogue and `RC.g.cs` right away and moves on to the next statement. The same button shows on the notice wherever an outdated statement appears in the app. The obsolete warning goes away on the next backend build.
+
+The tool does the same from the command line:
+
 ```bash
 ./scripts/update-ranking-criteria.sh review                  # list statements waiting for a review
 ./scripts/update-ranking-criteria.sh review <id> [<id>...]   # mark them as reviewed, which also removes the warning
 ```
 
-The merge does not know which statements have checks, so `review` also lists changed statements without any. If you link a check to one of those, review it too, or it shows as outdated right away.
+The merge does not know which statements have checks, so both list changed statements without any too. If you link a check to one of those, review it too, or it shows as outdated right away.
 
 Drafted ids look like `osu/hit-objects-never-off-screen` for general sections and `catch/salad/edge-dashes-not-used` for others. They may be renamed by hand in the catalogue: the tool matches on the lead sentence and never derives an id again.
 

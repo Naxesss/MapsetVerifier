@@ -120,7 +120,7 @@ public class RcCatalogueMergerTests
 
         Assert.Contains(
             "[System.Obsolete(\"Outdated: changed on the osu! wiki since its checks were reviewed at a. "
-                + "Update the checks, then run `update-ranking-criteria review catch/edge-dashes-not-used`.\")]\n"
+                + "Update the checks, then mark it as reviewed in the app (Debug build) or run `update-ranking-criteria review catch/edge-dashes-not-used`.\")]\n"
                 + "        public const string EdgeDashesNotUsed",
             constants.ReplaceLineEndings("\n")
         );
