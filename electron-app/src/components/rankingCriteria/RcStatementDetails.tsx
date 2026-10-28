@@ -171,10 +171,16 @@ interface RcStatementDetailsProps {
   statement: ApiRcStatement;
   /** Shown without RcStatementTitle, so the wiki text carries the lead and the parent's instead. */
   withoutTitle?: boolean;
+  /** Called once the statement is marked as reviewed from its outdated notice (dev builds only). */
+  onReviewed?: () => void;
 }
 
 /** Details of a ranking criteria statement, laid out like the check documentation. */
-export default function RcStatementDetails({ statement, withoutTitle }: RcStatementDetailsProps) {
+export default function RcStatementDetails({
+  statement,
+  withoutTitle,
+  onReviewed,
+}: RcStatementDetailsProps) {
   const mode = pageMode(statement.page);
   const difficulties = formatDifficulties(statement.difficulties);
 
@@ -221,7 +227,7 @@ export default function RcStatementDetails({ statement, withoutTitle }: RcStatem
 
       <Stack gap="xs">
         <SectionTitle>Checks</SectionTitle>
-        <RcOutdatedNotice statement={statement} />
+        <RcOutdatedNotice statement={statement} onReviewed={onReviewed} />
         {linksByCheck.size > 0 ? (
           [...linksByCheck.values()].map((links) => (
             <LinkedCheck key={links[0].checkId} links={links} />

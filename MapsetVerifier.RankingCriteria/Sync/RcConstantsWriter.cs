@@ -59,7 +59,7 @@ public static class RcConstantsWriter
                 if (statement.LastReview is { } review)
                     builder.AppendLine(
                         $"        [System.Obsolete(\"Outdated: changed on the osu! wiki since its checks were reviewed at {review.Commit[..Math.Min(8, review.Commit.Length)]}. "
-                            + $"Update the checks, then run `update-ranking-criteria review {statement.Id}`.\")]"
+                            + $"Update the checks, then mark it as reviewed in the app (Debug build) or run `update-ranking-criteria review {statement.Id}`.\")]"
                     );
                 builder.AppendLine($"        public const string {name} = \"{statement.Id}\";");
             }

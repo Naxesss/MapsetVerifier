@@ -18,41 +18,17 @@ import { IconAlertCircle, IconArrowLeft, IconArrowRight } from '@tabler/icons-re
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { invalidateRankingCriteria, updateCuration } from './rcCurationApi';
 import RcStatementDetails from './RcStatementDetails';
 import { rankingCriteriaRoute } from './rcUtils';
 import { useAllRankingCriteriaPages, useRankingCriteriaOverview } from './useRankingCriteria';
-import { apiFetch } from '../../client/ApiHelper';
 import { ApiRcStatement, RcAutomation } from '../../Types';
 
 const ALL = 'all';
+/** Statements changed on the wiki since their checks were reviewed, whatever their curation. */
+const OUTDATED = 'outdated';
 
-/**
- * Writes a statement's curation to its catalogue file. Kept here rather than in RankingCriteriaApi
- * so it is only bundled with this dev-only screen; the endpoint only exists on a Debug backend.
- */
-async function updateCuration(curation: {
-  id: string;
-  automation: RcAutomation;
-  notes: string | null;
-}) {
-  const res = await apiFetch('/ranking-criteria/curation', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(curation),
-  });
-  if (!res.ok) {
-    const message = await res.text();
-    // A Release backend has no such route, so it answers without a message of its own.
-    throw new Error(
-      message ||
-        (res.status === 404 || res.status === 405
-          ? 'The backend has no curation endpoint. Run a Debug build of the backend.'
-          : `Saving failed (${res.status})`)
-    );
-  }
-
-  return (await res.json()) as ApiRcStatement;
-}
+type CurationFilter = RcAutomation | typeof ALL | typeof OUTDATED;
 
 const AUTOMATIONS: { value: RcAutomation; label: string }[] = [
   { value: 'Unknown', label: 'Unknown' },
@@ -155,7 +131,7 @@ export default function RcCurationReview() {
 
   const pageKey = searchParams.get('page') ?? ALL;
   const section = searchParams.get('section') ?? ALL;
-  const [curation, setCuration] = useState<RcAutomation | typeof ALL>('Unknown');
+  const [curation, setCuration] = useState<CurationFilter>('Unknown');
   const [index, setIndex] = useState(0);
   // Saved this session, so they stay in the queue after their curation changes and Previous can
   // return to them.
@@ -166,18 +142,23 @@ export default function RcCurationReview() {
 
   const save = useMutation({
     mutationFn: updateCuration,
-    onSuccess: () =>
-      Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['rankingCriteriaPage'] }),
-        queryClient.invalidateQueries({ queryKey: ['rankingCriteriaOverview'] }),
-      ]),
+    onSuccess: () => invalidateRankingCriteria(queryClient),
   });
 
   const reviewable = statements.filter(isReviewable);
-  const onPage = reviewable.filter((statement) => pageKey === ALL || statement.page === pageKey);
+  // A changed allowance or intro can still have checks linked, so outdated ones are all included.
+  const outdated = statements.filter(
+    (statement) => statement.lastReview || (curation === OUTDATED && saved.has(statement.id))
+  );
+  const onPage = (curation === OUTDATED ? outdated : reviewable).filter(
+    (statement) => pageKey === ALL || statement.page === pageKey
+  );
   const inScope = onPage.filter((statement) => section === ALL || sectionOf(statement) === section);
   const queue = inScope.filter(
-    (statement) => curation === ALL || statement.automation === curation || saved.has(statement.id)
+    (statement) =>
+      curation === ALL ||
+      (curation === OUTDATED ? !!statement.lastReview : statement.automation === curation) ||
+      saved.has(statement.id)
   );
   const position = Math.min(index, queue.length);
   const current = queue[position] as ApiRcStatement | undefined;
@@ -209,6 +190,12 @@ export default function RcCurationReview() {
     );
   };
 
+  const markedReviewed = () => {
+    if (!current) return;
+    setSaved((previous) => new Set(previous).add(current.id));
+    setIndex(position + 1);
+  };
+
   const unknownLeft = reviewable.filter((statement) => statement.automation === 'Unknown').length;
 
   return (
@@ -224,7 +211,9 @@ export default function RcCurationReview() {
             </Badge>
           </Group>
           <Text size="xs" c="dimmed">
-            {unknownLeft} of {reviewable.length} rules and guidelines still unknown
+            {curation === OUTDATED
+              ? `${outdated.length} changed on the wiki since their checks were reviewed`
+              : `${unknownLeft} of ${reviewable.length} rules and guidelines still unknown`}
           </Text>
         </Group>
         <Text size="xs" c="dimmed">
@@ -273,10 +262,11 @@ export default function RcCurationReview() {
               value,
               label: `${label} (${inScope.filter((statement) => statement.automation === value).length})`,
             })),
+            { value: OUTDATED, label: `Outdated (${outdated.length})` },
           ]}
           onChange={(value) => {
             if (!value) return;
-            setCuration(value as RcAutomation | typeof ALL);
+            setCuration(value as CurationFilter);
             // Starts a fresh pass, so rules saved under the previous curation don't linger.
             setSaved(new Set());
             setIndex(0);
@@ -320,7 +310,7 @@ export default function RcCurationReview() {
             onNext={(notes) => commit(current.automation, notes)}
           />
           <Paper p="lg" radius="md" withBorder>
-            <RcStatementDetails statement={current} withoutTitle />
+            <RcStatementDetails statement={current} withoutTitle onReviewed={markedReviewed} />
           </Paper>
         </>
       ) : (

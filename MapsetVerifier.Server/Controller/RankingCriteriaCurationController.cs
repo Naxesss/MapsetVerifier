@@ -24,5 +24,16 @@ public class RankingCriteriaCurationController : ControllerBase
 
         return Ok(statement);
     }
+
+    [HttpPost("review")]
+    public ActionResult<ApiRcStatement> MarkReviewed([FromBody] ApiRcReviewRequest request)
+    {
+        var statement = RankingCriteriaService.MarkReviewed(request.Id);
+
+        if (statement == null)
+            return NotFound($"No ranking criteria statement \"{request.Id}\" in the snapshot");
+
+        return Ok(statement);
+    }
 }
 #endif

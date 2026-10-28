@@ -80,3 +80,5 @@ public sealed record ApiRcStatement(
 );
 
 public sealed record ApiRcCurationRequest(string Id, RcAutomation Automation, string? Notes);
+
+public sealed record ApiRcReviewRequest(string Id);
