@@ -21,12 +21,24 @@ namespace MapsetVerifier.Snapshots.Diffing
         public static IReadOnlyList<Hunk> Build(IEnumerable<Change> changes, int objectsInRange = 0)
         {
             var hunks = new List<Hunk>();
+            var shown = changes.Where(c => !c.Minor).ToList();
 
-            foreach (var group in changes.Where(c => !c.Minor).GroupBy(c => Category(c.Kind)))
+            // A part of the map moved in time, or a stretch of lines whose volume changed the same
+            // way, is one row of its own, even right next to another.
+            hunks.AddRange(shown.Where(IsGroup).Select(c => Create([c])));
+
+            foreach (var group in shown.Where(c => !IsGroup(c)).GroupBy(c => Category(c.Kind)))
                 hunks.AddRange(Cluster(group.OrderBy(c => c.Time).ToList()));
 
             return hunks.OrderBy(h => h.Start).ThenBy(h => h.Kinds[0]).ToList();
         }
+
+        private static bool IsShift(Change c) => c.Field == "Shift";
+
+        private static bool IsVolumeGroup(Change c) => c.Field == "VolumeGroup";
+
+        /// <summary> One change standing for many, which is a row on its own. </summary>
+        private static bool IsGroup(Change c) => IsShift(c) || IsVolumeGroup(c);
 
         /// <summary> Rhythm and placement are one kind of work: shaping the objects. </summary>
         private static int Category(ChangeKind kind) =>
@@ -72,6 +84,12 @@ namespace MapsetVerifier.Snapshots.Diffing
 
         private static HunkLabel Label(List<Change> changes, List<ChangeKind> kinds)
         {
+            if (changes.All(IsShift))
+                return HunkLabel.Shifted;
+
+            if (changes.All(IsVolumeGroup))
+                return HunkLabel.Volume;
+
             var objectChanges = changes.Where(c => c.Object != null).ToList();
             var replaced = objectChanges.Count(c => c.Op != ChangeOp.Changed);
 

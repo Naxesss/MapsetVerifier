@@ -70,6 +70,18 @@ function snapshotRangeHint(): PageHint {
   };
 }
 
+function changeWindowHint(): PageHint {
+  return {
+    id: 'change-window',
+    content: (
+      <>
+        Hold <Kbd size="xs">Shift</Kbd> and scroll over a change&apos;s picture to move along the
+        song.
+      </>
+    ),
+  };
+}
+
 function changeMapHint(): PageHint {
   return {
     id: 'change-map',
@@ -366,6 +378,7 @@ export function getPageHints(
       difficultyStepHint(),
       snapshotRangeHint(),
       changeMapHint(),
+      changeWindowHint(),
     ];
   }
 

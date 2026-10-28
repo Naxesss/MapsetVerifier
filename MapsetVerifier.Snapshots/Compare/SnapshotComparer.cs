@@ -35,6 +35,9 @@ namespace MapsetVerifier.Snapshots.Compare
         /// <summary> Marks closer together than this on the change map merge into one. </summary>
         private const double MarkGapMs = 250;
 
+        /// <summary> Where snapshot versions are said to live, for the parser's per-path caches. </summary>
+        private const string SnapshotSongPath = "snapshot";
+
         private static readonly ConcurrentDictionary<string, Parsed> ParseCache = new();
         private static readonly ConcurrentDictionary<string, Partial> CompareCache = new();
 
@@ -123,19 +126,40 @@ namespace MapsetVerifier.Snapshots.Compare
             if (changed.Count >= 2)
             {
                 // The same time shift in every changed difficulty is one change to the whole set.
+                // Rounding can put each difficulty's estimate a millisecond apart; the one with the
+                // most objects behind it names the amount.
                 var shifts = changed
                     .Select(p => p.Rollups.FirstOrDefault(r => r.Kind == RollupKind.Offset))
                     .ToList();
 
                 if (
                     shifts.All(s => s != null)
-                    && shifts.Select(s => s!.Amount).Distinct().Count() == 1
+                    && shifts.Max(s => s!.Amount) - shifts.Min(s => s!.Amount) <= 1
                 )
                 {
-                    rollups.Add(shifts[0]! with { Absorbed = shifts.Sum(s => s!.Absorbed) });
+                    var amount = shifts.MaxBy(s => s!.Absorbed)!.Amount;
+                    rollups.Add(
+                        new Rollup(RollupKind.Offset, amount, shifts.Sum(s => s!.Absorbed))
+                    );
 
                     foreach (var p in changed)
                         p.Rollups = p.Rollups.Where(r => r.Kind != RollupKind.Offset).ToList();
+                }
+
+                // So is the same volume pass over every changed difficulty's timing lines.
+                var volumes = changed
+                    .Select(p => p.Rollups.FirstOrDefault(r => r.Kind == RollupKind.Volume))
+                    .ToList();
+
+                if (
+                    volumes.All(v => v != null)
+                    && volumes.Select(v => (v!.Amount, v.Before, v.After)).Distinct().Count() == 1
+                )
+                {
+                    rollups.Add(volumes[0]! with { Absorbed = volumes.Sum(v => v!.Absorbed) });
+
+                    foreach (var p in changed)
+                        p.Rollups = p.Rollups.Where(r => r.Kind != RollupKind.Volume).ToList();
                 }
 
                 // So is a setting changed identically everywhere; AR, OD and the like stay per difficulty.
@@ -284,12 +308,20 @@ namespace MapsetVerifier.Snapshots.Compare
                 return cached;
 
             var code = SnapshotStore.ReadBlob(setKey, difficulty.Blob);
-            var parsed = new Parsed(new Beatmap(code, "snapshot", difficulty.File), code);
+
+            // The parser caches timing line and object lookups per file path, for the whole process.
+            // Every version of a difficulty has the same file name, so each gets a path of its own
+            // (its content hash), or one version would be read with another's timing lines.
+            var songPath = Path.Combine(SnapshotSongPath, setKey, difficulty.Blob);
+            var parsed = new Parsed(new Beatmap(code, songPath, difficulty.File), code);
 
             ParseCache[key] = parsed;
 
             if (ParseCache.Count > 96)
+            {
                 ParseCache.Clear();
+                Beatmap.ClearCacheForSongPath(SnapshotSongPath);
+            }
 
             return parsed;
         }
@@ -584,9 +616,17 @@ namespace MapsetVerifier.Snapshots.Compare
             return ticks.Count > 0 ? ticks : null;
         }
 
+        /// <summary>
+        /// The custom sample index a slider plays at a time: the timing line's there, as the parser
+        /// reads a slider's samples (with the usual few milliseconds of leniency before a line).
+        /// </summary>
+        private static int LineIndex(Beatmap map, double time) =>
+            map.GetTimingLine(time, true)?.CustomIndex ?? 1;
+
         /// <summary> The hit sounds of a slider's head, reverses and tail, and its body's whistle. </summary>
         private static List<SoundPart> SoundParts(Slider slider)
         {
+            var map = slider.beatmap;
             var edges = slider.GetEdgeTimes().ToList();
             var parts = new List<SoundPart>
             {
@@ -595,7 +635,8 @@ namespace MapsetVerifier.Snapshots.Compare
                     "Head",
                     slider.StartHitSound.ToString(),
                     slider.GetStartSampleset().ToString(),
-                    slider.GetStartSampleset(true).ToString()
+                    slider.GetStartSampleset(true).ToString(),
+                    LineIndex(map, slider.time)
                 ),
             };
 
@@ -610,7 +651,8 @@ namespace MapsetVerifier.Snapshots.Compare
                                 : HitObject.HitSounds.None
                         ).ToString(),
                         slider.GetReverseSampleset(i - 1).ToString(),
-                        slider.GetReverseSampleset(i - 1, true).ToString()
+                        slider.GetReverseSampleset(i - 1, true).ToString(),
+                        LineIndex(map, edges[i])
                     )
                 );
 
@@ -620,7 +662,8 @@ namespace MapsetVerifier.Snapshots.Compare
                     "Tail",
                     slider.EndHitSound.ToString(),
                     slider.GetEndSampleset().ToString(),
-                    slider.GetEndSampleset(true).ToString()
+                    slider.GetEndSampleset(true).ToString(),
+                    LineIndex(map, slider.GetEndTime())
                 )
             );
             parts.Add(
@@ -629,7 +672,8 @@ namespace MapsetVerifier.Snapshots.Compare
                     "Body",
                     slider.hitSound.ToString(),
                     slider.GetSampleset().ToString(),
-                    slider.GetSampleset(true).ToString()
+                    slider.GetSampleset(true).ToString(),
+                    LineIndex(map, slider.time)
                 )
             );
 
@@ -687,7 +731,8 @@ namespace MapsetVerifier.Snapshots.Compare
                         "Head",
                         o.hitSound.ToString(),
                         o.GetSampleset().ToString(),
-                        o.GetSampleset(true).ToString()
+                        o.GetSampleset(true).ToString(),
+                        o.GetCustomIndex(map.GetTimingLine(o.time, true))
                     ),
                 ];
             }

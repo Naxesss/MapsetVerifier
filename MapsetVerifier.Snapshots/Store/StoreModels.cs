@@ -36,6 +36,12 @@ namespace MapsetVerifier.Snapshots.Store
     /// <summary> What changed since the previous snapshot, kept so the history list needs no diffing. </summary>
     public sealed class StoredSummary
     {
+        /// <summary>
+        /// Which version of the diff worked this out. A summary from an older one is worked out
+        /// again; summaries stored before versions existed read as 0.
+        /// </summary>
+        public int Version { get; set; }
+
         /// <summary> Counts per difficulty key (only difficulties that changed). </summary>
         public Dictionary<string, StoredCounts> Difficulties { get; set; } = new();
         public int FileChanges { get; set; }

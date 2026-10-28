@@ -51,7 +51,7 @@ function FileRow({ file }: { file: ApiSnapshotFileChange }) {
 }
 
 /**
- * What changed about the set as a whole: a time shift every difficulty shares, settings changed
+ * What changed about the set as a whole: a time shift or volume change every difficulty shares, settings changed
  * the same way everywhere (listed once, with how many difficulties they apply to), and files.
  */
 export default function GeneralChanges({
@@ -70,7 +70,7 @@ export default function GeneralChanges({
         <EmptyState
           icon={IconEqual}
           title="Nothing changed for the set as a whole"
-          description="Shared settings, a shared time shift and files are listed here when they change."
+          description="Shared settings, a shared time shift or volume change, and files are listed here when they change."
         />
       </SectionCard>
     );
@@ -81,7 +81,7 @@ export default function GeneralChanges({
       {general.rollups.length > 0 && (
         <SectionCard
           title="Timing"
-          info="A shift that every difficulty shares is listed once here, not in each of them."
+          info="A time shift or volume change that every difficulty shares is listed once here, not in each of them."
         >
           <Stack gap="xs">
             {general.rollups.map((rollup) => (

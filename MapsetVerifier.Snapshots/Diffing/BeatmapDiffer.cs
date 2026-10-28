@@ -30,6 +30,45 @@ namespace MapsetVerifier.Snapshots.Diffing
 
         private const double MaxShiftMs = 1000;
 
+        /// <summary>
+        /// Objects moved by an offset change land within this much of the shift, not exactly on
+        /// it: times are whole milliseconds and the editor rounds each one on its own.
+        /// </summary>
+        private const double ShiftToleranceMs = 1.5;
+
+        /// <summary> How many separately moved groups of objects are looked for at most. </summary>
+        private const int MaxShiftGroups = 32;
+
+        /// <summary> Looking for groups stops after this many amounts in a row explained none. </summary>
+        private const int MaxFruitlessShifts = 4;
+
+        /// <summary>
+        /// A group moved further than a retime needs more objects, so a short pattern that happens
+        /// to sit in the same place elsewhere in a remapped part is not taken for a moved one.
+        /// </summary>
+        private const int FarShiftMinimumObjects = 6;
+
+        /// <summary>
+        /// Objects that moved in time together, by one amount, with nothing left in place between
+        /// them: an offset change when it is most of the map, otherwise a part of it moved on its
+        /// own (a section moved with its timing lines, say).
+        /// </summary>
+        private sealed class ShiftGroup
+        {
+            public required double Delta { get; init; }
+            public required List<(HitObject Old, HitObject New)> Pairs { get; init; }
+            public int FirstIndex { get; init; }
+            public int LastIndex { get; init; }
+
+            /// <summary> Old times of the nearest objects outside the group; its lines lie between. </summary>
+            public double From { get; set; } = double.NegativeInfinity;
+            public double To { get; set; } = double.PositiveInfinity;
+            public List<(TimingLine Old, TimingLine New)> Lines { get; } = [];
+
+            /// <summary> Part of a shift of the whole map, reported as one rollup. </summary>
+            public bool Whole { get; set; }
+        }
+
         public static DiffResult Diff(Beatmap before, Beatmap after)
         {
             var changes = new List<Change>();
@@ -40,7 +79,7 @@ namespace MapsetVerifier.Snapshots.Diffing
                 after,
                 out var oldOnly,
                 out var newOnly,
-                out var shift
+                out var groups
             );
 
             foreach (var (oldObject, newObject, delta) in objectPairs)
@@ -52,58 +91,225 @@ namespace MapsetVerifier.Snapshots.Diffing
             foreach (var o in newOnly)
                 changes.Add(ObjectChange(after, o, ChangeOp.Added));
 
-            var timingAbsorbed = DiffTiming(before, after, shift, changes);
+            DiffTiming(before, after, groups, changes);
 
-            if (shift != null)
-            {
-                var absorbed = objectPairs.Count(p => p.Delta != 0) + timingAbsorbed;
-                rollups.Add(new Rollup(RollupKind.Offset, shift.Value, absorbed));
-            }
+            var whole = groups.Where(g => g.Whole).ToList();
+            var shift = whole.Count == 0 ? 0 : whole.MaxBy(g => g.Pairs.Count)!.Delta;
+
+            if (whole.Count > 0)
+                rollups.Add(
+                    new Rollup(
+                        RollupKind.Offset,
+                        shift,
+                        whole.Sum(g => g.Pairs.Count + g.Lines.Count)
+                    )
+                );
+
+            foreach (var group in groups.Where(g => !g.Whole))
+                changes.Add(ShiftChange(group, shift));
+
+            GroupVolumeChanges(after, changes, rollups);
 
             return new DiffResult(changes, rollups);
         }
 
+        // ---------- Volume passes ----------
+
+        private static readonly string[] VolumeFields = ["RedLineVolume", "GreenLineVolume"];
+
+        /// <summary>
+        /// Timing lines next to each other whose volume changed the same way (by the same amount,
+        /// or all to the same value) are one change, like objects moved together: a rollup when it
+        /// is most of the map's lines, otherwise one change for that stretch. A line whose volume
+        /// stayed ends a stretch; a new line has no old volume to compare, so it does not.
+        /// </summary>
+        private static void GroupVolumeChanges(
+            Beatmap after,
+            List<Change> changes,
+            List<Rollup> rollups
+        )
+        {
+            var volume = changes
+                .Where(c => c.Op == ChangeOp.Changed && VolumeFields.Contains(c.Field))
+                .GroupBy(c => (c.Time, c.Field == "RedLineVolume"))
+                .ToDictionary(g => g.Key, g => g.First());
+
+            if (volume.Count < OffsetMinimumObjects)
+                return;
+
+            var added = changes
+                .Where(c => c.Op == ChangeOp.Added && c.Field is "RedLine" or "GreenLine")
+                .Select(c => (c.Time, c.Field == "RedLine"))
+                .ToHashSet();
+
+            var runs = new List<List<Change>>();
+            var run = new List<Change>();
+
+            void Close()
+            {
+                if (run.Count > 0)
+                    runs.Add(run);
+                run = [];
+            }
+
+            foreach (var line in after.TimingLines.OrderBy(l => l.Offset))
+            {
+                if (added.Contains((line.Offset, line.Uninherited)))
+                    continue;
+
+                if (!volume.TryGetValue((line.Offset, line.Uninherited), out var change))
+                {
+                    Close();
+                    continue;
+                }
+
+                if (run.Count > 0 && !Alike([.. run, change]))
+                    Close();
+
+                run.Add(change);
+            }
+
+            Close();
+
+            foreach (var group in runs.Where(r => r.Count >= OffsetMinimumObjects))
+            {
+                changes.RemoveAll(group.Contains);
+
+                var befores = group.Select(c => c.Before).Distinct().ToList();
+                var afters = group.Select(c => c.After).Distinct().ToList();
+                var deltas = group.Select(VolumeDelta).Distinct().ToList();
+                var before = befores.Count == 1 ? befores[0] : null;
+                var afterValue = afters.Count == 1 ? afters[0] : null;
+                var delta = deltas.Count == 1 ? deltas[0] : (double?)null;
+
+                if (group.Count >= after.TimingLines.Count * OffsetShare)
+                    rollups.Add(
+                        new Rollup(RollupKind.Volume, delta ?? 0, group.Count, before, afterValue)
+                    );
+                else
+                    changes.Add(
+                        new Change(
+                            ChangeKind.Hitsound,
+                            ChangeOp.Changed,
+                            group[0].Time,
+                            EndTime: group[^1].Time,
+                            Field: "VolumeGroup",
+                            Before: before,
+                            After: afterValue,
+                            Magnitude: delta,
+                            Count: group.Count
+                        )
+                    );
+            }
+        }
+
+        private static double VolumeDelta(Change c) =>
+            double.Parse(c.After!, CultureInfo.InvariantCulture)
+            - double.Parse(c.Before!, CultureInfo.InvariantCulture);
+
+        /// <summary> Whether volume changes went the same way: by one amount, or to one value. </summary>
+        private static bool Alike(List<Change> group) =>
+            group.Select(VolumeDelta).Distinct().Count() == 1
+            || group.Select(c => c.After).Distinct().Count() == 1;
+
+        /// <summary> One change for a part of the map that moved in time as a whole. </summary>
+        private static Change ShiftChange(ShiftGroup group, double wholeShift)
+        {
+            var oldStart = group
+                .Pairs.Select(p => p.Old.time)
+                .Concat(group.Lines.Select(l => l.Old.Offset))
+                .Min();
+            var newStart = group
+                .Pairs.Select(p => p.New.time)
+                .Concat(group.Lines.Select(l => l.New.Offset))
+                .Min();
+            var newEnd = group
+                .Pairs.Select(p => p.New.GetEndTime())
+                .Concat(group.Lines.Select(l => l.New.Offset))
+                .Max();
+
+            return new Change(
+                ChangeKind.Timing,
+                ChangeOp.Changed,
+                newStart,
+                EndTime: newEnd,
+                Field: "Shift",
+                Before: Format(oldStart),
+                After: Format(newStart),
+                // Signed, and on top of an offset change of the whole map if there was one.
+                Magnitude: group.Delta - wholeShift,
+                Count: group.Pairs.Count + group.Lines.Count
+            );
+        }
+
         // ---------- Objects ----------
 
+        /// <summary>
+        /// Pairs old objects with new ones. Each pair carries the shift that explains its move in
+        /// time (zero without one), so only what changed on top of that is reported.
+        /// </summary>
         private static List<(HitObject Old, HitObject New, double Delta)> MatchObjects(
             Beatmap before,
             Beatmap after,
             out List<HitObject> oldOnly,
             out List<HitObject> newOnly,
-            out double? shift
+            out List<ShiftGroup> groups
         )
         {
             var pairs = new List<(HitObject, HitObject, double)>();
-            var oldLeft = before.HitObjects.OrderBy(o => o.time).ToList();
+            var all = before.HitObjects.OrderBy(o => o.time).ToList();
+            var oldLeft = all.ToList();
             var newLeft = after.HitObjects.OrderBy(o => o.time).ToList();
 
             // Pass 1: same time and type. Chords and mania columns pair by the closest position.
             PairWhere(oldLeft, newLeft, pairs, 0, (o, n) => AlmostEqual(o.time, n.time));
 
-            // Pass 2: a shift shared by most of what is left means everything moved in time.
-            shift = DetectShift(oldLeft, newLeft);
+            // Pass 2: runs of objects that all moved by the same amount, kept in place otherwise.
+            var inPlace = pairs.Select(p => p.Item1).ToHashSet();
+            groups = FindShiftGroups(all, inPlace, oldLeft, newLeft);
 
-            if (shift != null)
-            {
-                var delta = shift.Value;
-                PairWhere(
-                    oldLeft,
-                    newLeft,
-                    pairs,
-                    delta,
-                    (o, n) => AlmostEqual(o.time + delta, n.time)
-                );
-            }
+            foreach (var group in groups)
+                pairs.AddRange(group.Pairs.Select(p => (p.Old, p.New, group.Delta)));
 
-            // Pass 3: small retimes in place.
+            MarkWholeShift(groups, all.Count);
+            SetGroupBounds(groups, all, inPlace);
+
+            // Pass 3: small retimes in place, on top of an offset change if there is one.
+            var whole = groups.Where(g => g.Whole).ToList();
+            var delta = whole.Count == 0 ? 0 : whole.MaxBy(g => g.Pairs.Count)!.Delta;
+
             PairWhere(
                 oldLeft,
                 newLeft,
                 pairs,
-                null,
+                delta,
                 (o, n) =>
-                    Math.Abs(o.time - n.time) <= RetimeWindowMs
+                    Math.Abs(o.time + delta - n.time) <= RetimeWindowMs
                     && Vector2Distance(o, n) <= RetimeMaxDistancePx
+            );
+
+            // Pass 4: an object turned into another kind in place (a hold note into a note, a
+            // circle into a slider) is that object changed, not one removed and another added.
+            // In place means the same column in mania, anywhere in taiko (where a note sits does not
+            // matter there) and close by otherwise.
+            var mode = after.GeneralSettings.mode;
+            var keys = after.DifficultySettings.circleSize;
+
+            PairWhere(
+                oldLeft,
+                newLeft,
+                pairs,
+                delta,
+                (o, n) =>
+                    AlmostEqual(o.time + delta, n.time)
+                    && mode switch
+                    {
+                        Beatmap.Mode.Mania => ManiaExtensions.GetColumn(o, keys)
+                            == ManiaExtensions.GetColumn(n, keys),
+                        Beatmap.Mode.Taiko => true,
+                        _ => Vector2Distance(o, n) <= RetimeMaxDistancePx,
+                    },
+                anyType: true
             );
 
             oldOnly = oldLeft;
@@ -114,18 +320,20 @@ namespace MapsetVerifier.Snapshots.Diffing
 
         /// <summary>
         /// Greedily pairs objects of the same type that satisfy <paramref name="match" />, closest
-        /// in position first. A null delta means "use the actual time difference".
+        /// in position first. <paramref name="delta" /> is the shift the pairs are expected to share.
+        /// With <paramref name="anyType" /> the type may differ too.
         /// </summary>
         private static void PairWhere(
             List<HitObject> oldLeft,
             List<HitObject> newLeft,
             List<(HitObject, HitObject, double)> pairs,
-            double? delta,
-            Func<HitObject, HitObject, bool> match
+            double delta,
+            Func<HitObject, HitObject, bool> match,
+            bool anyType = false
         )
         {
             var candidates = new List<(HitObject Old, HitObject New, double Cost)>();
-            var window = RetimeWindowMs + Math.Abs(delta ?? 0) + 1;
+            var window = RetimeWindowMs + 1;
             var newTimes = newLeft.Select(n => n.time).ToArray();
 
             foreach (var o in oldLeft)
@@ -133,21 +341,19 @@ namespace MapsetVerifier.Snapshots.Diffing
                 var type = o.GetObjectType();
 
                 // Both lists are sorted by time, so only a window around o can match.
-                for (
-                    var i = LowerBound(newTimes, o.time + (delta ?? 0) - window);
-                    i < newLeft.Count;
-                    i++
-                )
+                for (var i = LowerBound(newTimes, o.time + delta - window); i < newLeft.Count; i++)
                 {
                     var n = newLeft[i];
 
-                    if (n.time > o.time + (delta ?? 0) + window)
+                    if (n.time > o.time + delta + window)
                         break;
 
-                    if (n.GetObjectType() != type || !match(o, n))
+                    if ((!anyType && n.GetObjectType() != type) || !match(o, n))
                         continue;
 
-                    candidates.Add((o, n, Vector2Distance(o, n) + Math.Abs(o.time - n.time) / 10));
+                    candidates.Add(
+                        (o, n, Vector2Distance(o, n) + Math.Abs(o.time + delta - n.time) / 10)
+                    );
                 }
             }
 
@@ -161,26 +367,161 @@ namespace MapsetVerifier.Snapshots.Diffing
 
                 usedOld.Add(o);
                 usedNew.Add(n);
-                pairs.Add((o, n, delta ?? n.time - o.time));
+                pairs.Add((o, n, delta));
             }
 
             oldLeft.RemoveAll(usedOld.Contains);
             newLeft.RemoveAll(usedNew.Contains);
         }
 
-        /// <summary> The time shift most unpaired objects agree on, if it covers enough of them. </summary>
-        private static double? DetectShift(List<HitObject> oldLeft, List<HitObject> newLeft)
+        /// <summary>
+        /// Finds the groups of objects that moved in time together. The amount most unpaired
+        /// objects agree on is tried first; the objects it explains are split into runs wherever
+        /// an object stayed in place between them, so two parts moved by the same amount stay two
+        /// groups. Then the next amount, until no amount explains a run.
+        /// </summary>
+        private static List<ShiftGroup> FindShiftGroups(
+            List<HitObject> all,
+            HashSet<HitObject> inPlace,
+            List<HitObject> oldLeft,
+            List<HitObject> newLeft
+        )
         {
-            if (oldLeft.Count == 0 || newLeft.Count == 0)
-                return null;
+            var groups = new List<ShiftGroup>();
+            var tried = new List<double>();
+            var index = all.Select((o, i) => (o, i)).ToDictionary(x => x.o, x => x.i);
 
-            var votes = new Dictionary<double, int>();
+            // Objects whose place is settled: left in place, or moved with a group found earlier.
+            var settled = inPlace.ToHashSet();
+
+            var fruitless = 0;
+
+            while (groups.Count < MaxShiftGroups && fruitless < MaxFruitlessShifts)
+            {
+                var delta = DensestShift(oldLeft, newLeft, tried);
+
+                if (delta == null)
+                    break;
+
+                tried.Add(delta.Value);
+                var d = delta.Value;
+                var found = groups.Count;
+
+                // Votes either side of nothing can meet in the middle; that is no shift at all.
+                if (d == 0)
+                    continue;
+
+                var minimum =
+                    Math.Abs(d) > RetimeWindowMs ? FarShiftMinimumObjects : OffsetMinimumObjects;
+                var newTimes = newLeft.Select(n => n.time).ToArray();
+
+                var explained = oldLeft
+                    .Where(o =>
+                        newLeft
+                            .Skip(LowerBound(newTimes, o.time + d - ShiftToleranceMs))
+                            .TakeWhile(n => n.time <= o.time + d + ShiftToleranceMs)
+                            .Any(n =>
+                                n.GetObjectType() == o.GetObjectType()
+                                && Vector2Distance(o, n) <= RetimeMaxDistancePx
+                            )
+                    )
+                    .ToList();
+
+                foreach (var run in Runs(explained, all, index, settled).ToList())
+                {
+                    // Most of what is unsettled in the run has to have moved, so a few notes that
+                    // happen to line up in a remapped part do not make a group.
+                    var first = index[run[0]];
+                    var last = index[run[^1]];
+                    var unsettled = all.Skip(first)
+                        .Take(last - first + 1)
+                        .Count(o => !settled.Contains(o));
+
+                    if (run.Count < minimum || run.Count < unsettled * OffsetShare)
+                        continue;
+
+                    var runLeft = run.ToList();
+                    var pairs = new List<(HitObject, HitObject, double)>();
+                    PairWhere(
+                        runLeft,
+                        newLeft,
+                        pairs,
+                        d,
+                        (o, n) => Math.Abs(o.time + d - n.time) <= ShiftToleranceMs
+                    );
+                    var moved = pairs.Select(p => p.Item1).ToHashSet();
+                    oldLeft.RemoveAll(moved.Contains);
+                    settled.UnionWith(moved);
+
+                    groups.Add(
+                        new ShiftGroup
+                        {
+                            Delta = d,
+                            Pairs = pairs.Select(p => (p.Item1, p.Item2)).ToList(),
+                            FirstIndex = first,
+                            LastIndex = last,
+                        }
+                    );
+                }
+
+                fruitless = groups.Count > found ? 0 : fruitless + 1;
+            }
+
+            return groups.OrderBy(g => g.FirstIndex).ToList();
+        }
+
+        /// <summary>
+        /// Splits objects into runs that follow each other in the map with no settled object
+        /// between them. Unsettled ones (remapped, say) do not break a run.
+        /// </summary>
+        private static IEnumerable<List<HitObject>> Runs(
+            List<HitObject> objects,
+            List<HitObject> all,
+            Dictionary<HitObject, int> index,
+            HashSet<HitObject> settled
+        )
+        {
+            var run = new List<HitObject>();
+
+            foreach (var o in objects.OrderBy(o => index[o]))
+            {
+                if (run.Count > 0)
+                {
+                    var from = index[run[^1]] + 1;
+                    var to = index[o];
+
+                    if (all.Skip(from).Take(to - from).Any(settled.Contains))
+                    {
+                        yield return run;
+                        run = [];
+                    }
+                }
+
+                run.Add(o);
+            }
+
+            if (run.Count > 0)
+                yield return run;
+        }
+
+        /// <summary>
+        /// The time shift the most unpaired objects agree on, other than those already tried.
+        /// Every object votes for each object of its type nearby in place; agreeing means landing
+        /// within <see cref="ShiftToleranceMs" /> of each other, and the shift is the middle of
+        /// that group.
+        /// </summary>
+        private static double? DensestShift(
+            List<HitObject> oldLeft,
+            List<HitObject> newLeft,
+            List<double> tried
+        )
+        {
+            var deltas = new List<double>();
             var newTimes = newLeft.Select(n => n.time).ToArray();
 
             foreach (var o in oldLeft)
             {
                 var type = o.GetObjectType();
-                HitObject? closest = null;
 
                 for (var i = LowerBound(newTimes, o.time - MaxShiftMs); i < newLeft.Count; i++)
                 {
@@ -189,41 +530,98 @@ namespace MapsetVerifier.Snapshots.Diffing
                     if (n.time > o.time + MaxShiftMs)
                         break;
 
-                    if (n.GetObjectType() != type)
+                    // A shifted object stays roughly where it was; a remapped one does not vote.
+                    if (n.GetObjectType() != type || Vector2Distance(o, n) > RetimeMaxDistancePx)
                         continue;
 
-                    // A shifted object stays roughly where it was; a remapped one does not vote.
-                    if (Vector2Distance(o, n) > RetimeMaxDistancePx)
-                        continue;
+                    var delta = n.time - o.time;
 
                     if (
-                        closest == null
-                        || Math.Abs(n.time - o.time) < Math.Abs(closest.time - o.time)
+                        Math.Abs(delta) >= 0.5
+                        && !tried.Any(t => Math.Abs(t - delta) <= ShiftToleranceMs)
                     )
-                        closest = n;
+                        deltas.Add(delta);
                 }
-
-                if (closest == null)
-                    continue;
-
-                var delta = Math.Round(closest.time - o.time);
-
-                if (delta == 0 || Math.Abs(delta) > MaxShiftMs)
-                    continue;
-
-                votes[delta] = votes.GetValueOrDefault(delta) + 1;
             }
 
-            if (votes.Count == 0)
+            // The densest stretch of votes no wider than the tolerance either way.
+            deltas.Sort();
+            int bestStart = 0,
+                bestCount = 0;
+
+            for (int start = 0, end = 0; start < deltas.Count; start++)
+            {
+                while (end < deltas.Count && deltas[end] - deltas[start] <= 2 * ShiftToleranceMs)
+                    end++;
+
+                if (end - start > bestCount)
+                {
+                    bestStart = start;
+                    bestCount = end - start;
+                }
+            }
+
+            if (bestCount < OffsetMinimumObjects)
                 return null;
 
-            var best = votes.OrderByDescending(v => v.Value).First();
-            var needed = Math.Max(
-                OffsetMinimumObjects,
-                (int)Math.Ceiling(oldLeft.Count * OffsetShare)
-            );
+            var group = deltas.GetRange(bestStart, bestCount);
+            var median =
+                group.Count % 2 == 1
+                    ? group[group.Count / 2]
+                    : (group[group.Count / 2 - 1] + group[group.Count / 2]) / 2;
 
-            return best.Value >= needed ? best.Key : null;
+            return Math.Round(median * 2) / 2;
+        }
+
+        /// <summary>
+        /// Groups that moved by one amount and together hold most of the map are an offset change
+        /// of the whole map, not parts of it moved one by one.
+        /// </summary>
+        private static void MarkWholeShift(List<ShiftGroup> groups, int objectCount)
+        {
+            foreach (var group in groups.OrderByDescending(g => g.Pairs.Count))
+            {
+                var alike = groups
+                    .Where(g => Math.Abs(g.Delta - group.Delta) <= ShiftToleranceMs)
+                    .ToList();
+
+                if (alike.Sum(g => g.Pairs.Count) < objectCount * OffsetShare)
+                    continue;
+
+                foreach (var g in alike)
+                    g.Whole = true;
+
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Each group reaches to the nearest object outside it that stayed in place or moved with
+        /// another group, so the timing lines between those are the group's to move.
+        /// </summary>
+        private static void SetGroupBounds(
+            List<ShiftGroup> groups,
+            List<HitObject> all,
+            HashSet<HitObject> inPlace
+        )
+        {
+            var owner = new Dictionary<HitObject, ShiftGroup>();
+
+            foreach (var group in groups)
+            foreach (var (o, _) in group.Pairs)
+                owner[o] = group;
+
+            bool Bounds(HitObject o, ShiftGroup group) =>
+                inPlace.Contains(o) || (owner.TryGetValue(o, out var other) && other != group);
+
+            foreach (var group in groups)
+            {
+                var before = all.Take(group.FirstIndex).LastOrDefault(o => Bounds(o, group));
+                var after = all.Skip(group.LastIndex + 1).FirstOrDefault(o => Bounds(o, group));
+
+                group.From = before?.time ?? double.NegativeInfinity;
+                group.To = after?.time ?? double.PositiveInfinity;
+            }
         }
 
         private static IEnumerable<Change> DiffObject(
@@ -237,10 +635,11 @@ namespace MapsetVerifier.Snapshots.Diffing
             var reference = ObjectRef(after, n);
             var type = n.GetObjectType();
 
-            // A shift shared with the rollup is not a change of its own; anything on top of it is.
+            // A shift shared with the rollup is not a change of its own; anything on top of it is,
+            // past the rounding the shift brings with it.
             var retimed = n.time - o.time - delta;
 
-            if (!retimed.AlmostEqual(0))
+            if (!WithinShift(retimed, delta))
                 yield return new Change(
                     ChangeKind.Rhythm,
                     ChangeOp.Changed,
@@ -271,7 +670,8 @@ namespace MapsetVerifier.Snapshots.Diffing
                         Object: reference
                     );
             }
-            else if (distance > 0.001)
+            // Where a note sits on the playfield does not matter in taiko, only when and what it is.
+            else if (distance > 0.001 && after.GeneralSettings.mode != Beatmap.Mode.Taiko)
             {
                 yield return new Change(
                     ChangeKind.Placement,
@@ -289,7 +689,11 @@ namespace MapsetVerifier.Snapshots.Diffing
             var wasNewCombo = o.type.HasFlag(HitObject.Types.NewCombo);
             var isNewCombo = n.type.HasFlag(HitObject.Types.NewCombo);
 
-            if (wasNewCombo != isNewCombo)
+            // Mania and taiko have no combo colours or numbers, so a new combo does nothing there.
+            if (
+                wasNewCombo != isNewCombo
+                && after.GeneralSettings.mode is not (Beatmap.Mode.Mania or Beatmap.Mode.Taiko)
+            )
                 yield return new Change(
                     ChangeKind.Placement,
                     ChangeOp.Changed,
@@ -388,15 +792,26 @@ namespace MapsetVerifier.Snapshots.Diffing
                     Object: reference
                 );
 
-            if (type == "Slider")
+            if (o.GetObjectType() != type)
+                yield return new Change(
+                    ChangeKind.Rhythm,
+                    ChangeOp.Changed,
+                    n.time,
+                    EndTime: n.GetEndTime(),
+                    Field: "Type",
+                    Before: KindName(before, o),
+                    After: KindName(after, n),
+                    Object: reference
+                );
+            else if (type == "Slider")
                 foreach (var change in DiffSlider(before, after, o, n, reference))
                     yield return change;
             else if (type is "Spinner" or "Hold note")
             {
-                var oldEnd = o.GetEndTime() - delta;
+                var oldEnd = o.GetEndTime() + delta;
                 var newEnd = n.GetEndTime();
 
-                if (!oldEnd.AlmostEqual(newEnd))
+                if (!WithinShift(newEnd - oldEnd, delta))
                     yield return new Change(
                         ChangeKind.Rhythm,
                         ChangeOp.Changed,
@@ -410,6 +825,15 @@ namespace MapsetVerifier.Snapshots.Diffing
                     );
             }
         }
+
+        /// <summary> What a kind of object is called in its mode: a note in mania, a drumroll in taiko. </summary>
+        private static string KindName(Beatmap map, HitObject o) =>
+            map.GeneralSettings.mode switch
+            {
+                Beatmap.Mode.Taiko => TaikoNote(o),
+                Beatmap.Mode.Mania => o.GetObjectType() == "Hold note" ? "Hold note" : "Note",
+                _ => o.GetObjectType(),
+            };
 
         /// <summary> What a taiko note is called in game: don, kat, a roll or a shaker, and whether it is big. </summary>
         private static string TaikoNote(HitObject o)
@@ -474,7 +898,8 @@ namespace MapsetVerifier.Snapshots.Diffing
                     .Zip(newSlider.NodePositions.Skip(1))
                     .Any(pair => pair.First != pair.Second);
 
-            if (shapeChanged)
+            // A drumroll's curve is never seen in taiko; only its length (above) is played.
+            if (shapeChanged && after.GeneralSettings.mode != Beatmap.Mode.Taiko)
                 yield return new Change(
                     ChangeKind.Placement,
                     ChangeOp.Changed,
@@ -579,24 +1004,34 @@ namespace MapsetVerifier.Snapshots.Diffing
 
         // ---------- Timing ----------
 
-        /// <summary> Diffs timing lines; returns how many were absorbed by the shared time shift. </summary>
-        private static int DiffTiming(
+        /// <summary>
+        /// Diffs timing lines. A line that moved with a group of objects, between the objects
+        /// around that group, is part of the group rather than a change of its own.
+        /// </summary>
+        private static void DiffTiming(
             Beatmap before,
             Beatmap after,
-            double? shift,
+            List<ShiftGroup> groups,
             List<Change> changes
         )
         {
             var oldLeft = before.TimingLines.ToList();
             var newLeft = after.TimingLines.ToList();
-            var absorbed = 0;
 
-            void Pair(double delta)
+            void Pair(double delta, ShiftGroup? group)
             {
                 foreach (var o in oldLeft.ToList())
                 {
+                    if (group != null && (o.Offset <= group.From || o.Offset >= group.To))
+                        continue;
+
                     var n = newLeft.FirstOrDefault(l =>
-                        l.Uninherited == o.Uninherited && AlmostEqual(o.Offset + delta, l.Offset)
+                        l.Uninherited == o.Uninherited
+                        && (
+                            delta == 0
+                                ? AlmostEqual(o.Offset, l.Offset)
+                                : Math.Abs(o.Offset + delta - l.Offset) <= ShiftToleranceMs
+                        )
                     );
 
                     if (n == null)
@@ -604,35 +1039,41 @@ namespace MapsetVerifier.Snapshots.Diffing
 
                     oldLeft.Remove(o);
                     newLeft.Remove(n);
-
-                    if (delta != 0)
-                        absorbed++;
+                    group?.Lines.Add((o, n));
 
                     changes.AddRange(DiffLine(o, n));
                 }
             }
 
-            Pair(0);
+            Pair(0, null);
 
-            if (shift != null)
-                Pair(shift.Value);
+            foreach (var group in groups)
+                Pair(group.Delta, group);
 
             foreach (var l in oldLeft)
                 changes.Add(LineChange(l, ChangeOp.Removed));
 
             foreach (var l in newLeft)
                 changes.Add(LineChange(l, ChangeOp.Added));
-
-            return absorbed;
         }
 
-        private static Change LineChange(TimingLine line, ChangeOp op) =>
-            new(
+        /// <summary>
+        /// A timing line added or removed. A green line names its slider velocity, on the side it
+        /// exists on, so it can be shown with the other SV changes.
+        /// </summary>
+        private static Change LineChange(TimingLine line, ChangeOp op)
+        {
+            var sv = line.Uninherited ? null : Format(line.SvMult);
+
+            return new(
                 ChangeKind.Timing,
                 op,
                 line.Offset,
-                Field: line.Uninherited ? "RedLine" : "GreenLine"
+                Field: line.Uninherited ? "RedLine" : "GreenLine",
+                Before: op == ChangeOp.Removed ? sv : null,
+                After: op == ChangeOp.Added ? sv : null
             );
+        }
 
         private static IEnumerable<Change> DiffLine(TimingLine o, TimingLine n)
         {
@@ -736,6 +1177,10 @@ namespace MapsetVerifier.Snapshots.Diffing
         }
 
         private static bool AlmostEqual(double a, double b) => Math.Abs(a - b) < 0.5;
+
+        /// <summary> Whether a time difference is nothing, or only the rounding of a shift. </summary>
+        private static bool WithinShift(double difference, double shift) =>
+            shift == 0 ? difference.AlmostEqual(0) : Math.Abs(difference) <= ShiftToleranceMs;
 
         private static double Vector2Distance(HitObject a, HitObject b)
         {

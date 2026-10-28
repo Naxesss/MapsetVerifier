@@ -8,6 +8,12 @@ namespace MapsetVerifier.Snapshots.Compare
     /// </summary>
     public static class SnapshotHistory
     {
+        /// <summary>
+        /// Raise this whenever the diff changes what it counts, so stored summaries made by the
+        /// older one are worked out again instead of disagreeing with the comparison.
+        /// </summary>
+        public const int SummaryVersion = 2;
+
         public static HistoryResult Build(string setKey)
         {
             var log = SnapshotStore.Load(setKey);
@@ -16,7 +22,7 @@ namespace MapsetVerifier.Snapshots.Compare
 
             var missing = entries
                 .Select((entry, index) => (Entry: entry, Index: index))
-                .Where(x => x.Entry.Summary == null)
+                .Where(x => x.Entry.Summary?.Version != SummaryVersion)
                 .ToList();
 
             var computed = new System.Collections.Concurrent.ConcurrentDictionary<
@@ -31,7 +37,7 @@ namespace MapsetVerifier.Snapshots.Compare
                 {
                     computed[x.Entry.Id] =
                         x.Index == 0
-                            ? new StoredSummary()
+                            ? new StoredSummary { Version = SummaryVersion }
                             : Summarize(setKey, entries[x.Index - 1], x.Entry);
                 }
             );
@@ -46,7 +52,9 @@ namespace MapsetVerifier.Snapshots.Compare
             for (var i = 0; i < entries.Count; i++)
             {
                 var entry = entries[i];
-                var summary = entry.Summary ?? summaries[entry.Id];
+                var summary = summaries.TryGetValue(entry.Id, out var fresh)
+                    ? fresh
+                    : entry.Summary!;
                 var total = summary.Difficulties.Values.Aggregate(
                     new ChangeCounts(0, 0, 0),
                     (sum, c) =>
@@ -104,6 +112,7 @@ namespace MapsetVerifier.Snapshots.Compare
             var comparison = SnapshotComparer.Compare(setKey, before, after);
             var summary = new StoredSummary
             {
+                Version = SummaryVersion,
                 FileChanges = comparison.General.Files.Count,
                 GeneralChanges =
                     comparison.General.Settings.Count + comparison.General.Rollups.Count,

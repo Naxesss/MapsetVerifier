@@ -41,26 +41,37 @@ const distance = (a: ApiSnapshotVisualObject, b: ApiSnapshotVisualObject) =>
   Math.hypot(a.x - b.x, a.y - b.y);
 
 /**
+ * Objects moved by a shift land within this much of it: times are whole milliseconds and the
+ * editor rounds each one on its own.
+ */
+const SHIFT_TOLERANCE_MS = 1.5;
+
+/**
  * How far apart two objects are in time once a shared shift is allowed for. An offset change moves
  * the objects it touches by the shift, but objects it left alone are just as unchanged, so a gap of
- * either nothing or the shift counts as no gap.
+ * either nothing or the shift counts as no gap, and so does the rounding around the shift.
  */
-const timeGap = (a: number, b: number, shift: number) =>
-  Math.min(Math.abs(a - b), Math.abs(a - b - shift));
+const timeGap = (a: number, b: number, shift: number) => {
+  const shifted = Math.abs(a - b - shift);
+  return Math.min(Math.abs(a - b), shift !== 0 && shifted <= SHIFT_TOLERANCE_MS ? 0 : shifted);
+};
 
 function identical(
   a: ApiSnapshotVisualObject,
   b: ApiSnapshotVisualObject,
   shift: number,
-  compareHitsound: boolean
+  compareHitsound: boolean,
+  ignorePlace: boolean
 ) {
-  const samePath = JSON.stringify(a.path) === JSON.stringify(b.path);
+  const samePath = ignorePlace || JSON.stringify(a.path) === JSON.stringify(b.path);
 
   // A slider lasts as long as its length and the tempo and slider velocity say, so an SV or BPM
   // edit elsewhere makes it shorter or longer without the slider itself being touched. That shows
   // with the timing changes; here only a slider whose own shape changed counts. Spinners and hold
-  // notes have no shape, so their end time is their own.
+  // notes have no shape, so their end time is their own, and so is a drumroll's: its length is
+  // all there is to it.
   const sliderTimingOnly =
+    !ignorePlace &&
     a.type === 'Slider' &&
     b.type === 'Slider' &&
     samePath &&
@@ -72,8 +83,9 @@ function identical(
       : timeGap(a.endTime, b.endTime, shift) < 1);
 
   return (
+    a.type === b.type &&
     timeGap(a.time, b.time, shift) < 1 &&
-    distance(a, b) < 0.5 &&
+    (ignorePlace || distance(a, b) < 0.5) &&
     a.column === b.column &&
     (!compareHitsound || a.hitSound === b.hitSound) &&
     endsAgree &&
@@ -99,15 +111,23 @@ export function pairObjects(
    * The stretch of the song being shown. The objects given reach past it, so the ones at its edges
    * can find their counterpart; only pairs that are in it are returned.
    */
-  range?: [number, number]
+  range?: [number, number],
+  /**
+   * Whether where an object sits and the curve of a slider play no part. Only taiko, where notes
+   * are just when they are and what they are, and a drumroll only has a length.
+   */
+  ignorePlace = false
 ): PairedObject[] {
   const usedBefore = new Set<number>();
   const pairs: { b: number; a: number }[] = [];
 
-  const sameSpot = (b: ApiSnapshotVisualObject, a: ApiSnapshotVisualObject) =>
-    b.type === a.type && (b.column ?? -1) === (a.column ?? -1);
+  const sameSpot = (b: ApiSnapshotVisualObject, a: ApiSnapshotVisualObject, anyType: boolean) =>
+    (anyType || b.type === a.type) && (b.column ?? -1) === (a.column ?? -1);
 
-  const pair = (match: (b: ApiSnapshotVisualObject, a: ApiSnapshotVisualObject) => boolean) => {
+  const pair = (
+    match: (b: ApiSnapshotVisualObject, a: ApiSnapshotVisualObject) => boolean,
+    anyType = false
+  ) => {
     const usedAfter = new Set(pairs.map((p) => p.a));
 
     after.forEach((a, ai) => {
@@ -117,7 +137,7 @@ export function pairObjects(
       let bestCost = Infinity;
 
       before.forEach((b, bi) => {
-        if (usedBefore.has(bi) || !sameSpot(b, a) || !match(b, a)) return;
+        if (usedBefore.has(bi) || !sameSpot(b, a, anyType) || !match(b, a)) return;
 
         const cost = distance(a, b) + timeGap(a.time, b.time, shift) / 10;
         if (cost < bestCost) {
@@ -136,7 +156,14 @@ export function pairObjects(
   pair((b, a) => timeGap(a.time, b.time, shift) < 1);
   pair(
     (b, a) =>
-      timeGap(a.time, b.time, shift) <= RETIME_WINDOW_MS && distance(a, b) <= RETIME_MAX_DISTANCE
+      timeGap(a.time, b.time, shift) <= RETIME_WINDOW_MS &&
+      (ignorePlace || distance(a, b) <= RETIME_MAX_DISTANCE)
+  );
+  // An object turned into another kind in place (a hold note into a note) is that object changed.
+  pair(
+    (b, a) =>
+      timeGap(a.time, b.time, shift) < 1 && (ignorePlace || distance(a, b) <= RETIME_MAX_DISTANCE),
+    true
   );
 
   const pairedAfter = new Map(pairs.map((p) => [p.a, p.b]));
@@ -151,8 +178,8 @@ export function pairObjects(
       result.push({
         before: b,
         after: a,
-        status: identical(b, a, shift, compareHitsound) ? 'same' : 'changed',
-        details: describeDifference(b, a, shift, compareHitsound),
+        status: identical(b, a, shift, compareHitsound, ignorePlace) ? 'same' : 'changed',
+        details: describeDifference(b, a, shift, compareHitsound, ignorePlace),
       });
     }
   });
@@ -190,18 +217,23 @@ function describeDifference(
   b: ApiSnapshotVisualObject,
   a: ApiSnapshotVisualObject,
   shift: number,
-  compareHitsound: boolean
+  compareHitsound: boolean,
+  ignorePlace: boolean
 ): string[] {
   const lines: string[] = [];
 
+  if (a.type !== b.type)
+    lines.push(`Changed from ${b.type.toLowerCase()} to ${a.type.toLowerCase()}`);
   if (timeGap(a.time, b.time, shift) >= 1)
     lines.push(`Moved in time from ${formatClock(b.time)} to ${formatClock(a.time)}`);
-  if (distance(a, b) >= 0.5) lines.push(`Moved from ${place(b)} to ${place(a)}`);
+  if (!ignorePlace && distance(a, b) >= 0.5) lines.push(`Moved from ${place(b)} to ${place(a)}`);
   if (a.column !== b.column) lines.push(`Moved from column ${b.column} to column ${a.column}`);
   if (compareHitsound && a.hitSound !== b.hitSound)
     lines.push(`Changed from ${noteName(b.hitSound)} to ${noteName(a.hitSound)}`);
 
-  if (a.type === 'Slider' && b.type === 'Slider') {
+  if (a.type !== b.type) return lines;
+
+  if (!ignorePlace && a.type === 'Slider' && b.type === 'Slider') {
     if (JSON.stringify(a.path) !== JSON.stringify(b.path)) lines.push('Slider shape changed');
     const reverses = (b.edges?.length ?? 0) !== (a.edges?.length ?? 0);
     if (reverses)

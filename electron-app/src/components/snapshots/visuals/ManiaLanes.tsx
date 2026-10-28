@@ -1,10 +1,11 @@
-import { Group, Text } from '@mantine/core';
+import { Box, Group } from '@mantine/core';
 import { useId, useMemo } from 'react';
 import { fitDivisors } from './beatGrid';
+import Legend from './Legend';
 import { pairObjects, STATUS_COLOR, type PairedObject } from './pairing';
 import PairTip from './PairTip';
 import { PlotLabel } from './PlotLabels';
-import SnapGrid, { hunkDivisors, SnapLegend } from './SnapGrid';
+import SnapGrid, { hunkDivisors } from './SnapGrid';
 import type {
   ApiSnapshotHunkVisual,
   ApiSnapshotTimingMark,
@@ -201,12 +202,16 @@ export default function ManiaLanes({
           clipId={`${clipId}-after`}
         />
       </div>
-      <Group gap="md" mt="xs" wrap="wrap">
-        <Text size="xs" c="dimmed">
-          Outline: yellow moved or lengthened, green added, red removed
-        </Text>
-        <SnapLegend divisors={divisors} />
-      </Group>
+      <Box mt="xs">
+        <Legend
+          items={[
+            { mark: 'blockOutline', color: STATUS_COLOR.changed, label: 'Changed' },
+            { mark: 'blockOutline', color: STATUS_COLOR.added, label: 'Added' },
+            { mark: 'blockDashed', color: STATUS_COLOR.removed, label: 'Removed' },
+          ]}
+          divisors={divisors}
+        />
+      </Box>
     </div>
   );
 }

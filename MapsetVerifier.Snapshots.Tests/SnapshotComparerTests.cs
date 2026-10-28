@@ -225,6 +225,161 @@ public class SnapshotComparerTests
     }
 
     [Fact]
+    public void AnOffsetShiftWithRounding_IsStillOneRollup()
+    {
+        using var context = Create();
+        context.WriteDifficulty("a.osu", BuildOsu("Easy", Circles(12), beatmapId: 1));
+
+        var (before, after) = Capture(
+            context,
+            () =>
+            {
+                // +200 ms, but each object rounded on its own: a third each of +199, +200, +201.
+                // The red line moved by a fraction of a millisecond.
+                var objects = Enumerable
+                    .Range(0, 12)
+                    .Select(i => $"{50 + i * 20},100,{1000 + i * 500 + 199 + i % 3},1,0,0:0:0:0:")
+                    .ToArray();
+                context.WriteDifficulty(
+                    "a.osu",
+                    BuildOsu("Easy", objects, beatmapId: 1, timing: "200.5,500,4,2,0,100,1,0")
+                );
+            }
+        );
+
+        var result = SnapshotComparer.Compare("set-12345", before, after);
+        var easy = Assert.Single(result.Difficulties);
+        var rollup = Assert.Single(easy.Rollups);
+
+        Assert.Equal(200, rollup.Amount);
+        Assert.Equal(13, rollup.Absorbed);
+        Assert.Empty(easy.Hunks);
+    }
+
+    [Fact]
+    public void ARetimeOnTopOfAnOffsetShift_IsStillListed()
+    {
+        using var context = Create();
+        context.WriteDifficulty("a.osu", BuildOsu("Easy", Circles(8), beatmapId: 1));
+
+        var (before, after) = Capture(
+            context,
+            () =>
+            {
+                var objects = Circles(8, start: 1010);
+                objects[3] = "110,100,2560,1,0,0:0:0:0:"; // +10 like the rest, then 50 ms later
+                context.WriteDifficulty(
+                    "a.osu",
+                    BuildOsu("Easy", objects, beatmapId: 1, timing: "10,500,4,2,0,100,1,0")
+                );
+            }
+        );
+
+        var easy = Assert.Single(SnapshotComparer.Compare("set-12345", before, after).Difficulties);
+
+        Assert.Equal(10, Assert.Single(easy.Rollups).Amount);
+        var hunk = Assert.Single(easy.Hunks);
+        Assert.Equal(ChangeKind.Rhythm, Assert.Single(hunk.Kinds));
+        Assert.Equal(1, hunk.Counts.Changed);
+    }
+
+    [Fact]
+    public void ARetimeInPlace_IsListed()
+    {
+        using var context = Create();
+        context.WriteDifficulty("a.osu", BuildOsu("Easy", Circles(6), beatmapId: 1));
+
+        var (before, after) = Capture(
+            context,
+            () =>
+            {
+                var objects = Circles(6);
+                objects[2] = "90,100,2050,1,0,0:0:0:0:";
+                context.WriteDifficulty("a.osu", BuildOsu("Easy", objects, beatmapId: 1));
+            }
+        );
+
+        var easy = Assert.Single(SnapshotComparer.Compare("set-12345", before, after).Difficulties);
+
+        Assert.Empty(easy.Rollups);
+        Assert.Equal(ChangeKind.Rhythm, Assert.Single(Assert.Single(easy.Hunks).Kinds));
+    }
+
+    [Fact]
+    public void EachVersion_IsReadWithItsOwnTimingLines()
+    {
+        // The parser caches timing lines per file path, and every version of a difficulty has the
+        // same file name. Read back with the version compared before, a green line's new volume
+        // never reached the objects under it.
+        using var context = Create();
+        context.WriteDifficulty(
+            "a.osu",
+            BuildOsu(
+                "Easy",
+                Circles(6),
+                beatmapId: 1,
+                timing: "0,500,4,2,0,100,1,0|1500,-100,4,2,0,100,0,0"
+            )
+        );
+
+        var (before, after) = Capture(
+            context,
+            () =>
+                context.WriteDifficulty(
+                    "a.osu",
+                    BuildOsu(
+                        "Easy",
+                        Circles(6),
+                        beatmapId: 1,
+                        timing: "0,500,4,2,0,100,1,0|1500,-100,4,2,0,60,0,0"
+                    )
+                )
+        );
+
+        SnapshotComparer.Compare("set-12345", before, after);
+        var window = SnapshotComparer.GetWindow("set-12345", before, after, "b-1", 2000, 2000, 0);
+
+        Assert.All(
+            window.Visual.Before.Where(o => o.Time >= 1500),
+            o => Assert.Equal(100, o.Volume)
+        );
+        Assert.All(window.Visual.After.Where(o => o.Time >= 1500), o => Assert.Equal(60, o.Volume));
+    }
+
+    [Fact]
+    public void ASummaryFromAnOlderDiff_IsWorkedOutAgain()
+    {
+        using var context = Create();
+        context.WriteDifficulty("a.osu", BuildOsu("Easy", Circles(6), beatmapId: 1));
+
+        var (_, after) = Capture(
+            context,
+            () =>
+            {
+                var objects = Circles(6);
+                objects[2] = "300,200,2000,1,0,0:0:0:0:";
+                context.WriteDifficulty("a.osu", BuildOsu("Easy", objects, beatmapId: 1));
+            }
+        );
+
+        // As a summary stored before versions existed, by a diff that counted differently.
+        var stale = new StoredSummary();
+        stale.Difficulties["b-1"] = new StoredCounts { Changed = 468 };
+        SnapshotStore.SaveSummaries(
+            "set-12345",
+            new Dictionary<string, StoredSummary> { [after.Id] = stale }
+        );
+
+        var entry = SnapshotHistory.Build("set-12345").Entries.Single(e => e.Id == after.Id);
+
+        Assert.Equal(1, entry.Counts.Changed);
+        Assert.Equal(
+            SnapshotHistory.SummaryVersion,
+            SnapshotStore.Load("set-12345").Entries.Single(e => e.Id == after.Id).Summary!.Version
+        );
+    }
+
+    [Fact]
     public void ReplacedAndAddedFiles_AreListedByKind()
     {
         using var context = Create();
