@@ -28,7 +28,15 @@ interface TimelineShortcutHintsProps {
 }
 
 /** One shortcut, dimmed at rest and in the primary colour while its key is held. */
-function Hint({ active, keys, children }: { active: boolean; keys: string; children: ReactNode }) {
+export function Hint({
+  active,
+  keys,
+  children,
+}: {
+  active: boolean;
+  keys: string;
+  children: ReactNode;
+}) {
   return (
     <Text
       size="xs"

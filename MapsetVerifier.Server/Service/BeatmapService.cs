@@ -475,7 +475,7 @@ public static class BeatmapService
         {
             try
             {
-                SnapshotService.SnapshotCurrentBeatmapSet(beatmapSet);
+                SnapshotService.CaptureCurrent(beatmapSet, "checkRun");
             }
             catch (Exception ex)
             {
@@ -490,6 +490,19 @@ public static class BeatmapService
             out var checkTimings
         );
         var result = BuildBeatmapSetCheckResult(beatmapSet, issues);
+
+        if (createSnapshot)
+        {
+            try
+            {
+                SnapshotService.AttachChecks(beatmapSet, result);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to store the check results with the snapshot.");
+            }
+        }
+
         var delta = includeCheckRunDelta
             ? CheckRunHistoryService.BuildDeltaAndRememberCurrent(beatmapSet, result)
             : null;

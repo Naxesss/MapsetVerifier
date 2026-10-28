@@ -384,6 +384,12 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             var msPerBeat = timingLine.msPerBeat;
             double effectiveSVMult = sliderStartTimingLine?.SvMult ?? 1.0;
 
+            // osu! and catch still play sliders within 0.1x - 10x whatever the line says, so a
+            // slider under a -1100 line lasts as long as under -1000. Taiko and mania honour the
+            // line's own value (a drumroll under 0.093x ends on its snap only unclamped).
+            if (beatmap.GeneralSettings.mode is Beatmap.Mode.Standard or Beatmap.Mode.Catch)
+                effectiveSVMult = Math.Clamp(effectiveSVMult, 0.1, 10);
+
             CachedSliderSpeed =
                 100 * effectiveSVMult * beatmap.DifficultySettings.sliderMultiplier / msPerBeat;
 
