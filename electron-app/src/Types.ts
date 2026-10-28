@@ -220,12 +220,19 @@ export type ApiSnapshotChange = {
   magnitude: number | null;
   object: ApiSnapshotObjectRef | null;
   minor: boolean;
+  /** For a "Shift" (a part of the map moved in time): how many objects and timing lines moved. */
+  count?: number | null;
 };
 
 export type ApiSnapshotRollup = {
-  kind: 'Offset';
+  /** Offset: everything moved in time. Volume: most timing lines' volume changed the same way. */
+  kind: 'Offset' | 'Volume';
+  /** Milliseconds for an offset; for a volume, by how much it changed (0 when it differed). */
   amount: number;
   absorbed: number;
+  /** A volume's value before and after, when every line had the same one. */
+  before?: string | null;
+  after?: string | null;
 };
 
 export type ApiSnapshotSettingChange = {
@@ -295,6 +302,8 @@ export type ApiSnapshotSoundPart = {
   sampleset: string;
   /** Where the whistle, finish and clap come from. */
   addition: string;
+  /** The custom sample index it plays (the 11 in soft-hitclap11.wav). */
+  index: number;
 };
 
 /** A red line: where a beat grid starts and how long a beat is. */
@@ -334,7 +343,9 @@ export type SnapshotHunkLabel =
   | 'Placement'
   | 'Hitsounding'
   | 'Sv'
-  | 'Mixed';
+  | 'Mixed'
+  | 'Shifted'
+  | 'Volume';
 
 /** Changes close together in the song, shown as one row. */
 export type ApiSnapshotHunk = {

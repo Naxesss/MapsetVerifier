@@ -1,10 +1,11 @@
-import { Group, Text } from '@mantine/core';
+import { Box, Group } from '@mantine/core';
 import { useId, useMemo } from 'react';
 import { fitDivisors } from './beatGrid';
+import Legend from './Legend';
 import { pairObjects, STATUS_COLOR, type PairedObject, type PairStatus } from './pairing';
 import PairTip from './PairTip';
 import { PlotLabel } from './PlotLabels';
-import SnapGrid, { hunkDivisors, SnapLegend } from './SnapGrid';
+import SnapGrid, { hunkDivisors } from './SnapGrid';
 import type {
   ApiSnapshotHunkVisual,
   ApiSnapshotTimingMark,
@@ -337,12 +338,17 @@ export default function CatchField({
           clipId={`${clipId}-after`}
         />
       </div>
-      <Group gap="md" mt="xs" wrap="wrap">
-        <Text size="xs" c="dimmed">
-          Fruits fall downward. Yellow moved, green added, red dashed removed.
-        </Text>
-        <SnapLegend divisors={divisors} />
-      </Group>
+      <Box mt="xs">
+        <Legend
+          items={[
+            { mark: 'dot', color: STATUS_COLOR.changed, label: 'Moved' },
+            { mark: 'dot', color: STATUS_COLOR.added, label: 'Added' },
+            { mark: 'dashed', color: STATUS_COLOR.removed, label: 'Removed' },
+            { mark: 'arrow', color: STATUS_COLOR.same, label: 'Falling' },
+          ]}
+          divisors={divisors}
+        />
+      </Box>
     </div>
   );
 }

@@ -28,6 +28,8 @@ namespace MapsetVerifier.Snapshots.Diffing
     /// <summary>
     /// A single structured difference between two versions of a difficulty. Values stay typed
     /// where it matters (<see cref="Magnitude" />); the client turns this into a sentence.
+    /// A "Shift" is a part of the map moved in time as a whole: its magnitude is the signed
+    /// amount and <see cref="Count" /> the objects and timing lines that moved with it.
     /// </summary>
     public sealed record Change(
         ChangeKind Kind,
@@ -39,17 +41,30 @@ namespace MapsetVerifier.Snapshots.Diffing
         string? After = null,
         double? Magnitude = null,
         ObjectRef? Object = null,
-        bool Minor = false
+        bool Minor = false,
+        int? Count = null
     );
 
     public enum RollupKind
     {
         /// <summary> Every object and timing point shifted by the same amount of time. </summary>
         Offset,
+
+        /// <summary> Most timing lines' volume changed the same way (by one amount, or to one value). </summary>
+        Volume,
     }
 
-    /// <summary> One change that explains many others, which are then not listed individually. </summary>
-    public sealed record Rollup(RollupKind Kind, double Amount, int Absorbed);
+    /// <summary>
+    /// One change that explains many others, which are then not listed individually. A volume
+    /// rollup also names the volume before and after when every line had the same one.
+    /// </summary>
+    public sealed record Rollup(
+        RollupKind Kind,
+        double Amount,
+        int Absorbed,
+        string? Before = null,
+        string? After = null
+    );
 
     public sealed record DiffResult(IReadOnlyList<Change> Changes, IReadOnlyList<Rollup> Rollups);
 
@@ -61,6 +76,8 @@ namespace MapsetVerifier.Snapshots.Diffing
         Hitsounding,
         Sv,
         Mixed,
+        Shifted,
+        Volume,
     }
 
     /// <summary> Changes that sit close together in the song, shown as one row. </summary>

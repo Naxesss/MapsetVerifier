@@ -1,6 +1,6 @@
-import { Button, Group, SegmentedControl, Stack, Text } from '@mantine/core';
+import { Button, Group, Stack, Text } from '@mantine/core';
 import { IconClockEdit, IconEqual, IconPlus, IconMinus } from '@tabler/icons-react';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import ChangeCounts from './ChangeCounts';
 import { describeRollup, describeRollupDetail } from './describe';
 import HunkRow from './HunkRow';
@@ -14,6 +14,7 @@ import type {
   ApiSnapshotDifficultyComparison,
   ApiSnapshotGeneralComparison,
   ApiSnapshotHunk,
+  ApiSnapshotRollup,
 } from '../../Types';
 
 interface DifficultyChangesProps {
@@ -47,23 +48,29 @@ function BeforeAfter({ before, after }: { before: React.ReactNode; after: React.
   );
 }
 
-/** What changed in one difficulty: its numbers, settings, and the changes as hunks in song time. */
-/** The kinds of work a hunk can be: shaping objects, hitsounding, or timing and SV. */
-type Category = 'all' | 'objects' | 'hitsound' | 'timing';
+/**
+ * The kinds of work a hunk can be: a part moved in time, shaping objects, hitsounding, or timing
+ * and SV. A hunk is always one of them, so the changes are listed per kind, in this order.
+ */
+type Category = 'moved' | 'objects' | 'hitsound' | 'timing';
 
-function categoryOf(hunk: ApiSnapshotHunk): Exclude<Category, 'all'> {
+const CATEGORY_ORDER: Category[] = ['moved', 'objects', 'hitsound', 'timing'];
+
+function categoryOf(hunk: ApiSnapshotHunk): Category {
+  if (hunk.label === 'Shifted') return 'moved';
   if (hunk.kinds.includes('Hitsound')) return 'hitsound';
   if (hunk.kinds.includes('Timing')) return 'timing';
   return 'objects';
 }
 
 const CATEGORY_LABEL: Record<Category, string> = {
-  all: 'All',
+  moved: 'Moved in time',
   objects: 'Objects',
   hitsound: 'Hitsounds',
   timing: 'Timing & SV',
 };
 
+/** What changed in one difficulty: its numbers, settings, and the changes per kind of work. */
 export default function DifficultyChanges({
   difficulty,
   setKey,
@@ -73,24 +80,18 @@ export default function DifficultyChanges({
   onViewGeneral,
 }: DifficultyChangesProps) {
   // A time shift every difficulty shares was pulled up into General; it still moved these objects.
-  const shift = (difficulty.rollups[0] ?? general.rollups[0])?.amount ?? 0;
-  const [category, setCategory] = useState<Category>('all');
+  const offset = (rollups: ApiSnapshotRollup[]) => rollups.find((r) => r.kind === 'Offset');
+  const shift = (offset(difficulty.rollups) ?? offset(general.rollups))?.amount ?? 0;
+  const hunks = difficulty.hunks;
 
-  const inRange = difficulty.hunks;
-
-  // How many hunks of each kind of work there are, so the switch only offers what exists.
-  const categoryCounts = useMemo(() => {
-    const counts: Record<Exclude<Category, 'all'>, number> = { objects: 0, hitsound: 0, timing: 0 };
-    for (const hunk of inRange) counts[categoryOf(hunk)]++;
-    return counts;
-  }, [inRange]);
-
-  // A category that has nothing left (another range or filter was picked) falls back to all.
-  const activeCategory = category !== 'all' && categoryCounts[category] === 0 ? 'all' : category;
-  const hunks = useMemo(
+  // Each kind of work with its hunks, still in song time; kinds without any are left out.
+  const sections = useMemo(
     () =>
-      activeCategory === 'all' ? inRange : inRange.filter((h) => categoryOf(h) === activeCategory),
-    [inRange, activeCategory]
+      CATEGORY_ORDER.map((category) => ({
+        category,
+        hunks: hunks.filter((h) => categoryOf(h) === category),
+      })).filter((s) => s.hunks.length > 0),
+    [hunks]
   );
 
   if (difficulty.status === 'Added' || difficulty.status === 'Removed') {
@@ -156,7 +157,8 @@ export default function DifficultyChanges({
           <MicroLabel>Also in General</MicroLabel>
           <Text size="sm" c="dimmed" truncate style={{ flex: 1, minWidth: 0 }}>
             {[
-              general.rollups.length > 0 ? 'time shift' : null,
+              general.rollups.some((r) => r.kind === 'Offset') ? 'time shift' : null,
+              general.rollups.some((r) => r.kind === 'Volume') ? 'volume change' : null,
               general.settings.length > 0
                 ? countWord(general.settings.length, 'shared setting')
                 : null,
@@ -214,33 +216,23 @@ export default function DifficultyChanges({
               description="This difficulty did not change in this range."
             />
           ) : (
-            <Stack gap="xs">
-              {Object.values(categoryCounts).filter((n) => n > 0).length > 1 && (
-                <SegmentedControl
-                  size="xs"
-                  value={activeCategory}
-                  onChange={(value) => setCategory(value as Category)}
-                  data={[
-                    { value: 'all', label: `${CATEGORY_LABEL.all} ${inRange.length}` },
-                    ...(['objects', 'hitsound', 'timing'] as const)
-                      .filter((c) => categoryCounts[c] > 0)
-                      .map((c) => ({
-                        value: c,
-                        label: `${CATEGORY_LABEL[c]} ${categoryCounts[c]}`,
-                      })),
-                  ]}
-                  style={{ alignSelf: 'flex-start' }}
-                />
-              )}
-              {hunks.map((hunk, index) => (
-                <HunkRow
-                  context={{ setKey, baseId, targetId, difficultyKey: difficulty.key }}
-                  shift={shift}
-                  key={`${hunk.start}-${hunk.label}-${hunk.kinds.join()}`}
-                  hunk={hunk}
-                  mode={difficulty.mode}
-                  defaultOpen={index === 0 && hunks.length <= 3}
-                />
+            <Stack gap="md">
+              {sections.map((section, sectionIndex) => (
+                <Stack key={section.category} gap="xs">
+                  <MicroLabel>
+                    {CATEGORY_LABEL[section.category]} · {section.hunks.length}
+                  </MicroLabel>
+                  {section.hunks.map((hunk, index) => (
+                    <HunkRow
+                      context={{ setKey, baseId, targetId, difficultyKey: difficulty.key }}
+                      shift={shift}
+                      key={`${hunk.start}-${hunk.label}-${hunk.kinds.join()}`}
+                      hunk={hunk}
+                      mode={difficulty.mode}
+                      defaultOpen={sectionIndex === 0 && index === 0 && hunks.length <= 3}
+                    />
+                  ))}
+                </Stack>
               ))}
             </Stack>
           )}

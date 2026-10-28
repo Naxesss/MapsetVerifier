@@ -10,6 +10,8 @@ import OnionSkin from './visuals/OnionSkin';
 import RhythmLanes from './visuals/RhythmLanes';
 import TaikoStrip from './visuals/TaikoStrip';
 import { countWord } from '../../utils/countWord';
+import { Hint } from '../overview/objects/components/TimelineShortcutHints';
+import { useTimelineModifierKeys } from '../overview/objects/hooks/useTimelineModifierKeys';
 import type { ApiSnapshotHunk, Mode } from '../../Types';
 
 interface HunkWindowProps {
@@ -59,6 +61,8 @@ export default function HunkWindow({
   view = 'objects',
 }: HunkWindowProps) {
   const [offset, setOffset] = useState(0);
+  // Lights the Shift hint while it is held, like the objects timeline on the Overview does.
+  const { shiftHeld } = useTimelineModifierKeys();
   const { data, isPlaceholderData, isError } = useSnapshotWindow(
     context,
     hunk.start,
@@ -68,8 +72,10 @@ export default function HunkWindow({
 
   // The wheel handler lives outside React's render, so it reads the limits from here.
   const limits = useRef({ earlier: false, later: false });
-  const hasEarlier = !!data?.hasEarlier;
-  const hasLater = !!data?.hasLater;
+  // The way back to the change is always open. At the start of the song nothing comes before the
+  // first object, but after scrolling on from it there is still the way back.
+  const hasEarlier = !!data?.hasEarlier || offset > 0;
+  const hasLater = !!data?.hasLater || offset < 0;
   useEffect(() => {
     limits.current = { earlier: hasEarlier, later: hasLater };
   }, [hasEarlier, hasLater]);
@@ -77,7 +83,9 @@ export default function HunkWindow({
   const turned = useRef(0);
 
   // React's wheel handlers are passive and cannot stop the page from scrolling, so this is a native
-  // one. It only takes the wheel while there is more to scroll to, so the page scrolls on at the ends.
+  // one. The wheel moves along the song only with Shift held (as Shift picks the start of a
+  // comparison in the history), or with a sideways swipe; plain scrolling scrolls the page. It also
+  // lets go while there is nothing more to scroll to, so the page scrolls on at the ends.
   useEffect(() => {
     const element = frame.current;
     if (!element) return;
@@ -85,6 +93,13 @@ export default function HunkWindow({
     const onWheel = (event: WheelEvent) => {
       if (event.ctrlKey) return;
 
+      const sideways = Math.abs(event.deltaX) > Math.abs(event.deltaY);
+      if (!event.shiftKey && !sideways) {
+        turned.current = 0;
+        return;
+      }
+
+      // Holding Shift turns the wheel sideways in some browsers, so either direction counts.
       const delta = event.deltaY || event.deltaX;
       const forward = delta > 0;
       if (!delta || !(forward ? limits.current.later : limits.current.earlier)) {
@@ -123,8 +138,6 @@ export default function HunkWindow({
 
     const { visual, from, to } = data;
     const empty = visual.before.length === 0 && visual.after.length === 0;
-    // The change itself can be longer than what is shown at once.
-    const changeContinues = offset === 0 && hunk.end > to;
 
     return (
       <Stack gap="xs">
@@ -136,7 +149,7 @@ export default function HunkWindow({
                   variant="default"
                   size="sm"
                   aria-label="Show half a beat earlier"
-                  disabled={!data.hasEarlier}
+                  disabled={!hasEarlier}
                   onClick={() => setOffset((o) => o - 1)}
                 >
                   <IconChevronLeft size={14} />
@@ -147,7 +160,7 @@ export default function HunkWindow({
                   variant="default"
                   size="sm"
                   aria-label="Show half a beat later"
-                  disabled={!data.hasLater}
+                  disabled={!hasLater}
                   onClick={() => setOffset((o) => o + 1)}
                 >
                   <IconChevronRight size={14} />
@@ -160,16 +173,6 @@ export default function HunkWindow({
             <Text size="xs" c="dimmed">
               {countWord(data.objects, 'object')}
             </Text>
-            {(data.hasEarlier || data.hasLater) && (
-              <Text size="xs" c="dimmed">
-                Scroll to move along the song
-              </Text>
-            )}
-            {changeContinues && (
-              <Text size="xs" c="yellow.5">
-                The change goes on after these
-              </Text>
-            )}
           </Group>
           {offset !== 0 && (
             <Button variant="subtle" size="compact-xs" onClick={() => setOffset(0)}>
@@ -177,6 +180,12 @@ export default function HunkWindow({
             </Button>
           )}
         </Group>
+        {/* On a line of its own, so it stays put while the time and count above change width. */}
+        {(hasEarlier || hasLater) && (
+          <Hint active={shiftHeld} keys="Shift">
+            moves along the song
+          </Hint>
+        )}
 
         <div style={{ opacity: isPlaceholderData ? 0.55 : 1, transition: 'opacity 0.15s' }}>
           {empty ? (
@@ -187,7 +196,14 @@ export default function HunkWindow({
             <>
               {view === 'hitsounds' && (
                 <VizCard width={640}>
-                  <HitsoundSequencer visual={visual} start={from} end={to} shift={shift} />
+                  <HitsoundSequencer
+                    visual={visual}
+                    start={from}
+                    end={to}
+                    shift={shift}
+                    lineChanges={hunk.changes.filter((c) => !c.object && c.kind === 'Hitsound')}
+                    mode={mode}
+                  />
                 </VizCard>
               )}
               {view === 'objects' && mode === 'Standard' && (

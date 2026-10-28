@@ -1,16 +1,18 @@
-import { Group, Text } from '@mantine/core';
+import { Box } from '@mantine/core';
 import { useId, useMemo } from 'react';
 import { fitDivisors } from './beatGrid';
+import Legend from './Legend';
 import {
   hasFinishSound,
   hasKatSound,
   pairObjects,
+  PALETTE,
   STATUS_COLOR,
   type PairedObject,
 } from './pairing';
 import PairTip from './PairTip';
 import { LabelledPlot } from './PlotLabels';
-import SnapGrid, { hunkDivisors, SnapLegend } from './SnapGrid';
+import SnapGrid, { hunkDivisors } from './SnapGrid';
 import type { ApiSnapshotHunkVisual, ApiSnapshotVisualObject } from '../../../Types';
 
 const WIDTH = 640;
@@ -100,7 +102,7 @@ export default function TaikoStrip({
   shift?: number;
 }) {
   const pairs = useMemo(
-    () => pairObjects(visual.before, visual.after, shift, true),
+    () => pairObjects(visual.before, visual.after, shift, true, undefined, true),
     [visual, shift]
   );
   const used = useMemo(() => hunkDivisors(visual), [visual]);
@@ -169,15 +171,19 @@ export default function TaikoStrip({
           ))}
         </svg>
       </LabelledPlot>
-      <Group gap="md" mt="xs" wrap="wrap">
-        <Text size="xs" c="dimmed">
-          Red don, blue kat, big notes are larger
-        </Text>
-        <Text size="xs" c="dimmed">
-          Ring: yellow changed, green added, red removed
-        </Text>
-        <SnapLegend divisors={divisors} />
-      </Group>
+      <Box mt="xs">
+        <Legend
+          items={[
+            { mark: 'dot', color: DON, label: 'Don' },
+            { mark: 'dot', color: KAT, label: 'Kat' },
+            { mark: 'bigDot', color: PALETTE.muted, label: 'Big' },
+            { mark: 'ring', color: STATUS_COLOR.changed, label: 'Changed' },
+            { mark: 'ring', color: STATUS_COLOR.added, label: 'Added' },
+            { mark: 'ring', color: STATUS_COLOR.removed, label: 'Removed' },
+          ]}
+          divisors={divisors}
+        />
+      </Box>
     </div>
   );
 }

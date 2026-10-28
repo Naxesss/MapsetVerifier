@@ -1,5 +1,6 @@
-import { Group, SegmentedControl, Text } from '@mantine/core';
+import { Group, SegmentedControl } from '@mantine/core';
 import { useId, useMemo, useState } from 'react';
+import Legend from './Legend';
 import { PALETTE, pairObjects, STATUS_COLOR, type PairedObject } from './pairing';
 import PairTip from './PairTip';
 import type { ApiSnapshotHunkVisual, ApiSnapshotVisualObject } from '../../../Types';
@@ -172,10 +173,16 @@ export default function OnionSkin({
             { value: 'after', label: 'After' },
           ]}
         />
-        <Text size="xs" c="dimmed">
-          Dashed outlines are the old positions. A ring is where a slider ends, a ring with a solid
-          centre where it turns around.
-        </Text>
+        <Legend
+          items={[
+            { mark: 'dot', color: STATUS_COLOR.changed, label: 'Changed' },
+            { mark: 'dot', color: STATUS_COLOR.added, label: 'Added' },
+            { mark: 'cross', color: STATUS_COLOR.removed, label: 'Removed' },
+            { mark: 'dashed', color: PALETTE.muted, label: 'Old position' },
+            { mark: 'ring', color: PALETTE.muted, label: 'Slider end' },
+            { mark: 'ringDot', color: PALETTE.muted, label: 'Reverse' },
+          ]}
+        />
       </Group>
       <svg
         viewBox={`${-PAD} ${-PAD} ${FIELD_WIDTH + PAD * 2} ${FIELD_HEIGHT + PAD * 2}`}

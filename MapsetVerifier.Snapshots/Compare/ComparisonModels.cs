@@ -69,7 +69,9 @@ namespace MapsetVerifier.Snapshots.Compare
         /// <summary> The sampleset the sound comes from (Normal, Soft or Drum), as it plays. </summary>
         string Sampleset,
         /// <summary> The sampleset the whistle, finish and clap come from. </summary>
-        string Addition
+        string Addition,
+        /// <summary> The custom sample index it plays (the 11 in soft-hitclap11.wav), as it plays. </summary>
+        int Index = 1
     );
 
     /// <summary> A red line: where a beat grid starts and how long a beat is. </summary>
