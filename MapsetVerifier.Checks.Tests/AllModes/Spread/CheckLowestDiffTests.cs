@@ -74,9 +74,20 @@ public class CheckLowestDiffTests
     }
 
     [Fact]
-    public void Standard_BreakTime_DoesNotCount()
+    public void Standard_BreakTime_CombinesWithDrain()
     {
         var issues = Run(new Diff("Hard", 140, BreakSeconds: 20), new Diff("Insane", 160));
+
+        Assert.Empty(issues);
+    }
+
+    [Fact]
+    public void Mania_BreakTime_DoesNotCount()
+    {
+        var issues = Run(
+            new Diff("Hard", 110, BreakSeconds: 20, Mode: Beatmap.Mode.Mania),
+            new Diff("Insane", 130, Mode: Beatmap.Mode.Mania)
+        );
 
         Assert.Contains(issues, issue => issue.level == Issue.Level.Problem);
     }
