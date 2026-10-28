@@ -1,4 +1,5 @@
 import { ActionIcon, Alert, Anchor, Button, Group, Text, Tooltip } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 import {
   IconAlertCircle,
   IconFolderOff,
@@ -8,12 +9,13 @@ import {
   IconSearchOff,
   IconSettings,
 } from '@tabler/icons-react';
+import { ApiFolderScanWarning } from '../../Types.ts';
 import EmptyState from '../common/EmptyState.tsx';
 import SearchInput from '../common/SearchInput.tsx';
 
 /*
  * The pieces the stable and lazer mapset lists share: the search row, why a list is empty, a load
- * error, the end of the list, and the missing Songs folder notice.
+ * error, the end of the list, the slow Songs scan toast, and the missing Songs folder notice.
  */
 
 interface MapsetListToolbarProps {
@@ -154,6 +156,53 @@ export function MapsetListEnd({ onBackToTop }: { onBackToTop: () => void }) {
       </Anchor>
     </Group>
   );
+}
+
+const SLOW_SCAN_TOAST_ID = 'slow-songs-scan';
+
+/**
+ * Sorting the Songs folder by last edit didn't finish in time, so the list is in folder-date order
+ * for now. Names the slowest folder, since one stuck folder is the usual cause. Shown as a toast
+ * because the list itself still works; showing it again while it is open only updates it.
+ */
+export function notifySlowScan(warning: ApiFolderScanWarning, onRetry: () => void) {
+  const [slowest] = warning.slowFolders;
+  const toast = {
+    id: SLOW_SCAN_TOAST_ID,
+    color: 'yellow',
+    icon: <IconAlertCircle size={16} />,
+    title: 'Your mapsets are taking a while to load',
+    autoClose: 10000,
+    message: (
+      <>
+        <Text size="sm">
+          {slowest ? (
+            <>
+              <b style={{ wordBreak: 'break-word' }}>{slowest.folder}</b> is slow to open, so your
+              mapsets may not be in their usual order for now.
+            </>
+          ) : (
+            'Your mapsets may not be in their usual order for now.'
+          )}
+        </Text>
+        <Anchor
+          component="button"
+          type="button"
+          size="sm"
+          mt={4}
+          onClick={() => {
+            notifications.hide(SLOW_SCAN_TOAST_ID);
+            onRetry();
+          }}
+        >
+          Try again
+        </Anchor>
+      </>
+    ),
+  };
+
+  notifications.show(toast);
+  notifications.update(toast);
 }
 
 export function SongsFolderMissing({ onOpenSettings }: { onOpenSettings: () => void }) {

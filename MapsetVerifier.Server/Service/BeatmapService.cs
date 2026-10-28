@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 using MapsetVerifier.Framework;
 using MapsetVerifier.Framework.Objects;
@@ -83,7 +84,15 @@ public static class BeatmapService
     private static int _cachedFolderCount;
     private static DateTime _cachedFolderScanAtUtc;
     private static List<DirectoryInfo>? _cachedSortedFolders;
+    private static Task<List<DirectoryInfo>>? _inFlightScan;
+    private static string? _inFlightScanFolder;
+    private static DateTime _inFlightScanStartedAtUtc;
+    private static bool _inFlightScanReportedSlow;
+    private static ConcurrentDictionary<string, DateTime>? _inFlightScanOpenFolders;
     private static readonly TimeSpan FolderScanTtl = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan FolderScanWaitBudget = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan SlowFolderThreshold = TimeSpan.FromSeconds(1);
+    private const int MaxReportedSlowFolders = 5;
 
     public static ApiBeatmapPage GetBeatmaps(
         string songsFolder,
@@ -97,7 +106,7 @@ public static class BeatmapService
             return new ApiBeatmapPage([], page, pageSize, false);
 
         var dirInfo = new DirectoryInfo(songsFolder);
-        var folders = GetSortedFolders(dirInfo);
+        var (folders, scanWarning) = GetSortedFolders(dirInfo);
 
         if (bookmarkedFolders is { Count: > 0 })
             folders = folders.Where(f => bookmarkedFolders.Contains(f.Name)).ToList();
@@ -138,7 +147,7 @@ public static class BeatmapService
             }
         }
         var hasMore = pageFolders.Count > pageSize;
-        return new ApiBeatmapPage(results, page, pageSize, hasMore);
+        return new ApiBeatmapPage(results, page, pageSize, hasMore, scanWarning);
     }
 
     /// <summary>
@@ -148,40 +157,163 @@ public static class BeatmapService
     /// result, invalidating immediately when the folder count changes (a set was added/removed)
     /// and otherwise bounding staleness with a short TTL — in-place file edits don't bump a
     /// folder's own mtime, so they can only be picked up by actually rescanning.
+    ///
+    /// The scan runs as a shared background task so concurrent callers reuse one pass instead of
+    /// each walking the library. Callers only wait for it up to <see cref="FolderScanWaitBudget"/>
+    /// (measured from when the scan started): a single folder that blocks on I/O (cloud
+    /// placeholders, antivirus, a sleeping drive) must not leave the song list loading forever.
+    /// When the budget runs out, the previous scan result is reused if the library is unchanged,
+    /// otherwise the folders are sorted by their own timestamps, which needs no extra I/O.
     /// </summary>
-    private static List<DirectoryInfo> GetSortedFolders(DirectoryInfo dirInfo)
+    private static (List<DirectoryInfo> Folders, ApiFolderScanWarning? Warning) GetSortedFolders(
+        DirectoryInfo dirInfo
+    )
     {
         var currentDirs = dirInfo.GetDirectories();
+        Task<List<DirectoryInfo>> scan;
+        TimeSpan remainingBudget;
 
-        // The lock spans the whole scan (not just the cache check) so that concurrent cold
-        // callers block and share one scan instead of each running their own duplicate pass over
-        // the same library. The scan itself is still parallelized internally (AsParallel) since
-        // it's I/O-bound and independent per folder.
         lock (FolderScanLock)
         {
             if (
-                _cachedSortedFolders != null
-                && _cachedSongsFolder == dirInfo.FullName
-                && _cachedFolderCount == currentDirs.Length
+                CacheMatchesLibrary(dirInfo.FullName, currentDirs.Length)
                 && DateTime.UtcNow - _cachedFolderScanAtUtc < FolderScanTtl
             )
-                return _cachedSortedFolders;
+                return (_cachedSortedFolders!, null);
 
-            var sorted = currentDirs
-                .AsParallel()
-                .Select(d => (Dir: d, Mtime: GetEffectiveLastWriteTimeUtc(d)))
-                .OrderByDescending(x => x.Mtime)
-                .Select(x => x.Dir)
-                .ToList();
+            if (_inFlightScan == null || _inFlightScanFolder != dirInfo.FullName)
+                StartFolderScan(dirInfo.FullName, currentDirs);
 
-            _cachedSongsFolder = dirInfo.FullName;
-            _cachedFolderCount = currentDirs.Length;
-            _cachedFolderScanAtUtc = DateTime.UtcNow;
-            _cachedSortedFolders = sorted;
+            scan = _inFlightScan!;
+            remainingBudget = FolderScanWaitBudget - (DateTime.UtcNow - _inFlightScanStartedAtUtc);
+        }
 
-            return sorted;
+        try
+        {
+            if (scan.Wait(remainingBudget > TimeSpan.Zero ? remainingBudget : TimeSpan.Zero))
+                return (scan.Result, null);
+        }
+        catch (AggregateException ex)
+        {
+            Log.Warning(ex.InnerException, "Sorting the Songs folder by last edit failed");
+            return (SortByFolderTimestamp(currentDirs), new ApiFolderScanWarning([]));
+        }
+
+        lock (FolderScanLock)
+        {
+            // An earlier full scan of the same library is a better order than folder dates.
+            if (CacheMatchesLibrary(dirInfo.FullName, currentDirs.Length))
+                return (_cachedSortedFolders!, null);
+
+            var slowFolders = GetSlowFolders();
+            if (!_inFlightScanReportedSlow && scan == _inFlightScan)
+            {
+                _inFlightScanReportedSlow = true;
+                Log.Warning(
+                    "Sorting {Count} folders in {SongsFolder} by last edit is taking longer than {Budget}s; using folder dates until it finishes. Folders still being read: {SlowFolders}",
+                    currentDirs.Length,
+                    dirInfo.FullName,
+                    FolderScanWaitBudget.TotalSeconds,
+                    slowFolders.Select(f => $"{f.Folder} ({f.Seconds:N0}s)")
+                );
+            }
+
+            return (SortByFolderTimestamp(currentDirs), new ApiFolderScanWarning(slowFolders));
         }
     }
+
+    /// <summary>Must be called while holding <see cref="FolderScanLock"/>.</summary>
+    private static bool CacheMatchesLibrary(string songsFolder, int folderCount) =>
+        _cachedSortedFolders != null
+        && _cachedSongsFolder == songsFolder
+        && _cachedFolderCount == folderCount;
+
+    /// <summary>
+    /// Folders the in-flight scan has been reading for over <see cref="SlowFolderThreshold"/>,
+    /// slowest first. Must be called while holding <see cref="FolderScanLock"/>.
+    /// </summary>
+    private static List<ApiSlowFolder> GetSlowFolders()
+    {
+        if (_inFlightScanOpenFolders == null)
+            return [];
+
+        var now = DateTime.UtcNow;
+        return _inFlightScanOpenFolders
+            .Select(entry => (Folder: entry.Key, Elapsed: now - entry.Value))
+            .Where(x => x.Elapsed >= SlowFolderThreshold)
+            .OrderByDescending(x => x.Elapsed)
+            .Take(MaxReportedSlowFolders)
+            .Select(x => new ApiSlowFolder(x.Folder, Math.Round(x.Elapsed.TotalSeconds, 1)))
+            .ToList();
+    }
+
+    /// <summary>Must be called while holding <see cref="FolderScanLock"/>.</summary>
+    private static void StartFolderScan(string songsFolder, DirectoryInfo[] dirs)
+    {
+        var startedAt = DateTime.UtcNow;
+        // Folders currently being read, with when reading started, so a stuck one can be named.
+        var openFolders = new ConcurrentDictionary<string, DateTime>();
+        Task<List<DirectoryInfo>>? scan = null;
+        scan = Task.Run(() =>
+        {
+            try
+            {
+                var sorted = dirs.AsParallel()
+                    .Select(d =>
+                    {
+                        openFolders[d.Name] = DateTime.UtcNow;
+                        try
+                        {
+                            return (Dir: d, Mtime: GetEffectiveLastWriteTimeUtc(d));
+                        }
+                        finally
+                        {
+                            openFolders.TryRemove(d.Name, out _);
+                        }
+                    })
+                    .OrderByDescending(x => x.Mtime)
+                    .Select(x => x.Dir)
+                    .ToList();
+
+                lock (FolderScanLock)
+                {
+                    _cachedSongsFolder = songsFolder;
+                    _cachedFolderCount = dirs.Length;
+                    _cachedFolderScanAtUtc = DateTime.UtcNow;
+                    _cachedSortedFolders = sorted;
+
+                    if (_inFlightScanReportedSlow && scan == _inFlightScan)
+                        Log.Information(
+                            "Sorting {SongsFolder} by last edit finished after {Seconds:N1}s",
+                            songsFolder,
+                            (DateTime.UtcNow - startedAt).TotalSeconds
+                        );
+                }
+
+                return sorted;
+            }
+            finally
+            {
+                lock (FolderScanLock)
+                {
+                    if (scan == _inFlightScan)
+                    {
+                        _inFlightScan = null;
+                        _inFlightScanOpenFolders = null;
+                    }
+                }
+            }
+        });
+
+        _inFlightScan = scan;
+        _inFlightScanFolder = songsFolder;
+        _inFlightScanStartedAtUtc = startedAt;
+        _inFlightScanReportedSlow = false;
+        _inFlightScanOpenFolders = openFolders;
+    }
+
+    private static List<DirectoryInfo> SortByFolderTimestamp(DirectoryInfo[] dirs) =>
+        dirs.OrderByDescending(d => d.LastWriteTimeUtc).ToList();
 
     /// <summary>
     /// A folder's own LastWriteTimeUtc isn't updated by NTFS when an existing file inside it is
