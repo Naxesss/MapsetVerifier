@@ -1,4 +1,5 @@
 using osu.Game.Beatmaps;
+using osu.Game.IO;
 using osu.Game.Rulesets.Difficulty;
 using osu.Game.Rulesets.Mods;
 using Beatmap = MapsetVerifier.Parser.Objects.Beatmap;
@@ -18,11 +19,24 @@ public class LocalDifficultyCalculator
     public List<TimedDifficultyAttributes> CalculateTimedAttributes(Beatmap mvBeatmap) =>
         CreateCalculator(mvBeatmap).CalculateTimed(Array.Empty<Mod>(), UncancelledToken);
 
+    /// <summary>
+    ///     The beatmap as osu! reads it, decoded from the code that was parsed rather than from the
+    ///     file at its path: a snapshot's older version has no file of its own on disk.
+    /// </summary>
+    internal static FlatWorkingBeatmap WorkingBeatmapOf(Beatmap mvBeatmap)
+    {
+        using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(mvBeatmap.Code));
+        using var reader = new LineBufferedReader(stream);
+
+        return new FlatWorkingBeatmap(
+            osu.Game.Beatmaps.Formats.Decoder.GetDecoder<osu.Game.Beatmaps.Beatmap>(reader)
+                .Decode(reader)
+        );
+    }
+
     private DifficultyCalculator CreateCalculator(Beatmap mvBeatmap)
     {
-        var workingBeatmap = new FlatWorkingBeatmap(
-            Path.Combine(mvBeatmap.SongPath, mvBeatmap.MapPath)
-        );
+        var workingBeatmap = WorkingBeatmapOf(mvBeatmap);
         var ruleset = workingBeatmap.BeatmapInfo.Ruleset.CreateInstance();
 
         return mvBeatmap.GeneralSettings.mode switch

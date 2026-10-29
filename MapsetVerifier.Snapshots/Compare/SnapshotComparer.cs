@@ -40,6 +40,7 @@ namespace MapsetVerifier.Snapshots.Compare
 
         private static readonly ConcurrentDictionary<string, Parsed> ParseCache = new();
         private static readonly ConcurrentDictionary<string, Partial> CompareCache = new();
+        private static readonly ConcurrentDictionary<string, double?> StarsCache = new();
 
         private sealed record Parsed(Beatmap Beatmap, string Code);
 
@@ -61,10 +62,16 @@ namespace MapsetVerifier.Snapshots.Compare
             public double LengthMs { get; init; }
         }
 
+        /// <summary>
+        /// Compares two snapshots. Star ratings a snapshot did not store are worked out from its
+        /// version of the difficulty unless <paramref name="withStars" /> is off, which summaries
+        /// use since they never show them.
+        /// </summary>
         public static ComparisonResult Compare(
             string setKey,
             SnapshotEntry before,
-            SnapshotEntry after
+            SnapshotEntry after,
+            bool withStars = true
         )
         {
             var keys = before
@@ -75,29 +82,35 @@ namespace MapsetVerifier.Snapshots.Compare
             var partials = keys.AsParallel()
                 .AsOrdered()
                 .Select(key =>
-                    ComparePartial(
-                        setKey,
-                        before.Difficulties.FirstOrDefault(d => d.Key == key),
-                        after.Difficulties.FirstOrDefault(d => d.Key == key)
+                    (
+                        Before: before.Difficulties.FirstOrDefault(d => d.Key == key),
+                        After: after.Difficulties.FirstOrDefault(d => d.Key == key)
                     )
                 )
-                .Select(p => new Partial
+                .Select(pair =>
+                    (
+                        Partial: ComparePartial(setKey, pair.Before, pair.After),
+                        StarsBefore: withStars ? StarsOf(setKey, pair.Before) : pair.Before?.Stars,
+                        StarsAfter: withStars ? StarsOf(setKey, pair.After) : pair.After?.Stars
+                    )
+                )
+                .Select(x => new Partial
                 {
                     // Cached partials are shared, so each comparison gets its own copy to edit.
-                    Identity = p.Identity,
-                    Status = p.Status,
-                    StarsBefore = p.StarsBefore,
-                    StarsAfter = p.StarsAfter,
-                    ObjectsBefore = p.ObjectsBefore,
-                    ObjectsAfter = p.ObjectsAfter,
-                    Changes = p.Changes,
-                    Settings = p.Settings.ToList(),
-                    Rollups = p.Rollups.ToList(),
-                    Hunks = p.Hunks,
-                    Marks = p.Marks,
-                    Kiai = p.Kiai,
-                    Breaks = p.Breaks,
-                    LengthMs = p.LengthMs,
+                    Identity = x.Partial.Identity,
+                    Status = x.Partial.Status,
+                    StarsBefore = x.StarsBefore,
+                    StarsAfter = x.StarsAfter,
+                    ObjectsBefore = x.Partial.ObjectsBefore,
+                    ObjectsAfter = x.Partial.ObjectsAfter,
+                    Changes = x.Partial.Changes,
+                    Settings = x.Partial.Settings.ToList(),
+                    Rollups = x.Partial.Rollups.ToList(),
+                    Hunks = x.Partial.Hunks,
+                    Marks = x.Partial.Marks,
+                    Kiai = x.Partial.Kiai,
+                    Breaks = x.Partial.Breaks,
+                    LengthMs = x.Partial.LengthMs,
                 })
                 .ToList();
 
@@ -264,9 +277,6 @@ namespace MapsetVerifier.Snapshots.Compare
                     : after == null ? DifficultyStatus.Removed
                     : before.Blob == after.Blob ? DifficultyStatus.Unchanged
                     : DifficultyStatus.Changed,
-                // Older snapshots may not have their rating stored; it is worked out from the file then.
-                StarsBefore = before?.Stars ?? StarsOf(oldMap?.Beatmap),
-                StarsAfter = after?.Stars ?? StarsOf(newMap?.Beatmap),
                 ObjectsBefore = oldMap?.Beatmap.HitObjects.Count ?? 0,
                 ObjectsAfter = newMap?.Beatmap.HitObjects.Count ?? 0,
                 Changes = [],
@@ -680,19 +690,27 @@ namespace MapsetVerifier.Snapshots.Compare
             return parts;
         }
 
-        private static double? StarsOf(Beatmap? beatmap)
+        /// <summary>
+        /// A difficulty's star rating: the stored one, or for snapshots that did not store it
+        /// (imported ones), worked out from that version of the difficulty.
+        /// </summary>
+        public static double? StarsOf(string setKey, StoredDifficulty? difficulty)
         {
-            if (beatmap == null)
+            if (difficulty == null)
                 return null;
 
-            try
-            {
-                return Math.Round(beatmap.StarRating, 2);
-            }
-            catch
-            {
-                return null;
-            }
+            if (difficulty.Stars != null)
+                return difficulty.Stars;
+
+            var stars = StarsCache.GetOrAdd(
+                setKey + "|" + difficulty.Blob,
+                _ => SnapshotStore.TryStars(Parse(setKey, difficulty).Beatmap)
+            );
+
+            if (StarsCache.Count > 400)
+                StarsCache.Clear();
+
+            return stars;
         }
 
         private static VisualObject ToVisual(HitObject o, Beatmap map, int combo = 0)
