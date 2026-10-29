@@ -5,6 +5,7 @@ import Legend from './Legend';
 import { PALETTE, pairObjects, STATUS_COLOR, type PairedObject } from './pairing';
 import { LabelledPlot } from './PlotLabels';
 import { hunkDivisors } from './SnapGrid';
+import { useObjectLink } from './useObjectLink';
 import { describeChange, formatClock } from '../describe';
 import type {
   Mode,
@@ -323,6 +324,7 @@ export default function HitsoundSequencer({
    */
   lineChanges?: ApiSnapshotChange[];
 }) {
+  const link = useObjectLink();
   const pairs = useMemo(
     () => pairObjects(visual.before, visual.after, shift, false, [start, end], mode === 'Taiko'),
     [visual, shift, start, end, mode]
@@ -524,7 +526,7 @@ export default function HitsoundSequencer({
               const dot = status === 'same' ? PALETTE.dot : STATUS_COLOR[status];
 
               const column = (
-                <g>
+                <g {...link(pair)}>
                   {object.endTime != null && (
                     <line
                       x1={x}
@@ -667,6 +669,9 @@ export default function HitsoundSequencer({
                           {note}
                         </Text>
                       ))}
+                      <Text size="xs" c="dimmed">
+                        Click to open in osu!, ctrl+click to copy
+                      </Text>
                     </Stack>
                   }
                 >

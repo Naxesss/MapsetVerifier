@@ -1,5 +1,6 @@
 import { Stack, Text, Tooltip } from '@mantine/core';
 import { formatClock } from '../describe';
+import { useObjectLink } from './useObjectLink';
 import type { PairedObject } from './pairing';
 import type { ReactElement } from 'react';
 
@@ -10,7 +11,10 @@ const HEADLINE = {
   same: '',
 } as const;
 
-/** Hovering an object in a picture says what happened to it. Untouched objects say nothing. */
+/**
+ * Hovering an object in a picture says what happened to it; untouched objects say nothing. Clicking
+ * any object opens it in osu!.
+ */
 export default function PairTip({
   pair,
   children,
@@ -18,6 +22,7 @@ export default function PairTip({
   pair: PairedObject;
   children: ReactElement;
 }) {
+  const link = useObjectLink();
   const object = (pair.after ?? pair.before)!;
   const lines =
     pair.status === 'changed'
@@ -26,7 +31,9 @@ export default function PairTip({
         ? []
         : [`This ${object.type.toLowerCase()} was ${HEADLINE[pair.status]}`];
 
-  if (lines.length === 0) return children;
+  const linked = <g {...link(pair)}>{children}</g>;
+
+  if (lines.length === 0) return linked;
 
   return (
     <Tooltip
@@ -44,10 +51,13 @@ export default function PairTip({
               {line}
             </Text>
           ))}
+          <Text size="xs" c="dimmed">
+            Click to open in osu!, ctrl+click to copy
+          </Text>
         </Stack>
       }
     >
-      {children}
+      {linked}
     </Tooltip>
   );
 }

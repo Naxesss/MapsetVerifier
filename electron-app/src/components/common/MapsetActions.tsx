@@ -94,6 +94,7 @@ function MapsetActions() {
         </ActionIcon>
       </Tooltip>
       <Menu
+        trigger="hover"
         position="bottom-end"
         withinPortal
         onOpen={() => setIsMenuOpen(true)}
