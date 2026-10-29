@@ -122,11 +122,10 @@ function DifficultyPicker({
         >
           General
         </Button>
-        {/* The difficulty sits on the right, apart from General. */}
-        <Group gap="xs" wrap="nowrap" ml="auto" style={{ minWidth: 0 }}>
+        <Group gap="xs" wrap="nowrap" style={{ minWidth: 0 }}>
           <Menu
             trigger="hover"
-            position="bottom-end"
+            position="bottom-start"
             withinPortal
             opened={menuOpened}
             onChange={setMenuOpened}
