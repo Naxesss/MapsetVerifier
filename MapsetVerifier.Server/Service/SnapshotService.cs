@@ -59,7 +59,35 @@ public static class SnapshotService
         if (before == null || after == null)
             throw new ArgumentException("Unknown snapshot.");
 
-        return SnapshotComparer.Compare(setKey, before, after);
+        var result = SnapshotComparer.Compare(setKey, before, after);
+        SaveWorkedOutStars(setKey, before, after, result);
+
+        return result;
+    }
+
+    /// <summary> Stores the ratings a comparison had to work out, so the next one reads them. </summary>
+    private static void SaveWorkedOutStars(
+        string setKey,
+        SnapshotEntry before,
+        SnapshotEntry after,
+        ComparisonResult result
+    )
+    {
+        var starsByBlob = new Dictionary<string, double>();
+
+        foreach (var difficulty in result.Difficulties)
+        {
+            var oldVersion = before.Difficulties.FirstOrDefault(d => d.Key == difficulty.Key);
+            var newVersion = after.Difficulties.FirstOrDefault(d => d.Key == difficulty.Key);
+
+            if (oldVersion is { Stars: null } && difficulty.StarsBefore is { } starsBefore)
+                starsByBlob[oldVersion.Blob] = starsBefore;
+
+            if (newVersion is { Stars: null } && difficulty.StarsAfter is { } starsAfter)
+                starsByBlob[newVersion.Blob] = starsAfter;
+        }
+
+        SnapshotStore.SaveStars(setKey, starsByBlob);
     }
 
     /// <summary> A few objects of one difficulty around a change, before and after. </summary>

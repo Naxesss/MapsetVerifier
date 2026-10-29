@@ -22,9 +22,7 @@ public static class LegacyScoreHelper
                 "Legacy score overflow calculation does not apply to mania."
             );
 
-        var workingBeatmap = new FlatWorkingBeatmap(
-            Path.Combine(mvBeatmap.SongPath, mvBeatmap.MapPath)
-        );
+        var workingBeatmap = LocalDifficultyCalculator.WorkingBeatmapOf(mvBeatmap);
         var ruleset = workingBeatmap.BeatmapInfo.Ruleset.CreateInstance();
 
         if (ruleset is not ILegacyRuleset legacyRuleset)

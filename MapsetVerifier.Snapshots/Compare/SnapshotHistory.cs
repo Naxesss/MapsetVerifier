@@ -47,6 +47,31 @@ namespace MapsetVerifier.Snapshots.Compare
 
             SnapshotStore.SaveSummaries(setKey, summaries);
 
+            // The picker shows the latest snapshot's ratings; imported snapshots did not store them.
+            var latestDifficulties = entries.LastOrDefault()?.Difficulties ?? [];
+            var missingStars = latestDifficulties
+                .Where(d => d.Stars == null)
+                .AsParallel()
+                .Select(d => (d.Blob, Stars: SnapshotComparer.StarsOf(setKey, d)))
+                .Where(x => x.Stars != null)
+                .ToList();
+
+            if (missingStars.Count > 0)
+            {
+                var starsByBlob = missingStars
+                    .GroupBy(x => x.Blob)
+                    .ToDictionary(g => g.Key, g => g.First().Stars!.Value);
+
+                SnapshotStore.SaveStars(setKey, starsByBlob);
+
+                foreach (var difficulty in latestDifficulties)
+                    if (
+                        difficulty.Stars == null
+                        && starsByBlob.TryGetValue(difficulty.Blob, out var stars)
+                    )
+                        difficulty.Stars = stars;
+            }
+
             var result = new List<HistoryEntry>();
 
             for (var i = 0; i < entries.Count; i++)
@@ -109,7 +134,7 @@ namespace MapsetVerifier.Snapshots.Compare
             SnapshotEntry after
         )
         {
-            var comparison = SnapshotComparer.Compare(setKey, before, after);
+            var comparison = SnapshotComparer.Compare(setKey, before, after, withStars: false);
             var summary = new StoredSummary
             {
                 Version = SummaryVersion,
