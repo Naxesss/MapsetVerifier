@@ -1,13 +1,4 @@
-import {
-  ActionIcon,
-  Alert,
-  Badge,
-  Flex,
-  Group,
-  Text,
-  Tooltip,
-  useMantineTheme,
-} from '@mantine/core';
+import { ActionIcon, Alert, Badge, Flex, Group, Text, Tooltip } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import {
   IconAlertCircle,
@@ -29,7 +20,7 @@ import { useBeatmap } from '../../context/BeatmapContext';
 import { useSettings } from '../../context/SettingsContext';
 import { notifyError } from '../../utils/notify';
 import BeatmapHeader from '../common/BeatmapHeader';
-import DifficultyPicker, { GENERAL_TAB_ID } from '../common/DifficultyPicker';
+import DifficultyPicker, { GENERAL_TAB_ID, PICKER_ICON_SIZE } from '../common/DifficultyPicker';
 import EmptyState from '../common/EmptyState.tsx';
 import { HistorySkeleton } from '../common/LoadingSkeletons.tsx';
 import SectionCard from '../common/SectionCard.tsx';
@@ -48,7 +39,6 @@ function hasChanges(difficulty: ApiSnapshotDifficultyComparison) {
 }
 
 function Snapshots() {
-  const theme = useMantineTheme();
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
 
@@ -115,8 +105,9 @@ function Snapshots() {
     selectedId && validIds.has(selectedId) ? selectedId : (firstChanged ?? GENERAL_TAB_ID);
   const selectedDifficulty = comparison?.difficulties.find((d) => d.key === activeId);
 
-  // The same colours as the changed and unchanged icons, for the picker's segments.
-  const statusColor = (changed: boolean) => (changed ? theme.colors.blue[6] : theme.colors.dark[2]);
+  const changesIcon = (changed: boolean) => (
+    <SnapshotDifficultyChangesIcon hasChanges={changed} size={PICKER_ICON_SIZE} />
+  );
   const generalChanged =
     !!comparison &&
     (comparison.general.rollups.length > 0 ||
@@ -167,21 +158,12 @@ function Snapshots() {
               label: d.label,
               mode: d.mode,
               starRating: d.starRating,
-              icon: <SnapshotDifficultyChangesIcon hasChanges={d.changed} size={18} />,
-              statusColor: statusColor(d.changed),
+              status: changesIcon(d.changed),
             }))}
-            general={{
-              icon: <SnapshotDifficultyChangesIcon hasChanges={generalChanged} size={18} />,
-              statusColor: statusColor(generalChanged),
-            }}
-            modeStatus={(_, diffs) => (
-              <SnapshotDifficultyChangesIcon
-                hasChanges={diffs.some(
-                  (d) => pickerDifficulties.find((p) => p.id === d.id)?.changed
-                )}
-                size={18}
-              />
-            )}
+            general={{ status: changesIcon(generalChanged) }}
+            modeStatus={(_, ids) =>
+              changesIcon(pickerDifficulties.some((d) => d.changed && ids.includes(d.id)))
+            }
             selectedId={activeId}
             onSelect={setSelectedId}
           />

@@ -1,11 +1,11 @@
-import { Alert, Text, Flex, Collapse, Stack, useMantineTheme } from '@mantine/core';
+import { Alert, Text, Flex, Collapse, Stack } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import React, { useCallback, useMemo } from 'react';
 import ChecksResults from './ChecksResults';
 import DifficultyInfo from './DifficultyInfo';
 import DifficultyLevelOverride from './DifficultyLevelOverride';
 import BeatmapHeader from '../common/BeatmapHeader';
-import DifficultyPicker, { GENERAL_TAB_ID } from '../common/DifficultyPicker';
+import DifficultyPicker, { GENERAL_TAB_ID, PICKER_ICON_SIZE } from '../common/DifficultyPicker';
 import { useBeatmapChecks } from './hooks/useBeatmapChecks';
 import { useDifficultyOverride } from './hooks/useDifficultyOverride';
 import { getCategoryHighestLevel, getHighestLevel } from './utils/levelUtils';
@@ -16,11 +16,9 @@ import { ApiCategoryCheckResult, Level } from '../../Types';
 import { resolveDevOnlySetting } from '../../utils/devSettings';
 import { ListSkeleton } from '../common/LoadingSkeletons.tsx';
 import StackTraceMessage from '../common/StackTraceMessage.tsx';
-import { levelColor } from '../icons/levelColor';
 import LevelIcon from '../icons/LevelIcon';
 
 function Checks() {
-  const theme = useMantineTheme();
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
   const showCheckSpeedStats = resolveDevOnlySetting(settings.showCheckSpeedStats);
@@ -56,7 +54,7 @@ function Checks() {
     includeCheckTimings: showCheckSpeedStats,
   });
   const areCheckResultsExpanded = !!data && !isLoading && !isFetching;
-  const levelIconsLoading = isLoading;
+  const levelsLoading = isLoading;
 
   const {
     overrides,
@@ -143,15 +141,15 @@ function Checks() {
   }, [data, settings.showMinor, settings.hiddenMinorCheckIds, overrides]);
 
   const levelOf = (category: string): Level => categoryHighestLevels[category] ?? 'Check';
-  const statusColor = (category: string) =>
-    levelIconsLoading ? theme.colors.dark[4] : levelColor(levelOf(category), theme);
+  const levelIcon = (level: Level) => (
+    <LevelIcon level={level} size={PICKER_ICON_SIZE} loading={levelsLoading} />
+  );
   const pickerDifficulties = difficultiesForTabs.map((diff) => ({
     id: diff.category,
     label: diff.category,
     mode: diff.mode ?? 'Standard',
     starRating: diff.starRating,
-    icon: <LevelIcon level={levelOf(diff.category)} size={18} loading={levelIconsLoading} />,
-    statusColor: statusColor(diff.category),
+    status: levelIcon(levelOf(diff.category)),
   }));
 
   // A selected difficulty that no longer exists (e.g. after a reparse) falls back to General.
@@ -170,19 +168,8 @@ function Checks() {
         {difficultiesForTabs.length > 0 && (
           <DifficultyPicker
             difficulties={pickerDifficulties}
-            general={{
-              icon: (
-                <LevelIcon level={levelOf(GENERAL_TAB_ID)} size={18} loading={levelIconsLoading} />
-              ),
-              statusColor: statusColor(GENERAL_TAB_ID),
-            }}
-            modeStatus={(_, diffs) => (
-              <LevelIcon
-                level={getHighestLevel(diffs.map((d) => levelOf(d.id)))}
-                size={18}
-                loading={levelIconsLoading}
-              />
-            )}
+            general={{ status: levelIcon(levelOf(GENERAL_TAB_ID)) }}
+            modeStatus={(_, ids) => levelIcon(getHighestLevel(ids.map(levelOf)))}
             selectedId={selectedCategory}
             onSelect={setSelectedCategory}
           />

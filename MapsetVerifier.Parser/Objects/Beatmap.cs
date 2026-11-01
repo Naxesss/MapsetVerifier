@@ -1655,7 +1655,9 @@ namespace MapsetVerifier.Parser.Objects
                 new();
         }
 
-        [GeneratedRegex(@"^\s*\w+'s\s+")]
+        // Everything up to the last possessive: "greaper's ", "naxess' ", "asahina oleshev's " and
+        // collabs such as "naxess' & greaper's ". Straight or curly apostrophes.
+        [GeneratedRegex(@"^.*(?:['’]s|s['’])\s+")]
         private static partial Regex OwnerPrefixRegex();
 
         [GeneratedRegex(@"\bcollab\b")]
