@@ -134,6 +134,7 @@ export default function OverviewPicker({ section, unavailable, onSelect }: Overv
           )}
           {comparesDifficulties && allDifficulties > 1 && (
             <Menu
+              trigger="hover"
               position="bottom-end"
               withinPortal
               closeOnItemClick={false}
