@@ -5,7 +5,11 @@ import ChecksResults from './ChecksResults';
 import DifficultyInfo from './DifficultyInfo';
 import DifficultyLevelOverride from './DifficultyLevelOverride';
 import BeatmapHeader from '../common/BeatmapHeader';
-import DifficultyPicker, { GENERAL_TAB_ID, PICKER_ICON_SIZE } from '../common/DifficultyPicker';
+import DifficultyPicker, {
+  GENERAL_TAB_ID,
+  PICKER_BADGE_SIZE,
+  PICKER_ICON_SIZE,
+} from '../common/DifficultyPicker';
 import { useBeatmapChecks } from './hooks/useBeatmapChecks';
 import { useDifficultyOverride } from './hooks/useDifficultyOverride';
 import { getCategoryHighestLevel, getHighestLevel } from './utils/levelUtils';
@@ -141,8 +145,8 @@ function Checks() {
   }, [data, settings.showMinor, settings.hiddenMinorCheckIds, overrides]);
 
   const levelOf = (category: string): Level => categoryHighestLevels[category] ?? 'Check';
-  const levelIcon = (level: Level) => (
-    <LevelIcon level={level} size={PICKER_ICON_SIZE} loading={levelsLoading} />
+  const levelIcon = (level: Level, size = PICKER_ICON_SIZE) => (
+    <LevelIcon level={level} size={size} loading={levelsLoading} />
   );
   const pickerDifficulties = difficultiesForTabs.map((diff) => ({
     id: diff.category,
@@ -169,7 +173,7 @@ function Checks() {
           <DifficultyPicker
             difficulties={pickerDifficulties}
             general={{ status: levelIcon(levelOf(GENERAL_TAB_ID)) }}
-            modeStatus={(_, ids) => levelIcon(getHighestLevel(ids.map(levelOf)))}
+            modeStatus={(_, ids) => levelIcon(getHighestLevel(ids.map(levelOf)), PICKER_BADGE_SIZE)}
             selectedId={selectedCategory}
             onSelect={setSelectedCategory}
           />

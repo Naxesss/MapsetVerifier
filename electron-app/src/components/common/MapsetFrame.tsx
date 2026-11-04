@@ -1,10 +1,11 @@
 import { Box, Group, Stack, Title, Text, Anchor, useMantineTheme } from '@mantine/core';
 import { ReactNode, useLayoutEffect, useRef, useState } from 'react';
 import MapsetActions from './MapsetActions.tsx';
-import { MapsetFrameContext } from './mapsetFrameContext.ts';
+import { MapsetFrameContext, type ModeMapper, ModeMapperContext } from './mapsetFrameContext.ts';
 import { useBeatmap } from '../../context/BeatmapContext.tsx';
 import { useSettings } from '../../context/SettingsContext.tsx';
-import { useOpenExternal } from '../../hooks/useOpenExternal.ts';
+import { openExternal } from '../../hooks/useOpenExternal.ts';
+import { formatGameModeLabel } from '../../utils/gameMode.ts';
 import { useBeatmapBackground } from '../checks/hooks/useBeatmapBackground.ts';
 
 /** Height of the artwork; fits the title plus two rows of controls. */
@@ -53,7 +54,7 @@ function MapsetFrame({ children }: MapsetFrameProps) {
     selectedFolder,
     settings.songFolder
   );
-  const openExternal = useOpenExternal();
+  const [modeMapper, setModeMapper] = useState<ModeMapper>();
 
   // Switching mapsets keeps the previous art and text on screen until the next mapset's are ready,
   // then fades to them, instead of blanking the banner and letting it jump while it loads.
@@ -191,6 +192,15 @@ function MapsetFrame({ children }: MapsetFrameProps) {
               >
                 {creator}
               </Anchor>
+              {/* A mode one guest mapper did all of, such as a taiko spread: the picker leaves the
+                  mapper off its buttons, so it's named here. Not a link: the name comes from the
+                  difficulty names, often a short form rather than the mapper's username. */}
+              {modeMapper && modeMapper.mapper.toLowerCase() !== creator.toLowerCase() && (
+                <>
+                  {' · '}
+                  {formatGameModeLabel(modeMapper.mode)} by {modeMapper.mapper}
+                </>
+              )}
             </Text>
           )}
         </Stack>
@@ -198,7 +208,9 @@ function MapsetFrame({ children }: MapsetFrameProps) {
       </Group>
       {/* The page, above the art: its header controls sit on the art, its content covers it. */}
       <Box style={{ position: 'relative', zIndex: 1 }}>
-        <MapsetFrameContext.Provider value={setHeaderEl}>{children}</MapsetFrameContext.Provider>
+        <MapsetFrameContext.Provider value={setHeaderEl}>
+          <ModeMapperContext.Provider value={setModeMapper}>{children}</ModeMapperContext.Provider>
+        </MapsetFrameContext.Provider>
       </Box>
     </Box>
   );
