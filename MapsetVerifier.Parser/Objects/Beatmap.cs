@@ -822,6 +822,28 @@ namespace MapsetVerifier.Parser.Objects
         }
 
         /// <summary>
+        ///     Returns whether any object of type T starts at or after <paramref name="start" /> and before
+        ///     <paramref name="end" />, regardless of where it ends, O(logn).
+        /// </summary>
+        public bool HasHitObjectStartingBetween<T>(double start, double end)
+            where T : HitObject
+        {
+            var list = GetOrAdd(typeof(T), () => HitObjects.OfType<T>().ToList());
+
+            if (list.Count == 0)
+                return false;
+
+            // Find the last object starting before `end` (BinaryTimeSearch allows equality, so back up
+            // past any objects starting exactly at `end`, since those shouldn't count).
+            var index = BinaryTimeSearch(list, obj => obj.time, end);
+
+            while (index >= 0 && list[index].time >= end)
+                --index;
+
+            return index >= 0 && list[index].time >= start;
+        }
+
+        /// <summary>
         ///     Returns whether any object of type T starts before <paramref name="end" /> and ends at or after
         ///     <paramref name="start" />, i.e. whether its duration overlaps the given time range at any point,
         ///     O(logn).

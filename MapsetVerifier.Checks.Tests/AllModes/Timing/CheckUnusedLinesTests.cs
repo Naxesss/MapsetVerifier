@@ -173,6 +173,27 @@ public class CheckUnusedLinesTests
     }
 
     [Fact]
+    public void InheritedLine_ChangesSvForSliderThatRunsPastNextLine_DoesNotFlag()
+    {
+        // The SV line at 1000 controls the slider starting there, even though the volume change at
+        // 1100 lands before that slider ends. The volume line is used by the slider body.
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Title("Unused Lines Test")
+                .TimingPoints(
+                    "0,500,4,2,0,100,1,0",
+                    "1000,-50,4,2,0,100,0,0",
+                    "1100,-50,4,2,0,50,0,0"
+                )
+                .HitObjects("256,192,1000,2,0,L|256:300,1,100,0|0,0:0|0:0,0:0:0:0:")
+        );
+
+        var issues = context.RunBeatmapCheck<CheckUnusedLines>("Test");
+
+        Assert.Empty(issues);
+    }
+
+    [Fact]
     public void InheritedLine_ChangesSamplesWithObjectStartingBeforeButOverlappingSection_DoesNotFlag()
     {
         // Regression: a spinner (or slider) that started before this section but is still active

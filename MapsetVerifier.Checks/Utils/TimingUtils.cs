@@ -32,20 +32,15 @@ public static class TimingUtils
 
     /// <summary>
     ///     Returns whether this timing section contains the respective hit object type.
-    ///     Only counts the start of objects.
+    ///     Only counts the start of objects, so an object which starts here but continues past the next
+    ///     line still counts.
     /// </summary>
     public static bool SectionContainsObject<T>(Beatmap beatmap, TimingLine line)
         where T : HitObject
     {
-        var nextLine = line.Next(true);
+        var sectionEnd = line.Next(true)?.Offset ?? double.MaxValue;
 
-        if (nextLine == null)
-            return beatmap.GetNextHitObject<T>(line.Offset) != null;
-
-        var nextSectionEnd = nextLine.Offset;
-        var objectTimeBeforeEnd = beatmap.GetPrevHitObject<T>(nextSectionEnd)?.time ?? 0;
-
-        return objectTimeBeforeEnd >= line.Offset;
+        return beatmap.HasHitObjectStartingBetween<T>(line.Offset, sectionEnd);
     }
 
     /// <summary>
