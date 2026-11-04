@@ -61,6 +61,20 @@ HP:5
         Assert.Equal(Beatmap.Difficulty.Easy, result);
     }
 
+    [Theory]
+    [InlineData("Sebas' Insane")]
+    [InlineData("Sebas’ Insane")]
+    [InlineData("Asahina Oleshev's Insane")]
+    [InlineData("Naxess' & Greaper's Insane")]
+    public void OwnerPrefix_OfAnyForm_IsIgnored(string version)
+    {
+        var beatmap = CreateBeatmap(version);
+
+        var result = beatmap.GetDifficultyFromName();
+
+        Assert.Equal(Beatmap.Difficulty.Insane, result);
+    }
+
     [Fact]
     public void InnerOni_IsCorrectlyMatched()
     {

@@ -1,24 +1,20 @@
 import { Box, Flex, Group, Skeleton, Stack } from '@mantine/core';
-import { StatusSegmentBar } from '../common/DifficultyPicker';
 import SectionCard from '../common/SectionCard.tsx';
 
 /** Width of the history list; enough for the time, its badges and the change counts. */
 export const HISTORY_WIDTH = 300;
 
-/** The header's difficulty picker: General, the picked difficulty and the segments under them. */
+/** The header's difficulty picker: General, then a row of difficulty buttons of varied widths. */
 export function PickerSkeleton() {
   return (
-    <Box aria-busy aria-label="Loading">
-      <Group gap="xs" wrap="nowrap">
-        <Skeleton height={36} width={104} />
-        <Skeleton height={36} width={220} />
-      </Group>
-      <StatusSegmentBar>
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} height={6} radius={2} style={{ flex: 1 }} />
+    <Group gap={6} wrap="nowrap" align="flex-start" aria-busy aria-label="Loading">
+      <Skeleton height={34} width={104} radius={6} style={{ flexShrink: 0 }} />
+      <div className="mv-difficulty-row">
+        {[92, 104, 88, 110, 118, 96].map((width, i) => (
+          <Skeleton key={i} height={34} width={width} radius={6} />
         ))}
-      </StatusSegmentBar>
-    </Box>
+      </div>
+    </Group>
   );
 }
 
