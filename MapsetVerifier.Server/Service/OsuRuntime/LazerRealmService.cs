@@ -127,16 +127,7 @@ public static class LazerRealmService
                     continue;
 
                 var firstBeatmap = beatmaps[0];
-
-                var files = new List<(string, string)>();
-                foreach (dynamic namedFile in set.Files)
-                {
-                    string filename = namedFile.Filename;
-                    dynamic file = namedFile.File;
-                    string hash = file.Hash;
-                    if (!string.IsNullOrWhiteSpace(filename) && !string.IsNullOrWhiteSpace(hash))
-                        files.Add((filename, hash));
-                }
+                var files = ReadFiles(set);
 
                 DateTimeOffset dateAdded = set.DateAdded;
                 // DateAdded only reflects when the set entered the library, not when it was last
@@ -165,6 +156,21 @@ public static class LazerRealmService
         }
 
         return sets;
+    }
+
+    private static List<(string Filename, string Hash)> ReadFiles(dynamic set)
+    {
+        var files = new List<(string, string)>();
+        foreach (dynamic namedFile in set.Files)
+        {
+            string filename = namedFile.Filename;
+            dynamic file = namedFile.File;
+            string hash = file.Hash;
+            if (!string.IsNullOrWhiteSpace(filename) && !string.IsNullOrWhiteSpace(hash))
+                files.Add((filename, hash));
+        }
+
+        return files;
     }
 
     public static string? DetectLazerDataDirectory()
@@ -304,9 +310,46 @@ public static class LazerRealmService
     }
 
     /// <summary>
+    /// Same as <see cref="GetBeatmapSetFiles"/>, but read straight from `client.realm` instead of
+    /// the cached snapshot. While lazer is running, saving in its editor doesn't reliably change
+    /// the realm file's write time, so the snapshot can keep pointing at the hash of the old .osu.
+    /// Used when (re)loading a set for checks, where an outdated file means outdated results.
+    /// </summary>
+    public static List<(string Filename, string Hash)>? GetBeatmapSetFilesFresh(
+        string dataDirectory,
+        string beatmapSetId
+    )
+    {
+        if (!Guid.TryParse(beatmapSetId, out var guid))
+            return null;
+
+        try
+        {
+            using var realm = OpenRealm(dataDirectory);
+            dynamic? set = realm.DynamicApi.Find("BeatmapSet", guid);
+            if (set == null || (bool)set.DeletePending)
+                return null;
+
+            return ReadFiles(set);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(
+                ex,
+                "Failed to read lazer beatmap set files for {BeatmapSetId} from {DataDirectory}",
+                beatmapSetId,
+                dataDirectory
+            );
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// After delete+redownload, lazer often keeps the old set as DeletePending and imports a new
     /// GUID with the same OnlineID. Map a stale/deleted set id onto the live replacement when
-    /// possible so materialize/F5 still work.
+    /// possible so materialize/F5 still work. Read straight from `client.realm` for the same
+    /// reason as <see cref="GetBeatmapSetFilesFresh"/>.
     /// </summary>
     public static string? ResolveLiveBeatmapSetId(string dataDirectory, string beatmapSetId)
     {
@@ -315,20 +358,23 @@ public static class LazerRealmService
 
         try
         {
-            var snapshot = GetSnapshot(dataDirectory);
+            using var realm = OpenRealm(dataDirectory);
 
-            var requested = snapshot.FirstOrDefault(s => s.Id == guid);
+            dynamic? requested = realm.DynamicApi.Find("BeatmapSet", guid);
             if (requested == null)
                 return null;
-            if (!requested.DeletePending)
+            if (!(bool)requested.DeletePending)
                 return beatmapSetId;
-            if (requested.OnlineId <= 0)
+
+            long onlineId = Convert.ToInt64(requested.OnlineID);
+            if (onlineId <= 0)
                 return null;
 
-            var replacement = snapshot.FirstOrDefault(s =>
-                !s.DeletePending && s.OnlineId == requested.OnlineId
-            );
-            return replacement?.Id.ToString();
+            dynamic? replacement = realm
+                .DynamicApi.All("BeatmapSet")
+                .Filter("OnlineID == $0 AND DeletePending == false", onlineId)
+                .FirstOrDefault();
+            return replacement == null ? null : ((Guid)replacement.ID).ToString();
         }
         catch (Exception ex)
         {
