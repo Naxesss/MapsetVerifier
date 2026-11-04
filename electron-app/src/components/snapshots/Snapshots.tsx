@@ -16,6 +16,11 @@ import { useSnapshotHistory } from './hooks/useSnapshotHistory';
 import PinModal from './PinModal';
 import { indexOfEntry, resolveBaseId, type RangePreset } from './range';
 import SnapshotHistoryList from './SnapshotHistoryList';
+import SnapshotsSkeleton, {
+  ChangesSkeleton,
+  HISTORY_WIDTH,
+  PickerSkeleton,
+} from './SnapshotsSkeleton';
 import { useBeatmap } from '../../context/BeatmapContext';
 import { useSettings } from '../../context/SettingsContext';
 import { notifyError } from '../../utils/notify';
@@ -26,7 +31,6 @@ import DifficultyPicker, {
   PICKER_ICON_SIZE,
 } from '../common/DifficultyPicker';
 import EmptyState from '../common/EmptyState.tsx';
-import { HistorySkeleton } from '../common/LoadingSkeletons.tsx';
 import SectionCard from '../common/SectionCard.tsx';
 import SelectedDifficultyRow from '../common/SelectedDifficultyRow.tsx';
 import StackTraceMessage from '../common/StackTraceMessage.tsx';
@@ -34,9 +38,6 @@ import StarRatingBadge from '../common/StarRatingBadge.tsx';
 import GameModeIcon from '../icons/GameModeIcon';
 import SnapshotDifficultyChangesIcon from '../icons/SnapshotDifficultyChangesIcon';
 import type { ApiSnapshotHistoryEntry, ApiSnapshotDifficultyComparison } from '../../Types';
-
-/** Width of the history list; enough for the time, its badges and the change counts. */
-const HISTORY_WIDTH = 300;
 
 function hasChanges(difficulty: ApiSnapshotDifficultyComparison) {
   return difficulty.status !== 'Unchanged' && difficulty.counts.total > 0;
@@ -155,6 +156,7 @@ function Snapshots() {
   return (
     <>
       <BeatmapHeader>
+        {history.isLoading && <PickerSkeleton />}
         {showContent && pickerDifficulties.length > 0 && (
           <DifficultyPicker
             difficulties={pickerDifficulties.map((d) => ({
@@ -177,11 +179,7 @@ function Snapshots() {
         )}
       </BeatmapHeader>
 
-      {history.isLoading && (
-        <Flex bg="dark.6" style={{ flex: 1 }}>
-          <HistorySkeleton />
-        </Flex>
-      )}
+      {history.isLoading && <SnapshotsSkeleton historyOpen={historyOpen} />}
 
       {history.isError && (
         <Flex p="md" bg="dark.6">
@@ -302,7 +300,7 @@ function Snapshots() {
                     </Text>
                   </Alert>
                 ) : (
-                  <HistorySkeleton />
+                  <ChangesSkeleton />
                 )
               ) : (
                 <>
