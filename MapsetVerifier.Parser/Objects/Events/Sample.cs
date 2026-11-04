@@ -43,7 +43,12 @@ namespace MapsetVerifier.Parser.Objects.Events
 
         /// <summary> Returns on which layer the storyboard sample will play (e.g. Fail or Pass). </summary>
         private Layer GetLayer(string[] args) =>
-            ParserStatic.GetEnumMatch<Layer>(args[2]) ?? Layer.Unknown;
+            // Samples write their layer as a number (e.g. 1 for Fail), unlike sprites which use the name.
+            int.TryParse(args[2], out var layerIndex)
+                ? Enum.IsDefined(typeof(Layer), layerIndex)
+                    ? (Layer)layerIndex
+                    : Layer.Unknown
+                : ParserStatic.GetEnumMatch<Layer>(args[2]) ?? Layer.Unknown;
 
         /// <summary> Returns the file path which this sample uses. Retains case and extension. </summary>
         private string? GetPath(string[] args) => PathStatic.ParsePath(args[3], retainCase: true);
