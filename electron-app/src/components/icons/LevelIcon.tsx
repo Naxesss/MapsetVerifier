@@ -31,7 +31,8 @@ function LevelIcon({
   );
 
   if (loading) {
-    return wrap(<Loader size="xs" color="blue" />);
+    // No bigger than the icon it stands in for, so it also fits a small badge.
+    return wrap(<Loader size={Math.min(size, 18)} color="blue" />);
   }
 
   switch (level) {
