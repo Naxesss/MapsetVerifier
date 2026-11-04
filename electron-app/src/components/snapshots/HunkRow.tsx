@@ -1,4 +1,4 @@
-import { Box, Group, Stack, Text, UnstyledButton } from '@mantine/core';
+import { Box, Collapse, Group, Stack, Text, UnstyledButton } from '@mantine/core';
 import {
   IconArrowsMove,
   IconChevronRight,
@@ -93,13 +93,28 @@ function HunkVisuals({
  * The line every row starts with: what kind of change it is, what happened in a sentence, where
  * it is in the song, and below that a detail when there is one worth reading without opening.
  */
-function RowHeader({ hunk, toggle }: { hunk: ApiSnapshotHunk; toggle?: React.ReactNode }) {
+function RowHeader({
+  hunk,
+  toggle,
+  onClick,
+}: {
+  hunk: ApiSnapshotHunk;
+  toggle?: React.ReactNode;
+  onClick?: React.MouseEventHandler;
+}) {
   const Icon = LABEL_ICON[hunk.label];
   const detail = hunkDetail(hunk);
   const range = hunk.end > hunk.start + 1;
 
   return (
-    <Group gap="sm" wrap="nowrap" align="flex-start" p="sm">
+    <Group
+      gap="sm"
+      wrap="nowrap"
+      align="flex-start"
+      p="sm"
+      onClick={onClick}
+      style={onClick ? { cursor: 'pointer', userSelect: 'none' } : undefined}
+    >
       <Box style={{ width: TOGGLE_WIDTH, flexShrink: 0, display: 'flex', marginTop: 2 }}>
         {toggle}
       </Box>
@@ -152,11 +167,21 @@ export default function HunkRow({
   shift = 0,
 }: HunkRowProps) {
   const [open, setOpen] = useState(defaultOpen);
+  // Stays true through the closing animation. Closed rows hold no content, so a long list of them
+  // loads no pictures, and a row reopens at the change rather than where it was scrolled to.
+  const [contentMounted, setContentMounted] = useState(defaultOpen);
   // SV changes are in their table; the rest of a timing hunk (BPM, kiai, lines added) is listed.
   const lines = useMemo(() => {
     const inTable = new Set(svChanges(hunk.changes));
     return toChangeLines(hunk.changes.filter((c) => !inTable.has(c)));
   }, [hunk.changes]);
+
+  const toggleFromRow = (event: React.MouseEvent) => {
+    // A timestamp opens the editor; it is not a click on the row.
+    if ((event.target as Element).closest('a')) return;
+    setContentMounted(true);
+    setOpen((v) => !v);
+  };
 
   if (isGroup(hunk)) {
     return (
@@ -170,9 +195,10 @@ export default function HunkRow({
     <Box style={rowStyle}>
       <RowHeader
         hunk={hunk}
+        onClick={toggleFromRow}
         toggle={
+          // Its clicks, keyboard ones included, reach the row's handler.
           <UnstyledButton
-            onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
             aria-label={open ? 'Collapse' : 'Expand'}
             style={{ display: 'flex', alignItems: 'center' }}
@@ -187,12 +213,14 @@ export default function HunkRow({
           </UnstyledButton>
         }
       />
-      {open && (
-        <Stack gap="md" px="sm" pb="sm">
-          <HunkVisuals hunk={hunk} mode={mode} context={context} shift={shift} />
-          {!drawsPictures(hunk) && <ChangeLines lines={lines} />}
-        </Stack>
-      )}
+      <Collapse in={open} onTransitionEnd={() => setContentMounted(open)}>
+        {contentMounted && (
+          <Stack gap="md" px="sm" pb="sm">
+            <HunkVisuals hunk={hunk} mode={mode} context={context} shift={shift} />
+            {!drawsPictures(hunk) && <ChangeLines lines={lines} />}
+          </Stack>
+        )}
+      </Collapse>
     </Box>
   );
 }
