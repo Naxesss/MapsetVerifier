@@ -321,11 +321,13 @@ namespace MapsetVerifier.Snapshots.Store
             return result;
         }
 
-        private static double? TryStars(Beatmap beatmap)
+        /// <summary> The star rating, or null when it could not be worked out (not 0). </summary>
+        internal static double? TryStars(Beatmap beatmap)
         {
             try
             {
-                return Math.Round(beatmap.StarRating, 2);
+                var stars = beatmap.StarRating;
+                return beatmap.DifficultyCalculationError == null ? Math.Round(stars, 2) : null;
             }
             catch
             {
@@ -420,6 +422,37 @@ namespace MapsetVerifier.Snapshots.Store
                         entry.Summary = summary;
 
                 WriteLog(setKey, log);
+            }
+        }
+
+        /// <summary>
+        /// Fills in star ratings that were not stored with their snapshot (imported ones), by blob,
+        /// so they are worked out only once.
+        /// </summary>
+        public static void SaveStars(string setKey, IReadOnlyDictionary<string, double> starsByBlob)
+        {
+            if (starsByBlob.Count == 0)
+                return;
+
+            EnsureReady();
+
+            lock (Gate)
+            {
+                var log = ReadLog(setKey);
+                var changed = false;
+
+                foreach (var difficulty in log.Entries.SelectMany(e => e.Difficulties))
+                    if (
+                        difficulty.Stars == null
+                        && starsByBlob.TryGetValue(difficulty.Blob, out var stars)
+                    )
+                    {
+                        difficulty.Stars = stars;
+                        changed = true;
+                    }
+
+                if (changed)
+                    WriteLog(setKey, log);
             }
         }
 
