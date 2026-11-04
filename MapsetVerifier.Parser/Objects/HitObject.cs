@@ -361,9 +361,10 @@ namespace MapsetVerifier.Parser.Objects
         {
             var line = beatmap.GetTimingLine(time, true);
 
+            // A custom index set on the object itself replaces the timing line's for all of its edges.
             return new HitSample(
-                line!.CustomIndex,
-                sampleset ?? line.Sampleset,
+                GetCustomIndex(line),
+                sampleset ?? line!.Sampleset,
                 hitSound,
                 HitSample.HitSourceType.Edge,
                 time

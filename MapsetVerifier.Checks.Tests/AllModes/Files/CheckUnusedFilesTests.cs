@@ -174,6 +174,24 @@ public class CheckUnusedFilesTests
     }
 
     [Fact]
+    public void ObjectCustomIndex_ReplacesTimingLineIndex()
+    {
+        // The timing line uses custom index 16, but the only object picks index 3 itself, so the
+        // line's hitnormal is never played.
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Title("Title")
+                .Artist("Artist")
+                .Creator("Creator")
+                .TimingPoints(TestTimingPoints.Uninherited(0, 500, sampleIndex: 16))
+                .HitObjects("256,192,1000,1,0,0:0:3:0:"),
+            extraFiles: ["audio.mp3", "soft-hitnormal3.wav", "soft-hitnormal16.wav"]
+        );
+
+        AssertProblemFor(context, "soft-hitnormal16.wav");
+    }
+
+    [Fact]
     public void UsedOsbFile_NoUnusedIssue()
     {
         using var context = CheckTestContext.CreateFromOsu(
