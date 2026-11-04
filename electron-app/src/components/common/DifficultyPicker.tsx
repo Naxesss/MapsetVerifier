@@ -1,19 +1,21 @@
 import { useHotkeys } from '@mantine/hooks';
 import { IconChevronDown } from '@tabler/icons-react';
 import { type ReactNode, useState } from 'react';
-import DifficultyButtonGrid, { spreadGroups } from './DifficultyButtonGrid';
+import DifficultyButtonRow, { spreadGroups } from './DifficultyButtonRow';
 import type { Mode } from '../../Types';
 
 export const GENERAL_TAB_ID = 'General';
 /** The size of the status icons on the picker's buttons. */
-export const PICKER_ICON_SIZE = 16;
+export const PICKER_ICON_SIZE = 18;
+/** The size of the status badge on the mode buttons' icons. */
+export const PICKER_BADGE_SIZE = 11;
 
 export type PickerDifficulty = {
   id: string;
   label: string;
   mode: Mode;
   starRating?: number | null;
-  /** The status as an icon after the name: the level on Checks, changed or not on Snapshots. */
+  /** The status as an icon before the name: the level on Checks, changed or not on Snapshots. */
   status: ReactNode;
 };
 
@@ -27,8 +29,8 @@ interface DifficultyPickerProps {
 }
 
 /**
- * Picks the difficulty on Checks and Snapshots: General on the left, then one mode's difficulties
- * as buttons with their names (DifficultyButtonGrid), each one's status as an icon. The mode
+ * Picks the difficulty on Checks and Snapshots: General in front, then one mode's difficulties
+ * as buttons with their names (DifficultyButtonRow), each one's status as an icon. The mode
  * shown is the picked difficulty's; with General picked, the one last shown. Switching modes with
  * a difficulty picked picks that mode's easiest. `[` and `]` step through the whole spread,
  * switching modes on the way.
@@ -68,7 +70,7 @@ function DifficultyPicker({
   ]);
 
   return (
-    <DifficultyButtonGrid
+    <DifficultyButtonRow
       lead={{
         label: 'General',
         status: general.status,

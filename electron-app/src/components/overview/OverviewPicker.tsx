@@ -1,4 +1,4 @@
-import { Box, Button, Group, Menu, Stack, Text, Tooltip, useMantineTheme } from '@mantine/core';
+import { Box, Group, Menu, Stack, Text, Tooltip, UnstyledButton } from '@mantine/core';
 import { useElementSize } from '@mantine/hooks';
 import { useMemo } from 'react';
 import { OVERVIEW_SECTIONS, SECTION_ICONS, usesDifficultyPicks } from './overviewSections.ts';
@@ -7,7 +7,7 @@ import { useOverviewMode } from './useOverviewMode.ts';
 import { useBeatmap } from '../../context/BeatmapContext.tsx';
 import { useSettings } from '../../context/SettingsContext.tsx';
 import { groupByMode } from '../../utils/gameMode.ts';
-import DifficultyButtonGrid, { type GridDifficulty } from '../common/DifficultyButtonGrid.tsx';
+import DifficultyButtonRow, { type RowDifficulty } from '../common/DifficultyButtonRow.tsx';
 import { PICKER_CHEVRON } from '../common/DifficultyPicker.tsx';
 import { useMetadataAnalysis } from './metadata/hooks/useMetadataAnalysis.ts';
 import type { OverviewTab } from '../navbar/pageHints.tsx';
@@ -23,7 +23,7 @@ const WHOLE_SET = 'This page covers the whole mapset';
 
 /**
  * The Overview's header: the views, then the difficulties as on Checks and Snapshots
- * (DifficultyButtonGrid). The views list every page, so any page is a click away from any other:
+ * (DifficultyButtonRow). The views list every page, so any page is a click away from any other:
  * side by side when they fit, as a menu of their own when they don't. The difficulties pick
  * several at once, with All in General's place. A comparison stays within one mode, the one shown;
  * each mode keeps its own picks. Pages that cover the whole set keep the same header with the
@@ -54,7 +54,7 @@ export default function OverviewPicker({ section, unavailable, onSelect }: Overv
   const versionsOf = (group: ModeGroup) => group.difficulties.map((d) => d.version);
 
   // No status to show on the Overview, so no status icons.
-  const gridDifficulties: GridDifficulty[] = groups.flatMap((group) =>
+  const rowDifficulties: RowDifficulty[] = groups.flatMap((group) =>
     group.difficulties.map((d) => ({
       id: d.version,
       label: d.version,
@@ -91,14 +91,14 @@ export default function OverviewPicker({ section, unavailable, onSelect }: Overv
         )}
       </Group>
       {allDifficulties > 1 && (
-        <DifficultyButtonGrid
+        <DifficultyButtonRow
           lead={{
             label: 'All',
             active: !comparesDifficulties || showAll,
             disabledReason: comparesDifficulties ? undefined : WHOLE_SET,
             onClick: () => selectedGroup && restart(versionsOf(selectedGroup)),
           }}
-          difficulties={gridDifficulties}
+          difficulties={rowDifficulties}
           onPick={(d) => toggle(d.id)}
           shownMode={selectedMode}
           onShowMode={setSelectedMode}
@@ -115,33 +115,26 @@ export default function OverviewPicker({ section, unavailable, onSelect }: Overv
  * disabled.
  */
 function ViewButtons({ section, unavailable, onSelect }: OverviewPickerProps) {
-  const theme = useMantineTheme();
-
   return (
-    <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
+    // The difficulty picker's gap, so both rows of buttons are spaced alike.
+    <Group gap={6} wrap="nowrap" style={{ flexShrink: 0 }}>
       {OVERVIEW_SECTIONS.map((s) => {
         const Icon = SECTION_ICONS[s];
         const selected = s === section;
         const reason = unavailable[s];
         return (
           <Tooltip key={s} label={reason} disabled={!reason}>
-            <Button
-              variant="default"
-              size="sm"
-              // Narrower than the other buttons, so the row fits in more windows.
-              px="sm"
-              leftSection={<Icon size={18} stroke={1.5} />}
+            <UnstyledButton
+              className="mv-picker-button"
               aria-pressed={selected}
+              aria-disabled={!!reason || undefined}
+              data-active={selected || undefined}
               data-disabled={!!reason || undefined}
-              style={
-                selected
-                  ? { borderColor: theme.colors.dark[2], background: 'var(--mantine-color-dark-5)' }
-                  : undefined
-              }
               onClick={() => !reason && onSelect(s)}
             >
+              <Icon size={18} stroke={1.5} />
               {s}
-            </Button>
+            </UnstyledButton>
           </Tooltip>
         );
       })}
@@ -156,15 +149,11 @@ function ViewMenu({ section, unavailable, onSelect }: OverviewPickerProps) {
   return (
     <Menu position="bottom-start" withinPortal>
       <Menu.Target>
-        <Button
-          variant="default"
-          size="sm"
-          leftSection={<Icon size={18} stroke={1.5} />}
-          rightSection={PICKER_CHEVRON}
-          style={{ flexShrink: 0 }}
-        >
+        <UnstyledButton className="mv-picker-button">
+          <Icon size={18} stroke={1.5} />
           {section}
-        </Button>
+          {PICKER_CHEVRON}
+        </UnstyledButton>
       </Menu.Target>
       <Menu.Dropdown>
         {OVERVIEW_SECTIONS.map((s) => {

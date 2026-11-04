@@ -490,31 +490,22 @@
   }
 }
 
-/* Difficulty picker (DifficultyButtonGrid): a button per difficulty on a grid of equal cells; a
-   long name takes two or three. The status is an icon at the end of a button. Hover and the pick
-   lighten the fill with the same grey for every difficulty, the pick more strongly. Every button
-   is the same height, a guest difficulty's mapper line included. On a set with more than one mode,
-   a column of mode buttons right of the grid picks the mode shown. */
-.mv-difficulty-grid {
-  flex: 1;
-  min-width: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  gap: 3px;
-}
-
-.mv-difficulty-button {
-  position: relative;
-  overflow: hidden;
+/* The header buttons of the mapset pages: the difficulty picker (DifficultyButtonRow) and the
+   Overview's views. Hover lightens the fill; the one picked gets a light outline and a brighter
+   fill. Disabled ones are greyed out but still say why on hover. */
+.mv-picker-button {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   height: 34px;
   min-width: 0;
   padding: 0 10px;
-  border: 0;
+  border: 1px solid transparent;
   border-radius: 6px;
   --fill: var(--mantine-color-dark-5);
+  /* The hover tint; a difficulty's own star rating colour on a difficulty button. */
+  --star: var(--mantine-color-dark-2);
   background: var(--fill);
   color: var(--mantine-color-dark-0);
   font-size: var(--mantine-font-size-sm);
@@ -522,25 +513,24 @@
   text-align: left;
   cursor: pointer;
 
-  &:hover {
-    background: color-mix(in srgb, var(--mantine-color-dark-2) 18%, var(--fill));
+  &:not([data-disabled]):hover {
+    background: color-mix(in srgb, var(--star) 25%, var(--fill));
     color: var(--mantine-color-white);
   }
 
   &[data-active],
   &[data-active]:hover {
-    background: color-mix(in srgb, var(--mantine-color-dark-2) 40%, var(--fill));
+    border-color: var(--mantine-color-dark-0);
+    background: color-mix(in srgb, var(--mantine-color-dark-0) 28%, var(--fill));
     color: var(--mantine-color-white);
   }
+}
 
+.mv-picker-button,
+.mv-difficulty-modes__button {
   &[data-disabled] {
     opacity: 0.5;
     cursor: not-allowed;
-  }
-
-  &[data-disabled]:hover {
-    background: var(--fill);
-    color: var(--mantine-color-dark-0);
   }
 
   &:focus-visible {
@@ -549,14 +539,33 @@
   }
 }
 
-.mv-difficulty-button--lead {
-  flex-shrink: 0;
+/* Difficulty picker (DifficultyButtonRow): a button per difficulty, as wide as its name and
+   wrapping onto more lines, as in 2.1; only a very long name ends in "…". The status is an icon
+   in front. Hover tints the fill with the difficulty's star rating colour, and the pick is
+   outlined in it too. Every button is the same height, a guest difficulty's mapper line included.
+   On a set with more than one mode, mode buttons at the end of the row pick the mode shown. */
+.mv-difficulty-row {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.mv-difficulty-button {
+  flex-shrink: 1;
+  max-width: 260px;
+
+  &[data-active],
+  &[data-active]:hover {
+    border-color: var(--star);
+    background: color-mix(in srgb, var(--star) 30%, var(--fill));
+  }
 }
 
 .mv-difficulty-button__status {
   display: flex;
   flex-shrink: 0;
-  margin-left: auto;
 }
 
 .mv-difficulty-button__name {
@@ -577,6 +586,55 @@
   font-size: 10.5px;
   font-weight: 700;
   color: var(--mantine-color-dark-1);
+}
+
+/* The mode buttons as one segmented control, as in 2.1: each mode's icon with its status as a
+   badge on the corner. The badge's ring takes the button's fill, so it cuts out of the icon. */
+.mv-difficulty-modes {
+  display: flex;
+  flex-shrink: 0;
+  gap: 2px;
+  height: 34px;
+  padding: 3px;
+  border-radius: 6px;
+  background: var(--mantine-color-dark-5);
+}
+
+.mv-difficulty-modes__button {
+  display: flex;
+  align-items: center;
+  padding: 0 9px;
+  border-radius: 4px;
+  --fill: var(--mantine-color-dark-5);
+  background: var(--fill);
+  color: var(--mantine-color-dark-0);
+  cursor: pointer;
+
+  &:not([data-disabled]):hover {
+    --fill: color-mix(in srgb, var(--mantine-color-dark-2) 18%, var(--mantine-color-dark-5));
+    color: var(--mantine-color-white);
+  }
+
+  &[data-active],
+  &[data-active]:hover {
+    --fill: color-mix(in srgb, var(--mantine-color-dark-2) 40%, var(--mantine-color-dark-5));
+    color: var(--mantine-color-white);
+  }
+}
+
+.mv-difficulty-modes__icon {
+  position: relative;
+  display: flex;
+}
+
+.mv-difficulty-modes__badge {
+  position: absolute;
+  right: -5px;
+  bottom: -4px;
+  display: flex;
+  padding: 1px;
+  border-radius: 50%;
+  background: var(--fill);
 }
 
 /* The one table style (AppTable). The card is the only surface: no header fill, no stripes, no

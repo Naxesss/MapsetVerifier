@@ -20,7 +20,11 @@ import { useBeatmap } from '../../context/BeatmapContext';
 import { useSettings } from '../../context/SettingsContext';
 import { notifyError } from '../../utils/notify';
 import BeatmapHeader from '../common/BeatmapHeader';
-import DifficultyPicker, { GENERAL_TAB_ID, PICKER_ICON_SIZE } from '../common/DifficultyPicker';
+import DifficultyPicker, {
+  GENERAL_TAB_ID,
+  PICKER_BADGE_SIZE,
+  PICKER_ICON_SIZE,
+} from '../common/DifficultyPicker';
 import EmptyState from '../common/EmptyState.tsx';
 import { HistorySkeleton } from '../common/LoadingSkeletons.tsx';
 import SectionCard from '../common/SectionCard.tsx';
@@ -105,8 +109,8 @@ function Snapshots() {
     selectedId && validIds.has(selectedId) ? selectedId : (firstChanged ?? GENERAL_TAB_ID);
   const selectedDifficulty = comparison?.difficulties.find((d) => d.key === activeId);
 
-  const changesIcon = (changed: boolean) => (
-    <SnapshotDifficultyChangesIcon hasChanges={changed} size={PICKER_ICON_SIZE} />
+  const changesIcon = (changed: boolean, size = PICKER_ICON_SIZE) => (
+    <SnapshotDifficultyChangesIcon hasChanges={changed} size={size} />
   );
   const generalChanged =
     !!comparison &&
@@ -162,7 +166,10 @@ function Snapshots() {
             }))}
             general={{ status: changesIcon(generalChanged) }}
             modeStatus={(_, ids) =>
-              changesIcon(pickerDifficulties.some((d) => d.changed && ids.includes(d.id)))
+              changesIcon(
+                pickerDifficulties.some((d) => d.changed && ids.includes(d.id)),
+                PICKER_BADGE_SIZE
+              )
             }
             selectedId={activeId}
             onSelect={setSelectedId}
