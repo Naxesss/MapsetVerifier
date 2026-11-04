@@ -960,7 +960,7 @@ namespace MapsetVerifier.Parser.Objects
             if (BeatmapSetDifficultyOverride is { } beatmapSetOverride)
                 return beatmapSetOverride;
 
-            var difficultyFromName = GetDifficultyFromName();
+            var difficultyFromName = GetDifficultyFromName() ?? GetDifficultyFromNameWord();
 
             // We can't determine the difficulty by name so instead use star rating
             if (difficultyFromName == null)
@@ -1022,6 +1022,39 @@ namespace MapsetVerifier.Parser.Objects
             }
 
             return null;
+        }
+
+        /// <summary>
+        ///     Weaker fallback for names with extra words, like "Normal Dream". Only trusted when exactly one
+        ///     difficulty level appears as a whole word, and it is at most one level away from what the star
+        ///     rating suggests, since a level word can also just be part of a longer title.
+        /// </summary>
+        private Difficulty? GetDifficultyFromNameWord()
+        {
+            var name = " " + GetRelevantPartOfDifficultyName(MetadataSettings.version) + " ";
+            var matches = new HashSet<Difficulty>();
+
+            // Longest aliases first, so "inner oni" is consumed before "oni" could match within it.
+            foreach (
+                var (alias, difficulty) in DifficultyIndex[GeneralSettings.mode]
+                    .OrderByDescending(pair => pair.Key.Length)
+            )
+            {
+                var word = " " + alias + " ";
+                if (!name.Contains(word))
+                    continue;
+
+                matches.Add(difficulty);
+                name = name.Replace(word, " ");
+            }
+
+            if (matches.Count != 1)
+                return null;
+
+            var fromWord = matches.Single();
+            var fromStarRating = GetDifficultyFromStarRating();
+
+            return Math.Abs((int)fromWord - (int)fromStarRating) <= 1 ? fromWord : null;
         }
 
         /// <summary>
