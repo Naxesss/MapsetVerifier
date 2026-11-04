@@ -182,6 +182,22 @@ public class HitObjectDistanceCalculatorTests
         Assert.True(hyper.DistanceToHyper < 0);
     }
 
+    /// <summary>
+    /// Slider parts can land on fractional times, but the game truncates times to whole milliseconds
+    /// before deciding on a hyperdash. Kept as raw 62.9ms this 119px jump would miss the hyperdash by
+    /// less than a pixel, while the game sees 62ms and makes it one.
+    /// </summary>
+    [Fact]
+    public void HyperdashUsesTruncatedTimes()
+    {
+        var objects = CalculateFor(
+            CatchTestBeatmap.Circle(1000, 50),
+            "169,192,1062.9,1,0,0:0:0:0:"
+        );
+
+        Assert.Equal(CatchMovementType.Hyperdash, objects[0].MovementType);
+    }
+
     private static List<ICatchHitObject> CalculateFor(params string[] hitObjects) =>
         CatchTestBeatmap.Create(circleSize: 4, hitObjects).GetCatchHitObjects(true);
 }
