@@ -1,5 +1,6 @@
 import { Kbd, List, Modal, Stack, Text } from '@mantine/core';
 import HitsoundLegendContent from './HitsoundLegendContent.tsx';
+import { useSettings } from '../../../../context/SettingsContext.tsx';
 import { CardTitle } from '../../../common/Headings.tsx';
 
 type ObjectsTimelineHelpModalProps = {
@@ -13,6 +14,8 @@ export default function ObjectsTimelineHelpModal({
   onClose,
   showHitsoundSection = true,
 }: ObjectsTimelineHelpModalProps) {
+  const { settings } = useSettings();
+
   return (
     <Modal opened={opened} onClose={onClose} title="How to use the timeline" size="lg" centered>
       <Stack gap="lg">
@@ -34,6 +37,24 @@ export default function ObjectsTimelineHelpModal({
             </List.Item>
           </List>
         </Stack>
+
+        {settings.timelineAudioPlayback && (
+          <Stack gap="xs">
+            <CardTitle>Audio playback</CardTitle>
+            <List size="sm" spacing="xs">
+              <List.Item>
+                Press <Kbd size="xs">Space</Kbd> or the play button to play the song along the
+                timeline. While it plays, it can&apos;t be dragged, but <Kbd size="xs">Shift</Kbd> +
+                scroll still steps through the song.
+              </List.Item>
+              <List.Item>Click the time axis to move the cursor there.</List.Item>
+              <List.Item>
+                Scrolling while paused moves the cursor with you, so playback resumes from where you
+                scrolled to.
+              </List.Item>
+            </List>
+          </Stack>
+        )}
 
         <Stack gap="xs">
           <CardTitle>Structure view</CardTitle>

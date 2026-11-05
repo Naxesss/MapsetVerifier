@@ -1,4 +1,4 @@
-import { SegmentedControl } from '@mantine/core';
+import { SegmentedControl, Switch } from '@mantine/core';
 import { IconChartAreaLine } from '@tabler/icons-react';
 import { SettingsRow, SettingsSection } from './SettingsSection';
 import { useSettings } from '../../context/SettingsContext';
@@ -32,6 +32,20 @@ export default function OverviewSettingsSection() {
                 difficultyStrainDisplayMode: value as DifficultyStrainDisplayMode,
               }))
             }
+          />
+        }
+      />
+      <SettingsRow
+        title="Timeline audio playback"
+        description="Lets you play the song along the Objects timeline."
+        control={
+          <Switch
+            aria-label="Timeline audio playback"
+            checked={settings.timelineAudioPlayback}
+            onChange={(event) => {
+              const checked = event.currentTarget.checked;
+              setSettings((prev) => ({ ...prev, timelineAudioPlayback: checked }));
+            }}
           />
         }
       />

@@ -1,5 +1,4 @@
 import { useLayoutEffect, useRef, type RefObject } from 'react';
-import { LABEL_WIDTH } from '../constants.ts';
 import { getScrollLeftForTimestamp, getTimestampAtPlayhead } from '../timelineUtils.ts';
 
 type UsePreserveTimelineScrollOnZoomOptions = {
@@ -7,6 +6,7 @@ type UsePreserveTimelineScrollOnZoomOptions = {
   timelineWidth: number;
   startTimeMs: number;
   endTimeMs: number;
+  originX: number;
 };
 
 export function usePreserveTimelineScrollOnZoom({
@@ -14,8 +14,22 @@ export function usePreserveTimelineScrollOnZoom({
   timelineWidth,
   startTimeMs,
   endTimeMs,
+  originX,
 }: UsePreserveTimelineScrollOnZoomOptions) {
   const prevTimelineWidthRef = useRef(timelineWidth);
+  const prevOriginXRef = useRef(originX);
+
+  // The padding before the timeline is measured after the first render, so following it here is
+  // also what opens the timeline flush against the labels rather than on empty space.
+  useLayoutEffect(() => {
+    const container = scrollRef.current;
+    const prevOriginX = prevOriginXRef.current;
+    prevOriginXRef.current = originX;
+
+    if (container) {
+      container.scrollLeft += originX - prevOriginX;
+    }
+  }, [originX, scrollRef]);
 
   useLayoutEffect(() => {
     const container = scrollRef.current;
@@ -31,7 +45,7 @@ export function usePreserveTimelineScrollOnZoom({
     const timestampMs = getTimestampAtPlayhead(
       container.scrollLeft,
       anchorViewportX,
-      LABEL_WIDTH,
+      originX,
       prevTimelineWidth,
       startTimeMs,
       endTimeMs
@@ -40,7 +54,7 @@ export function usePreserveTimelineScrollOnZoom({
     const nextScrollLeft = getScrollLeftForTimestamp(
       timestampMs,
       anchorViewportX,
-      LABEL_WIDTH,
+      originX,
       timelineWidth,
       startTimeMs,
       endTimeMs
@@ -48,5 +62,5 @@ export function usePreserveTimelineScrollOnZoom({
 
     const maxScrollLeft = Math.max(0, container.scrollWidth - container.clientWidth);
     container.scrollLeft = Math.max(0, Math.min(maxScrollLeft, nextScrollLeft));
-  }, [endTimeMs, scrollRef, startTimeMs, timelineWidth]);
+  }, [endTimeMs, originX, scrollRef, startTimeMs, timelineWidth]);
 }

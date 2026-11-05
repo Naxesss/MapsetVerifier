@@ -16,17 +16,21 @@ import { useCallback, useMemo } from 'react';
 import SortableTimelineDifficultyRow from './SortableTimelineDifficultyRow.tsx';
 import TimelineAxisRow from './TimelineAxisRow.tsx';
 import TimelineHorizontalReveal from './TimelineHorizontalReveal.tsx';
+import TimelinePlaybackControls from './TimelinePlaybackControls.tsx';
+import TimelinePlaybackGuard from './TimelinePlaybackGuard.tsx';
 import TimelineZoomControls from './TimelineZoomControls.tsx';
-import { LABEL_WIDTH, TIMELINE_VIEW_MODE_TRANSITION_MS } from '../constants.ts';
+import { TIMELINE_VIEW_MODE_TRANSITION_MS } from '../constants.ts';
 import TimelineShortcutHints from './TimelineShortcutHints.tsx';
 import {
   useTimelineController,
   useTimelineDisplay,
+  useTimelineEdges,
   useTimelinePan,
   useTimelineScale,
 } from '../context/ObjectsTimelineContext.tsx';
 import { usePreserveTimelineScrollOnZoom } from '../hooks/usePreserveTimelineScrollOnZoom.ts';
 import { useTimelineModifierKeys } from '../hooks/useTimelineModifierKeys.ts';
+import { useTimelinePlayback } from '../hooks/useTimelinePlayback.ts';
 import { useTimelineScrollTickStep } from '../hooks/useTimelineScrollTickStep.ts';
 import { readTimelineOverscanWindowMs } from '../hooks/useTimelineViewportRange.ts';
 import { useTimelineWheelSeek } from '../hooks/useTimelineWheelSeek.ts';
@@ -37,6 +41,7 @@ import {
 import {
   buildAllRoundedEdgeTimes,
   buildTimelineSnapTicks,
+  getAdjacentTimingSnapTickBySteps,
   getDifficultyKey,
 } from '../timelineUtils.ts';
 
@@ -48,6 +53,7 @@ export type ObjectsTimelineComparisonContentProps = {
   showZoomControls?: boolean;
   headerExtra?: React.ReactNode;
   aboveTimelineExtra?: React.ReactNode;
+  audioUrl?: string;
 };
 
 export default function ObjectsTimelineComparisonContent({
@@ -58,11 +64,13 @@ export default function ObjectsTimelineComparisonContent({
   showZoomControls = true,
   headerExtra,
   aboveTimelineExtra,
+  audioUrl,
 }: ObjectsTimelineComparisonContentProps) {
   const controller = useTimelineController();
   const { scrollRef, isPanningTimeline, handleMouseDown, handleMouseMove, stopDragging } =
     useTimelinePan();
   const { startTimeMs, endTimeMs, timelineWidth } = useTimelineScale();
+  const { originX, endPaddingPx } = useTimelineEdges();
 
   const {
     rows: { orderedDifficulties },
@@ -93,7 +101,7 @@ export default function ObjectsTimelineComparisonContent({
   const resolveSnapTicks = useCallback(() => {
     const scrollElement = scrollRef.current;
     const snapWindow = scrollElement
-      ? readTimelineOverscanWindowMs(scrollElement, timelineWidth, startTimeMs, endTimeMs)
+      ? readTimelineOverscanWindowMs(scrollElement, timelineWidth, startTimeMs, endTimeMs, originX)
       : { windowStartMs: startTimeMs, windowEndMs: endTimeMs };
 
     return {
@@ -108,6 +116,7 @@ export default function ObjectsTimelineComparisonContent({
     };
   }, [
     endTimeMs,
+    originX,
     roundedEdgeTimes,
     scrollRef,
     startTimeMs,
@@ -120,6 +129,7 @@ export default function ObjectsTimelineComparisonContent({
     timelineWidth,
     startTimeMs,
     endTimeMs,
+    originX,
     resolveSnapTicks,
     tickStepCount: tickStep,
     adjustZoom,
@@ -130,9 +140,42 @@ export default function ObjectsTimelineComparisonContent({
     timelineWidth,
     startTimeMs,
     endTimeMs,
+    originX,
   });
 
-  const contentWidth = timelineWidth + LABEL_WIDTH;
+  const playback = useTimelinePlayback({
+    audioUrl,
+    scrollRef,
+    timelineWidth,
+    startTimeMs,
+    endTimeMs,
+    originX,
+    endPaddingPx,
+    stopPanning: stopDragging,
+  });
+  const { cursorRef, getTimeMs, isPlaying, isUnavailable, seek, setVolume, toggle } = playback;
+
+  // Steps from the cursor rather than the view's centre, which differ near the ends of the map.
+  const stepPlayback = useCallback(
+    (direction: 1 | -1) => {
+      const { snapTicks, snapClampStartMs, snapClampEndMs } = resolveSnapTicks();
+      if (snapTicks.length > 0) {
+        seek(
+          getAdjacentTimingSnapTickBySteps(
+            snapTicks,
+            getTimeMs(),
+            direction,
+            tickStep,
+            snapClampStartMs,
+            snapClampEndMs
+          )
+        );
+      }
+    },
+    [getTimeMs, resolveSnapTicks, seek, tickStep]
+  );
+
+  const contentWidth = originX + timelineWidth + endPaddingPx;
 
   const visibleCount = orderedDifficulties.filter(
     (difficulty) => visibilityByDifficulty[getDifficultyKey(difficulty)] !== false
@@ -165,6 +208,14 @@ export default function ObjectsTimelineComparisonContent({
               data-stop-timeline-pan="true"
               data-timeline-wheel-ignore="true"
             >
+              {audioUrl && (
+                <TimelinePlaybackControls
+                  isPlaying={isPlaying}
+                  isUnavailable={isUnavailable}
+                  toggle={toggle}
+                  setVolume={setVolume}
+                />
+              )}
               {showScrollModeControls && (
                 <TimelineShortcutHints
                   zoomActive={zoomModeActive}
@@ -240,7 +291,8 @@ export default function ObjectsTimelineComparisonContent({
         </Collapse>
       )}
 
-      <Box>
+      <Box pos="relative">
+        {isPlaying && <TimelinePlaybackGuard adjustZoom={adjustZoom} onStep={stepPlayback} />}
         <Box
           ref={scrollRef}
           onMouseDown={handleMouseDown}
@@ -256,16 +308,38 @@ export default function ObjectsTimelineComparisonContent({
         >
           <Box
             style={{
+              position: 'relative',
               display: 'flex',
               width: contentWidth,
               minWidth: contentWidth,
             }}
           >
+            {audioUrl && (
+              <Box
+                ref={cursorRef}
+                aria-hidden
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  bottom: 0,
+                  // Centred one pixel in, where the border of the rows puts their objects.
+                  left: 0,
+                  width: 2,
+                  // Above the sticky labels, as the start of the timeline sits right on their edge.
+                  zIndex: 4,
+                  background: 'var(--mantine-color-primary-3)',
+                  boxShadow:
+                    '0 0 3px color-mix(in srgb, var(--mantine-color-primary-4) 40%, transparent)',
+                  pointerEvents: 'none',
+                  willChange: 'transform',
+                }}
+              />
+            )}
             <Stack
               gap="xs"
               style={{ width: contentWidth, minWidth: contentWidth, flex: '0 0 auto' }}
             >
-              <TimelineAxisRow linePosition="bottom" />
+              <TimelineAxisRow linePosition="bottom" onSeek={audioUrl ? seek : undefined} />
 
               {orderedDifficulties.length === 0 && (
                 <Paper p="md" radius="md" withBorder>
@@ -305,7 +379,9 @@ export default function ObjectsTimelineComparisonContent({
                 </SortableContext>
               </DndContext>
 
-              {orderedDifficulties.length > 0 && <TimelineAxisRow linePosition="top" />}
+              {orderedDifficulties.length > 0 && (
+                <TimelineAxisRow linePosition="top" onSeek={audioUrl ? seek : undefined} />
+              )}
             </Stack>
           </Box>
         </Box>

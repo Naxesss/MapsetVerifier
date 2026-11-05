@@ -47,6 +47,46 @@ public class AudioAnalysisController : ControllerBase
     }
 
     /// <summary>
+    /// Streams the audio of a beatmap set so it can be played in the client.
+    /// </summary>
+    [HttpGet("stream")]
+    public ActionResult StreamAudio([FromQuery] string folder)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(folder))
+                return BadRequest(new ApiError("Folder is required.", null));
+
+            var fullPath = AudioAnalysisService.ResolveAudioStreamPath(folder);
+
+            if (fullPath == null)
+                return NotFound(new ApiError("Audio file not found in beatmap set.", null));
+
+            return PhysicalFile(fullPath, GetMimeType(fullPath), enableRangeProcessing: true);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to stream audio from {Folder}", folder);
+
+            return StatusCode(
+                500,
+                ApiErrorFactory.FromException(ex, "An error occurred streaming the audio.")
+            );
+        }
+    }
+
+    private static string GetMimeType(string filePath) =>
+        Path.GetExtension(filePath).ToLowerInvariant() switch
+        {
+            ".mp3" => "audio/mpeg",
+            ".ogg" => "audio/ogg",
+            ".wav" => "audio/wav",
+            ".flac" => "audio/flac",
+            ".m4a" => "audio/mp4",
+            _ => "application/octet-stream",
+        };
+
+    /// <summary>
     /// Gets spectrogram data for visualization.
     /// </summary>
     [HttpPost("spectrogram")]
