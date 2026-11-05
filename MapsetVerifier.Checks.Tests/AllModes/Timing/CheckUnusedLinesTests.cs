@@ -212,6 +212,85 @@ public class CheckUnusedLinesTests
     }
 
     [Fact]
+    public void InheritedLine_ChangesSamplesOverCatchSliderBodyOnly_Flags()
+    {
+        // Catch sliders play no body sound, and no tick or edge of this slider uses the line at 1100.
+        var issues = RunOnOneBeatSlider(
+            Beatmap.Mode.Catch,
+            ["1100,-100,4,2,0,50,0,0", "1400,-100,4,2,0,100,0,0"]
+        );
+
+        var issue = Assert.Single(issues);
+        Assert.Contains("00:01:100", issue.message);
+        Assert.Contains("sample settings, but affects nothing", issue.message);
+    }
+
+    [Fact]
+    public void InheritedLine_ChangesSamplesOverStandardSliderBody_DoesNotFlag()
+    {
+        // Unlike in catch, the body of a standard slider plays a sliderslide affected by this line.
+        var issues = RunOnOneBeatSlider(
+            Beatmap.Mode.Standard,
+            ["1100,-100,4,2,0,50,0,0", "1400,-100,4,2,0,100,0,0"]
+        );
+
+        Assert.Empty(issues);
+    }
+
+    [Theory]
+    [InlineData(Beatmap.Mode.Standard)]
+    [InlineData(Beatmap.Mode.Catch)]
+    public void InheritedLine_ChangesSamplesJustAfterTail_WithinLeniency_DoesNotFlag(
+        Beatmap.Mode mode
+    )
+    {
+        // The tail at 1500 takes its sample settings from a line less than 5 ms ahead of it.
+        var issues = RunOnOneBeatSlider(mode, ["1502,-100,4,2,0,50,0,0"]);
+
+        Assert.Empty(issues);
+    }
+
+    [Theory]
+    [InlineData(Beatmap.Mode.Standard)]
+    [InlineData(Beatmap.Mode.Catch)]
+    public void InheritedLine_ChangesSamplesAfterTail_OutsideLeniency_Flags(Beatmap.Mode mode)
+    {
+        var issues = RunOnOneBeatSlider(mode, ["1510,-100,4,2,0,50,0,0"]);
+
+        var issue = Assert.Single(issues);
+        Assert.Contains("00:01:510", issue.message);
+    }
+
+    [Fact]
+    public void InheritedLine_ChangesSamplesOnCatchSliderTick_DoesNotFlag()
+    {
+        // With a tick rate of 2, the slider has a tick at 1250 which uses the line at 1200.
+        var issues = RunOnOneBeatSlider(
+            Beatmap.Mode.Catch,
+            ["1200,-100,4,2,0,50,0,0", "1300,-100,4,2,0,100,0,0"],
+            sliderTickRate: 2
+        );
+
+        Assert.Empty(issues);
+    }
+
+    [Fact]
+    public void InheritedLine_ChangesSamplesDuringCatchSpinner_DoesNotFlag()
+    {
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Mode(Beatmap.Mode.Catch)
+                .Title("Unused Lines Test")
+                .TimingPoints("0,500,4,2,0,100,1,0", "2000,-100,4,2,0,50,0,0")
+                .HitObjects("256,192,1500,8,0,2500,0:0:0:0:")
+        );
+
+        var issues = context.RunBeatmapCheck<CheckUnusedLines>("Test");
+
+        Assert.Empty(issues);
+    }
+
+    [Fact]
     public void InheritedLine_ChangesSvOnly_WithNoSlidersAnywhere_FlagsMinorSvOnly()
     {
         using var context = CheckTestContext.CreateFromOsu(
@@ -320,5 +399,24 @@ public class CheckUnusedLinesTests
         var issues = context.RunBeatmapCheck<CheckUnusedLines>("Test");
 
         Assert.Empty(issues);
+    }
+
+    /// <summary> Runs the check on a map with one slider from 1000 to 1500 and the given extra lines. </summary>
+    private static List<Issue> RunOnOneBeatSlider(
+        Beatmap.Mode mode,
+        string[] extraLines,
+        float sliderTickRate = 1
+    )
+    {
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Mode(mode)
+                .Title("Unused Lines Test")
+                .SliderTickRate(sliderTickRate)
+                .TimingPoints(["0,500,4,2,0,100,1,0", .. extraLines])
+                .HitObjects("256,192,1000,2,0,L|396:192,1,140,0|0,0:0|0:0,0:0:0:0:")
+        );
+
+        return context.RunBeatmapCheck<CheckUnusedLines>("Test");
     }
 }

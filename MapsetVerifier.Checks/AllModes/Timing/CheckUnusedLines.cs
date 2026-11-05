@@ -120,14 +120,19 @@ namespace MapsetVerifier.Checks.AllModes.Timing
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
         {
-            foreach (var issue in GetUninheritedLineIssues(beatmap))
+            var sampledLineOffsets = GetSampledLineOffsets(beatmap);
+
+            foreach (var issue in GetUninheritedLineIssues(beatmap, sampledLineOffsets))
                 yield return issue;
 
-            foreach (var issue in GetInheritedLineIssues(beatmap))
+            foreach (var issue in GetInheritedLineIssues(beatmap, sampledLineOffsets))
                 yield return issue;
         }
 
-        private IEnumerable<Issue> GetUninheritedLineIssues(Beatmap beatmap)
+        private IEnumerable<Issue> GetUninheritedLineIssues(
+            Beatmap beatmap,
+            HashSet<double> sampledLineOffsets
+        )
         {
             var lines = beatmap.TimingLines.ToList();
 
@@ -183,7 +188,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     notImmediatelyObvious.Add("resets nightcore mod cymbals");
                 var notImmediatelyObviousStr = string.Join(" and ", notImmediatelyObvious);
 
-                if (!IsLineUsed(beatmap, currentLine, previousLine))
+                if (!IsLineUsed(beatmap, currentLine, previousLine, sampledLineOffsets))
                 {
                     if (notImmediatelyObvious.Count == 0)
                         yield return new Issue(
@@ -218,7 +223,10 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             }
         }
 
-        private IEnumerable<Issue> GetInheritedLineIssues(Beatmap beatmap)
+        private IEnumerable<Issue> GetInheritedLineIssues(
+            Beatmap beatmap,
+            HashSet<double> sampledLineOffsets
+        )
         {
             var lines = beatmap.TimingLines.ToList();
 
@@ -231,7 +239,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
 
                 // Since "used" only includes false positives, this will only result in false negatives,
                 // hence the check will never say that a used line is unused.
-                if (IsLineUsed(beatmap, currentLine, previousLine))
+                if (IsLineUsed(beatmap, currentLine, previousLine, sampledLineOffsets))
                     continue;
 
                 // Distinguishes between the line actually changing a value that just doesn't apply to
@@ -332,16 +340,17 @@ namespace MapsetVerifier.Checks.AllModes.Timing
         ///     Returns whether a line is considered used. Only partially covers uninherited lines.
         ///
         ///     Conditions for an inherited line being used (simplified, only false positives, e.g. hold notes/spinners)
-        ///     - Changes sampleset, custom index, or volume and there is an edge/body within the time frame
+        ///     - Changes sampleset, custom index, or volume and a sample uses the line, or a body which can play sound runs during it
         ///     - Changes SV and there are sliders starting within the time frame or changes SV and the mode is mania
         ///     - Changes kiai (causes effects on screen during duration)
         /// </summary>
         private static bool IsLineUsed(
             Beatmap beatmap,
             TimingLine currentLine,
-            TimingLine previousLine
+            TimingLine previousLine,
+            HashSet<double> sampledLineOffsets
         ) =>
-            UsesSamples(beatmap, currentLine, previousLine)
+            UsesSamples(beatmap, currentLine, previousLine, sampledLineOffsets)
             || UsesSV(beatmap, currentLine, previousLine)
             || currentLine.Kiai != previousLine.Kiai;
 
@@ -349,10 +358,53 @@ namespace MapsetVerifier.Checks.AllModes.Timing
         private static bool UsesSamples(
             Beatmap beatmap,
             TimingLine currentLine,
-            TimingLine previousLine
+            TimingLine previousLine,
+            HashSet<double> sampledLineOffsets
         ) =>
-            SectionOverlapsObject<HitObject>(beatmap, currentLine)
-            && SamplesDiffer(currentLine, previousLine);
+            SamplesDiffer(currentLine, previousLine)
+            && (
+                sampledLineOffsets.Contains(currentLine.Offset)
+                || SectionOverlapsSoundingBody(beatmap, currentLine)
+            );
+
+        /// <summary>
+        ///     Returns the offsets of all lines that an object's samples take their settings from. A sample
+        ///     can use a line slightly ahead of it, so a tail just before a line belongs to that line.
+        /// </summary>
+        private static HashSet<double> GetSampledLineOffsets(Beatmap beatmap)
+        {
+            var offsets = new HashSet<double>();
+
+            foreach (var hitObject in beatmap.HitObjects)
+            {
+                foreach (var sample in hitObject.usedHitSamples)
+                {
+                    // Slider ticks choose their line based on their precise time, with less leniency.
+                    var line =
+                        sample.HitSource == HitSample.HitSourceType.Tick
+                            ? beatmap.GetTimingLine(
+                                sample.Time + beatmap.GetTheoreticalUnsnap(sample.Time),
+                                true,
+                                true
+                            )
+                            : beatmap.GetTimingLine(sample.Time, true);
+
+                    if (line != null)
+                        offsets.Add(line.Offset);
+                }
+            }
+
+            return offsets;
+        }
+
+        /// <summary>
+        ///     Returns whether an object which could play sound during its body overlaps this section.
+        ///     Catch sliders have droplets instead of a body sound, so only their edges and ticks matter.
+        /// </summary>
+        private static bool SectionOverlapsSoundingBody(Beatmap beatmap, TimingLine line) =>
+            beatmap.GeneralSettings.mode == Beatmap.Mode.Catch
+                ? SectionOverlapsObject<Spinner>(beatmap, line)
+                : SectionOverlapsObject<HitObject>(beatmap, line);
 
         /// <summary> Returns whether this section changes sample settings (i.e. volume, sampleset, or custom index). </summary>
         private static bool SamplesDiffer(TimingLine currentLine, TimingLine previousLine) =>
