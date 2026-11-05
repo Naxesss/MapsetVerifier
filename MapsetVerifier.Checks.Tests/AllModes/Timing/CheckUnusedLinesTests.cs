@@ -274,6 +274,33 @@ public class CheckUnusedLinesTests
         Assert.Empty(issues);
     }
 
+    [Theory]
+    // The tick on the way back is mirrored to 1750, so it uses this line.
+    [InlineData("1700,-100,4,2,0,50,0,0", "1800,-100,4,2,0,100,0,0", null)]
+    // Counting straight from the start would wrongly place a tick at 2000 here.
+    [InlineData("1950,-100,4,2,0,50,0,0", "2050,-100,4,2,0,100,0,0", "00:01:950")]
+    public void InheritedLine_ChangesSamplesAroundTickOnReverseSpan(
+        string line,
+        string nextLine,
+        string? expectedFlag
+    )
+    {
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Mode(Beatmap.Mode.Catch)
+                .Title("Unused Lines Test")
+                .TimingPoints("0,500,4,2,0,100,1,0", line, nextLine)
+                .HitObjects("256,192,1000,2,0,L|431:192,2,175,0|0|0,0:0|0:0|0:0,0:0:0:0:")
+        );
+
+        var issues = context.RunBeatmapCheck<CheckUnusedLines>("Test");
+
+        if (expectedFlag == null)
+            Assert.Empty(issues);
+        else
+            Assert.Contains(expectedFlag, Assert.Single(issues).message);
+    }
+
     [Fact]
     public void InheritedLine_ChangesSamplesDuringCatchSpinner_DoesNotFlag()
     {

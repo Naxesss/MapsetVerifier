@@ -275,6 +275,25 @@ namespace MapsetVerifier.Parser.Objects
             }
         }
 
+        /// <summary>
+        ///     The version in the first line of the file, which older mechanics depend on. Assumes the
+        ///     latest behaviour if missing, like when the line was removed by hand.
+        /// </summary>
+        public int FileFormatVersion { get; }
+
+        private static int ParseFileFormatVersion(string firstLine)
+        {
+            const string prefix = "osu file format v";
+
+            var index = firstLine.IndexOf(prefix, StringComparison.Ordinal);
+
+            return
+                index >= 0
+                && int.TryParse(firstLine[(index + prefix.Length)..].Trim(), out var version)
+                ? version
+                : int.MaxValue;
+        }
+
         public Beatmap(string code, string songPath, string mapPath)
         {
             Code = code;
@@ -282,6 +301,8 @@ namespace MapsetVerifier.Parser.Objects
             MapPath = mapPath;
 
             var lines = code.Split(["\n"], StringSplitOptions.None);
+
+            FileFormatVersion = ParseFileFormatVersion(lines[0]);
 
             GeneralSettings = ParserStatic.GetSettings(
                 lines,

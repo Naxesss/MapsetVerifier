@@ -545,16 +545,14 @@ namespace MapsetVerifier.Parser.Objects
                 )
                     foreach (var tickTime in slider.SliderTickTimes)
                     {
-                        // Our `sliderTickTimes` are approximate values, the game chooses sampleset based on precise tick times, so we should too.
-                        // Also, slider ticks have 2 ms of hit sound leniency, unlike the 5 ms for circles and other objects.
-                        var preciseTickTime = tickTime + beatmap.GetTheoreticalUnsnap(tickTime);
-                        var line = beatmap.GetTimingLine(preciseTickTime, true, true);
+                        // Slider ticks have 2 ms of hit sound leniency, unlike the 5 ms for circles and other objects.
+                        var line = beatmap.GetTimingLine(tickTime, true, true);
 
                         // If no line exists, we use the default settings.
                         var resolvedCustomIndex = line?.CustomIndex ?? 1;
 
                         // Unlike the slider body (for sliderwhistles) and edges, slider ticks are unaffected by additions.
-                        var resolvedSampleset = GetSampleset(false, preciseTickTime, true);
+                        var resolvedSampleset = GetSampleset(false, tickTime, true);
 
                         // Defaults to normal if none is set (before any timing line).
                         if (resolvedSampleset == HitSample.SamplesetType.Auto)

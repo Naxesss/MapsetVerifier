@@ -379,15 +379,12 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             {
                 foreach (var sample in hitObject.usedHitSamples)
                 {
-                    // Slider ticks choose their line based on their precise time, with less leniency.
-                    var line =
+                    // Slider ticks have less leniency than other samples.
+                    var line = beatmap.GetTimingLine(
+                        sample.Time,
+                        true,
                         sample.HitSource == HitSample.HitSourceType.Tick
-                            ? beatmap.GetTimingLine(
-                                sample.Time + beatmap.GetTheoreticalUnsnap(sample.Time),
-                                true,
-                                true
-                            )
-                            : beatmap.GetTimingLine(sample.Time, true);
+                    );
 
                     if (line != null)
                         offsets.Add(line.Offset);
