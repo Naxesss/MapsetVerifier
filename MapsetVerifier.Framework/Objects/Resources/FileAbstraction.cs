@@ -26,8 +26,13 @@ namespace MapsetVerifier.Framework.Objects.Resources
         {
             try
             {
+                // TagLib picks its parser from the extension, which isn't always the actual format.
+                var mimeType = ImageFileFormat.GetMimeTypeIfMismatched(Name);
+
                 lock (TagLibLock)
-                    return File.Create(this);
+                    return mimeType == null
+                        ? File.Create(this)
+                        : File.Create(this, mimeType, TagLib.ReadStyle.Average);
             }
             catch (Exception exception)
             {

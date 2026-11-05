@@ -116,10 +116,49 @@ public sealed class FileAbstractionTests : IDisposable
         Assert.Equal(0, failures);
     }
 
+    [Theory]
+    [InlineData("image.jpg")]
+    [InlineData("image.png")]
+    public void Png_IsReadWhateverItsExtension(string fileName)
+    {
+        // A 1x1 PNG.
+        var png = Convert.FromBase64String(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+        );
+
+        var tagFile = Read(WriteImage(fileName, png));
+
+        Assert.NotNull(tagFile);
+        Assert.Equal(1, tagFile.Properties.PhotoWidth);
+    }
+
+    [Fact]
+    public void JpegNamedPng_IsRead()
+    {
+        var tagFile = Read(WriteImage("image.png", JpegWithExif));
+
+        Assert.NotNull(tagFile);
+        Assert.Equal(1, tagFile.Properties.PhotoWidth);
+    }
+
+    [Fact]
+    public void GifNamedJpg_IsRead()
+    {
+        // A 1x1 GIF.
+        var gif = Convert.FromBase64String(
+            "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+        );
+
+        var tagFile = Read(WriteImage("image.jpg", gif));
+
+        Assert.NotNull(tagFile);
+        Assert.Equal(1, tagFile.Properties.PhotoWidth);
+    }
+
     [Fact]
     public void UnreadableFile_ReturnsNull()
     {
-        // A PNG signature in a file claiming to be a JPEG.
+        // Only a PNG signature, so there is no actual image to read in either format.
         var tagFile = Read(
             WriteImage("image.jpg", [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])
         );
