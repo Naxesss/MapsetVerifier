@@ -6,7 +6,7 @@ export default function MinorIcon({ size = 32 }: { size?: number }) {
   // Overlay icon is half the main icon size
   const overlaySize = Math.round(size / 2);
   return (
-    <span style={{ position: 'relative', display: 'inline-block', width: size, height: size }}>
+    <span style={{ position: 'relative', display: 'inline-flex', width: size, height: size }}>
       <IconCircleCheckFilled color={theme.colors.green[6]} size={size} />
       <span
         style={{
