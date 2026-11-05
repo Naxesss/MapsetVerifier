@@ -452,8 +452,9 @@ namespace MapsetVerifier.Parser.Objects
                 yield return GetEdgeSample(time, GetStartSampleset(), HitSounds.Normal);
             }
 
-            // Hold notes can not have a hit sounds on their tails.
-            if (this is not HoldNote)
+            // Only sliders and spinners have a tail that plays hit sounds. Circles have no tail at all, and
+            // hold notes can not have hit sounds on theirs.
+            if (this is Slider or Spinner)
             {
                 // Tail
                 foreach (
