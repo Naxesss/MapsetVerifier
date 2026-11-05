@@ -174,6 +174,67 @@ public class CheckUnusedFilesTests
     }
 
     [Fact]
+    public void ObjectCustomIndex_ReplacesTimingLineIndex()
+    {
+        // The timing line uses custom index 16, but the only object picks index 3 itself, so the
+        // line's hitnormal is never played.
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Title("Title")
+                .Artist("Artist")
+                .Creator("Creator")
+                .TimingPoints(TestTimingPoints.Uninherited(0, 500, sampleIndex: 16))
+                .HitObjects("256,192,1000,1,0,0:0:3:0:"),
+            extraFiles: ["audio.mp3", "soft-hitnormal3.wav", "soft-hitnormal16.wav"]
+        );
+
+        AssertProblemFor(context, "soft-hitnormal16.wav");
+    }
+
+    [Fact]
+    public void CircleOverridingSampleset_DoesNotUseTheTimingLinesSampleset()
+    {
+        // The timing line is soft with custom index 16, but the only circle picks normal itself.
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Title("Title")
+                .Artist("Artist")
+                .Creator("Creator")
+                .TimingPoints(TestTimingPoints.Uninherited(0, 500, sampleIndex: 16))
+                .HitObjects("256,192,1000,1,0,1:0:0:0:"),
+            extraFiles: ["audio.mp3", "normal-hitnormal16.wav", "soft-hitnormal16.wav"]
+        );
+
+        AssertProblemFor(context, "soft-hitnormal16.wav");
+    }
+
+    [Fact]
+    public void SliderEdgesWithoutSampleset_StillUseTheTimingLinesSampleset()
+    {
+        // Same as the circle above, except edge samplesets of 0 fall back to the timing line.
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Title("Title")
+                .Artist("Artist")
+                .Creator("Creator")
+                .TimingPoints(TestTimingPoints.Uninherited(0, 500, sampleIndex: 16))
+                .HitObjects("256,192,1000,2,0,L|396:192,1,140,0|0,0:0|0:0,1:0:0:0:"),
+            extraFiles:
+            [
+                "audio.mp3",
+                "soft-hitnormal16.wav",
+                "soft-slidertick16.wav",
+                "soft-sliderslide16.wav",
+            ]
+        );
+
+        Assert.DoesNotContain(
+            context.RunGeneralCheck<CheckUnusedFiles>(),
+            issue => issue.message.Contains("soft-hitnormal16.wav")
+        );
+    }
+
+    [Fact]
     public void UsedOsbFile_NoUnusedIssue()
     {
         using var context = CheckTestContext.CreateFromOsu(

@@ -9,6 +9,9 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
 {
     public class Slider : Stackable
     {
+        /// <summary> The game places no ticks beyond this length, which only hand-edited sliders can reach. </summary>
+        private const double MaxLengthForTicks = 100000;
+
         /// <summary> Determines how slider nodes affect the resulting shape of the slider. </summary>
         public enum Curve
         {
@@ -481,7 +484,11 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             return CachedCurveLength.GetValueOrDefault();
         }
 
-        /// <summary> Returns the points in time for all ticks of the slider, with decimal accuracy. </summary>
+        /// <summary>
+        ///     Returns the points in time for all ticks of the slider in chronological order, with decimal
+        ///     accuracy. Ticks sit at the same places on the path in every span, so they are mirrored in time
+        ///     on reverse spans, and none are placed within 10 ms worth of distance from the end of the path.
+        /// </summary>
         public List<double> GetSliderTickTimes()
         {
             var timingLine = beatmap.GetTimingLine<UninheritedLine>(time);
@@ -493,19 +500,44 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             }
 
             var tickRate = beatmap.DifficultySettings.sliderTickRate;
-            var msPerBeat = timingLine.msPerBeat;
+            var speed = GetSliderSpeed(time);
 
-            // Not entierly sure if it's based on theoretical time and cast to int or something else.
-            // It doesn't seem to be practical time and then rounded to closest at least.
-            var theoreticalTime = time - beatmap.GetTheoreticalUnsnap(time);
+            // Before file format 8, slider velocity doesn't change the distance between ticks.
+            var scoringDistance =
+                beatmap.FileFormatVersion < 8
+                    ? 100d * beatmap.DifficultySettings.sliderMultiplier
+                    : speed * timingLine.msPerBeat;
 
-            // Only duration during which ticks can be present (so not the same ms as the tail).
-            var duration = EndTime - time - 1;
-            var ticks = (int)(duration / msPerBeat * tickRate);
+            var tickDistance = scoringDistance / tickRate;
+            var length = Math.Min(MaxLengthForTicks, PixelLength);
             var tickTimes = new List<double>();
 
-            for (var i = 1; i <= ticks; ++i)
-                tickTimes.Add(Timestamp.Round(i * msPerBeat / tickRate + theoreticalTime));
+            if (length <= 0 || !(tickDistance > 0))
+                return tickTimes;
+
+            tickDistance = Math.Min(tickDistance, length);
+
+            var minDistanceFromEnd = speed * 10;
+            var spanDuration = GetCurveDuration();
+
+            for (var span = 0; span < EdgeAmount; ++span)
+            {
+                var spanStart = time + span * spanDuration;
+                var isReversed = span % 2 == 1;
+
+                for (var distance = tickDistance; distance <= length; distance += tickDistance)
+                {
+                    if (distance >= length - minDistanceFromEnd)
+                        break;
+
+                    var pathProgress = distance / length;
+                    var timeProgress = isReversed ? 1 - pathProgress : pathProgress;
+
+                    tickTimes.Add(spanStart + timeProgress * spanDuration);
+                }
+            }
+
+            tickTimes.Sort();
 
             return tickTimes;
         }

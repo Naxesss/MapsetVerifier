@@ -102,6 +102,37 @@ public class CheckLowDiffScrollSpeedTests
     }
 
     [Fact]
+    public void FlagsSliderVelocityChangeWhereDrumrollRunsPastNextLine()
+    {
+        // The drumroll starts in this section, even though it only ends after the next line.
+        using var context = CheckTestContext.CreateFromOsuFiles([
+            (
+                "easy.osu",
+                BuildTaikoOsu(
+                    "Easy",
+                    timingPoints:
+                    [
+                        "0,500,4,2,0,100,1,0",
+                        "11000,-80,4,2,0,100,0,0",
+                        "11500,-100,4,2,0,100,0,0",
+                    ],
+                    hitObjects:
+                    [
+                        "256,192,8000,1,0,0:0:0:0:",
+                        "256,192,11000,2,0,L|356:192,1,1000,0|0,0:0|0:0,0:0:0:0:",
+                    ]
+                )
+            ),
+        ]);
+
+        var issues = context.RunBeatmapCheck<CheckLowDiffScrollSpeed>("Easy");
+
+        var issue = Assert.Single(issues);
+        Assert.Equal(Issue.Level.Warning, issue.level);
+        Assert.Contains("1.25", issue.message);
+    }
+
+    [Fact]
     public void FlagsSliderVelocityChangeInSectionWithBarlinesButNoObjects()
     {
         using var context = CheckTestContext.CreateFromOsuFiles([

@@ -1,13 +1,15 @@
+using System.Text.RegularExpressions;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.Parser.Objects.Events;
 using MapsetVerifier.Parser.Statics;
 
 namespace MapsetVerifier.Checks.Mania.HitSounds
 {
     [Check]
-    public class CheckManiaHitSoundConsistency : BeatmapSetCheck
+    public partial class CheckManiaHitSoundConsistency : BeatmapSetCheck
     {
         /// <summary>
         ///     Minimum number of samples a difficulty needs before it's considered for exclusion. Below this
@@ -44,6 +46,9 @@ namespace MapsetVerifier.Checks.Mania.HitSounds
                         @"
                         Only points in time where both difficulties actually have a note are compared, since a
                         difficulty can't play a sample where it has nothing to hit.
+
+                        Storyboarded samples in a difficulty count as played at their time too, since lower
+                        difficulties often storyboard the samples of notes they leave out of a chord.
 
                         The hit normal is left out of the comparison. It's driven by the timing lines rather
                         than by individual notes, and inconsistencies there are already pointed out by the
@@ -138,13 +143,38 @@ namespace MapsetVerifier.Checks.Mania.HitSounds
                     if (sample.Kind == ManiaSampleKind.HitNormal)
                         continue;
 
-                    map.Add(time, sample.Name);
-                    displays[sample.Name] = sample.Display;
+                    // Compared without extension, so a note's sample and the same file storyboarded match.
+                    var key =
+                        sample.Kind == ManiaSampleKind.CustomFile
+                            ? PathStatic.ParsePath(sample.Name, true)!
+                            : sample.Name;
+
+                    map.Add(time, key);
+                    displays[key] = sample.Display;
                 }
+            }
+
+            // Samples in the .osb play in every difficulty alike, so only the difficulty's own matter here.
+            foreach (var sample in beatmap.Samples)
+            {
+                if (sample.layer is Sample.Layer.Fail or Sample.Layer.Pass || sample.path == null)
+                    continue;
+
+                var key = PathStatic.ParsePath(sample.path, true)!;
+
+                // Same as for notes, a storyboarded hit normal isn't compared.
+                if (HitNormalRegex().IsMatch(key))
+                    continue;
+
+                map.Add(ManiaHitSounds.TimeKey(sample.time), key);
+                displays.TryAdd(key, sample.path);
             }
 
             return map;
         }
+
+        [GeneratedRegex(@"^(normal|soft|drum)-hitnormal\d*$")]
+        private static partial Regex HitNormalRegex();
 
         /// <summary>
         ///     Roughly measures how inconsistent each beatmap's hit sounds are compared to the rest of the set,

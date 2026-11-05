@@ -65,6 +65,9 @@ namespace MapsetVerifier.Parser.Objects
                 .ThenBy(beatmap => beatmap.GetDifficulty())
                 .ThenBy(beatmap => beatmap.StarRating)
                 .ThenBy(beatmap => beatmap.GetObjectDensity())
+                // Beatmaps are parsed in parallel, so ties need a unique key to sort the same every run.
+                .ThenBy(beatmap => beatmap.MetadataSettings.version, StringComparer.Ordinal)
+                .ThenBy(beatmap => beatmap.MapPath, StringComparer.Ordinal)
                 .ToList();
             Beatmaps.Clear();
             Beatmaps.AddRange(sorted);

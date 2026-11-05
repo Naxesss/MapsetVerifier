@@ -131,6 +131,62 @@ public class CheckManiaHitSoundConsistencyTests
         Assert.Contains("its own hit sounding", issue.message);
     }
 
+    /// <summary>
+    /// The lower difficulty leaves a note out of the chord and storyboards its sample instead, so it
+    /// still sounds the same as the higher one.
+    /// </summary>
+    [Theory]
+    [InlineData("kick.wav", "kick.wav")]
+    [InlineData("", "normal-hitclap.wav")]
+    public void SampleStoryboardedInsteadOfNote_IsNotReported(string noteFile, string sbFile)
+    {
+        var droppedNote =
+            noteFile == ""
+                ? ManiaOsu.Note(1000, HitObject.HitSounds.Clap, ManiaOsu.Column2)
+                : ManiaOsu.Note(1000, column: ManiaOsu.Column2, fileName: noteFile);
+
+        using var context = CheckTestContext.CreateFromOsuFiles([
+            (
+                "easy.osu",
+                new OsuBuilder()
+                    .Mode(Beatmap.Mode.Mania)
+                    .Version("Easy")
+                    .Events($"Sample,1000,0,\"{sbFile}\",70")
+                    .TimingPoints(ManiaOsu.NormalTimingPoint)
+                    .HitObjects(ManiaOsu.Note(1000))
+                    .Build()
+            ),
+            ("hard.osu", ManiaOsu.Build("Hard", hitObjects: [ManiaOsu.Note(1000), droppedNote])),
+        ]);
+
+        Assert.Empty(context.RunBeatmapSetCheck<CheckManiaHitSoundConsistency>());
+    }
+
+    [Fact]
+    public void StoryboardedSampleOnTheFailLayer_StillCountsAsMissing()
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles([
+            (
+                "easy.osu",
+                new OsuBuilder()
+                    .Mode(Beatmap.Mode.Mania)
+                    .Version("Easy")
+                    .Events("Sample,1000,1,\"normal-hitclap.wav\",70")
+                    .TimingPoints(ManiaOsu.NormalTimingPoint)
+                    .HitObjects(ManiaOsu.Note(1000))
+                    .Build()
+            ),
+            (
+                "hard.osu",
+                ManiaOsu.Build("Hard", hitObjects: [ManiaOsu.Note(1000, HitObject.HitSounds.Clap)])
+            ),
+        ]);
+
+        var issue = Assert.Single(context.RunBeatmapSetCheck<CheckManiaHitSoundConsistency>());
+
+        Assert.Equal("Easy", issue.beatmap!.MetadataSettings.version);
+    }
+
     private static List<string> Clapped() =>
         Enumerable
             .Range(0, 10)

@@ -275,6 +275,25 @@ namespace MapsetVerifier.Parser.Objects
             }
         }
 
+        /// <summary>
+        ///     The version in the first line of the file, which older mechanics depend on. Assumes the
+        ///     latest behaviour if missing, like when the line was removed by hand.
+        /// </summary>
+        public int FileFormatVersion { get; }
+
+        private static int ParseFileFormatVersion(string firstLine)
+        {
+            const string prefix = "osu file format v";
+
+            var index = firstLine.IndexOf(prefix, StringComparison.Ordinal);
+
+            return
+                index >= 0
+                && int.TryParse(firstLine[(index + prefix.Length)..].Trim(), out var version)
+                ? version
+                : int.MaxValue;
+        }
+
         public Beatmap(string code, string songPath, string mapPath)
         {
             Code = code;
@@ -282,6 +301,8 @@ namespace MapsetVerifier.Parser.Objects
             MapPath = mapPath;
 
             var lines = code.Split(["\n"], StringSplitOptions.None);
+
+            FileFormatVersion = ParseFileFormatVersion(lines[0]);
 
             GeneralSettings = ParserStatic.GetSettings(
                 lines,
@@ -822,6 +843,28 @@ namespace MapsetVerifier.Parser.Objects
         }
 
         /// <summary>
+        ///     Returns whether any object of type T starts at or after <paramref name="start" /> and before
+        ///     <paramref name="end" />, regardless of where it ends, O(logn).
+        /// </summary>
+        public bool HasHitObjectStartingBetween<T>(double start, double end)
+            where T : HitObject
+        {
+            var list = GetOrAdd(typeof(T), () => HitObjects.OfType<T>().ToList());
+
+            if (list.Count == 0)
+                return false;
+
+            // Find the last object starting before `end` (BinaryTimeSearch allows equality, so back up
+            // past any objects starting exactly at `end`, since those shouldn't count).
+            var index = BinaryTimeSearch(list, obj => obj.time, end);
+
+            while (index >= 0 && list[index].time >= end)
+                --index;
+
+            return index >= 0 && list[index].time >= start;
+        }
+
+        /// <summary>
         ///     Returns whether any object of type T starts before <paramref name="end" /> and ends at or after
         ///     <paramref name="start" />, i.e. whether its duration overlaps the given time range at any point,
         ///     O(logn).
@@ -960,7 +1003,7 @@ namespace MapsetVerifier.Parser.Objects
             if (BeatmapSetDifficultyOverride is { } beatmapSetOverride)
                 return beatmapSetOverride;
 
-            var difficultyFromName = GetDifficultyFromName();
+            var difficultyFromName = GetDifficultyFromName() ?? GetDifficultyFromNameWord();
 
             // We can't determine the difficulty by name so instead use star rating
             if (difficultyFromName == null)
@@ -1022,6 +1065,39 @@ namespace MapsetVerifier.Parser.Objects
             }
 
             return null;
+        }
+
+        /// <summary>
+        ///     Weaker fallback for names with extra words, like "Normal Dream". Only trusted when exactly one
+        ///     difficulty level appears as a whole word, and it is at most one level away from what the star
+        ///     rating suggests, since a level word can also just be part of a longer title.
+        /// </summary>
+        private Difficulty? GetDifficultyFromNameWord()
+        {
+            var name = " " + GetRelevantPartOfDifficultyName(MetadataSettings.version) + " ";
+            var matches = new HashSet<Difficulty>();
+
+            // Longest aliases first, so "inner oni" is consumed before "oni" could match within it.
+            foreach (
+                var (alias, difficulty) in DifficultyIndex[GeneralSettings.mode]
+                    .OrderByDescending(pair => pair.Key.Length)
+            )
+            {
+                var word = " " + alias + " ";
+                if (!name.Contains(word))
+                    continue;
+
+                matches.Add(difficulty);
+                name = name.Replace(word, " ");
+            }
+
+            if (matches.Count != 1)
+                return null;
+
+            var fromWord = matches.Single();
+            var fromStarRating = GetDifficultyFromStarRating();
+
+            return Math.Abs((int)fromWord - (int)fromStarRating) <= 1 ? fromWord : null;
         }
 
         /// <summary>

@@ -137,11 +137,15 @@ public class CheckMaxCombo : BeatmapCheck
         var startObject = (HitObject)catchObjects[0];
         var issues = new List<Issue?>();
 
-        for (var i = 1; i < catchObjects.Count; i++)
+        for (var i = 0; i < catchObjects.Count; i++)
         {
             var catchObject = catchObjects[i];
             var currentObject = (HitObject)catchObject;
-            if (currentObject.HasType(Types.NewCombo) || currentObject.HasType(Types.Spinner))
+            // The first object always starts the first combo, so it only needs counting.
+            if (
+                i > 0
+                && (currentObject.HasType(Types.NewCombo) || currentObject.HasType(Types.Spinner))
+            )
             {
                 issues.Add(
                     GetComboIssues(
@@ -189,10 +193,12 @@ public class CheckMaxCombo : BeatmapCheck
 
             count++;
 
-            // Also count all juice stream parts as slider parts contribute to combo
+            // Repeats and tails stack on the plate like fruits do, droplets don't
             if (catchObject is JuiceStream juiceStream)
             {
-                count += juiceStream.Parts.Count;
+                count += juiceStream.Parts.Count(part =>
+                    part.Kind != JuiceStream.JuiceStreamPart.PartKind.Droplet
+                );
             }
         }
 

@@ -361,9 +361,10 @@ namespace MapsetVerifier.Parser.Objects
         {
             var line = beatmap.GetTimingLine(time, true);
 
+            // A custom index set on the object itself replaces the timing line's for all of its edges.
             return new HitSample(
-                line!.CustomIndex,
-                sampleset ?? line.Sampleset,
+                GetCustomIndex(line),
+                sampleset ?? line!.Sampleset,
                 hitSound,
                 HitSample.HitSourceType.Edge,
                 time
@@ -451,8 +452,9 @@ namespace MapsetVerifier.Parser.Objects
                 yield return GetEdgeSample(time, GetStartSampleset(), HitSounds.Normal);
             }
 
-            // Hold notes can not have a hit sounds on their tails.
-            if (this is not HoldNote)
+            // Only sliders and spinners have a tail that plays hit sounds. Circles have no tail at all, and
+            // hold notes can not have hit sounds on theirs.
+            if (this is Slider or Spinner)
             {
                 // Tail
                 foreach (
@@ -544,16 +546,14 @@ namespace MapsetVerifier.Parser.Objects
                 )
                     foreach (var tickTime in slider.SliderTickTimes)
                     {
-                        // Our `sliderTickTimes` are approximate values, the game chooses sampleset based on precise tick times, so we should too.
-                        // Also, slider ticks have 2 ms of hit sound leniency, unlike the 5 ms for circles and other objects.
-                        var preciseTickTime = tickTime + beatmap.GetTheoreticalUnsnap(tickTime);
-                        var line = beatmap.GetTimingLine(preciseTickTime, true, true);
+                        // Slider ticks have 2 ms of hit sound leniency, unlike the 5 ms for circles and other objects.
+                        var line = beatmap.GetTimingLine(tickTime, true, true);
 
                         // If no line exists, we use the default settings.
                         var resolvedCustomIndex = line?.CustomIndex ?? 1;
 
                         // Unlike the slider body (for sliderwhistles) and edges, slider ticks are unaffected by additions.
-                        var resolvedSampleset = GetSampleset(false, preciseTickTime, true);
+                        var resolvedSampleset = GetSampleset(false, tickTime, true);
 
                         // Defaults to normal if none is set (before any timing line).
                         if (resolvedSampleset == HitSample.SamplesetType.Auto)

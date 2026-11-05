@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -23,7 +22,6 @@ namespace MapsetVerifier.Checks.AllModes.Timing
 
         private List<Tuple<int, string>> countWarningStamps = [];
 
-        private ConcurrentBag<Inconsistency> inconsistencies = [];
         private HashSet<int> percentMinorDivisors = [];
         private List<Tuple<int, string>> percentMinorStamps = [];
         private HashSet<int> percentWarningDivisors = [];
@@ -180,20 +178,31 @@ namespace MapsetVerifier.Checks.AllModes.Timing
         {
             foreach (var beatmap in beatmapSet.Beatmaps)
             {
-                inconsistencies = [];
-
                 // Phase 1: compare this diff against higher-SR diffs for mismatched snapping nearby in time.
                 // Essentially if our `otherBeatmaps` simplify rhythms from our `beatmap`, then that's an issue.
                 // So the reason `otherBeatmaps` is all higher difficulties is because lower difficulties are expected to simplify rhythms.
-                var otherBeatmaps = beatmapSet.Beatmaps.Where(otherBeatmap =>
-                    otherBeatmap.StarRating > beatmap.StarRating
-                    && otherBeatmap.GeneralSettings.mode == beatmap.GeneralSettings.mode
-                );
+                var otherBeatmaps = beatmapSet
+                    .Beatmaps.Where(otherBeatmap =>
+                        otherBeatmap.StarRating > beatmap.StarRating
+                        && otherBeatmap.GeneralSettings.mode == beatmap.GeneralSettings.mode
+                    )
+                    .ToList();
 
-                Parallel.ForEach(
-                    otherBeatmaps,
-                    otherBeatmap => PopulateInconsistencies(beatmap, otherBeatmap)
-                );
+                // Collected in parallel, so sort afterwards to report the same comparison every run:
+                // the nearest difficulty in the spread first, then the closest edge in time.
+                var inconsistencies = otherBeatmaps
+                    .AsParallel()
+                    .SelectMany(otherBeatmap => GetInconsistencies(beatmap, otherBeatmap))
+                    .ToList()
+                    .OrderBy(inconsistency => inconsistency.inconsistentEdgeTime)
+                    .ThenBy(inconsistency => otherBeatmaps.IndexOf(inconsistency.respectiveBeatmap))
+                    .ThenBy(inconsistency =>
+                        Math.Abs(
+                            inconsistency.respectiveEdgeTime - inconsistency.inconsistentEdgeTime
+                        )
+                    )
+                    .ThenBy(inconsistency => inconsistency.respectiveEdgeTime)
+                    .ToList();
 
                 foreach (
                     var inconsistentEdgeTime in inconsistencies
@@ -201,19 +210,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         .Distinct()
                 )
                 {
-                    var respectiveBeatmap = inconsistencies
-                        .Where(inconsistency =>
-                            inconsistency.inconsistentEdgeTime.AlmostEqual(inconsistentEdgeTime)
-                        )
-                        .Select(inconsistency => inconsistency.respectiveBeatmap)
-                        .First();
-
-                    var respectiveEdgeTime = inconsistencies
-                        .Where(inconsistency =>
-                            inconsistency.inconsistentEdgeTime.AlmostEqual(inconsistentEdgeTime)
-                        )
-                        .Select(inconsistency => inconsistency.respectiveEdgeTime)
-                        .FirstOrDefault();
+                    var chosen = inconsistencies.First(inconsistency =>
+                        inconsistency.inconsistentEdgeTime.AlmostEqual(inconsistentEdgeTime)
+                    );
+                    var respectiveBeatmap = chosen.respectiveBeatmap;
+                    var respectiveEdgeTime = chosen.respectiveEdgeTime;
 
                     // Each edge belongs to its own difficulty; divisors must come from that beatmap's timing.
                     var divisorThis = beatmap.GetLowestDivisor(inconsistentEdgeTime);
@@ -364,16 +365,6 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     divisor
                 );
             }
-        }
-
-        /// <summary>
-        ///     Populates the inconsistent places list, which keeps track of any
-        ///     time values in either beatmap that has no corresponding value in the other.
-        /// </summary>
-        private void PopulateInconsistencies(Beatmap beatmap, Beatmap otherBeatmap)
-        {
-            foreach (var inconsistency in GetInconsistencies(beatmap, otherBeatmap))
-                inconsistencies.Add(inconsistency);
         }
 
         internal static List<double> CollectEdgeTimes(Beatmap beatmap)

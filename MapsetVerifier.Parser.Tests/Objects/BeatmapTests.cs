@@ -95,6 +95,26 @@ HP:5
         Assert.Null(result);
     }
 
+    // These beatmaps have no objects, so their star rating alone would make them an Easy.
+    [Theory]
+    [InlineData("Normal Dream", Beatmap.Difficulty.Normal)]
+    [InlineData("A Very Normal Day", Beatmap.Difficulty.Normal)]
+    // Part of a different word, so not a level.
+    [InlineData("Abnormal Dream", Beatmap.Difficulty.Easy)]
+    // Too far from what the star rating suggests to trust the word.
+    [InlineData("Insane Dream", Beatmap.Difficulty.Easy)]
+    // Two different levels named, so it's unclear which one is meant.
+    [InlineData("Easy Or Normal", Beatmap.Difficulty.Easy)]
+    public void LevelWordInLongerName_IsUsedWhenCloseToStarRating(
+        string version,
+        Beatmap.Difficulty expected
+    )
+    {
+        var beatmap = CreateBeatmap(version);
+
+        Assert.Equal(expected, beatmap.GetDifficulty());
+    }
+
     [Fact]
     public void EasySubstringDoesNotMatchInsideWord()
     {

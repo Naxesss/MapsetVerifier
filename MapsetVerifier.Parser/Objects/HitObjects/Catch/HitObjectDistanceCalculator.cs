@@ -152,7 +152,9 @@ public static class HitObjectDistanceCalculator
                 direction = CatchNoteDirection.Right;
             }
 
-            var timeToNext = next.Time - current.Time - QuarterFrameGrace;
+            // The game truncates object times to whole milliseconds before comparing them, so slider
+            // parts with fractional times must be truncated too, or near-hyperdashes are misjudged.
+            var timeToNext = (int)next.Time - (int)current.Time - QuarterFrameGrace;
             var distance = Math.Abs(next.Position.X - current.Position.X);
 
             var dashDistanceToNext =
