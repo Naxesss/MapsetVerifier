@@ -60,6 +60,10 @@ export type Settings = {
   clockFormat: ClockFormat;
   /** Objects overview timeline circle style (synced across game modes). */
   timelineThemeVariant: TimelineThemeVariant;
+  /** Volume of the song played along the Objects timeline, in percent. */
+  timelineAudioVolume: number;
+  /** Adds playing the song along the Objects timeline, with its cursor, controls and shortcut. */
+  timelineAudioPlayback: boolean;
   /** When enabled, switching mapsets navigates to the checks tab. */
   goToChecksOnMapsetSwitch: boolean;
   /** Show "what changed since last check run" on the checks tab. */
@@ -109,6 +113,8 @@ const defaultSettings: Settings = {
   uiZoomPercent: DEFAULT_UI_ZOOM_PERCENT,
   clockFormat: detectClockFormat(),
   timelineThemeVariant: 'default',
+  timelineAudioVolume: 25,
+  timelineAudioPlayback: true,
   goToChecksOnMapsetSwitch: true,
   showCheckRunDelta: true,
   checkRunDeltaShowUnchanged: false,

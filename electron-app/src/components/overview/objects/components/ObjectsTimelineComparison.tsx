@@ -8,6 +8,7 @@ import SectionCard from '../../../common/SectionCard.tsx';
 import { HITSOUND_ROW_HEIGHT, ROW_HEIGHT } from '../constants.ts';
 import {
   TimelineControllerProvider,
+  TimelineEdgesProvider,
   TimelineFullViewProvider,
   TimelinePanProvider,
   TimelineViewportProvider,
@@ -20,6 +21,7 @@ import {
   type TimelineViewMode,
 } from '../hitsoundUtils.ts';
 import { useHorizontalScrollPan } from '../hooks/useHorizontalScrollPan.ts';
+import { useMeasuredTimelineEdges } from '../hooks/useMeasuredTimelineEdges.ts';
 import { useObjectsTimelineController } from '../hooks/useObjectsTimelineController.ts';
 import { useTimelineViewportRange } from '../hooks/useTimelineViewportRange.ts';
 import type { Mode, ObjectsOverviewDifficulty } from '../../../../Types';
@@ -32,6 +34,7 @@ interface ObjectsTimelineComparisonProps {
   groupedDifficulties: ObjectsModeGroup[];
   difficulties: ObjectsOverviewDifficulty[];
   selectedMode?: Mode;
+  audioUrl?: string;
 }
 
 export default function ObjectsTimelineComparison({
@@ -40,6 +43,7 @@ export default function ObjectsTimelineComparison({
   groupedDifficulties,
   difficulties,
   selectedMode,
+  audioUrl,
 }: ObjectsTimelineComparisonProps) {
   const pan = useHorizontalScrollPan();
 
@@ -61,20 +65,31 @@ export default function ObjectsTimelineComparison({
     >
       <Stack gap="md">
         <TimelineControllerProvider value={controller}>
-          <ObjectsTimelineComparisonBody pan={pan} />
+          <ObjectsTimelineComparisonBody pan={pan} audioUrl={audioUrl} />
         </TimelineControllerProvider>
       </Stack>
     </SectionCard>
   );
 }
 
-function ObjectsTimelineComparisonBody({ pan }: { pan: TimelinePanValue }) {
+function ObjectsTimelineComparisonBody({
+  pan,
+  audioUrl,
+}: {
+  pan: TimelinePanValue;
+  audioUrl?: string;
+}) {
   const controller = useTimelineController();
   const {
     mode: { activeMode },
   } = controller;
 
-  const viewport = useTimelineViewportRange(pan.scrollRef, controller.zoom.timelineWidth);
+  const edges = useMeasuredTimelineEdges(pan.scrollRef);
+  const viewport = useTimelineViewportRange(
+    pan.scrollRef,
+    controller.zoom.timelineWidth,
+    edges.originX
+  );
 
   const hitsoundAvailable = isHitsoundViewAvailable(activeMode);
   const [selectedViewMode, setSelectedViewMode] = useState<TimelineViewMode>('structure');
@@ -163,16 +178,19 @@ function ObjectsTimelineComparisonBody({ pan }: { pan: TimelinePanValue }) {
     <Box pos="relative">
       <TimelineFullViewProvider value={fullViewValue}>
         <TimelinePanProvider value={pan}>
-          <TimelineViewportProvider value={viewport}>
-            <ObjectsTimelineComparisonContent
-              showVisibilityControls
-              showThemeControls
-              showZoomControls
-              scrollModeExtra={scrollModeExtra}
-              headerExtra={headerExtra}
-              aboveTimelineExtra={hitsoundAvailable ? <HitsoundStripLegend /> : undefined}
-            />
-          </TimelineViewportProvider>
+          <TimelineEdgesProvider value={edges}>
+            <TimelineViewportProvider value={viewport}>
+              <ObjectsTimelineComparisonContent
+                showVisibilityControls
+                showThemeControls
+                showZoomControls
+                audioUrl={audioUrl}
+                scrollModeExtra={scrollModeExtra}
+                headerExtra={headerExtra}
+                aboveTimelineExtra={hitsoundAvailable ? <HitsoundStripLegend /> : undefined}
+              />
+            </TimelineViewportProvider>
+          </TimelineEdgesProvider>
         </TimelinePanProvider>
       </TimelineFullViewProvider>
     </Box>

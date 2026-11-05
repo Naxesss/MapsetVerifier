@@ -16,6 +16,7 @@ import {
 } from '../constants.ts';
 import {
   useTimelineDisplay,
+  useTimelineEdges,
   useTimelineScale,
   useTimelineVisibility,
 } from '../context/ObjectsTimelineContext.tsx';
@@ -36,6 +37,7 @@ function SortableTimelineDifficultyRow({
 }: SortableTimelineDifficultyRowProps) {
   const theme = useMantineTheme();
   const { timelineWidth } = useTimelineScale();
+  const { originX } = useTimelineEdges();
   const { rowHeight } = useTimelineDisplay();
   const { toggleDifficultyVisibility } = useTimelineVisibility();
   const visibleRowHeight = isVisible ? rowHeight : HIDDEN_ROW_HEIGHT;
@@ -166,6 +168,7 @@ function SortableTimelineDifficultyRow({
           </ActionIcon>
         </Flex>
       </Box>
+      <Box style={{ flex: `0 0 ${originX - LABEL_WIDTH}px` }} />
       <Box
         h={visibleRowHeight}
         style={{

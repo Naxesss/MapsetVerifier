@@ -9,6 +9,7 @@ import { formatPreciseTime } from './timelineUtils.ts';
 import { useBeatmap } from '../../../context/BeatmapContext.tsx';
 import { usePageHints } from '../../../context/PageHintsContext.tsx';
 import { useSettings } from '../../../context/SettingsContext.tsx';
+import { buildBeatmapAudioUrl } from '../../../utils/buildBeatmapFolderPath';
 import { groupByMode } from '../../../utils/gameMode';
 import { StatLine } from '../../common/StatField.tsx';
 import AnalysisTab from '../AnalysisTab.tsx';
@@ -20,7 +21,7 @@ function ObjectsOverview() {
   const { selectedFolder: folder } = useBeatmap();
   const { setObjectsHasHitsoundModes } = usePageHints();
   const { settings } = useSettings();
-  const { data, isLoading, isError, error } = useObjectsAnalysis({
+  const { data, isLoading, isError, error, beatmapFolderPath } = useObjectsAnalysis({
     folder,
     songFolder: settings.songFolder,
   });
@@ -82,6 +83,11 @@ function ObjectsOverview() {
             groupedDifficulties={groupedDifficulties}
             difficulties={shownDifficulties}
             selectedMode={selectedMode}
+            audioUrl={
+              settings.timelineAudioPlayback && beatmapFolderPath
+                ? buildBeatmapAudioUrl(beatmapFolderPath)
+                : undefined
+            }
           />
           <SnappingsOverview difficulties={shownDifficulties} />
           <ObjectPercentagesOverview mode={selectedMode} difficulties={shownDifficulties} />
