@@ -26,7 +26,6 @@ type UseTimelineWheelSeekOptions = {
 
 const MAX_SAME_PIXEL_STEPS = 512;
 
-/** Which way a wheel event steps through the timeline, or null when it isn't a step at all. */
 export function getWheelStepDirection(event: WheelEvent): 1 | -1 | null {
   const useHorizontalDelta = Math.abs(event.deltaX) > Math.abs(event.deltaY);
   if (!event.shiftKey && !useHorizontalDelta) {

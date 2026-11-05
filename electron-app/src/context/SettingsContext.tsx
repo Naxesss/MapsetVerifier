@@ -62,7 +62,6 @@ export type Settings = {
   timelineThemeVariant: TimelineThemeVariant;
   /** Volume of the song played along the Objects timeline, in percent. */
   timelineAudioVolume: number;
-  /** Adds playing the song along the Objects timeline, with its cursor, controls and shortcut. */
   timelineAudioPlayback: boolean;
   /** When enabled, switching mapsets navigates to the checks tab. */
   goToChecksOnMapsetSwitch: boolean;

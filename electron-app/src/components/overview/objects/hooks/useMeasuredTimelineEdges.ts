@@ -11,7 +11,6 @@ export function useMeasuredTimelineEdges(
 ): TimelineEdgesValue {
   const [viewportWidth, setViewportWidth] = useState(0);
 
-  // Layout effect so that the padding is there before the first paint.
   useLayoutEffect(() => {
     const scrollElement = scrollRef.current;
     if (!scrollElement) {
