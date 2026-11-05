@@ -80,6 +80,13 @@ export type TimelineViewportValue = {
   endX: number;
 };
 
+export type TimelineEdgesValue = {
+  /** Where time zero of the timeline sits inside the scrolled content. */
+  originX: number;
+  /** Empty space after the end of the timeline. */
+  endPaddingPx: number;
+};
+
 export type TimelineFullViewValue = {
   viewMode: TimelineViewMode;
   setViewMode: (mode: TimelineViewMode) => void;

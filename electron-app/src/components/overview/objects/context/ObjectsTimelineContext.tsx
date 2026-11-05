@@ -1,8 +1,9 @@
 import { createContext, useContext, type ReactNode } from 'react';
-import { ROW_HEIGHT } from '../constants.ts';
+import { LABEL_WIDTH, ROW_HEIGHT } from '../constants.ts';
 import { DEFAULT_HITSOUND_LAYERS } from '../hitsoundUtils.ts';
 import type {
   TimelineControllerValue,
+  TimelineEdgesValue,
   TimelineFullViewValue,
   TimelinePanValue,
   TimelineViewportValue,
@@ -12,8 +13,13 @@ const TimelineControllerContext = createContext<TimelineControllerValue | null>(
 const TimelinePanContext = createContext<TimelinePanValue | null>(null);
 const TimelineFullViewContext = createContext<TimelineFullViewValue | null>(null);
 const TimelineViewportContext = createContext<TimelineViewportValue | null>(null);
+const TimelineEdgesContext = createContext<TimelineEdgesValue | null>(null);
 
 const FULL_TIMELINE_VIEWPORT: TimelineViewportValue = { startX: -Infinity, endX: Infinity };
+const UNPADDED_TIMELINE_EDGES: TimelineEdgesValue = {
+  originX: LABEL_WIDTH,
+  endPaddingPx: 0,
+};
 
 export function TimelineControllerProvider({
   value,
@@ -81,6 +87,21 @@ export function TimelineViewportProvider({
 
 export function useTimelineViewport(): TimelineViewportValue {
   return useContext(TimelineViewportContext) ?? FULL_TIMELINE_VIEWPORT;
+}
+
+export function TimelineEdgesProvider({
+  value,
+  children,
+}: {
+  value: TimelineEdgesValue;
+  children: ReactNode;
+}) {
+  return <TimelineEdgesContext.Provider value={value}>{children}</TimelineEdgesContext.Provider>;
+}
+
+/** Kept apart from the viewport, which changes while scrolling, as this only does on a resize. */
+export function useTimelineEdges(): TimelineEdgesValue {
+  return useContext(TimelineEdgesContext) ?? UNPADDED_TIMELINE_EDGES;
 }
 
 function useOptionalTimelineFullView(): TimelineFullViewValue | null {

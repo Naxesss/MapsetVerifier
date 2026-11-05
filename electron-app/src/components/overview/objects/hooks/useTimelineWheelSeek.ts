@@ -1,5 +1,4 @@
 import { useCallback, useEffect, type RefObject } from 'react';
-import { LABEL_WIDTH } from '../constants.ts';
 import {
   getAdjacentTimingSnapTickBySteps,
   getScrollLeftForTimestamp,
@@ -17,6 +16,7 @@ type UseTimelineWheelSeekOptions = {
   timelineWidth: number;
   startTimeMs: number;
   endTimeMs: number;
+  originX: number;
   /** Built from the live scroll position at seek time, so a stale React viewport cannot clamp the wrong way. */
   resolveSnapTicks: () => SnapSeekWindow;
   tickStepCount?: number;
@@ -26,11 +26,27 @@ type UseTimelineWheelSeekOptions = {
 
 const MAX_SAME_PIXEL_STEPS = 512;
 
+/** Which way a wheel event steps through the timeline, or null when it isn't a step at all. */
+export function getWheelStepDirection(event: WheelEvent): 1 | -1 | null {
+  const useHorizontalDelta = Math.abs(event.deltaX) > Math.abs(event.deltaY);
+  if (!event.shiftKey && !useHorizontalDelta) {
+    return null;
+  }
+
+  const delta = event.shiftKey ? event.deltaY : -event.deltaX;
+  if (delta === 0) {
+    return null;
+  }
+
+  return delta > 0 ? 1 : -1;
+}
+
 export function useTimelineWheelSeek({
   scrollRef,
   timelineWidth,
   startTimeMs,
   endTimeMs,
+  originX,
   resolveSnapTicks,
   tickStepCount = 1,
   adjustZoom,
@@ -54,7 +70,7 @@ export function useTimelineWheelSeek({
       const currentTimestamp = getTimestampAtPlayhead(
         scrollElement.scrollLeft,
         anchorViewportX,
-        LABEL_WIDTH,
+        originX,
         timelineWidth,
         startTimeMs,
         endTimeMs
@@ -84,7 +100,7 @@ export function useTimelineWheelSeek({
         const nextScrollLeft = getScrollLeftForTimestamp(
           candidateTimestamp,
           anchorViewportX,
-          LABEL_WIDTH,
+          originX,
           timelineWidth,
           startTimeMs,
           endTimeMs
@@ -106,7 +122,7 @@ export function useTimelineWheelSeek({
 
       return false;
     },
-    [endTimeMs, resolveSnapTicks, scrollRef, startTimeMs, tickStepCount, timelineWidth]
+    [endTimeMs, originX, resolveSnapTicks, scrollRef, startTimeMs, tickStepCount, timelineWidth]
   );
 
   useEffect(() => {
@@ -147,17 +163,12 @@ export function useTimelineWheelSeek({
         return;
       }
 
-      const useHorizontalDelta = Math.abs(event.deltaX) > Math.abs(event.deltaY);
-      if (!event.shiftKey && !useHorizontalDelta) {
+      const direction = getWheelStepDirection(event);
+      if (direction === null) {
         return;
       }
 
-      const delta = event.shiftKey ? event.deltaY : -event.deltaX;
-      if (delta === 0) {
-        return;
-      }
-
-      const didSeek = seekByDirection(delta > 0 ? 1 : -1);
+      const didSeek = seekByDirection(direction);
       if (didSeek) {
         event.preventDefault();
       }

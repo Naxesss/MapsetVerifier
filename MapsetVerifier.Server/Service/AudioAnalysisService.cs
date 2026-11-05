@@ -14,6 +14,56 @@ namespace MapsetVerifier.Server.Service;
 public static class AudioAnalysisService
 {
     private const int StandardSampleRate = 44100;
+    private const string AudioFilenameKey = "AudioFilename:";
+
+    /// <summary>
+    /// Resolves the audio file a beatmap set plays, or null when it has none. Only the header of
+    /// each .osu is read rather than parsing the set, since the browser asks for a new byte range on
+    /// every seek and each of those requests lands here.
+    /// </summary>
+    public static string? ResolveAudioStreamPath(string beatmapSetFolder)
+    {
+        var folderPath = Path.GetFullPath(beatmapSetFolder);
+
+        if (!Directory.Exists(folderPath))
+            return null;
+
+        foreach (var osuPath in Directory.EnumerateFiles(folderPath, "*.osu").Order())
+        {
+            var fileName = ReadAudioFileName(osuPath);
+
+            if (string.IsNullOrWhiteSpace(fileName))
+                continue;
+
+            var audioPath = Path.GetFullPath(Path.Combine(folderPath, fileName));
+
+            // A reference can point outside of the set, which must not be served.
+            if (
+                audioPath.StartsWith(
+                    folderPath.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar,
+                    StringComparison.OrdinalIgnoreCase
+                ) && File.Exists(audioPath)
+            )
+                return audioPath;
+        }
+
+        return null;
+    }
+
+    private static string? ReadAudioFileName(string osuPath)
+    {
+        foreach (var line in File.ReadLines(osuPath))
+        {
+            if (line.StartsWith(AudioFilenameKey, StringComparison.Ordinal))
+                return line[AudioFilenameKey.Length..].Trim();
+
+            // [General] is always the first section, so the key is not coming after this.
+            if (line.StartsWith("[Editor]", StringComparison.Ordinal))
+                return null;
+        }
+
+        return null;
+    }
 
     /// <summary>
     /// Performs complete audio analysis on the main audio file of a beatmap set.

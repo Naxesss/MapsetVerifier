@@ -43,6 +43,13 @@ export function buildBeatmapVideoUrl(beatmapFolderPath: string, fileName: string
   return `${BACKEND_BASE_URL}/video/stream?${params.toString()}`;
 }
 
+/** Query string for GET /audio/stream — the folder is the resolved beatmap set folder. */
+export function buildBeatmapAudioUrl(beatmapFolderPath: string): string {
+  const params = new URLSearchParams();
+  params.set('folder', beatmapFolderPath);
+  return `${BACKEND_BASE_URL}/audio/stream?${params.toString()}`;
+}
+
 /** Query string for GET /beatmap/lazer/image — resolves a lazer beatmapset's background directly from its content-addressed file, keyed by the realm beatmapset id (passed as `folder`). */
 export function buildLazerBeatmapImageUrl(
   beatmapSetId: string,

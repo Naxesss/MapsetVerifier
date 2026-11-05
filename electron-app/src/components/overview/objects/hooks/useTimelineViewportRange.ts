@@ -1,5 +1,4 @@
 import { useLayoutEffect, useState, type RefObject } from 'react';
-import { LABEL_WIDTH } from '../constants.ts';
 import { getPaddedTimelineTileSpan, getTimelineTimeFromX } from '../timelineUtils.ts';
 
 export type TimelineViewportRange = {
@@ -14,11 +13,12 @@ export function readTimelineOverscanWindowMs(
   scrollElement: HTMLElement,
   timelineWidth: number,
   startTimeMs: number,
-  endTimeMs: number
+  endTimeMs: number,
+  originX: number
 ): { windowStartMs: number; windowEndMs: number } {
   const viewportWidth = scrollElement.clientWidth;
   const overscan = Math.max(viewportWidth, MIN_OVERSCAN_PX);
-  const localScrollLeft = scrollElement.scrollLeft - LABEL_WIDTH;
+  const localScrollLeft = scrollElement.scrollLeft - originX;
   const durationMs = Math.max(1, endTimeMs - startTimeMs);
   const clampedStartX = Math.max(0, localScrollLeft - overscan);
   const clampedEndX = Math.min(timelineWidth, localScrollLeft + viewportWidth + overscan);
@@ -35,7 +35,8 @@ export function readTimelineOverscanWindowMs(
 
 export function useTimelineViewportRange(
   scrollRef: RefObject<HTMLDivElement | null>,
-  timelineWidth: number
+  timelineWidth: number,
+  originX: number
 ): TimelineViewportRange {
   const [range, setRange] = useState<TimelineViewportRange>(FULL_RANGE);
 
@@ -56,7 +57,7 @@ export function useTimelineViewportRange(
       frame = 0;
       const viewportWidth = scrollElement.clientWidth;
       const overscan = Math.max(viewportWidth, MIN_OVERSCAN_PX);
-      const localScrollLeft = scrollElement.scrollLeft - LABEL_WIDTH;
+      const localScrollLeft = scrollElement.scrollLeft - originX;
       const span = getPaddedTimelineTileSpan(
         timelineWidth,
         localScrollLeft - overscan,
@@ -96,7 +97,7 @@ export function useTimelineViewportRange(
       scrollElement.removeEventListener('scroll', handleScroll);
       resizeObserver.disconnect();
     };
-  }, [scrollRef, timelineWidth]);
+  }, [originX, scrollRef, timelineWidth]);
 
   return range;
 }
