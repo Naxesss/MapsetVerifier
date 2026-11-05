@@ -596,8 +596,11 @@
 }
 
 /* The mode buttons as one segmented control, as in 2.1: each mode's icon with its status as a
-   badge on the corner. The badge's ring takes the button's fill, so it cuts out of the icon. */
+   badge on the corner, the pick marked by a floating indicator sliding under the buttons. The
+   badge's ring takes the button's fill, so it cuts out of the icon. */
 .mv-difficulty-modes {
+  --active-fill: color-mix(in srgb, var(--mantine-color-dark-2) 40%, var(--mantine-color-dark-5));
+  position: relative;
   display: flex;
   flex-shrink: 0;
   gap: 2px;
@@ -607,24 +610,37 @@
   background: var(--mantine-color-dark-5);
 }
 
+.mv-difficulty-modes__indicator {
+  border-radius: 4px;
+  background: var(--active-fill);
+  pointer-events: none;
+
+  &[data-disabled] {
+    opacity: 0.5;
+  }
+}
+
 .mv-difficulty-modes__button {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   padding: 0 9px;
   border-radius: 4px;
   --fill: var(--mantine-color-dark-5);
-  background: var(--fill);
   color: var(--mantine-color-dark-0);
   cursor: pointer;
 
   &:not([data-disabled]):hover {
     --fill: color-mix(in srgb, var(--mantine-color-dark-2) 18%, var(--mantine-color-dark-5));
+    background: var(--fill);
     color: var(--mantine-color-white);
   }
 
   &[data-active],
   &[data-active]:hover {
-    --fill: color-mix(in srgb, var(--mantine-color-dark-2) 40%, var(--mantine-color-dark-5));
+    --fill: var(--active-fill);
+    background: transparent;
     color: var(--mantine-color-white);
   }
 }

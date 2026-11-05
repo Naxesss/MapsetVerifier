@@ -1,5 +1,12 @@
-import { Group, Tooltip, UnstyledButton } from '@mantine/core';
-import { type CSSProperties, type ReactNode, useContext, useEffect } from 'react';
+import { FloatingIndicator, Group, Tooltip, UnstyledButton } from '@mantine/core';
+import {
+  type CSSProperties,
+  type ReactNode,
+  type Ref,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import {
   getDifficultyBorderColor,
   getDifficultyColor,
@@ -73,7 +80,8 @@ export function spreadGroups<T extends { mode: string; starRating?: number | nul
  * the host instead. The status shows as an icon in front of the star rating pill, and the picked
  * difficulty is outlined in its star rating colour. A set with more than one mode gets mode
  * buttons at the end, each with a status badge summing up that mode's difficulties, so every
- * mode's state shows while only one mode's difficulties do.
+ * mode's state shows while only one mode's difficulties do. A floating indicator slides between
+ * the mode buttons as the pick.
  */
 export default function DifficultyButtonRow({
   lead,
@@ -84,6 +92,9 @@ export default function DifficultyButtonRow({
   modeStatus,
   modesDisabledReason,
 }: DifficultyButtonRowProps) {
+  const [modesRoot, setModesRoot] = useState<HTMLElement | null>(null);
+  const [activeModeButton, setActiveModeButton] = useState<HTMLElement | null>(null);
+
   const lanes = spreadGroups(difficulties);
   const shown = lanes.find((lane) => lane.mode === shownMode) ?? lanes[0];
 
@@ -112,13 +123,25 @@ export default function DifficultyButtonRow({
         ))}
       </div>
       {lanes.length > 1 && (
-        <div className="mv-difficulty-modes" role="group" aria-label="Game modes">
+        <div
+          ref={setModesRoot}
+          className="mv-difficulty-modes"
+          role="group"
+          aria-label="Game modes"
+        >
+          <FloatingIndicator
+            className="mv-difficulty-modes__indicator"
+            parent={modesRoot}
+            target={activeModeButton}
+            data-disabled={!!modesDisabledReason || undefined}
+          />
           {lanes.map((lane) => (
             <ModeButton
               key={lane.mode}
               mode={lane.mode}
               status={modeStatus?.(lane.mode, lane.difficulties)}
               active={lane.mode === shown?.mode}
+              buttonRef={lane.mode === shown?.mode ? setActiveModeButton : undefined}
               disabledReason={modesDisabledReason}
               onClick={() => onShowMode(lane.mode)}
             />
@@ -152,12 +175,14 @@ function ModeButton({
   mode,
   status,
   active,
+  buttonRef,
   disabledReason,
   onClick,
 }: {
   mode: Mode;
   status?: ReactNode;
   active: boolean;
+  buttonRef?: Ref<HTMLButtonElement>;
   disabledReason?: string;
   onClick: () => void;
 }) {
@@ -166,6 +191,7 @@ function ModeButton({
   return (
     <Tooltip label={disabledReason ?? label}>
       <UnstyledButton
+        ref={buttonRef}
         className="mv-difficulty-modes__button"
         aria-label={label}
         aria-pressed={active}
