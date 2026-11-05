@@ -9,7 +9,6 @@ type UseTimelinePlaybackOptions = {
   endTimeMs: number;
   originX: number;
   endPaddingPx: number;
-  /** A drag in progress has to end before the view starts moving under it. */
   stopPanning: () => void;
 };
 
@@ -109,8 +108,7 @@ export function useTimelinePlayback({
       return;
     }
 
-    // In the capture phase, so that a focused button or radio doesn't act on the same press. This
-    // only exists while the timeline is mounted, which is what keeps the shortcut to this view.
+    // In the capture phase, so that a focused button or radio doesn't act on the same press.
     const handleKeyDown = (event: KeyboardEvent) => {
       if (
         event.code !== 'Space' ||

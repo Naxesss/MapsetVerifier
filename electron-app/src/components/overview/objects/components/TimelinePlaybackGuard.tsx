@@ -8,9 +8,8 @@ interface TimelinePlaybackGuardProps {
 }
 
 /**
- * Laid over the timeline while it plays. Covers every way of dragging it at once, its scrollbar
- * included, and keeps hover cards from opening over objects flying past. A plain scroll isn't
- * handled here, so that it still scrolls the page. Zooming and stepping do keep working.
+ * Laid over the timeline while it plays, which blocks dragging, its scrollbar and hover cards in one
+ * go. A plain scroll is left alone so that it still scrolls the page.
  */
 export default function TimelinePlaybackGuard({ adjustZoom, onStep }: TimelinePlaybackGuardProps) {
   const ref = useRef<HTMLDivElement | null>(null);

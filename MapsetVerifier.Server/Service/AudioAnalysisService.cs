@@ -17,9 +17,8 @@ public static class AudioAnalysisService
     private const string AudioFilenameKey = "AudioFilename:";
 
     /// <summary>
-    /// Resolves the audio file a beatmap set plays, or null when it has none. Only the header of
-    /// each .osu is read rather than parsing the set, since the browser asks for a new byte range on
-    /// every seek and each of those requests lands here.
+    /// Resolves the audio file of a beatmap set, or null when it has none. Reads only the .osu
+    /// headers rather than parsing the set, as every seek in the client makes a new request here.
     /// </summary>
     public static string? ResolveAudioStreamPath(string beatmapSetFolder)
     {
@@ -57,7 +56,6 @@ public static class AudioAnalysisService
             if (line.StartsWith(AudioFilenameKey, StringComparison.Ordinal))
                 return line[AudioFilenameKey.Length..].Trim();
 
-            // [General] is always the first section, so the key is not coming after this.
             if (line.StartsWith("[Editor]", StringComparison.Ordinal))
                 return null;
         }

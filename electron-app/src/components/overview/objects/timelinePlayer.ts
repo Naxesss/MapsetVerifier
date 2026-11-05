@@ -1,10 +1,7 @@
 import { getTimelineX, getTimestampAtPlayhead } from './timelineUtils.ts';
 
-/** Past this the clock is re-anchored outright, as the song has really moved (or stalled). */
 const MAX_CLOCK_DRIFT_MS = 60;
-/** Share of the drift corrected per frame, so `currentTime` jitter never reaches the cursor. */
 const CLOCK_SLEW = 0.08;
-/** Stepping through the song only seeks it after this long without a further step. */
 const SCRUB_SETTLE_MS = 120;
 /** The browser may snap a written scroll position to a physical pixel, so it reads back different. */
 const SCROLL_POSITION_TOLERANCE_PX = 1;
@@ -23,14 +20,11 @@ type TimelinePlayerCallbacks = {
 };
 
 /**
- * Plays the song along the timeline. Runs outside of React on purpose: a frame only writes the
- * scroll position and the cursor's compositor-only transform, so playing never re-renders a row.
+ * Runs outside of React on purpose: a frame only writes the scroll position and the cursor's
+ * compositor-only transform, so playing never re-renders a row.
  *
- * The cursor stays centred in the view both when playing and when paused, which the padding at
- * either end of the timeline allows all the way through it. Scrolling while paused takes the cursor along, which only records the time; the
- * audio is seeked once, on resume, so that scrolling costs nothing and resuming never jumps.
- * Stepping while playing does the same in spirit: the view moves at once and the song follows when
- * the steps stop, as seeking on each of them would only make it stutter.
+ * Audio seeks are deferred, to the resume when paused and to when the steps stop while playing, as
+ * seeking on every scroll would make the song stutter.
  */
 export class TimelinePlayer {
   private readonly audio: HTMLAudioElement;
@@ -50,12 +44,9 @@ export class TimelinePlayer {
   private knownScrollLeft = Number.NaN;
 
   private timeMs = 0;
-  /** The audio is not at `timeMs` yet, and has to be seeked before it plays. */
   private seekPending = true;
   private frame: number | null = null;
-  /** Between asking to play and the audio really moving, during which the cursor must wait. */
   private waitingForAudio = false;
-  /** Set while the song has yet to follow a step made during playback. */
   private scrubTimer: number | null = null;
   private clockMediaMs = 0;
   private clockPerfMs = 0;
@@ -155,7 +146,6 @@ export class TimelinePlayer {
     }
   }
 
-  /** Moves the cursor and brings it to the centre of the view, with the song following after. */
   seek(timeMs: number) {
     this.timeMs = this.clampTime(timeMs);
 
@@ -232,12 +222,10 @@ export class TimelinePlayer {
       this.frame = null;
     }
 
-    // A step the song didn't follow yet stays as the place to resume from.
     if (this.cancelScrub()) {
       this.seekPending = true;
     }
 
-    // Stop exactly where the song did, so that resuming has nothing to seek.
     if (!this.seekPending) {
       this.timeMs = this.clampTime(this.audio.currentTime * 1000);
     }
@@ -315,7 +303,6 @@ export class TimelinePlayer {
     }
   }
 
-  /** Puts the view and the cursor where `timeMs` says. Touches no layout-reading property. */
   private renderView() {
     const { scroller } = this;
     if (!scroller || !this.cursor) {
@@ -372,7 +359,6 @@ export class TimelinePlayer {
     this.waitingForAudio = true;
   };
 
-  /** Also covers what didn't come from us, such as the keyboard's media keys or the song ending. */
   private readonly handleStopped = () => {
     if (this.playing && this.audio.paused) {
       this.finishPlaying();

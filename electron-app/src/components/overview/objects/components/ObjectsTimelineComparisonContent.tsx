@@ -53,7 +53,6 @@ export type ObjectsTimelineComparisonContentProps = {
   showZoomControls?: boolean;
   headerExtra?: React.ReactNode;
   aboveTimelineExtra?: React.ReactNode;
-  /** Adds playback along the timeline, with its cursor, controls and Space shortcut. */
   audioUrl?: string;
 };
 

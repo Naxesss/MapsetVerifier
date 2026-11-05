@@ -7,7 +7,6 @@ import { getTimelineTimeFromX } from '../timelineUtils.ts';
 
 interface TimelineAxisRowProps {
   linePosition: 'top' | 'bottom';
-  /** Called with a time when the axis is clicked. Dragging across it still pans. */
   onSeek?: (timeMs: number) => void;
 }
 
