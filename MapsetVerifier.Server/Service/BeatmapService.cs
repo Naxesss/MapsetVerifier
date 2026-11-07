@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Text;
 using System.Text.RegularExpressions;
 using MapsetVerifier.Framework;
 using MapsetVerifier.Framework.Objects;
@@ -106,7 +107,7 @@ public static class BeatmapService
             return new ApiBeatmapPage([], page, pageSize, false);
 
         var dirInfo = new DirectoryInfo(songsFolder);
-        var (folders, scanWarning) = GetSortedFolders(dirInfo);
+        var (folders, scanWarning) = GetSortedFolders(dirInfo, page == 0);
 
         if (bookmarkedFolders is { Count: > 0 })
             folders = folders.Where(f => bookmarkedFolders.Contains(f.Name)).ToList();
@@ -121,7 +122,7 @@ public static class BeatmapService
                 var osuFiles = Directory.GetFiles(folder.FullName, "*.osu");
                 if (osuFiles.Length == 0)
                     continue;
-                var content = ReadFirstNonEmptyOsuContent(osuFiles) ?? string.Empty;
+                var content = ReadFirstNonEmptyOsuHeader(osuFiles) ?? string.Empty;
                 var meta = ParseBeatmapMetadata(folder.FullName, content);
                 if (MatchesSearch(meta, search))
                 {
@@ -164,11 +165,25 @@ public static class BeatmapService
     /// placeholders, antivirus, a sleeping drive) must not leave the song list loading forever.
     /// When the budget runs out, the previous scan result is reused if the library is unchanged,
     /// otherwise the folders are sorted by their own timestamps, which needs no extra I/O.
+    ///
+    /// Only the first page looks at the library again. Later pages continue through the list that
+    /// page was based on, so results don't shift while scrolling, and a search going through the
+    /// whole library page by page doesn't list and sort every folder for each of those pages.
     /// </summary>
     private static (List<DirectoryInfo> Folders, ApiFolderScanWarning? Warning) GetSortedFolders(
-        DirectoryInfo dirInfo
+        DirectoryInfo dirInfo,
+        bool isFirstPage
     )
     {
+        if (!isFirstPage)
+        {
+            lock (FolderScanLock)
+            {
+                if (_cachedSortedFolders != null && _cachedSongsFolder == dirInfo.FullName)
+                    return (_cachedSortedFolders, null);
+            }
+        }
+
         var currentDirs = dirInfo.GetDirectories();
         Task<List<DirectoryInfo>> scan;
         TimeSpan remainingBudget;
@@ -350,7 +365,7 @@ public static class BeatmapService
         if (osuFiles.Length == 0)
             return null;
 
-        var content = ReadFirstNonEmptyOsuContent(osuFiles) ?? string.Empty;
+        var content = ReadFirstNonEmptyOsuHeader(osuFiles) ?? string.Empty;
         var meta = ParseBeatmapMetadata(beatmapSetFolder, content);
 
         ulong? beatmapId = null;
@@ -395,16 +410,35 @@ public static class BeatmapService
     /// .osu file that happens to sort first would otherwise blank out the title/artist for the
     /// whole set. Returns null only if every file is empty.
     /// </summary>
-    private static string? ReadFirstNonEmptyOsuContent(string[] osuFiles)
+    private static string? ReadFirstNonEmptyOsuHeader(string[] osuFiles)
     {
         foreach (var osuFile in osuFiles)
         {
-            var content = File.ReadAllText(osuFile);
-            if (!string.IsNullOrWhiteSpace(content))
-                return content;
+            var header = ReadOsuHeader(osuFile);
+            if (!string.IsNullOrWhiteSpace(header))
+                return header;
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// The part of a .osu holding its metadata and background, leaving out the timing lines and
+    /// objects, which can be most of the file and aren't needed to list or search a mapset.
+    /// </summary>
+    private static string ReadOsuHeader(string osuFile)
+    {
+        var header = new StringBuilder();
+
+        foreach (var line in File.ReadLines(osuFile))
+        {
+            if (line.StartsWith("[TimingPoints]") || line.StartsWith("[HitObjects]"))
+                break;
+
+            header.Append(line).Append('\n');
+        }
+
+        return header.ToString();
     }
 
     private static (
@@ -453,7 +487,8 @@ public static class BeatmapService
     public static BeatmapImageResult GetBeatmapImage(
         string folder,
         bool original = false,
-        string? songsFolderOverride = null
+        string? songsFolderOverride = null,
+        string? ifNoneMatch = null
     )
     {
         var songsFolder = ResolveSongsFolder(songsFolderOverride);
@@ -467,7 +502,7 @@ public static class BeatmapService
         if (imagePath == null)
             return BeatmapImageResult.Error("No background image found.");
 
-        return BeatmapImageProcessing.BuildResult(imagePath, original);
+        return BeatmapImageProcessing.BuildResult(imagePath, original, null, ifNoneMatch);
     }
 
     /// <summary>
@@ -477,7 +512,8 @@ public static class BeatmapService
     public static BeatmapImageResult GetLazerBeatmapImage(
         string beatmapSetId,
         bool original = false,
-        string? lazerDataDirOverride = null
+        string? lazerDataDirOverride = null,
+        string? ifNoneMatch = null
     )
     {
         var dataDir = LazerRealmService.ResolveLazerDataDirectory(lazerDataDirOverride);
@@ -505,7 +541,7 @@ public static class BeatmapService
         if (!File.Exists(imagePath))
             return BeatmapImageResult.Error("Background image file is missing on disk.");
 
-        return BeatmapImageProcessing.BuildResult(imagePath, original, extension);
+        return BeatmapImageProcessing.BuildResult(imagePath, original, extension, ifNoneMatch);
     }
 
     public static ApiBeatmapPage GetLazerBeatmaps(
@@ -544,9 +580,10 @@ public static class BeatmapService
         {
             try
             {
-                var code = File.ReadAllText(osuFile);
-                var beatmap = new Beatmap(code, beatmapSetFolder, Path.GetFileName(osuFile));
-                var backgroundPath = beatmap.GetBackgroundFilePath();
+                var backgroundPath = Beatmap.ReadBackgroundFilePath(
+                    beatmapSetFolder,
+                    Path.GetFileName(osuFile)
+                );
 
                 if (
                     backgroundPath != null

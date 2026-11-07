@@ -30,6 +30,14 @@
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
+    <!--
+      Runs next to osu! on people's own machines, so holding on to as little memory as possible matters
+      more than a few percent of speed: this took memory after checking 380 sets from 366 MB to 149 MB,
+      for about 5% longer. A smaller gen0 (System.GC.Gen0Size) was tried too, but raised peaks.
+    -->
+    <RuntimeHostConfigurationOption Include="System.GC.ConserveMemory" Value="9" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
     <PackageReference Include="NAudio" Version="2.3.0" />
     <PackageReference Include="ppy.ManagedBass" Version="2022.1216.0" />

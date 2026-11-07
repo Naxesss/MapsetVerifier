@@ -373,7 +373,7 @@ public static class CurrentBeatmapLookupService
     /// </summary>
     private static string? GetOrMaterializeCached(string dataDir, string setId)
     {
-        var files = LazerRealmService.GetBeatmapSetFilesFresh(dataDir, setId);
+        var files = LazerRealmService.GetBeatmapSetFiles(dataDir, setId);
         if (files == null)
             return null;
 

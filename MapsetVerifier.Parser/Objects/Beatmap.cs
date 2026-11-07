@@ -184,6 +184,9 @@ namespace MapsetVerifier.Parser.Objects
         public string SongPath { get; }
         public string MapPath { get; }
 
+        // Looked up for every timing line and object query, so it isn't worked out each time.
+        private string? cacheKey;
+
         /// <summary>
         ///     When set, <see cref="GetDifficulty" /> returns this value instead of inferring from star rating and name.
         ///     Used for difficulty interpretation override in check runs; leave clear for normal full-set analysis.
@@ -327,12 +330,14 @@ namespace MapsetVerifier.Parser.Objects
 
             // event type 3 seems to be "background colour transformation" https://i.imgur.com/Tqlz3s5.png
 
-            Backgrounds = GetEvents(lines, ["Background", "0"], args => new Background(args));
-            Videos = GetEvents(lines, ["Video", "1"], args => new Video(args));
-            Breaks = GetEvents(lines, ["Break", "2"], args => new Break(args));
-            Sprites = GetEvents(lines, ["Sprite", "4"], args => new Sprite(args));
-            Samples = GetEvents(lines, ["Sample", "5"], args => new Sample(args));
-            Animations = GetEvents(lines, ["Animation", "6"], args => new Animation(args));
+            var eventLines = ParserStatic.ParseSection(lines, "Events", line => line).ToArray();
+
+            Backgrounds = GetEvents(eventLines, "Background,", "0,", args => new Background(args));
+            Videos = GetEvents(eventLines, "Video,", "1,", args => new Video(args));
+            Breaks = GetEvents(eventLines, "Break,", "2,", args => new Break(args));
+            Sprites = GetEvents(eventLines, "Sprite,", "4,", args => new Sprite(args));
+            Samples = GetEvents(eventLines, "Sample,", "5,", args => new Sample(args));
+            Animations = GetEvents(eventLines, "Animation,", "6,", args => new Animation(args));
 
             TimingLines = GetTimingLines(lines);
             HitObjects = GetHitObjects(lines);
@@ -483,7 +488,8 @@ namespace MapsetVerifier.Parser.Objects
             }
         }
 
-        private string GetCacheKey() => Path.GetFullPath(Path.Combine(SongPath, MapPath));
+        private string GetCacheKey() =>
+            cacheKey ??= Path.GetFullPath(Path.Combine(SongPath, MapPath));
 
         private List<T> GetOrAdd<T>(Type t, Func<List<T>> func)
         {
@@ -1506,15 +1512,55 @@ namespace MapsetVerifier.Parser.Objects
             return null;
         }
 
-        private string? ResolveReferencedFilePath(string? parsedPath, string? strippedPath)
+        /// <summary>
+        ///     Same result as <see cref="GetBackgroundFilePath" />, for when only the background is
+        ///     needed: reads the .osu up to the end of its events, so nothing is parsed or cached.
+        /// </summary>
+        public static string? ReadBackgroundFilePath(string songPath, string mapPath)
         {
-            if (string.IsNullOrWhiteSpace(SongPath))
+            var inEvents = false;
+
+            foreach (var line in File.ReadLines(Path.Combine(songPath, mapPath)))
+            {
+                if (line.StartsWith('[') && inEvents)
+                    return null;
+
+                if (inEvents && (line.StartsWith("0,") || line.StartsWith("Background,")))
+                {
+                    var background = new Background(line.Split(','));
+                    var filePath = ResolveReferencedFilePath(
+                        songPath,
+                        background.path,
+                        background.strippedPath
+                    );
+
+                    if (filePath != null)
+                        return filePath;
+                }
+
+                if (line.Contains("[Events]"))
+                    inEvents = true;
+            }
+
+            return null;
+        }
+
+        private string? ResolveReferencedFilePath(string? parsedPath, string? strippedPath) =>
+            ResolveReferencedFilePath(SongPath, parsedPath, strippedPath);
+
+        private static string? ResolveReferencedFilePath(
+            string? songPath,
+            string? parsedPath,
+            string? strippedPath
+        )
+        {
+            if (string.IsNullOrWhiteSpace(songPath))
                 return null;
 
             if (!string.IsNullOrWhiteSpace(parsedPath))
             {
                 var directPath = Path.Combine(
-                    SongPath,
+                    songPath,
                     parsedPath
                         .Replace('/', Path.DirectorySeparatorChar)
                         .Replace('\\', Path.DirectorySeparatorChar)
@@ -1527,9 +1573,9 @@ namespace MapsetVerifier.Parser.Objects
                 return null;
 
             return Directory
-                .EnumerateFiles(SongPath, "*.*", SearchOption.AllDirectories)
+                .EnumerateFiles(songPath, "*.*", SearchOption.AllDirectories)
                 .LastOrDefault(filePath =>
-                    PathStatic.ParsePath(PathStatic.RelativePath(filePath, SongPath), true)
+                    PathStatic.ParsePath(PathStatic.RelativePath(filePath, songPath), true)
                     == strippedPath
                 );
         }
@@ -1549,21 +1595,22 @@ namespace MapsetVerifier.Parser.Objects
          *  Parser Methods
          */
 
-        private List<T> GetEvents<T>(string[] lines, List<string> types, Func<string[], T> func)
+        private static List<T> GetEvents<T>(
+            string[] eventLines,
+            string namePrefix,
+            string idPrefix,
+            Func<string[], T> func
+        )
         {
-            // find all lines starting with any of types in the event section
+            // An event's type is written as either its name or its id.
             var foundTypes = new List<T>();
 
-            ParserStatic.ApplySettings(
-                lines,
-                "Events",
-                sectionLines =>
-                {
-                    foreach (var line in sectionLines)
-                        if (types.Any(type => line.StartsWith(type + ",")))
-                            foundTypes.Add(func(line.Split(',')));
-                }
-            );
+            foreach (var line in eventLines)
+                if (
+                    line.StartsWith(idPrefix, StringComparison.Ordinal)
+                    || line.StartsWith(namePrefix, StringComparison.Ordinal)
+                )
+                    foundTypes.Add(func(line.Split(',')));
 
             return foundTypes;
         }

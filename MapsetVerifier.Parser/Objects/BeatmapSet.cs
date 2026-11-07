@@ -138,7 +138,9 @@ namespace MapsetVerifier.Parser.Objects
                 beatmapFiles.Add(new BeatmapFile(fileName, code));
             }
 
-            Beatmap.ClearCacheForSongPath(SongPath);
+            // Reloads must see fresh data, and earlier sets shouldn't stay in memory for the whole
+            // session. Anything still using an evicted entry just works it out again.
+            Beatmap.ClearCache();
             var concurrentBeatmaps = new ConcurrentBag<Beatmap>();
 
             try

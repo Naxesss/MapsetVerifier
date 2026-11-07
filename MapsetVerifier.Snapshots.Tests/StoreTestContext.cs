@@ -19,7 +19,6 @@ public sealed class StoreTestContext : IDisposable
         Directory.CreateDirectory(SongPath);
         Directory.CreateDirectory(StoreRoot);
 
-        // The store starts migrating as soon as it is configured, so old data must already be there.
         seedLegacy?.Invoke(Path.Combine(StoreRoot, "snapshots"));
         SnapshotStore.ConfigurePath(StoreRoot, "");
     }

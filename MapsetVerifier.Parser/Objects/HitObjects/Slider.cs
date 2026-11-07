@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
 using MathNet.Numerics;
@@ -29,6 +30,12 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
 
         private const double STEP_LENGTH = 0.0005;
 
+        /// <summary> Increase this to improve performance but lower accuracy. </summary>
+        private const double PATH_STEP_SIZE = 1;
+
+        /// <summary> Slider paths with no more points than this are worked out without allocating. </summary>
+        private const int MaxStackAllocatedPoints = 64;
+
         public Curve CurveType { get; }
 
         /// <summary> The polynomial degree of the curve, only applicable to b-splines (0 otherwise). </summary>
@@ -43,7 +50,11 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
         public double EndTime { get; }
         public List<Vector2> NodePositions { get; }
 
-        public List<Vector2> PathPxPositions { get; }
+        /// <summary>
+        ///     The positions along the curve, about a pixel apart and without stacking. Worked out on
+        ///     first use, as few things need it and it is by far the most expensive part of a slider.
+        /// </summary>
+        public List<Vector2> PathPxPositions => pathPxPositions ??= GetPathPxPositions();
         public float PixelLength { get; }
         public List<Vector2> RedAnchorPositions { get; }
         public List<HitSample.SamplesetType> ReverseAdditions { get; }
@@ -58,6 +69,7 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
         public HitSample.SamplesetType StartSampleset { get; }
 
         // Cached values
+        private List<Vector2>? pathPxPositions;
         private List<Vector2>? CachedBezierPoints { get; set; }
         private double? CachedCurveDuration { get; set; }
         private double? CachedCurveLength { get; set; }
@@ -89,11 +101,10 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
 
             // Non-explicit
             RedAnchorPositions = GetRedAnchors().ToList();
-            PathPxPositions = GetPathPxPositions();
             EndTime = GetEndTime();
             SliderTickTimes = GetSliderTickTimes();
 
-            UnstackedEndPosition = EdgeAmount % 2 == 1 ? PathPxPositions.Last() : UnstackedPosition;
+            UnstackedEndPosition = EdgeAmount % 2 == 1 ? GetPathEndPosition() : UnstackedPosition;
 
             // Difficulty
             LazyEndPosition = Position;
@@ -186,13 +197,15 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
                 if (!edgeHitSoundStr.Contains("|"))
                     return Tuple.Create(edgeStartHitSound, edgeEndHitSound, edgeReverseHitSounds);
 
-                for (var i = 0; i < edgeHitSoundStr.Split('|').Length; ++i)
+                var edgeHitSoundParts = edgeHitSoundStr.Split('|');
+
+                for (var i = 0; i < edgeHitSoundParts.Length; ++i)
                 {
-                    var edgeHitSound = (HitSounds)int.Parse(edgeHitSoundStr.Split('|')[i]);
+                    var edgeHitSound = (HitSounds)int.Parse(edgeHitSoundParts[i]);
 
                     if (i == 0)
                         edgeStartHitSound = edgeHitSound;
-                    else if (i == edgeHitSoundStr.Split('|').Length - 1)
+                    else if (i == edgeHitSoundParts.Length - 1)
                         edgeEndHitSound = edgeHitSound;
                     else
                         // Any not first or last are for the reverses.
@@ -237,19 +250,21 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
                 var edgeAdditions = args[9];
 
                 if (edgeAdditions.Contains("|"))
-                    for (var i = 0; i < edgeAdditions.Split('|').Length; ++i)
+                {
+                    var edgeAdditionParts = edgeAdditions.Split('|');
+
+                    for (var i = 0; i < edgeAdditionParts.Length; ++i)
                     {
-                        var edgeSampleset = (HitSample.SamplesetType)
-                            int.Parse(edgeAdditions.Split('|')[i].Split(':')[0]);
-                        var edgeAddition = (HitSample.SamplesetType)
-                            int.Parse(edgeAdditions.Split('|')[i].Split(':')[1]);
+                        var edgeAdditionPart = edgeAdditionParts[i].Split(':');
+                        var edgeSampleset = (HitSample.SamplesetType)int.Parse(edgeAdditionPart[0]);
+                        var edgeAddition = (HitSample.SamplesetType)int.Parse(edgeAdditionPart[1]);
 
                         if (i == 0)
                         {
                             edgeStartSampleset = edgeSampleset;
                             edgeStartAddition = edgeAddition;
                         }
-                        else if (i == edgeAdditions.Split('|').Length - 1)
+                        else if (i == edgeAdditionParts.Length - 1)
                         {
                             edgeEndSampleset = edgeSampleset;
                             edgeEndAddition = edgeAddition;
@@ -260,6 +275,7 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
                             edgeReverseAdditions.Add(edgeAddition);
                         }
                     }
+                }
             }
             else
             {
@@ -319,9 +335,6 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
 
         private List<Vector2> GetPathPxPositions()
         {
-            // Increase this to improve performance but lower accuracy.
-            const double STEP_SIZE = 1;
-
             // First we need to get how fast the slider moves,
             var pxPerMs = GetSliderSpeed(time);
 
@@ -331,40 +344,51 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             // Always start with the current position, means reverse sliders' end position is more accurate.
             var positions = new List<Vector2> { currentPosition };
 
-            var limit = pxPerMs * GetCurveDuration() / STEP_SIZE;
+            var limit = GetPathStepLimit();
 
             for (var i = 0; i < limit; ++i)
             {
                 var prevPosition = currentPosition;
-                var stepTime = time + i / pxPerMs * STEP_SIZE;
+                var stepTime = time + i / pxPerMs * PATH_STEP_SIZE;
 
-                currentPosition = GetPathPosition(stepTime);
+                currentPosition = GetPathPosition(stepTime, UnstackedPosition);
 
                 // Only add the position if it's different from the previous.
                 if (currentPosition != prevPosition)
                     positions.Add(currentPosition);
             }
 
-            var endPosition = GetPathPosition(time + limit / pxPerMs * STEP_SIZE);
-            positions.Add(endPosition);
+            positions.Add(GetPathEndPosition());
 
             return positions;
         }
+
+        private double GetPathStepLimit() =>
+            GetSliderSpeed(time) * GetCurveDuration() / PATH_STEP_SIZE;
+
+        /// <summary> The last of <see cref="PathPxPositions" />, without working out the rest of them. </summary>
+        private Vector2 GetPathEndPosition() =>
+            GetPathPosition(
+                time + GetPathStepLimit() / GetSliderSpeed(time) * PATH_STEP_SIZE,
+                UnstackedPosition
+            );
 
         /*
          *  Utility
          */
 
         /// <summary> Returns the position on the curve at a given point in time (intensive, consider using mPathPxPositions). </summary>
-        public Vector2 GetPathPosition(double time) =>
+        public Vector2 GetPathPosition(double time) => GetPathPosition(time, Position);
+
+        private Vector2 GetPathPosition(double time, Vector2 start) =>
             CurveType switch
             {
-                Curve.Linear => GetLinearPathPosition(time),
-                Curve.Passthrough => GetPassthroughPathPosition(time),
+                Curve.Linear => GetLinearPathPosition(time, start),
+                Curve.Passthrough => GetPassthroughPathPosition(time, start),
                 Curve.Bezier => GetBezierPathPosition(time),
                 // B-splines are converted into a series of beziers, so they follow the same path.
                 Curve.BSpline => GetBezierPathPosition(time),
-                Curve.Catmull => GetCatmullPathPosition(time),
+                Curve.Catmull => GetCatmullPathPosition(time, start),
                 _ => new Vector2(0, 0),
             };
 
@@ -553,9 +577,13 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             // Note that this is not a constant movement, though.
 
             // Make sure to copy, don't reference; newPoints will be mutated.
-            var newPoints = new List<Vector2>(points);
+            Span<Vector2> newPoints =
+                points.Count <= MaxStackAllocatedPoints
+                    ? stackalloc Vector2[points.Count]
+                    : new Vector2[points.Count];
+            CollectionsMarshal.AsSpan(points).CopyTo(newPoints);
 
-            var index = newPoints.Count - 1;
+            var index = newPoints.Length - 1;
 
             while (index > 0)
             {
@@ -615,12 +643,17 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
          *  Slider Pathing
          */
 
-        private Vector2 GetLinearPathPosition(double time)
+        private Vector2 GetLinearPathPosition(double time, Vector2 start)
         {
             var fraction = GetCurveFraction(time);
 
-            var pathLengths = new List<double>();
-            var previousPosition = Position;
+            var pathCount = Math.Max(NodePositions.Count - 1, 0);
+            Span<double> pathLengths =
+                pathCount <= MaxStackAllocatedPoints
+                    ? stackalloc double[pathCount]
+                    : new double[pathCount];
+            double totalPathLength = 0;
+            var previousPosition = start;
 
             for (var i = 1; i < NodePositions.Count; ++i)
             {
@@ -630,20 +663,21 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
 
                 if (i < NodePositions.Count - 1)
                 {
-                    distance = GetDistance(NodePositions.ElementAt(i), previousPosition);
-                    previousPosition = NodePositions.ElementAt(i);
+                    distance = GetDistance(NodePositions[i], previousPosition);
+                    previousPosition = NodePositions[i];
                 }
                 else
                 // but if it is the last node, then we need to look at the total length
                 // to see how far it goes in that direction.
                 {
-                    distance = GetCurveLength() - pathLengths.Sum();
+                    distance = GetCurveLength() - totalPathLength;
                 }
 
-                pathLengths.Add(distance);
+                pathLengths[i - 1] = distance;
+                totalPathLength += distance;
             }
 
-            var fractionDistance = pathLengths.Sum() * fraction;
+            var fractionDistance = totalPathLength * fraction;
             var prevNodeIndex = 0;
 
             foreach (var pathLength in pathLengths)
@@ -671,11 +705,11 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
                 );
         }
 
-        private Vector2 GetPassthroughPathPosition(double time)
+        private Vector2 GetPassthroughPathPosition(double time, Vector2 start)
         {
             // Less than 3 interprets as linear.
             if (NodePositions.Count < 3)
-                return GetLinearPathPosition(time);
+                return GetLinearPathPosition(time, start);
 
             // More than 3 interprets as bezier.
             if (NodePositions.Count > 3)
@@ -695,7 +729,7 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
 
             if (divisor == 0)
                 // Second point is somewhere straight between the first and third, making our path linear.
-                return GetLinearPathPosition(time);
+                return GetLinearPathPosition(time, start);
 
             var centerX =
                 (
@@ -806,7 +840,8 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             // Include the first point in the total slider points.
             var sliderPoints = GetCurveControlPoints();
 
-            var currentPoint = Position;
+            // The curve itself isn't affected by stacking, whenever it happens to be worked out.
+            var currentPoint = UnstackedPosition;
             var tempBezierPoints = new List<Vector2> { currentPoint };
 
             // For each anchor, calculate the curve, until we find where we need to be.
@@ -893,11 +928,11 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
                     + (CachedBezierPoints[integer + 1] - CachedBezierPoints[integer]) * @decimal;
         }
 
-        private Vector2 GetCatmullPathPosition(double time)
+        private Vector2 GetCatmullPathPosition(double time, Vector2 start)
         {
             // Any less than 3 points might as well be linear.
             if (NodePositions.Count < 3)
-                return GetLinearPathPosition(time);
+                return GetLinearPathPosition(time, start);
 
             var fraction = GetCurveFraction(time);
 
@@ -905,7 +940,7 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             double totalLength = 0;
             var desiredLength = GetCurveDuration() * pixelsPerMs * fraction;
 
-            var points = new List<Vector2>(NodePositions);
+            var points = NodePositions;
 
             // Go through the curve until the fraction is reached.
             var prevPoint = points.First();

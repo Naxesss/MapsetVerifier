@@ -20,6 +20,8 @@ namespace MapsetVerifier.Parser.Objects
             Clap = 8,
         }
 
+        private static readonly HitSounds[] AllHitSounds = Enum.GetValues<HitSounds>();
+
         /// <summary> Determines the properties of the hit object (can be combined, bitflags). </summary>
         [Flags]
         public enum Types
@@ -348,7 +350,7 @@ namespace MapsetVerifier.Parser.Objects
         /// </summary>
         private IEnumerable<HitSounds> SplitHitSound(HitSounds hitSound)
         {
-            foreach (HitSounds individualHitSound in Enum.GetValues(typeof(HitSounds)))
+            foreach (var individualHitSound in AllHitSounds)
                 if ((hitSound & individualHitSound) != 0 && individualHitSound != HitSounds.None)
                     yield return individualHitSound;
         }

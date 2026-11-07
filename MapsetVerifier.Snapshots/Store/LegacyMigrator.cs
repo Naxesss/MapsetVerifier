@@ -5,7 +5,8 @@ namespace MapsetVerifier.Snapshots.Store
 {
     /// <summary>
     /// Turns the old layout (one timestamped .osu per difficulty snapshot plus a hash listing for
-    /// files) into the log-based store. The old folder is renamed, never deleted.
+    /// files) into the log-based store, a set at a time as it gets opened. The old folder is moved
+    /// to "snapshots-legacy", never deleted.
     /// </summary>
     internal static class LegacyMigrator
     {
@@ -15,61 +16,97 @@ namespace MapsetVerifier.Snapshots.Store
 
         private sealed record LegacySnapshot(DateTime Time, string Path);
 
-        public static void MigrateIfNeeded(string root)
+        public static bool HasOldSnapshots(string root) =>
+            Directory.Exists(root)
+            && Directory.EnumerateDirectories(root).Any(d => IsOldSetFolder(Path.GetFileName(d)));
+
+        private static bool IsOldSetFolder(string name) => ulong.TryParse(name, out _);
+
+        /// <summary>
+        /// Converts the old snapshots of one set, if it has any. Everything in the old folder is
+        /// only read until the log is written, so an interrupted conversion is simply done again.
+        /// </summary>
+        public static void ConvertSet(string root, string setKey)
         {
-            if (!Directory.Exists(root) || File.Exists(Path.Combine(root, "index.json")))
+            const string prefix = "set-";
+
+            if (!setKey.StartsWith(prefix, StringComparison.Ordinal))
                 return;
 
-            var setDirectories = Directory
-                .GetDirectories(root)
-                .Where(d => ulong.TryParse(Path.GetFileName(d), out _))
+            var folderName = setKey[prefix.Length..];
+
+            // Set keys also come in through requests, so only ever a plain number becomes a path.
+            if (!IsOldSetFolder(folderName))
+                return;
+
+            var directory = Path.Combine(root, folderName);
+
+            if (!Directory.Exists(directory))
+                return;
+
+            Log.Information("Converting the old snapshots of {SetKey}", setKey);
+
+            var imported = BuildLog(directory, setKey);
+
+            // What's already there may have been captured since, or come from an interrupted
+            // conversion, in which case it may have pins and summaries worth keeping over a new copy.
+            var existing = SnapshotStore.ReadLog(setKey);
+            var known = existing.Entries.Select(e => e.Id).ToHashSet();
+            var merged = existing
+                .Entries.Concat(imported.Entries.Where(e => !known.Contains(e.Id)))
+                .OrderBy(e => e.Id, StringComparer.Ordinal)
                 .ToList();
 
-            if (setDirectories.Count == 0)
-                return;
-
-            Log.Information(
-                "Migrating {Count} snapshot folders to the new store",
-                setDirectories.Count
-            );
-
-            var staging = root + "-migrating";
-
-            if (Directory.Exists(staging))
-                Directory.Delete(staging, true);
-
-            Directory.CreateDirectory(staging);
-
-            var previousRoot = SnapshotStore.SwapRoot(staging);
-
-            try
-            {
-                foreach (var directory in setDirectories)
-                    MigrateSet(directory);
-
-                SnapshotStore.WriteIndex(
-                    new StoreIndex { Migration = StoreIndex.CurrentMigration }
-                );
-            }
-            finally
-            {
-                SnapshotStore.SwapRoot(previousRoot);
-            }
+            if (merged.Count > 0)
+                SnapshotStore.WriteLog(setKey, new SetLog { Entries = merged });
 
             var legacy = root + "-legacy";
+            Directory.CreateDirectory(legacy);
 
-            if (Directory.Exists(legacy))
-                legacy += "-" + DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+            var destination = Path.Combine(legacy, folderName);
 
-            Directory.Move(root, legacy);
-            Directory.Move(staging, root);
+            if (Directory.Exists(destination))
+                destination += "-" + DateTime.UtcNow.ToString("yyyyMMddHHmmss");
 
-            Log.Information("Snapshots migrated; the old folder was kept as {Legacy}", legacy);
+            Directory.Move(directory, destination);
+        }
+
+        /// <summary>
+        /// Clears what a migration of the whole store left behind if it never finished, which the
+        /// version doing that started over from on every launch. Only holds copies, so it's safe to
+        /// remove, and it can be large, so that doesn't hold up anything else.
+        /// </summary>
+        public static void RemoveInterruptedMigration(string root)
+        {
+            var staging = root + "-migrating";
+
+            if (!Directory.Exists(staging))
+                return;
+
+            Task.Run(() =>
+            {
+                try
+                {
+                    Directory.Delete(staging, true);
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Removing the unfinished migration {Path} failed", staging);
+                }
+            });
         }
 
         private static void MigrateSet(string directory)
         {
             var setKey = "set-" + Path.GetFileName(directory);
+            var log = BuildLog(directory, setKey);
+
+            if (log.Entries.Count > 0)
+                SnapshotStore.WriteLog(setKey, log);
+        }
+
+        private static SetLog BuildLog(string directory, string setKey)
+        {
             var difficulties = new Dictionary<string, List<LegacySnapshot>>();
             var files = new List<LegacySnapshot>();
 
@@ -202,8 +239,7 @@ namespace MapsetVerifier.Snapshots.Store
                 previous = entry;
             }
 
-            if (log.Entries.Count > 0)
-                SnapshotStore.WriteLog(setKey, log);
+            return log;
         }
 
         private static List<string> ReadListing(string path) =>
