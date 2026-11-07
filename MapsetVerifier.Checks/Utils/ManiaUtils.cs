@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.Parser.Objects.HitObjects.Mania;
 using MapsetVerifier.Parser.Objects.TimingLines;
 
 namespace MapsetVerifier.Checks.Utils;
@@ -106,7 +107,6 @@ public static class ManiaUtils
 
     public static int getColumn(HitObject hitObject, float keys)
     {
-        // This is the * Magic Fix *
-        return (int)hitObject.Position.X / (512 / (int)keys);
+        return ManiaExtensions.GetColumn(hitObject, keys);
     }
 }
