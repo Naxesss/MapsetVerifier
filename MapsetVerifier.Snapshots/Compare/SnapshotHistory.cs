@@ -1,3 +1,5 @@
+using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.Parser.Objects.HitObjects.Mania;
 using MapsetVerifier.Snapshots.Store;
 
 namespace MapsetVerifier.Snapshots.Compare
@@ -121,11 +123,31 @@ namespace MapsetVerifier.Snapshots.Compare
                             d.Version,
                             d.Mode,
                             d.BeatmapId,
-                            d.Stars
+                            d.Stars,
+                            PlaystyleOf(setKey, d)
                         ))
                         .ToList(),
                 result
             );
+        }
+
+        /// <summary> A mania difficulty's key mode or playstyle, read from its stored version. </summary>
+        private static ManiaPlaystyle? PlaystyleOf(string setKey, StoredDifficulty difficulty)
+        {
+            if (difficulty.Mode != nameof(Beatmap.Mode.Mania))
+                return null;
+
+            try
+            {
+                return ManiaPlaystyle.Of(
+                    SnapshotStore.ReadBlob(setKey, difficulty.Blob),
+                    difficulty.Version
+                );
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private static StoredSummary Summarize(

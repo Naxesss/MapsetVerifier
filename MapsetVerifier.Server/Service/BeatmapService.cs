@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using MapsetVerifier.Framework;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.Parser.Objects.HitObjects.Mania;
 using MapsetVerifier.Server.Model;
 using MapsetVerifier.Server.Service.OsuRuntime;
 using Serilog;
@@ -662,7 +663,8 @@ public static class BeatmapService
                     category: beatmap.MetadataSettings.version,
                     beatmapId: beatmap.MetadataSettings.beatmapId,
                     mode: beatmap.GeneralSettings.mode,
-                    starRating: beatmap.StarRating
+                    starRating: beatmap.StarRating,
+                    playstyle: ManiaPlaystyle.Of(beatmap)
                 ))
                 .ToList()
         );
@@ -717,7 +719,8 @@ public static class BeatmapService
                     beatmapId: beatmap.MetadataSettings.beatmapId,
                     mode: beatmap.GeneralSettings.mode,
                     difficultyLevel: parsedDifficulty,
-                    starRating: beatmap.StarRating
+                    starRating: beatmap.StarRating,
+                    playstyle: ManiaPlaystyle.Of(beatmap)
                 );
             })
             .ToList();
@@ -844,7 +847,8 @@ public static class BeatmapService
                 beatmapId: beatmap.MetadataSettings.beatmapId,
                 mode: beatmap.GeneralSettings.mode,
                 difficultyLevel: overrideDifficulty,
-                starRating: beatmap.StarRating
+                starRating: beatmap.StarRating,
+                playstyle: ManiaPlaystyle.Of(beatmap)
             ),
             checks: checksDict
         );

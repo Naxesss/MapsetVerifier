@@ -1,4 +1,6 @@
-﻿namespace MapsetVerifier.Server.Model.MetadataAnalysis;
+﻿using MapsetVerifier.Parser.Objects.HitObjects.Mania;
+
+namespace MapsetVerifier.Server.Model.MetadataAnalysis;
 
 public class MetadataAnalysisResult
 {
@@ -45,6 +47,7 @@ public class DifficultyMetadata
     public ulong? BeatmapSetId { get; set; }
     public string Mode { get; set; } = string.Empty;
     public double? StarRating { get; set; }
+    public ManiaPlaystyle? Playstyle { get; set; }
 }
 
 public class ResourcesInfo

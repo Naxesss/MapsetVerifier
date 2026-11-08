@@ -60,6 +60,7 @@ namespace MapsetVerifier.Snapshots.Compare
             public required List<TimeRange> Kiai { get; init; }
             public required List<TimeRange> Breaks { get; init; }
             public double LengthMs { get; init; }
+            public ManiaPlaystyle? Playstyle { get; init; }
         }
 
         /// <summary>
@@ -111,6 +112,7 @@ namespace MapsetVerifier.Snapshots.Compare
                     Kiai = x.Partial.Kiai,
                     Breaks = x.Partial.Breaks,
                     LengthMs = x.Partial.LengthMs,
+                    Playstyle = x.Partial.Playstyle,
                 })
                 .ToList();
 
@@ -247,7 +249,8 @@ namespace MapsetVerifier.Snapshots.Compare
                 p.Marks,
                 p.Kiai,
                 p.Breaks,
-                p.LengthMs
+                p.LengthMs,
+                p.Playstyle
             );
         }
 
@@ -288,6 +291,7 @@ namespace MapsetVerifier.Snapshots.Compare
                 Breaks = shown.Breaks.Select(b => new TimeRange(b.time, b.endTime)).ToList(),
                 LengthMs =
                     shown.HitObjects.Count == 0 ? 0 : shown.HitObjects.Max(o => o.GetEndTime()),
+                Playstyle = ManiaPlaystyle.Of(shown),
             };
 
             if (oldMap != null && newMap != null && partial.Status == DifficultyStatus.Changed)

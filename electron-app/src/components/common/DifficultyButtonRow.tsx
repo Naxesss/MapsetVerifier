@@ -17,13 +17,15 @@ import DifficultyColorPill from './DifficultyColorPill';
 import { ModeMapperContext } from './mapsetFrameContext';
 import { formatGameModeLabel, groupByMode } from '../../utils/gameMode';
 import GameModeIcon from '../icons/GameModeIcon';
-import type { Mode } from '../../Types';
+import type { ManiaPlaystyle, Mode } from '../../Types';
 
 export type RowDifficulty = {
   id: string;
   label: string;
   mode: Mode;
   starRating?: number | null;
+  /** Mania: the key mode or playstyle, which splits the mode's difficulties. */
+  playstyle?: ManiaPlaystyle | null;
   /** An icon in front: the level on Checks, changed or not on Snapshots. */
   status?: ReactNode;
   active: boolean;
@@ -59,17 +61,39 @@ interface DifficultyButtonRowProps {
 const MODE_ICON_SIZE = 18;
 const ROW_GAP = 6;
 
-const byStarRating = (a: { starRating?: number | null }, b: { starRating?: number | null }) =>
+type Spreadable = {
+  mode: string;
+  starRating?: number | null;
+  playstyle?: ManiaPlaystyle | null;
+};
+
+/** Fewer keys first, then by name (7K before 7K+1, both before 8K), then easiest to hardest. */
+const bySpread = (a: Spreadable, b: Spreadable) =>
+  (a.playstyle?.keys ?? 0) - (b.playstyle?.keys ?? 0) ||
+  (a.playstyle?.label ?? '').localeCompare(b.playstyle?.label ?? '') ||
   (a.starRating ?? 0) - (b.starRating ?? 0);
 
-/** Difficulties in spread order: each mode in the usual mode order, easiest to hardest. */
-export function spreadGroups<T extends { mode: string; starRating?: number | null }>(
-  difficulties: readonly T[]
-) {
+/**
+ * Difficulties in spread order: each mode in the usual mode order, easiest to hardest. Mania goes
+ * key mode by key mode (or playstyle by playstyle).
+ */
+export function spreadGroups<T extends Spreadable>(difficulties: readonly T[]) {
   return groupByMode(difficulties).map((group) => ({
     ...group,
-    difficulties: [...group.difficulties].sort(byStarRating),
+    difficulties: [...group.difficulties].sort(bySpread),
   }));
+}
+
+/** A mode's difficulties in spread order, split where the key mode or playstyle changes. */
+function playstyleClusters<T extends Spreadable>(difficulties: readonly T[]) {
+  const clusters: { label?: string; difficulties: T[] }[] = [];
+  for (const d of difficulties) {
+    const label = d.playstyle?.label;
+    const last = clusters[clusters.length - 1];
+    if (last && last.label === label) last.difficulties.push(d);
+    else clusters.push({ label, difficulties: [d] });
+  }
+  return clusters;
 }
 
 /**
@@ -78,7 +102,11 @@ export function spreadGroups<T extends { mode: string; starRating?: number | nul
  * "mapper's difficulty" name puts the mapper in small text above the difficulty, inside the same
  * height, unless one guest mapper did the whole mode shown: then the MapsetFrame names them next to
  * the host instead. The status shows as an icon in front of the star rating pill, and the picked
- * difficulty is outlined in its star rating colour. A set with more than one mode gets mode
+ * difficulty is outlined in its star rating colour. Mania difficulties of more than one key mode
+ * or playstyle are split into a cluster each, labelled ("4K", "7K", "DP") in front; their names,
+ * which then have to denote it, show without that marker (in full on hover). A name with the
+ * wrong one keeps it, so the mistake shows. A guest mapper never shows with a marker: it goes
+ * with the difficulty instead (see shownName). A set with more than one mode gets mode
  * buttons at the end, each with a status badge summing up that mode's difficulties, so every
  * mode's state shows while only one mode's difficulties do. A floating indicator slides between
  * the mode buttons as the pick.
@@ -97,8 +125,9 @@ export default function DifficultyButtonRow({
 
   const lanes = spreadGroups(difficulties);
   const shown = lanes.find((lane) => lane.mode === shownMode) ?? lanes[0];
-
-  const guests = shown?.difficulties.map((d) => guestOf(d.label)) ?? [];
+  const clusters = playstyleClusters(shown?.difficulties ?? []);
+  const clustered = clusters.length > 1;
+  const guests = shown?.difficulties.map((d) => shownName(d, clustered).guest) ?? [];
   const sharedGuest = guests[0] && guests.every((g) => g?.mapper === guests[0]?.mapper);
   const modeMapper = sharedGuest ? guests[0]?.who : undefined;
 
@@ -118,9 +147,28 @@ export default function DifficultyButtonRow({
         role="group"
         aria-label={shown ? formatGameModeLabel(shown.mode) : undefined}
       >
-        {shown?.difficulties.map((d) => (
-          <DifficultyButton key={d.id} difficulty={d} hideMapper={!!modeMapper} onPick={onPick} />
-        ))}
+        {clusters.map((cluster) =>
+          cluster.difficulties.map((d, index) => {
+            const button = (
+              <DifficultyButton
+                key={d.id}
+                difficulty={d}
+                name={shownName(d, clustered)}
+                hideMapper={!!modeMapper}
+                onPick={onPick}
+              />
+            );
+            // The label sits with the cluster's first difficulty, so it never ends a line alone.
+            return clustered && index === 0 ? (
+              <span key={`cluster-${cluster.label}`} className="mv-difficulty-cluster">
+                <span className="mv-difficulty-cluster__label">{cluster.label}</span>
+                {button}
+              </span>
+            ) : (
+              button
+            );
+          })
+        )}
       </div>
       {lanes.length > 1 && (
         <div
@@ -211,10 +259,12 @@ function ModeButton({
 
 function DifficultyButton({
   difficulty: d,
+  name,
   hideMapper,
   onPick,
 }: {
   difficulty: RowDifficulty;
+  name: ShownName;
   hideMapper: boolean;
   onPick: (difficulty: RowDifficulty) => void;
 }) {
@@ -238,7 +288,7 @@ function DifficultyButton({
         style={color ? ({ '--star': color } as CSSProperties) : undefined}
         onClick={d.disabledReason ? undefined : () => onPick(d)}
       >
-        <ButtonContent difficulty={d} hideMapper={hideMapper} />
+        <ButtonContent difficulty={d} name={name} hideMapper={hideMapper} />
       </UnstyledButton>
     </Tooltip>
   );
@@ -257,6 +307,21 @@ function guestOf(label: string) {
   return { mapper: match[1], who: match[1].replace(/['’]s?$/, ''), name: match[2] };
 }
 
+type ShownName = { guest?: ReturnType<typeof guestOf>; name: string };
+
+/**
+ * What a button shows: a guest difficulty's mapper on its own, without a key mode marker or its
+ * divider ("[7K] - Mapper's Insane" is Mapper's), and the difficulty. The marker stays with the
+ * difficulty ("[7K] Insane") unless the cluster's label already says it.
+ */
+function shownName(d: RowDifficulty, clustered: boolean): ShownName {
+  const playstyle = d.playstyle;
+  const marker = playstyle?.marker && !(clustered && playstyle.denoted) ? playstyle.marker : '';
+  const guest = guestOf(playstyle?.shortName ?? d.label);
+  if (guest) return { guest, name: marker ? `${marker} ${guest.name}` : guest.name };
+  return { name: marker ? d.label : (playstyle?.shortName ?? d.label) };
+}
+
 /** A button's status icon, in front of its name. */
 function Status({ icon }: { icon?: ReactNode }) {
   return icon ? <span className="mv-difficulty-button__status">{icon}</span> : null;
@@ -265,12 +330,14 @@ function Status({ icon }: { icon?: ReactNode }) {
 /** The status, the star rating pill and the name (the mapper of a guest difficulty above it). */
 function ButtonContent({
   difficulty: d,
+  name,
   hideMapper,
 }: {
   difficulty: RowDifficulty;
+  name: ShownName;
   hideMapper: boolean;
 }) {
-  const guest = guestOf(d.label);
+  const { guest } = name;
 
   return (
     <>
@@ -280,7 +347,7 @@ function ButtonContent({
         {guest && !hideMapper && (
           <span className="mv-difficulty-button__mapper">{guest.mapper}</span>
         )}
-        <span>{guest ? guest.name : d.label}</span>
+        <span>{name.name}</span>
       </span>
     </>
   );

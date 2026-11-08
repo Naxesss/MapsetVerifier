@@ -2,7 +2,7 @@ import { useHotkeys } from '@mantine/hooks';
 import { IconChevronDown } from '@tabler/icons-react';
 import { type ReactNode, useState } from 'react';
 import DifficultyButtonRow, { spreadGroups } from './DifficultyButtonRow';
-import type { Mode } from '../../Types';
+import type { ManiaPlaystyle, Mode } from '../../Types';
 
 export const GENERAL_TAB_ID = 'General';
 /** The size of the status icons on the picker's buttons. */
@@ -15,6 +15,7 @@ export type PickerDifficulty = {
   label: string;
   mode: Mode;
   starRating?: number | null;
+  playstyle?: ManiaPlaystyle | null;
   /** The status as an icon before the name: the level on Checks, changed or not on Snapshots. */
   status: ReactNode;
 };

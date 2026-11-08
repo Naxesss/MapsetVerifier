@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using MapsetVerifier.Framework.Objects.Resources;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.Parser.Objects.HitObjects.Mania;
 using MapsetVerifier.Parser.Statics;
 using MapsetVerifier.Server.Model.MetadataAnalysis;
 using Serilog;
@@ -49,6 +50,7 @@ public static class MetadataAnalysisService
                 BeatmapSetId = beatmap.MetadataSettings.beatmapSetId,
                 Mode = beatmap.GeneralSettings.mode.ToString(),
                 StarRating = beatmap.StarRating,
+                Playstyle = ManiaPlaystyle.Of(beatmap),
             })
             .ToList();
     }
