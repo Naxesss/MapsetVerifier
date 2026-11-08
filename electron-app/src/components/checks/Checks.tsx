@@ -89,6 +89,7 @@ function Checks() {
       checkResults: [],
       mode: difficulty.mode,
       starRating: difficulty.starRating ?? null,
+      playstyle: difficulty.playstyle,
     }));
   }, [dataDifficulties, structureDifficulties]);
 
@@ -153,6 +154,7 @@ function Checks() {
     label: diff.category,
     mode: diff.mode ?? 'Standard',
     starRating: diff.starRating,
+    playstyle: diff.playstyle,
     status: levelIcon(levelOf(diff.category)),
   }));
 

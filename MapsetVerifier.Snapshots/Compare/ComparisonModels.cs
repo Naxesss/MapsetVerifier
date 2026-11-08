@@ -1,3 +1,4 @@
+using MapsetVerifier.Parser.Objects.HitObjects.Mania;
 using MapsetVerifier.Snapshots.Diffing;
 using MapsetVerifier.Snapshots.Store;
 
@@ -137,7 +138,9 @@ namespace MapsetVerifier.Snapshots.Compare
         IReadOnlyList<Mark> Marks,
         IReadOnlyList<TimeRange> Kiai,
         IReadOnlyList<TimeRange> Breaks,
-        double LengthMs
+        double LengthMs,
+        /// <summary> Mania: the key mode or playstyle, of the newer version. </summary>
+        ManiaPlaystyle? Playstyle = null
     );
 
     public sealed record GeneralComparison(
@@ -175,7 +178,8 @@ namespace MapsetVerifier.Snapshots.Compare
         string Name,
         string Mode,
         ulong? BeatmapId,
-        double? StarRating
+        double? StarRating,
+        ManiaPlaystyle? Playstyle = null
     );
 
     public sealed record HistoryResult(

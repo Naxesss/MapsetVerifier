@@ -559,6 +559,27 @@
   gap: 6px;
 }
 
+/* A mania key mode's or playstyle's difficulties start with its label, kept on the line of the
+   first one, with a little more room before it than between buttons. */
+.mv-difficulty-cluster {
+  display: flex;
+  flex-shrink: 1;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+
+  &:not(:first-child) {
+    margin-left: 4px;
+  }
+}
+
+.mv-difficulty-cluster__label {
+  flex-shrink: 0;
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 700;
+  color: var(--mantine-color-dark-1);
+}
+
 .mv-difficulty-button {
   flex-shrink: 1;
   max-width: 260px;

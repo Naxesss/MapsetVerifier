@@ -60,6 +60,7 @@ export default function OverviewPicker({ section, unavailable, onSelect }: Overv
       label: d.version,
       mode: group.mode,
       starRating: d.starRating,
+      playstyle: d.playstyle,
       active:
         comparesDifficulties && group.mode === selectedMode && !showAll && picked.has(d.version),
       disabledReason: comparesDifficulties ? undefined : WHOLE_SET,

@@ -91,6 +91,7 @@ function Snapshots() {
           d.starsAfter ??
           d.starsBefore ??
           history.data?.difficulties.find((h) => h.key === d.key)?.starRating,
+        playstyle: d.playstyle,
         changed: hasChanges(d),
       }));
     }
@@ -100,6 +101,7 @@ function Snapshots() {
       label: d.name,
       mode: d.mode,
       starRating: d.starRating,
+      playstyle: d.playstyle,
       changed: false,
     }));
   }, [comparison, history.data]);
@@ -164,6 +166,7 @@ function Snapshots() {
               label: d.label,
               mode: d.mode,
               starRating: d.starRating,
+              playstyle: d.playstyle,
               status: changesIcon(d.changed),
             }))}
             general={{ status: changesIcon(generalChanged) }}

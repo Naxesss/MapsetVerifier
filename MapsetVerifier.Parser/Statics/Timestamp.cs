@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 using MapsetVerifier.Parser.Objects;
-using MathNet.Numerics;
+using MapsetVerifier.Parser.Objects.HitObjects.Mania;
 
 namespace MapsetVerifier.Parser.Statics
 {
@@ -71,14 +71,12 @@ namespace MapsetVerifier.Parser.Statics
 
                 if (beatmap.GeneralSettings.mode == Beatmap.Mode.Mania)
                 {
-                    var row =
-                        hitObject.Position.X.AlmostEqual(64) ? 0
-                        : hitObject.Position.X.AlmostEqual(192) ? 1
-                        : hitObject.Position.X.AlmostEqual(320) ? 2
-                        : hitObject.Position.X.AlmostEqual(448) ? 3
-                        : -1;
+                    var column = ManiaExtensions.GetColumn(
+                        hitObject,
+                        beatmap.DifficultySettings.circleSize
+                    );
 
-                    objectRef = hitObject.time + "|" + row;
+                    objectRef = hitObject.time + "|" + column;
                 }
                 else
                 {

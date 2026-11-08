@@ -105,11 +105,25 @@ export type ApiCheckTiming = {
   elapsedMs: number;
 };
 
+/**
+ * A mania difficulty's key mode or playstyle: "7K", "7K+1" or one of the playstyles above 10K. The
+ * marker is the key mode or playstyle the name has, as written ("[7K]"), and denoted whether it's
+ * this one; the short name is the name without it and the divider next to it.
+ */
+export type ManiaPlaystyle = {
+  label: string;
+  keys: number;
+  marker: string | null;
+  shortName: string | null;
+  denoted: boolean;
+};
+
 export type ApiBeatmapStructureDifficulty = {
   category: string;
   beatmapId?: number | null;
   mode: Mode;
   starRating?: number | null;
+  playstyle?: ManiaPlaystyle | null;
 };
 
 export type ApiBeatmapStructure = {
@@ -134,6 +148,7 @@ export type ApiCategoryCheckResult = {
   mode?: Mode;
   difficultyLevel?: DifficultyLevel | null;
   starRating?: number | null;
+  playstyle?: ManiaPlaystyle | null;
 };
 
 export type ApiCheckDefinition = {
@@ -386,6 +401,7 @@ export type ApiSnapshotDifficultyComparison = {
   kiai: ApiSnapshotTimeRange[];
   breaks: ApiSnapshotTimeRange[];
   lengthMs: number;
+  playstyle?: ManiaPlaystyle | null;
 };
 
 export type ApiSnapshotGeneralComparison = {
@@ -437,6 +453,7 @@ export type ApiSnapshotHistoryDifficulty = {
   mode: Mode;
   beatmapId: number | null;
   starRating: number | null;
+  playstyle?: ManiaPlaystyle | null;
 };
 
 export type ApiSnapshotHistory = {
@@ -638,6 +655,7 @@ export type DifficultyMetadata = {
   beatmapSetId: number | null;
   mode: string;
   starRating: number | null;
+  playstyle?: ManiaPlaystyle | null;
 };
 
 export type ResourcesInfo = {
