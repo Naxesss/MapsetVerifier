@@ -15,18 +15,6 @@ namespace MapsetVerifier.Checks.AllModes.Timing
         // How close two edges must be to count as the same object across difficulties.
         private const double EdgeMatchToleranceMs = 3;
 
-        private HashSet<int> countMinorDivisors = [];
-        private List<Tuple<int, string>> countMinorStamps = [];
-
-        private HashSet<int> countWarningDivisors = [];
-
-        private List<Tuple<int, string>> countWarningStamps = [];
-
-        private HashSet<int> percentMinorDivisors = [];
-        private List<Tuple<int, string>> percentMinorStamps = [];
-        private HashSet<int> percentWarningDivisors = [];
-        private List<Tuple<int, string>> percentWarningStamps = [];
-
         public override CheckMetadata GetMetadata() =>
             new BeatmapCheckMetadata
             {
@@ -239,23 +227,38 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                 }
 
                 // Phase 2: within this diff alone, flag snap divisors that appear rarely (count or % thresholds).
-                AnalyzeRareDivisors(beatmap);
-
-                foreach (var issue in GetDivisorIssues(beatmap, countWarningStamps, "Snap Count"))
-                    yield return issue;
+                // Kept local: check instances are shared, so concurrent runs must not share this state.
+                var rareDivisors = AnalyzeRareDivisors(beatmap);
 
                 foreach (
-                    var issue in GetDivisorIssues(beatmap, percentWarningStamps, "Snap Percent")
+                    var issue in GetDivisorIssues(beatmap, rareDivisors.CountWarning, "Snap Count")
                 )
                     yield return issue;
 
                 foreach (
-                    var issue in GetDivisorIssues(beatmap, countMinorStamps, "Minor Snap Count")
+                    var issue in GetDivisorIssues(
+                        beatmap,
+                        rareDivisors.PercentWarning,
+                        "Snap Percent"
+                    )
                 )
                     yield return issue;
 
                 foreach (
-                    var issue in GetDivisorIssues(beatmap, percentMinorStamps, "Minor Snap Percent")
+                    var issue in GetDivisorIssues(
+                        beatmap,
+                        rareDivisors.CountMinor,
+                        "Minor Snap Count"
+                    )
+                )
+                    yield return issue;
+
+                foreach (
+                    var issue in GetDivisorIssues(
+                        beatmap,
+                        rareDivisors.PercentMinor,
+                        "Minor Snap Percent"
+                    )
                 )
                     yield return issue;
             }
@@ -264,21 +267,21 @@ namespace MapsetVerifier.Checks.AllModes.Timing
         /// <summary>
         ///     Single pass over all object edges: tally divisor usage, then stamp times for rare ones.
         /// </summary>
-        private void AnalyzeRareDivisors(Beatmap beatmap)
+        internal static RareDivisorStamps AnalyzeRareDivisors(Beatmap beatmap)
         {
             const int countWarning = 3;
             const int countMinor = 7;
             const double percentWarning = 0.005;
             const double percentMinor = 0.05;
 
-            countWarningDivisors = [];
-            countMinorDivisors = [];
-            percentWarningDivisors = [];
-            percentMinorDivisors = [];
-            countWarningStamps = [];
-            countMinorStamps = [];
-            percentWarningStamps = [];
-            percentMinorStamps = [];
+            var countWarningDivisors = new HashSet<int>();
+            var countMinorDivisors = new HashSet<int>();
+            var percentWarningDivisors = new HashSet<int>();
+            var percentMinorDivisors = new HashSet<int>();
+            var countWarningStamps = new List<Tuple<int, string>>();
+            var countMinorStamps = new List<Tuple<int, string>>();
+            var percentWarningStamps = new List<Tuple<int, string>>();
+            var percentMinorStamps = new List<Tuple<int, string>>();
 
             var divisorCounts = new Dictionary<int, int>();
             var edgeEntries = new List<(double edgeTime, int divisor, bool isUnsnapped)>();
@@ -333,11 +336,20 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     );
             }
 
-            countWarningStamps = countWarningStamps.Distinct().ToList();
-            countMinorStamps = countMinorStamps.Distinct().ToList();
-            percentWarningStamps = percentWarningStamps.Distinct().ToList();
-            percentMinorStamps = percentMinorStamps.Distinct().ToList();
+            return new RareDivisorStamps(
+                countWarningStamps.Distinct().ToList(),
+                countMinorStamps.Distinct().ToList(),
+                percentWarningStamps.Distinct().ToList(),
+                percentMinorStamps.Distinct().ToList()
+            );
         }
+
+        internal sealed record RareDivisorStamps(
+            IReadOnlyCollection<Tuple<int, string>> CountWarning,
+            IReadOnlyCollection<Tuple<int, string>> CountMinor,
+            IReadOnlyCollection<Tuple<int, string>> PercentWarning,
+            IReadOnlyCollection<Tuple<int, string>> PercentMinor
+        );
 
         /// <summary>
         ///     Supplied with the divisor issue list, this function basically just turns them into readable issues
