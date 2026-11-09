@@ -1,6 +1,6 @@
 {
   "page": "general",
-  "commit": "517121c18abca0768d9ed36c8603396d70b4c862",
+  "commit": "d70f1fe4fa2443a114d7e17be144d8900247fca4",
   "statements": [
     {
       "id": "general/no-two-hit-objects-placed",
@@ -1492,7 +1492,7 @@
         "kind": "rule",
         "lead": "If you are using any elements created by another community member, ask permission beforehand.",
         "fingerprint": "if you are using any elements created by another community member ask permission beforehand",
-        "bodyHash": "b480c805cefba274",
+        "bodyHash": "60a67f1bbf22025d",
         "anchor": "skinning",
         "startLine": 202,
         "endLine": 202,
@@ -1500,6 +1500,30 @@
       },
       "curation": {
         "automation": "manual"
+      },
+      "lastReview": {
+        "commit": "517121c18abca0768d9ed36c8603396d70b4c862",
+        "bodyHash": "b480c805cefba274",
+        "kind": "rule"
+      }
+    },
+    {
+      "id": "general/skinning/not-know-who-made-elements",
+      "upstream": {
+        "path": [
+          "Skinning"
+        ],
+        "kind": "rule",
+        "lead": "If you do not know who made the elements you plan on using, you must not use them.",
+        "fingerprint": "if you do not know who made the elements you plan on using you must not use them",
+        "bodyHash": "1d5e596bb193ab6c",
+        "anchor": "skinning",
+        "startLine": 203,
+        "endLine": 203,
+        "difficulties": []
+      },
+      "curation": {
+        "automation": "unknown"
       }
     },
     {
@@ -1513,8 +1537,8 @@
         "fingerprint": "gameplay elements must be visible",
         "bodyHash": "bae4f2c165347717",
         "anchor": "skinning",
-        "startLine": 203,
-        "endLine": 203,
+        "startLine": 204,
+        "endLine": 204,
         "difficulties": []
       },
       "curation": {
@@ -1532,8 +1556,8 @@
         "fingerprint": "skinned elements must be cropped cleanly so they do not have pixelated artifacts around them or half cropped shadows",
         "bodyHash": "ed80fefc5bde68f3",
         "anchor": "skinning",
-        "startLine": 204,
-        "endLine": 204,
+        "startLine": 205,
+        "endLine": 205,
         "difficulties": []
       },
       "curation": {
@@ -1551,8 +1575,8 @@
         "fingerprint": "skinned elements cannot exceed dimensions to the point where they overlap other skin elements which they would not normally overlap in the default skin",
         "bodyHash": "160f9958da14075b",
         "anchor": "skinning",
-        "startLine": 205,
-        "endLine": 205,
+        "startLine": 206,
+        "endLine": 206,
         "difficulties": []
       },
       "curation": {
@@ -1570,8 +1594,8 @@
         "fingerprint": "when skinning gameplay elements complete sets of elements need to be skinned in order to avoid conflicts between user specific and beatmap specific skins",
         "bodyHash": "a327829f1cf491c9",
         "anchor": "skinning",
-        "startLine": 206,
-        "endLine": 206,
+        "startLine": 207,
+        "endLine": 207,
         "difficulties": []
       },
       "curation": {
@@ -1589,8 +1613,8 @@
         "fingerprint": "skinned elements should be kept in png format if they utilise transparency",
         "bodyHash": "0b6f4c866607ece5",
         "anchor": "skinning",
-        "startLine": 210,
-        "endLine": 210,
+        "startLine": 211,
+        "endLine": 211,
         "difficulties": []
       },
       "curation": {
@@ -1608,8 +1632,8 @@
         "fingerprint": "storyboarded images must not exceed an area of 17 000 000 pixels to keep loading times of large images within reasonable ranges for most computers to handle",
         "bodyHash": "f6f80317892db254",
         "anchor": "storyboarding",
-        "startLine": 227,
-        "endLine": 227,
+        "startLine": 228,
+        "endLine": 228,
         "difficulties": []
       },
       "curation": {
@@ -1627,8 +1651,8 @@
         "fingerprint": "the difficulty must not throw parsing errors upon loading",
         "bodyHash": "32ffcde7d000caae",
         "anchor": "storyboarding",
-        "startLine": 228,
-        "endLine": 228,
+        "startLine": 229,
+        "endLine": 229,
         "difficulties": []
       },
       "curation": {
@@ -1646,8 +1670,8 @@
         "fingerprint": "the widescreen support setting must be consistent between storyboarded difficulties in a beatmap unless difficulty specific storyboards are designed for different aspect ratios",
         "bodyHash": "1b6217dad57b24a2",
         "anchor": "storyboarding",
-        "startLine": 229,
-        "endLine": 229,
+        "startLine": 230,
+        "endLine": 230,
         "difficulties": []
       },
       "curation": {
@@ -1665,8 +1689,8 @@
         "fingerprint": "there should be no active sprites and commands after the end of the song",
         "bodyHash": "9edf3bf9ca55b5b9",
         "anchor": "storyboarding",
-        "startLine": 233,
-        "endLine": 233,
+        "startLine": 234,
+        "endLine": 234,
         "difficulties": []
       },
       "curation": {
@@ -1684,8 +1708,8 @@
         "fingerprint": "consider leaving a one pixel border of transparency around storyboard images of rotated sprites for interpolation to work properly",
         "bodyHash": "c4c5a8b745412eb7",
         "anchor": "storyboarding",
-        "startLine": 234,
-        "endLine": 234,
+        "startLine": 235,
+        "endLine": 235,
         "difficulties": []
       },
       "curation": {
@@ -1703,8 +1727,8 @@
         "fingerprint": "avoid any noticeable performance issues as much as possible even being optimised having consistent frame rates is crucial for the playing experience of the difficulty",
         "bodyHash": "441a2301582dde9e",
         "anchor": "storyboarding",
-        "startLine": 235,
-        "endLine": 235,
+        "startLine": 236,
+        "endLine": 236,
         "difficulties": []
       },
       "curation": {
@@ -1722,8 +1746,8 @@
         "fingerprint": "refrain from usage of storyboard sound samples in ways that are easily confused with hitsounds during gameplay",
         "bodyHash": "28e0ba821aaaa401",
         "anchor": "storyboarding",
-        "startLine": 236,
-        "endLine": 236,
+        "startLine": 237,
+        "endLine": 237,
         "difficulties": []
       },
       "curation": {
@@ -1741,8 +1765,8 @@
         "fingerprint": "avoid illogical conflicting and obsolete commands",
         "bodyHash": "c042f97bc532d79a",
         "anchor": "storyboarding",
-        "startLine": 237,
-        "endLine": 237,
+        "startLine": 238,
+        "endLine": 238,
         "difficulties": []
       },
       "curation": {
@@ -1760,8 +1784,8 @@
         "fingerprint": "the widescreen support setting should be turned on if the difficulty contains a widescreen storyboard",
         "bodyHash": "0442d91d0985aa1a",
         "anchor": "storyboarding",
-        "startLine": 238,
-        "endLine": 238,
+        "startLine": 239,
+        "endLine": 239,
         "difficulties": []
       },
       "curation": {
@@ -1779,8 +1803,8 @@
         "fingerprint": "make sure the storyboard is optimised as much as possible within practical means",
         "bodyHash": "7a115f272d1a7eba",
         "anchor": "storyboarding",
-        "startLine": 239,
-        "endLine": 239,
+        "startLine": 240,
+        "endLine": 240,
         "difficulties": []
       },
       "curation": {
@@ -1798,8 +1822,8 @@
         "fingerprint": "avoid having sprites or the background of the difficulty completely visually obstructed while rendered",
         "bodyHash": "6b7689bd45275f0f",
         "anchor": "storyboarding",
-        "startLine": 240,
-        "endLine": 240,
+        "startLine": 241,
+        "endLine": 241,
         "parent": "general/storyboarding/make-sure-storyboard-optimised-much",
         "difficulties": []
       },
@@ -1818,8 +1842,8 @@
         "fingerprint": "avoid sprites being partially off screen or visually obstructed for the entire time they are used",
         "bodyHash": "886989d24cc18803",
         "anchor": "storyboarding",
-        "startLine": 241,
-        "endLine": 241,
+        "startLine": 242,
+        "endLine": 242,
         "parent": "general/storyboarding/make-sure-storyboard-optimised-much",
         "difficulties": []
       },
@@ -1838,8 +1862,8 @@
         "fingerprint": "avoid unnecessary transparency around storyboard images",
         "bodyHash": "102cea5eceb0fcd0",
         "anchor": "storyboarding",
-        "startLine": 242,
-        "endLine": 242,
+        "startLine": 243,
+        "endLine": 243,
         "parent": "general/storyboarding/make-sure-storyboard-optimised-much",
         "difficulties": []
       },
@@ -1858,8 +1882,8 @@
         "fingerprint": "use loops for commands that repeat themselves many times unless this goes against what is visually intended",
         "bodyHash": "4e2d1a7932824104",
         "anchor": "storyboarding",
-        "startLine": 243,
-        "endLine": 243,
+        "startLine": 244,
+        "endLine": 244,
         "parent": "general/storyboarding/make-sure-storyboard-optimised-much",
         "difficulties": []
       },
@@ -1878,8 +1902,8 @@
         "fingerprint": "avoid using two axis specific commands when the same effect can be achieved with one regular command instead",
         "bodyHash": "bccbbbcb3c057daf",
         "anchor": "storyboarding",
-        "startLine": 244,
-        "endLine": 244,
+        "startLine": 245,
+        "endLine": 245,
         "parent": "general/storyboarding/make-sure-storyboard-optimised-much",
         "difficulties": []
       },
@@ -1898,8 +1922,8 @@
         "fingerprint": "use whichever image file format takes up the least file size whilst maintaining reasonable quality",
         "bodyHash": "ee6666ee623af451",
         "anchor": "storyboarding",
-        "startLine": 245,
-        "endLine": 245,
+        "startLine": 246,
+        "endLine": 246,
         "parent": "general/storyboarding/make-sure-storyboard-optimised-much",
         "difficulties": []
       },
@@ -1918,8 +1942,8 @@
         "fingerprint": "avoid any duplicate image files",
         "bodyHash": "23409e388da250b3",
         "anchor": "storyboarding",
-        "startLine": 246,
-        "endLine": 246,
+        "startLine": 247,
+        "endLine": 247,
         "parent": "general/storyboarding/make-sure-storyboard-optimised-much",
         "difficulties": []
       },
@@ -1938,8 +1962,8 @@
         "fingerprint": "refrain from having multiple sprites active while not rendered",
         "bodyHash": "f99f81c79550cb71",
         "anchor": "storyboarding",
-        "startLine": 247,
-        "endLine": 247,
+        "startLine": 248,
+        "endLine": 248,
         "parent": "general/storyboarding/make-sure-storyboard-optimised-much",
         "difficulties": []
       },
@@ -1958,8 +1982,8 @@
         "fingerprint": "when using many commands of the same type on a sprite try leaving at least 16 ms between their start times",
         "bodyHash": "26ca8c3ec835d56e",
         "anchor": "storyboarding",
-        "startLine": 248,
-        "endLine": 248,
+        "startLine": 249,
+        "endLine": 249,
         "parent": "general/storyboarding/make-sure-storyboard-optimised-much",
         "difficulties": []
       },
@@ -1978,8 +2002,8 @@
         "fingerprint": "fade out sprites activated from triggers after usage",
         "bodyHash": "b3a373573088cd55",
         "anchor": "storyboarding",
-        "startLine": 249,
-        "endLine": 249,
+        "startLine": 250,
+        "endLine": 250,
         "parent": "general/storyboarding/make-sure-storyboard-optimised-much",
         "difficulties": []
       },
