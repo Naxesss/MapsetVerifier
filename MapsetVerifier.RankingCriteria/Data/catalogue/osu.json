@@ -1,6 +1,6 @@
 {
   "page": "osu",
-  "commit": "517121c18abca0768d9ed36c8603396d70b4c862",
+  "commit": "d70f1fe4fa2443a114d7e17be144d8900247fca4",
   "statements": [
     {
       "id": "osu/hit-objects-never-off-screen",
