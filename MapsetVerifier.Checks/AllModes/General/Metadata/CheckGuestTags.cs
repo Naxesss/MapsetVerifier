@@ -3,6 +3,7 @@ using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.Parser.Objects.HitObjects.Mania;
 using MapsetVerifier.RankingCriteria;
 
 namespace MapsetVerifier.Checks.AllModes.General.Metadata
@@ -63,7 +64,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
             foreach (var beatmap in beatmapSet.Beatmaps)
-            foreach (var possessor in GetAllPossessors(beatmap.MetadataSettings.version))
+            foreach (var possessor in GetAllPossessors(GetNameWithoutKeyMode(beatmap)))
             {
                 var possessorTag = BuildPossessorTag(possessor);
 
@@ -81,6 +82,13 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                 );
             }
         }
+
+        /// <summary>
+        ///     The difficulty name without a mania key mode marker, so "6K Enma's Easy" is read as
+        ///     "Enma's Easy" rather than having "6K Enma" as the guest.
+        /// </summary>
+        private static string GetNameWithoutKeyMode(Beatmap beatmap) =>
+            ManiaPlaystyle.Of(beatmap)?.ShortName ?? beatmap.MetadataSettings.version;
 
         private string BuildPossessorTag(string possessor)
         {
