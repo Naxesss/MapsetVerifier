@@ -82,6 +82,13 @@ namespace MapsetVerifier.Snapshots.Store
 
         public const int CurrentMigration = 2;
 
+        /// <summary>
+        /// Whether numbered folders next to this index are old snapshots waiting to be converted when
+        /// their set is opened. Stores that were converted all at once can hold numbered folders
+        /// written by an older version afterwards, which have always been left alone.
+        /// </summary>
+        public bool ConvertsOnOpen { get; set; }
+
         /// <summary> Song folder path to set key, so unsubmitted sets are found again. </summary>
         public Dictionary<string, string> Folders { get; set; } = new();
     }

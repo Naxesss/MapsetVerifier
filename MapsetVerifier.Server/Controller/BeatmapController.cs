@@ -187,7 +187,12 @@ public class BeatmapController : ControllerBase
         [FromQuery] string? songsFolder = null
     )
     {
-        var result = BeatmapService.GetBeatmapImage(folder, original, songsFolder);
+        var result = BeatmapService.GetBeatmapImage(
+            folder,
+            original,
+            songsFolder,
+            Request.Headers.IfNoneMatch.ToString()
+        );
         if (!result.Success)
             return NotFound(new ApiError(result.ErrorMessage ?? "Image not found", null));
 
@@ -216,7 +221,12 @@ public class BeatmapController : ControllerBase
         [FromQuery] string? lazerDataDir = null
     )
     {
-        var result = BeatmapService.GetLazerBeatmapImage(id, original, lazerDataDir);
+        var result = BeatmapService.GetLazerBeatmapImage(
+            id,
+            original,
+            lazerDataDir,
+            Request.Headers.IfNoneMatch.ToString()
+        );
         if (!result.Success)
             return NotFound(new ApiError(result.ErrorMessage ?? "Image not found", null));
 

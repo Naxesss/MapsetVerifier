@@ -8,7 +8,50 @@ namespace MapsetVerifier.Parser.Tests.Objects.HitObjects;
 
 public class SliderPathTests
 {
-    private static Slider CreateSlider(string hitObject)
+    // A circle right after a slider on the same spot stacks the slider, shifting its position.
+    [Theory]
+    [InlineData("100,100,1000,2,0,L|150:100|200:150,1,120")]
+    [InlineData("100,100,1000,2,0,L|150:100|200:150,2,120")]
+    [InlineData("100,100,1000,2,0,B|150:50|200:150|250:100,1,120")]
+    [InlineData("100,100,1000,2,0,B|150:50|200:150|250:100,2,120")]
+    [InlineData("100,100,1000,2,0,P|150:50|200:100,1,120")]
+    [InlineData("100,100,1000,2,0,C|150:50|200:100|250:50,1,120")]
+    public void Path_IsTheSameWhetherOrNotTheSliderIsStacked(string hitObject)
+    {
+        var alone = CreateSlider(hitObject);
+        var stacked = CreateBeatmap(hitObject + "\n" + "100,100,1100,1,0,0:0:0:0:")
+            .HitObjects.OfType<Slider>()
+            .First();
+
+        Assert.NotEqual(0, stacked.stackIndex);
+        Assert.Equal(alone.PathPxPositions, stacked.PathPxPositions);
+        Assert.Equal(alone.UnstackedEndPosition, stacked.UnstackedEndPosition);
+    }
+
+    [Theory]
+    [InlineData("100,100,1000,2,0,L|150:100|200:150,1,120")]
+    [InlineData("100,100,1000,2,0,B|150:50|200:150|250:100,1,120")]
+    [InlineData("100,100,1000,2,0,P|150:50|200:100,1,120")]
+    [InlineData("100,100,1000,2,0,C|150:50|200:100|250:50,1,120")]
+    public void UnstackedEndPosition_IsTheLastPathPosition(string hitObject)
+    {
+        var slider = CreateSlider(hitObject);
+
+        Assert.Equal(slider.PathPxPositions[^1], slider.UnstackedEndPosition);
+    }
+
+    [Fact]
+    public void ReverseSlider_EndsWhereItStarted()
+    {
+        var slider = CreateSlider("100,100,1000,2,0,L|200:100,2,100");
+
+        Assert.Equal(slider.UnstackedPosition, slider.UnstackedEndPosition);
+    }
+
+    private static Slider CreateSlider(string hitObject) =>
+        (Slider)CreateBeatmap(hitObject).HitObjects.First();
+
+    private static Beatmap CreateBeatmap(string hitObjects)
     {
         var code = $"""
 [General]
@@ -29,10 +72,10 @@ SliderTickRate:1
 0,333.333333333333,4,2,0,100,1,0
 
 [HitObjects]
-{hitObject}
+{hitObjects}
 """;
 
-        return (Slider)new Beatmap(code, "song", "map.osu").HitObjects.First();
+        return new Beatmap(code, "song", "map.osu");
     }
 
     [Fact]

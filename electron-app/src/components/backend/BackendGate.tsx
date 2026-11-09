@@ -31,6 +31,9 @@ declare global {
   }
 }
 
+/** Plenty to diagnose a failed start with, without a stuck start growing forever. */
+const MAX_SIDECAR_LOG_LINES = 1000;
+
 type Status = 'idle' | 'starting' | 'ready' | 'error';
 type Stage = 'init' | 'health' | 'ready';
 
@@ -121,11 +124,12 @@ const BackendGate: React.FC<BackendGateProps> = ({
   const shouldGate = !loaded ? null : isProd || settings.gateInDev;
 
   const appendLog = useCallback((line: string) => {
-    setSidecarLogs((prev) => [...prev, line]);
+    setSidecarLogs((prev) => [...prev.slice(-(MAX_SIDECAR_LOG_LINES - 1)), line]);
   }, []);
 
   const markReady = useCallback((persist = true) => {
     dispatch({ type: 'ready' });
+    setSidecarLogs([]);
 
     if (persist) {
       window.__BACKEND_GATE__ = { ready: true };
@@ -193,13 +197,18 @@ const BackendGate: React.FC<BackendGateProps> = ({
     }
   }, [shouldGate, healthTimeoutMs, probeIntervalMs, markReady, markError, reset]);
 
+  // The logs only show on the failed-to-load screen, so they aren't needed once the app is running.
+  const collectLogs = !!shouldGate && status !== 'ready';
+
   useEffect(() => {
+    if (!collectLogs) return;
+
     const off = window.electronAPI?.backend.onLog(appendLog);
 
     return () => {
       off?.();
     };
-  }, [appendLog]);
+  }, [appendLog, collectLogs]);
 
   useEffect(() => {
     if (!shouldGate) return;

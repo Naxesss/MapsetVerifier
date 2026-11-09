@@ -36,6 +36,7 @@ namespace MapsetVerifier.Snapshots.Store
 
         private static string? root;
         private static bool ready;
+        private static bool convertsOnOpen;
 
         public static string Root =>
             root ?? throw new InvalidOperationException("Snapshot directory not set up");
@@ -49,19 +50,6 @@ namespace MapsetVerifier.Snapshots.Store
             }
 
             Log.Information("Snapshot directory: {Path}", root);
-
-            // Migrating a big old history takes a while, so it starts now rather than on first use.
-            Task.Run(() =>
-            {
-                try
-                {
-                    EnsureReady();
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Preparing the snapshot store failed");
-                }
-            });
         }
 
         /// <summary> Points the store at another folder (used while migrating); returns the old one. </summary>
@@ -73,7 +61,7 @@ namespace MapsetVerifier.Snapshots.Store
             return old;
         }
 
-        /// <summary> Runs the one-time migration of the old layout; every public call waits for it. </summary>
+        /// <summary> Prepares the store on first use; every public call waits for it. </summary>
         private static void EnsureReady()
         {
             if (ready)
@@ -86,20 +74,56 @@ namespace MapsetVerifier.Snapshots.Store
 
                 try
                 {
-                    LegacyMigrator.MigrateIfNeeded(Root);
                     LegacyMigrator.RepairIfNeeded(Root);
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex, "Migrating the old snapshots failed; they stay where they are.");
+                    Log.Error(ex, "Rebuilding the old snapshots failed; they stay where they are.");
                 }
+
+                LegacyMigrator.RemoveInterruptedMigration(Root);
+
+                var hasIndex = File.Exists(Path.Combine(Root, IndexFile));
+
+                // A store without an index hasn't been converted yet, so its numbered folders are old
+                // snapshots. They are converted when their set is opened, not all at once: someone's
+                // history can be gigabytes, most of which they may never look at again.
+                convertsOnOpen = hasIndex
+                    ? ReadIndex().ConvertsOnOpen
+                    : LegacyMigrator.HasOldSnapshots(Root);
 
                 Directory.CreateDirectory(Root);
 
-                if (!File.Exists(Path.Combine(Root, IndexFile)))
-                    WriteIndex(new StoreIndex { Migration = StoreIndex.CurrentMigration });
+                if (!hasIndex)
+                    WriteIndex(
+                        new StoreIndex
+                        {
+                            Migration = StoreIndex.CurrentMigration,
+                            ConvertsOnOpen = convertsOnOpen,
+                        }
+                    );
 
                 ready = true;
+            }
+        }
+
+        /// <summary> Converts this set's old snapshots if it still has any. </summary>
+        private static void ConvertIfNeeded(string setKey)
+        {
+            if (!convertsOnOpen)
+                return;
+
+            lock (Gate)
+            {
+                try
+                {
+                    LegacyMigrator.ConvertSet(Root, setKey);
+                }
+                catch (Exception ex)
+                {
+                    // Left in place, so this is tried again the next time the set is opened.
+                    Log.Error(ex, "Converting the old snapshots of {SetKey} failed", setKey);
+                }
             }
         }
 
@@ -131,7 +155,12 @@ namespace MapsetVerifier.Snapshots.Store
                 .FirstOrDefault(i => i is > 0);
 
             if (setId != null)
-                return SetKeyForId(setId.Value);
+            {
+                var setKey = SetKeyForId(setId.Value);
+                ConvertIfNeeded(setKey);
+
+                return setKey;
+            }
 
             lock (Gate)
             {
@@ -157,6 +186,7 @@ namespace MapsetVerifier.Snapshots.Store
         public static SetLog Load(string setKey)
         {
             EnsureReady();
+            ConvertIfNeeded(setKey);
 
             lock (Gate)
                 return ReadLog(setKey);
@@ -369,6 +399,7 @@ namespace MapsetVerifier.Snapshots.Store
         public static bool SetPin(string setKey, string id, string? pin)
         {
             EnsureReady();
+            ConvertIfNeeded(setKey);
 
             lock (Gate)
             {

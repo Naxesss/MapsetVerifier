@@ -86,12 +86,12 @@ export default function MantineMarkdown({
           ),
           img: ({ src, alt, title }: { src?: string; alt?: string; title?: string }) => {
             if (!title) {
-              return <img src={src} alt={alt} />;
+              return <img src={src} alt={alt} loading="lazy" decoding="async" />;
             }
 
             return (
               <figure className="markdown-text-figure">
-                <img src={src} alt={alt} />
+                <img src={src} alt={alt} loading="lazy" decoding="async" />
                 <figcaption>{title}</figcaption>
               </figure>
             );

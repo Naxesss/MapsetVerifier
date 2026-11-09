@@ -12,17 +12,18 @@
             // Find the section, always from a line starting with [ and ending with ]
             // then ending on either end of file or an empty line.
             var read = false;
+            var sectionHeader = "[" + section + "]";
 
             foreach (var line in lines)
             {
-                if (line.StartsWith("["))
+                if (line.StartsWith('['))
                     read = false;
 
-                if (read && line.Trim().Length != 0)
+                if (read && !string.IsNullOrWhiteSpace(line))
                     yield return func(line.Replace("\r", ""));
 
                 // "[[TimingLines]]]]" works. Anything that doesn't work will be very obvious (map corrupted warnings etc).
-                if (line.Contains("[" + section + "]"))
+                if (line.Contains(sectionHeader))
                     read = true;
             }
         }

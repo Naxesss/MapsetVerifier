@@ -38,6 +38,14 @@ namespace MapsetVerifier.Snapshots.Compare
         /// <summary> Where snapshot versions are said to live, for the parser's per-path caches. </summary>
         private const string SnapshotSongPath = "snapshot";
 
+        /// <summary>
+        /// How many characters of .osu the parsed versions kept around may add up to. Going by size
+        /// rather than count leaves room to compare big sets, without marathons taking up gigabytes.
+        /// </summary>
+        private const long MaxParseCacheCharacters = 8_000_000;
+
+        private static long parseCacheCharacters;
+
         private static readonly ConcurrentDictionary<string, Parsed> ParseCache = new();
         private static readonly ConcurrentDictionary<string, Partial> CompareCache = new();
         private static readonly ConcurrentDictionary<string, double?> StarsCache = new();
@@ -331,8 +339,12 @@ namespace MapsetVerifier.Snapshots.Compare
 
             ParseCache[key] = parsed;
 
-            if (ParseCache.Count > 96)
+            if (
+                Interlocked.Add(ref parseCacheCharacters, code.Length) > MaxParseCacheCharacters
+                || ParseCache.Count > 96
+            )
             {
+                Interlocked.Exchange(ref parseCacheCharacters, 0);
                 ParseCache.Clear();
                 Beatmap.ClearCacheForSongPath(SnapshotSongPath);
             }

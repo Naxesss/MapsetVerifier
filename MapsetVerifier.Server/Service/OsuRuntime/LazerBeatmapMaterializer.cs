@@ -77,7 +77,7 @@ public static class LazerBeatmapMaterializer
         string beatmapSetId
     )
     {
-        var files = LazerRealmService.GetBeatmapSetFilesFresh(dataDirectory, beatmapSetId);
+        var files = LazerRealmService.GetBeatmapSetFiles(dataDirectory, beatmapSetId);
         if (files == null)
             return ApiLazerMaterializeResult.Error(
                 "Beatmapset could not be found in the lazer library."

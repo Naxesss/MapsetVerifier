@@ -109,21 +109,29 @@ namespace MapsetVerifier.Framework.Objects.Resources
             lock (locks.GetOrAdd(filePath, new object()))
             {
                 var stream = CreateStream(filePath, BassFlags.Decode | BassFlags.Float);
-                var metadata = ReadMetadata(stream, out var frequency);
 
-                var samples = ReadAllSamples(stream, filePath);
+                try
+                {
+                    var metadata = ReadMetadata(stream, out var frequency);
+                    var peaks = ReadPeaks(
+                        stream,
+                        filePath,
+                        Math.Max(metadata.Channels, 1),
+                        frequency
+                    );
 
-                FreeStream(stream);
-
-                var peaks = ComputePeaks(samples, Math.Max(metadata.Channels, 1), frequency);
-
-                return new AudioFileInfo(
-                    metadata.Format,
-                    metadata.Channels,
-                    metadata.DurationMs,
-                    metadata.Bitrate,
-                    peaks
-                );
+                    return new AudioFileInfo(
+                        metadata.Format,
+                        metadata.Channels,
+                        metadata.DurationMs,
+                        metadata.Bitrate,
+                        peaks
+                    );
+                }
+                finally
+                {
+                    FreeStream(stream);
+                }
             }
         }
 
@@ -234,11 +242,12 @@ namespace MapsetVerifier.Framework.Objects.Resources
         ///     given the full path.
         /// </summary>
         /// <remarks>
-        ///     Decodes the whole file into memory with a handful of bulk <see cref="Bass.ChannelGetData(int, float[], int)" />
-        ///     calls, then computes the per-ms peak (max absolute sample value per channel, matching the default/"All"
+        ///     Decodes the file with a handful of bulk <see cref="Bass.ChannelGetData(int, float[], int)" /> calls,
+        ///     computing the per-ms peak (max absolute sample value per channel, matching the default/"All"
         ///     <see cref="LevelRetrievalFlags" /> behaviour of <see cref="Bass.ChannelGetLevel(int, float[], float, LevelRetrievalFlags)" />)
         ///     in managed code. Doing this instead of calling <c>ChannelGetLevel</c> once per millisecond avoids one
         ///     native interop call per ms of audio, which otherwise dominates runtime for files with any real duration.
+        ///     The samples aren't kept, since a long song would otherwise take up hundreds of MB while decoding.
         /// </remarks>
         public static List<float[]> GetPeaks(string filePath)
         {
@@ -246,63 +255,36 @@ namespace MapsetVerifier.Framework.Objects.Resources
             {
                 var stream = CreateStream(filePath, BassFlags.Decode | BassFlags.Float);
 
-                Bass.ChannelGetInfo(stream, out var channelInfo);
-                var channels = Math.Max(channelInfo.Channels, 1);
-                var frequency = channelInfo.Frequency;
-
-                var samples = ReadAllSamples(stream, filePath);
-
-                FreeStream(stream);
-
-                return ComputePeaks(samples, channels, frequency);
-            }
-        }
-
-        /// <summary> Computes the per-ms peak (max absolute sample value per channel) from a flat, interleaved sample buffer. </summary>
-        private static List<float[]> ComputePeaks(List<float> samples, int channels, int frequency)
-        {
-            if (samples.Count == 0 || frequency <= 0)
-                return [];
-
-            var frameCount = samples.Count / channels;
-            var samplesPerMs = frequency / 1000.0;
-            var msCount = (int)(frameCount / samplesPerMs);
-
-            var peaks = new List<float[]>(msCount);
-
-            var frame = 0;
-
-            for (var ms = 0; ms < msCount; ++ms)
-            {
-                var frameEnd = Math.Min((int)((ms + 1) * samplesPerMs), frameCount);
-                var levels = new float[channels];
-
-                for (; frame < frameEnd; ++frame)
+                try
                 {
-                    var baseIndex = frame * channels;
+                    Bass.ChannelGetInfo(stream, out var channelInfo);
 
-                    for (var channel = 0; channel < channels; ++channel)
-                    {
-                        var abs = Math.Abs(samples[baseIndex + channel]);
-
-                        if (abs > levels[channel])
-                            levels[channel] = abs;
-                    }
+                    return ReadPeaks(
+                        stream,
+                        filePath,
+                        Math.Max(channelInfo.Channels, 1),
+                        channelInfo.Frequency
+                    );
                 }
-
-                peaks.Add(levels);
+                finally
+                {
+                    FreeStream(stream);
+                }
             }
-
-            return peaks;
         }
 
-        /// <summary> Bulk-reads all remaining decoded float samples (interleaved by channel) from a decode stream. </summary>
-        private static List<float> ReadAllSamples(int stream, string filePath)
+        /// <summary> Bulk-reads all remaining decoded float samples (interleaved by channel) from a decode stream into per-ms peaks. </summary>
+        private static List<float[]> ReadPeaks(
+            int stream,
+            string filePath,
+            int channels,
+            int frequency
+        )
         {
             const int chunkFloats = 65536;
 
             var chunk = new float[chunkFloats];
-            var samples = new List<float>();
+            var accumulator = new AudioPeakAccumulator(channels, frequency);
 
             while (true)
             {
@@ -323,16 +305,13 @@ namespace MapsetVerifier.Framework.Objects.Resources
 
                 var floatsRead = bytesRead / sizeof(float);
 
-                if (floatsRead == chunkFloats)
-                    samples.AddRange(chunk);
-                else
-                    samples.AddRange(chunk[..floatsRead]);
+                accumulator.Add(chunk.AsSpan(0, floatsRead));
 
                 if (floatsRead < chunkFloats)
                     break;
             }
 
-            return samples;
+            return accumulator.Finish();
         }
 
         // These two methods are mostly for converting GetFormat into a readable format.

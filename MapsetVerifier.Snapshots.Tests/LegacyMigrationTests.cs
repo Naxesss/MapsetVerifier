@@ -56,11 +56,156 @@ public class LegacyMigrationTests
         Assert.False(Directory.Exists(Path.Combine(context.StoreRoot, "snapshots-legacy")));
     }
 
-    private static void WriteLegacy(string snapshots, string folder, string time, string code)
+    private static void WriteLegacy(
+        string snapshots,
+        string folder,
+        string time,
+        string code,
+        string set = "999"
+    )
     {
-        var directory = Path.Combine(snapshots, "999", folder);
+        var directory = Path.Combine(snapshots, set, folder);
         Directory.CreateDirectory(directory);
         File.WriteAllText(Path.Combine(directory, time + ".osu"), code);
+    }
+
+    private static void SeedSet(string snapshots, string set) =>
+        WriteLegacy(
+            snapshots,
+            "11",
+            "2020-01-01 10-00-00",
+            BuildOsu("Easy", Circles(3), 11, ulong.Parse(set)),
+            set
+        );
+
+    [Fact]
+    public void StartingUp_ConvertsNothing()
+    {
+        using var context = Create(snapshots => SeedSet(snapshots, "999"));
+        var snapshots = Path.Combine(context.StoreRoot, "snapshots");
+
+        // Using the store for another set shouldn't touch this one either.
+        Assert.Empty(SnapshotStore.Load("set-1").Entries);
+
+        Assert.True(Directory.Exists(Path.Combine(snapshots, "999")));
+        Assert.False(Directory.Exists(Path.Combine(snapshots, "set-999")));
+        Assert.False(Directory.Exists(Path.Combine(context.StoreRoot, "snapshots-legacy")));
+    }
+
+    [Fact]
+    public void OpeningASet_ConvertsOnlyThatSet()
+    {
+        using var context = Create(snapshots =>
+        {
+            SeedSet(snapshots, "999");
+            SeedSet(snapshots, "888");
+        });
+        var snapshots = Path.Combine(context.StoreRoot, "snapshots");
+
+        Assert.Single(SnapshotStore.Load("set-999").Entries);
+
+        Assert.False(Directory.Exists(Path.Combine(snapshots, "999")));
+        Assert.True(Directory.Exists(Path.Combine(context.StoreRoot, "snapshots-legacy", "999")));
+        Assert.True(Directory.Exists(Path.Combine(snapshots, "888")));
+        Assert.False(Directory.Exists(Path.Combine(snapshots, "set-888")));
+
+        // Still waiting after a restart, too.
+        SnapshotStore.ConfigurePath(context.StoreRoot, "");
+        Assert.Single(SnapshotStore.Load("set-888").Entries);
+        Assert.False(Directory.Exists(Path.Combine(snapshots, "888")));
+    }
+
+    [Fact]
+    public void CapturingASetWithOldSnapshots_KeepsThemBeforeTheNewOne()
+    {
+        using var context = Create(snapshots => SeedSet(snapshots, "999"));
+        context.WriteDifficulty("a.osu", BuildOsu("Easy", Circles(5), 11, 999));
+
+        var captured = SnapshotStore.Capture(
+            context.Load(),
+            "pageOpen",
+            now: new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+        )!;
+
+        var log = SnapshotStore.Load("set-999");
+
+        Assert.Equal(2, log.Entries.Count);
+        Assert.Equal("import", log.Entries[0].Trigger);
+        Assert.Equal(captured.Id, log.Entries[1].Id);
+    }
+
+    [Fact]
+    public void AnInterruptedConversion_IsDoneAgainWithoutDuplicates_KeepingWhatWasAdded()
+    {
+        using var context = Create(snapshots => SeedSet(snapshots, "999"));
+        var snapshots = Path.Combine(context.StoreRoot, "snapshots");
+        var entry = SnapshotStore.Load("set-999").Entries.Single();
+        Assert.True(SnapshotStore.SetPin("set-999", entry.Id, "Milestone"));
+
+        // The log was written, but the old folder never got moved out of the way.
+        SeedSet(snapshots, "999");
+        SnapshotStore.ConfigurePath(context.StoreRoot, "");
+
+        Assert.Equal("Milestone", SnapshotStore.Load("set-999").Entries.Single().Pin);
+        Assert.False(Directory.Exists(Path.Combine(snapshots, "999")));
+
+        // The first copy of the old folder is still there; the second is kept next to it.
+        var kept = Directory.GetDirectories(Path.Combine(context.StoreRoot, "snapshots-legacy"));
+        Assert.Equal(2, kept.Length);
+    }
+
+    [Fact]
+    public void AStoreConvertedAllAtOnce_LeavesNumberedFoldersAlone()
+    {
+        using var context = Create();
+        var snapshots = Path.Combine(context.StoreRoot, "snapshots");
+
+        // What 2.2 left behind: an index, plus a folder an older version wrote after that.
+        Directory.CreateDirectory(snapshots);
+        File.WriteAllText(Path.Combine(snapshots, "index.json"), "{\"Version\":2,\"Migration\":2}");
+        SeedSet(snapshots, "999");
+        SnapshotStore.ConfigurePath(context.StoreRoot, "");
+
+        Assert.Empty(SnapshotStore.Load("set-999").Entries);
+        Assert.True(Directory.Exists(Path.Combine(snapshots, "999")));
+    }
+
+    [Fact]
+    public void AnUnfinishedMigrationOfTheWholeStore_IsCleanedUp()
+    {
+        using var context = Create(snapshots =>
+        {
+            SeedSet(snapshots, "999");
+            var staging = snapshots + "-migrating";
+            Directory.CreateDirectory(Path.Combine(staging, "set-999"));
+            File.WriteAllText(Path.Combine(staging, "set-999", "log.json"), "{}");
+        });
+        var staging = Path.Combine(context.StoreRoot, "snapshots-migrating");
+
+        Assert.Single(SnapshotStore.Load("set-999").Entries);
+
+        var deadline = DateTime.UtcNow.AddSeconds(10);
+
+        while (Directory.Exists(staging) && DateTime.UtcNow < deadline)
+            Thread.Sleep(20);
+
+        Assert.False(Directory.Exists(staging));
+    }
+
+    [Theory]
+    [InlineData("set-..")]
+    [InlineData("set-../../outside")]
+    [InlineData("set-")]
+    [InlineData("local-999")]
+    [InlineData("999")]
+    public void SetKeysThatAreNotPlainNumbers_NeverReachAnOldFolder(string setKey)
+    {
+        using var context = Create(snapshots => SeedSet(snapshots, "999"));
+
+        SnapshotStore.Load(setKey);
+
+        Assert.True(Directory.Exists(Path.Combine(context.StoreRoot, "snapshots", "999")));
+        Assert.False(Directory.Exists(Path.Combine(context.StoreRoot, "snapshots-legacy")));
     }
 
     private static void WriteListing(string snapshots, string time, params string[] names)
