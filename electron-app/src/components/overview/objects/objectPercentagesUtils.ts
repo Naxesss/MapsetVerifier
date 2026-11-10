@@ -55,7 +55,7 @@ export const OBJECT_PERCENTAGE_COLUMNS: Record<Mode, ObjectPercentageColumn[]> =
       labels: ['Slider heads', 'Slider tails'],
     },
     { type: 'single', label: 'Slider repeats' },
-    { type: 'single', label: 'Droplets' },
+    { type: 'single', label: 'Drops' },
     { type: 'single', label: 'Spinners' },
   ],
   Mania: [

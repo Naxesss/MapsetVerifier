@@ -903,7 +903,7 @@ public static class BeatmapAnalysisService
                                 {
                                     JuiceStream.JuiceStreamPart.PartKind.Repeat => "Slider repeats",
                                     JuiceStream.JuiceStreamPart.PartKind.Tail => "Slider tails",
-                                    JuiceStream.JuiceStreamPart.PartKind.Droplet => "Droplets",
+                                    JuiceStream.JuiceStreamPart.PartKind.Drop => "Drops",
                                     _ => part.GetNoteTypeName(),
                                 };
                                 Add(partLabel, part.time, part.GetNoteTypeName());

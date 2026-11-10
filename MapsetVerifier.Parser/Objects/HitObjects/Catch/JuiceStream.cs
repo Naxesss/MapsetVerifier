@@ -23,9 +23,9 @@ public class JuiceStream : Slider, ICatchHitObject
             parts.Add(CreateJuiceStreamPart(edgeTime, this, partKind));
         }
 
-        // Droplets
+        // Drops, one on every slider tick
         foreach (var tickTime in SliderTickTimes)
-            parts.Add(CreateJuiceStreamPart(tickTime, this, JuiceStreamPart.PartKind.Droplet));
+            parts.Add(CreateJuiceStreamPart(tickTime, this, JuiceStreamPart.PartKind.Drop));
 
         var sortedParts = parts.OrderBy(part => part.Time).ToList();
         Parts.AddRange(sortedParts);
@@ -53,10 +53,10 @@ public class JuiceStream : Slider, ICatchHitObject
         return new JuiceStreamPart(codeClone, beatmap, juiceStream, kind);
     }
 
-    /// <summary>All parts belonging to this juice stream excluding the head (repeats, tail, droplets).</summary>
+    /// <summary>All parts belonging to this juice stream excluding the head (repeats, tail, drops).</summary>
     public List<JuiceStreamPart> Parts { get; } = [];
 
-    /// <summary>Represents a slider component (repeat, tail, droplet) for catch movement.</summary>
+    /// <summary>Represents a slider component (repeat, tail, drop) for catch movement.</summary>
     public class JuiceStreamPart(
         string[] args,
         Beatmap beatmap,
@@ -68,7 +68,7 @@ public class JuiceStream : Slider, ICatchHitObject
         {
             Repeat,
             Tail,
-            Droplet,
+            Drop,
         }
 
         public readonly JuiceStream Parent = parent;
@@ -84,7 +84,7 @@ public class JuiceStream : Slider, ICatchHitObject
             {
                 PartKind.Repeat => "Slider repeat",
                 PartKind.Tail => "Slider tail",
-                PartKind.Droplet => "Droplet",
+                PartKind.Drop => "Drop",
                 _ => "Fruit",
             };
     }

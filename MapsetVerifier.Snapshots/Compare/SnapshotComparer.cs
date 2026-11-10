@@ -567,7 +567,7 @@ namespace MapsetVerifier.Snapshots.Compare
 
         /// <summary>
         /// The fruits that start a hyperdash, which the game gives a red glow: the fruit itself, or
-        /// a juice stream's head, reverses and tail. Droplets never do.
+        /// a juice stream's head, reverses and tail. Drops never do.
         /// </summary>
         private static List<double>? HyperTimes(HitObject o)
         {
@@ -580,7 +580,7 @@ namespace MapsetVerifier.Snapshots.Compare
                 times.AddRange(
                     stream
                         .Parts.Where(p =>
-                            p.Kind != JuiceStream.JuiceStreamPart.PartKind.Droplet
+                            p.Kind != JuiceStream.JuiceStreamPart.PartKind.Drop
                             && p.MovementType == CatchMovementType.Hyperdash
                         )
                         .Select(p => p.Time)
@@ -789,11 +789,11 @@ namespace MapsetVerifier.Snapshots.Compare
                 combo > 0 ? combo : null,
                 o is JuiceStream juice
                     ? juice
-                        .Parts.Where(p => p.Kind == JuiceStream.JuiceStreamPart.PartKind.Droplet)
+                        .Parts.Where(p => p.Kind == JuiceStream.JuiceStreamPart.PartKind.Drop)
                         .Select(p => p.Time)
                         .ToList()
-                        is { Count: > 0 } droplets
-                        ? droplets
+                        is { Count: > 0 } drops
+                        ? drops
                         : null
                     : type == "Slider" && map.GeneralSettings.mode == Beatmap.Mode.Standard
                         ? SliderTicks(o, map)

@@ -38,7 +38,8 @@ public class CheckMaxCombo : BeatmapCheck
                     "Reasoning",
                     @"
                     Caught fruits will stack up on the plate and can potentially obstruct the player's view. 
-                    Bear in mind that slider tails, repeats and spinner bananas also count as fruits."
+                    Bear in mind that slider tails, repeats, drops and spinner bananas also count towards combo. 
+                    A combo made of a single slider can't be split up, so it is only pointed out as a minor issue."
                 },
             },
         };
@@ -81,6 +82,23 @@ public class CheckMaxCombo : BeatmapCheck
                         RC.Catch.Platter_CombosNotExceed12Fruits
                     )
             },
+            {
+                "MaxComboSingleSlider",
+                new IssueTemplate(
+                    Issue.Level.Minor,
+                    "{0} The amount of combo exceeds the guideline of {1}, currently it has {2}. This combo is a single slider.",
+                    "timestamp -",
+                    "guideline combo",
+                    "combo"
+                )
+                    .WithCause("The combo amount of a single slider exceeds the guideline.")
+                    .WithRule(
+                        RC.Catch.CombosNotReachUnreasonableLengths,
+                        RC.Catch.Cup_CombosNotExceed8Fruits,
+                        RC.Catch.Salad_CombosNotExceed10Fruits,
+                        RC.Catch.Platter_CombosNotExceed12Fruits
+                    )
+            },
         };
     }
 
@@ -90,11 +108,11 @@ public class CheckMaxCombo : BeatmapCheck
         int maxCombo,
         int currentCount,
         Beatmap.Difficulty[] difficulties,
-        bool isSignificant = false
+        string templateKey
     )
     {
         return new Issue(
-            GetTemplate(isSignificant ? "MaxComboSignificantly" : "MaxCombo"),
+            GetTemplate(templateKey),
             beatmap,
             Timestamp.Get(startObject),
             maxCombo,
@@ -106,26 +124,80 @@ public class CheckMaxCombo : BeatmapCheck
         Beatmap beatmap,
         HitObject startObject,
         int count,
+        bool isSingleSlider,
         int threshold,
         params Beatmap.Difficulty[] difficulties
     )
     {
-        if (count > threshold * SignificantMultiplier)
+        if (count <= threshold)
         {
-            return ComboIssue(beatmap, startObject, threshold, count, difficulties, true);
+            return null;
         }
 
-        if (count > threshold)
+        // A single slider can't be split up by new combos, so only point it out.
+        if (isSingleSlider)
         {
-            return ComboIssue(beatmap, startObject, threshold, count, difficulties);
+            return ComboIssue(
+                beatmap,
+                startObject,
+                threshold,
+                count,
+                difficulties,
+                "MaxComboSingleSlider"
+            );
         }
 
-        return null;
+        var templateKey =
+            count > threshold * SignificantMultiplier ? "MaxComboSignificantly" : "MaxCombo";
+
+        return ComboIssue(beatmap, startObject, threshold, count, difficulties, templateKey);
+    }
+
+    private IEnumerable<Issue?> GetComboIssues(
+        Beatmap beatmap,
+        HitObject startObject,
+        int count,
+        bool isSingleSlider
+    )
+    {
+        yield return GetComboIssues(
+            beatmap,
+            startObject,
+            count,
+            isSingleSlider,
+            ThresholdCup,
+            Beatmap.Difficulty.Easy
+        );
+        yield return GetComboIssues(
+            beatmap,
+            startObject,
+            count,
+            isSingleSlider,
+            ThresholdSalad,
+            Beatmap.Difficulty.Normal
+        );
+        yield return GetComboIssues(
+            beatmap,
+            startObject,
+            count,
+            isSingleSlider,
+            ThresholdPlatter,
+            Beatmap.Difficulty.Hard
+        );
+        yield return GetComboIssues(
+            beatmap,
+            startObject,
+            count,
+            isSingleSlider,
+            ThresholdRainAndOverdose,
+            Beatmap.Difficulty.Insane,
+            Beatmap.Difficulty.Expert,
+            Beatmap.Difficulty.Ultra
+        );
     }
 
     public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
     {
-        var count = 0;
         // Don't include sliders as on slider starts can be used to put new combos
         var catchObjects = beatmap.GetCatchHitObjects(includeJuiceStreamParts: false);
 
@@ -135,6 +207,8 @@ public class CheckMaxCombo : BeatmapCheck
         }
 
         var startObject = (HitObject)catchObjects[0];
+        var count = 0;
+        var objectsInCombo = 0;
         var issues = new List<Issue?>();
 
         for (var i = 0; i < catchObjects.Count; i++)
@@ -147,81 +221,34 @@ public class CheckMaxCombo : BeatmapCheck
                 && (currentObject.HasType(Types.NewCombo) || currentObject.HasType(Types.Spinner))
             )
             {
-                issues.Add(
+                issues.AddRange(
                     GetComboIssues(
                         beatmap,
                         startObject,
                         count,
-                        ThresholdCup,
-                        Beatmap.Difficulty.Easy
-                    )
-                );
-                issues.Add(
-                    GetComboIssues(
-                        beatmap,
-                        startObject,
-                        count,
-                        ThresholdSalad,
-                        Beatmap.Difficulty.Normal
-                    )
-                );
-                issues.Add(
-                    GetComboIssues(
-                        beatmap,
-                        startObject,
-                        count,
-                        ThresholdPlatter,
-                        Beatmap.Difficulty.Hard
-                    )
-                );
-                issues.Add(
-                    GetComboIssues(
-                        beatmap,
-                        startObject,
-                        count,
-                        ThresholdRainAndOverdose,
-                        Beatmap.Difficulty.Insane,
-                        Beatmap.Difficulty.Expert,
-                        Beatmap.Difficulty.Ultra
+                        IsSingleSlider(startObject, objectsInCombo)
                     )
                 );
 
                 // Reset values for new combo
                 startObject = currentObject;
                 count = 0;
+                objectsInCombo = 0;
             }
 
             count++;
+            objectsInCombo++;
 
-            // Repeats and tails stack on the plate like fruits do, droplets don't
+            // Repeats, tails and drops all add to the combo
             if (catchObject is JuiceStream juiceStream)
             {
-                count += juiceStream.Parts.Count(part =>
-                    part.Kind != JuiceStream.JuiceStreamPart.PartKind.Droplet
-                );
+                count += juiceStream.Parts.Count;
             }
         }
 
         // Check last combo of the map
-        issues.Add(
-            GetComboIssues(beatmap, startObject, count, ThresholdCup, Beatmap.Difficulty.Easy)
-        );
-        issues.Add(
-            GetComboIssues(beatmap, startObject, count, ThresholdSalad, Beatmap.Difficulty.Normal)
-        );
-        issues.Add(
-            GetComboIssues(beatmap, startObject, count, ThresholdPlatter, Beatmap.Difficulty.Hard)
-        );
-        issues.Add(
-            GetComboIssues(
-                beatmap,
-                startObject,
-                count,
-                ThresholdRainAndOverdose,
-                Beatmap.Difficulty.Insane,
-                Beatmap.Difficulty.Expert,
-                Beatmap.Difficulty.Ultra
-            )
+        issues.AddRange(
+            GetComboIssues(beatmap, startObject, count, IsSingleSlider(startObject, objectsInCombo))
         );
 
         foreach (var issue in issues.OfType<Issue>())
@@ -229,4 +256,7 @@ public class CheckMaxCombo : BeatmapCheck
             yield return issue;
         }
     }
+
+    private static bool IsSingleSlider(HitObject startObject, int objectsInCombo) =>
+        objectsInCombo == 1 && startObject is JuiceStream;
 }

@@ -19,9 +19,9 @@ const GAP = 40;
 /** Every picture is the same size, so scrolling never changes the zoom. */
 const FIELD_HEIGHT = 300;
 const FRUIT = 7;
-/** The big droplet at a slider tick, and the small ones between them. */
-const DROPLET = 4.5;
-const DROPLET_TINY = 2.5;
+/** The drop at a slider tick, and the small droplets between them. */
+const DROP = 4.5;
+const DROPLET = 2.5;
 
 type Item = { object: ApiSnapshotVisualObject; status: PairStatus; pair: PairedObject };
 
@@ -155,8 +155,8 @@ function Field({
                   );
                 }
 
-                // A juice stream: a fruit at its start, a fruit at each reverse and at its end, a big
-                // droplet at every slider tick and small droplets in between, like in the game.
+                // A juice stream: a fruit at its start, a fruit at each reverse and at its end, a drop
+                // at every slider tick and small droplets in between, like in the game.
                 if (object.type === 'Slider' && object.path && object.endTime != null) {
                   const path = object.path;
                   const start = object.time;
@@ -178,7 +178,7 @@ function Field({
 
                   const ticks = (object.ticks ?? []).filter((t) => t > start && t < end);
 
-                  // Small droplets fill the gaps between the bigger ones, about every 100 ms or less.
+                  // Small droplets fill the gaps between the drops, about every 100 ms or less.
                   const tiny: number[] = [];
                   for (let n = 0; n < slides; n++) {
                     const stops = [
@@ -237,8 +237,8 @@ function Field({
 
                   return (
                     <g key={i} opacity={opacity}>
-                      {dots(tiny, DROPLET_TINY, 'tiny')}
-                      {dots(ticks, DROPLET, 'tick')}
+                      {dots(tiny, DROPLET, 'tiny')}
+                      {dots(ticks, DROP, 'tick')}
                       {edgeTimes.map((time, d) => fruit(time, `edge${d}`))}
                       {fruit(start, 'head')}
                     </g>

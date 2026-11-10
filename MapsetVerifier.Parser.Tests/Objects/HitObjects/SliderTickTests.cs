@@ -112,15 +112,15 @@ SliderTickRate:{tickRate}
     }
 
     [Fact]
-    public void JuiceStreamDroplet_OnReverseSpan_SitsAtTheSamePlaceOnThePath()
+    public void JuiceStreamDrop_OnReverseSpan_SitsAtTheSamePlaceOnThePath()
     {
         var stream = Assert.IsType<JuiceStream>(CreateSlider("300:2", mode: 2));
-        var droplets = stream
-            .Parts.Where(part => part.Kind == JuiceStream.JuiceStreamPart.PartKind.Droplet)
+        var drops = stream
+            .Parts.Where(part => part.Kind == JuiceStream.JuiceStreamPart.PartKind.Drop)
             .ToList();
 
-        Assert.Equal(2, droplets.Count);
-        Assert.Equal(1500, droplets[1].Time, Precision);
-        Assert.Equal(droplets[0].Position.X, droplets[1].Position.X, 1);
+        Assert.Equal(2, drops.Count);
+        Assert.Equal(1500, drops[1].Time, Precision);
+        Assert.Equal(drops[0].Position.X, drops[1].Position.X, 1);
     }
 }

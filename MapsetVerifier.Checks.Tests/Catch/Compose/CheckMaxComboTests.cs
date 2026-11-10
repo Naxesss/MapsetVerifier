@@ -1,4 +1,5 @@
-using MapsetVerifier.Checks.Catch.Compose;
+﻿using MapsetVerifier.Checks.Catch.Compose;
+using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Parser.Objects;
 using Xunit;
 
@@ -11,10 +12,10 @@ public class CheckMaxComboTests
     private const int NewComboSlider = 6;
 
     [Fact]
-    public void LongSlider_DropletsDoNotCountTowardsCombo()
+    public void LongSlider_AloneInCombo_IsMinorAndMentionsSingleSlider()
     {
-        // 2800px at 1.4 SV and 500ms beats lasts 20 beats, so the slider has 19 droplets but only
-        // its head and tail stack on the plate.
+        // 2800px at 1.4 SV and 500ms beats lasts 20 beats, so the slider has 19 drops plus its
+        // head and tail, which is 21 combo in a combo that can't be split up.
         using var context = CreateContext(
             $"256,192,0,{NewComboCircle},0,0:0:0:0:",
             TestHitObjects.Slider(1000, curvePoints: "256:3000", length: 2800, type: NewComboSlider)
@@ -22,7 +23,34 @@ public class CheckMaxComboTests
 
         var issues = RunForDifficulty(context, Beatmap.Difficulty.Easy);
 
-        Assert.Empty(issues);
+        var issue = Assert.Single(issues);
+        Assert.Equal(Issue.Level.Minor, issue.level);
+        Assert.Contains("currently it has 21", issue.message);
+        Assert.Contains("single slider", issue.message);
+    }
+
+    [Fact]
+    public void LongSlider_WithOtherObjectsInCombo_CountsDrops()
+    {
+        // The same slider followed by a circle in its combo makes 22 combo, which is well over
+        // the Cup guideline.
+        using var context = CreateContext(
+            $"256,192,0,{NewComboCircle},0,0:0:0:0:",
+            TestHitObjects.Slider(
+                1000,
+                curvePoints: "256:3000",
+                length: 2800,
+                type: NewComboSlider
+            ),
+            TestHitObjects.Circle(11500)
+        );
+
+        var issues = RunForDifficulty(context, Beatmap.Difficulty.Easy);
+
+        var issue = Assert.Single(issues);
+        Assert.Equal(Issue.Level.Warning, issue.level);
+        Assert.Contains("currently it has 22", issue.message);
+        Assert.DoesNotContain("single slider", issue.message);
     }
 
     [Fact]
@@ -39,7 +67,7 @@ public class CheckMaxComboTests
         Assert.Contains("currently it has 9", issue.message);
     }
 
-    private static List<Framework.Objects.Issue> RunForDifficulty(
+    private static List<Issue> RunForDifficulty(
         CheckTestContext context,
         Beatmap.Difficulty difficulty
     )

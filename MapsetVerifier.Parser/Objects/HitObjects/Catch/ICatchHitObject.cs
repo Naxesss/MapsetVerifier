@@ -34,7 +34,7 @@ public interface ICatchHitObject
     CatchNoteDirection NoteDirection { get; set; }
 
     /// <summary>
-    /// Display name used in RC / user-facing messages (Fruit, Slider head, Slider repeat, Slider tail, Droplet, Spinner).
+    /// Display name used in RC / user-facing messages (Fruit, Slider head, Slider repeat, Slider tail, Drop, Spinner).
     /// </summary>
     string GetNoteTypeName();
 }
