@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using MapsetVerifier.RankingCriteria.Model;
 using MapsetVerifier.RankingCriteria.Parsing;
 using MapsetVerifier.RankingCriteria.Sync;
@@ -141,20 +140,50 @@ internal static class Program
     }
 
     /// <summary>
-    ///     Finds the latest commit touching the ranking criteria, skipping commits that only change translations
-    ///     (e.g. wiki/Ranking_criteria/fr.md) since only the English pages are snapshotted.
+    ///     Finds the latest commit touching one of the snapshotted pages, skipping commits that only change
+    ///     translations (e.g. wiki/Ranking_criteria/fr.md) since only the English pages are snapshotted.
     /// </summary>
     private static async Task<string> FindLatestCommit(HttpClient http)
     {
-        using var commitsJson = JsonDocument.Parse(
-            await http.GetStringAsync(
-                $"https://api.github.com/repos/{Repository}/commits?path=wiki/Ranking_criteria&per_page=30"
-            )
-        );
+        var sourcePaths = RcPages.All.Select(page => page.SourcePath).ToHashSet();
 
-        foreach (var entry in commitsJson.RootElement.EnumerateArray())
+        // The ranking criteria live under one folder; pages from elsewhere in the wiki are watched on their own.
+        var watchedPaths = RcPages
+            .All.Select(page =>
+                page.WikiPath.StartsWith("Ranking_criteria")
+                    ? "wiki/Ranking_criteria"
+                    : "wiki/" + page.WikiPath
+            )
+            .Distinct();
+
+        var candidates = new List<(string Sha, DateTimeOffset Date)>();
+
+        foreach (var watchedPath in watchedPaths)
         {
-            var sha = entry.GetProperty("sha").GetString()!;
+            using var commitsJson = JsonDocument.Parse(
+                await http.GetStringAsync(
+                    $"https://api.github.com/repos/{Repository}/commits?path={Uri.EscapeDataString(watchedPath)}&per_page=30"
+                )
+            );
+
+            candidates.AddRange(
+                commitsJson
+                    .RootElement.EnumerateArray()
+                    .Select(entry =>
+                        (
+                            entry.GetProperty("sha").GetString()!,
+                            entry
+                                .GetProperty("commit")
+                                .GetProperty("committer")
+                                .GetProperty("date")
+                                .GetDateTimeOffset()
+                        )
+                    )
+            );
+        }
+
+        foreach (var sha in candidates.OrderByDescending(c => c.Date).Select(c => c.Sha).Distinct())
+        {
             using var detailJson = JsonDocument.Parse(
                 await http.GetStringAsync(
                     $"https://api.github.com/repos/{Repository}/commits/{sha}"
@@ -165,21 +194,16 @@ internal static class Program
                 .RootElement.GetProperty("files")
                 .EnumerateArray()
                 .Select(file => file.GetProperty("filename").GetString()!)
-                .Where(path => path.StartsWith("wiki/Ranking_criteria/"))
-                .Any(path => !IsTranslation(path));
+                .Any(sourcePaths.Contains);
 
             if (relevant)
                 return sha;
         }
 
         throw new InvalidOperationException(
-            "No recent commit changed the ranking criteria beyond translations."
+            "No recent commit changed the snapshotted pages beyond translations."
         );
     }
-
-    /// <summary> Whether the path is a non-English language page such as "wiki/Ranking_criteria/osu!/fr.md". </summary>
-    private static bool IsTranslation(string path) =>
-        Regex.IsMatch(Path.GetFileName(path), @"^(?!en\.md$)[a-z]{2,3}(-[a-z]+)?\.md$");
 
     private static void Reparse(string dataDir)
     {
