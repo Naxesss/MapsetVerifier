@@ -60,6 +60,16 @@ public static class RcPages
             AllModes,
             false
         ),
+        // Not part of the ranking criteria itself, but the general rules point to it for which artists allow their
+        // songs to be used; CheckContentUsagePermissions reads its tables.
+        new(
+            "content-usage",
+            "Content usage permissions",
+            "Rules/Content_usage_permissions",
+            "ContentUsagePermissions",
+            AllModes,
+            false
+        ),
     ];
 
     public static RcPage? Get(string key) => All.FirstOrDefault(page => page.Key == key);

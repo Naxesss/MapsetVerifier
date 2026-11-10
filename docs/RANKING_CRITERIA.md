@@ -18,7 +18,7 @@ Everything lives in [`MapsetVerifier.RankingCriteria`](../MapsetVerifier.Ranking
 
 The snapshot and catalogue are embedded in the assembly, so the app never needs the wiki at runtime.
 
-`Simplified_ranking_criteria` (a summary of the other pages), `Ranking_Criteria_Council` (historical) and `Skin_set_list` (a reference list) are not part of the snapshot. `Scaling_BPM` and `Difficulty_naming` are included for viewing only.
+`Simplified_ranking_criteria` (a summary of the other pages), `Ranking_Criteria_Council` (historical) and `Skin_set_list` (a reference list) are not part of the snapshot. `Scaling_BPM` and `Difficulty_naming` are included for viewing only. So is `Rules/Content_usage_permissions`, which lives outside the ranking criteria folder; `CheckContentUsagePermissions` reads its artist tables, and the sync watches its path too.
 
 ## Linking a check
 

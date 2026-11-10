@@ -19,6 +19,7 @@ public sealed class OsuBuilder
     private string artist = "MapsetVerifier";
     private string creator = "Tests";
     private string version = "Test";
+    private string? source;
     private string? tags;
     private float circleSize = 4;
     private float hpDrainRate = 5;
@@ -85,6 +86,12 @@ public sealed class OsuBuilder
     public OsuBuilder Tags(string tags)
     {
         this.tags = tags;
+        return this;
+    }
+
+    public OsuBuilder Source(string source)
+    {
+        this.source = source;
         return this;
     }
 
@@ -206,6 +213,8 @@ public sealed class OsuBuilder
         lines.Add($"Artist:{artist}");
         lines.Add($"Creator:{creator}");
         lines.Add($"Version:{version}");
+        if (source != null)
+            lines.Add($"Source:{source}");
         if (tags != null)
             lines.Add($"Tags:{tags}");
 

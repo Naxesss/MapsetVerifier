@@ -117,7 +117,7 @@ namespace MapsetVerifier.Snapshots.Compare
                 var had = before.TryGetValue(key, out var oldValue);
                 var has = after.TryGetValue(key, out var newValue);
 
-                if (had && has && oldValue == newValue)
+                if (had && has && SameValue(section, oldValue!, newValue!))
                     continue;
 
                 if (had && has && key is "Tags" or "Bookmarks")
@@ -158,6 +158,45 @@ namespace MapsetVerifier.Snapshots.Compare
                     );
                 }
             }
+        }
+
+        /// <summary>
+        /// Lazer and stable write some values differently without them meaning anything else:
+        /// lazer writes difficulty settings with more decimals and combo colours with an alpha.
+        /// </summary>
+        private static bool SameValue(string section, string before, string after)
+        {
+            if (before == after)
+                return true;
+
+            if (section is General or Difficulty)
+                return double.TryParse(
+                        before,
+                        NumberStyles.Float,
+                        CultureInfo.InvariantCulture,
+                        out var a
+                    )
+                    && double.TryParse(
+                        after,
+                        NumberStyles.Float,
+                        CultureInfo.InvariantCulture,
+                        out var b
+                    )
+                    // Both clients keep these as floats, so only a difference a float can hold counts.
+                    && (float)a == (float)b;
+
+            if (section == Colours)
+                return Colour(before) == Colour(after);
+
+            return false;
+        }
+
+        /// <summary> An opaque colour reads the same with or without its alpha. </summary>
+        private static string Colour(string value)
+        {
+            var parts = value.Split(',', StringSplitOptions.TrimEntries);
+
+            return string.Join(",", parts.Length == 4 && parts[3] == "255" ? parts[..3] : parts);
         }
 
         private static (List<string> Added, List<string> Removed) SetDiff(

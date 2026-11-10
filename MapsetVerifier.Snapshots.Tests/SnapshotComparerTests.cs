@@ -456,4 +456,44 @@ public class SnapshotComparerTests
         Assert.Equal("bg.jpg", replacement.Before);
         Assert.Equal("other.jpg", replacement.After);
     }
+
+    [Fact]
+    public void LazerAndStableWritingTheSameValuesDifferently_IsNoChange()
+    {
+        static string Code(string sliderMultiplier, string combo) =>
+            string.Join(
+                Environment.NewLine,
+                "[Difficulty]",
+                "SliderMultiplier:" + sliderMultiplier,
+                "[Colours]",
+                "Combo1 : " + combo,
+                ""
+            );
+
+        var lazer = Code("0.7999999821186063", "230,40,125,255");
+        var stable = Code("0.799999982118606", "230,40,125");
+
+        Assert.Empty(SettingsDiffer.Diff(lazer, stable));
+    }
+
+    [Fact]
+    public void RealDifferencesInNumbersAndColours_AreStillChanges()
+    {
+        static string Code(string sliderMultiplier, string combo) =>
+            string.Join(
+                Environment.NewLine,
+                "[Difficulty]",
+                "SliderMultiplier:" + sliderMultiplier,
+                "[Colours]",
+                "Combo1 : " + combo,
+                ""
+            );
+
+        var changes = SettingsDiffer.Diff(
+            Code("0.8", "230,40,125,255"),
+            Code("0.81", "230,40,125,128")
+        );
+
+        Assert.Equal(["SliderMultiplier", "Combo1"], changes.Select(c => c.Key));
+    }
 }
