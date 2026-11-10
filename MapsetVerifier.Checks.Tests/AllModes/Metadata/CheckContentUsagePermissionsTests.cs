@@ -27,11 +27,11 @@ public class CheckContentUsagePermissionsTests
     }
 
     [Fact]
-    public void DisallowedArtist_IsAWarning()
+    public void DisallowedArtist_IsAProblem()
     {
         var issue = Assert.Single(Run("kamome sano"));
 
-        Assert.Equal(Issue.Level.Warning, issue.level);
+        Assert.Equal(Issue.Level.Problem, issue.level);
         Assert.Contains("does not allow", issue.message);
     }
 
@@ -63,7 +63,7 @@ public class CheckContentUsagePermissionsTests
     {
         var issue = Assert.Single(Run("kamome sano", tags: "kamome sano electronic"));
 
-        Assert.Equal(Issue.Level.Warning, issue.level);
+        Assert.Equal(Issue.Level.Problem, issue.level);
     }
 
     [Fact]

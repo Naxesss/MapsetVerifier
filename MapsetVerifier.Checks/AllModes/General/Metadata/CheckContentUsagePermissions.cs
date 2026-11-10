@@ -46,7 +46,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                 {
                     "Disallowed",
                     new IssueTemplate(
-                        Issue.Level.Warning,
+                        Issue.Level.Problem,
                         "\"{0}\" does not allow their songs to be used. This can only be ranked with explicit "
                             + "permission for the song, shown in the description or discussion.",
                         "artist"
