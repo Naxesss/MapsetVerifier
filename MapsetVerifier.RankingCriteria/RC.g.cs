@@ -166,7 +166,6 @@ public static class RC
         /// <summary> Guideline: Background images and videos in a beatmap should be of reasonable quality. </summary>
         public const string VideoAndBackground_BackgroundImagesVideosBeatmapReasonable = "general/video-and-background/background-images-videos-beatmap-reasonable";
         /// <summary> Rule: If you are using any elements created by another community member, ask permission beforehand. </summary>
-        [System.Obsolete("Outdated: changed on the osu! wiki since its checks were reviewed at 517121c1. Update the checks, then mark it as reviewed in the app (Debug build) or run `update-ranking-criteria review general/skinning/using-elements-created-another-community`.")]
         public const string Skinning_UsingElementsCreatedAnotherCommunity = "general/skinning/using-elements-created-another-community";
         /// <summary> Rule: If you do not know who made the elements you plan on using, you must not use them. </summary>
         public const string Skinning_NotKnowWhoMadeElements = "general/skinning/not-know-who-made-elements";

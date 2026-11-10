@@ -1500,11 +1500,6 @@
       },
       "curation": {
         "automation": "manual"
-      },
-      "lastReview": {
-        "commit": "517121c18abca0768d9ed36c8603396d70b4c862",
-        "bodyHash": "b480c805cefba274",
-        "kind": "rule"
       }
     },
     {
