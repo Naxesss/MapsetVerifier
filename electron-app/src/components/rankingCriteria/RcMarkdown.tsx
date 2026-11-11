@@ -7,15 +7,9 @@ import {
   IconSpeakerphone,
 } from '@tabler/icons-react';
 import { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  headingAnchor,
-  parseDifficultyIcon,
-  parseModeIcon,
-  rankingCriteriaRoute,
-  resolveWikiLink,
-} from './rcUtils';
+import { headingAnchor, parseDifficultyIcon, parseModeIcon, resolveWikiLink } from './rcUtils';
 import { remarkWikiAlerts } from './remarkWikiAlerts';
+import { useReferencePanel } from '../../context/ReferencePanelContext';
 import { openExternal } from '../../hooks/useOpenExternal';
 import { ApiRcPage } from '../../Types';
 import MantineMarkdown from '../documentation/MantineMarkdown';
@@ -120,7 +114,7 @@ function WikiAlert({
 
 /** Renders a snapshotted ranking criteria page, or part of one. */
 export default function RcMarkdown({ page, compact }: RcMarkdownProps) {
-  const navigate = useNavigate();
+  const { showRcPage } = useReferencePanel();
 
   const components = useMemo((): Components => {
     return {
@@ -216,7 +210,7 @@ export default function RcMarkdown({ page, compact }: RcMarkdownProps) {
           } else if (link.kind === 'anchor') {
             document.getElementById(link.anchor)?.scrollIntoView({ behavior: 'smooth' });
           } else {
-            navigate(rankingCriteriaRoute(link.page));
+            showRcPage(link.page);
           }
         };
 
@@ -227,7 +221,7 @@ export default function RcMarkdown({ page, compact }: RcMarkdownProps) {
         );
       },
     };
-  }, [compact, page.key, navigate]);
+  }, [compact, page.key, showRcPage]);
 
   return (
     <Box className="rc-markdown">

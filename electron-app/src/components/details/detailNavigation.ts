@@ -1,7 +1,7 @@
 import { createContext, useContext } from 'react';
 import { ApiDocumentationCheck, ApiRcStatement } from '../../Types';
 
-/** What the detail modal shows: a ranking criteria statement or the documentation of a check. */
+/** A rule or check open in the documentation panel: a ranking criteria statement or a check's documentation. */
 export type DetailView =
   | { kind: 'rule'; statement: ApiRcStatement }
   | { kind: 'check'; check: ApiDocumentationCheck };
@@ -23,7 +23,7 @@ interface DetailNavigation {
 
 export const DetailNavigationContext = createContext<DetailNavigation | null>(null);
 
-/** Navigation of the surrounding detail modal, or null outside of one. */
+/** Navigation of the documentation panel for what is shown inside it, or null outside of it. */
 export function useDetailNavigation() {
   return useContext(DetailNavigationContext);
 }

@@ -15,9 +15,16 @@ export const Z_INDEX = {
   modal: 400,
   /** The issue details drawer, which sits below the title bar. */
   drawer: 1900,
+  /** The documentation panel, which opens on top of the issue details drawer from its rule links. */
+  referencePanel: 1950,
   /** The custom title bar, and modals that open on top of the drawer. */
   windowBar: 2000,
   modalAboveDrawer: 2000,
+  /**
+   * Tooltips, menus, popovers and dropdowns, above every panel and modal they can open from (Mantine's
+   * own default of 300 hid them behind the drawers).
+   */
+  floating: 2050,
   /** Toasts, above everything else. */
   notifications: 2100,
 } as const;

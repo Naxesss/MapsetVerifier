@@ -50,24 +50,15 @@ export function BlockSkeleton({ height }: { height: number }) {
 }
 
 /**
- * Stand-in for a whole page for the frame or two it takes to render, so switching pages is
- * instant: a toolbar row and a list. Mapset pages render it inside their MapsetFrame, under the
- * mapset title, padded like their header and content.
+ * Stand-in for a mapset page for the frame or two it takes to render, so switching pages is
+ * instant: a toolbar row and a list, inside the MapsetFrame under the mapset title, padded like the
+ * page's header and content.
  */
-export function PageSkeleton({ variant }: { variant: 'mapset' | 'list' }) {
-  if (variant === 'mapset') {
-    return (
-      <Stack gap="md" pt="sm" px="md" pb="md" aria-busy aria-label="Loading">
-        <Skeleton height={36} radius="md" />
-        <ListSkeleton rows={4} />
-      </Stack>
-    );
-  }
-
+export function PageSkeleton() {
   return (
-    <Stack gap="sm" aria-busy aria-label="Loading">
+    <Stack gap="md" pt="sm" px="md" pb="md" aria-busy aria-label="Loading">
       <Skeleton height={36} radius="md" />
-      <ListSkeleton />
+      <ListSkeleton rows={4} />
     </Stack>
   );
 }

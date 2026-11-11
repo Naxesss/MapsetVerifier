@@ -4,10 +4,9 @@ import Checks from './components/checks/Checks.tsx';
 import NotFoundDisplay from './components/common/NotFoundDisplay.tsx';
 import RequireBeatmapSelection from './components/common/RequireBeatmapSelection.tsx';
 import RouterErrorDisplay from './components/common/RouterErrorDisplay.tsx';
-import Documentation from './components/documentation/Documentation.tsx';
 import Home from './components/home/Home.tsx';
 import Overview from './components/overview/Overview.tsx';
-import RankingCriteria from './components/rankingCriteria/RankingCriteria.tsx';
+import OpenReferencePanelRoute from './components/reference/OpenReferencePanelRoute.tsx';
 import Settings from './components/settings/Settings.tsx';
 import Snapshots from './components/snapshots/Snapshots.tsx';
 
@@ -18,7 +17,7 @@ export const router = createHashRouter([
     errorElement: <RouterErrorDisplay />,
     children: [
       { index: true, element: <Home /> },
-      { path: 'documentation', element: <Documentation /> },
+      { path: 'documentation', element: <OpenReferencePanelRoute tab="checks" /> },
       // Dev only: writes to the catalogue in the source checkout. Left out of production bundles.
       ...(import.meta.env.DEV
         ? [
@@ -31,7 +30,7 @@ export const router = createHashRouter([
             },
           ]
         : []),
-      { path: 'ranking-criteria/:page?', element: <RankingCriteria /> },
+      { path: 'ranking-criteria/:page?', element: <OpenReferencePanelRoute tab="rules" /> },
       { path: 'settings/:section?', element: <Settings /> },
       {
         element: <RequireBeatmapSelection />,

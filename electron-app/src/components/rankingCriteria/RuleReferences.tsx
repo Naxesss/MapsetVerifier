@@ -1,23 +1,20 @@
 import { Alert, Anchor, Badge, Button, Group, Paper, Stack, Text } from '@mantine/core';
 import { IconAlertCircle, IconExternalLink, IconGavel } from '@tabler/icons-react';
-import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
 import RcLeadText from './RcLeadText';
 import RcOutdatedNotice from './RcOutdatedNotice';
-import { formatDifficulties, KIND_COLOR, rankingCriteriaRoute } from './rcUtils';
-import RankingCriteriaApi from '../../client/RankingCriteriaApi';
+import { formatDifficulties, KIND_COLOR } from './rcUtils';
+import { useRcStatements } from './useRankingCriteria';
+import { useReferencePanel } from '../../context/ReferencePanelContext';
 import { openExternal } from '../../hooks/useOpenExternal';
 import { ApiRcStatement } from '../../Types';
 import { ListSkeleton } from '../common/LoadingSkeletons';
-import ClickablePanel from '../details/ClickablePanel';
-import { useDetailNavigation } from '../details/detailNavigation';
 
 interface RuleReferencesProps {
   ruleIds?: string[];
 }
 
-/** What a reference says about the statement, the same inside and outside the detail modal. */
-function RuleSummary({ statement, cameFrom }: { statement: ApiRcStatement; cameFrom: boolean }) {
+/** What a reference says about the statement. */
+function RuleSummary({ statement }: { statement: ApiRcStatement }) {
   const breadcrumb = [statement.pageTitle, ...statement.path].join(' › ');
   const difficulties = formatDifficulties(statement.difficulties);
 
@@ -29,11 +26,6 @@ function RuleSummary({ statement, cameFrom }: { statement: ApiRcStatement; cameF
           {breadcrumb}
           {difficulties && ` (${difficulties})`}
         </Text>
-        {cameFrom && (
-          <Badge color="gray" style={{ flexShrink: 0 }}>
-            You came from here
-          </Badge>
-        )}
       </Group>
       {statement.parentLead && (
         <Text size="sm" c="dimmed">
@@ -55,32 +47,19 @@ function RuleSummary({ statement, cameFrom }: { statement: ApiRcStatement; cameF
 }
 
 function RuleReference({ statement }: { statement: ApiRcStatement }) {
-  const navigate = useNavigate();
-  const navigation = useDetailNavigation();
-
-  // Inside the detail modal the statement opens in place of the check.
-  if (navigation && !statement.retired) {
-    const cameFrom =
-      navigation.previous?.kind === 'rule' && navigation.previous.statement.id === statement.id;
-
-    return (
-      <ClickablePanel onClick={() => navigation.open({ kind: 'rule', statement })}>
-        <RuleSummary statement={statement} cameFrom={cameFrom} />
-      </ClickablePanel>
-    );
-  }
+  const { openRule } = useReferencePanel();
 
   return (
     <Paper p="sm" radius="md" withBorder>
       <Stack gap="xs">
-        <RuleSummary statement={statement} cameFrom={false} />
+        <RuleSummary statement={statement} />
         <Group gap="md">
           {!statement.retired && (
             <Button
               size="compact-xs"
               variant="light"
               leftSection={<IconGavel size={13} />}
-              onClick={() => navigate(rankingCriteriaRoute(statement.page, statement.id))}
+              onClick={() => openRule(statement)}
             >
               Open in ranking criteria
             </Button>
@@ -104,17 +83,14 @@ function RuleReference({ statement }: { statement: ApiRcStatement }) {
   );
 }
 
-/** The ranking criteria statements an issue or outcome enforces, linking to their details. */
+/**
+ * The ranking criteria statements an issue's outcome enforces, outside the documentation panel, each
+ * with a button opening it there.
+ */
 export default function RuleReferences({ ruleIds }: RuleReferencesProps) {
   const ids = ruleIds ?? [];
 
-  const { data, isLoading, error } = useQuery<ApiRcStatement[], Error>({
-    queryKey: ['rankingCriteriaStatements', ...ids],
-    queryFn: () => RankingCriteriaApi.getStatements(ids),
-    enabled: ids.length > 0,
-    staleTime: Infinity,
-    refetchOnWindowFocus: false,
-  });
+  const { data, isLoading, error } = useRcStatements(ids);
 
   if (ids.length === 0) return null;
   if (isLoading) return <ListSkeleton rows={Math.min(ids.length, 3)} />;

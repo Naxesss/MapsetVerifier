@@ -13,6 +13,7 @@ import {
 import { IconAlertCircle, IconCopy } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import DocumentationApi from '../../client/DocumentationApi';
+import { useReferencePanel } from '../../context/ReferencePanelContext';
 import { useOpenOsuTimestamp } from '../../hooks/useOpenOsuTimestamp';
 import { Z_INDEX } from '../../theme/layers';
 import { ApiCheckResult, ApiDocumentationCheck, ApiDocumentationCheckDetails } from '../../Types';
@@ -89,6 +90,8 @@ export default function IssueDetailDrawer({
   const relatedOutcomes =
     data?.outcomes.filter((outcome) => normalizeLevel(outcome.level) === normalizedLevel) ?? [];
   const openOsuTimestamp = useOpenOsuTimestamp();
+  // Escape closes every open drawer at once; while the documentation panel is open on top, only it closes.
+  const referencePanel = useReferencePanel();
 
   return (
     <Drawer
@@ -97,6 +100,9 @@ export default function IssueDetailDrawer({
       position="right"
       size="lg"
       zIndex={Z_INDEX.drawer}
+      // Like the documentation panel: no scroll lock, so the page behind keeps its width.
+      lockScroll={false}
+      closeOnEscape={!referencePanel.opened}
       title={
         <Group>
           <LevelIcon level={normalizedLevel} />

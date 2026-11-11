@@ -240,7 +240,7 @@ export function getPageHints(
     return [];
   }
 
-  if (route === '/documentation' || route === '/ranking-criteria' || route === '/') {
+  if (route === '/') {
     return [];
   }
 

@@ -1,4 +1,4 @@
-﻿import {
+import {
   ActionIcon,
   Box,
   Group,
@@ -170,7 +170,7 @@ function DocumentationSearchField({ onSearchApplied }: DocumentationSearchFieldP
 
   return (
     <SearchInput
-      style={{ flex: 1, minWidth: 220 }}
+      style={{ flex: 1, minWidth: 180 }}
       placeholder="Search checks…"
       hint="Searches check name, category, author and mode across all modes."
       value={searchInput}
@@ -183,7 +183,10 @@ function DocumentationSearchField({ onSearchApplied }: DocumentationSearchFieldP
   );
 }
 
-/** Lists + data hooks: re-renders when applied search or the category change, not on every keystroke. */
+/**
+ * The checks list of the documentation panel. Lists + data hooks: re-renders when applied search or
+ * the category change, not on every keystroke.
+ */
 function DocumentationChecksBrowser() {
   const [appliedSearchQuery, setAppliedSearchQuery] = useState('');
   const [category, setCategory] = useState<DocumentationCategory>('general');
@@ -215,7 +218,7 @@ function DocumentationChecksBrowser() {
   return (
     <Stack gap="sm">
       <StickyToolbar>
-        <Group gap="sm" wrap="nowrap">
+        <Group gap="sm">
           <DocumentationModeSelect
             value={category}
             disabled={isSearching}
@@ -257,8 +260,4 @@ function DocumentationChecksBrowser() {
   );
 }
 
-function Documentation() {
-  return <DocumentationChecksBrowser />;
-}
-
-export default Documentation;
+export default DocumentationChecksBrowser;

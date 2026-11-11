@@ -1,11 +1,4 @@
-import {
-  IconBook,
-  IconCamera,
-  IconCheck,
-  IconGavel,
-  IconHome,
-  IconTimeline,
-} from '@tabler/icons-react';
+import { IconCamera, IconCheck, IconHome, IconTimeline } from '@tabler/icons-react';
 
 export interface NavEntry {
   to: string;
@@ -18,16 +11,6 @@ export const navItems: NavEntry[] = [
     to: '/',
     icon: IconHome,
     label: 'Home',
-  },
-  {
-    to: '/documentation',
-    icon: IconBook,
-    label: 'Documentation',
-  },
-  {
-    to: '/ranking-criteria',
-    icon: IconGavel,
-    label: 'Ranking criteria',
   },
   {
     to: '/checks',
@@ -48,7 +31,7 @@ export const navItems: NavEntry[] = [
 
 export const NAV_INDICATOR_TRANSITION_MS = 220;
 
-/** Height of every navbar control (page links, sidebar toggle, tips and settings buttons). */
+/** Height of every navbar control (page links, sidebar toggle, tips, documentation and settings buttons). */
 export const NAV_CONTROL_SIZE = 38;
 
 export function getActiveNavRoute(pathname: string): string {

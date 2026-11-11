@@ -206,6 +206,25 @@
   color: var(--mantine-color-black);
 }
 
+/* The window itself never scrolls: every page scrolls inside its own scroll area. Without this, a
+   dropdown or tooltip reaching past the bottom edge gave the whole window a scrollbar. */
+html,
+body {
+  overflow: hidden;
+}
+
+/* A select's list shrinks to the space the dropdown has in the window (set by the Combobox `size`
+   middleware in Theme.ts) and scrolls, rather than running past the window's edge. */
+.mv-dropdown-options {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(var(--mv-dropdown-available-height, 100vh) - 2 * var(--combobox-padding, 4px));
+
+  > div {
+    min-height: 0;
+  }
+}
+
 /* Window bar height — keep in sync with WindowBar `barHeight` */
 :root {
   --mv-window-bar-height: 32px;
@@ -858,6 +877,30 @@
   /* Only shown as context for other rows; full strength when pointed at. */
   &[data-muted]:not(:hover):not(:focus-visible) {
     opacity: 0.5;
+  }
+}
+
+/* A one-line link from a rule to a check or back, in the documentation panel's "Connected to" list. */
+.mv-connected-link {
+  display: block;
+  width: 100%;
+  padding: 4px 6px;
+  border-radius: var(--mantine-radius-sm);
+  color: var(--mantine-color-anchor);
+  transition: background 0.15s;
+
+  &[data-static] {
+    color: var(--mantine-color-dimmed);
+  }
+
+  &:not([data-static]):hover,
+  &:focus-visible {
+    background: var(--mantine-color-default-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-primary-color-filled);
+    outline-offset: 1px;
   }
 }
 

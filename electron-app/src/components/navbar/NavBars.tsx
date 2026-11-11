@@ -6,6 +6,7 @@ import { getActiveNavRoute, NAV_CONTROL_SIZE } from './navConfig';
 import PageHintsButton from './PageHintsButton.tsx';
 import { NAV_BAR_HEIGHT, WINDOW_BAR_HEIGHT } from '../../theme/layers.ts';
 import Beatmaps from '../beatmaps/Beatmaps.tsx';
+import ReferencePanelButton from '../reference/ReferencePanelButton.tsx';
 import SettingsButton from '../settings/SettingsButton';
 import SettingsSidebar from '../settings/SettingsSidebar';
 
@@ -65,6 +66,7 @@ function NavBars(props: NavBarsProps) {
             <MainNavRail activeRoute={activeRoute} />
             <Group gap="xs" ml="auto" wrap="nowrap">
               <PageHintsButton />
+              <ReferencePanelButton />
               <SettingsButton />
             </Group>
           </Group>

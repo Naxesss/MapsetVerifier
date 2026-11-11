@@ -1,5 +1,5 @@
 import { Anchor, Badge, Flex, Group, Paper, Stack, Text } from '@mantine/core';
-import { IconExternalLink } from '@tabler/icons-react';
+import { IconCheck, IconExternalLink } from '@tabler/icons-react';
 import { useMemo } from 'react';
 import RcLeadText from './RcLeadText';
 import RcMarkdown from './RcMarkdown';
@@ -7,55 +7,42 @@ import RcOutdatedNotice from './RcOutdatedNotice';
 import { difficultyStarRating, formatDifficulties, KIND_COLOR, pageMode } from './rcUtils';
 import { useRankingCriteriaPage } from './useRankingCriteria';
 import { openExternal } from '../../hooks/useOpenExternal';
-import { ApiRcCheckLink, ApiRcPage, ApiRcStatement } from '../../Types';
+import { ApiRcCheckLink, ApiRcPage, ApiRcStatement, Level } from '../../Types';
 import { SectionTitle } from '../common/Headings';
 import { TextSkeleton } from '../common/LoadingSkeletons';
-import ClickablePanel from '../details/ClickablePanel';
+import ConnectedLinks, { type ConnectedLink } from '../details/ConnectedLinks';
 import { useDetailNavigation } from '../details/detailNavigation';
 import { useDocumentationChecks } from '../documentation/hooks/useDocumentationChecks';
 import GameModeIcon from '../icons/GameModeIcon';
 import LevelIcon from '../icons/LevelIcon';
 
-/** The templates of one check linking to the statement, opening its documentation in place. */
-function LinkedCheck({ links }: { links: ApiRcCheckLink[] }) {
+/** Levels in the order checks list them, most severe first. */
+const LEVEL_ORDER: Level[] = ['Problem', 'Warning', 'Minor', 'Info', 'Check', 'Error'];
+
+/** The checks enforcing the statement, one link each, with the levels their templates report. */
+function useLinkedChecks(statement: ApiRcStatement): ConnectedLink[] {
   const navigation = useDetailNavigation();
   const { getCheckById } = useDocumentationChecks();
-  const check = getCheckById(links[0].checkId);
-  const cameFrom =
-    navigation?.previous?.kind === 'check' && navigation.previous.check.id === links[0].checkId;
 
-  const content = (
-    <Group wrap="nowrap">
-      <Group gap="xs" style={{ flex: 1 }}>
-        <Text fw="bold">{links[0].checkName}</Text>
-        {cameFrom && <Badge color="gray">You came from here</Badge>}
-      </Group>
-      <Group gap="md">
-        {links.map((link) => (
-          <Group key={link.templateKey} gap="xs" wrap="nowrap">
-            <LevelIcon level={link.level} size={18} />
-            <Text size="sm" c="dimmed">
-              {link.templateKey}
-            </Text>
-          </Group>
-        ))}
-      </Group>
-    </Group>
-  );
-
-  if (!navigation || !check) {
-    return (
-      <Paper p="sm" radius="md" withBorder>
-        {content}
-      </Paper>
-    );
+  const linksByCheck = new Map<number, ApiRcCheckLink[]>();
+  for (const link of statement.links) {
+    linksByCheck.set(link.checkId, [...(linksByCheck.get(link.checkId) ?? []), link]);
   }
 
-  return (
-    <ClickablePanel onClick={() => navigation.open({ kind: 'check', check })}>
-      {content}
-    </ClickablePanel>
-  );
+  return [...linksByCheck.values()].map((links) => {
+    const { checkId, checkName } = links[0];
+    const check = getCheckById(checkId);
+    const levels = LEVEL_ORDER.filter((level) => links.some((link) => link.level === level));
+
+    return {
+      key: String(checkId),
+      icon: IconCheck,
+      label: checkName,
+      meta: levels.map((level) => <LevelIcon key={level} level={level} size={16} />),
+      cameFrom: navigation?.previous?.kind === 'check' && navigation.previous.check.id === checkId,
+      onOpen: navigation && check ? () => navigation.open({ kind: 'check', check }) : undefined,
+    };
+  });
 }
 
 /**
@@ -184,10 +171,7 @@ export default function RcStatementDetails({
   const mode = pageMode(statement.page);
   const difficulties = formatDifficulties(statement.difficulties);
 
-  const linksByCheck = new Map<number, ApiRcCheckLink[]>();
-  for (const link of statement.links) {
-    linksByCheck.set(link.checkId, [...(linksByCheck.get(link.checkId) ?? []), link]);
-  }
+  const linkedChecks = useLinkedChecks(statement);
 
   return (
     <Flex direction="column" gap="lg">
@@ -225,15 +209,11 @@ export default function RcStatementDetails({
         </Anchor>
       </Flex>
 
-      <Stack gap="xs">
-        <SectionTitle>Checks</SectionTitle>
-        <RcOutdatedNotice statement={statement} onReviewed={onReviewed} />
-        {linksByCheck.size > 0 ? (
-          [...linksByCheck.values()].map((links) => (
-            <LinkedCheck key={links[0].checkId} links={links} />
-          ))
-        ) : (
-          <Text c="dimmed">
+      <RcOutdatedNotice statement={statement} onReviewed={onReviewed} />
+      <ConnectedLinks
+        links={linkedChecks}
+        empty={
+          <Text size="sm" c="dimmed">
             {statement.coverage === 'Covered' || statement.coverage === 'Partial'
               ? statement.coverage === 'Covered'
                 ? 'Covered through the sub-rules nested under it.'
@@ -244,9 +224,10 @@ export default function RcStatementDetails({
                   ? 'This needs human judgement, so no check is expected.'
                   : 'No check covers this yet.'}
           </Text>
-        )}
+        }
+      >
         {statement.notes && <Text size="sm">{statement.notes}</Text>}
-      </Stack>
+      </ConnectedLinks>
 
       <StatementText statement={statement} withoutTitle={withoutTitle} />
     </Flex>
