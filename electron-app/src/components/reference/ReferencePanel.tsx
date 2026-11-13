@@ -75,7 +75,7 @@ export default function ReferencePanel() {
       // The page never scrolls itself (each page has its own scroll area), so locking it only padded
       // the page for a scrollbar that isn't there, making the content behind the panel narrower.
       lockScroll={false}
-      // Below the title bar, like the issue details drawer.
+      // Below the nav bar, like the issue details drawer.
       styles={{
         overlay: {
           top: 'var(--mv-top-chrome-height)',

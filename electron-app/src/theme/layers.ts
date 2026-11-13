@@ -13,13 +13,13 @@ export const Z_INDEX = {
   stickyControls: 20,
   /** Modals opened from a page (updater, settings dialogs). */
   modal: 400,
-  /** The issue details drawer, which sits below the title bar. */
+  /** The issue details drawer, which sits below the nav bar. */
   drawer: 1900,
   /** The documentation panel, which opens on top of the issue details drawer from its rule links. */
   referencePanel: 1950,
   /**
-   * The bar at the top of the window (title bar or nav bar), so the window controls stay reachable,
-   * and modals that open on top of the drawer.
+   * The bar at the top of the window (the window bar during startup and setup, then the nav bar), so
+   * the window controls stay reachable, and modals that open on top of the drawer.
    */
   windowBar: 2000,
   modalAboveDrawer: 2000,

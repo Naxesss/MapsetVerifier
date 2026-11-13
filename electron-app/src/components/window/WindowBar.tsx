@@ -5,6 +5,7 @@ import AppBrand from './AppBrand';
 import { useNavBarShown } from './topChrome';
 import WindowControls from './WindowControls';
 import { NAV_BAR_HEIGHT, Z_INDEX } from '../../theme/layers';
+import { SHOW_APP_NAME_QUERY } from '../navbar/navConfig';
 
 /**
  * The top bar for the screens before the app is ready (backend start, setup). It matches the nav
@@ -14,8 +15,7 @@ import { NAV_BAR_HEIGHT, Z_INDEX } from '../../theme/layers';
 const WindowBar: React.FC = () => {
   const theme = useMantineTheme();
   const navBarShown = useNavBarShown();
-  // Same rule as the nav bar, so the name doesn't appear or vanish at the swap.
-  const showName = useMediaQuery('(min-width: 1150px)') ?? true;
+  const showName = useMediaQuery(SHOW_APP_NAME_QUERY) ?? true;
 
   if (navBarShown) return null;
 

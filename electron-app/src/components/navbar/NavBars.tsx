@@ -2,7 +2,7 @@ import { AppShell, Group, useMantineTheme } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { useLocation } from 'react-router-dom';
 import { MainNavRail } from './MainNavRail';
-import { getActiveNavRoute } from './navConfig';
+import { getActiveNavRoute, SHOW_APP_NAME_QUERY, SHOW_NAV_LABELS_QUERY } from './navConfig';
 import PageHintsButton from './PageHintsButton.tsx';
 import { NAV_BAR_HEIGHT, Z_INDEX } from '../../theme/layers.ts';
 import Beatmaps from '../beatmaps/Beatmaps.tsx';
@@ -23,8 +23,8 @@ function NavBars(props: NavBarsProps) {
   const activeRoute = getActiveNavRoute(location.pathname);
 
   // The version always shows; the name and the page link labels give way in smaller windows.
-  const showName = useMediaQuery('(min-width: 1150px)') ?? true;
-  const showTabLabels = useMediaQuery('(min-width: 1050px)') ?? true;
+  const showName = useMediaQuery(SHOW_APP_NAME_QUERY) ?? true;
+  const showTabLabels = useMediaQuery(SHOW_NAV_LABELS_QUERY) ?? true;
 
   useRegisterNavBar();
 

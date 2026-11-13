@@ -35,8 +35,7 @@ export default function AppBrand({ showName = true }: AppBrandProps) {
         draggable={false}
         style={{ display: 'block', objectFit: 'contain', flexShrink: 0 }}
       />
-      {/* Name and version in the same heading font, the version lighter and faded, as the old
-          title bar had them. */}
+      {/* Name and version in the same heading font, the version lighter and faded. */}
       <span
         style={{
           display: 'flex',
@@ -52,8 +51,8 @@ export default function AppBrand({ showName = true }: AppBrandProps) {
         <span style={{ fontWeight: 400, opacity: 0.7 }}>{number}</span>
       </span>
       {tag && (
-        // The old title bar's badge (red for dev, orange for beta, slightly faded), one size up from
-        // the theme's xs so it holds its own next to the 14px name in the taller bar.
+        // Red for dev, orange for beta, slightly faded; one size up from the theme's xs so it holds
+        // its own next to the 14px name.
         <Badge
           color={tagKind === 'dev' ? 'red' : 'orange'}
           radius="sm"

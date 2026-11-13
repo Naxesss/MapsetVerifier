@@ -122,7 +122,6 @@ function AppContent() {
                           navbar={{
                             width: '256',
                             breakpoint: 'xs',
-                            collapsed: { desktop: false, mobile: false },
                           }}
                         >
                           <BeatmapReparseProvider>
