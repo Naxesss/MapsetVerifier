@@ -1,7 +1,7 @@
 import { ActionIcon, Tooltip, useMantineTheme } from '@mantine/core';
 import { IconBook } from '@tabler/icons-react';
 import { useReferencePanel } from '../../context/ReferencePanelContext.tsx';
-import { NAV_CONTROL_SIZE } from '../navbar/navConfig.ts';
+import { NAV_CONTROL_SIZE, NAV_ICON_SIZE } from '../navbar/navConfig.ts';
 
 /** Opens and closes the documentation panel, highlighted like the settings button while open. */
 export default function ReferencePanelButton() {
@@ -19,7 +19,10 @@ export default function ReferencePanelButton() {
         aria-label={label}
         aria-pressed={opened}
       >
-        <IconBook color={opened ? theme.black : 'var(--mantine-color-white)'} />
+        <IconBook
+          size={NAV_ICON_SIZE}
+          color={opened ? theme.black : 'var(--mantine-color-white)'}
+        />
       </ActionIcon>
     </Tooltip>
   );

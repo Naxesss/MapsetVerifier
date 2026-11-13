@@ -1,8 +1,8 @@
-/** Height of the custom title bar; keep in sync with `--mv-window-bar-height` in global.scss. */
-export const WINDOW_BAR_HEIGHT = 32;
-
-/** Height of the page navbar below the title bar. */
-export const NAV_BAR_HEIGHT = 60;
+/**
+ * Height of the bar at the top of the window: the window bar during startup and setup, then the nav
+ * bar. Keep in sync with `--mv-top-chrome-height` in global.scss.
+ */
+export const NAV_BAR_HEIGHT = 52;
 
 /**
  * Stacking order of the app's own layers, lowest first. Mantine's own popovers, menus and tooltips
@@ -17,7 +17,10 @@ export const Z_INDEX = {
   drawer: 1900,
   /** The documentation panel, which opens on top of the issue details drawer from its rule links. */
   referencePanel: 1950,
-  /** The custom title bar, and modals that open on top of the drawer. */
+  /**
+   * The bar at the top of the window (title bar or nav bar), so the window controls stay reachable,
+   * and modals that open on top of the drawer.
+   */
   windowBar: 2000,
   modalAboveDrawer: 2000,
   /**

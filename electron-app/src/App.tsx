@@ -1,5 +1,4 @@
 import { AppShell, Container, MantineProvider, ScrollArea } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
 import { Notifications } from '@mantine/notifications';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
@@ -23,7 +22,7 @@ import { ReferencePanelProvider } from './context/ReferencePanelContext.tsx';
 import { SettingsProvider } from './context/SettingsContext.tsx';
 import { UpdaterProvider } from './context/UpdaterContext';
 import { cssVarResolver } from './theme/cssVarResolver.ts';
-import { NAV_BAR_HEIGHT, WINDOW_BAR_HEIGHT, Z_INDEX } from './theme/layers.ts';
+import { NAV_BAR_HEIGHT, Z_INDEX } from './theme/layers.ts';
 import { useAppTheme } from './theme/useAppTheme.ts';
 import '@mantine/core/styles.css';
 import '@mantine/charts/styles.css';
@@ -103,9 +102,7 @@ function BeatmapKeyedOutlet() {
 function AppContent() {
   const theme = useAppTheme();
   const location = useLocation();
-  const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
   const isSettingsRoute = location.pathname.startsWith('/settings');
-  const isNavbarOpened = desktopOpened || isSettingsRoute;
 
   return (
     <MantineProvider defaultColorScheme="dark" theme={theme} cssVariablesResolver={cssVarResolver}>
@@ -121,23 +118,16 @@ function AppContent() {
                     <DocumentationProvider>
                       <ReferencePanelProvider>
                         <AppShell
-                          header={{ height: WINDOW_BAR_HEIGHT + NAV_BAR_HEIGHT }}
+                          header={{ height: NAV_BAR_HEIGHT }}
                           navbar={{
                             width: '256',
                             breakpoint: 'xs',
-                            collapsed: {
-                              desktop: !isNavbarOpened,
-                              mobile: false,
-                            },
+                            collapsed: { desktop: false, mobile: false },
                           }}
                         >
                           <BeatmapReparseProvider>
                             {!isSettingsRoute && <BeatmapSelectionNavigator />}
-                            <NavBars
-                              desktopOpened={isNavbarOpened}
-                              showBeatmapSidebar={!isSettingsRoute}
-                              toggleDesktop={isSettingsRoute ? undefined : toggleDesktop}
-                            />
+                            <NavBars showBeatmapSidebar={!isSettingsRoute} />
                             <AppShell.Main pb={isSettingsRoute ? 0 : undefined}>
                               <ScrollArea
                                 offsetScrollbars

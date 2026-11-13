@@ -2,7 +2,7 @@ import { ActionIcon, Tooltip, useMantineTheme } from '@mantine/core';
 import { IconSettings } from '@tabler/icons-react';
 import React, { useLayoutEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { NAV_CONTROL_SIZE } from '../navbar/navConfig.ts';
+import { NAV_CONTROL_SIZE, NAV_ICON_SIZE } from '../navbar/navConfig.ts';
 
 const SettingsButton: React.FC = () => {
   const theme = useMantineTheme();
@@ -35,7 +35,10 @@ const SettingsButton: React.FC = () => {
         aria-label={active ? 'Close settings' : 'Settings'}
         aria-pressed={active}
       >
-        <IconSettings color={active ? theme.black : 'var(--mantine-color-white)'} />
+        <IconSettings
+          size={NAV_ICON_SIZE}
+          color={active ? theme.black : 'var(--mantine-color-white)'}
+        />
       </ActionIcon>
     </Tooltip>
   );

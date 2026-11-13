@@ -125,12 +125,12 @@ export default function IssueDetailDrawer({
       }
       styles={{
         overlay: {
-          top: 'var(--mv-window-bar-height)',
-          height: 'calc(100dvh - var(--mv-window-bar-height))',
+          top: 'var(--mv-top-chrome-height)',
+          height: 'calc(100dvh - var(--mv-top-chrome-height))',
         },
         content: {
-          marginTop: 'var(--mv-window-bar-height)',
-          height: 'calc(100dvh - var(--mv-window-bar-height))',
+          marginTop: 'var(--mv-top-chrome-height)',
+          height: 'calc(100dvh - var(--mv-top-chrome-height))',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',

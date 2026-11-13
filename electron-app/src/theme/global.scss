@@ -225,12 +225,22 @@ body {
   }
 }
 
-/* Window bar height — keep in sync with WindowBar `barHeight` */
+/* Height of the bar at the top of the window (the window bar during startup and setup, then the nav
+   bar, both the same height). Keep in sync with NAV_BAR_HEIGHT in layers.ts. */
 :root {
-  --mv-window-bar-height: 32px;
+  --mv-top-chrome-height: 52px;
   /* Height of toolbar controls (Mantine `sm` inputs, buttons and segmented controls). Mantine only
      defines --input-height-sm inside inputs, so rows that must match a control use this instead. */
   --mv-control-height: 36px;
+}
+
+/* The top bar moves the frameless window; its controls stay clickable. */
+.mv-drag-region {
+  -webkit-app-region: drag;
+}
+
+.mv-drag-region :is(button, a, input, [role='button']) {
+  -webkit-app-region: no-drag;
 }
 
 /* Mantine notifications (see https://mantine.dev/x/notifications — full surface color, no left accent) */
@@ -240,8 +250,8 @@ body {
 }
 
 .mv-notifications-root[data-position='top-center'] {
-  /* Below fixed custom title bar (z-index 2000) */
-  top: calc(var(--mv-window-bar-height) + var(--mantine-spacing-sm));
+  /* Below the bar at the top of the window (z-index 2000) */
+  top: calc(var(--mv-top-chrome-height) + var(--mantine-spacing-sm));
 }
 
 /* The toast surface, shared with the inline copy bubble so both read as the same kind of feedback */
