@@ -1,7 +1,8 @@
-import { Box, Button, Group, Progress, SimpleGrid, Stack, Text } from '@mantine/core';
-import { IconPlayerPlayFilled, IconPlayerStopFilled } from '@tabler/icons-react';
-import { usePreviewSound } from './usePreviewSound.ts';
+import { Box, Group, Progress, SimpleGrid, Stack, Text } from '@mantine/core';
+import { KIND_COLORS } from './resourceFiles.ts';
 import { buildBeatmapResourceUrl } from '../../../utils/buildBeatmapFolderPath.ts';
+import AudioWaveformPlayer from '../../common/audio/AudioWaveformPlayer.tsx';
+import { useWaveformPeaks } from '../../common/audio/useWaveformPeaks.ts';
 import SectionCard from '../../common/SectionCard.tsx';
 import { StatField } from '../../common/StatField.tsx';
 import TimestampLink from '../../common/TimestampLink.tsx';
@@ -12,49 +13,33 @@ interface HitSoundDetailProps {
   beatmapFolderPath: string | undefined;
 }
 
-/** A hit sound to listen to, and how often each difficulty uses it, from where it's first heard. */
+/** A hit sound to see and listen to, and how often each difficulty uses it, from where it's first heard. */
 function HitSoundDetail({ hitSound, beatmapFolderPath }: HitSoundDetailProps) {
-  const sound = usePreviewSound();
   const url = beatmapFolderPath
     ? buildBeatmapResourceUrl(beatmapFolderPath, hitSound.fileName)
     : null;
-  const isPlaying = !!url && sound.playingUrl === url;
+  // Shared with the player below, so the file is read once.
+  const isEmpty = useWaveformPeaks(url).data?.isEmpty ?? false;
   const maxUses = Math.max(1, ...hitSound.usagePerDifficulty.map((u) => u.usageCount));
 
   return (
     <>
-      <SectionCard
-        title="Sound"
-        actions={
-          url && (
-            <Button
-              size="xs"
-              variant="light"
-              leftSection={
-                isPlaying ? <IconPlayerStopFilled size={14} /> : <IconPlayerPlayFilled size={14} />
-              }
-              onClick={() => (isPlaying ? sound.stop() : sound.play(url))}
-            >
-              {isPlaying ? 'Stop' : 'Play'}
-            </Button>
-          )
-        }
-      >
+      <SectionCard title="Sound">
         <Stack gap="sm">
           <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="md">
-            <StatField label="Format" value={hitSound.format || 'Unknown'} />
             <StatField
               label="Length"
-              value={hitSound.durationMs > 0 ? `${Math.round(hitSound.durationMs)} ms` : 'Unknown'}
+              value={
+                hitSound.durationMs > 0
+                  ? `${Math.round(hitSound.durationMs)} ms`
+                  : isEmpty
+                    ? '0 ms'
+                    : 'Unknown'
+              }
             />
-            <StatField label="File size" value={hitSound.fileSizeFormatted || 'Unknown'} />
             <StatField label="Uses" value={hitSound.totalUsageCount} />
           </SimpleGrid>
-          {url && sound.failedUrl === url && (
-            <Text size="sm" c="dimmed">
-              This sound can&apos;t be played here.
-            </Text>
-          )}
+          {url && <AudioWaveformPlayer url={url} color={KIND_COLORS.hitSound} />}
         </Stack>
       </SectionCard>
 

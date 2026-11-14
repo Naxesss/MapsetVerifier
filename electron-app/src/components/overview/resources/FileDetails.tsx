@@ -20,8 +20,8 @@ function extensionOf(fileName: string) {
 /** The picked file: its name and kind, then what there is to see for that kind of file. */
 function FileDetails({ file, beatmapFolderPath }: FileDetailsProps) {
   const extension = extensionOf(file.name);
-  // The song and video open on a Format card that already names the file.
-  const showHeader = file.kind !== 'audio' && file.kind !== 'video';
+  // The video opens on a Format card that already names the file.
+  const showHeader = file.kind !== 'video';
 
   return (
     <Stack gap="md">
@@ -34,7 +34,6 @@ function FileDetails({ file, beatmapFolderPath }: FileDetailsProps) {
               </Text>
               <Text size="sm" c="dimmed">
                 {KIND_LABELS[file.kind]}
-                {file.size && ` · ${file.size}`}
               </Text>
             </Stack>
             {extension && <Badge style={{ flexShrink: 0 }}>{extension}</Badge>}

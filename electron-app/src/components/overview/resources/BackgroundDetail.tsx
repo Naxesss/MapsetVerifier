@@ -40,13 +40,10 @@ function BackgroundDetail({ background, beatmapFolderPath }: BackgroundDetailPro
       </SectionCard>
       <SectionCard title="Details">
         <Stack gap="md">
-          <SimpleGrid cols={2} spacing="md">
-            <StatField
-              label="Resolution"
-              value={background.width > 0 ? background.resolution : 'Unknown'}
-            />
-            <StatField label="File size" value={background.fileSizeFormatted || 'Unknown'} />
-          </SimpleGrid>
+          <StatField
+            label="Resolution"
+            value={background.width > 0 ? background.resolution : 'Unknown'}
+          />
           <UsedByField difficulties={background.usedByDifficulties} />
         </Stack>
       </SectionCard>
