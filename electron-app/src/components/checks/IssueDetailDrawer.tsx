@@ -15,7 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import DocumentationApi from '../../client/DocumentationApi';
 import { useReferencePanel } from '../../context/ReferencePanelContext';
 import { useOpenOsuTimestamp } from '../../hooks/useOpenOsuTimestamp';
-import { Z_INDEX } from '../../theme/layers';
+import { BELOW_TOP_BAR_DRAWER_STYLES, Z_INDEX } from '../../theme/layers';
 import { ApiCheckResult, ApiDocumentationCheck, ApiDocumentationCheckDetails } from '../../Types';
 import { getLevelLabel } from '../../utils/levelLabel';
 import { notifyError, notifySuccess } from '../../utils/notify';
@@ -124,17 +124,7 @@ export default function IssueDetailDrawer({
         </Group>
       }
       styles={{
-        overlay: {
-          top: 'var(--mv-top-chrome-height)',
-          height: 'calc(100dvh - var(--mv-top-chrome-height))',
-        },
-        content: {
-          marginTop: 'var(--mv-top-chrome-height)',
-          height: 'calc(100dvh - var(--mv-top-chrome-height))',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-        },
+        ...BELOW_TOP_BAR_DRAWER_STYLES,
         body: {
           flex: 1,
           overflowY: 'auto',

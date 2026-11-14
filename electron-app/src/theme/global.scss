@@ -225,21 +225,25 @@ body {
   }
 }
 
-/* Height of the bar at the top of the window (the window bar during startup and setup, then the nav
-   bar, both the same height). Keep in sync with NAV_BAR_HEIGHT in layers.ts. */
+/* --mv-top-bar-height, the height of the bar at the top of the window, comes from TOP_BAR_HEIGHT
+   in layers.ts (see cssVarResolver.ts). */
 :root {
-  --mv-top-chrome-height: 52px;
   /* Height of toolbar controls (Mantine `sm` inputs, buttons and segmented controls). Mantine only
      defines --input-height-sm inside inputs, so rows that must match a control use this instead. */
   --mv-control-height: 36px;
 }
 
-/* The top bar moves the frameless window; its controls stay clickable. */
-.mv-drag-region {
+/* The bar at the top of the window, the same in both of its forms (the window bar during startup and
+   setup, then the nav bar). It moves the frameless window; its controls stay clickable. */
+.mv-top-bar {
+  background: var(--mantine-color-dark-8);
+  border-bottom: 1px solid var(--mantine-color-dark-4);
+  font-family: var(--mantine-font-family-headings);
+  user-select: none;
   -webkit-app-region: drag;
 }
 
-.mv-drag-region :is(button, a, input, [role='button']) {
+.mv-top-bar :is(button, a, input, [role='button']) {
   -webkit-app-region: no-drag;
 }
 
@@ -251,7 +255,7 @@ body {
 
 .mv-notifications-root[data-position='top-center'] {
   /* Below the bar at the top of the window (z-index 2000) */
-  top: calc(var(--mv-top-chrome-height) + var(--mantine-spacing-sm));
+  top: calc(var(--mv-top-bar-height) + var(--mantine-spacing-sm));
 }
 
 /* The toast surface, shared with the inline copy bubble so both read as the same kind of feedback */

@@ -59,7 +59,7 @@ export default function SetupWizardGate({ children }: SetupWizardGateProps) {
 
   return (
     <MantineProvider defaultColorScheme="dark" theme={theme} cssVariablesResolver={cssVarResolver}>
-      <Container size="md" pt="calc(var(--mv-top-chrome-height) + var(--mantine-spacing-xl))">
+      <Container size="md" pt="calc(var(--mv-top-bar-height) + var(--mantine-spacing-xl))">
         <Stack gap="lg">
           <Group gap="md" wrap="nowrap" align="center">
             <Box aria-hidden style={{ flexShrink: 0, opacity: 0.92 }}>

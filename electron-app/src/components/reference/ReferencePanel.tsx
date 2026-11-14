@@ -3,7 +3,7 @@ import { useMediaQuery } from '@mantine/hooks';
 import { IconArrowLeft } from '@tabler/icons-react';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { useReferencePanel, type ReferenceTab } from '../../context/ReferencePanelContext';
-import { Z_INDEX } from '../../theme/layers';
+import { BELOW_TOP_BAR_DRAWER_STYLES, Z_INDEX } from '../../theme/layers';
 import { SectionTitle } from '../common/Headings';
 import { DetailNavigationContext, detailKey, detailTitle } from '../details/detailNavigation';
 import DocumentationChecksBrowser from '../documentation/DocumentationBrowser';
@@ -75,20 +75,7 @@ export default function ReferencePanel() {
       // The page never scrolls itself (each page has its own scroll area), so locking it only padded
       // the page for a scrollbar that isn't there, making the content behind the panel narrower.
       lockScroll={false}
-      // Below the nav bar, like the issue details drawer.
-      styles={{
-        overlay: {
-          top: 'var(--mv-top-chrome-height)',
-          height: 'calc(100dvh - var(--mv-top-chrome-height))',
-        },
-        content: {
-          marginTop: 'var(--mv-top-chrome-height)',
-          height: 'calc(100dvh - var(--mv-top-chrome-height))',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-        },
-      }}
+      styles={BELOW_TOP_BAR_DRAWER_STYLES}
     >
       <Drawer.Overlay />
       <Drawer.Content aria-label="Documentation">

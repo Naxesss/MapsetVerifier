@@ -22,7 +22,7 @@ import { ReferencePanelProvider } from './context/ReferencePanelContext.tsx';
 import { SettingsProvider } from './context/SettingsContext.tsx';
 import { UpdaterProvider } from './context/UpdaterContext';
 import { cssVarResolver } from './theme/cssVarResolver.ts';
-import { NAV_BAR_HEIGHT, Z_INDEX } from './theme/layers.ts';
+import { TOP_BAR_HEIGHT, Z_INDEX } from './theme/layers.ts';
 import { useAppTheme } from './theme/useAppTheme.ts';
 import '@mantine/core/styles.css';
 import '@mantine/charts/styles.css';
@@ -118,7 +118,7 @@ function AppContent() {
                     <DocumentationProvider>
                       <ReferencePanelProvider>
                         <AppShell
-                          header={{ height: NAV_BAR_HEIGHT }}
+                          header={{ height: TOP_BAR_HEIGHT }}
                           navbar={{
                             width: '256',
                             breakpoint: 'xs',
