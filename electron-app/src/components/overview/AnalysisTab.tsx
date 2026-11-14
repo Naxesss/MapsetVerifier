@@ -18,6 +18,8 @@ interface AnalysisTabProps<T extends AnalysisResult> {
   subject: string;
   /** The tab's content, once the analysis succeeded. */
   children: (data: T) => ReactNode;
+  /** Off when the content sits inside a page that already pads it (a Resources file's details). */
+  padded?: boolean;
 }
 
 /**
@@ -32,12 +34,15 @@ export default function AnalysisTab<T extends AnalysisResult>({
   error,
   subject,
   children,
+  padded = true,
 }: AnalysisTabProps<T>) {
+  const padding = padded ? 'md' : 0;
+
   return (
     <Box>
       {isLoading && <CardsSkeleton />}
       {isError && (
-        <Flex p="md">
+        <Flex p={padding}>
           <Alert icon={<IconAlertCircle />} color="red" title={`Couldn't analyze the ${subject}`}>
             <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
               {error?.message}
@@ -48,7 +53,7 @@ export default function AnalysisTab<T extends AnalysisResult>({
       )}
 
       {data && !data.success && (
-        <Flex p="md">
+        <Flex p={padding}>
           <Alert icon={<IconAlertTriangle />} color="yellow" title="Couldn't finish the analysis">
             <Text size="sm">{data.errorMessage}</Text>
           </Alert>
@@ -56,7 +61,7 @@ export default function AnalysisTab<T extends AnalysisResult>({
       )}
 
       {data && data.success && (
-        <Flex gap="md" p="md" direction="column">
+        <Flex gap="md" p={padding} direction="column">
           {children(data)}
         </Flex>
       )}

@@ -1,7 +1,8 @@
-import { Badge, Box, Group, SimpleGrid, Stack, Text } from '@mantine/core';
+import { Badge, Box, SimpleGrid, Stack, Text } from '@mantine/core';
 import { VideoAnalysisEntry } from '../../../Types';
 import SectionCard from '../../common/SectionCard.tsx';
 import { StatField } from '../../common/StatField.tsx';
+import UsedByField from '../UsedByField.tsx';
 
 interface VideoFormatInfoProps {
   data: VideoAnalysisEntry;
@@ -68,20 +69,9 @@ function VideoFormatInfo({ data }: VideoFormatInfoProps) {
         />
       </SimpleGrid>
 
-      {data.usedByDifficulties.length > 0 && (
-        <Box mt="md">
-          <StatField
-            label="Used by"
-            value={
-              <Group gap="xs">
-                {data.usedByDifficulties.map((difficulty) => (
-                  <Badge key={difficulty}>{difficulty}</Badge>
-                ))}
-              </Group>
-            }
-          />
-        </Box>
-      )}
+      <Box mt="md">
+        <UsedByField difficulties={data.usedByDifficulties} />
+      </Box>
 
       {data.warnings.length > 0 && (
         <Stack gap="2xs" mt="md">

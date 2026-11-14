@@ -32,6 +32,42 @@ public static class MetadataAnalysisService
         }
     }
 
+    /// <summary>
+    /// Resolves the absolute path of a background or hit sound the beatmap set uses, or null when
+    /// the given file is neither. Keeps the file endpoint from serving arbitrary files.
+    /// </summary>
+    public static string? ResolveResourceFilePath(string beatmapSetFolder, string fileName)
+    {
+        var beatmapSet = new BeatmapSet(beatmapSetFolder);
+
+        var backgrounds = beatmapSet
+            .InOverviewOrder()
+            .SelectMany(beatmap => beatmap.Backgrounds)
+            .Select(background => background.path)
+            .OfType<string>();
+
+        var isUsed = beatmapSet
+            .HitSoundFiles.Concat(backgrounds)
+            .Any(path => string.Equals(path, fileName, StringComparison.OrdinalIgnoreCase));
+
+        if (!isUsed)
+            return null;
+
+        var fullPath = Path.GetFullPath(Path.Combine(beatmapSet.SongPath, fileName));
+        var folderPath = Path.GetFullPath(beatmapSet.SongPath);
+
+        // A reference may point outside the set's folder; that file is not served.
+        if (
+            !fullPath.StartsWith(
+                folderPath + Path.DirectorySeparatorChar,
+                StringComparison.OrdinalIgnoreCase
+            )
+        )
+            return null;
+
+        return File.Exists(fullPath) ? fullPath : null;
+    }
+
     private static List<DifficultyMetadata> GetDifficultyMetadata(BeatmapSet beatmapSet)
     {
         return beatmapSet

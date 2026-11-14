@@ -1,6 +1,5 @@
-import { SimpleGrid, SegmentedControl } from '@mantine/core';
+import { SimpleGrid } from '@mantine/core';
 import { IconVideoOff } from '@tabler/icons-react';
-import { useState } from 'react';
 import { useVideoAnalysis } from './hooks/useVideoAnalysis';
 import VideoFormatInfo from './VideoFormatInfo';
 import VideoPreview from './VideoPreview';
@@ -9,7 +8,13 @@ import { useSettings } from '../../../context/SettingsContext.tsx';
 import EmptyState from '../../common/EmptyState.tsx';
 import AnalysisTab from '../AnalysisTab.tsx';
 
-function VideoOverview() {
+interface VideoOverviewProps {
+  /** The video picked on Resources. */
+  fileName: string;
+}
+
+/** One video's format and a preview to play it, as a file's details on Resources. */
+function VideoOverview({ fileName }: VideoOverviewProps) {
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
 
@@ -18,39 +23,33 @@ function VideoOverview() {
     songFolder: settings.songFolder,
   });
 
-  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
-
-  const videos = data?.videos ?? [];
-
-  // Falling back to the first video also covers switching to a set that lacks the selected one.
-  const selected = videos.find((video) => video.fileName === selectedFileName) ?? videos[0];
+  const selected = data?.videos.find(
+    (video) => video.fileName.toLowerCase() === fileName.toLowerCase()
+  );
 
   return (
-    <AnalysisTab data={data} isLoading={isLoading} isError={isError} error={error} subject="video">
+    <AnalysisTab
+      data={data}
+      isLoading={isLoading}
+      isError={isError}
+      error={error}
+      subject="video"
+      padded={false}
+    >
       {() =>
         !selected ? (
           <EmptyState
             icon={IconVideoOff}
-            title="No video"
-            description="This mapset doesn't use a background video."
+            title="Video not found"
+            description="This video couldn't be read from the mapset folder."
           />
         ) : (
-          <>
-            {videos.length > 1 && (
-              <SegmentedControl
-                value={selected.fileName}
-                onChange={setSelectedFileName}
-                data={videos.map((video) => video.fileName)}
-              />
+          <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="md">
+            <VideoFormatInfo data={selected} />
+            {beatmapFolderPath && (
+              <VideoPreview beatmapFolderPath={beatmapFolderPath} data={selected} />
             )}
-
-            <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="md">
-              <VideoFormatInfo data={selected} />
-              {beatmapFolderPath && (
-                <VideoPreview beatmapFolderPath={beatmapFolderPath} data={selected} />
-              )}
-            </SimpleGrid>
-          </>
+          </SimpleGrid>
         )
       }
     </AnalysisTab>

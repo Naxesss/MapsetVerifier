@@ -27,7 +27,14 @@ function AudioOverview() {
   const durationMs = data?.formatAnalysis?.durationMs || 0;
 
   return (
-    <AnalysisTab data={data} isLoading={isLoading} isError={isError} error={error} subject="audio">
+    <AnalysisTab
+      data={data}
+      isLoading={isLoading}
+      isError={isError}
+      error={error}
+      subject="audio"
+      padded={false}
+    >
       {(data) => (
         <>
           <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="md">
