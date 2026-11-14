@@ -3,12 +3,16 @@ import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { NavBarTab } from './NavBarTab';
 import { NAV_INDICATOR_TRANSITION_MS, navItems } from './navConfig';
 
-export interface MainNavRailProps {
+interface MainNavRailProps {
   activeRoute: string;
+  /** False in smaller windows: the links show only their icon, with the name as a tooltip. */
+  showLabels?: boolean;
+  /** Space before the links. */
+  ml?: number;
 }
 
 /** Sliding selected pill synced to the active route (Mantine FloatingIndicator pattern). */
-export function MainNavRail({ activeRoute }: MainNavRailProps) {
+export function MainNavRail({ activeRoute, showLabels = true, ml }: MainNavRailProps) {
   const theme = useMantineTheme();
   const [navRootEl, setNavRootEl] = useState<HTMLElement | null>(null);
   const [targetControl, setTargetControl] = useState<HTMLElement | null>(null);
@@ -43,7 +47,7 @@ export function MainNavRail({ activeRoute }: MainNavRailProps) {
       component="nav"
       aria-label="Main pages"
       pos="relative"
-      p={0}
+      ml={ml}
       style={{ display: 'inline-flex', alignItems: 'stretch' }}
     >
       {targetControl && (
@@ -55,7 +59,6 @@ export function MainNavRail({ activeRoute }: MainNavRailProps) {
             root: {
               backgroundColor: selectionFill,
               borderRadius: 'var(--mantine-radius-default)',
-              boxShadow: 'none',
               zIndex: 0,
               pointerEvents: 'none',
             },
@@ -69,6 +72,7 @@ export function MainNavRail({ activeRoute }: MainNavRailProps) {
             item={item}
             activeRoute={activeRoute}
             controlRef={setControlRef[item.to]}
+            showLabel={showLabels}
           />
         ))}
       </Group>

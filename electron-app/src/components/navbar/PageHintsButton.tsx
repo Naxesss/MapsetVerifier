@@ -2,7 +2,7 @@ import { ActionIcon, Group, HoverCard, List } from '@mantine/core';
 import { IconInfoCircle } from '@tabler/icons-react';
 import { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
-import { getActiveNavRoute, NAV_CONTROL_SIZE } from './navConfig.ts';
+import { getActiveNavRoute, NAV_CONTROL_SIZE, NAV_ICON_SIZE } from './navConfig.ts';
 import { getPageHints } from './pageHints.tsx';
 import { useBeatmap } from '../../context/BeatmapContext.tsx';
 import { usePageHints } from '../../context/PageHintsContext.tsx';
@@ -31,8 +31,20 @@ export default function PageHintsButton() {
   // Mapset pages show an empty state until a mapset is picked; their tips don't apply yet.
   const needsMapset = MAPSET_ROUTES.includes(getActiveNavRoute(location.pathname));
 
+  // Without tips the button stays, disabled, so the buttons next to it don't shift between pages.
   if (hints.length === 0 || (needsMapset && !selectedFolder)) {
-    return null;
+    return (
+      <ActionIcon
+        color="gray"
+        variant="subtle"
+        size={NAV_CONTROL_SIZE}
+        aria-label="Page tips"
+        disabled
+        styles={{ root: { backgroundColor: 'transparent', opacity: 0.35 } }}
+      >
+        <IconInfoCircle size={NAV_ICON_SIZE} color="var(--mantine-color-white)" />
+      </ActionIcon>
+    );
   }
 
   return (
@@ -46,7 +58,7 @@ export default function PageHintsButton() {
     >
       <HoverCard.Target>
         <ActionIcon color="gray" variant="subtle" size={NAV_CONTROL_SIZE} aria-label="Page tips">
-          <IconInfoCircle color="var(--mantine-color-white)" />
+          <IconInfoCircle size={NAV_ICON_SIZE} color="var(--mantine-color-white)" />
         </ActionIcon>
       </HoverCard.Target>
       <HoverCard.Dropdown p="sm" style={{ width: 'max-content', maxWidth: 360 }}>

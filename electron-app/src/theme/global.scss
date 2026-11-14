@@ -206,12 +206,45 @@
   color: var(--mantine-color-black);
 }
 
-/* Window bar height — keep in sync with WindowBar `barHeight` */
+/* The window itself never scrolls: every page scrolls inside its own scroll area. Without this, a
+   dropdown or tooltip reaching past the bottom edge gave the whole window a scrollbar. */
+html,
+body {
+  overflow: hidden;
+}
+
+/* A select's list shrinks to the space the dropdown has in the window (set by the Combobox `size`
+   middleware in Theme.ts) and scrolls, rather than running past the window's edge. */
+.mv-dropdown-options {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(var(--mv-dropdown-available-height, 100vh) - 2 * var(--combobox-padding, 4px));
+
+  > div {
+    min-height: 0;
+  }
+}
+
+/* --mv-top-bar-height, the height of the bar at the top of the window, comes from TOP_BAR_HEIGHT
+   in layers.ts (see cssVarResolver.ts). */
 :root {
-  --mv-window-bar-height: 32px;
   /* Height of toolbar controls (Mantine `sm` inputs, buttons and segmented controls). Mantine only
      defines --input-height-sm inside inputs, so rows that must match a control use this instead. */
   --mv-control-height: 36px;
+}
+
+/* The bar at the top of the window, the same in both of its forms (the window bar during startup and
+   setup, then the nav bar). It moves the frameless window; its controls stay clickable. */
+.mv-top-bar {
+  background: var(--mantine-color-dark-8);
+  border-bottom: 1px solid var(--mantine-color-dark-4);
+  font-family: var(--mantine-font-family-headings);
+  user-select: none;
+  -webkit-app-region: drag;
+}
+
+.mv-top-bar :is(button, a, input, [role='button']) {
+  -webkit-app-region: no-drag;
 }
 
 /* Mantine notifications (see https://mantine.dev/x/notifications — full surface color, no left accent) */
@@ -221,8 +254,8 @@
 }
 
 .mv-notifications-root[data-position='top-center'] {
-  /* Below fixed custom title bar (z-index 2000) */
-  top: calc(var(--mv-window-bar-height) + var(--mantine-spacing-sm));
+  /* Below the bar at the top of the window (z-index 2000) */
+  top: calc(var(--mv-top-bar-height) + var(--mantine-spacing-sm));
 }
 
 /* The toast surface, shared with the inline copy bubble so both read as the same kind of feedback */
@@ -858,6 +891,30 @@
   /* Only shown as context for other rows; full strength when pointed at. */
   &[data-muted]:not(:hover):not(:focus-visible) {
     opacity: 0.5;
+  }
+}
+
+/* A one-line link from a rule to a check or back, in the documentation panel's "Connected to" list. */
+.mv-connected-link {
+  display: block;
+  width: 100%;
+  padding: 4px 6px;
+  border-radius: var(--mantine-radius-sm);
+  color: var(--mantine-color-anchor);
+  transition: background 0.15s;
+
+  &[data-static] {
+    color: var(--mantine-color-dimmed);
+  }
+
+  &:not([data-static]):hover,
+  &:focus-visible {
+    background: var(--mantine-color-default-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-primary-color-filled);
+    outline-offset: 1px;
   }
 }
 

@@ -1,164 +1,29 @@
-import { Group, ActionIcon, useMantineTheme, useMantineColorScheme, Badge } from '@mantine/core';
-import { IconMinus, IconSquare, IconX } from '@tabler/icons-react';
-import React, { useEffect, useState } from 'react';
-import iconUrl from '../../assets/icon.png';
-import { WINDOW_BAR_HEIGHT, Z_INDEX } from '../../theme/layers';
-import { isDevVersion, isSemverPreRelease } from '../../utils/isSemverPreRelease';
+import { useNavBarShown } from './navBarShown';
+import TopBar from './TopBar';
+import { TOP_BAR_HEIGHT, Z_INDEX } from '../../theme/layers';
 
-const dragStyle = { WebkitAppRegion: 'drag' } as React.CSSProperties;
-const noDragStyle = { WebkitAppRegion: 'no-drag' } as React.CSSProperties;
+/**
+ * The top bar for the screens before the app is ready (backend start, setup). It is the nav bar
+ * without the page links, so when the nav bar takes over nothing jumps.
+ */
+export default function WindowBar() {
+  const navBarShown = useNavBarShown();
 
-const WindowBar: React.FC = () => {
-  const theme = useMantineTheme();
-  const { colorScheme } = useMantineColorScheme();
-  const isDark = colorScheme === 'dark';
-  const bgColor = isDark ? theme.colors.dark[8] : theme.colors.gray[0];
-  const textColor = theme.colors.primary[2];
-
-  const [version, setVersion] = useState<string>('unknown');
-
-  // A `-dev` version marks a dev build even once packaged, so it outranks the Vite-only DEV flag.
-  const isDev = import.meta.env.DEV || isDevVersion(version);
-  const isPrerelease = !isDev && isSemverPreRelease(version);
-
-  useEffect(() => {
-    window.electronAPI
-      ?.getVersion()
-      .then((version) => setVersion(version))
-      .catch(() => setVersion('unknown'));
-  }, []);
-
-  const minimize = () => void window.electronAPI?.window.minimize();
-  const toggleMaximize = () => void window.electronAPI?.window.toggleMaximize();
-  const close = () => void window.electronAPI?.window.close();
+  if (navBarShown) return null;
 
   return (
-    <Group
-      gap={0}
-      style={
-        {
-          ...dragStyle,
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          zIndex: Z_INDEX.windowBar,
-          height: WINDOW_BAR_HEIGHT,
-          background: bgColor,
-          color: textColor,
-          alignItems: 'center',
-          userSelect: 'none',
-          borderBottom: `1px solid ${theme.colors.dark[4]}`,
-        } as React.CSSProperties
-      }
-      pl={theme.spacing.sm}
-      justify="flex-end"
+    <div
+      className="mv-top-bar"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: TOP_BAR_HEIGHT,
+        zIndex: Z_INDEX.topBar,
+      }}
     >
-      <Group
-        gap="xs"
-        align="center"
-        wrap="nowrap"
-        style={{ ...dragStyle, flex: 1 } as React.CSSProperties}
-      >
-        <img
-          src={iconUrl}
-          alt=""
-          width={18}
-          height={18}
-          draggable={false}
-          style={
-            {
-              ...dragStyle,
-              display: 'block',
-              objectFit: 'contain',
-              flexShrink: 0,
-            } as React.CSSProperties
-          }
-        />
-        <span
-          style={
-            {
-              ...dragStyle,
-              fontFamily: theme.headings.fontFamily,
-              fontWeight: 600,
-              fontSize: 14,
-              color: textColor,
-              letterSpacing: 0.5,
-              userSelect: 'none',
-              paddingLeft: theme.spacing.xs,
-              paddingRight: theme.spacing.xs,
-            } as React.CSSProperties
-          }
-        >
-          Mapset Verifier
-          <span style={{ opacity: 0.7, fontWeight: 400, marginLeft: 4 }}>{version}</span>
-          {isDev && (
-            <Badge
-              color="red"
-              radius="sm"
-              style={{ marginLeft: 8, verticalAlign: 'middle', opacity: 0.85 }}
-            >
-              DEV
-            </Badge>
-          )}
-          {isPrerelease && (
-            <Badge
-              color="orange"
-              radius="sm"
-              style={{ marginLeft: 8, verticalAlign: 'middle', opacity: 0.85 }}
-            >
-              Beta
-            </Badge>
-          )}
-        </span>
-      </Group>
-      <div
-        style={
-          {
-            ...noDragStyle,
-            display: 'flex',
-            alignSelf: 'stretch',
-            height: '100%',
-            gap: 0,
-          } as React.CSSProperties
-        }
-      >
-        <ActionIcon
-          variant="subtle"
-          color={isDark ? 'gray' : 'dark'}
-          aria-label="Minimize"
-          onClick={minimize}
-          style={
-            { ...noDragStyle, height: '100%', width: 36, borderRadius: 0 } as React.CSSProperties
-          }
-        >
-          <IconMinus size={20} color={textColor} />
-        </ActionIcon>
-        <ActionIcon
-          variant="subtle"
-          color={isDark ? 'gray' : 'dark'}
-          aria-label="Maximize"
-          onClick={toggleMaximize}
-          style={
-            { ...noDragStyle, height: '100%', width: 36, borderRadius: 0 } as React.CSSProperties
-          }
-        >
-          <IconSquare size={14} color={textColor} />
-        </ActionIcon>
-        <ActionIcon
-          variant="subtle"
-          color="red"
-          aria-label="Close"
-          onClick={close}
-          style={
-            { ...noDragStyle, height: '100%', width: 36, borderRadius: 0 } as React.CSSProperties
-          }
-        >
-          <IconX size={20} color={theme.colors.red[6]} />
-        </ActionIcon>
-      </div>
-    </Group>
+      <TopBar />
+    </div>
   );
-};
-
-export default WindowBar;
+}

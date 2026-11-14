@@ -20,8 +20,8 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { invalidateRankingCriteria, updateCuration } from './rcCurationApi';
 import RcStatementDetails from './RcStatementDetails';
-import { rankingCriteriaRoute } from './rcUtils';
 import { useAllRankingCriteriaPages, useRankingCriteriaOverview } from './useRankingCriteria';
+import { DEFAULT_RC_PAGE, useReferencePanel } from '../../context/ReferencePanelContext';
 import { ApiRcStatement, RcAutomation } from '../../Types';
 
 const ALL = 'all';
@@ -126,6 +126,7 @@ function CurationForm({ statement, isSaving, onSave, onPrevious, onNext }: Curat
  */
 export default function RcCurationReview() {
   const navigate = useNavigate();
+  const { showRcPage } = useReferencePanel();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -227,7 +228,10 @@ export default function RcCurationReview() {
         <Button
           variant="default"
           leftSection={<IconArrowLeft size={16} />}
-          onClick={() => navigate(rankingCriteriaRoute(pageKey === ALL ? 'general' : pageKey))}
+          onClick={() => {
+            navigate('/');
+            showRcPage(pageKey === ALL ? DEFAULT_RC_PAGE : pageKey);
+          }}
         >
           Back
         </Button>

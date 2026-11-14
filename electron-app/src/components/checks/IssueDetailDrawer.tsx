@@ -13,8 +13,9 @@ import {
 import { IconAlertCircle, IconCopy } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import DocumentationApi from '../../client/DocumentationApi';
+import { useReferencePanel } from '../../context/ReferencePanelContext';
 import { useOpenOsuTimestamp } from '../../hooks/useOpenOsuTimestamp';
-import { Z_INDEX } from '../../theme/layers';
+import { BELOW_TOP_BAR_DRAWER_STYLES, Z_INDEX } from '../../theme/layers';
 import { ApiCheckResult, ApiDocumentationCheck, ApiDocumentationCheckDetails } from '../../Types';
 import { getLevelLabel } from '../../utils/levelLabel';
 import { notifyError, notifySuccess } from '../../utils/notify';
@@ -89,6 +90,8 @@ export default function IssueDetailDrawer({
   const relatedOutcomes =
     data?.outcomes.filter((outcome) => normalizeLevel(outcome.level) === normalizedLevel) ?? [];
   const openOsuTimestamp = useOpenOsuTimestamp();
+  // Escape closes every open drawer at once; while the documentation panel is open on top, only it closes.
+  const referencePanel = useReferencePanel();
 
   return (
     <Drawer
@@ -97,6 +100,9 @@ export default function IssueDetailDrawer({
       position="right"
       size="lg"
       zIndex={Z_INDEX.drawer}
+      // Like the documentation panel: no scroll lock, so the page behind keeps its width.
+      lockScroll={false}
+      closeOnEscape={!referencePanel.opened}
       title={
         <Group>
           <LevelIcon level={normalizedLevel} />
@@ -118,17 +124,7 @@ export default function IssueDetailDrawer({
         </Group>
       }
       styles={{
-        overlay: {
-          top: 'var(--mv-window-bar-height)',
-          height: 'calc(100dvh - var(--mv-window-bar-height))',
-        },
-        content: {
-          marginTop: 'var(--mv-window-bar-height)',
-          height: 'calc(100dvh - var(--mv-window-bar-height))',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-        },
+        ...BELOW_TOP_BAR_DRAWER_STYLES,
         body: {
           flex: 1,
           overflowY: 'auto',

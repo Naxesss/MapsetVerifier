@@ -11,6 +11,17 @@ export function useRankingCriteriaOverview() {
   });
 }
 
+/** The statements with these ids, such as the rules a check or issue enforces. */
+export function useRcStatements(ids: string[]) {
+  return useQuery<ApiRcStatement[], Error>({
+    queryKey: ['rankingCriteriaStatements', ...ids],
+    queryFn: () => RankingCriteriaApi.getStatements(ids),
+    enabled: ids.length > 0,
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+  });
+}
+
 export function useRankingCriteriaPage(key: string | null | undefined) {
   return useQuery<ApiRcPage, Error>({
     queryKey: ['rankingCriteriaPage', key],

@@ -1,4 +1,5 @@
 import { createTheme, DEFAULT_THEME, MantineColorsTuple, mergeMantineTheme } from '@mantine/core';
+import { Z_INDEX } from './layers.ts';
 
 const blue: MantineColorsTuple = [
   '#e0fbff',
@@ -161,21 +162,51 @@ export function createAppTheme(fontFamily: string) {
       Menu: {
         defaultProps: {
           offset: FLOATING_OFFSET,
+          zIndex: Z_INDEX.floating,
         },
       },
       Popover: {
         defaultProps: {
           offset: FLOATING_OFFSET,
+          zIndex: Z_INDEX.floating,
         },
       },
       HoverCard: {
         defaultProps: {
           offset: FLOATING_OFFSET,
+          zIndex: Z_INDEX.floating,
         },
       },
       Combobox: {
         defaultProps: {
           offset: FLOATING_OFFSET,
+          zIndex: Z_INDEX.floating,
+          // A dropdown never runs past the window: the space left is handed to its list
+          // (`.mv-dropdown-options`), which shrinks and scrolls instead of being cut off.
+          middlewares: {
+            flip: true,
+            shift: true,
+            size: {
+              padding: 8,
+              apply: ({
+                availableHeight,
+                elements,
+              }: {
+                availableHeight: number;
+                elements: { floating: HTMLElement };
+              }) => {
+                elements.floating.style.setProperty(
+                  '--mv-dropdown-available-height',
+                  `${Math.floor(availableHeight)}px`
+                );
+              },
+            },
+          },
+        },
+      },
+      Select: {
+        classNames: {
+          options: 'mv-dropdown-options',
         },
       },
       Tooltip: {
@@ -183,6 +214,7 @@ export function createAppTheme(fontFamily: string) {
         // as a glitch. The one exception is the timeline object tooltip, which points at a spot.
         defaultProps: {
           offset: FLOATING_OFFSET,
+          zIndex: Z_INDEX.floating,
         },
         // The same surface as the app's popovers and menus (dark with a thin border) instead of
         // Mantine's light tooltip, so keys drawn with Kbd inside a tooltip match the page tips.

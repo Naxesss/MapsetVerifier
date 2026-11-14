@@ -242,7 +242,7 @@ const BackendGate: React.FC<BackendGateProps> = ({
 
   return (
     <MantineProvider defaultColorScheme="dark" theme={theme} cssVariablesResolver={cssVarResolver}>
-      <Container size="sm" pt="xl">
+      <Container size="sm" pt="calc(var(--mv-top-bar-height) + var(--mantine-spacing-xl))">
         {starting && (
           <Stack
             h="100%"

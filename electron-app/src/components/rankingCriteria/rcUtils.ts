@@ -32,11 +32,6 @@ const PAGE_TO_WIKI_PATH: Record<string, string> = {
   'difficulty-naming': 'Ranking_criteria/Difficulty_naming',
 };
 
-export function rankingCriteriaRoute(page: string, ruleId?: string) {
-  const base = `/ranking-criteria/${encodeURIComponent(page)}`;
-  return ruleId ? `${base}?rule=${encodeURIComponent(ruleId)}` : base;
-}
-
 export type ResolvedWikiLink =
   | { kind: 'page'; page: string; anchor?: string }
   | { kind: 'anchor'; anchor: string }
@@ -153,8 +148,6 @@ export function difficultyStarRating(difficulty: DifficultyLevel) {
   return ICON_STAR_RATING[difficulty.toLowerCase()] ?? ICON_STAR_RATING.extra;
 }
 
-export type CoverageFilter = 'all' | 'covered' | 'partial' | 'outdated' | 'manual' | 'uncovered';
-
 /** Outdated statements still have a check, it just needs reviewing against the new wording. */
 export function isCovered(coverage: RcCoverage) {
   return coverage === 'Covered' || coverage === 'Partial' || coverage === 'Outdated';
@@ -168,23 +161,6 @@ export function wikiCompareUrl(source: ApiRcSource, fromCommit: string) {
 /** Allowances and manual-only statements have nothing for a check to cover. */
 export function isCoverable(coverage: RcCoverage) {
   return coverage !== 'Informational' && coverage !== 'Manual';
-}
-
-export function matchesCoverageFilter(coverage: RcCoverage, filter: CoverageFilter) {
-  switch (filter) {
-    case 'covered':
-      return coverage === 'Covered';
-    case 'partial':
-      return coverage === 'Partial';
-    case 'outdated':
-      return coverage === 'Outdated';
-    case 'manual':
-      return coverage === 'Manual';
-    case 'uncovered':
-      return coverage === 'Uncovered';
-    default:
-      return true;
-  }
 }
 
 /** Distinct check names linking to a statement, in link order. */

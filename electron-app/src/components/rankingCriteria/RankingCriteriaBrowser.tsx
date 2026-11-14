@@ -4,29 +4,21 @@ import {
   IconAlertCircle,
   IconClipboardCheck,
   IconExternalLink,
-  IconFilterOff,
   IconSearchOff,
 } from '@tabler/icons-react';
 import { useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { COVERAGE_ORDER, COVERAGE_STATUSES } from './coverageStatus';
-import RcCoverageFilter from './RcCoverageFilter';
 import RcMarkdown from './RcMarkdown';
 import RcPageSelect from './RcPageSelect';
 import RcStatementRow, { RcIntroRow } from './RcStatementRow';
-import {
-  CoverageFilter,
-  isCoverable,
-  isCovered,
-  matchesCoverageFilter,
-  matchesSearch,
-  rankingCriteriaRoute,
-} from './rcUtils';
+import { isCoverable, isCovered, matchesSearch } from './rcUtils';
 import {
   useAllRankingCriteriaPages,
   useRankingCriteriaOverview,
   useRankingCriteriaPage,
 } from './useRankingCriteria';
+import { useReferencePanel } from '../../context/ReferencePanelContext';
 import { openExternal } from '../../hooks/useOpenExternal';
 import { ApiRcStatement } from '../../Types';
 import { formatDate } from '../../utils/dateTime';
@@ -37,9 +29,6 @@ import { ListSkeleton } from '../common/LoadingSkeletons';
 import SearchInput from '../common/SearchInput';
 import SectionCard from '../common/SectionCard';
 import StickyToolbar from '../common/StickyToolbar';
-import DetailModal from '../details/DetailModal';
-
-const DEFAULT_PAGE = 'general';
 
 /** How many of the given statements a check could cover, and how many one does. */
 function coverageOf(statements: ApiRcStatement[]) {
@@ -113,10 +102,6 @@ function StatementRows({
 
 /** Statements of one page, grouped under the headings they appear under in the wiki. */
 function StatementSections({ statements, contextIds, onOpen }: StatementListProps) {
-  if (statements.every((statement) => contextIds.has(statement.id))) {
-    return <EmptyState icon={IconFilterOff} title="Nothing on this page matches the filter" />;
-  }
-
   const shownIds = new Set(statements.map((statement) => statement.id));
   const sections = new Map<string, ApiRcStatement[]>();
   for (const statement of statements) {
@@ -155,35 +140,23 @@ function ReadOnlyPage({ pageKey }: { pageKey: string }) {
   );
 }
 
-function RankingCriteria() {
-  const { page: pageParam } = useParams();
-  const [searchParams] = useSearchParams();
+/** The ranking criteria list of the documentation panel: one wiki page at a time, or search results. */
+function RankingCriteriaBrowser() {
   const navigate = useNavigate();
-
-  const pageKey = pageParam ?? DEFAULT_PAGE;
-  const ruleId = searchParams.get('rule');
+  const { rcPage: pageKey, showRcPage, openRule, close } = useReferencePanel();
 
   const [searchInput, setSearchInput] = useState('');
   const [query] = useDebouncedValue(searchInput, 300);
-  const [filter, setFilter] = useState<CoverageFilter>('all');
 
   const overview = useRankingCriteriaOverview();
   const { statements, isLoading, isError } = useAllRankingCriteriaPages(overview.data);
 
-  const openStatement = (statement: ApiRcStatement) =>
-    navigate(rankingCriteriaRoute(statement.page, statement.id));
-  const closeStatement = () => navigate(rankingCriteriaRoute(pageKey), { replace: true });
-
-  const selected = ruleId ? statements.find((statement) => statement.id === ruleId) : undefined;
-
   const rules = statements.filter((statement) => !statement.intro);
   const matches = (statement: ApiRcStatement) =>
-    !statement.intro &&
-    matchesCoverageFilter(statement.coverage, filter) &&
-    matchesSearch(statement, query);
+    !statement.intro && matchesSearch(statement, query);
 
-  // Intros and parent rules stay in the list, muted, above the statements that match, so a nested
-  // statement is still read under the sentence it finishes.
+  // While searching, intros and parent rules stay in the list, muted, above the statements that
+  // match, so a nested statement is still read under the sentence it finishes.
   const byId = new Map(statements.map((statement) => [statement.id, statement]));
   const contextIds = new Set<string>();
   for (const statement of statements.filter(matches)) {
@@ -211,12 +184,6 @@ function RankingCriteria() {
   const statementsOf = (key: string) => statements.filter((statement) => statement.page === key);
   const filteredOf = (key: string) => filtered.filter((statement) => statement.page === key);
 
-  // The filter counts what the list below can show: search results, or the current page's rules.
-  const scopedRules = isSearching
-    ? rules.filter((statement) => matchesSearch(statement, query))
-    : rules.filter((statement) => statement.page === pageKey);
-  const showFilter = isSearching || !!currentPage?.hasStatements;
-
   const pageCoverage = currentPage?.hasStatements
     ? coverageOf(statementsOf(currentPage.key))
     : null;
@@ -231,10 +198,10 @@ function RankingCriteria() {
             value={pageKey}
             disabled={isSearching}
             coverageOf={(key) => (isLoading ? null : coverageOf(statementsOf(key)))}
-            onChange={(key) => navigate(rankingCriteriaRoute(key))}
+            onChange={showRcPage}
           />
           <SearchInput
-            style={{ flex: 1, minWidth: 220 }}
+            style={{ flex: 1, minWidth: 180 }}
             placeholder="Search rules…"
             hint="Searches rule text, section and linked check names across all pages."
             value={searchInput}
@@ -258,49 +225,36 @@ function RankingCriteria() {
                 variant="default"
                 size="input-sm"
                 aria-label="Review curation"
-                onClick={() =>
+                onClick={() => {
+                  close();
                   navigate(
                     currentPage?.hasStatements && !isSearching
                       ? `/ranking-criteria/review?page=${encodeURIComponent(pageKey)}`
                       : '/ranking-criteria/review'
-                  )
-                }
+                  );
+                }}
               >
                 <IconClipboardCheck size={18} stroke={1.5} />
               </ActionIcon>
             </Tooltip>
           )}
         </Group>
-        {/* The filter on the left, what it applies to on the right. */}
-        <Group justify="space-between" gap="xs" mih={26}>
-          {showFilter ? (
-            <RcCoverageFilter rules={scopedRules} value={filter} onChange={setFilter} />
-          ) : (
-            <Text size="xs" c="dimmed">
-              This page has no rules or guidelines of its own.
-            </Text>
-          )}
-          {isSearching ? (
-            <Text size="xs" c="dimmed">
-              Results from all pages
-            </Text>
-          ) : (
-            pageCoverage && (
-              <Text size="xs" c="dimmed">
-                {pageCoverage.covered} of {pageCoverage.total} checkable covered
-              </Text>
-            )
-          )}
-        </Group>
       </StickyToolbar>
 
-      {/* Overall coverage, below the toolbar so the search row lines up with the sidebar's. */}
+      {/* Overall coverage, below the toolbar. */}
       <Stack gap="xs">
         <Group justify="space-between" align="baseline">
-          <Text fw={700} size="md">
+          <Text fw={700} size="sm">
             {isLoading
               ? 'Loading coverage…'
               : `${overall.covered} of ${overall.total} checkable rules and guidelines covered (${percentage}%)`}
+            {!isLoading && (isSearching || pageCoverage) && (
+              <Text span size="sm" c="dimmed" fw={400}>
+                {isSearching
+                  ? ' · searching all pages'
+                  : ` · ${currentPage?.title ?? 'this page'} ${pageCoverage!.covered} of ${pageCoverage!.total}`}
+              </Text>
+            )}
           </Text>
           {source && sourceUrl && (
             <Text size="xs" c="dimmed">
@@ -329,25 +283,11 @@ function RankingCriteria() {
         </Alert>
       )}
 
-      {ruleId && !isLoading && !selected && (
-        <Alert icon={<IconAlertCircle />} color="orange">
-          <Text span ff="monospace">
-            {ruleId}
-          </Text>{' '}
-          is not in the current snapshot. It may have been removed from the ranking criteria.
-        </Alert>
-      )}
-
       {isSearching ? (
         !hasMatches ? (
           <EmptyState icon={IconSearchOff} title="No rules match your search" />
         ) : (
-          <StatementRows
-            statements={filtered}
-            contextIds={contextIds}
-            showPage
-            onOpen={openStatement}
-          />
+          <StatementRows statements={filtered} contextIds={contextIds} showPage onOpen={openRule} />
         )
       ) : !currentPage ? null : !currentPage.hasStatements ? (
         <ReadOnlyPage pageKey={currentPage.key} />
@@ -357,20 +297,15 @@ function RankingCriteria() {
         <StatementSections
           statements={filteredOf(currentPage.key)}
           contextIds={contextIds}
-          onOpen={openStatement}
+          onOpen={openRule}
         />
       )}
 
       <Text size="xs" c="dimmed">
         Content from the osu! wiki, licensed under CC BY-NC 4.0.
       </Text>
-
-      <DetailModal
-        view={selected ? { kind: 'rule', statement: selected } : null}
-        onClose={closeStatement}
-      />
     </Stack>
   );
 }
 
-export default RankingCriteria;
+export default RankingCriteriaBrowser;

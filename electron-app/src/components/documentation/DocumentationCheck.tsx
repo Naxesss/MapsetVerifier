@@ -1,8 +1,7 @@
-﻿import { Badge, Flex, Group, Text, useMantineTheme } from '@mantine/core';
-import { useState } from 'react';
+import { Badge, Flex, Group, Text, useMantineTheme } from '@mantine/core';
+import { useReferencePanel } from '../../context/ReferencePanelContext.tsx';
 import { ApiDocumentationCheck, Level } from '../../Types.ts';
 import ClickableRow from '../common/ClickableRow.tsx';
-import DetailModal from '../details/DetailModal';
 import GameModeIcon from '../icons/GameModeIcon.tsx';
 import LevelIcon from '../icons/LevelIcon.tsx';
 
@@ -20,44 +19,38 @@ interface DocumentationCheckProps {
 
 function DocumentationCheck({ check }: DocumentationCheckProps) {
   const theme = useMantineTheme();
-  const [modalOpen, setModalOpen] = useState(false);
+  const { openCheck } = useReferencePanel();
 
   return (
-    <>
-      <ClickableRow onClick={() => setModalOpen(true)}>
-        <Flex direction="column" style={{ flex: 1 }}>
-          <Text fw="bold">{check.description}</Text>
-          <Group gap="xs">
-            <Group gap={0}>
-              {check.modes.map((mode) => (
-                <GameModeIcon
-                  size={16}
-                  key={mode}
-                  mode={mode}
-                  color={theme.colors.gray[5]}
-                  withTooltip
-                />
-              ))}
-            </Group>
-            <Badge>{check.category}</Badge>
-          </Group>
-        </Flex>
-        <Flex direction="column">
-          <Group gap="xs" style={{ alignSelf: 'end' }}>
-            {outcomeLevels(check.outcomes).map((level) => (
-              <LevelIcon key={level} level={level} />
+    <ClickableRow onClick={() => openCheck(check)}>
+      <Flex direction="column" style={{ flex: 1 }}>
+        <Text fw="bold">{check.description}</Text>
+        <Group gap="xs">
+          <Group gap={0}>
+            {check.modes.map((mode) => (
+              <GameModeIcon
+                size={16}
+                key={mode}
+                mode={mode}
+                color={theme.colors.gray[5]}
+                withTooltip
+              />
             ))}
           </Group>
-          <Text size="sm" c="dimmed" style={{ alignSelf: 'end' }}>
-            {check.author}
-          </Text>
-        </Flex>
-      </ClickableRow>
-      <DetailModal
-        view={modalOpen ? { kind: 'check', check } : null}
-        onClose={() => setModalOpen(false)}
-      />
-    </>
+          <Badge>{check.category}</Badge>
+        </Group>
+      </Flex>
+      <Flex direction="column">
+        <Group gap="xs" style={{ alignSelf: 'end' }}>
+          {outcomeLevels(check.outcomes).map((level) => (
+            <LevelIcon key={level} level={level} />
+          ))}
+        </Group>
+        <Text size="sm" c="dimmed" style={{ alignSelf: 'end' }}>
+          {check.author}
+        </Text>
+      </Flex>
+    </ClickableRow>
   );
 }
 
