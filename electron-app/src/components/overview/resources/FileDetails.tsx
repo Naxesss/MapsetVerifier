@@ -20,26 +20,22 @@ function extensionOf(fileName: string) {
 /** The picked file: its name and kind, then what there is to see for that kind of file. */
 function FileDetails({ file, beatmapFolderPath }: FileDetailsProps) {
   const extension = extensionOf(file.name);
-  // The video opens on a Format card that already names the file.
-  const showHeader = file.kind !== 'video';
 
   return (
     <Stack gap="md">
-      {showHeader && (
-        <SectionCard padding="md">
-          <Group justify="space-between" wrap="nowrap" gap="sm">
-            <Stack gap="2xs" style={{ minWidth: 0 }}>
-              <Text fw={700} size="lg" truncate>
-                {file.name}
-              </Text>
-              <Text size="sm" c="dimmed">
-                {KIND_LABELS[file.kind]}
-              </Text>
-            </Stack>
-            {extension && <Badge style={{ flexShrink: 0 }}>{extension}</Badge>}
-          </Group>
-        </SectionCard>
-      )}
+      <SectionCard padding="md">
+        <Group justify="space-between" wrap="nowrap" gap="sm">
+          <Stack gap="2xs" style={{ minWidth: 0 }}>
+            <Text fw={700} size="lg" truncate>
+              {file.name}
+            </Text>
+            <Text size="sm" c="dimmed">
+              {KIND_LABELS[file.kind]}
+            </Text>
+          </Stack>
+          {extension && <Badge style={{ flexShrink: 0 }}>{extension}</Badge>}
+        </Group>
+      </SectionCard>
 
       {file.kind === 'audio' && <AudioOverview />}
       {file.kind === 'video' && <VideoOverview fileName={file.video.fileName} />}

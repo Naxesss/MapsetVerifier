@@ -1,4 +1,5 @@
-import { Box, Group, Progress, SimpleGrid, Stack, Text } from '@mantine/core';
+import { Box, Group, Progress, Stack, Text } from '@mantine/core';
+import FileCard from './FileCard.tsx';
 import { KIND_COLORS } from './resourceFiles.ts';
 import { buildBeatmapResourceUrl } from '../../../utils/buildBeatmapFolderPath.ts';
 import AudioWaveformPlayer from '../../common/audio/AudioWaveformPlayer.tsx';
@@ -24,9 +25,10 @@ function HitSoundDetail({ hitSound, beatmapFolderPath }: HitSoundDetailProps) {
 
   return (
     <>
-      <SectionCard title="Sound">
-        <Stack gap="sm">
-          <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="md">
+      <FileCard
+        title="Sound"
+        stats={
+          <>
             <StatField
               label="Length"
               value={
@@ -38,10 +40,11 @@ function HitSoundDetail({ hitSound, beatmapFolderPath }: HitSoundDetailProps) {
               }
             />
             <StatField label="Uses" value={hitSound.totalUsageCount} />
-          </SimpleGrid>
-          {url && <AudioWaveformPlayer url={url} color={KIND_COLORS.hitSound} />}
-        </Stack>
-      </SectionCard>
+          </>
+        }
+      >
+        {url && <AudioWaveformPlayer url={url} color={KIND_COLORS.hitSound} />}
+      </FileCard>
 
       <SectionCard
         title="Uses per difficulty"

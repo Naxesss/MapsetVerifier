@@ -1,4 +1,4 @@
-﻿import { SimpleGrid, Stack } from '@mantine/core';
+﻿import { Stack } from '@mantine/core';
 import ChannelBalance from './ChannelBalance';
 import DynamicRange from './DynamicRange';
 import FrequencyAnalysis from './FrequencyAnalysis';
@@ -12,9 +12,9 @@ import {
 } from '../../../utils/buildBeatmapFolderPath.ts';
 import AudioWaveformPlayer from '../../common/audio/AudioWaveformPlayer.tsx';
 import { SectionTitle } from '../../common/Headings.tsx';
-import SectionCard from '../../common/SectionCard.tsx';
 import { StatField } from '../../common/StatField.tsx';
 import AnalysisTab from '../AnalysisTab.tsx';
+import FileCard from '../resources/FileCard.tsx';
 import { KIND_COLORS } from '../resources/resourceFiles.ts';
 
 const formatChannels = (channels: number) =>
@@ -66,9 +66,10 @@ function AudioOverview() {
               : 'Constant';
         return (
           <>
-            <SectionCard title="Sound">
-              <Stack gap="sm">
-                <SimpleGrid cols={{ base: 2, sm: 3 }} spacing="md">
+            <FileCard
+              title="Sound"
+              stats={
+                <>
                   <StatField label="Length" value={format?.durationFormatted || 'Unknown'} />
                   <StatField
                     label="Bitrate"
@@ -87,12 +88,13 @@ function AudioOverview() {
                   {format && format.bitDepth > 0 && (
                     <StatField label="Bit depth" value={`${format.bitDepth}-bit`} />
                   )}
-                </SimpleGrid>
-                {audioUrl && (
-                  <AudioWaveformPlayer url={audioUrl} color={KIND_COLORS.audio} height={120} />
-                )}
-              </Stack>
-            </SectionCard>
+                </>
+              }
+            >
+              {audioUrl && (
+                <AudioWaveformPlayer url={audioUrl} color={KIND_COLORS.audio} height={120} />
+              )}
+            </FileCard>
 
             {folder && <Spectrogram folder={folder} songFolder={settings.songFolder ?? ''} />}
 
