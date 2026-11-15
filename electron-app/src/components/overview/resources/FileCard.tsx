@@ -34,9 +34,12 @@ function FileCard({ title, info, actions, stats, children, footer }: FileCardPro
   );
 }
 
-/** A value in a file card that needs the room of two, e.g. the difficulties that use the file. */
-export function WideStat({ children }: { children: ReactNode }) {
-  return <Box style={{ gridColumn: 'span 2' }}>{children}</Box>;
+/**
+ * A value in a file card that needs more room: two columns, e.g. the difficulties that use the
+ * file, or the whole row with `full`.
+ */
+export function WideStat({ children, full = false }: { children: ReactNode; full?: boolean }) {
+  return <Box style={{ gridColumn: full ? '1 / -1' : 'span 2' }}>{children}</Box>;
 }
 
 export default FileCard;

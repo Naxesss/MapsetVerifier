@@ -33,8 +33,8 @@ public static class MetadataAnalysisService
     }
 
     /// <summary>
-    /// Resolves the absolute path of a background or hit sound the beatmap set uses, or null when
-    /// the given file is neither. Keeps the file endpoint from serving arbitrary files.
+    /// Resolves the absolute path of a background, hit sound or storyboard image or sample the
+    /// beatmap set uses, or null when the given file is none of those. Keeps the file endpoint from serving arbitrary files.
     /// </summary>
     public static string? ResolveResourceFilePath(string beatmapSetFolder, string fileName)
     {
@@ -48,6 +48,7 @@ public static class MetadataAnalysisService
 
         var isUsed = beatmapSet
             .HitSoundFiles.Concat(backgrounds)
+            .Concat(StoryboardDetailService.GetUsedFilePaths(beatmapSet))
             .Any(path => string.Equals(path, fileName, StringComparison.OrdinalIgnoreCase));
 
         if (!isUsed)

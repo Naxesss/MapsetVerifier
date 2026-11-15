@@ -759,6 +759,74 @@ export type DifficultyStoryboardInfo = {
   sampleCount: number;
 };
 
+export type StoryboardDetailResult = {
+  success: boolean;
+  errorMessage: string | null;
+  spriteCount: number;
+  animationCount: number;
+  sampleCount: number;
+  layers: StoryboardLayerCount[];
+  sources: StoryboardSource[];
+  usedByDifficulties: string[];
+  images: StoryboardImage[];
+  imageFileCount: number;
+  imageSizeBytes: number;
+  imageSizeFormatted: string;
+  sampleFiles: StoryboardSampleFile[];
+  sampleSizeBytes: number;
+  sampleSizeFormatted: string;
+  samples: StoryboardSampleEvent[];
+  songDurationMs: number;
+};
+
+export type StoryboardLayerCount = {
+  layer: string;
+  count: number;
+};
+
+export type StoryboardSource = {
+  name: string;
+  isOsb: boolean;
+  spriteCount: number;
+  animationCount: number;
+  sampleCount: number;
+};
+
+export type StoryboardImage = {
+  path: string;
+  previewPath: string;
+  isAnimation: boolean;
+  frameCount: number;
+  useCount: number;
+  fileSizeBytes: number;
+  fileSizeFormatted: string;
+  width: number;
+  height: number;
+  resolution: string;
+  missingFileCount: number;
+  missingFiles: string[];
+  layers: string[];
+  sources: string[];
+};
+
+export type StoryboardSampleFile = {
+  path: string;
+  useCount: number;
+  exists: boolean;
+  fileSizeBytes: number;
+  fileSizeFormatted: string;
+  firstTimestamp: string;
+};
+
+export type StoryboardSampleEvent = {
+  time: number;
+  timestamp: string;
+  path: string;
+  volume: number;
+  layer: string;
+  source: string;
+};
+
 export type AudioFileInfo = {
   fileName: string;
   fileSizeBytes: number;

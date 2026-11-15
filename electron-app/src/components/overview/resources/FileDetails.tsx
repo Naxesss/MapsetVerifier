@@ -42,7 +42,7 @@ function FileDetails({ file, beatmapFolderPath }: FileDetailsProps) {
       {file.kind === 'background' && (
         <BackgroundDetail background={file.background} beatmapFolderPath={beatmapFolderPath} />
       )}
-      {file.kind === 'storyboard' && <StoryboardDetail storyboard={file.storyboard} />}
+      {file.kind === 'storyboard' && <StoryboardDetail beatmapFolderPath={beatmapFolderPath} />}
       {file.kind === 'hitSound' && (
         <HitSoundDetail hitSound={file.hitSound} beatmapFolderPath={beatmapFolderPath} />
       )}

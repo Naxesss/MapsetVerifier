@@ -46,7 +46,39 @@ public class MetadataAnalysisController : ControllerBase
     }
 
     /// <summary>
-    /// Serves a background or hit sound of a beatmap set, so the client can show or play it. Only
+    /// Reads what the beatmap set's storyboard is made of: its images, samples and layers.
+    /// </summary>
+    [HttpPost("storyboard")]
+    public ActionResult<StoryboardDetailResult> AnalyzeStoryboard(
+        [FromBody] MetadataAnalysisRequest request
+    )
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.BeatmapSetFolder))
+                return BadRequest(new ApiError("Folder is required.", null));
+
+            var result = StoryboardDetailService.Analyze(request.BeatmapSetFolder);
+
+            if (!result.Success)
+                return NotFound(
+                    new ApiError(result.ErrorMessage ?? "Reading the storyboard failed.", null)
+                );
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to read the storyboard of {Folder}", request.BeatmapSetFolder);
+            return StatusCode(
+                500,
+                ApiErrorFactory.FromException(ex, "An error occurred reading the storyboard.")
+            );
+        }
+    }
+
+    /// <summary>
+    /// Serves a background, hit sound or storyboard file of a beatmap set, so the client can show or play it. Only
     /// files the set uses are served, and only from within its folder.
     /// </summary>
     [HttpGet("file")]
