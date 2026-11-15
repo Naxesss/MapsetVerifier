@@ -7,13 +7,20 @@ import type { TimelinePlayback } from '../hooks/useTimelinePlayback.ts';
 type TimelinePlaybackControlsProps = Pick<
   TimelinePlayback,
   'isPlaying' | 'isUnavailable' | 'toggle' | 'setVolume'
->;
+> & {
+  /** Key that also plays and pauses, named in the tooltip; null when there is none. */
+  shortcut?: string | null;
+  /** Tooltip on the play button when the audio can't be played. */
+  unavailableLabel?: string;
+};
 
 function TimelinePlaybackControls({
   isPlaying,
   isUnavailable,
   toggle,
   setVolume,
+  shortcut = 'Space',
+  unavailableLabel = "This mapset's audio can't be played",
 }: TimelinePlaybackControlsProps) {
   const { settings, setSettings } = useSettings();
   const savedVolume = settings.timelineAudioVolume;
@@ -28,7 +35,9 @@ function TimelinePlaybackControls({
 
   return (
     <Group gap="xs" wrap="nowrap" align="center">
-      <Tooltip label={isUnavailable ? "This mapset's audio can't be played" : `${label} (Space)`}>
+      <Tooltip
+        label={isUnavailable ? unavailableLabel : shortcut ? `${label} (${shortcut})` : label}
+      >
         <ActionIcon variant="filled" aria-label={label} disabled={isUnavailable} onClick={toggle}>
           {isPlaying ? <IconPlayerPauseFilled size={14} /> : <IconPlayerPlayFilled size={14} />}
         </ActionIcon>

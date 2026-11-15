@@ -86,3 +86,11 @@ export function resolveLazerBeatmapImageUrl(
 
   return buildLazerBeatmapImageUrl(beatmap.folder, { lazerDataDir });
 }
+
+/** Query string for GET /metadata/file — a background or hit sound of the resolved beatmap set folder. */
+export function buildBeatmapResourceUrl(beatmapFolderPath: string, fileName: string): string {
+  const params = new URLSearchParams();
+  params.set('folder', beatmapFolderPath);
+  params.set('file', fileName);
+  return `${BACKEND_BASE_URL}/metadata/file?${params.toString()}`;
+}

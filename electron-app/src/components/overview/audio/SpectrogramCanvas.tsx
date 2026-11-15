@@ -178,7 +178,6 @@ const SpectrogramCanvas: FunctionComponent<SpectrogramCanvasProps> = (props) => 
       const pixels = imageData.data;
 
       // Draw spectrogram using ImageData
-      const cellHeight = height / numBins;
       const averages = averageMagnitudesPerPixel(frames, width, height);
 
       averages.forEach((magnitude, pixel) => {
@@ -191,56 +190,8 @@ const SpectrogramCanvas: FunctionComponent<SpectrogramCanvasProps> = (props) => 
       });
 
       blitImageData(ctx, imageData, width, height);
-
-      // Convert average frequency (from props) to y position using actual frequency bins
-      let avgFrequencyY = -1;
-
-      if (
-        props.avgFreq &&
-        props.avgFreq > 0 &&
-        props.data.frequencyBins &&
-        props.data.frequencyBins.length > 0
-      ) {
-        // Find the bin index that corresponds to avgFreq
-        let binIndex = -1;
-        for (let i = 0; i < props.data.frequencyBins.length; i++) {
-          if (props.data.frequencyBins[i] >= props.avgFreq) {
-            binIndex = i;
-            break;
-          }
-        }
-
-        // If not found, it might be higher than all bins
-        if (
-          binIndex === -1 &&
-          props.avgFreq > props.data.frequencyBins[props.data.frequencyBins.length - 1]
-        ) {
-          binIndex = props.data.frequencyBins.length - 1;
-        }
-
-        if (binIndex >= 0 && binIndex < numBins) {
-          avgFrequencyY = height - (binIndex + 0.5) * cellHeight;
-        }
-      }
-
-      // Draw the average frequency line as a horizontal line across the entire spectrogram
-      if (avgFrequencyY >= 0) {
-        ctx.save();
-
-        ctx.strokeStyle = 'rgba(0, 200, 255, 1.0)'; // Cyan color
-        ctx.lineWidth = 2;
-        ctx.setLineDash([]);
-        ctx.globalCompositeOperation = 'source-over';
-
-        ctx.beginPath();
-        ctx.moveTo(0, avgFrequencyY);
-        ctx.lineTo(width, avgFrequencyY);
-        ctx.stroke();
-
-        ctx.restore();
-      }
     },
-    [props.data, props.avgFreq, colorScheme]
+    [props.data, colorScheme]
   );
 
   // Draw color scale bar
@@ -280,6 +231,14 @@ const SpectrogramCanvas: FunctionComponent<SpectrogramCanvasProps> = (props) => 
     props.data?.frequencyBins?.[props.data.frequencyBins.length - 1] ||
     (props.data?.sampleRate ? props.data.sampleRate / 2 : 22050);
 
+  // The average peak frequency line sits on top of the canvas in CSS pixels, placed on the same
+  // linear scale as the frequency axis. Drawn into the canvas it was scaled down with the fixed
+  // 1600x800 image, so its thickness and sharpness changed with the card's width.
+  const avgLineTop =
+    props.avgFreq > 0 && maxFreq > minFreq
+      ? (1 - Math.min(1, Math.max(0, (props.avgFreq - minFreq) / (maxFreq - minFreq)))) * 100
+      : null;
+
   return (
     <Box>
       <Flex direction="row" gap="md">
@@ -290,7 +249,26 @@ const SpectrogramCanvas: FunctionComponent<SpectrogramCanvasProps> = (props) => 
             <FrequencyAxis minFreqHz={minFreq} maxFreqHz={maxFreq} />
 
             {/* Canvas visualization */}
-            <AutoResizeCanvas draw={draw} fixedWidth={1600} fixedHeight={800} />
+            {/* lineHeight 0 drops the inline canvas's baseline gap, so the axis matches its height */}
+            <Box style={{ position: 'relative', lineHeight: 0 }}>
+              <AutoResizeCanvas draw={draw} fixedWidth={1600} fixedHeight={800} />
+              {avgLineTop !== null && (
+                <Box
+                  aria-hidden
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    top: `${avgLineTop}%`,
+                    height: 2,
+                    marginTop: -1,
+                    background:
+                      'repeating-linear-gradient(to right, rgb(0, 200, 255) 0 8px, transparent 8px 14px)',
+                    pointerEvents: 'none',
+                  }}
+                />
+              )}
+            </Box>
           </Box>
 
           {/* X-axis (Time) */}

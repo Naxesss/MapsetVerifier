@@ -1,10 +1,9 @@
 import {
   IconAdjustmentsHorizontal,
   IconChartLine,
-  IconMusic,
+  IconFiles,
   IconInfoCircle,
   IconTimeline,
-  IconVideo,
   type Icon,
 } from '@tabler/icons-react';
 import type { OverviewTab } from '../navbar/pageHints.tsx';
@@ -14,8 +13,7 @@ export const SECTION_ICONS: Record<OverviewTab, Icon> = {
   Objects: IconTimeline,
   Beatmap: IconAdjustmentsHorizontal,
   Difficulty: IconChartLine,
-  Audio: IconMusic,
-  Video: IconVideo,
+  Resources: IconFiles,
 };
 
 /** The Overview's pages in the order the views list them. */
@@ -24,8 +22,7 @@ export const OVERVIEW_SECTIONS: OverviewTab[] = [
   'Objects',
   'Beatmap',
   'Difficulty',
-  'Audio',
-  'Video',
+  'Resources',
 ];
 
 /** The pages that compare difficulties, and so follow the game mode and difficulty picks. */

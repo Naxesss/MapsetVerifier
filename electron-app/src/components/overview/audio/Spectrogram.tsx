@@ -102,7 +102,7 @@ function Spectrogram({ folder, songFolder }: SpectrogramProps) {
               {formatFreq(peakFreq)}
             </Text>
           </Text>
-          <InfoIconTooltip label="Indicated by the cyan line below" />
+          <InfoIconTooltip label="Indicated by the dashed cyan line below" />
         </Group>
         <Group>
           <Text size="sm" c="dimmed">

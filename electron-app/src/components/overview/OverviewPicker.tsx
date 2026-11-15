@@ -1,4 +1,4 @@
-import { Box, Group, Menu, Stack, Text, Tooltip, UnstyledButton } from '@mantine/core';
+import { Box, Group, Menu, Stack, UnstyledButton } from '@mantine/core';
 import { useElementSize } from '@mantine/hooks';
 import { useMemo } from 'react';
 import { OVERVIEW_SECTIONS, SECTION_ICONS, usesDifficultyPicks } from './overviewSections.ts';
@@ -14,8 +14,6 @@ import type { OverviewTab } from '../navbar/pageHints.tsx';
 
 interface OverviewPickerProps {
   section: OverviewTab;
-  /** Pages with nothing to show for this mapset, with why; greyed out in the views. */
-  unavailable: Partial<Record<OverviewTab, string>>;
   onSelect: (section: OverviewTab) => void;
 }
 
@@ -30,7 +28,7 @@ const WHOLE_SET = 'This page covers the whole mapset';
  * difficulties greyed out; the picks still apply when going back to a page that compares
  * difficulties.
  */
-export default function OverviewPicker({ section, unavailable, onSelect }: OverviewPickerProps) {
+export default function OverviewPicker({ section, onSelect }: OverviewPickerProps) {
   const { selectedFolder: folder } = useBeatmap();
   const { settings } = useSettings();
   // The metadata analysis is the lightest to list the mapset's difficulties, with mode and rating.
@@ -82,13 +80,13 @@ export default function OverviewPicker({ section, unavailable, onSelect }: Overv
         style={{ visibility: 'hidden', pointerEvents: 'none' }}
         aria-hidden
       >
-        <ViewButtons section={section} unavailable={unavailable} onSelect={onSelect} />
+        <ViewButtons section={section} onSelect={onSelect} />
       </Box>
       <Group ref={rowRef} gap="xs" wrap="nowrap">
         {segmentsFit ? (
-          <ViewButtons section={section} unavailable={unavailable} onSelect={onSelect} />
+          <ViewButtons section={section} onSelect={onSelect} />
         ) : (
-          <ViewMenu section={section} unavailable={unavailable} onSelect={onSelect} />
+          <ViewMenu section={section} onSelect={onSelect} />
         )}
       </Group>
       {allDifficulties > 1 && (
@@ -112,31 +110,26 @@ export default function OverviewPicker({ section, unavailable, onSelect }: Overv
 
 /**
  * Every page side by side as buttons with their icons, the one shown selected like General on
- * Checks. A page with nothing to show is greyed out and says why on hover, so it isn't truly
- * disabled.
+ * Checks.
  */
-function ViewButtons({ section, unavailable, onSelect }: OverviewPickerProps) {
+function ViewButtons({ section, onSelect }: OverviewPickerProps) {
   return (
     // The difficulty picker's gap, so both rows of buttons are spaced alike.
     <Group gap={6} wrap="nowrap" style={{ flexShrink: 0 }}>
       {OVERVIEW_SECTIONS.map((s) => {
         const Icon = SECTION_ICONS[s];
         const selected = s === section;
-        const reason = unavailable[s];
         return (
-          <Tooltip key={s} label={reason} disabled={!reason}>
-            <UnstyledButton
-              className="mv-picker-button"
-              aria-pressed={selected}
-              aria-disabled={!!reason || undefined}
-              data-active={selected || undefined}
-              data-disabled={!!reason || undefined}
-              onClick={() => !reason && onSelect(s)}
-            >
-              <Icon size={18} stroke={1.5} />
-              {s}
-            </UnstyledButton>
-          </Tooltip>
+          <UnstyledButton
+            key={s}
+            className="mv-picker-button"
+            aria-pressed={selected}
+            data-active={selected || undefined}
+            onClick={() => onSelect(s)}
+          >
+            <Icon size={18} stroke={1.5} />
+            {s}
+          </UnstyledButton>
         );
       })}
     </Group>
@@ -144,7 +137,7 @@ function ViewButtons({ section, unavailable, onSelect }: OverviewPickerProps) {
 }
 
 /** The page shown, as a menu of every page. */
-function ViewMenu({ section, unavailable, onSelect }: OverviewPickerProps) {
+function ViewMenu({ section, onSelect }: OverviewPickerProps) {
   const Icon = SECTION_ICONS[section];
 
   return (
@@ -163,14 +156,6 @@ function ViewMenu({ section, unavailable, onSelect }: OverviewPickerProps) {
             <Menu.Item
               key={s}
               leftSection={<ItemIcon size={18} stroke={1.5} />}
-              rightSection={
-                unavailable[s] && (
-                  <Text size="xs" c="dimmed">
-                    {unavailable[s]}
-                  </Text>
-                )
-              }
-              disabled={!!unavailable[s]}
               style={s === section ? { background: 'var(--mantine-color-dark-5)' } : undefined}
               onClick={() => onSelect(s)}
             >
