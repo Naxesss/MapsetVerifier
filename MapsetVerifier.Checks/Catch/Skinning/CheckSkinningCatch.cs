@@ -99,8 +99,9 @@ public class CheckSkinningCatch : BeatmapSetCheck
                     beatmap skin.
 
                     Fruits, drops, and the catcher must also match their default skin dimensions exactly, since
-                    they represent the in-game hitbox and altering their size can change gameplay, and custom
-                    catchers require the skin.ini to declare a v2 (or higher) skin format.
+                    they represent the in-game hitbox and altering their size can change gameplay. Custom catchers
+                    also need the v2 (or higher) skin format. Without a skin.ini the latest version is used, but a
+                    skin.ini without a Version command falls back to 1.0, so it must then declare v2 or higher.
                     "
                 },
             },
@@ -148,7 +149,7 @@ public class CheckSkinningCatch : BeatmapSetCheck
                     "A custom catcher is skinned, but skin.ini does not declare a v2 (or higher) skin format."
                 )
                     .WithCause(
-                        "Custom catchers must be included in the v2 skin format, declared via \"Version\" under [General] in skin.ini."
+                        "Custom catchers must be included in the v2 skin format. A skin.ini is present, but its \"Version\" under [General] is missing or below 2."
                     )
                     .WithRule(RC.Catch.Skinning_CustomCatchersIncludedV2Skin)
             },
@@ -271,8 +272,9 @@ public class CheckSkinningCatch : BeatmapSetCheck
             string.Equals(PathStatic.CutPath(path), "skin.ini", StringComparison.OrdinalIgnoreCase)
         );
 
+        // Without a skin.ini, osu! treats the beatmap skin as the latest version.
         if (skinIniPath == null)
-            return false;
+            return true;
 
         string[] lines;
 
@@ -289,6 +291,7 @@ public class CheckSkinningCatch : BeatmapSetCheck
             line.TrimStart().StartsWith("Version", StringComparison.OrdinalIgnoreCase)
         );
 
+        // A skin.ini without a Version command falls back to 1.0 for legacy support.
         if (versionLine == null)
             return false;
 

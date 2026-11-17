@@ -62,7 +62,7 @@ public class CheckSkinningCatchTests
     }
 
     [Fact]
-    public void CustomCatcher_WithoutSkinIni_EmitsOldSkinVersionProblem()
+    public void CustomCatcher_WithoutSkinIni_NoIssues()
     {
         using var context = CheckTestContext.CreateFromOsuFiles(
             [("test.osu", BuildMinimalOsu())],
@@ -72,6 +72,25 @@ public class CheckSkinningCatchTests
                 "fruit-catcher-idle.png",
                 "fruit-catcher-kiai.png",
             ]
+        );
+
+        var issues = context.RunBeatmapSetCheck<CheckSkinningCatch>();
+
+        Assert.Empty(issues);
+    }
+
+    [Fact]
+    public void CustomCatcher_WithSkinIniWithoutVersion_EmitsOldSkinVersionProblem()
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles(
+            [("test.osu", BuildMinimalOsu())],
+            [
+                "audio.mp3",
+                "fruit-catcher-fail.png",
+                "fruit-catcher-idle.png",
+                "fruit-catcher-kiai.png",
+            ],
+            [("skin.ini", "[General]\nName: Test")]
         );
 
         var issues = context.RunBeatmapSetCheck<CheckSkinningCatch>();
