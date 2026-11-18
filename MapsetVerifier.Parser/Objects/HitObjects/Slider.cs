@@ -406,7 +406,7 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
                 );
             }
 
-            var sliderStartTimingLine = beatmap.GetTimingLine(this.time);
+            var sliderStartTimingLine = beatmap.GetSliderVelocityLine(this.time);
 
             var msPerBeat = timingLine.msPerBeat;
             double effectiveSVMult = sliderStartTimingLine?.SvMult ?? 1.0;

@@ -751,6 +751,24 @@ namespace MapsetVerifier.Parser.Objects
             return list[index];
         }
 
+        /// <summary>
+        ///     Returns the timing line whose slider velocity an object starting at the given time plays with, O(logn).
+        ///     Line offsets count as whole milliseconds here: a green line at 83124.33 already applies to a slider at
+        ///     83124. Slider lengths saved by the editor only snap that way, so objects pasted into a difficulty with
+        ///     decimal line offsets would otherwise read as unsnapped or overlapping.
+        /// </summary>
+        public TimingLine? GetSliderVelocityLine(double time)
+        {
+            var list = GetOrAdd(typeof(TimingLine), () => TimingLines.ToList());
+
+            if (list.Count == 0)
+                return null;
+
+            var index = BinaryTimeSearch(list, line => Math.Floor(line.Offset), time);
+
+            return index < 0 ? list[0] : list[index];
+        }
+
         /// <summary> Returns the next timing line, if any, otherwise null, O(logn). </summary>
         public TimingLine? GetNextTimingLine(double time) => GetNextTimingLine<TimingLine>(time);
 
