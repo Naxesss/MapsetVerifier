@@ -1314,7 +1314,18 @@ namespace MapsetVerifier.Parser.Objects
             if (minUnsnap > 2)
                 return 0;
 
-            return SnapDivisors.First(divisor => GetAbsoluteUnsnap(divisor).AlmostEqual(minUnsnap));
+            var closestDivisor = SnapDivisors.First(divisor =>
+                GetAbsoluteUnsnap(divisor).AlmostEqual(minUnsnap)
+            );
+
+            // Divisors sharing a grid point (a 1/1 beat is also a 1/9 point) compute it with different float noise,
+            // which can truncate 1 ms apart, so a 1/1 note could otherwise come out as 1/9. Compare the exact grid
+            // points instead and return the lowest divisor that lands on the same one.
+            var closestSnappedTime = GetSnappedTime(time, closestDivisor, line!);
+
+            return SnapDivisors.First(divisor =>
+                Math.Abs(GetSnappedTime(time, divisor, line!) - closestSnappedTime) < 0.01
+            );
         }
 
         /// <summary> Returns the unsnap ignoring all of the game's rounding and other approximations. Can be negative. </summary>
