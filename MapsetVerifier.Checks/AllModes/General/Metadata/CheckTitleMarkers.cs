@@ -164,6 +164,22 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         )
                 },
                 {
+                    "Stylised Marker",
+                    new IssueTemplate(
+                        Issue.Level.Warning,
+                        "\"{0}\" is written in capitals instead of \"{1}\", ensure this matches how the song is stylised.",
+                        "title marker",
+                        "standard marker"
+                    )
+                        .WithCause(
+                            "A standard version marker is written in full capitals, the same way in both title fields, while the rest of the title is not. This is likely a stylistic choice, but should match the song's own stylisation."
+                        )
+                        .WithRule(
+                            RC.Metadata.Markers_SongsVersionMarkersFullyReplaced,
+                            RC.Metadata.Markers_SimilarMarkersSongTitleReplace
+                        )
+                },
+                {
                     "Nightcore Tag",
                     new IssueTemplate(
                         Issue.Level.Warning,
@@ -351,6 +367,21 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                 if (IsWithinLiveMarker(title, approxRegex))
                     continue;
 
+                if (TryGetCapitalisedMarker(beatmap, correctFormat, out var markerText))
+                {
+                    // Reported once for both fields, from the romanized side.
+                    if (titleType.type == "unicode")
+                        continue;
+
+                    yield return new Issue(
+                        GetTemplate("Stylised Marker"),
+                        null,
+                        markerText,
+                        correctFormat
+                    );
+                    continue;
+                }
+
                 yield return new Issue(
                     GetTemplate("Problem"),
                     null,
@@ -359,6 +390,29 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     correctFormat
                 );
             }
+        }
+
+        /// <summary>
+        /// Whether the romanized title writes the standard marker in full capitals, such as "(TV SIZE)", and the unicode
+        /// title writes it the same way. That is likely a deliberate stylisation rather than a mistake.
+        /// </summary>
+        private static bool TryGetCapitalisedMarker(
+            Beatmap beatmap,
+            string canonical,
+            out string markerText
+        )
+        {
+            var romanized = beatmap.MetadataSettings.title;
+            var unicode = beatmap.MetadataSettings.titleUnicode;
+
+            if (
+                !TryGetMarkerOccurrence(romanized, canonical, out _, out markerText)
+                || !IsAllUppercaseLetters(markerText)
+            )
+                return false;
+
+            return string.IsNullOrWhiteSpace(unicode)
+                || unicode.Contains(markerText, StringComparison.Ordinal);
         }
 
         private static readonly Regex TvApproxRegex = new(

@@ -357,6 +357,66 @@ public class CheckTitleMarkersTests
         Assert.DoesNotContain(issues, issue => issue.level == Issue.Level.Problem);
     }
 
+    [Theory]
+    [InlineData("Song Name (TV SIZE)", "(TV SIZE)", "(TV Size)")]
+    [InlineData("Song Name (CUT VER.)", "(CUT VER.)", "(Cut Ver.)")]
+    public void WarnsInsteadOfProblemForFullCapsMarker(
+        string title,
+        string written,
+        string canonical
+    )
+    {
+        using var context = CreateContext(title);
+
+        var issues = context.RunGeneralCheck<CheckTitleMarkers>();
+
+        Assert.DoesNotContain(issues, issue => issue.level == Issue.Level.Problem);
+        var warning = Assert.Single(
+            issues,
+            issue => issue.level == Issue.Level.Warning && issue.message.Contains("in capitals")
+        );
+        Assert.Contains(written, warning.message);
+        Assert.Contains(canonical, warning.message);
+    }
+
+    [Fact]
+    public void WarnsOnceWhenBothTitleFieldsUseTheSameFullCapsMarker()
+    {
+        using var context = CreateContextWithUnicodeTitle("Uta (TV SIZE)", "歌 (TV SIZE)");
+
+        var issues = context.RunGeneralCheck<CheckTitleMarkers>();
+
+        Assert.DoesNotContain(issues, issue => issue.level == Issue.Level.Problem);
+        Assert.Single(issues, issue => issue.message.Contains("in capitals"));
+    }
+
+    [Fact]
+    public void KeepsProblemWhenFullCapsMarkerDiffersBetweenTitleFields()
+    {
+        using var context = CreateContextWithUnicodeTitle("Uta (TV SIZE)", "歌 (TV Size)");
+
+        var issues = context.RunGeneralCheck<CheckTitleMarkers>();
+
+        Assert.Contains(
+            issues,
+            issue =>
+                issue.level == Issue.Level.Problem
+                && issue.message.Contains("Romanized title field")
+        );
+        Assert.DoesNotContain(issues, issue => issue.message.Contains("in capitals"));
+    }
+
+    [Fact]
+    public void KeepsProblemForHyphenatedMarkerEvenWhenBothTitleFieldsMatch()
+    {
+        using var context = CreateContextWithUnicodeTitle("Uta -TV version-", "歌 -TV version-");
+
+        var issues = context.RunGeneralCheck<CheckTitleMarkers>();
+
+        Assert.Contains(issues, issue => issue.level == Issue.Level.Problem);
+        Assert.DoesNotContain(issues, issue => issue.message.Contains("in capitals"));
+    }
+
     private static CheckTestContext CreateContextWithUnicodeTitle(
         string title,
         string titleUnicode,
