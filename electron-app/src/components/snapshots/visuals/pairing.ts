@@ -56,6 +56,10 @@ const timeGap = (a: number, b: number, shift: number) => {
   return Math.min(Math.abs(a - b), shift !== 0 && shifted <= SHIFT_TOLERANCE_MS ? 0 : shifted);
 };
 
+/** Whether the object started a new combo in one version and not the other (osu! and catch). */
+const newComboChanged = (a: ApiSnapshotVisualObject, b: ApiSnapshotVisualObject) =>
+  a.newCombo != null && b.newCombo != null && a.newCombo !== b.newCombo;
+
 function identical(
   a: ApiSnapshotVisualObject,
   b: ApiSnapshotVisualObject,
@@ -84,6 +88,7 @@ function identical(
 
   return (
     a.type === b.type &&
+    !newComboChanged(a, b) &&
     timeGap(a.time, b.time, shift) < 1 &&
     (ignorePlace || distance(a, b) < 0.5) &&
     a.column === b.column &&
@@ -230,6 +235,7 @@ function describeDifference(
   if (a.column !== b.column) lines.push(`Moved from column ${b.column} to column ${a.column}`);
   if (compareHitsound && a.hitSound !== b.hitSound)
     lines.push(`Changed from ${noteName(b.hitSound)} to ${noteName(a.hitSound)}`);
+  if (newComboChanged(a, b)) lines.push(a.newCombo ? 'Added new combo' : 'Removed new combo');
 
   if (a.type !== b.type) return lines;
 

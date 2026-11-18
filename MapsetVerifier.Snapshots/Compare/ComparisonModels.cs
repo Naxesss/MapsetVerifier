@@ -56,7 +56,9 @@ namespace MapsetVerifier.Snapshots.Compare
         /// <summary> The volume the object plays at: its own, or the timing line's it inherits. </summary>
         int? Volume = null,
         /// <summary> What an object sounds like: its head, and for a slider each reverse, its tail and the body. </summary>
-        IReadOnlyList<SoundPart>? Sounds = null
+        IReadOnlyList<SoundPart>? Sounds = null,
+        /// <summary> osu! and catch: whether the object itself starts a new combo (its own flag). </summary>
+        bool? NewCombo = null
     );
 
     /// <summary>

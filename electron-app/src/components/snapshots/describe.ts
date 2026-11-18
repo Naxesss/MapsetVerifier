@@ -395,6 +395,25 @@ function lineSummaries(changes: ApiSnapshotChange[]): string[] {
   });
 }
 
+/**
+ * For a hunk whose objects only had their new combo added or removed, what happened in words, e.g.
+ * "New combo added on 2 objects, removed on 1". Otherwise null.
+ */
+function newComboSummary(hunk: ApiSnapshotHunk): string | null {
+  const changes = hunk.changes.filter((c) => c.object);
+  if (changes.length === 0 || changes.length !== hunk.changes.length) return null;
+  if (!changes.every((c) => c.field === 'NewCombo')) return null;
+
+  const added = changes.filter((c) => c.after === 'True').length;
+  const removed = changes.length - added;
+  const parts = [
+    ...(added > 0 ? [`added on ${countWord(added, 'object')}`] : []),
+    ...(removed > 0 ? [`removed on ${countWord(removed, 'object')}`] : []),
+  ];
+
+  return `New combo ${parts.join(', ')}`;
+}
+
 /** The one-line summary of a hunk, from what dominates it. */
 export function hunkSummary(hunk: ApiSnapshotHunk): string {
   const { added, removed, changed } = hunk.counts;
@@ -419,11 +438,31 @@ export function hunkSummary(hunk: ApiSnapshotHunk): string {
 
       return parts.map((p, i) => (i === 0 ? p : p.toLowerCase())).join(', ');
     }
-    case 'Placement':
+    case 'Placement': {
+      if (newComboSummary(hunk)) return newComboSummary(hunk)!;
       // In taiko the placement of a note is its colour and size.
       if (hunk.changes.every((c) => c.field === 'Note'))
         return `${countWord(hunk.changes.length, 'note')} changed colour or size`;
-      return objectSummary(hunk, 'moved or reshaped');
+
+      // Objects whose only change is their new combo were not moved or reshaped, so they are
+      // counted on their own.
+      const byObject = new Map<string, ApiSnapshotChange[]>();
+      for (const c of objects) {
+        const list = byObject.get(c.object!.stamp) ?? [];
+        list.push(c);
+        byObject.set(c.object!.stamp, list);
+      }
+      const comboOnly = [...byObject.values()].filter((list) =>
+        list.every((c) => c.field === 'NewCombo' && c.op === 'Changed')
+      ).length;
+      if (comboOnly === 0 || comboOnly >= changed) return objectSummary(hunk, 'moved or reshaped');
+
+      const moved = objectSummary(
+        { ...hunk, counts: { ...hunk.counts, changed: changed - comboOnly } },
+        'moved or reshaped'
+      );
+      return `${moved}, new combo changed on ${countWord(comboOnly, 'object')}`;
+    }
     case 'Rhythm':
       return objectSummary(hunk, 'retimed or reshaped');
     case 'Sv': {
@@ -507,6 +546,8 @@ export function hunkDetail(hunk: ApiSnapshotHunk): string | null {
   if (hunk.label === 'Shifted') return describeShiftDetail(hunk);
   if (hunk.label === 'Volume') return describeVolumeGroupDetail(hunk);
   if (singleAddOrRemove(hunk)) return null;
+  // The headline already says what happened to the new combos.
+  if (newComboSummary(hunk)) return null;
 
   const lines = toChangeLines(hunk.changes);
   return lines.length === 1 && lines[0].details.length === 0 ? lines[0].text : null;

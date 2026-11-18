@@ -314,6 +314,8 @@ export type ApiSnapshotVisualObject = {
   volume: number | null;
   /** A slider's sounds (osu! and catch): head, reverses, tail, and the body's whistle. */
   sounds: ApiSnapshotSoundPart[] | null;
+  /** osu! and catch: whether the object itself starts a new combo (its own flag). */
+  newCombo?: boolean | null;
 };
 
 export type ApiSnapshotSoundPart = {

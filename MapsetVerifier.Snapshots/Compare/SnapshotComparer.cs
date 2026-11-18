@@ -799,7 +799,13 @@ namespace MapsetVerifier.Snapshots.Compare
                         ? SliderTicks(o, map)
                         : null,
                 o.volume ?? (int?)Math.Round(map.GetTimingLine(o.time, true)?.Volume ?? 0),
-                sounds
+                sounds,
+                // As the differ sees it: the flag itself, in the modes where a new combo does something.
+                map.GeneralSettings.mode
+                    is Beatmap.Mode.Mania
+                        or Beatmap.Mode.Taiko
+                    ? null
+                    : o.type.HasFlag(HitObject.Types.NewCombo)
             );
         }
     }
