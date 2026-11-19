@@ -58,14 +58,15 @@ namespace MapsetVerifier.Framework.Objects.Resources
         private static void FreeStream(int stream) => Bass.StreamFree(stream);
 
         /// <summary>
-        ///     Bundles the format, channel count, duration and bitrate of an audio file, all of which
-        ///     can be read from a single stream open, given the full path.
+        ///     Bundles the format, channel count, duration, bitrate and sample rate of an audio file, all
+        ///     of which can be read from a single stream open, given the full path.
         /// </summary>
         public readonly record struct AudioMetadata(
             ChannelType Format,
             int Channels,
             double DurationMs,
-            double Bitrate
+            double Bitrate,
+            int SampleRate
         );
 
         /// <summary>
@@ -159,7 +160,8 @@ namespace MapsetVerifier.Framework.Objects.Resources
                 channelInfo.ChannelType,
                 channelInfo.Channels,
                 durationMs,
-                bitrate
+                bitrate,
+                channelInfo.Frequency
             );
         }
 
