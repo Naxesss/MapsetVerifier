@@ -1049,6 +1049,15 @@ namespace MapsetVerifier.Parser.Objects
             return interpretedFromName;
         }
 
+        /// <summary>
+        ///     Returns whether <see cref="GetDifficulty" /> fell back on star rating, because nobody chose a
+        ///     difficulty level and the name doesn't say one, as with hitsound difficulties or joke names.
+        /// </summary>
+        public bool IsDifficultyGuessed() =>
+            InterpretedDifficultyOverride == null
+            && BeatmapSetDifficultyOverride == null
+            && (GetDifficultyFromName() ?? GetDifficultyFromNameWord()) == null;
+
         private Difficulty GetDifficultyFromStarRating()
         {
             return StarRating switch
