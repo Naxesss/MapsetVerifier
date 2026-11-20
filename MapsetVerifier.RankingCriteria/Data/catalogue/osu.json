@@ -879,7 +879,8 @@
         ]
       },
       "curation": {
-        "automation": "automatable"
+        "automation": "partial",
+        "notes": "CheckComboLength reports combos that are too long; too short combos are left to judgement."
       }
     },
     {
@@ -1363,7 +1364,8 @@
         ]
       },
       "curation": {
-        "automation": "automatable"
+        "automation": "partial",
+        "notes": "CheckComboLength reports combos that are too long; too short combos are left to judgement."
       }
     },
     {
