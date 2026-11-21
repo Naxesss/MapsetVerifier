@@ -1,4 +1,5 @@
 using MapsetVerifier.Checks.AllModes.General.Metadata;
+using MapsetVerifier.Checks.Utils.Romanisation;
 using MapsetVerifier.Framework.Objects;
 using Xunit;
 
@@ -33,14 +34,16 @@ public class CheckRomanisationTests
     }
 
     [Theory]
-    [InlineData("ありがとう", "Arigatoo", "Arigatou")]
     [InlineData("いっしょに", "Issyoni", "Isshoni")]
     [InlineData("しんぶん", "Sinbun", "Shinbun")]
     [InlineData("ちゃんと", "Tyanto", "Chanto")]
     [InlineData("まっちゃ", "Maccha", "Matcha")]
     [InlineData("つき", "Tuki", "Tsuki")]
     [InlineData("ふじ", "Huji", "Fuji")]
-    [InlineData("かわいい", "Kawai", "Kawaii")]
+    [InlineData("もうそう♥つき", "Mousou Tuki", "Mousou Tsuki")]
+    [InlineData("Song (つき Remix)", "Song (Tuki Remix)", "Song (Tsuki Remix)")]
+    [InlineData("つ～き！", "Tu~ki!", "Tsu~ki!")]
+    [InlineData("HoYoつき", "HoYo Tuki", "HoYo Tsuki")]
     public void FlagsNonHepburnRomanisation(string unicode, string romanised, string suggestion)
     {
         using var context = CreateTitleContext(romanised, unicode);
@@ -59,6 +62,73 @@ public class CheckRomanisationTests
     [InlineData("Song", "Song")]
     [InlineData("☆☆☆", "***")]
     public void SkipsFieldsItCannotRead(string unicode, string romanised)
+    {
+        using var context = CreateTitleContext(romanised, unicode);
+
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
+
+        Assert.Empty(issues);
+    }
+
+    [Theory]
+    [InlineData("かめりあ", "Camellia")]
+    [InlineData("かめりあ feat. ななひら", "Camellia feat. Nanahira")]
+    [InlineData("THE WORLD REVOLVING (かめりあ Remix)", "THE WORLD REVOLVING (Camellia Remix)")]
+    [InlineData("もうそう♥えくすぷれす", "Mousou Express")]
+    [InlineData("は～とび～と♥お～ば～ひ～～～～と！！！！", "Hea~rt Bea~t <3 O~ver~Hea~~~~t!!!!")]
+    [InlineData("すくりぃむ！ (TV Size)", "Scream! (TV Size)")]
+    [InlineData("ふぃすとはっかーず", "Fist Hackers")]
+    [InlineData("じっぷす", "Zips")]
+    [InlineData("ありがとう", "Arigatoo")]
+    [InlineData("かわいい", "Kawai")]
+    public void LeavesHiraganaLoanWordsAndOfficialNamesQuiet(string unicode, string romanised)
+    {
+        using var context = CreateTitleContext(romanised, unicode);
+
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
+
+        Assert.Empty(issues);
+    }
+
+    [Theory]
+    [InlineData("もうそう♥えくすぷれす", "Mousou Ekusupuresu")]
+    [InlineData("は～とび～と♥お～ば～ひ～～～～と！！！！", "Ha~tobi~to O~ba~hi~~~~to!!!!")]
+    [InlineData("THE WORLD REVOLVING (かめりあ Remix)", "THE WORLD REVOLVING (Kameria Remix)")]
+    [InlineData("HoYoHoYoにしてあげる♪", "HoYoHoYo Nishiteageru")]
+    [InlineData("スピラ・スピカ", "Supira Supika")]
+    [InlineData("キネマ106", "Kinema106")]
+    [InlineData("やなぎ　なぎ", "Yanagi Nagi")]
+    public void SuggestsRomanisationKeepingPunctuation(string unicode, string expected)
+    {
+        Assert.Equal(expected, new JapaneseRomaniser().Suggest(unicode));
+    }
+
+    [Theory]
+    [InlineData(
+        "Taishi ft. みとせのりこ - The Blue Sanctuary",
+        "Taishi ft.  - The Blue Sanctuary",
+        "みとせのりこ"
+    )]
+    [InlineData("かめりあ feat. ななひら", "Camellia feat.", "ななひら")]
+    [InlineData("つき (TV Size)", "(TV Size)", "つき")]
+    public void FlagsMissingPart(string unicode, string romanised, string missing)
+    {
+        using var context = CreateTitleContext(romanised, unicode);
+
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
+
+        var warning = Assert.Single(issues);
+        Assert.Equal(Issue.Level.Warning, warning.level);
+        Assert.Contains($"leaves out \"{missing}\"", warning.message);
+    }
+
+    [Theory]
+    [InlineData("よるにかける (Yoru ni Kakeru)", "Yoru ni Kakeru")]
+    [InlineData("つき Tsuki", "Tsuki")]
+    [InlineData("夜に駆ける (Yoru ni Kakeru)", "Yoru ni Kakeru")]
+    [InlineData("Song feat. 初音ミク", "Song feat.")]
+    [InlineData("Song (TV Size)", "Song (TV Size)")]
+    public void DoesNotFlagRepeatedOrUnreadableParts(string unicode, string romanised)
     {
         using var context = CreateTitleContext(romanised, unicode);
 
@@ -102,12 +172,13 @@ public class CheckRomanisationTests
     [Fact]
     public void FlagsArtistSpelling()
     {
-        using var context = CreateArtistContext("Yanagi Nazi", "やなぎ なぎ");
+        using var context = CreateArtistContext("Kudou Sizuka", "くどう しずか");
 
         var issues = context.RunGeneralCheck<CheckRomanisation>();
 
         var warning = Assert.Single(issues);
         Assert.Contains("Modified Hepburn", warning.message);
+        Assert.Contains("\"Kudou Shizuka\"", warning.message);
     }
 
     [Theory]

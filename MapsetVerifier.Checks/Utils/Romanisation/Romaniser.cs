@@ -99,25 +99,68 @@ public abstract class Romaniser
             : RomanisationVerdict.Inconclusive;
     }
 
-    /// <summary> The preferred romanisation of each word, keeping the spacing and capitalising each word. </summary>
+    /// <summary>
+    ///     The unicode field with each run of script replaced by its preferred romanisation. Latin text and ASCII
+    ///     punctuation are kept as written, other symbols (♥, ・, 、) become word breaks, and a romanised run is
+    ///     capitalised when it starts a word.
+    /// </summary>
     public virtual string Suggest(string unicode)
     {
-        var words = Normalise(unicode)
-            .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)
-            .Select(word =>
+        var result = new StringBuilder();
+        var run = new StringBuilder();
+        var runIsLatin = false;
+
+        foreach (var ch in Normalise(unicode))
+        {
+            var isLatin = ch < 128 && char.IsLetter(ch);
+            if (isLatin || (ch >= 128 && char.IsLetter(ch)))
             {
-                var units = Read(word);
-                if (units == null || !units.Any(unit => unit.Source != null))
-                    return new string(word.Where(ch => ch < 128).ToArray());
+                if (run.Length > 0 && runIsLatin != isLatin)
+                    FlushRun();
+                runIsLatin = isLatin;
+                run.Append(ch);
+                continue;
+            }
 
-                var romaji = string.Concat(units.Select(unit => unit.Alternatives[0]));
-                return romaji.Length == 0
-                    ? romaji
-                    : char.ToUpper(romaji[0], CultureInfo.InvariantCulture) + romaji[1..];
-            })
-            .Where(word => word.Length > 0);
+            FlushRun();
+            result.Append(ch < 128 ? ch : ' ');
+        }
 
-        return string.Join(" ", words);
+        FlushRun();
+        return string.Join(
+            " ",
+            result.ToString().Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        );
+
+        void FlushRun()
+        {
+            if (run.Length == 0)
+                return;
+
+            var text = run.ToString();
+            run.Clear();
+
+            var piece = runIsLatin ? text : RomaniseRun(text);
+            if (piece.Length == 0)
+                return;
+
+            // Keep latin and romanised runs that touched in the unicode field apart as separate words.
+            if (result.Length > 0 && char.IsLetterOrDigit(result[^1]))
+                result.Append(' ');
+
+            var startsWord =
+                result.Length == 0 || result[^1] is ' ' or '(' or '[' or '{' or '"' or '/';
+            if (!runIsLatin && startsWord)
+                piece = char.ToUpper(piece[0], CultureInfo.InvariantCulture) + piece[1..];
+
+            result.Append(piece);
+        }
+    }
+
+    private string RomaniseRun(string text)
+    {
+        var units = Read(text);
+        return units == null ? "" : string.Concat(units.Select(unit => unit.Alternatives[0]));
     }
 
     /// <summary> Folds full-width latin and half-width kana into their regular forms. </summary>

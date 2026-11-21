@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.RegularExpressions;
 using MapsetVerifier.Checks.Utils.Romanisation;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
@@ -14,6 +16,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
         private static readonly Romaniser[] Romanisers = [new JapaneseRomaniser()];
 
         private const string NameOrderTemplate = "Name Order";
+        private const string MissingTemplate = "Missing";
 
         public override CheckMetadata GetMetadata() =>
             new()
@@ -28,7 +31,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         "Purpose",
                         @"
                         Pointing out romanised artists and titles that don't follow the romanisation system the Ranking
-                        Criteria asks for, and romanised artist names whose name order is swapped."
+                        Criteria asks for, romanised artist names whose name order is swapped, and romanised fields that
+                        leave out part of the unicode field entirely."
                     },
                     {
                         "Reasoning",
@@ -43,16 +47,22 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         "Covered languages",
                         @"
                         - **Japanese**, Modified Hepburn: fields written in hiragana or katakana, optionally mixed with plain
-                          latin text. Kanji can't be read without a dictionary, so fields with kanji are skipped. Katakana is
-                          mostly loan words, which use the source language's spelling, so it is only reported when the
-                          romanised field clearly follows another system like Kunrei-shiki (e.g. *tyo* instead of *cho*)."
+                          latin text. Kanji can't be read without a dictionary, so fields with kanji are skipped. Kana is often
+                          used for loan words and official names, which keep their own spelling (*かめりあ* is *Camellia*), so
+                          a field is only reported when its romanisation clearly follows another system like Kunrei-shiki
+                          (e.g. *tyo* instead of *cho*, *tu* instead of *tsu*)."
                     },
                     {
                         "Limitations",
                         @"
                         Only the letters are compared, so spacing, punctuation and capitalisation aren't checked. Readings
                         that can't be told apart are all accepted, such as long vowels with or without the repeated vowel
-                        (*ou* or *o*) and particles (*ha* or *wa*)."
+                        (*ou* or *o*) and particles (*ha* or *wa*).
+
+                        A left-out part is found by lining up the latin text both fields share, such as *feat.* or
+                        *(TV Size)*. A part that repeats the latin text next to it may be left out, so only parts a
+                        covered language can read are reported, and only when the text beside them isn't their
+                        romanisation. Left-out kanji isn't reported."
                     },
                 },
             };
@@ -87,6 +97,17 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     "The romanised artist matches the unicode artist only when its names are put in the opposite order."
                 )
                 .WithRule(RC.Metadata.Romanisation_ArtistNamesRomanisedOrderPrinted);
+
+            templates[MissingTemplate] = new IssueTemplate(
+                Issue.Level.Warning,
+                "Romanised {0} \"{1}\" leaves out \"{2}\" from the unicode {0} \"{3}\".",
+                "artist/title",
+                "romanised",
+                "missing part",
+                "unicode"
+            ).WithCause(
+                "Part of the unicode artist or title is written in a non-latin script, and the romanised field has nothing in its place while the latin text around it matches."
+            );
 
             return templates;
         }
@@ -128,6 +149,17 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             if (romanised.Any(ch => ch > 127))
                 return null;
 
+            var missing = FindMissingPart(romanised, unicode);
+            if (missing != null)
+                return new Issue(
+                    GetTemplate(MissingTemplate),
+                    null,
+                    field,
+                    romanised,
+                    missing,
+                    unicode
+                );
+
             var romaniser = Romanisers.FirstOrDefault(romaniser => romaniser.AppliesTo(unicode));
             if (romaniser == null)
                 return null;
@@ -157,6 +189,93 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                 romaniser.Suggest(unicode)
             );
         }
+
+        /// <summary>
+        ///     Finds a run of non-latin script in the unicode field that has nothing in its place in the romanised
+        ///     field, using the latin text around it as anchors. This doesn't need to read the script, so it works for
+        ///     Returns null when nothing is missing, or when the latin text itself differs, since the fields can't be
+        ///     lined up then.
+        ///
+        ///     A word may be left out when it repeats latin text next to it, like "夜に駆ける (Yoru ni Kakeru)"
+        ///     romanised as "Yoru ni Kakeru". So a missing run is only reported when a romaniser can read it and the
+        ///     latin text beside it isn't its romanisation. Runs nothing can read, such as kanji, aren't reported.
+        /// </summary>
+        private static string? FindMissingPart(string romanised, string unicode)
+        {
+            var segments = new List<(bool IsScript, StringBuilder Text)>();
+            foreach (var ch in unicode.Normalize(NormalizationForm.FormKC))
+            {
+                var isLatin = ch < 128 && char.IsLetterOrDigit(ch);
+                var isScript = ch >= 128 && char.IsLetter(ch);
+                if (isLatin || isScript)
+                {
+                    if (segments.Count == 0 || segments[^1].IsScript != isScript)
+                        segments.Add((isScript, new StringBuilder()));
+                    segments[^1].Text.Append(isLatin ? char.ToLowerInvariant(ch) : ch);
+                }
+                else if (segments.Count > 0 && segments[^1].IsScript)
+                    // Keep spacing inside a script run, so the missing part reads as written.
+                    segments[^1].Text.Append(ch);
+            }
+
+            if (!segments.Any(segment => segment.IsScript))
+                return null;
+
+            var target = new string(
+                romanised
+                    .ToLowerInvariant()
+                    .Where(ch => ch is >= 'a' and <= 'z' or >= '0' and <= '9')
+                    .ToArray()
+            );
+
+            var lenient = Regex.Match(target, BuildPattern(segments, "(.*)"));
+            if (!lenient.Success || Regex.IsMatch(target, BuildPattern(segments, "(.+)")))
+                return null;
+
+            var group = 1;
+            for (var i = 0; i < segments.Count; i++)
+            {
+                if (!segments[i].IsScript || lenient.Groups[group++].Length > 0)
+                    continue;
+
+                // Separators after the run were kept for spacing inside it; drop those around its ends.
+                var text = segments[i].Text.ToString();
+                var start = 0;
+                var end = text.Length;
+                while (start < end && !char.IsLetter(text[start]))
+                    start++;
+                while (end > start && !char.IsLetter(text[end - 1]))
+                    end--;
+                var run = text[start..end];
+                var romaniser = Romanisers.FirstOrDefault(romaniser => romaniser.AppliesTo(run));
+                if (romaniser == null)
+                    continue;
+
+                var neighbours = new[] { i - 1, i + 1 }
+                    .Where(index => index >= 0 && index < segments.Count)
+                    .Select(index => segments[index].Text.ToString());
+                var repeatsNeighbour = neighbours.Any(neighbour =>
+                    romaniser.Judge(run, neighbour)
+                        is not (RomanisationVerdict.Inconclusive or RomanisationVerdict.Unreadable)
+                );
+                if (romaniser.Judge(run, "") != RomanisationVerdict.Unreadable && !repeatsNeighbour)
+                    return run;
+            }
+
+            return null;
+        }
+
+        private static string BuildPattern(
+            List<(bool IsScript, StringBuilder Text)> segments,
+            string scriptPattern
+        ) =>
+            "^"
+            + string.Concat(
+                segments.Select(segment =>
+                    segment.IsScript ? scriptPattern : Regex.Escape(segment.Text.ToString())
+                )
+            )
+            + "$";
 
         private static bool HasSwappedNameOrder(
             Romaniser romaniser,

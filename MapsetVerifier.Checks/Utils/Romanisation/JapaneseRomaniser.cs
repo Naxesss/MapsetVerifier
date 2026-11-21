@@ -138,8 +138,7 @@ public sealed class JapaneseRomaniser : Romaniser
     public override string Rule => RC.Metadata.Romanisation_JapaneseUseModifiedHepburnSystem;
 
     public override string Cause =>
-        "The unicode artist or title is written in kana, and the romanised field spells it differently from Modified Hepburn. "
-        + "Katakana is only reported when the romanised field follows another system like Kunrei-shiki, since loan words use their source language's spelling.";
+        "The unicode artist or title is written in kana, and the romanised field follows another system like Kunrei-shiki instead of Modified Hepburn.";
 
     protected override bool ContainsScript(string text) => text.Any(IsKana);
 
@@ -148,8 +147,9 @@ public sealed class JapaneseRomaniser : Romaniser
     protected override List<RomanisationUnit>? ReadAnySystem(string text) =>
         Read(text, anySystem: true);
 
-    // Katakana is mostly loan words, which are romanised with their source language's spelling instead.
-    protected override bool MayUseDifferentWords(string text) => text.Any(IsKatakana);
+    // Kana is often used for loan words and official names (かめりあ → Camellia, えくすぷれす → Express), which
+    // keep their own spelling. Only spellings that clearly come from another system are reported.
+    protected override bool MayUseDifferentWords(string text) => true;
 
     private static List<RomanisationUnit>? Read(string text, bool anySystem)
     {
