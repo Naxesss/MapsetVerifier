@@ -138,9 +138,10 @@ public sealed class JapaneseRomaniser : Romaniser
     public override string Rule => RC.Metadata.Romanisation_JapaneseUseModifiedHepburnSystem;
 
     public override string Cause =>
-        "The unicode artist or title is written in kana, and the romanised field follows another system like Kunrei-shiki instead of Modified Hepburn.";
+        "The unicode artist or title is written in Japanese, and the romanised field follows another system like Kunrei-shiki instead of Modified Hepburn.";
 
-    protected override bool ContainsScript(string text) => text.Any(IsKana);
+    protected override bool ContainsScript(string text) =>
+        text.Any(IsKana) || JapaneseReader.ContainsKanji(text);
 
     protected override List<RomanisationUnit>? Read(string text) => Read(text, anySystem: false);
 
@@ -151,98 +152,147 @@ public sealed class JapaneseRomaniser : Romaniser
     // keep their own spelling. Only spellings that clearly come from another system are reported.
     protected override bool MayUseDifferentWords(string text) => true;
 
+    /// <summary>
+    ///     Names a field could be split into, for checking name order: by spaces when there are any, otherwise by
+    ///     the dictionary's surname and given name, e.g. 水瀬いのり as 水瀬 and いのり.
+    /// </summary>
+    public override string[] SplitNames(string text)
+    {
+        var spaced = base.SplitNames(text);
+        if (spaced.Length >= 2 || !JapaneseReader.ContainsKanji(text))
+            return spaced;
+
+        var words = JapaneseReader.Read(Normalise(text).Trim());
+        if (
+            words.Count != 2
+            || words[0].Kind != JapaneseWordKind.Surname
+            || words[1].Kind != JapaneseWordKind.GivenName
+        )
+            return spaced;
+
+        return [words[0].Text, words[1].Text];
+    }
+
     private static List<RomanisationUnit>? Read(string text, bool anySystem)
     {
+        // Kanji are replaced by their reading; words with kanji the dictionary can't read make the text unreadable.
+        var words = JapaneseReader.Read(text);
+        if (words.Any(word => word.Kana == null))
+            return null;
+
         var units = new List<RomanisationUnit>();
         // Whether the previous unit sits directly before this character, with no separator in between.
         var adjacent = false;
         var pendingTsu = false;
+        JapaneseWord? startingWord = null;
+        JapaneseWord? previousWord = null;
+        var previousBroke = false;
 
-        foreach (var original in text)
+        foreach (var word in words)
         {
-            var ch = ToHiragana(original);
-            var previous = adjacent && units.Count > 0 ? units[^1] : null;
+            var hasLetters = word.Text.Any(char.IsLetter);
+            var breaks =
+                hasLetters
+                && previousWord != null
+                && IsWordBreak(previousWord, previousBroke, word);
+            startingWord = breaks ? word : null;
+            previousBroke = breaks || (previousWord == null && word.HasKanji);
+            previousWord = hasLetters ? word : null;
 
-            if (ch < 128)
+            foreach (var original in word.Kana!)
             {
-                if (char.IsLetter(ch))
+                var ch = ToHiragana(original);
+                var previous = adjacent && units.Count > 0 ? units[^1] : null;
+
+                if (ch < 128)
                 {
-                    AddUnit(new RomanisationUnit(null, [char.ToLowerInvariant(ch).ToString()]));
+                    if (char.IsLetter(ch))
+                    {
+                        AddUnit(new RomanisationUnit(null, [char.ToLowerInvariant(ch).ToString()]));
+                        continue;
+                    }
+
+                    FlushTsu();
+                    adjacent = false;
                     continue;
                 }
 
+                if (Hepburn.TryGetValue(ch, out var romaji))
+                {
+                    var alternatives = romaji.ToList();
+                    if (anySystem && OtherSystems.TryGetValue(ch, out var other))
+                        alternatives.AddRange(other);
+
+                    var unit = new RomanisationUnit(original, alternatives);
+                    if (previous?.Source != null && "あいうえお".Contains(ch))
+                        AddLongVowelAlternatives(previous, unit, romaji[0][0]);
+                    AddUnit(unit);
+                    continue;
+                }
+
+                if (SmallY.TryGetValue(ch, out var yVowel))
+                {
+                    if (
+                        previous?.Source != null
+                        && previous.Alternatives.All(alt => alt.EndsWith('i'))
+                    )
+                        previous.Alternatives = previous
+                            .Alternatives.SelectMany(alt =>
+                                YoonAlternatives(alt, yVowel, anySystem)
+                            )
+                            .Distinct()
+                            .ToList();
+                    else
+                        AddUnit(new RomanisationUnit(original, ["y" + yVowel]));
+                    continue;
+                }
+
+                if (SmallVowels.TryGetValue(ch, out var vowel))
+                {
+                    if (
+                        previous?.Source != null
+                        && previous.Alternatives.All(alt => alt.Length > 0)
+                    )
+                        previous.Alternatives = previous
+                            .Alternatives.SelectMany(alt => SmallVowelAlternatives(alt, vowel))
+                            .Distinct()
+                            .ToList();
+                    else
+                        AddUnit(new RomanisationUnit(original, [vowel.ToString()]));
+                    continue;
+                }
+
+                if (ch == SmallTsu)
+                {
+                    FlushTsu();
+                    pendingTsu = true;
+                    adjacent = true;
+                    continue;
+                }
+
+                if (
+                    ch == LongVowelMark
+                    && previous?.Source != null
+                    && previous.Alternatives[0].Length > 0
+                )
+                {
+                    var last = previous.Alternatives[0][^1];
+                    var alternatives = new List<string> { "" };
+                    if (Vowels.Contains(last))
+                        alternatives.Insert(0, last.ToString());
+                    if (last == 'o')
+                        alternatives.Add("h");
+                    AddUnit(new RomanisationUnit(original, alternatives));
+                    continue;
+                }
+
+                // Iteration marks and other scripts can't be romanised here.
+                if (char.IsLetter(ch) || IsKana(ch))
+                    return null;
+
                 FlushTsu();
                 adjacent = false;
-                continue;
             }
-
-            if (Hepburn.TryGetValue(ch, out var romaji))
-            {
-                var alternatives = romaji.ToList();
-                if (anySystem && OtherSystems.TryGetValue(ch, out var other))
-                    alternatives.AddRange(other);
-
-                var unit = new RomanisationUnit(original, alternatives);
-                if (previous?.Source != null && "あいうえお".Contains(ch))
-                    AddLongVowelAlternatives(previous, unit, romaji[0][0]);
-                AddUnit(unit);
-                continue;
-            }
-
-            if (SmallY.TryGetValue(ch, out var yVowel))
-            {
-                if (previous?.Source != null && previous.Alternatives.All(alt => alt.EndsWith('i')))
-                    previous.Alternatives = previous
-                        .Alternatives.SelectMany(alt => YoonAlternatives(alt, yVowel, anySystem))
-                        .Distinct()
-                        .ToList();
-                else
-                    AddUnit(new RomanisationUnit(original, ["y" + yVowel]));
-                continue;
-            }
-
-            if (SmallVowels.TryGetValue(ch, out var vowel))
-            {
-                if (previous?.Source != null && previous.Alternatives.All(alt => alt.Length > 0))
-                    previous.Alternatives = previous
-                        .Alternatives.SelectMany(alt => SmallVowelAlternatives(alt, vowel))
-                        .Distinct()
-                        .ToList();
-                else
-                    AddUnit(new RomanisationUnit(original, [vowel.ToString()]));
-                continue;
-            }
-
-            if (ch == SmallTsu)
-            {
-                FlushTsu();
-                pendingTsu = true;
-                adjacent = true;
-                continue;
-            }
-
-            if (
-                ch == LongVowelMark
-                && previous?.Source != null
-                && previous.Alternatives[0].Length > 0
-            )
-            {
-                var last = previous.Alternatives[0][^1];
-                var alternatives = new List<string> { "" };
-                if (Vowels.Contains(last))
-                    alternatives.Insert(0, last.ToString());
-                if (last == 'o')
-                    alternatives.Add("h");
-                AddUnit(new RomanisationUnit(original, alternatives));
-                continue;
-            }
-
-            // Kanji, iteration marks and other scripts can't be romanised here.
-            if (char.IsLetter(ch) || IsKana(ch))
-                return null;
-
-            FlushTsu();
-            adjacent = false;
         }
 
         FlushTsu();
@@ -259,6 +309,17 @@ public sealed class JapaneseRomaniser : Romaniser
                 pendingTsu = false;
             }
 
+            // The first unit of each word marks where the word starts, for spacing suggestions.
+            if (startingWord != null)
+            {
+                unit.StartsWord = true;
+                unit.IsParticle = startingWord.Kind == JapaneseWordKind.Particle;
+                // Particles are read differently from how they're written: は as wa, へ as e.
+                if (unit.IsParticle && unit.Source is 'は' or 'へ')
+                    unit.Alternatives.Reverse();
+                startingWord = null;
+            }
+
             units.Add(unit);
             adjacent = true;
         }
@@ -273,6 +334,27 @@ public sealed class JapaneseRomaniser : Romaniser
             units.Add(new RomanisationUnit(SmallTsu, ["", "t", "tsu"]));
         }
     }
+
+    /// <summary>
+    ///     Whether to put a space between two words in suggestions. Breaks are only trusted around kanji words and
+    ///     the particles after them: the dictionary knows many single kana as words, so it splits kana-only text
+    ///     like names (やなぎなぎ) into odd pieces, and it splits names it doesn't know (佐咲紗花) into single kanji.
+    /// </summary>
+    private static bool IsWordBreak(JapaneseWord previous, bool previousBroke, JapaneseWord word)
+    {
+        if (IsSingleKanji(previous) && IsSingleKanji(word))
+            return false;
+
+        if (word.HasKanji || previous.HasKanji)
+            return true;
+
+        // A particle after a kanji word gets its own break, and so does whatever follows it: 坂道 の メロディ.
+        if (word.Kind == JapaneseWordKind.Particle)
+            return previousBroke;
+        return previous.Kind == JapaneseWordKind.Particle && previousBroke;
+    }
+
+    private static bool IsSingleKanji(JapaneseWord word) => word.Text.Length == 1 && word.HasKanji;
 
     /// <summary> きゃ → kya, しゃ → sha, ちゃ → cha, じゃ → ja. </summary>
     private static IEnumerable<string> YoonAlternatives(string alt, char vowel, bool anySystem)

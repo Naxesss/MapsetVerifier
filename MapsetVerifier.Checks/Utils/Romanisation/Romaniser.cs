@@ -14,6 +14,12 @@ public sealed class RomanisationUnit(char? source, List<string> alternatives)
 
     /// <summary> Accepted romanisations, the preferred one first. May contain an empty string when optional. </summary>
     public List<string> Alternatives { get; set; } = alternatives;
+
+    /// <summary> Whether a new word starts here, so suggestions can put a space before it. </summary>
+    public bool StartsWord { get; set; }
+
+    /// <summary> Whether the word starting here is a particle, which suggestions keep lowercase. </summary>
+    public bool IsParticle { get; set; }
 }
 
 /// <summary> How well a romanised field fits the unicode field. </summary>
@@ -79,6 +85,10 @@ public abstract class Romaniser
     /// </summary>
     protected virtual bool MayUseDifferentWords(string text) => false;
 
+    /// <summary> The separate names in an artist field, in printed order, for checking name order. </summary>
+    public virtual string[] SplitNames(string text) =>
+        text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+
     public RomanisationVerdict Judge(string unicode, string romanised)
     {
         var text = Normalise(unicode);
@@ -109,6 +119,8 @@ public abstract class Romaniser
         var result = new StringBuilder();
         var run = new StringBuilder();
         var runIsLatin = false;
+        // Whether the text so far ends in a latin or a romanised run, null after anything else.
+        bool? lastRunWasLatin = null;
 
         foreach (var ch in Normalise(unicode))
         {
@@ -124,6 +136,7 @@ public abstract class Romaniser
 
             FlushRun();
             result.Append(ch < 128 ? ch : ' ');
+            lastRunWasLatin = null;
         }
 
         FlushRun();
@@ -145,23 +158,47 @@ public abstract class Romaniser
                 return;
 
             // Keep latin and romanised runs that touched in the unicode field apart as separate words.
-            if (result.Length > 0 && char.IsLetterOrDigit(result[^1]))
+            if (lastRunWasLatin != null && lastRunWasLatin != runIsLatin)
                 result.Append(' ');
 
+            // Stylised joins like "Ha~tobi~to" and "Ko-ji" carry on the same word.
             var startsWord =
-                result.Length == 0 || result[^1] is ' ' or '(' or '[' or '{' or '"' or '/';
+                result.Length == 0
+                || !(char.IsLetterOrDigit(result[^1]) || result[^1] is '~' or '-' or '\'' or '.');
             if (!runIsLatin && startsWord)
-                piece = char.ToUpper(piece[0], CultureInfo.InvariantCulture) + piece[1..];
+                piece = Capitalise(piece);
 
             result.Append(piece);
+            lastRunWasLatin = runIsLatin;
         }
     }
 
+    /// <summary> The preferred romanisation, with a space before each word and every word but particles capitalised. </summary>
     private string RomaniseRun(string text)
     {
         var units = Read(text);
-        return units == null ? "" : string.Concat(units.Select(unit => unit.Alternatives[0]));
+        if (units == null)
+            return "";
+
+        var romanised = new StringBuilder();
+        foreach (var unit in units)
+        {
+            var alternative = unit.Alternatives[0];
+            if (unit.StartsWord && romanised.Length > 0 && alternative.Length > 0)
+            {
+                romanised.Append(' ');
+                if (!unit.IsParticle)
+                    alternative = Capitalise(alternative);
+            }
+
+            romanised.Append(alternative);
+        }
+
+        return romanised.ToString();
     }
+
+    private static string Capitalise(string text) =>
+        text.Length == 0 ? text : char.ToUpper(text[0], CultureInfo.InvariantCulture) + text[1..];
 
     /// <summary> Folds full-width latin and half-width kana into their regular forms. </summary>
     protected static string Normalise(string text) => text.Normalize(NormalizationForm.FormKC);

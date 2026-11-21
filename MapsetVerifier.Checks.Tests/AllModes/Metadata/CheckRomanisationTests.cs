@@ -111,6 +111,7 @@ public class CheckRomanisationTests
     )]
     [InlineData("かめりあ feat. ななひら", "Camellia feat.", "ななひら")]
     [InlineData("つき (TV Size)", "(TV Size)", "つき")]
+    [InlineData("Song feat. 初音ミク", "Song feat.", "初音ミク")]
     public void FlagsMissingPart(string unicode, string romanised, string missing)
     {
         using var context = CreateTitleContext(romanised, unicode);
@@ -126,7 +127,6 @@ public class CheckRomanisationTests
     [InlineData("よるにかける (Yoru ni Kakeru)", "Yoru ni Kakeru")]
     [InlineData("つき Tsuki", "Tsuki")]
     [InlineData("夜に駆ける (Yoru ni Kakeru)", "Yoru ni Kakeru")]
-    [InlineData("Song feat. 初音ミク", "Song feat.")]
     [InlineData("Song (TV Size)", "Song (TV Size)")]
     public void DoesNotFlagRepeatedOrUnreadableParts(string unicode, string romanised)
     {
@@ -135,6 +135,71 @@ public class CheckRomanisationTests
         var issues = context.RunGeneralCheck<CheckRomanisation>();
 
         Assert.Empty(issues);
+    }
+
+    [Theory]
+    [InlineData("紅蓮の弓矢 (TV Size)", "Guren no Yumiya (TV Size)")]
+    [InlineData("君の銀の庭", "Kimi no Gin no Niwa")]
+    [InlineData("邪神の婚礼、儀は愛と知る。", "Jashin no Konrei, Gi wa Ai to Shiru.")]
+    [InlineData("DIVELA feat. 初音ミク", "DIVELA feat. Hatsune Miku")]
+    [InlineData("otetsu feat. 巡音ルカ", "otetsu feat. Megurine Luka")]
+    [InlineData("想いの眠るゆりかご", "Cradle Where Feelings Rest")]
+    [InlineData("未来へ翔ぶために (TV Size)", "Ashita e tobutameni (TV Size)")]
+    [InlineData("黝堊の祈り", "Yuuaku no Inori")]
+    public void AcceptsKanjiReadingsTranslationsAndUnknownWords(string unicode, string romanised)
+    {
+        using var context = CreateTitleContext(romanised, unicode);
+
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
+
+        Assert.Empty(issues);
+    }
+
+    [Theory]
+    [InlineData("月の歌", "Tuki no Uta", "Tsuki no Uta")]
+    [InlineData("紅蓮の弓矢", "Guren no Yumiya Syousetsu", null)]
+    public void FlagsKanjiInAnotherSystem(string unicode, string romanised, string? suggestion)
+    {
+        using var context = CreateTitleContext(romanised, unicode);
+
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
+
+        if (suggestion == null)
+        {
+            Assert.Empty(issues);
+            return;
+        }
+
+        var warning = Assert.Single(issues);
+        Assert.Contains("Modified Hepburn", warning.message);
+        Assert.Contains($"\"{suggestion}\"", warning.message);
+    }
+
+    [Fact]
+    public void FlagsSwappedKanjiNameWithoutSpaces()
+    {
+        using var context = CreateArtistContext("Masayuki Suzuki", "鈴木雅之");
+
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
+
+        var warning = Assert.Single(issues);
+        Assert.Contains("name order", warning.message);
+        Assert.Contains("\"Suzuki Masayuki\"", warning.message);
+    }
+
+    [Theory]
+    [InlineData("君の銀の庭", "Kimi no Gin no Niwa")]
+    [InlineData("巡音ルカ", "Megurine Ruka")]
+    [InlineData("鏡音リン", "Kagamine Rin")]
+    [InlineData("40mP & かぐや", "40mP & Kaguya")]
+    [InlineData("有馬かな (CV:潘めぐみ)", "Arima Kana (CV:Han Megumi)")]
+    [InlineData("坂道のメロディ", "Sakamichi no Merodi")]
+    [InlineData("佐咲紗花", "Sasakishahana")]
+    [InlineData("水面の桜、夢は逆夢", "Suimen no Sakura Yume wa Sakayume")]
+    [InlineData("六三四プロジェクト＆増田俊郎", "Rokusanyon Purojekuto&Masuda Toshio")]
+    public void SuggestsKanjiReadingsWithWordBreaks(string unicode, string expected)
+    {
+        Assert.Equal(expected, new JapaneseRomaniser().Suggest(unicode));
     }
 
     [Fact]

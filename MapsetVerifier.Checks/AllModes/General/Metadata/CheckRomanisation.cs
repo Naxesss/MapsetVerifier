@@ -46,10 +46,10 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     {
                         "Covered languages",
                         @"
-                        - **Japanese**, Modified Hepburn: fields written in hiragana or katakana, optionally mixed with plain
-                          latin text. Kanji can't be read without a dictionary, so fields with kanji are skipped. Kana is often
-                          used for loan words and official names, which keep their own spelling (*かめりあ* is *Camellia*), so
-                          a field is only reported when its romanisation clearly follows another system like Kunrei-shiki
+                        - **Japanese**, Modified Hepburn: fields written in kana and kanji, optionally mixed with plain latin
+                          text. Kanji are read with a built-in dictionary. Japanese text is often used for loan words,
+                          translations and official names, which keep their own spelling (*かめりあ* is *Camellia*), so a
+                          field is only reported when its romanisation clearly follows another system like Kunrei-shiki
                           (e.g. *tyo* instead of *cho*, *tu* instead of *tsu*)."
                     },
                     {
@@ -59,10 +59,17 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         that can't be told apart are all accepted, such as long vowels with or without the repeated vowel
                         (*ou* or *o*) and particles (*ha* or *wa*).
 
+                        The dictionary picks one reading per word, and it's often wrong for names and creative readings
+                        (*未来* sung as *ashita*). A wrong reading doesn't fit any romanisation system, so it leaves the
+                        field unreported rather than causing a false warning. Words the dictionary doesn't know at all
+                        leave the field unchecked.
+
+                        Name order is checked for artists written with a space between the names, or as a single
+                        surname and given name the dictionary recognises (e.g. *鈴木雅之*).
+
                         A left-out part is found by lining up the latin text both fields share, such as *feat.* or
-                        *(TV Size)*. A part that repeats the latin text next to it may be left out, so only parts a
-                        covered language can read are reported, and only when the text beside them isn't their
-                        romanisation. Left-out kanji isn't reported."
+                        *(TV Size)*. A part that repeats the latin text next to it may be left out, so a part is only
+                        reported when it can be read and the text beside it isn't its romanisation."
                     },
                 },
             };
@@ -283,7 +290,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             string romanised
         )
         {
-            var names = unicode.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+            var names = romaniser.SplitNames(unicode);
             if (names.Length < 2)
                 return false;
 

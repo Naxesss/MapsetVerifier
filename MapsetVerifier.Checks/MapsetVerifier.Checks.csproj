@@ -14,6 +14,7 @@
     <ProjectReference Include="..\MapsetVerifier.RankingCriteria\MapsetVerifier.RankingCriteria.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Lucene.Net.Analysis.Kuromoji" Version="4.8.0-beta00017" />
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
   </ItemGroup>
 </Project>
