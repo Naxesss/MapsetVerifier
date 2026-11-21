@@ -1,0 +1,21 @@
+Mapset Verifier
+Additional permission under GNU GPL version 3 section 7
+
+Mapset Verifier is licensed under the GNU General Public License version 3,
+see LICENSE. The licensors of Mapset Verifier grant the following additional
+permission.
+
+If you modify this Program, or any covered work, by linking or combining it
+with the BASS, BASS_FX, BASSmix or BASSWASAPI libraries by Un4seen
+Developments Ltd (or a modified version of those libraries), containing parts
+covered by the terms of their licenses, the licensors of this Program grant
+you additional permission to convey the resulting work. Corresponding Source
+for a non-source form of such a combination shall not include the source code
+for the parts of those libraries used as well as that of the covered work.
+
+This permission only concerns the BASS libraries named above. They remain
+under Un4seen's own licensing terms, see https://www.un4seen.com/bass.html.
+
+When you distribute a modified version of Mapset Verifier, you may extend this
+permission to your version, or remove it from your version and distribute it
+under the GNU General Public License version 3 alone.

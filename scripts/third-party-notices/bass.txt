@@ -1,0 +1,9 @@
+BASS, BASS_FX, BASSmix and BASSWASAPI
+Included as native libraries (bass, bass_fx, bassmix, basswasapi) through ppy.osu.Framework.NativeLibs.
+
+Copyright (c) Un4seen Developments Ltd. All rights reserved.
+https://www.un4seen.com/
+
+BASS is not open source software and is not covered by Mapset Verifier's license. It is distributed under
+Un4seen's own licensing terms, see https://www.un4seen.com/bass.html#license. Mapset Verifier is combined
+with it under an additional permission to the GNU GPL, see LICENSE-EXCEPTION.txt.

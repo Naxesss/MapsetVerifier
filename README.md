@@ -96,3 +96,7 @@ You can also reach the current maintainers directly on osu!:
 
 - [Greaper](https://osu.ppy.sh/users/2369776)
 - [Hivie](https://osu.ppy.sh/users/14102976)
+
+## License
+
+Mapset Verifier is licensed under the [GNU General Public License v3.0](LICENSE), with an [additional permission](LICENSE-EXCEPTION.txt) to combine it with the BASS audio libraries, which are not open source. The licenses and notices of the third-party components it ships are in [THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt).
