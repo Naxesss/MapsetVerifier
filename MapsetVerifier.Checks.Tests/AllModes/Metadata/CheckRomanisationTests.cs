@@ -4,7 +4,7 @@ using Xunit;
 
 namespace MapsetVerifier.Checks.Tests.AllModes.Metadata;
 
-public class CheckJapaneseRomanisationTests
+public class CheckRomanisationTests
 {
     [Theory]
     [InlineData("ありがとう", "Arigatou")]
@@ -27,7 +27,7 @@ public class CheckJapaneseRomanisationTests
     {
         using var context = CreateTitleContext(romanised, unicode);
 
-        var issues = context.RunGeneralCheck<CheckJapaneseRomanisation>();
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
 
         Assert.Empty(issues);
     }
@@ -45,7 +45,7 @@ public class CheckJapaneseRomanisationTests
     {
         using var context = CreateTitleContext(romanised, unicode);
 
-        var issues = context.RunGeneralCheck<CheckJapaneseRomanisation>();
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
 
         var warning = Assert.Single(issues);
         Assert.Equal(Issue.Level.Warning, warning.level);
@@ -54,8 +54,6 @@ public class CheckJapaneseRomanisationTests
 
     [Theory]
     [InlineData("米津玄師", "Yonezu Kenshi")]
-    [InlineData("ラブ", "Love")]
-    [InlineData("ラブソング", "Rabusongu")]
     [InlineData("きみの名は", "Kimi no Na wa")]
     [InlineData("ゆよゆっぺ", "Yuyoyuppe")]
     [InlineData("Song", "Song")]
@@ -64,7 +62,7 @@ public class CheckJapaneseRomanisationTests
     {
         using var context = CreateTitleContext(romanised, unicode);
 
-        var issues = context.RunGeneralCheck<CheckJapaneseRomanisation>();
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
 
         Assert.Empty(issues);
     }
@@ -74,7 +72,7 @@ public class CheckJapaneseRomanisationTests
     {
         using var context = CreateTitleContext("Arigatō", "ありがとう");
 
-        var issues = context.RunGeneralCheck<CheckJapaneseRomanisation>();
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
 
         Assert.Empty(issues);
     }
@@ -84,7 +82,7 @@ public class CheckJapaneseRomanisationTests
     {
         using var context = CreateArtistContext("Yanagi Nagi", "やなぎ なぎ");
 
-        var issues = context.RunGeneralCheck<CheckJapaneseRomanisation>();
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
 
         Assert.Empty(issues);
     }
@@ -94,7 +92,7 @@ public class CheckJapaneseRomanisationTests
     {
         using var context = CreateArtistContext("Nagi Yanagi", "やなぎ なぎ");
 
-        var issues = context.RunGeneralCheck<CheckJapaneseRomanisation>();
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
 
         var warning = Assert.Single(issues);
         Assert.Contains("name order", warning.message);
@@ -106,10 +104,79 @@ public class CheckJapaneseRomanisationTests
     {
         using var context = CreateArtistContext("Yanagi Nazi", "やなぎ なぎ");
 
-        var issues = context.RunGeneralCheck<CheckJapaneseRomanisation>();
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
 
         var warning = Assert.Single(issues);
         Assert.Contains("Modified Hepburn", warning.message);
+    }
+
+    [Theory]
+    [InlineData("ラブソング", "Love Song")]
+    [InlineData("チョコレート", "Chocolate")]
+    [InlineData("チョコレート", "Chokoreeto")]
+    [InlineData("チョコレート", "Chokoreto")]
+    [InlineData("ティータイム", "Tea Time")]
+    [InlineData("ティータイム", "Tiitaimu")]
+    [InlineData("ファンタジー", "Fantajii")]
+    [InlineData("ヴァンパイア", "Vanpaia")]
+    [InlineData("ウィッチ", "Witchi")]
+    public void AcceptsKatakanaLoanWordsAndHepburn(string unicode, string romanised)
+    {
+        using var context = CreateTitleContext(romanised, unicode);
+
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
+
+        Assert.Empty(issues);
+    }
+
+    [Theory]
+    [InlineData("チョコレート", "Tyokoreeto", "Chokoreeto")]
+    [InlineData("ツナミ", "Tunami", "Tsunami")]
+    [InlineData("シンデレラ", "Sinderera", "Shinderera")]
+    [InlineData("マッチ", "Macchi", "Matchi")]
+    [InlineData("ﾂﾅﾐ", "Tunami", "Tsunami")]
+    public void FlagsKatakanaInAnotherSystem(string unicode, string romanised, string suggestion)
+    {
+        using var context = CreateTitleContext(romanised, unicode);
+
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
+
+        var warning = Assert.Single(issues);
+        Assert.Equal(Issue.Level.Warning, warning.level);
+        Assert.Contains($"\"{suggestion}\"", warning.message);
+    }
+
+    [Fact]
+    public void FlagsTraditionalHepburnInHiragana()
+    {
+        using var context = CreateTitleContext("Shimbun", "しんぶん");
+
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
+
+        var warning = Assert.Single(issues);
+        Assert.Contains("\"Shinbun\"", warning.message);
+    }
+
+    [Fact]
+    public void FlagsSwappedKatakanaArtistNameOrder()
+    {
+        using var context = CreateArtistContext("Tatsuya Kitani", "キタニ タツヤ");
+
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
+
+        var warning = Assert.Single(issues);
+        Assert.Contains("name order", warning.message);
+        Assert.Contains("\"Kitani Tatsuya\"", warning.message);
+    }
+
+    [Fact]
+    public void AcceptsKatakanaArtistInPrintedOrder()
+    {
+        using var context = CreateArtistContext("Kitani Tatsuya", "キタニ　タツヤ");
+
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
+
+        Assert.Empty(issues);
     }
 
     private static CheckTestContext CreateTitleContext(string title, string titleUnicode) =>
