@@ -202,6 +202,54 @@ public class CheckRomanisationTests
         Assert.Equal(expected, new JapaneseRomaniser().Suggest(unicode));
     }
 
+    [Theory]
+    [InlineData("Für Elise", "Fuer Elise", "")]
+    [InlineData("Für Elise", "Fur Elise", "")]
+    [InlineData("Für Elise", "For Elise", "german")]
+    [InlineData("Beyoncé", "Beyonce", "")]
+    [InlineData("Sigur Rós", "Sigur Ros", "")]
+    [InlineData("Straße", "Strasse", "german")]
+    [InlineData("Räksmörgås", "Raksmorgas", "swedish")]
+    [InlineData("Blåbærgrød", "Blaabaergroed", "danish")]
+    public void AcceptsLetterRules(string unicode, string romanised, string tags)
+    {
+        using var context = CreateTitleContext(romanised, unicode, tags);
+
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
+
+        Assert.Empty(issues);
+    }
+
+    [Theory]
+    [InlineData("Für Elise", "Fur Elise", "german", "Fuer Elise")]
+    [InlineData("Straße", "Strase", "german", "Strasse")]
+    [InlineData("Räksmörgås", "Raeksmoergaas", "swedish", "Raksmorgas")]
+    [InlineData("Blåbærgrød", "Blabargrod", "danish", "Blaabaergroed")]
+    [InlineData("Mø", "Mo", "", "Moe")]
+    public void FlagsLettersAgainstTheRules(
+        string unicode,
+        string romanised,
+        string tags,
+        string suggestion
+    )
+    {
+        using var context = CreateTitleContext(romanised, unicode, tags);
+
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
+
+        var warning = Assert.Single(issues);
+        Assert.Equal(Issue.Level.Warning, warning.level);
+        Assert.Contains($"\"{suggestion}\"", warning.message);
+    }
+
+    [Theory]
+    [InlineData("Für Elise", "Fuer Elise")]
+    [InlineData("MØ", "MOE")]
+    public void SuggestsLatinKeepingCase(string unicode, string expected)
+    {
+        Assert.Equal(expected, LatinRomaniser.AnyLanguage.Suggest(unicode));
+    }
+
     [Fact]
     public void SkipsRomanisedFieldsWithUnicode()
     {
@@ -315,13 +363,18 @@ public class CheckRomanisationTests
         Assert.Empty(issues);
     }
 
-    private static CheckTestContext CreateTitleContext(string title, string titleUnicode) =>
+    private static CheckTestContext CreateTitleContext(
+        string title,
+        string titleUnicode,
+        string tags = ""
+    ) =>
         CheckTestContext.CreateFromOsu(
             new OsuBuilder()
                 .Title(title)
                 .TitleUnicode(titleUnicode)
                 .Artist("Tests")
                 .Creator("Tests")
+                .Tags(tags)
         );
 
     private static CheckTestContext CreateArtistContext(string artist, string artistUnicode) =>

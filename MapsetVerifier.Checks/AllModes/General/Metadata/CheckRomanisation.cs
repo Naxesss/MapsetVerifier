@@ -13,7 +13,16 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
     public class CheckRomanisation : GeneralCheck
     {
         // Each language the Ranking Criteria gives romanisation rules for gets a romaniser here.
-        private static readonly Romaniser[] Romanisers = [new JapaneseRomaniser()];
+        // Romanisers that need a language tag come before the ones that don't, so the tag decides when both apply.
+        private static readonly Romaniser[] Romanisers =
+        [
+            new JapaneseRomaniser(),
+            LatinRomaniser.German,
+            LatinRomaniser.Swedish,
+            LatinRomaniser.Finnish,
+            LatinRomaniser.Nordic,
+            LatinRomaniser.AnyLanguage,
+        ];
 
         private const string NameOrderTemplate = "Name Order";
         private const string MissingTemplate = "Missing";
@@ -50,7 +59,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                           text. Kanji are read with a built-in dictionary. Japanese text is often used for loan words,
                           translations and official names, which keep their own spelling (*かめりあ* is *Camellia*), so a
                           field is only reported when its romanisation clearly follows another system like Kunrei-shiki
-                          (e.g. *tyo* instead of *cho*, *tu* instead of *tsu*)."
+                          (e.g. *tyo* instead of *cho*, *tu* instead of *tsu*).
+                        - **German, Swedish, Finnish and Nordic** letters (*ü* as *ue*, *ö* as *o*, *å* as *aa*): the rules of
+                          the language the beatmapset is tagged with. Without one of those tags, any of their spellings is
+                          accepted, and only ones none of them allow are reported, like *ø* as *o*. Other accented letters
+                          are expected as their plain letter (*é* as *e*)."
                     },
                     {
                         "Limitations",
@@ -90,7 +103,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         "suggestion"
                     )
                         .WithCause(romaniser.Cause)
-                        .WithRule(romaniser.Rule)
+                        .WithRule(romaniser.Rules)
             );
 
             templates[NameOrderTemplate] = new IssueTemplate(
@@ -139,15 +152,26 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                 )
                 .Distinct();
 
+            var tags = beatmapSet
+                .Beatmaps.SelectMany(beatmap =>
+                    beatmap.MetadataSettings.tags.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                )
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
             foreach (var (field, romanised, unicode) in fields)
             {
-                var issue = GetIssue(field, romanised, unicode);
+                var issue = GetIssue(field, romanised, unicode, tags);
                 if (issue != null)
                     yield return issue;
             }
         }
 
-        private Issue? GetIssue(string field, string? romanised, string? unicode)
+        private Issue? GetIssue(
+            string field,
+            string? romanised,
+            string? unicode,
+            IReadOnlyCollection<string> tags
+        )
         {
             if (string.IsNullOrWhiteSpace(romanised) || string.IsNullOrWhiteSpace(unicode))
                 return null;
@@ -156,7 +180,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             if (romanised.Any(ch => ch > 127))
                 return null;
 
-            var missing = FindMissingPart(romanised, unicode);
+            var missing = FindMissingPart(romanised, unicode, tags);
             if (missing != null)
                 return new Issue(
                     GetTemplate(MissingTemplate),
@@ -167,7 +191,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     unicode
                 );
 
-            var romaniser = Romanisers.FirstOrDefault(romaniser => romaniser.AppliesTo(unicode));
+            var romaniser = Romanisers.FirstOrDefault(romaniser =>
+                romaniser.AppliesTo(unicode, tags)
+            );
             if (romaniser == null)
                 return null;
 
@@ -199,15 +225,18 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
 
         /// <summary>
         ///     Finds a run of non-latin script in the unicode field that has nothing in its place in the romanised
-        ///     field, using the latin text around it as anchors. This doesn't need to read the script, so it works for
-        ///     Returns null when nothing is missing, or when the latin text itself differs, since the fields can't be
-        ///     lined up then.
+        ///     field, using the latin text around it as anchors. Returns null when nothing is missing, or when the
+        ///     latin text itself differs, since the fields can't be lined up then.
         ///
         ///     A word may be left out when it repeats latin text next to it, like "夜に駆ける (Yoru ni Kakeru)"
         ///     romanised as "Yoru ni Kakeru". So a missing run is only reported when a romaniser can read it and the
-        ///     latin text beside it isn't its romanisation. Runs nothing can read, such as kanji, aren't reported.
+        ///     latin text beside it isn't its romanisation. Runs no romaniser can read aren't reported.
         /// </summary>
-        private static string? FindMissingPart(string romanised, string unicode)
+        private static string? FindMissingPart(
+            string romanised,
+            string unicode,
+            IReadOnlyCollection<string> tags
+        )
         {
             var segments = new List<(bool IsScript, StringBuilder Text)>();
             foreach (var ch in unicode.Normalize(NormalizationForm.FormKC))
@@ -254,7 +283,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                 while (end > start && !char.IsLetter(text[end - 1]))
                     end--;
                 var run = text[start..end];
-                var romaniser = Romanisers.FirstOrDefault(romaniser => romaniser.AppliesTo(run));
+                var romaniser = Romanisers.FirstOrDefault(romaniser =>
+                    romaniser.AppliesTo(run, tags)
+                );
                 if (romaniser == null)
                     continue;
 

@@ -20,6 +20,9 @@ public sealed class RomanisationUnit(char? source, List<string> alternatives)
 
     /// <summary> Whether the word starting here is a particle, which suggestions keep lowercase. </summary>
     public bool IsParticle { get; set; }
+
+    /// <summary> Whether the source letter is uppercase, for scripts with letter case. </summary>
+    public bool IsUppercase { get; set; }
 }
 
 /// <summary> How well a romanised field fits the unicode field. </summary>
@@ -55,13 +58,33 @@ public abstract class Romaniser
     public abstract string SystemName { get; }
 
     /// <summary> The Ranking Criteria rule this romaniser enforces. </summary>
-    public abstract string Rule { get; }
+    public abstract string[] Rules { get; }
+
+    /// <summary>
+    ///     Language tags at least one of which the beatmapset needs for this romaniser to apply, or none when the
+    ///     script alone is enough. Han characters are both Chinese and Japanese, so the tag decides there.
+    /// </summary>
+    public virtual string[] RequiredTags => [];
+
+    /// <summary>
+    ///     Whether the script has letter case (Cyrillic, accented latin). Suggestions then keep the case as
+    ///     written, instead of capitalising every word.
+    /// </summary>
+    protected virtual bool HasLetterCase => false;
 
     /// <summary> Describes which fields are checked, used as the issue template cause. </summary>
     public abstract string Cause { get; }
 
     /// <summary> Whether the text contains this romaniser's script at all. </summary>
     public bool AppliesTo(string text) => ContainsScript(Normalise(text));
+
+    /// <summary> Whether this romaniser applies to the text in a beatmapset with these tags. </summary>
+    public bool AppliesTo(string text, IReadOnlyCollection<string> tags) =>
+        AppliesTo(text)
+        && (
+            RequiredTags.Length == 0
+            || RequiredTags.Any(tag => tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
+        );
 
     /// <summary> Whether the already normalised text contains this romaniser's script. </summary>
     protected abstract bool ContainsScript(string text);
@@ -124,8 +147,9 @@ public abstract class Romaniser
 
         foreach (var ch in Normalise(unicode))
         {
-            var isLatin = ch < 128 && char.IsLetter(ch);
-            if (isLatin || (ch >= 128 && char.IsLetter(ch)))
+            // With letter case, plain letters belong to the same word as the script's letters (Für → Fuer).
+            var isLatin = ch < 128 && char.IsLetter(ch) && !HasLetterCase;
+            if (char.IsLetter(ch))
             {
                 if (run.Length > 0 && runIsLatin != isLatin)
                     FlushRun();
@@ -165,7 +189,7 @@ public abstract class Romaniser
             var startsWord =
                 result.Length == 0
                 || !(char.IsLetterOrDigit(result[^1]) || result[^1] is '~' or '-' or '\'' or '.');
-            if (!runIsLatin && startsWord)
+            if (!runIsLatin && startsWord && !HasLetterCase)
                 piece = Capitalise(piece);
 
             result.Append(piece);
@@ -180,6 +204,10 @@ public abstract class Romaniser
         if (units == null)
             return "";
 
+        // A word written in capitals stays in capitals ("МОСКВА" → "MOSKVA").
+        var lettered = units.Where(unit => unit.Alternatives[0].Length > 0).ToList();
+        var allCaps = HasLetterCase && lettered.Count > 1 && lettered.All(unit => unit.IsUppercase);
+
         var romanised = new StringBuilder();
         foreach (var unit in units)
         {
@@ -187,9 +215,14 @@ public abstract class Romaniser
             if (unit.StartsWord && romanised.Length > 0 && alternative.Length > 0)
             {
                 romanised.Append(' ');
-                if (!unit.IsParticle)
+                if (!unit.IsParticle && !HasLetterCase)
                     alternative = Capitalise(alternative);
             }
+
+            if (allCaps)
+                alternative = alternative.ToUpperInvariant();
+            else if (unit.IsUppercase)
+                alternative = Capitalise(alternative);
 
             romanised.Append(alternative);
         }

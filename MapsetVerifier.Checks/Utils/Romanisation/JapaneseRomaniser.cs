@@ -135,7 +135,7 @@ public sealed class JapaneseRomaniser : Romaniser
 
     public override string Name => "Japanese";
     public override string SystemName => "Modified Hepburn";
-    public override string Rule => RC.Metadata.Romanisation_JapaneseUseModifiedHepburnSystem;
+    public override string[] Rules => [RC.Metadata.Romanisation_JapaneseUseModifiedHepburnSystem];
 
     public override string Cause =>
         "The unicode artist or title is written in Japanese, and the romanised field follows another system like Kunrei-shiki instead of Modified Hepburn.";
