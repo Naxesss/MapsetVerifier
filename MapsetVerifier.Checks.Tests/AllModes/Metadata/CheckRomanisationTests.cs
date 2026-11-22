@@ -211,6 +211,15 @@ public class CheckRomanisationTests
     [InlineData("Straße", "Strasse", "german")]
     [InlineData("Räksmörgås", "Raksmorgas", "swedish")]
     [InlineData("Blåbærgrød", "Blaabaergroed", "danish")]
+    [InlineData("Москва", "Moskva", "")]
+    [InlineData("Пётр", "Pyotr", "")]
+    [InlineData("Елена", "Yelena", "")]
+    [InlineData("Київ", "Kyiv", "")]
+    [InlineData(
+        "Странствiя Рукоблуда и брата его Малафѣя",
+        "Stranstviya Rukobluda i brata yego Malafeya",
+        ""
+    )]
     public void AcceptsLetterRules(string unicode, string romanised, string tags)
     {
         using var context = CreateTitleContext(romanised, unicode, tags);
@@ -226,6 +235,8 @@ public class CheckRomanisationTests
     [InlineData("Räksmörgås", "Raeksmoergaas", "swedish", "Raksmorgas")]
     [InlineData("Blåbærgrød", "Blabargrod", "danish", "Blaabaergroed")]
     [InlineData("Mø", "Mo", "", "Moe")]
+    [InlineData("Юрий", "Jurij", "", "Yuriy")]
+    [InlineData("Щука", "Schuka", "", "Shchuka")]
     public void FlagsLettersAgainstTheRules(
         string unicode,
         string romanised,
@@ -240,6 +251,15 @@ public class CheckRomanisationTests
         var warning = Assert.Single(issues);
         Assert.Equal(Issue.Level.Warning, warning.level);
         Assert.Contains($"\"{suggestion}\"", warning.message);
+    }
+
+    [Theory]
+    [InlineData("Москва", "Moskva")]
+    [InlineData("МОСКВА", "MOSKVA")]
+    [InlineData("Чайковский и Пётр", "Chaykovskiy i Petr")]
+    public void SuggestsCyrillicKeepingCase(string unicode, string expected)
+    {
+        Assert.Equal(expected, new CyrillicRomaniser().Suggest(unicode));
     }
 
     [Theory]

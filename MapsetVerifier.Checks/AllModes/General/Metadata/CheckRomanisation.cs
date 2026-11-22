@@ -17,6 +17,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
         private static readonly Romaniser[] Romanisers =
         [
             new JapaneseRomaniser(),
+            new CyrillicRomaniser(),
             LatinRomaniser.German,
             LatinRomaniser.Swedish,
             LatinRomaniser.Finnish,
@@ -60,6 +61,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                           translations and official names, which keep their own spelling (*かめりあ* is *Camellia*), so a
                           field is only reported when its romanisation clearly follows another system like Kunrei-shiki
                           (e.g. *tyo* instead of *cho*, *tu* instead of *tsu*).
+                        - **Cyrillic**, BGN/PCGN: reported when the romanised field clearly follows another system, like
+                          *Jurij* instead of *Yuriy*. Russian, Ukrainian and Belarusian readings of shared letters are all
+                          accepted.
                         - **German, Swedish, Finnish and Nordic** letters (*ü* as *ue*, *ö* as *o*, *å* as *aa*): the rules of
                           the language the beatmapset is tagged with. Without one of those tags, any of their spellings is
                           accepted, and only ones none of them allow are reported, like *ø* as *o*. Other accented letters
