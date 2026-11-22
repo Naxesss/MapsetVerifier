@@ -45,7 +45,7 @@ internal static class CatchTestBeatmap
             {string.Join("\n", hitObjects)}
             """;
 
-        return new Beatmap(code, "song", "map.osu");
+        return new Beatmap(code, "song", $"{Guid.NewGuid()}.osu");
     }
 
     /// <summary>

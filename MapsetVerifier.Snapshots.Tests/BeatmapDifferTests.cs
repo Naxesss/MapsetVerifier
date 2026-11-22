@@ -35,7 +35,7 @@ public class BeatmapDifferTests
         lines.Add("[HitObjects]");
         lines.AddRange(hitObjects);
 
-        return new Beatmap(string.Join("\n", lines), "song", "test.osu");
+        return new Beatmap(string.Join("\n", lines), "song", $"{Guid.NewGuid()}.osu");
     }
 
     private static string Circle(int time, int x = 100, int y = 100, int hitSound = 0) =>

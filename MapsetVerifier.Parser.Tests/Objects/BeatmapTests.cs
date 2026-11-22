@@ -18,7 +18,7 @@ Version:{version}
 HP:5
 """;
 
-        return new Beatmap(code, "song", "map.osu");
+        return new Beatmap(code, "song", $"{Guid.NewGuid()}.osu");
     }
 
     [Fact]

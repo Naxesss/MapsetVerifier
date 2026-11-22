@@ -53,7 +53,7 @@ public class ParserStaticTests
             [HitObjects]
             """;
 
-        var beatmap = new Beatmap(code, "song", "map.osu");
+        var beatmap = new Beatmap(code, "song", $"{Guid.NewGuid()}.osu");
 
         Assert.Equal(["id.jpg", "name.jpg"], beatmap.Backgrounds.Select(b => b.path));
         Assert.Equal(2, beatmap.Videos.Count);

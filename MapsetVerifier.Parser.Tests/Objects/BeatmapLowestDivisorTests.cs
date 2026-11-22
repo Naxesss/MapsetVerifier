@@ -30,7 +30,7 @@ public class BeatmapLowestDivisorTests
             256,192,49983,1,0,0:0:0:0:
             """,
             "song",
-            "map.osu"
+            $"{Guid.NewGuid()}.osu"
         );
 
     [Theory]
