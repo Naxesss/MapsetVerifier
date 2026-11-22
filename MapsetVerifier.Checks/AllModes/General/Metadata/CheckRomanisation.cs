@@ -16,6 +16,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
         // Romanisers that need a language tag come before the ones that don't, so the tag decides when both apply.
         private static readonly Romaniser[] Romanisers =
         [
+            new ChineseRomaniser(),
             new JapaneseRomaniser(),
             new CyrillicRomaniser(),
             LatinRomaniser.German,
@@ -61,6 +62,10 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                           translations and official names, which keep their own spelling (*かめりあ* is *Camellia*), so a
                           field is only reported when its romanisation clearly follows another system like Kunrei-shiki
                           (e.g. *tyo* instead of *cho*, *tu* instead of *tsu*).
+                        - **Chinese**, for beatmapsets tagged as Chinese: each character must be its own capitalised word
+                          (*Wo Ai Ni*), so a romanised field whose letters follow the pinyin but run characters together is
+                          reported. Proper nouns are exempt, so ignore it for those. A romanised field that doesn't follow
+                          the pinyin at all, like a translation or Cantonese, isn't reported.
                         - **Cyrillic**, BGN/PCGN: reported when the romanised field clearly follows another system, like
                           *Jurij* instead of *Yuriy*. Russian, Ukrainian and Belarusian readings of shared letters are all
                           accepted.
@@ -109,6 +114,20 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         .WithCause(romaniser.Cause)
                         .WithRule(romaniser.Rules)
             );
+
+            foreach (
+                var romaniser in Romanisers.Where(romaniser => romaniser.FormatMessage != null)
+            )
+                templates[FormatTemplate(romaniser)] = new IssueTemplate(
+                    Issue.Level.Warning,
+                    romaniser.FormatMessage!,
+                    "artist/title",
+                    "romanised",
+                    "unicode",
+                    "suggestion"
+                )
+                    .WithCause(romaniser.Cause)
+                    .WithRule(romaniser.Rules);
 
             templates[NameOrderTemplate] = new IssueTemplate(
                 Issue.Level.Warning,
@@ -202,7 +221,20 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                 return null;
 
             var verdict = romaniser.Judge(unicode, romanised);
-            if (verdict is RomanisationVerdict.Unreadable or RomanisationVerdict.Matches)
+            if (verdict == RomanisationVerdict.Matches)
+                return
+                    romaniser.FormatMessage == null || romaniser.FollowsFormat(unicode, romanised)
+                    ? null
+                    : new Issue(
+                        GetTemplate(FormatTemplate(romaniser)),
+                        null,
+                        field,
+                        romanised,
+                        unicode,
+                        romaniser.Suggest(unicode)
+                    );
+
+            if (verdict == RomanisationVerdict.Unreadable)
                 return null;
 
             if (field == "artist" && HasSwappedNameOrder(romaniser, unicode, romanised))
@@ -318,6 +350,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                 )
             )
             + "$";
+
+        private static string FormatTemplate(Romaniser romaniser) => $"{romaniser.Name} Format";
 
         private static bool HasSwappedNameOrder(
             Romaniser romaniser,

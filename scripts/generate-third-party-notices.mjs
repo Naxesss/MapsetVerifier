@@ -41,7 +41,7 @@ const documentPattern = /\.(rtf|pdf|docx?|html?)$/i;
 const readText = (file) =>
   fs
     .readFileSync(file, 'utf8')
-    .replace(/^﻿/, '')
+    .replace(/^\uFEFF/, '')
     .replace(/\r\n?/g, '\n')
     .replace(/[\f\0]/g, '')
     .trim();

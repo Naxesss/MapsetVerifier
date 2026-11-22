@@ -87,6 +87,16 @@ Available runtimes:
 - `linux-x64`
 - `linux-arm64`
 
+## Romanisation data
+
+The romanisation check reads Chinese with a table of Mandarin readings from the Unicode [Unihan database](https://www.unicode.org/charts/unihan.html), in `MapsetVerifier.Checks/Utils/Romanisation/pinyin.txt`. To update it, download and extract `Unihan.zip` from https://www.unicode.org/Public/UCD/latest/ucd/, then:
+
+```sh
+node scripts/generate-pinyin-table.mjs <path to Unihan_Readings.txt>
+```
+
+Japanese is read with the dictionary built into the Lucene.Net.Analysis.Kuromoji package.
+
 ## Third-party notices
 
 `THIRD-PARTY-NOTICES.txt` lists the licenses and notices of everything the installers ship, and is packaged next to `LICENSE` via `extraResources`. Regenerate it whenever a NuGet or npm dependency is added, removed or updated. It reads the sidecar's files from an unbundled publish and needs both `npm ci` installs in place:

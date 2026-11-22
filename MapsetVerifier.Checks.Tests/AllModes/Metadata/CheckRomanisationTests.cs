@@ -270,6 +270,62 @@ public class CheckRomanisationTests
         Assert.Equal(expected, LatinRomaniser.AnyLanguage.Suggest(unicode));
     }
 
+    [Theory]
+    [InlineData("我爱你", "Wo Ai Ni", "chinese")]
+    [InlineData("我爱你", "I Love You", "chinese")]
+    [InlineData("绿", "Lv", "chinese")]
+    [InlineData("绿", "Lu", "chinese")]
+    [InlineData("银行", "Yin Hang", "chinese")]
+    [InlineData("我爱你 (TV Size)", "Wo Ai Ni (TV Size)", "chinese")]
+    [InlineData("我爱你", "Woaini", "")]
+    public void AcceptsChinesePinyinTranslationsAndUntaggedSets(
+        string unicode,
+        string romanised,
+        string tags
+    )
+    {
+        using var context = CreateTitleContext(romanised, unicode, tags);
+
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
+
+        Assert.Empty(issues);
+    }
+
+    [Theory]
+    [InlineData("我爱你", "Woaini")]
+    [InlineData("我爱你", "wo ai ni")]
+    [InlineData("我爱你", "Wo Aini")]
+    [InlineData("北京", "Beijing")]
+    public void FlagsChineseNotWrittenPerCharacter(string unicode, string romanised)
+    {
+        using var context = CreateTitleContext(romanised, unicode, "chinese");
+
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
+
+        var warning = Assert.Single(issues);
+        Assert.Contains("its own capitalised word", warning.message);
+        Assert.Contains("Ignore for proper nouns", warning.message);
+    }
+
+    [Fact]
+    public void FlagsLeftOutChinese()
+    {
+        using var context = CreateTitleContext("Song feat.", "Song feat. 周杰伦", "chinese");
+
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
+
+        var warning = Assert.Single(issues);
+        Assert.Contains("leaves out \"周杰伦\"", warning.message);
+    }
+
+    [Theory]
+    [InlineData("我爱你", "Wo Ai Ni")]
+    [InlineData("北京 (TV Size)", "Bei Jing (TV Size)")]
+    public void SuggestsChinesePerCharacter(string unicode, string expected)
+    {
+        Assert.Equal(expected, new ChineseRomaniser().Suggest(unicode));
+    }
+
     [Fact]
     public void SkipsRomanisedFieldsWithUnicode()
     {

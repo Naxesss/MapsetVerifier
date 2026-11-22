@@ -78,6 +78,16 @@ public abstract class Romaniser
     /// <summary> Whether the text contains this romaniser's script at all. </summary>
     public bool AppliesTo(string text) => ContainsScript(Normalise(text));
 
+    /// <summary>
+    ///     For languages whose rule is about how the romanisation is written rather than spelled (Chinese: each
+    ///     character its own capitalised word), the warning shown when <see cref="FollowsFormat" /> fails. It takes
+    ///     the field, the romanised text, the unicode text and a suggestion.
+    /// </summary>
+    public virtual string? FormatMessage => null;
+
+    /// <summary> Whether a romanised field whose letters already match is also written in the expected format. </summary>
+    public virtual bool FollowsFormat(string unicode, string romanised) => true;
+
     /// <summary> Whether this romaniser applies to the text in a beatmapset with these tags. </summary>
     public bool AppliesTo(string text, IReadOnlyCollection<string> tags) =>
         AppliesTo(text)
