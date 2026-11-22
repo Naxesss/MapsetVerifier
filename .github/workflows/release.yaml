@@ -234,3 +234,38 @@ jobs:
             ICON_ARGS=()
           fi
           npx electron-builder $BUILDER_ARGS "${ICON_ARGS[@]}" --config.extraMetadata.version="$TAG_VERSION"
+
+  # Runs after every build has uploaded to the draft, so electron-builder can't replace the text.
+  release-notes:
+    needs: [resolve-release, build-electron]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve-release.outputs.git_tag }}
+
+      - name: Add release notes from the changelog
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_TAG: ${{ needs.resolve-release.outputs.git_tag }}
+        run: |
+          set -euo pipefail
+          bash scripts/release-notes.sh "$GIT_TAG" > "$RUNNER_TEMP/release-notes.md"
+
+          if [ ! -s "$RUNNER_TEMP/release-notes.md" ]; then
+            echo "No changelog-based notes for $GIT_TAG, write the release text by hand."
+            exit 0
+          fi
+
+          # Never replace text that is already there, such as on a published release or a rerun.
+          read -r IS_DRAFT BODY_LENGTH < <(gh release view "$GIT_TAG" --json isDraft,body --jq '"\(.isDraft) \(.body // "" | length)"')
+          if [ "$IS_DRAFT" != "true" ] || [ "$BODY_LENGTH" -gt 0 ]; then
+            echo "The release for $GIT_TAG is published or already has text, leaving it as is."
+            exit 0
+          fi
+
+          gh release edit "$GIT_TAG" --notes-file "$RUNNER_TEMP/release-notes.md"
+          echo "Added release notes from the changelog to the draft for $GIT_TAG."

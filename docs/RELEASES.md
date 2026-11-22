@@ -72,15 +72,29 @@ Environment flags used during publish:
 - **`EP_DRAFT=true`** — release is created/updated as a **draft** first.
 - **`EP_PRE_RELEASE`** — set when the tag is a semver prerelease (hyphen rule above).
 
-### 3. Publish on GitHub (after artifacts exist)
+### 3. Release notes
+
+For stable **`vX.Y.0`** tags, the **`release-notes`** job fills in the draft's text from the in-app changelog, **`electron-app/src/content/changelog/X.Y.md`**, once all builds have finished. Write the changelog there before tagging; there's no need to write it a second time on GitHub.
+
+[`scripts/release-notes.sh`](../scripts/release-notes.sh) does the conversion:
+
+- the **`## X.Y - date`** heading is dropped, since GitHub shows the version and date
+- the opening sentence is made **bold**
+- image links such as **`changelog/2.2/resources.jpg`** point at the copies in the repository at the tag, since the in-app paths only work inside the app
+
+The app's update dialog shows this text too. To preview it, run **`./scripts/release-notes.sh v2.2.0`** from the repository root.
+
+The job never replaces text that is already there, so a rerun or a published release is left alone. Prereleases and hotfixes (such as **`v2.1.1`**) get no generated text: write those notes on GitHub by hand.
+
+### 4. Publish on GitHub (after artifacts exist)
 
 **Do not** publish an empty Release from the UI **before** the workflow finishes attaching files.
 
-After all **`Run electron-builder`** matrix jobs succeed:
+After all **`Run electron-builder`** matrix jobs and the **`release-notes`** job succeed:
 
 1. Open **GitHub → Releases**.
 2. Find the **draft** release for your tag (or refresh the page)—installers and updater **`latest*.yml`** files should appear.
-3. Add release notes if needed, then **Publish release**.
+3. Check the release notes (or write them for a prerelease or hotfix), then **Publish release**.
 
 ### Manual run (alternative)
 
@@ -125,6 +139,6 @@ Local Windows builds may hit **code-sign cache extraction** symlink errors (`win
 
 | Goal | Typical action |
 | :-- | :-- |
-| Stable **v2.1.0** | Tag **`v2.1.0`**, push, wait for CI, publish **draft**. |
-| Prerelease **v2.0.0-beta.2** | Tag **`v2.0.0-beta.2`**, push, wait for CI, publish **draft** (marked prerelease by automation). |
+| Stable **v2.1.0** | Write **`changelog/2.1.md`**, tag **`v2.1.0`**, push, wait for CI, check the generated notes, publish **draft**. |
+| Prerelease **v2.0.0-beta.2** | Tag **`v2.0.0-beta.2`**, push, wait for CI, write the notes, publish **draft** (marked prerelease by automation). |
 | Local installer, no CI | **`npm run dist`** or **`npm run dist-prerelease`** (see table above). |
