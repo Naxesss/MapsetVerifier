@@ -250,6 +250,272 @@ public static class ManiaPatterns
         }
     }
 
+    /// <summary>
+    ///     Shields: a regular note in the same column right before a long note, at the given snap or faster.
+    /// </summary>
+    public static IEnumerable<(Note Note, Note LongNote)> Shields(
+        Beatmap beatmap,
+        double divisor
+    ) =>
+        GetNotes(beatmap)
+            .GroupBy(note => note.Column)
+            .SelectMany(column =>
+            {
+                var notes = column.OrderBy(note => note.Time).ToList();
+                return notes.Zip(notes.Skip(1));
+            })
+            .Where(pair => !pair.First.IsLong && pair.Second.IsLong)
+            .Where(pair => IsAtLeast(beatmap, pair.First.Time, pair.Second.Time, divisor))
+            .OrderBy(pair => pair.First.Time)
+            .Select(pair => (pair.First, pair.Second));
+
+    /// <summary>
+    ///     Brackets: at least 3 rows at the given snap or faster where two or more trills between neighbouring
+    ///     columns are played at once, such as columns 1 and 3 alternating with column 2. Each run counts
+    ///     the rows.
+    /// </summary>
+    public static IEnumerable<Run> Brackets(Beatmap beatmap, double divisor)
+    {
+        foreach (var stream in RowRuns(beatmap, divisor))
+        {
+            var start = -1;
+
+            for (var i = 2; i <= stream.Count; i++)
+            {
+                if (i < stream.Count && IsBracket(stream[i - 2], stream[i - 1], stream[i]))
+                {
+                    if (start < 0)
+                        start = i - 2;
+
+                    continue;
+                }
+
+                if (start < 0)
+                    continue;
+
+                var rows = stream.GetRange(start, i - start);
+                yield return new Run(rows.SelectMany(row => row.Objects).ToArray(), rows.Count);
+                start = -1;
+            }
+        }
+    }
+
+    private static bool IsBracket(Row first, Row second, Row third)
+    {
+        var outer = first
+            .Notes.Select(note => note.Column)
+            .Intersect(third.Notes.Select(note => note.Column))
+            .ToList();
+        var inner = second.Notes.Select(note => note.Column).ToList();
+
+        return outer.Sum(a => inner.Count(b => Math.Abs(a - b) == 1)) >= 2;
+    }
+
+    /// <summary>
+    ///     Streams at the given snap or faster which go on for longer than the given number of musical phrases
+    ///     of 4 measures each. Any slower gap ends a stream, also when it is shorter than a proper pause.
+    /// </summary>
+    public static IEnumerable<(Run Run, double Measures)> PhrasesWithoutPause(
+        Beatmap beatmap,
+        double divisor,
+        double phrases
+    )
+    {
+        foreach (var run in RowRuns(beatmap, divisor))
+        {
+            var measures = Measures(beatmap, run[0].Time, run[^1].Time);
+
+            if (measures > 4 * phrases + SnapTolerance)
+                yield return (
+                    new Run([.. run[0].Objects, .. run[^1].Objects], run.Count),
+                    measures
+                );
+        }
+    }
+
+    /// <summary>
+    ///     The number of measures between two times. From 240 BPM a beat counts double like in the class summary,
+    ///     but below 120 BPM it stays one beat, since a slow song doesn't have shorter phrases.
+    /// </summary>
+    private static double Measures(Beatmap beatmap, double from, double to)
+    {
+        var line = beatmap.GetTimingLine<UninheritedLine>(from);
+
+        if (line == null)
+            return 0;
+
+        var beats = Math.Min(Beats(beatmap, from, to), (to - from) / line.msPerBeat);
+        return beats / Math.Max(1, line.Meter);
+    }
+
+    /// <summary>
+    ///     Streams like the ranking criteria define them: rows at a constant interval for at least one beat, without
+    ///     minijacks. Returns those at the given snap or faster, but slower than the other one.
+    /// </summary>
+    public static IEnumerable<List<Row>> ConstantStreams(
+        Beatmap beatmap,
+        double divisor,
+        double slowerThan
+    )
+    {
+        foreach (var run in RowRuns(beatmap, divisor))
+        {
+            var stream = new List<Row> { run[0] };
+            double? interval = null;
+
+            foreach (var row in run.Skip(1))
+            {
+                var previous = stream[^1];
+                var gap = Beats(beatmap, previous.Time, row.Time);
+                var isJack = row.Notes.Any(note =>
+                    previous.Notes.Any(other => other.Column == note.Column)
+                );
+                var isTooFast = IsAtLeast(beatmap, previous.Time, row.Time, slowerThan);
+                var isConstant =
+                    interval is not { } expected
+                    || Math.Abs(gap - expected) <= expected * SnapTolerance;
+
+                if (isJack || isTooFast || !isConstant)
+                {
+                    if (IsStream(beatmap, stream))
+                        yield return stream;
+
+                    // The row an interval changes on is part of both streams.
+                    stream = isJack || isTooFast ? [row] : [previous, row];
+                    interval = isJack || isTooFast ? null : gap;
+                    continue;
+                }
+
+                interval ??= gap;
+                stream.Add(row);
+            }
+
+            if (IsStream(beatmap, stream))
+                yield return stream;
+        }
+    }
+
+    /// <summary>
+    ///     Chords inside a constant stream at the given snap, but slower than the other one, which follow the chord before them in that stream
+    ///     by less than the given number of beats. Grouped into stretches with how many chords they have.
+    /// </summary>
+    public static IEnumerable<Run> CloseChords(
+        Beatmap beatmap,
+        double divisor,
+        double slowerThan,
+        double minBeats
+    )
+    {
+        foreach (var stream in ConstantStreams(beatmap, divisor, slowerThan))
+        {
+            var stretch = new List<Row>();
+
+            foreach (var chord in stream.Where(row => row.IsChord))
+            {
+                if (
+                    stretch.Count > 0
+                    && Beats(beatmap, stretch[^1].Time, chord.Time)
+                        >= minBeats * (1 - SnapTolerance)
+                )
+                {
+                    if (stretch.Count > 1)
+                        yield return ToRun(stretch);
+
+                    stretch = [];
+                }
+
+                stretch.Add(chord);
+            }
+
+            if (stretch.Count > 1)
+                yield return ToRun(stretch);
+        }
+
+        static Run ToRun(List<Row> rows) =>
+            new([.. rows[0].Objects, .. rows[^1].Objects], rows.Count);
+    }
+
+    /// <summary> Streams of only short long notes (up to 1/1) at the given snap or faster. Counts the long notes. </summary>
+    public static IEnumerable<Run> LongNoteStreams(Beatmap beatmap, double divisor)
+    {
+        foreach (var run in RowRuns(beatmap, divisor))
+        {
+            var stream = new List<Row>();
+
+            foreach (var row in run.Append(null))
+            {
+                if (row != null && row.Notes.All(IsShortLongNote))
+                {
+                    stream.Add(row);
+                    continue;
+                }
+
+                if (stream.Count > 1 && IsStream(beatmap, stream))
+                {
+                    var objects = stream.SelectMany(r => r.Objects).ToArray();
+                    yield return new Run(objects, objects.Length);
+                }
+
+                stream = [];
+            }
+        }
+
+        // Staggered long notes that are held on for longer aren't a stream of long notes.
+        bool IsShortLongNote(Note note) =>
+            note.IsLong && Beats(beatmap, note.Time, note.End) <= 1 + SnapTolerance;
+    }
+
+    /// <summary> The ranking criteria call it a stream once it lasts for at least one beat. </summary>
+    private static bool IsStream(Beatmap beatmap, List<Row> rows) =>
+        Beats(beatmap, rows[0].Time, rows[^1].Time) >= 1 - SnapTolerance;
+
+    /// <summary>
+    ///     Kiai sections from their start to where they are turned off, or the last object, with their length
+    ///     in measures of the song.
+    /// </summary>
+    public static IEnumerable<(double Start, double End, double Measures)> KiaiSections(
+        Beatmap beatmap
+    )
+    {
+        var sections = new List<(double Start, double End)>();
+        double? start = null;
+
+        foreach (var toggle in beatmap.GetKiaiToggles())
+        {
+            if (toggle.Kiai)
+                start = toggle.Offset;
+            else
+                EndSection(toggle.Offset);
+        }
+
+        EndSection(beatmap.HitObjects.LastOrDefault()?.GetEndTime() ?? 0);
+
+        foreach (var (from, to) in sections)
+        {
+            var line = beatmap.GetTimingLine<UninheritedLine>(from);
+
+            if (line != null)
+                yield return (from, to, (to - from) / line.msPerBeat / Math.Max(1, line.Meter));
+        }
+
+        void EndSection(double end)
+        {
+            if (start is not { } from)
+                return;
+
+            start = null;
+
+            if (end <= from)
+                return;
+
+            // A red line without kiai and a green line with kiai on the same tick don't interrupt the kiai.
+            if (sections.Count > 0 && from - sections[^1].End < 1)
+                sections[^1] = (sections[^1].Start, end);
+            else
+                sections.Add((from, end));
+        }
+    }
+
     /// <summary> Long notes held for less than the given number of beats. </summary>
     public static IEnumerable<Note> ShortLongNotes(Beatmap beatmap, double minBeats) =>
         GetNotes(beatmap)

@@ -44,6 +44,18 @@ var top = GetOption("--top");
     ("rel<1", b => ManiaPatterns.CloseReleases(b, 1).Count()),
     ("rel<1/2", b => ManiaPatterns.CloseReleases(b, 0.5).Count()),
     ("adjrel", b => ManiaPatterns.AdjacentReleaseMismatches(b).Count()),
+    ("shield1/4", b => ManiaPatterns.Shields(b, 4).Count()),
+    ("bracket1/4", b => ManiaPatterns.Brackets(b, 4).Select(r => r.Count).DefaultIfEmpty(0).Max()),
+    ("phrase1/2", b => MaxMeasures(b, 2)),
+    ("phrase1/4", b => MaxMeasures(b, 4)),
+    ("close1/4", b => ManiaPatterns.CloseChords(b, 4, 6, 1).Sum(r => r.Count)),
+    (
+        "ln1/6",
+        b => ManiaPatterns.LongNoteStreams(b, 6).Select(r => r.Count).DefaultIfEmpty(0).Max()
+    ),
+    ("kiai<=1", b => ManiaPatterns.KiaiSections(b).Count(section => section.Measures <= 1.05)),
+    ("kiai<=2", b => ManiaPatterns.KiaiSections(b).Count(section => section.Measures <= 2.05)),
+    ("kiai<=4", b => ManiaPatterns.KiaiSections(b).Count(section => section.Measures <= 4.05)),
 ];
 
 var rows = new List<(string Tier, int Order, string Name, double[] Values)>();
@@ -118,6 +130,13 @@ return 0;
 
 static double MaxRows(Beatmap beatmap, double divisor) =>
     ManiaPatterns.RowRuns(beatmap, divisor).Select(run => run.Count).DefaultIfEmpty(0).Max();
+
+static double MaxMeasures(Beatmap beatmap, double divisor) =>
+    ManiaPatterns
+        .PhrasesWithoutPause(beatmap, divisor, 0)
+        .Select(stretch => Math.Round(stretch.Measures, 1))
+        .DefaultIfEmpty(0)
+        .Max();
 
 static double At(List<double> sorted, double p) => sorted[(int)Math.Round((sorted.Count - 1) * p)];
 
