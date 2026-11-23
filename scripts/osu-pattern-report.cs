@@ -6,9 +6,10 @@
 //   dotnet run scripts/osu-pattern-report.cs
 //   dotnet run scripts/osu-pattern-report.cs -- --songs "D:\osu!\Songs" --top clicked
 //
-// Columns are the longest run of each pattern in a difficulty; the table shows the median, the 90th
-// percentile and the highest difficulty of each level. --top <column> lists the difficulties with the
-// highest values for one column.
+// Columns are the longest run of each pattern in a difficulty, or for "bodies" and "ends" the number of
+// fully overlapped slider bodies and of overlapping circles, heads and tails (Easy and Normal only). The
+// table shows the median, the 90th percentile and the highest difficulty of each level. --top <column>
+// lists the difficulties with the highest values for one column.
 
 using System.Globalization;
 using MapsetVerifier.Checks.Utils;
@@ -26,7 +27,18 @@ var songsPath =
     );
 var top = GetOption("--top");
 
-string[] columns = ["clicked", "sliders", "chain", "norest", "stream", "combo", "svmin"];
+string[] columns =
+[
+    "clicked",
+    "sliders",
+    "chain",
+    "norest",
+    "stream",
+    "combo",
+    "svmin",
+    "bodies",
+    "ends",
+];
 var rows = new List<(string Tier, int Order, string Name, double[] Values)>();
 
 foreach (var setPath in Directory.EnumerateDirectories(songsPath))
@@ -62,6 +74,10 @@ foreach (var setPath in Directory.EnumerateDirectories(songsPath))
                     patterns.LongestStream,
                     patterns.LongestCombo,
                     patterns.SvChangesPerMinute,
+                    CountBodyOverlaps(beatmap),
+                    beatmap.GetDifficulty() <= Beatmap.Difficulty.Normal
+                        ? OsuOverlaps.EndOverlaps(beatmap).Count()
+                        : 0,
                 ]
             )
         );
@@ -101,6 +117,20 @@ if (top != null && Array.IndexOf(columns, top) is var index and >= 0)
 }
 
 return 0;
+
+static int CountBodyOverlaps(Beatmap beatmap)
+{
+    double? beats = beatmap.GetDifficulty() switch
+    {
+        Beatmap.Difficulty.Easy => 4,
+        Beatmap.Difficulty.Normal => 3,
+        Beatmap.Difficulty.Hard => 2,
+        Beatmap.Difficulty.Insane => 0.5,
+        _ => null,
+    };
+
+    return beats is { } limit ? OsuOverlaps.BodyOverlaps(beatmap, limit).Count() : 0;
+}
 
 static double At(List<double> sorted, double p) => sorted[(int)Math.Round((sorted.Count - 1) * p)];
 
