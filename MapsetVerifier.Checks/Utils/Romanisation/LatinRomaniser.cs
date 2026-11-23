@@ -126,7 +126,7 @@ public sealed class LatinRomaniser : LetterTableRomaniser
     }
 
     public override string Name { get; }
-    public override string SystemName { get; }
+    private string SystemName { get; }
     public override string[] Rules { get; }
     public override string[] RequiredTags { get; }
 

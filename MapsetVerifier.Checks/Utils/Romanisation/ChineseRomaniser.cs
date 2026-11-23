@@ -15,7 +15,6 @@ public sealed partial class ChineseRomaniser : Romaniser
     private static readonly Lazy<Dictionary<string, string[]>> Readings = new(LoadReadings);
 
     public override string Name => "Chinese";
-    public override string SystemName => "pinyin";
     public override string[] Rules =>
         [RC.Metadata.Romanisation_ChineseCharacterRomanisedCapitalisedWord];
     public override string[] RequiredTags => ["chinese"];
@@ -23,8 +22,7 @@ public sealed partial class ChineseRomaniser : Romaniser
     public override string Cause =>
         "The beatmapset is tagged as Chinese, and the romanised field follows the pinyin of the unicode field but doesn't write each character as its own capitalised word.";
 
-    public override string? FormatMessage =>
-        "Romanised {0} \"{1}\" should write each character of \"{2}\" as its own capitalised word, like \"{3}\". Ignore for proper nouns.";
+    public override string? FormatMessage => "{0} \"{1}\" should be \"{2}\", unless a proper noun.";
 
     protected override bool ContainsScript(string text) =>
         text.EnumerateRunes().Any(rune => IsHan(rune));

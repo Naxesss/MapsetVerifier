@@ -3,8 +3,8 @@ using MapsetVerifier.RankingCriteria;
 namespace MapsetVerifier.Checks.Utils.Romanisation;
 
 /// <summary>
-///     Japanese kana in Modified Hepburn. Kanji can't be read without a dictionary, so fields containing kanji
-///     are left unread.
+///     Japanese in Modified Hepburn. Kanji are read with Kuromoji, and fields that don't follow that reading are compared
+///     with every other reading and loan word spelling in <see cref="JapaneseDictionary" />.
 /// </summary>
 public sealed class JapaneseRomaniser : Romaniser
 {
@@ -134,7 +134,6 @@ public sealed class JapaneseRomaniser : Romaniser
     private static readonly HashSet<string> LongVowelPairs = ["aa", "uu", "ee", "oo", "ou"];
 
     public override string Name => "Japanese";
-    public override string SystemName => "Modified Hepburn";
     public override string[] Rules => [RC.Metadata.Romanisation_JapaneseUseModifiedHepburnSystem];
 
     public override string Cause =>
@@ -152,31 +151,53 @@ public sealed class JapaneseRomaniser : Romaniser
     // keep their own spelling. Only spellings that clearly come from another system are reported.
     protected override bool MayUseDifferentWords(string text) => true;
 
-    /// <summary>
-    ///     Names a field could be split into, for checking name order: by spaces when there are any, otherwise by
-    ///     the dictionary's surname and given name, e.g. 水瀬いのり as 水瀬 and いのり.
-    /// </summary>
-    public override string[] SplitNames(string text)
+    /// <summary> Kanji alone may be another language, such as Chinese or Cantonese, unless the tags say otherwise. </summary>
+    public override bool PointsOutInconclusive(string unicode, IReadOnlyCollection<string> tags) =>
+        Normalise(unicode).Any(IsKana)
+        || tags.Contains("japanese", StringComparer.OrdinalIgnoreCase);
+
+    // Kept for the last text, since the same one is compared several times.
+    private static (string Text, JapaneseWordGraph Graph)? lastGraph;
+
+    private static readonly object GraphLock = new();
+
+    protected override bool MatchesOtherwise(string text, string target) =>
+        GetGraph(text).Matches(target);
+
+    public override RomanisationCorrection? Correct(string unicode, string romanised)
     {
-        var spaced = base.SplitNames(text);
-        if (spaced.Length >= 2 || !JapaneseReader.ContainsKanji(text))
-            return spaced;
+        var graph = GetGraph(Normalise(unicode));
+        var swap = RomanisationCorrection
+            .Swaps(romanised)
+            .FirstOrDefault(swap => graph.Matches(Letters(swap.Text)));
+        if (swap != null)
+            return swap;
 
-        var words = JapaneseReader.Read(Normalise(text).Trim());
-        if (
-            words.Count != 2
-            || words[0].Kind != JapaneseWordKind.Surname
-            || words[1].Kind != JapaneseWordKind.GivenName
-        )
-            return spaced;
-
-        return [words[0].Text, words[1].Text];
+        return graph.FindClosest(Letters(romanised)) is { } words
+            ? RomanisationCorrection.Apply(romanised, words)
+            : null;
     }
 
-    private static List<RomanisationUnit>? Read(string text, bool anySystem)
+    private static JapaneseWordGraph GetGraph(string text)
+    {
+        lock (GraphLock)
+        {
+            if (lastGraph?.Text != text)
+                lastGraph = (text, new JapaneseWordGraph(text, ReadKana));
+
+            return lastGraph!.Value.Graph;
+        }
+    }
+
+    private static List<RomanisationUnit>? ReadKana(string kana) =>
+        Read([new JapaneseWord(kana, kana, JapaneseWordKind.Other)], anySystem: false);
+
+    private static List<RomanisationUnit>? Read(string text, bool anySystem) =>
+        Read(JapaneseReader.Read(text), anySystem);
+
+    private static List<RomanisationUnit>? Read(List<JapaneseWord> words, bool anySystem)
     {
         // Kanji are replaced by their reading; words with kanji the dictionary can't read make the text unreadable.
-        var words = JapaneseReader.Read(text);
         if (words.Any(word => word.Kana == null))
             return null;
 
@@ -213,6 +234,15 @@ public sealed class JapaneseRomaniser : Romaniser
                     }
 
                     FlushTsu();
+                    adjacent = false;
+                    continue;
+                }
+
+                // Between names it's often written as a letter (A × B → A x B).
+                if (ch == '×')
+                {
+                    FlushTsu();
+                    AddUnit(new RomanisationUnit(null, ["", "x"]));
                     adjacent = false;
                     continue;
                 }

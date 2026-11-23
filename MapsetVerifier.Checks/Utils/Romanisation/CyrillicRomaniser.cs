@@ -87,7 +87,6 @@ public sealed class CyrillicRomaniser : LetterTableRomaniser
     };
 
     public override string Name => "Cyrillic";
-    public override string SystemName => "BGN/PCGN";
     public override string[] Rules => [RC.Metadata.Romanisation_CyrillicWritingUseBgnPcgn];
 
     public override string Cause =>
