@@ -111,6 +111,7 @@ public class CheckRomanisationTests
     )]
     [InlineData("かめりあ feat. ななひら", "Camellia feat.", "ななひら")]
     [InlineData("つき (TV Size)", "(TV Size)", "つき")]
+    [InlineData("フローズン (TV Size)", "(TV Size)", "フローズン")]
     [InlineData("Song feat. 初音ミク", "Song feat.", "初音ミク")]
     public void FlagsMissingPart(string unicode, string romanised, string missing)
     {
@@ -437,6 +438,72 @@ public class CheckRomanisationTests
         var issues = context.RunGeneralCheck<CheckRomanisation>();
 
         Assert.Empty(issues);
+    }
+
+    [Theory]
+    [InlineData("夜に駆ける (Yoru ni Kakeru)", "Yoru ni Kakeru (Yoru ni Kakeru)", "Yoru ni Kakeru")]
+    [InlineData("ありがとう (Arigato)", "Arigatou (Arigato)", "Arigatou")]
+    [InlineData("ありがとう（Arigatou） (TV Size)", "Arigatou (Arigatou) (TV Size)", "Arigatou")]
+    [InlineData("Song feat. つき (Tsuki)", "Song feat. Tsuki (Tsuki)", "Tsuki")]
+    [InlineData("Tsuki (つき)", "Tsuki (Tsuki)", "Tsuki")]
+    [InlineData("つき / Tsuki", "Tsuki / Tsuki", "Tsuki")]
+    [InlineData("つき ～Tsuki～", "Tsuki ~Tsuki~", "Tsuki")]
+    [InlineData("ソレイユ -Soleil-", "Soleil -Soleil-", "Soleil")]
+    [InlineData("Soleil (ソレイユ) (TV Size)", "Soleil (Soleil) (TV Size)", "Soleil")]
+    [InlineData("Москва (Moskva)", "Moskva (Moskva)", "Moskva")]
+    [InlineData("Für (Fuer)", "Fuer (Fuer)", "Fuer")]
+    public void FlagsRepeatedRomanisation(string unicode, string romanised, string repeat)
+    {
+        using var context = CreateTitleContext(romanised, unicode);
+
+        var warning = Assert.Single(context.RunGeneralCheck<CheckRomanisation>());
+
+        Assert.Equal(Issue.Level.Warning, warning.level);
+        Assert.Contains($"has \"{repeat}\" twice", warning.message);
+    }
+
+    [Fact]
+    public void FlagsRepeatedChineseRomanisation()
+    {
+        using var context = CreateTitleContext(
+            "Wo Ai Ni (Wo Ai Ni)",
+            "我爱你 (Wo Ai Ni)",
+            "chinese"
+        );
+
+        var warning = Assert.Single(context.RunGeneralCheck<CheckRomanisation>());
+
+        Assert.Contains("has \"Wo Ai Ni\" twice", warning.message);
+    }
+
+    [Fact]
+    public void FlagsRepeatedRomanisationInArtist()
+    {
+        using var context = CreateArtistContext("Tsuki (Tsuki)", "つき (Tsuki)");
+
+        var warning = Assert.Single(context.RunGeneralCheck<CheckRomanisation>());
+
+        Assert.Contains("has \"Tsuki\" twice", warning.message);
+    }
+
+    [Theory]
+    [InlineData("ソレイユ -Soleil-", "Soleil")]
+    [InlineData("Москва (Moskva)", "Moskva")]
+    [InlineData("つき つき", "Tsuki Tsuki")]
+    [InlineData("つき (つき)", "Tsuki (Tsuki)")]
+    [InlineData("つき つき (Tsuki)", "Tsuki Tsuki")]
+    [InlineData("バイバイ (Bye)", "Bye Bye")]
+    [InlineData("Soleil (ソレイユ)", "Soleil")]
+    [InlineData("バイバイ (Bye)", "Bye Bye (Bye)")]
+    [InlineData("東京 (Tokyo Mix)", "Tokyo (Tokyo Mix)")]
+    [InlineData("つき (Moon)", "Tsuki (Moon)")]
+    [InlineData("Bye Bye", "Bye Bye")]
+    [InlineData("初音ミク (Hatsune Miku Remix)", "Hatsune Miku (Hatsune Miku Remix)")]
+    public void DoesNotFlagGenuineRepeats(string unicode, string romanised)
+    {
+        using var context = CreateTitleContext(romanised, unicode);
+
+        Assert.Empty(context.RunGeneralCheck<CheckRomanisation>());
     }
 
     private static CheckTestContext CreateTitleContext(

@@ -10,7 +10,7 @@ using MapsetVerifier.RankingCriteria;
 namespace MapsetVerifier.Checks.AllModes.General.Metadata
 {
     [Check]
-    public class CheckRomanisation : GeneralCheck
+    public partial class CheckRomanisation : GeneralCheck
     {
         // Each language the Ranking Criteria gives romanisation rules for gets a romaniser here.
         // Romanisers that need a language tag come before the ones that don't, so the tag decides when both apply.
@@ -28,6 +28,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
 
         private const string NameOrderTemplate = "Name Order";
         private const string MissingTemplate = "Missing";
+        private const string RepeatTemplate = "Repeat";
 
         public override CheckMetadata GetMetadata() =>
             new()
@@ -42,8 +43,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         "Purpose",
                         @"
                         Pointing out romanised artists and titles that don't follow the romanisation system the Ranking
-                        Criteria asks for, romanised artist names whose name order is swapped, and romanised fields that
-                        leave out part of the unicode field entirely."
+                        Criteria asks for, romanised artist names whose name order is swapped, romanised fields that
+                        leave out part of the unicode field entirely, and romanised fields that write a word twice
+                        because the unicode field has both the word and its romanisation."
                     },
                     {
                         "Reasoning",
@@ -91,7 +93,12 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
 
                         A left-out part is found by lining up the latin text both fields share, such as *feat.* or
                         *(TV Size)*. A part that repeats the latin text next to it may be left out, so a part is only
-                        reported when it can be read and the text beside it isn't its romanisation."
+                        reported when it can be read and the text beside it isn't its romanisation.
+
+                        A repeated word is only looked for when the unicode field sets it apart with brackets, quotes,
+                        dashes, tildes or a slash (*ソレイユ -Soleil-*). The word and its romanisation must both read the
+                        same, or be spelled the same in the romanised field. A word the unicode field has more than once
+                        in its own script is a genuine repeat."
                     },
                 },
             };
@@ -152,6 +159,19 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                 "Part of the unicode artist or title is written in a non-latin script, and the romanised field has nothing in its place while the latin text around it matches."
             );
 
+            templates[RepeatTemplate] = new IssueTemplate(
+                Issue.Level.Warning,
+                "Romanised {0} \"{1}\" has \"{2}\" twice, since \"{3}\" has both the word and its romanisation. It should only be kept once.",
+                "artist/title",
+                "romanised",
+                "repeated part",
+                "unicode"
+            )
+                .WithCause(
+                    "The unicode artist or title has both a word and its romanisation, and the romanised field has the romanisation of both."
+                )
+                .WithRule(RC.Metadata.Romanisation_SongUsesRepeatWordsTitle);
+
             return templates;
         }
 
@@ -202,6 +222,17 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             // Non-ASCII in the romanised field is reported by the unicode check instead.
             if (romanised.Any(ch => ch > 127))
                 return null;
+
+            var repeat = FindRepeatedPart(romanised, unicode, tags);
+            if (repeat != null)
+                return new Issue(
+                    GetTemplate(RepeatTemplate),
+                    null,
+                    field,
+                    romanised,
+                    repeat,
+                    unicode
+                );
 
             var missing = FindMissingPart(romanised, unicode, tags);
             if (missing != null)
@@ -332,12 +363,194 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     romaniser.Judge(run, neighbour)
                         is not (RomanisationVerdict.Inconclusive or RomanisationVerdict.Unreadable)
                 );
-                if (romaniser.Judge(run, "") != RomanisationVerdict.Unreadable && !repeatsNeighbour)
+                if (
+                    romaniser.Judge(run, "") != RomanisationVerdict.Unreadable
+                    && !repeatsNeighbour
+                    && !MayBeRepeatedLoanWord(run, unicode)
+                )
                     return run;
             }
 
             return null;
         }
+
+        /// <summary>
+        ///     Finds a part that's twice in the romanised field, because the unicode field has a word in its own script
+        ///     next to its romanisation, like "夜に駆ける (Yoru ni Kakeru)" romanised as
+        ///     "Yoru ni Kakeru (Yoru ni Kakeru)". Returns null when nothing is repeated.
+        /// </summary>
+        private static string? FindRepeatedPart(
+            string romanised,
+            string unicode,
+            IReadOnlyCollection<string> tags
+        )
+        {
+            var text = unicode.Normalize(NormalizationForm.FormKC);
+            var words = LatinWord().Matches(romanised).ToList();
+            var unicodeWords = LatinWord().Matches(text).ToList();
+
+            foreach (Match match in SetApartPart().Matches(text))
+            {
+                var inside = match.Groups["inside"].Value.Trim();
+
+                // Either side may be the romanisation, "夜 (Yoru)" or "Yoru (夜)", so the part set apart must be one
+                // or the other as a whole.
+                var latinIsInside = !inside.Any(IsScriptLetter);
+                if (!latinIsInside && inside.Any(char.IsAsciiLetterOrDigit))
+                    continue;
+
+                // The part set apart belongs to the words right before it, however many those are.
+                var outside = text[..match.Index].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                for (var start = 0; start < outside.Length; start++)
+                {
+                    var neighbour = string.Join(' ', outside[start..]);
+                    var (run, latin) = latinIsInside ? (neighbour, inside) : (inside, neighbour);
+                    if (!run.Any(IsScriptLetter) || latin.Any(IsScriptLetter))
+                        continue;
+
+                    // A word that's there more than once in its own script is meant to be repeated (つき つき, バイバイ).
+                    if (Regex.Count(text, Regex.Escape(run)) > 1 || Doubled().IsMatch(run))
+                        continue;
+
+                    var latinLetters = LettersAndDigits(latin);
+                    if (latinLetters.Count(char.IsAsciiLetter) < 2)
+                        continue;
+
+                    var isRomanisation = IsRomanisation(run, latin, tags);
+                    var wordsAfter = LatinWord().Count(text[(match.Index + match.Length)..]);
+                    foreach (
+                        var (pair, first, end) in FindNextTo(words, latinLetters, latinIsInside)
+                    )
+                    {
+                        var readsTheSame = isRomanisation && IsRomanisation(run, pair, tags);
+
+                        // Loan words can't be told to be a romanisation, but being spelled the same gives them away.
+                        // The two must be all there is besides what follows the part set apart, since other text
+                        // could have the same word too.
+                        var isSpelledTheSame =
+                            LettersAndDigits(pair) == latinLetters
+                            && start == 0
+                            && !run.Any(char.IsAsciiLetterOrDigit)
+                            && first == 0
+                            && end == words.Count - wordsAfter;
+
+                        // Latin text the unicode field itself repeats stays repeated.
+                        var pairLetters = LettersAndDigits(pair);
+                        if (
+                            (readsTheSame || isSpelledTheSame)
+                            && CountWords(words, pairLetters)
+                                > CountWords(unicodeWords, pairLetters)
+                        )
+                            return pair;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        ///     Every group of words directly before or after the latin text in the romanised field, with the indexes
+        ///     where the two of them together start and end.
+        /// </summary>
+        private static IEnumerable<(string Pair, int First, int End)> FindNextTo(
+            List<Match> words,
+            string latinLetters,
+            bool before
+        )
+        {
+            for (var start = 0; start < words.Count; start++)
+            for (var end = start + 1; end <= words.Count; end++)
+            {
+                if (JoinWords(words, start, end) != latinLetters)
+                    continue;
+
+                if (before)
+                    for (var first = 0; first < start; first++)
+                        yield return (Spaced(first, start), first, end);
+                else
+                    for (var last = end + 1; last <= words.Count; last++)
+                        yield return (Spaced(end, last), start, last);
+            }
+
+            string Spaced(int from, int to) =>
+                string.Join(' ', words[from..to].Select(word => word.Value));
+        }
+
+        /// <summary> How often the letters can be put together from whole words. </summary>
+        private static int CountWords(List<Match> words, string letters)
+        {
+            var count = 0;
+            for (var start = 0; start < words.Count; start++)
+            for (var end = start + 1; end <= words.Count; end++)
+                if (JoinWords(words, start, end) == letters)
+                    count++;
+
+            return count;
+        }
+
+        private static string JoinWords(List<Match> words, int start, int end) =>
+            LettersAndDigits(string.Concat(words[start..end].Select(word => word.Value)));
+
+        private static bool IsRomanisation(
+            string run,
+            string latin,
+            IReadOnlyCollection<string> tags
+        ) =>
+            Romanisers.Any(romaniser =>
+                romaniser.AppliesTo(run, tags)
+                && romaniser.Judge(run, latin) == RomanisationVerdict.Matches
+            );
+
+        private static bool IsScriptLetter(char ch) => ch >= 128 && char.IsLetter(ch);
+
+        private static string LettersAndDigits(string text) =>
+            new(text.ToLowerInvariant().Where(char.IsAsciiLetterOrDigit).ToArray());
+
+        /// <summary>
+        ///     Whether the run is a katakana word set apart from latin text, like "ソレイユ -Soleil-", which may be left
+        ///     out when it's the same word. Loan words can't be read, so this can't be told apart from different words.
+        /// </summary>
+        private static bool MayBeRepeatedLoanWord(string run, string unicode)
+        {
+            if (!run.All(ch => ch is >= 'ァ' and <= 'ー' || !char.IsLetter(ch)))
+                return false;
+
+            var text = unicode.Normalize(NormalizationForm.FormKC);
+            return SetApartPart()
+                .Matches(text)
+                .Any(match =>
+                {
+                    var before = text[..match.Index].TrimEnd();
+                    var inside = match.Groups["inside"].Value.Trim();
+                    return (inside == run && before.Any(char.IsAsciiLetter))
+                        || (
+                            before.EndsWith(run)
+                            && inside.Any(char.IsAsciiLetter)
+                            && !Marker().IsMatch(inside)
+                        );
+                });
+        }
+
+        [GeneratedRegex("[A-Za-z0-9']+")]
+        private static partial Regex LatinWord();
+
+        [GeneratedRegex(@"^(.+?)(?:\s*\1)+$")]
+        private static partial Regex Doubled();
+
+        [GeneratedRegex(
+            @"\b(?:size|ver|version|cut|edit|feat|ft|cv|cover|mix|remix|rmx)\b",
+            RegexOptions.IgnoreCase
+        )]
+        private static partial Regex Marker();
+
+        // "(Soleil)", "-Soleil-" and "/ Soleil". A dash or tilde right after a latin letter joins words instead.
+        [GeneratedRegex(
+            @"[(\[{<「『【《〈“""](?<inside>[^()\[\]{}<>「」『』【】《》〈〉“”""]+)[)\]}>」』】》〉”""]"
+                + @"|(?<![A-Za-z0-9])(?<dash>[-~〜])(?<inside>(?:(?!\k<dash>).)+)\k<dash>(?=\s|$)"
+                + @"|\s*[/|]\s*(?<inside>[^/|]+)$"
+        )]
+        private static partial Regex SetApartPart();
 
         private static string BuildPattern(
             List<(bool IsScript, StringBuilder Text)> segments,
