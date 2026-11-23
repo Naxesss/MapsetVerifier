@@ -50,9 +50,12 @@ namespace MapsetVerifier.Parser.Objects
             backgrounds = GetEvents(linesResult, ["Background", "0"], args => new Background(args));
             videos = GetEvents(linesResult, ["Video", "1"], args => new Video(args));
             breaks = GetEvents(linesResult, ["Break", "2"], args => new Break(args));
-            sprites = GetEvents(linesResult, ["Sprite", "4"], args => new Sprite(args));
+            (sprites, animations) = ParserStatic.GetSettings(
+                linesResult,
+                "Events",
+                StoryboardStatic.ParseStoryboard
+            );
             samples = GetEvents(linesResult, ["Sample", "5"], args => new Sample(args));
-            animations = GetEvents(linesResult, ["Animation", "6"], args => new Animation(args));
         }
 
         /// <summary> Returns whether the .osb file is actually used as a storyboard (or if it's just empty). </summary>
