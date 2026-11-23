@@ -69,7 +69,7 @@ public class CheckSliderBodyOverlap : BeatmapCheck
                 "Overlap",
                 new IssueTemplate(
                     Issue.Level.Warning,
-                    "{0} Slider body is fully covered by a slider ending {1} beats earlier, should be more than {2}.",
+                    "{0} Slider body is fully covered by a slider ending {1} beats earlier (min {2}).",
                     "timestamp -",
                     "beats",
                     "limit"

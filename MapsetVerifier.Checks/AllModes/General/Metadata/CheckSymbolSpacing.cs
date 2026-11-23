@@ -56,11 +56,10 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     GroupTemplate,
                     new IssueTemplate(
                         Issue.Level.Warning,
-                        "Missing space around \"{0}\" in the {1} \"{2}\". Ignore if the symbols aren't grouping part of the {3}.",
+                        "Missing space around \"{0}\" in {1} \"{2}\", unless not grouping.",
                         "group",
                         "field",
-                        "field content",
-                        "artist/title"
+                        "field content"
                     )
                         .WithCause(
                             "Symbols that group part of the artist or title are directly next to the word before or after the group."
@@ -71,7 +70,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     SymbolTemplate,
                     new IssueTemplate(
                         Issue.Level.Warning,
-                        "Missing spaces around \"{0}\" in the {1} \"{2}\". Ignore if the artist purposefully leaves them out.",
+                        "Missing spaces around \"{0}\" in {1} \"{2}\", unless intended.",
                         "symbol",
                         "field",
                         "field content"
@@ -105,8 +104,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         null,
                         group,
                         $"romanised {field}",
-                        romanised,
-                        field
+                        romanised
                     );
                 else if (FindSymbol(romanised, unicode) is { } symbol)
                     yield return new Issue(
@@ -123,8 +121,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         null,
                         unicodeGroup,
                         $"unicode {field}",
-                        unicode,
-                        field
+                        unicode
                     );
             }
         }

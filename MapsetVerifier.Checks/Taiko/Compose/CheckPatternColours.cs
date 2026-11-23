@@ -72,7 +72,7 @@ public class CheckPatternColours : BeatmapCheck
                 "Muzukashii",
                 new IssueTemplate(
                     Issue.Level.Warning,
-                    "{0} 1/4 pattern of {1} notes ({2}) should have at most one colour change, at the start or end.",
+                    "{0} 1/4 pattern of {1} notes ({2}) has too many colour changes or one in the middle.",
                     "timestamp -",
                     "count",
                     "colours"
@@ -86,7 +86,7 @@ public class CheckPatternColours : BeatmapCheck
                 "Conjunction",
                 new IssueTemplate(
                     Issue.Level.Minor,
-                    "{0} 1/4 patterns with colour changes ({1} and {2}) right after each other.",
+                    "{0} 1/4 patterns with colour changes ({1}, {2}) in a row.",
                     "timestamp -",
                     "colours",
                     "colours"
@@ -100,7 +100,7 @@ public class CheckPatternColours : BeatmapCheck
                 "Sparingly",
                 new IssueTemplate(
                     Issue.Level.Minor,
-                    "{0} of {1} 1/4 patterns have colour changes, these should be used sparingly.",
+                    "{0} of {1} 1/4 patterns have colour changes, use sparingly.",
                     "count",
                     "total"
                 )

@@ -72,7 +72,7 @@ public class CheckNoteDensityTests
         var issue = Assert.Single(RunFor(context, Beatmap.Difficulty.Normal));
         Assert.Equal(Issue.Level.Minor, issue.level);
         Assert.Equal(
-            "100% of the rhythm is faster than 1/1, while a Normal should mostly use 1/1, occasional 1/2, or slower rhythms.",
+            "100% of the rhythm is faster than 1/1, a Normal should mostly use 1/1, occasional 1/2, or slower rhythms.",
             issue.message
         );
     }
@@ -91,7 +91,7 @@ public class CheckNoteDensityTests
         using var context = CreateContext(Beatmap.Mode.Taiko, 180, Every(333, 40));
 
         var issue = Assert.Single(RunFor(context, Beatmap.Difficulty.Easy));
-        Assert.Contains("faster than 2/1, while a Kantan", issue.message);
+        Assert.Contains("faster than 2/1, a Kantan", issue.message);
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public class CheckNoteDensityTests
         using var context = CreateContext(Beatmap.Mode.Catch, 180, Every(167, 40));
 
         var issue = Assert.Single(RunFor(context, Beatmap.Difficulty.Easy));
-        Assert.Contains("while a Cup should mostly use a 1/1 pattern", issue.message);
+        Assert.Contains("a Cup should mostly use a 1/1 pattern", issue.message);
     }
 
     [Fact]

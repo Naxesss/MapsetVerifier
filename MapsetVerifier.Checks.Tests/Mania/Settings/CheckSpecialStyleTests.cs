@@ -20,12 +20,12 @@ public class CheckSpecialStyleTests
         Assert.Empty(Run((keys, version, tags, special)));
 
     [Theory]
-    [InlineData(8, "[7K+1] Hard", "n+1", false, "7K+1, but the special style option is off")]
-    [InlineData(8, "[7K+1] Hard", "7k+1", true, "7K+1, but the tags don't include \"N+1\"")]
+    [InlineData(8, "[7K+1] Hard", "n+1", false, "7K+1, but special style is off")]
+    [InlineData(8, "[7K+1] Hard", "7k+1", true, "7K+1, but \"N+1\" isn't in the tags")]
     [InlineData(10, "Hard", "", true, "on with 10 keys")]
     [InlineData(16, "[DP] Hard", "n+1 dp", true, "on with 16 keys")]
-    [InlineData(8, "Hard", "", true, "option is on, but the tags don't include \"N+1\"")]
-    [InlineData(8, "Hard", "n+1", false, "no difficulty has the special style option on")]
+    [InlineData(8, "Hard", "", true, "is on, but \"N+1\" isn't in the tags")]
+    [InlineData(8, "Hard", "n+1", false, "special style is off everywhere")]
     public void Issue(int keys, string version, string tags, bool special, string expected) =>
         Assert.Contains(expected, Assert.Single(Run((keys, version, tags, special))));
 

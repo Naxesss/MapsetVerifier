@@ -67,7 +67,7 @@ public class CheckLoudSliderTicks : BeatmapCheck
                 "Loud",
                 new IssueTemplate(
                     Issue.Level.Warning,
-                    "{0} Slider tick sound \"{1}\" is up to {2}% as loud as the hitsounds of its slider, used {3} time(s).",
+                    "{0} Slider tick \"{1}\" is up to {2}% as loud as its slider's hitsounds, used {3} time(s).",
                     "timestamp -",
                     "file name",
                     "percent",

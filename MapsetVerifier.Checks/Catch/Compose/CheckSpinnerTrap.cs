@@ -77,7 +77,7 @@ public class CheckSpinnerTrap : BeatmapCheck
                 WithRules(
                     new IssueTemplate(
                         Issue.Level.Warning,
-                        "{0} Spinner trap, the {1} is {2} px too far to reach after catching the most bananas.",
+                        "{0} Spinner trap, {1} is {2} px out of reach.",
                         "timestamp -",
                         "object",
                         "distance"
@@ -91,7 +91,7 @@ public class CheckSpinnerTrap : BeatmapCheck
                 WithRules(
                     new IssueTemplate(
                         Issue.Level.Warning,
-                        "{0} Spinner trap, the {1} is {2} px from the border, {3} ms after the spinner.",
+                        "{0} Spinner trap, {1} {2} px from the border after {3} ms.",
                         "timestamp -",
                         "object",
                         "distance",

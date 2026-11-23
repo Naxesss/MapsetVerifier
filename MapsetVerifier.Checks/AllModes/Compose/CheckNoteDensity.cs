@@ -160,7 +160,7 @@ public class CheckNoteDensity : BeatmapCheck
     private static IssueTemplate Template() =>
         new IssueTemplate(
             Issue.Level.Minor,
-            "{0}% of the rhythm is faster than {1}, while a {2} should mostly use {3}.",
+            "{0}% of the rhythm is faster than {1}, a {2} should mostly use {3}.",
             "percentage",
             "snap",
             "difficulty",
