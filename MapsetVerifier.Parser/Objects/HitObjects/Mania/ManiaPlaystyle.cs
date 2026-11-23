@@ -51,6 +51,16 @@ public sealed record ManiaPlaystyle(
     /// <summary> What divides a marker from the rest of the name, as in "7K - Hard". </summary>
     private const string Divider = @"[\s\-–—:|~/]*";
 
+    /// <summary> Whether this is an N+1 playstyle. Only the name says so, see above. </summary>
+    public bool IsN1() => Label.EndsWith("K+1");
+
+    /// <summary> The playstyles above 10K played with this key count, each as its name and other names. </summary>
+    public static IReadOnlyList<IReadOnlyList<string>> PlaystylesFor(int keys) =>
+        Named
+            .Where(named => named.Keys.Contains(keys))
+            .Select(named => (IReadOnlyList<string>)named.Aliases.Prepend(named.Name).ToList())
+            .ToList();
+
     public static ManiaPlaystyle? Of(Beatmap beatmap) =>
         Of(
             beatmap.GeneralSettings.mode,
