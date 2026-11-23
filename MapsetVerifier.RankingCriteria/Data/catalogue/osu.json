@@ -527,7 +527,8 @@
         ]
       },
       "curation": {
-        "automation": "manual"
+        "automation": "partial",
+        "notes": "CheckReverseArrowDirection reports arrows more than 45 degrees off, doubtful ones as minor; smaller differences and sliders that stay beneath the arrow are left to judgement."
       }
     },
     {
@@ -1012,7 +1013,8 @@
         ]
       },
       "curation": {
-        "automation": "manual"
+        "automation": "partial",
+        "notes": "CheckReverseArrowDirection reports arrows more than 45 degrees off, doubtful ones as minor; smaller differences and sliders that stay beneath the arrow are left to judgement."
       }
     },
     {
@@ -1607,7 +1609,8 @@
         ]
       },
       "curation": {
-        "automation": "manual"
+        "automation": "partial",
+        "notes": "CheckReverseArrowDirection reports arrows more than 45 degrees off, doubtful ones as minor; smaller differences and sliders that stay beneath the arrow are left to judgement."
       }
     },
     {
@@ -1739,7 +1742,8 @@
         ]
       },
       "curation": {
-        "automation": "automatable"
+        "automation": "partial",
+        "notes": "CheckLoudSliderTicks reports custom ticks about as loud as the hitsounds; ticks next to default hitsounds are left to judgement."
       }
     },
     {
@@ -1959,7 +1963,8 @@
         ]
       },
       "curation": {
-        "automation": "manual"
+        "automation": "partial",
+        "notes": "CheckReverseArrowDirection reports arrows more than 45 degrees off, doubtful ones as minor; smaller differences and sliders that stay beneath the arrow are left to judgement."
       }
     },
     {
@@ -2003,7 +2008,8 @@
         ]
       },
       "curation": {
-        "automation": "automatable"
+        "automation": "partial",
+        "notes": "CheckLoudSliderTicks reports custom ticks about as loud as the hitsounds; ticks next to default hitsounds are left to judgement."
       }
     },
     {
@@ -2181,7 +2187,8 @@
         ]
       },
       "curation": {
-        "automation": "manual"
+        "automation": "partial",
+        "notes": "CheckReverseArrowDirection reports arrows more than 45 degrees off, doubtful ones as minor; smaller differences and sliders that stay beneath the arrow are left to judgement."
       }
     },
     {
@@ -2204,7 +2211,8 @@
         ]
       },
       "curation": {
-        "automation": "automatable"
+        "automation": "partial",
+        "notes": "CheckLoudSliderTicks reports custom ticks about as loud as the hitsounds; ticks next to default hitsounds are left to judgement."
       }
     },
     {
