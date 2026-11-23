@@ -7,8 +7,8 @@ namespace MapsetVerifier.Checks.Utils.Romanisation;
 /// <summary>
 ///     Chinese in pinyin, for beatmapsets tagged as Chinese. Every reading of a character is accepted, since the
 ///     right one depends on the word. The Ranking Criteria rule for Chinese is about format: each character is
-///     its own capitalised word, except for proper nouns. That's what gets reported; a romanised field that doesn't
-///     fit the pinyin at all, like a translation or Cantonese, isn't.
+///     its own capitalised word, except for proper nouns. Other differences from the pinyin may be
+///     translations, so they're only pointed out, and not at all for Cantonese.
 /// </summary>
 public sealed partial class ChineseRomaniser : Romaniser
 {
@@ -29,6 +29,23 @@ public sealed partial class ChineseRomaniser : Romaniser
 
     // A different romanisation can't be told apart from a translation or another Chinese language.
     protected override bool MayUseDifferentWords(string text) => true;
+
+    // Cantonese isn't romanised in pinyin, but is often tagged as Chinese as well.
+    public override bool PointsOutInconclusive(string unicode, IReadOnlyCollection<string> tags) =>
+        !tags.Contains("cantonese", StringComparer.OrdinalIgnoreCase);
+
+    public override RomanisationCorrection? Correct(string unicode, string romanised) =>
+        base.Correct(unicode, romanised) is { } correction
+            ? FollowsFormat(unicode, correction.Text)
+                ? correction
+                : correction with
+                {
+                    Text = Suggest(unicode),
+                }
+            : null;
+
+    protected override List<List<RomanisationUnit>>? ReadWords(string text) =>
+        Read(text)?.Select(unit => new List<RomanisationUnit> { unit }).ToList();
 
     protected override List<RomanisationUnit>? Read(string text)
     {

@@ -196,7 +196,6 @@ public class CheckRomanisationTests
     [Theory]
     [InlineData("Für Elise", "Fuer Elise", "")]
     [InlineData("Für Elise", "Fur Elise", "")]
-    [InlineData("Für Elise", "For Elise", "german")]
     [InlineData("Beyoncé", "Beyonce", "")]
     [InlineData("Sigur Rós", "Sigur Ros", "")]
     [InlineData("Straße", "Strasse", "german")]
@@ -206,6 +205,20 @@ public class CheckRomanisationTests
     [InlineData("Пётр", "Pyotr", "")]
     [InlineData("Елена", "Yelena", "")]
     [InlineData("Київ", "Kyiv", "")]
+    [InlineData("Україна", "Ukraina", "")]
+    [InlineData("Миколаїв", "Mykolaiv", "")]
+    [InlineData("Хмельницький Київ", "Khmelnytskyi Kyiv", "")]
+    [InlineData("Запоріжжя", "Zaporizhzhia", "")]
+    [InlineData("Згурівка", "Zghurivka", "")]
+    [InlineData("Юр’ївка", "Yurivka", "")]
+    [InlineData("Їжівці", "Yizhivtsi", "")]
+    [InlineData("Търговище", "Targovishte", "")]
+    [InlineData("Гълъбово", "Galabovo", "")]
+    [InlineData("Ђаковица", "Dakovica", "")]
+    [InlineData("Његошево", "Njegosevo", "")]
+    [InlineData("Скопје", "Skopje", "")]
+    [InlineData("Чайковский", "Chaykovskiy", "")]
+    [InlineData("Объект", "Obekt", "")]
     [InlineData(
         "Странствiя Рукоблуда и брата его Малафѣя",
         "Stranstviya Rukobluda i brata yego Malafeya",
@@ -245,6 +258,63 @@ public class CheckRomanisationTests
     }
 
     [Theory]
+    [InlineData("Москва", "Moskvaa", "", "Moskva")]
+    [InlineData("Москва", "Moksva", "", "Moskva")]
+    [InlineData("МОСКВА", "MOSKA", "", "MOSKVA")]
+    [InlineData("Мой Год", "Moy Go", "", "Moy God")]
+    [InlineData("Мой Год (Remix)", "Moy Got (Remix)", "", "Moy God (Remix)")]
+    [InlineData("Für Elise", "Fuer Elisee", "german", "Fuer Elise")]
+    [InlineData("Räksmörgås", "Raksmorgs", "swedish", "Raksmorgas")]
+    [InlineData("Beyoncé", "Beyonc", "", "Beyonce")]
+    [InlineData("我爱你", "Wo Aii Ni", "chinese", "Wo Ai Ni")]
+    [InlineData("我爱你", "Wo Ai Li", "chinese", "Wo Ai Ni")]
+    [InlineData("我爱你", "Wo A Ni", "chinese", "Wo Ai Ni")]
+    [InlineData("我爱你", "Woaii Ni", "chinese", "Wo Ai Ni")]
+    public void SuggestsCorrectionInOtherLanguages(
+        string unicode,
+        string romanised,
+        string tags,
+        string expected
+    )
+    {
+        using var context = CreateTitleContext(romanised, unicode, tags);
+
+        var warning = Assert.Single(context.RunGeneralCheck<CheckRomanisation>());
+
+        Assert.Equal(Issue.Level.Warning, warning.level);
+        Assert.Contains($"should be \"{expected}\", unless official", warning.message);
+    }
+
+    [Theory]
+    [InlineData("Москва", "Moscow", "", "Moskva")]
+    [InlineData("Für Elise", "To Elise", "german", "Fuer Elise")]
+    [InlineData("我爱你", "I Love You", "chinese", "Wo Ai Ni")]
+    public void PointsOutOtherWordsInOtherLanguages(
+        string unicode,
+        string romanised,
+        string tags,
+        string expected
+    )
+    {
+        using var context = CreateTitleContext(romanised, unicode, tags);
+
+        var warning = Assert.Single(context.RunGeneralCheck<CheckRomanisation>());
+
+        Assert.Equal(Issue.Level.Warning, warning.level);
+        Assert.Contains($"doesn't match \"{expected}\", ensure", warning.message);
+    }
+
+    [Theory]
+    [InlineData("我爱你", "Ngo Oi Nei", "chinese cantonese")]
+    [InlineData("我爱你", "Ngo Oi Nei", "")]
+    public void LeavesCantoneseQuiet(string unicode, string romanised, string tags)
+    {
+        using var context = CreateTitleContext(romanised, unicode, tags);
+
+        Assert.Empty(context.RunGeneralCheck<CheckRomanisation>());
+    }
+
+    [Theory]
     [InlineData("Москва", "Moskva")]
     [InlineData("МОСКВА", "MOSKVA")]
     [InlineData("Чайковский и Пётр", "Chaykovskiy i Petr")]
@@ -263,7 +333,6 @@ public class CheckRomanisationTests
 
     [Theory]
     [InlineData("我爱你", "Wo Ai Ni", "chinese")]
-    [InlineData("我爱你", "I Love You", "chinese")]
     [InlineData("绿", "Lv", "chinese")]
     [InlineData("绿", "Lu", "chinese")]
     [InlineData("银行", "Yin Hang", "chinese")]

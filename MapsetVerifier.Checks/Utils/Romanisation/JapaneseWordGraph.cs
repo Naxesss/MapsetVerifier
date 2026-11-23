@@ -6,16 +6,14 @@ namespace MapsetVerifier.Checks.Utils.Romanisation;
 /// </summary>
 public sealed class JapaneseWordGraph
 {
-    private sealed record Word(int End, List<RomanisationUnit> Units);
-
     /// <summary> The words which may start at each character. </summary>
-    private readonly List<Word>[] words;
+    private readonly List<RomanisationWord>[] words;
 
     /// <param name="text"> The text, already normalised. </param>
     /// <param name="readKana"> Reads kana into units, or null if it can't be read. </param>
     public JapaneseWordGraph(string text, Func<string, List<RomanisationUnit>?> readKana)
     {
-        words = new List<Word>[text.Length];
+        words = new List<RomanisationWord>[text.Length];
         for (var start = 0; start < text.Length; start++)
             words[start] = FindWords(text, start, readKana);
 
@@ -24,7 +22,7 @@ public sealed class JapaneseWordGraph
         foreach (var word in JapaneseReader.Read(text))
         {
             if (word.HasKanji && word.Kana != null && readKana(word.Kana) is { } units)
-                words[position].Add(new Word(position + word.Text.Length, units));
+                words[position].Add(new RomanisationWord(position + word.Text.Length, units));
             position += word.Text.Length;
         }
     }
@@ -32,97 +30,9 @@ public sealed class JapaneseWordGraph
     /// <summary> Whether the letters are a romanisation of the whole text. </summary>
     public bool Matches(string target) => EndsFrom(0, target).Contains(words.Length);
 
-    /// <summary>
-    ///     The romanisation of the text with the fewest letters different from the given ones, by its words, or null if
-    ///     it can't be read. Of those equally close, the preferred romanisation is picked.
-    /// </summary>
-    public IReadOnlyList<string>? FindClosest(string target)
-    {
-        // For each character reached, the best way to get there for each number of letters used up.
-        var ways = new Way?[words.Length + 1][];
-        for (var position = 0; position <= words.Length; position++)
-            ways[position] = new Way?[target.Length + 1];
-        for (var used = 0; used <= target.Length; used++)
-            ways[0][used] = new Way(used * EditCost, "", null);
-
-        for (var position = 0; position < words.Length; position++)
-            foreach (var word in words[position])
-            {
-                var current = ways[position].Select(way => way?.StartWord()).ToArray();
-                foreach (var unit in word.Units)
-                {
-                    var next = new Way?[target.Length + 1];
-                    for (var index = 0; index < unit.Alternatives.Count; index++)
-                        Improve(next, Spell(current, unit.Alternatives[index], target, index));
-                    current = next;
-                }
-
-                Improve(ways[word.End], current);
-            }
-
-        var spelled = new List<string>();
-        for (var way = ways[^1][^1]; way != null; way = way.Previous)
-            if (way.Word.Length > 0)
-                spelled.Insert(0, way.Word);
-
-        return ways[^1][^1] == null ? null : spelled;
-    }
-
-    /// <summary> An edit outweighs any preference between romanisations. </summary>
-    private const int EditCost = 1000;
-
-    /// <param name="Cost"> The edits so far, and how far from preferred the romanisation is. </param>
-    /// <param name="Word"> The letters of the last word so far. </param>
-    /// <param name="Previous"> The way up to the last word. </param>
-    private sealed record Way(int Cost, string Word, Way? Previous)
-    {
-        public Way StartWord() => new(Cost, "", this);
-    }
-
-    /// <summary> Adds letters to each way, for every number of letters used up after it. </summary>
-    private static Way?[] Spell(Way?[] from, string letters, string target, int preference)
-    {
-        var current = from.Select(way =>
-                way == null
-                    ? null
-                    : way with
-                    {
-                        Cost = way.Cost + preference,
-                        Word = way.Word + letters,
-                    }
-            )
-            .ToArray();
-
-        foreach (var letter in letters)
-        {
-            var next = new Way?[target.Length + 1];
-            for (var used = 0; used <= target.Length; used++)
-            {
-                Offer(next, used, current[used], EditCost);
-                if (used == 0)
-                    continue;
-
-                Offer(next, used, current[used - 1], target[used - 1] == letter ? 0 : EditCost);
-                Offer(next, used, next[used - 1], EditCost);
-            }
-
-            current = next;
-        }
-
-        return current;
-    }
-
-    private static void Offer(Way?[] ways, int used, Way? way, int cost)
-    {
-        if (way != null && (ways[used] == null || way.Cost + cost < ways[used]!.Cost))
-            ways[used] = way with { Cost = way.Cost + cost };
-    }
-
-    private static void Improve(Way?[] ways, Way?[] others)
-    {
-        for (var used = 0; used < ways.Length; used++)
-            Offer(ways, used, others[used], 0);
-    }
+    /// <summary> The closest romanisation of the text to the letters, by its words, or null if it can't be read. </summary>
+    public IReadOnlyList<string>? FindClosest(string target) =>
+        RomanisationSearch.FindClosest(words, target);
 
     /// <summary> Where the text may have got to once the letters are used up, starting at the given character. </summary>
     private List<int> EndsFrom(int start, string target)
@@ -151,24 +61,29 @@ public sealed class JapaneseWordGraph
             .ToList();
     }
 
-    private static List<Word> FindWords(
+    private static List<RomanisationWord> FindWords(
         string text,
         int start,
         Func<string, List<RomanisationUnit>?> readKana
     )
     {
-        var found = new List<Word>();
+        var found = new List<RomanisationWord>();
         var first = text[start];
 
         if (first < 128 || !IsJapanese(first))
         {
             // Separators aren't compared. A cross between names is often written as a letter (A × B → A x B).
             if (first == '×')
-                found.Add(new Word(start + 1, [new RomanisationUnit(null, ["", "x"])]));
+                found.Add(new RomanisationWord(start + 1, [new RomanisationUnit(null, ["", "x"])]));
             else if (first < 128 && char.IsLetter(first))
-                found.Add(new Word(start + 1, [Letters(char.ToLowerInvariant(first).ToString())]));
+                found.Add(
+                    new RomanisationWord(
+                        start + 1,
+                        [Letters(char.ToLowerInvariant(first).ToString())]
+                    )
+                );
             else if (!char.IsLetter(first))
-                found.Add(new Word(start + 1, []));
+                found.Add(new RomanisationWord(start + 1, []));
 
             return found;
         }
@@ -186,9 +101,9 @@ public sealed class JapaneseWordGraph
             if (word.All(IsKana))
             {
                 if (readKana(word) is { } units)
-                    found.Add(new Word(end, units));
+                    found.Add(new RomanisationWord(end, units));
                 if (FindSpellings(word) is { Count: > 0 } spellings)
-                    found.Add(new Word(end, [new RomanisationUnit(null, spellings)]));
+                    found.Add(new RomanisationWord(end, [new RomanisationUnit(null, spellings)]));
             }
             else
                 found.AddRange(
@@ -196,7 +111,7 @@ public sealed class JapaneseWordGraph
                         .Find(word)
                         .Select(readKana)
                         .OfType<List<RomanisationUnit>>()
-                        .Select(units => new Word(end, units))
+                        .Select(units => new RomanisationWord(end, units))
                 );
         }
 

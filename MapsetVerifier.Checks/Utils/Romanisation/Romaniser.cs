@@ -122,7 +122,44 @@ public abstract class Romaniser
     ///     The romanised field with as few letters as possible changed so that it matches the unicode field, or null if
     ///     there's no such correction.
     /// </summary>
-    public virtual RomanisationCorrection? Correct(string unicode, string romanised) => null;
+    public virtual RomanisationCorrection? Correct(string unicode, string romanised)
+    {
+        var text = Normalise(unicode);
+        var units = Read(text);
+        var words = ReadWords(text);
+        if (units == null || words == null)
+            return null;
+
+        var swap = RomanisationCorrection
+            .Swaps(romanised)
+            .FirstOrDefault(swap => Matches(units, Letters(swap.Text)));
+        if (swap != null)
+            return swap;
+
+        var graph = words
+            .Select((word, index) => new[] { new RomanisationWord(index + 1, word) })
+            .ToList();
+        return RomanisationSearch.FindClosest(graph, Letters(romanised)) is { } closest
+            ? RomanisationCorrection.Apply(romanised, closest)
+            : null;
+    }
+
+    /// <summary> Same as <see cref="Read" />, but with the units of each word by themselves. </summary>
+    protected virtual List<List<RomanisationUnit>>? ReadWords(string text) => ReadWords(text, Read);
+
+    protected static List<List<RomanisationUnit>>? ReadWords(
+        string text,
+        Func<string, List<RomanisationUnit>?> read
+    )
+    {
+        var words = text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)
+            .Select(read)
+            .ToList();
+
+        return words.Any(word => word == null)
+            ? null
+            : words.OfType<List<RomanisationUnit>>().ToList();
+    }
 
     /// <summary>
     ///     Whether a field whose romanisation is inconclusive should still be pointed out, so that mistakes in it

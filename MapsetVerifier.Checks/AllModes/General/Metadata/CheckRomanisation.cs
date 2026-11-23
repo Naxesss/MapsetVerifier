@@ -33,12 +33,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
         /// <summary> How many names of an artist field are looked at being the other way around. </summary>
         private const int MaxNameSwaps = 4;
 
-        private const string MisspelledTemplate = "Misspelled";
-
         /// <summary> Fields with fewer letters than this may well be other words if they're a letter off. </summary>
         private const int MinLettersToCorrect = 4;
-
-        private const string UnconfirmedTemplate = "Unconfirmed";
 
         public override CheckMetadata GetMetadata() =>
             new()
@@ -73,20 +69,23 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                           text. Kanji are read with built-in dictionaries, which also know the source spelling of common
                           loan words and names (*ハート* is *Heart*). Only a romanisation in another system like Kunrei-shiki is
                           clearly wrong (e.g. *tyo* instead of *cho*, *tu* instead of *tsu*). Any other difference from the
-                          readings and spellings they know is pointed out as well, so that mistakes aren't missed, but those
-                          are often correct, such as with translations and stage names. If it's only a letter off, or has two
-                          letters swapped, the corrected field is suggested.
+                          readings and spellings they know is pointed out as well.
                         - **Chinese**, for beatmapsets tagged as Chinese: each character must be its own capitalised word
                           (*Wo Ai Ni*), so a romanised field whose letters follow the pinyin but run characters together is
-                          reported. Proper nouns are exempt, so ignore it for those. A romanised field that doesn't follow
-                          the pinyin at all, like a translation or Cantonese, isn't reported.
-                        - **Cyrillic**, BGN/PCGN: reported when the romanised field clearly follows another system, like
-                          *Jurij* instead of *Yuriy*. Russian, Ukrainian and Belarusian readings of shared letters are all
-                          accepted.
+                          reported. Proper nouns are exempt, so ignore it for those. Any other difference from the pinyin is
+                          pointed out too, unless the beatmapset is also tagged as Cantonese.
+                        - **Cyrillic**, BGN/PCGN: clearly wrong when the romanised field follows another system, like *Jurij*
+                          instead of *Yuriy*. Any other difference is pointed out too. Russian, Ukrainian and Belarusian
+                          readings of shared letters are all accepted, as are the systems for Ukrainian, Bulgarian, Serbian and
+                          Macedonian when the field has letters or spellings that only those languages use.
                         - **German, Swedish, Finnish and Nordic** letters (*ü* as *ue*, *ö* as *o*, *å* as *aa*): the rules of
                           the language the beatmapset is tagged with. Without one of those tags, any of their spellings is
                           accepted, and only ones none of them allow are reported, like *ø* as *o*. Other accented letters
-                          are expected as their plain letter (*é* as *e*)."
+                          are expected as their plain letter (*é* as *e*).
+
+                        Differences are pointed out so that mistakes aren't missed, but they are often correct, such as with
+                        translations, stage names and names with an official spelling. If it's only a letter off, or has two
+                        letters swapped, the corrected field is suggested."
                     },
                     {
                         "Limitations",
@@ -177,29 +176,32 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                 )
                 .WithRule(RC.Metadata.Romanisation_SongUsesRepeatWordsTitle);
 
-            templates[MisspelledTemplate] = new IssueTemplate(
-                Issue.Level.Warning,
-                "{0} \"{1}\" should be \"{2}\", unless official.",
-                "Artist/Title",
-                "romanised",
-                "correction"
-            )
-                .WithCause(
-                    "The unicode artist or title is written in Japanese, and the romanised field is a single letter off, or has two letters swapped, compared to how it's read."
+            foreach (var romaniser in Romanisers)
+            {
+                templates[MisspelledTemplate(romaniser)] = new IssueTemplate(
+                    Issue.Level.Warning,
+                    "{0} \"{1}\" should be \"{2}\", unless official.",
+                    "Artist/Title",
+                    "romanised",
+                    "correction"
                 )
-                .WithRule(RC.Metadata.Romanisation_JapaneseUseModifiedHepburnSystem);
+                    .WithCause(
+                        $"The romanised field is a single letter off, or has two letters swapped, compared to how the unicode artist or title is romanised ({romaniser.Name})."
+                    )
+                    .WithRule(romaniser.Rules);
 
-            templates[UnconfirmedTemplate] = new IssueTemplate(
-                Issue.Level.Warning,
-                "{0} \"{1}\" doesn't match \"{2}\", ensure it's official.",
-                "Artist/Title",
-                "romanised",
-                "suggestion"
-            )
-                .WithCause(
-                    "The unicode artist or title is written in Japanese, and the romanised field neither matches how it's read nor clearly follows another system, such as with loan words, translations and names."
+                templates[UnconfirmedTemplate(romaniser)] = new IssueTemplate(
+                    Issue.Level.Warning,
+                    "{0} \"{1}\" doesn't match \"{2}\", ensure it's official.",
+                    "Artist/Title",
+                    "romanised",
+                    "suggestion"
                 )
-                .WithRule(RC.Metadata.Romanisation_JapaneseUseModifiedHepburnSystem);
+                    .WithCause(
+                        $"The romanised field neither matches how the unicode artist or title is romanised ({romaniser.Name}) nor clearly follows another system, such as with loan words, translations and names."
+                    )
+                    .WithRule(romaniser.Rules);
+            }
 
             return templates;
         }
@@ -307,7 +309,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     && IsTypo(correction, romanised)
                 )
                     return new Issue(
-                        GetTemplate(MisspelledTemplate),
+                        GetTemplate(MisspelledTemplate(romaniser)),
                         null,
                         field,
                         romanised,
@@ -315,7 +317,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     );
 
                 return new Issue(
-                    GetTemplate(UnconfirmedTemplate),
+                    GetTemplate(UnconfirmedTemplate(romaniser)),
                     null,
                     field,
                     romanised,
@@ -395,7 +397,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                 var romaniser = Romanisers.FirstOrDefault(romaniser =>
                     romaniser.AppliesTo(run, tags)
                 );
-                if (romaniser == null)
+                // Accented latin letters are only parts of words, which are compared as a whole.
+                if (romaniser is null or LatinRomaniser)
                     continue;
 
                 var neighbours = new[] { i - 1, i + 1 }
@@ -637,6 +640,12 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                 )
             )
             + "$";
+
+        private static string MisspelledTemplate(Romaniser romaniser) =>
+            $"{romaniser.Name} Misspelled";
+
+        private static string UnconfirmedTemplate(Romaniser romaniser) =>
+            $"{romaniser.Name} Unconfirmed";
 
         private static string FormatTemplate(Romaniser romaniser) => $"{romaniser.Name} Format";
 
