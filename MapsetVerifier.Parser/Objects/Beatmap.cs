@@ -335,9 +335,8 @@ namespace MapsetVerifier.Parser.Objects
             Backgrounds = GetEvents(eventLines, "Background,", "0,", args => new Background(args));
             Videos = GetEvents(eventLines, "Video,", "1,", args => new Video(args));
             Breaks = GetEvents(eventLines, "Break,", "2,", args => new Break(args));
-            Sprites = GetEvents(eventLines, "Sprite,", "4,", args => new Sprite(args));
+            (Sprites, Animations) = StoryboardStatic.ParseStoryboard(eventLines);
             Samples = GetEvents(eventLines, "Sample,", "5,", args => new Sample(args));
-            Animations = GetEvents(eventLines, "Animation,", "6,", args => new Animation(args));
 
             TimingLines = GetTimingLines(lines);
             HitObjects = GetHitObjects(lines);
@@ -1048,6 +1047,15 @@ namespace MapsetVerifier.Parser.Objects
 
             return interpretedFromName;
         }
+
+        /// <summary>
+        ///     Returns whether <see cref="GetDifficulty" /> fell back on star rating, because nobody chose a
+        ///     difficulty level and the name doesn't say one, as with hitsound difficulties or joke names.
+        /// </summary>
+        public bool IsDifficultyGuessed() =>
+            InterpretedDifficultyOverride == null
+            && BeatmapSetDifficultyOverride == null
+            && (GetDifficultyFromName() ?? GetDifficultyFromNameWord()) == null;
 
         private Difficulty GetDifficultyFromStarRating()
         {

@@ -71,6 +71,9 @@ namespace MapsetVerifier.Framework.Objects.Resources
         /// <summary> Cached version of <see cref="AudioBASS.GetBitrate" />. </summary>
         public static double GetBitrate(string filePath) => GetMetadata(filePath).Bitrate;
 
+        /// <summary> Sample rate of the audio file in Hz, read from the same cached stream open. </summary>
+        public static int GetSampleRate(string filePath) => GetMetadata(filePath).SampleRate;
+
         /// <summary> Cached version of <see cref="AudioBASS.GetPeaks" />. </summary>
         public static List<float[]> GetPeaks(string filePath)
         {

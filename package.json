@@ -65,6 +65,18 @@
         ]
       },
       {
+        "from": "LICENSE",
+        "to": "LICENSE"
+      },
+      {
+        "from": "LICENSE-EXCEPTION.txt",
+        "to": "LICENSE-EXCEPTION.txt"
+      },
+      {
+        "from": "THIRD-PARTY-NOTICES.txt",
+        "to": "THIRD-PARTY-NOTICES.txt"
+      },
+      {
         "from": "assets/icons",
         "to": "icons",
         "filter": [

@@ -939,7 +939,8 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "automatable"
+        "automation": "manual",
+        "notes": "An exemption rather than a requirement: the hit sound checks already leave osu!mania additions alone."
       }
     },
     {
@@ -1518,7 +1519,7 @@
         "difficulties": []
       },
       "curation": {
-        "automation": "unknown"
+        "automation": "manual"
       }
     },
     {

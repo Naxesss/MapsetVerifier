@@ -35,6 +35,13 @@ public static class HitObjectDistanceCalculator
     private static float CalculateCatchWidth(float circleSize) =>
         BaseSize * Math.Abs(CalculateScale(circleSize).X) * AllowedCatchRange;
 
+    /// <summary>
+    /// Half the width of the catcher's catching area: an object closer than this to the catcher's
+    /// centre is caught without moving.
+    /// </summary>
+    public static float GetCatcherHalfWidth(float circleSize) =>
+        CalculateCatchWidth(circleSize) * 0.5f;
+
     private static float CalculateScaleFromCircleSize(float circleSize)
     {
         // (1 - 0.7 * difficultyRange) / 2 per osu!catch sizing.

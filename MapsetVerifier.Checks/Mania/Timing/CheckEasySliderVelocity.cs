@@ -53,7 +53,9 @@ namespace MapsetVerifier.Checks.Mania.Timing
                         .WithCause("Wrongly normalized uninherited timing line.")
                         .WithRule(
                             RC.Mania.Easy_ScrollNormalisationDoneBeatmapsVariable,
-                            RC.Mania.Normal_ScrollNormalisationDoneBeatmapsVariable
+                            RC.Mania.Normal_ScrollNormalisationDoneBeatmapsVariable,
+                            RC.Mania.Easy_SliderVelocityChangesAlterScrolling,
+                            RC.Mania.Normal_SliderVelocityChangesAlterScrolling
                         )
                 },
             };

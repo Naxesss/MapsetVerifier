@@ -17,6 +17,7 @@ public sealed class OsuBuilder
     private string title = "MapsetVerifier";
     private string? titleUnicode;
     private string artist = "MapsetVerifier";
+    private string? artistUnicode;
     private string creator = "Tests";
     private string version = "Test";
     private string? source;
@@ -68,6 +69,12 @@ public sealed class OsuBuilder
     public OsuBuilder Artist(string artist)
     {
         this.artist = artist;
+        return this;
+    }
+
+    public OsuBuilder ArtistUnicode(string artistUnicode)
+    {
+        this.artistUnicode = artistUnicode;
         return this;
     }
 
@@ -211,6 +218,8 @@ public sealed class OsuBuilder
         if (titleUnicode != null)
             lines.Add($"TitleUnicode:{titleUnicode}");
         lines.Add($"Artist:{artist}");
+        if (artistUnicode != null)
+            lines.Add($"ArtistUnicode:{artistUnicode}");
         lines.Add($"Creator:{creator}");
         lines.Add($"Version:{version}");
         if (source != null)

@@ -53,7 +53,10 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         .WithCause(
                             "Some whitespace or parameter is missing from the artist or title fields where only alphabetic and numerical characters are involved."
                         )
-                        .WithRule(RC.Metadata.Artist_UseTrailingSpaceMarkersVs)
+                        .WithRule(
+                            RC.Metadata.Artist_UseTrailingSpaceMarkersVs,
+                            RC.Metadata.Artist_CommasTrailingSpaceUnlessIntentionally
+                        )
                 },
                 {
                     "Warning",
@@ -67,7 +70,10 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         .WithCause(
                             "Same as the other check, but can involve any type of characters."
                         )
-                        .WithRule(RC.Metadata.Artist_UseTrailingSpaceMarkersVs)
+                        .WithRule(
+                            RC.Metadata.Artist_UseTrailingSpaceMarkersVs,
+                            RC.Metadata.Artist_CommasTrailingSpaceUnlessIntentionally
+                        )
                 },
             };
 

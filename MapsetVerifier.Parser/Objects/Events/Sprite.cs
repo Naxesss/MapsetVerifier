@@ -34,6 +34,12 @@ namespace MapsetVerifier.Parser.Objects.Events
             Unknown,
         }
 
+        /// <summary> The groups of repeated commands on this sprite. </summary>
+        public readonly List<StoryboardLoop> commandLoops = [];
+
+        /// <summary> The commands directly on this sprite, so excluding those in loops and triggers. </summary>
+        public readonly List<StoryboardCommand> commands = [];
+
         public readonly Layer layer;
         public readonly Vector2 offset;
         public readonly Origin origin;
@@ -41,6 +47,8 @@ namespace MapsetVerifier.Parser.Objects.Events
 
         /// <summary> The path in lowercase without extension or quotationmarks. </summary>
         public readonly string? strippedPath;
+
+        public readonly List<StoryboardTrigger> triggers = [];
 
         public Sprite(string[] args)
         {
@@ -50,6 +58,41 @@ namespace MapsetVerifier.Parser.Objects.Events
             offset = GetOffset(args);
 
             strippedPath = PathStatic.ParsePath(path, true);
+        }
+
+        /// <summary> Returns the commands as they are grouped in the file: directly on the sprite, per loop and per trigger. </summary>
+        public IEnumerable<List<StoryboardCommand>> GetCommandGroups()
+        {
+            yield return commands;
+
+            foreach (var loop in commandLoops)
+                yield return loop.commands;
+
+            foreach (var trigger in triggers)
+                yield return trigger.commands;
+        }
+
+        /// <summary>
+        ///     Returns the time from the first command starting to the last command ending, or null if nothing happens
+        ///     without a trigger. What triggers do is left out, since when that happens depends on gameplay.
+        /// </summary>
+        public (double StartTime, double EndTime)? GetActiveTime()
+        {
+            var usedLoops = commandLoops.Where(loop => loop.commands.Count > 0).ToList();
+
+            if (commands.Count == 0 && usedLoops.Count == 0)
+                return null;
+
+            return (
+                commands
+                    .Select(command => command.StartTime)
+                    .Concat(usedLoops.Select(loop => loop.GetStartTime()))
+                    .Min(),
+                commands
+                    .Select(command => command.EndTime)
+                    .Concat(usedLoops.Select(loop => loop.GetEndTime()))
+                    .Max()
+            );
         }
 
         /// <summary> Returns the layer which this sprite exists on (e.g. Foreground, Pass, or Overlay). </summary>
