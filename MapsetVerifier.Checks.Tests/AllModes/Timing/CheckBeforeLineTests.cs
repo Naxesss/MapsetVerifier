@@ -25,6 +25,24 @@ public class CheckBeforeLineTests
     }
 
     [Theory]
+    [InlineData("1000,-200,4,2,0,100,0,0", 0)] // As in Crocus.
+    [InlineData("999.5,-200,4,2,0,100,0,0", 0)]
+    [InlineData("990,-200,4,2,0,100,0,0", 1)] // Not on the slider.
+    [InlineData("1000,-100,4,2,0,50,0,0", 1)] // Only changes the volume.
+    public void Slider_WithALineOfItsOwn_IsFine(string line, int expected)
+    {
+        Assert.Equal(
+            expected,
+            Run(
+                Beatmap.Mode.Standard,
+                TestHitObjects.Slider(1000),
+                line,
+                TestTimingPoints.Inherited(1001, -50)
+            ).Count
+        );
+    }
+
+    [Theory]
     [InlineData(1001, true)]
     [InlineData(1005, true)]
     [InlineData(1006, false)]

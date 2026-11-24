@@ -1,4 +1,5 @@
-﻿using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Checks.Utils;
+using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
@@ -54,7 +55,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "object",
                         "unsnap"
                     ).WithCause(
-                        "A hit object is snapped 5 ms or less behind a timing line which would otherwise modify its slider velocity. For standard and catch this only looks at slider heads."
+                        "A hit object is snapped 5 ms or less behind a timing line which would otherwise modify its slider velocity, and has no line of its own which does. For standard and catch this only looks at slider heads."
                     )
                 },
             };
@@ -98,8 +99,10 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             if (
                 timeDiff is > 0 and <= 5
                 && Math.Abs(
-                    GetEffectiveBPM(beatmap, time) - GetEffectiveBPM(beatmap, nextLine!.Offset)
-                ) > 1
+                    TimingUtils.GetEffectiveBpm(beatmap, time)
+                        - TimingUtils.GetEffectiveBpm(beatmap, nextLine!.Offset)
+                ) > TimingUtils.NegligibleBpmChange
+                && !TimingUtils.HasOwnSliderVelocity(beatmap, time)
             )
                 yield return new Issue(
                     GetTemplate("Before"),
@@ -109,10 +112,6 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     $"{timeDiff:0.##}"
                 );
         }
-
-        /// <summary> Accounts for green lines on the same offset as a red line, which override its slider velocity. </summary>
-        private static double GetEffectiveBPM(Beatmap beatmap, double time) =>
-            beatmap.GetTimingLine(time)!.SvMult * beatmap.GetTimingLine<UninheritedLine>(time)!.bpm;
 
         private static bool IsSVAffectingAR(Beatmap beatmap) =>
             beatmap.GeneralSettings.mode is Beatmap.Mode.Taiko or Beatmap.Mode.Mania;
