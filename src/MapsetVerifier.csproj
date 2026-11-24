@@ -18,13 +18,22 @@
   </PropertyGroup>
   <!--
     Reading titles needs ICU (e.g. é → e, and full or half-width characters). Windows and macOS come with it. Linux may
-    not, where the app wouldn't start, so it goes without and romanisation is less accurate there.
+    not, where the app wouldn't start, so builds for it bring their own. Running from source there goes without.
   -->
   <PropertyGroup>
-    <IsForLinux Condition="$(RuntimeIdentifier.StartsWith('linux'))">true</IsForLinux>
-    <IsForLinux Condition="'$(RuntimeIdentifier)' == '' and $([MSBuild]::IsOSPlatform('Linux'))">true</IsForLinux>
-    <InvariantGlobalization Condition="'$(IsForLinux)' == 'true'">true</InvariantGlobalization>
+    <BundlesIcu Condition="$(RuntimeIdentifier.StartsWith('linux'))">true</BundlesIcu>
+    <IcuVersion>72.1.0.3</IcuVersion>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == '' and $([MSBuild]::IsOSPlatform('Linux'))">
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(BundlesIcu)' == 'true'">
+    <PackageReference Include="Microsoft.ICU.ICU4C.Runtime" Version="$(IcuVersion)" />
+    <RuntimeHostConfigurationOption
+      Include="System.Globalization.AppLocalIcu"
+      Value="$(IcuVersion)"
+    />
+  </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
