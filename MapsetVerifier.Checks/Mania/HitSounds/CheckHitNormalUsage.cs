@@ -88,9 +88,6 @@ namespace MapsetVerifier.Checks.Mania.HitSounds
                 {
                     foreach (var timingLine in beatmap.TimingLines)
                     {
-                        if (timingLine.Sampleset == HitSample.SamplesetType.Auto)
-                            yield return new Issue(GetTemplate("HitnormalOverride"), beatmap);
-
                         var customIndex =
                             timingLine.CustomIndex <= 1 ? "" : timingLine.CustomIndex.ToString();
                         var sample =

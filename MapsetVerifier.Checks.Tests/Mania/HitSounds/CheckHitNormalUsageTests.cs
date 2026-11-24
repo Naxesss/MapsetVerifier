@@ -66,4 +66,16 @@ public class CheckHitNormalUsageTests
             Run(["soft-hitnormal.wav"], TestTimingPoints.Uninherited(0, 500, 4, 2, index))
         );
     }
+
+    [Fact]
+    public void LineWithoutASampleset_IsReportedOnce()
+    {
+        Assert.Single(
+            Run(
+                ["soft-hitnormal2.wav"],
+                TestTimingPoints.Uninherited(0, 500, 4, 2, 2),
+                TestTimingPoints.Inherited(5000, -100, 4, 0, 2)
+            )
+        );
+    }
 }
