@@ -315,4 +315,31 @@ public class CheckUnusedFilesTests
         Assert.Single(issues, issue => issue.level == Issue.Level.Problem);
         Assert.DoesNotContain(issues, issue => issue.level == Issue.Level.Info);
     }
+
+    [Fact]
+    public void HitSoundWithAnotherExtension_IsOverridden()
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles(
+            [
+                (
+                    "test.osu",
+                    new OsuBuilder()
+                        .TimingPoints(
+                            TestTimingPoints.Uninherited(0, 500, sampleSet: 2, sampleIndex: 2)
+                        )
+                        .HitObjects(TestHitObjects.Circle(1000))
+                        .Build()
+                ),
+            ],
+            ["audio.mp3", "soft-hitnormal2.ogg", "soft-hitnormal2.wav"]
+        );
+
+        var issue = Assert.Single(context.RunGeneralCheck<CheckUnusedFiles>());
+
+        Assert.Equal(Issue.Level.Problem, issue.level);
+        Assert.Contains(
+            "\"soft-hitnormal2.ogg\", likely due to \"soft-hitnormal2.wav\"",
+            issue.message
+        );
+    }
 }

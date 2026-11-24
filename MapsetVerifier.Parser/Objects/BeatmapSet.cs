@@ -115,7 +115,12 @@ namespace MapsetVerifier.Parser.Objects
                     "The folder \"" + beatmapSetPath + "\" does not exist."
                 );
 
-            var filePaths = Directory.GetFiles(beatmapSetPath, "*.*", SearchOption.AllDirectories);
+            // Windows already gives them in this order, others in any. It decides which of several files of the same
+            // name is used.
+            var filePaths = Directory
+                .GetFiles(beatmapSetPath, "*.*", SearchOption.AllDirectories)
+                .OrderBy(Path.GetDirectoryName, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(path => path, StringComparer.OrdinalIgnoreCase);
 
             var beatmapFiles = new List<BeatmapFile>();
 
