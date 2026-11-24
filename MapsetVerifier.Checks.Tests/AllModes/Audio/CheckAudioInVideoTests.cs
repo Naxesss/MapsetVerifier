@@ -55,4 +55,56 @@ public class CheckAudioInVideoTests
 
         Assert.Empty(context.RunGeneralCheck<CheckAudioInVideo>());
     }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void VideoWithSound_IsAProblem(bool sound)
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles(
+            [
+                (
+                    "test.osu",
+                    new OsuBuilder()
+                        .Events("Video,0,\"a.avi\"")
+                        .WithDefaultTiming()
+                        .WithDefaultHitObject()
+                        .Build()
+                ),
+            ],
+            extraBinaryFiles: [("a.avi", TestMedia.Avi(sound))]
+        );
+
+        var issues = context.RunGeneralCheck<CheckAudioInVideo>();
+
+        if (!sound)
+        {
+            Assert.Empty(issues);
+            return;
+        }
+
+        var issue = Assert.Single(issues);
+        Assert.Equal(Issue.Level.Problem, issue.level);
+        Assert.Contains("a.avi", issue.message);
+    }
+
+    [Fact]
+    public void SoundAlone_IsNotAVideo()
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles(
+            [
+                (
+                    "test.osu",
+                    new OsuBuilder()
+                        .Events("Video,0,\"a.mp3\"")
+                        .WithDefaultTiming()
+                        .WithDefaultHitObject()
+                        .Build()
+                ),
+            ],
+            extraBinaryFiles: [("a.mp3", TestMedia.Mp3())]
+        );
+
+        Assert.Empty(context.RunGeneralCheck<CheckAudioInVideo>());
+    }
 }

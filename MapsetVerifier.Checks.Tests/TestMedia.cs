@@ -142,4 +142,80 @@ internal static class TestMedia
             .. Box("moov", Track("vide", codec), sound ? Track("soun", "mp4a") : []),
         ];
     }
+
+    /// <summary> An avi of nothing but headers, with video and optionally sound. </summary>
+    public static byte[] Avi(bool sound)
+    {
+        byte[] Number(int value) => BitConverter.GetBytes(value);
+
+        byte[] Chunk(string id, params byte[][] parts)
+        {
+            var payload = parts.SelectMany(part => part).ToArray();
+
+            return
+            [
+                .. System.Text.Encoding.ASCII.GetBytes(id),
+                .. Number(payload.Length),
+                .. payload,
+            ];
+        }
+
+        byte[] List(string type, params byte[][] parts) =>
+            Chunk("LIST", [System.Text.Encoding.ASCII.GetBytes(type), .. parts]);
+
+        byte[] Stream(string type, string codec, byte[] format) =>
+            List(
+                "strl",
+                Chunk(
+                    "strh",
+                    System.Text.Encoding.ASCII.GetBytes(type + codec),
+                    new byte[12],
+                    Number(1),
+                    Number(25),
+                    Number(0),
+                    Number(250),
+                    new byte[20]
+                ),
+                Chunk("strf", format)
+            );
+
+        byte[] video =
+        [
+            .. Number(40),
+            .. Number(1280),
+            .. Number(720),
+            1,
+            0,
+            24,
+            0,
+            .. "XVID"u8,
+            .. new byte[20],
+        ];
+        // MP3 with two channels at 44.1 kHz.
+        byte[] audio = [0x55, 0, 2, 0, .. Number(44100), .. Number(16000), 1, 0, 16, 0, 0, 0];
+
+        return Chunk(
+            "RIFF",
+            "AVI "u8.ToArray(),
+            List(
+                "hdrl",
+                Chunk(
+                    "avih",
+                    Number(40000),
+                    new byte[8],
+                    Number(16),
+                    Number(250),
+                    Number(0),
+                    Number(sound ? 2 : 1),
+                    Number(0),
+                    Number(1280),
+                    Number(720),
+                    new byte[16]
+                ),
+                Stream("vids", "XVID", video),
+                sound ? Stream("auds", "\0\0\0\0", audio) : []
+            ),
+            List("movi", Chunk("00dc", new byte[32]))
+        );
+    }
 }

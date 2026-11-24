@@ -115,4 +115,29 @@ public class CheckMultipleVideoTests
         Assert.Empty(Run([(Beatmap.Mode.Taiko, null), (Beatmap.Mode.Standard, "a.mp4")]));
         Assert.NotEmpty(Run([(Beatmap.Mode.Standard, "a.mp4"), (Beatmap.Mode.Catch, null)]));
     }
+
+    [Fact]
+    public void VideoOfTheStoryboard_RunsWithEveryOther()
+    {
+        var issues = Run(
+            [(Beatmap.Mode.Standard, "a.avi"), (Beatmap.Mode.Standard, null)],
+            "b.avi"
+        );
+
+        Assert.Equal(2, issues.Count);
+        Assert.Contains("Diff 0", issues.Single(i => i.message.Contains("a.avi")).message);
+        var storyboard = issues.Single(i => i.message.Contains("b.avi"));
+        Assert.Contains("Diff 0", storyboard.message);
+        Assert.Contains("Diff 1", storyboard.message);
+    }
+
+    [Theory]
+    [InlineData(Beatmap.Mode.Taiko, Beatmap.Mode.Catch, 0)]
+    [InlineData(Beatmap.Mode.Standard, Beatmap.Mode.Taiko, 0)]
+    [InlineData(Beatmap.Mode.Standard, Beatmap.Mode.Catch, 1)]
+    public void Taiko_MayGoWithoutAVideo(Beatmap.Mode first, Beatmap.Mode second, int expected)
+    {
+        Assert.Equal(expected, Run([(first, "a.avi"), (second, null)]).Count);
+        Assert.Equal(expected, Run([(first, null), (second, "a.avi")]).Count);
+    }
 }

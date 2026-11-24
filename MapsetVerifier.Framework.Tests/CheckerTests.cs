@@ -356,6 +356,24 @@ public sealed class CheckerTests : IDisposable
         Assert.Empty(report.FailedPlugins);
     }
 
+    [Check]
+    public sealed class NotACheck;
+
+    [Fact]
+    public void OnlyChecks_AreRegistered()
+    {
+        Checker.ConfigureCustomChecksPath(root, "external");
+        var folder = Path.Combine(root, "external", "CustomChecks");
+        Directory.CreateDirectory(folder);
+        File.Copy(typeof(CheckerTests).Assembly.Location, Path.Combine(folder, "tests.dll"));
+
+        Checker.LoadCustomChecks();
+
+        var plugin = Assert.Single(Checker.GetCustomCheckPluginReport().LoadedPlugins);
+        Assert.DoesNotContain(CheckerRegistry.GetChecks(), check => check is null);
+        Assert.Equal(plugin.CheckNames.Length, plugin.CheckCount);
+    }
+
     private sealed class RecordingProgress : IProgress<CheckProgress>
     {
         private readonly List<CheckProgress> reports = [];

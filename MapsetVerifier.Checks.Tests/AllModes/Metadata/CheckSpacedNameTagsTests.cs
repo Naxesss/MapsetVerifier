@@ -43,4 +43,15 @@ public class CheckSpacedNameTagsTests
     {
         Assert.Empty(Run(tags));
     }
+
+    [Theory]
+    [InlineData("a2 b c d")]
+    [InlineData("aあ b c")]
+    public void DigitsAndOtherScripts_AreNoSpreadOutName(string tags)
+    {
+        Assert.DoesNotContain(
+            Run(tags),
+            issue => issue.message.Contains("a2") || issue.message.Contains("aあ")
+        );
+    }
 }

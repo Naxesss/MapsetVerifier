@@ -114,4 +114,34 @@ public class CheckConcurrentTests
 
     private const int ManiaColumn1 = 64;
     private const int ManiaColumn2 = 192;
+
+    [Theory]
+    [InlineData(1000, true)] // At the same time.
+    [InlineData(1005, false)]
+    public void Spinner_MayStartRightAfter(int start, bool expected)
+    {
+        Assert.Equal(
+            expected,
+            Run(
+                Beatmap.Mode.Standard,
+                TestHitObjects.Circle(1000),
+                TestHitObjects.Spinner(start, 3000)
+            ).Count > 0
+        );
+    }
+
+    [Theory]
+    [InlineData(1030, true)]
+    [InlineData(1031, false)]
+    public void Mania_NeedsALargerGap(int second, bool expected)
+    {
+        Assert.Equal(
+            expected,
+            Run(
+                Beatmap.Mode.Mania,
+                TestHitObjects.Circle(1000),
+                TestHitObjects.Circle(second)
+            ).Count > 0
+        );
+    }
 }
