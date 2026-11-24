@@ -254,6 +254,9 @@ public static class AudioAnalyzer
         int timeResolutionMs = 10
     )
     {
+        fftSize = GetSupportedFftSize(fftSize);
+        timeResolutionMs = Math.Max(1, timeResolutionMs);
+
         lock (Locks.GetOrAdd(filePath, new object()))
         {
             var stream = CreateStream(filePath, BassFlags.Decode | BassFlags.Float);
@@ -355,11 +358,17 @@ public static class AudioAnalyzer
             DataFlags.FFT8192 => 4096,
             DataFlags.FFT16384 => 8192,
             DataFlags.FFT32768 => 16384,
-            _ => 2048,
+            // BASS would write beyond a buffer too small for what it was asked for.
+            _ => throw new ArgumentOutOfRangeException(nameof(fftSize), fftSize, null),
         };
     }
 
-    private static DataFlags GetFftFlag(int fftSize)
+    /// <summary> The size itself if BASS has a window of that many samples, otherwise 4096. </summary>
+    public static int GetSupportedFftSize(int fftSize) =>
+        fftSize is >= 256 and <= 32768 && int.IsPow2(fftSize) ? fftSize : 4096;
+
+    /// <summary> The flag of a window of that many samples, or of 4096 if there is none. </summary>
+    public static DataFlags GetFftFlag(int fftSize)
     {
         return fftSize switch
         {

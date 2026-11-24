@@ -307,6 +307,7 @@ public static class AudioAnalysisService
         int timeResolutionMs = 10
     )
     {
+        fftSize = AudioAnalyzer.GetSupportedFftSize(fftSize);
         var beatmapSet = new BeatmapSet(beatmapSetFolder);
         var audioPath =
             specificAudioFile != null
@@ -384,6 +385,7 @@ public static class AudioAnalysisService
         int fftSize = 4096
     )
     {
+        fftSize = AudioAnalyzer.GetSupportedFftSize(fftSize);
         var beatmapSet = new BeatmapSet(beatmapSetFolder);
         var audioPath =
             specificAudioFile != null
@@ -404,7 +406,7 @@ public static class AudioAnalysisService
             };
         }
 
-        var fftData = AudioAnalyzer.GetFftData(audioPath, GetDataFlags(fftSize));
+        var fftData = AudioAnalyzer.GetFftData(audioPath, AudioAnalyzer.GetFftFlag(fftSize));
         var info = AudioAnalyzer.GetAudioInfo(audioPath);
 
         var binWidth = (double)info.SampleRate / fftSize;
@@ -475,7 +477,7 @@ public static class AudioAnalysisService
         return ImbalanceSeverity.None;
     }
 
-    private static double CalculateStereoWidth(List<float[]> peaks, int channels)
+    internal static double CalculateStereoWidth(List<float[]> peaks, int channels)
     {
         if (channels < 2 || peaks.Count == 0)
             return 0.0;
@@ -493,7 +495,7 @@ public static class AudioAnalysisService
         return sumTotal > 0 ? sumDiff / sumTotal : 0.0;
     }
 
-    private static string GetFormatName(ChannelType format)
+    internal static string GetFormatName(ChannelType format)
     {
         return format switch
         {
@@ -506,7 +508,7 @@ public static class AudioAnalysisService
         };
     }
 
-    private static string GetCodecInfo(ChannelType format)
+    internal static string GetCodecInfo(ChannelType format)
     {
         return format switch
         {
@@ -551,23 +553,7 @@ public static class AudioAnalysisService
         return rms > 0 ? -0.691 + 10 * Math.Log10(rms * rms) : -70;
     }
 
-    private static DataFlags GetDataFlags(int fftSize)
-    {
-        return fftSize switch
-        {
-            256 => DataFlags.FFT256,
-            512 => DataFlags.FFT512,
-            1024 => DataFlags.FFT1024,
-            2048 => DataFlags.FFT2048,
-            4096 => DataFlags.FFT4096,
-            8192 => DataFlags.FFT8192,
-            16384 => DataFlags.FFT16384,
-            32768 => DataFlags.FFT32768,
-            _ => DataFlags.FFT4096,
-        };
-    }
-
-    private static IEnumerable<PeakFrequency> DetectPeakFrequencies(
+    internal static IEnumerable<PeakFrequency> DetectPeakFrequencies(
         SpectrogramData data,
         int minFreq,
         int maxFreq
@@ -650,7 +636,7 @@ public static class AudioAnalysisService
         return notes;
     }
 
-    private static HarmonicAnalysis AnalyzeHarmonics(
+    internal static HarmonicAnalysis AnalyzeHarmonics(
         List<FftDataPoint> fftPoints,
         double fundamentalFreq
     )

@@ -228,11 +228,17 @@ public sealed class AudioDecodingTests : IDisposable
     [InlineData(8192)]
     [InlineData(16384)]
     [InlineData(32768)]
-    public void Spectrogram_OfEverySize(int size)
+    [InlineData(3000, 4096)] // Not sizes there are.
+    [InlineData(65536, 4096)]
+    [InlineData(128, 4096)]
+    [InlineData(0, 4096)]
+    [InlineData(-4096, 4096)]
+    public void Spectrogram_OfEverySize(int asked, int? given = null)
     {
+        var size = given ?? asked;
         var data = AudioAnalyzer.GetSpectrogramData(
             Wave($"size{size}.wav", 1, Sine(0.8, 5000)),
-            fftSize: size,
+            fftSize: asked,
             timeResolutionMs: 200
         );
 
@@ -242,6 +248,30 @@ public sealed class AudioDecodingTests : IDisposable
             LoudestFrequency(data.Frames[0].Magnitudes, size),
             (double)SampleRate / size
         );
+    }
+
+    [Theory]
+    [InlineData(DataFlags.FFT8192 | DataFlags.FFTNoWindow)]
+    [InlineData(DataFlags.Float)]
+    public void Fft_OfAnythingElse_IsRefused(DataFlags flag)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            AudioAnalyzer.GetFftData(Wave("refused.wav", 0.5, Sine(0.8, 5000)), flag)
+        );
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-5)]
+    public void Spectrogram_WithoutSteps_HasOneEveryMillisecond(int timeResolutionMs)
+    {
+        var data = AudioAnalyzer.GetSpectrogramData(
+            Wave("steps.wav", 0.1, Sine(0.8, 5000)),
+            fftSize: 256,
+            timeResolutionMs: timeResolutionMs
+        );
+
+        Assert.InRange(data.Frames.Count, 90, 110);
     }
 
     [Fact]
