@@ -13,9 +13,17 @@
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
     <StripSymbols>true</StripSymbols>
-    <InvariantGlobalization>true</InvariantGlobalization>
     <PublishReadyToRun>false</PublishReadyToRun>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+  <!--
+    Reading titles needs ICU (e.g. é → e, and full or half-width characters). Windows and macOS come with it. Linux may
+    not, where the app wouldn't start, so it goes without and romanisation is less accurate there.
+  -->
+  <PropertyGroup>
+    <IsForLinux Condition="$(RuntimeIdentifier.StartsWith('linux'))">true</IsForLinux>
+    <IsForLinux Condition="'$(RuntimeIdentifier)' == '' and $([MSBuild]::IsOSPlatform('Linux'))">true</IsForLinux>
+    <InvariantGlobalization Condition="'$(IsForLinux)' == 'true'">true</InvariantGlobalization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebugType>portable</DebugType>
