@@ -959,4 +959,33 @@ public sealed class ServiceEdgeTests : IDisposable
             )
         );
     }
+
+    [Theory]
+    [InlineData(0, "0 B")]
+    [InlineData(1023, "1023 B")]
+    [InlineData(1536, "1.5 KB")]
+    [InlineData(1024 * 1024, "1 MB")]
+    [InlineData(2560L * 1024 * 1024, "2.5 GB")]
+    public void Sizes_AreInTheLargestUnit(long bytes, string expected)
+    {
+        Assert.Equal(expected, FileSizeFormatter.Format(bytes));
+    }
+
+    [Fact]
+    public void Videos_OfTheStoryboard_AreListedOnce()
+    {
+        song.Write("a.osu", SongFolder.Osu(events: ["Video,0,\"a.avi\""]));
+        song.Write(
+            "Artist - Title (Creator).osb",
+            "[Events]\nVideo,100,\"a.avi\"\nVideo,200,\"b.avi\""
+        );
+
+        Assert.Equal(
+            ["a.avi", "b.avi"],
+            MetadataAnalysisService
+                .Analyze(song.Path)
+                .Resources.Videos.Select(video => video.FileName)
+                .Order()
+        );
+    }
 }

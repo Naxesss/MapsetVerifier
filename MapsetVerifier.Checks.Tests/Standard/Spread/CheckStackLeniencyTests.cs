@@ -32,4 +32,27 @@ public class CheckStackLeniencyTests
                 ) || issue.message.Contains("Failed stack", StringComparison.OrdinalIgnoreCase)
         );
     }
+
+    [Theory]
+    [InlineData(1, true)]
+    [InlineData(6, false)]
+    public void AlmostStackedObjects_AreReported(int distance, bool expected)
+    {
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .CircleSize(4)
+                .AR(10)
+                .StackLeniency(0.1f)
+                .WithDefaultTiming()
+                .HitObjects(
+                    TestHitObjects.Circle(1000, 100, 100),
+                    TestHitObjects.Circle(1300, 100 + distance, 100)
+                )
+        );
+
+        var issues = context.RunBeatmapCheck<CheckStackLeniency>("Test");
+
+        Assert.Equal(expected, issues.Count > 0);
+        Assert.All(issues, issue => Assert.Contains("ailed stack", issue.message));
+    }
 }

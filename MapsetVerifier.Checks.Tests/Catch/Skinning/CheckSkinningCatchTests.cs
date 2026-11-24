@@ -281,4 +281,24 @@ public class CheckSkinningCatchTests
                 .Count(issue => issue.message.Contains("10"))
         );
     }
+
+    [Fact]
+    public void OtherImagesThanPng_AreReported()
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles(
+            [("test.osu", BuildMinimalOsu())],
+            [
+                "audio.mp3",
+                "fruit-catcher-fail.png",
+                "fruit-catcher-idle.jpg",
+                "fruit-catcher-kiai.png",
+            ],
+            [("skin.ini", SkinIniV2)]
+        );
+
+        Assert.Contains(
+            "fruit-catcher-idle.jpg",
+            Assert.Single(context.RunBeatmapSetCheck<CheckSkinningCatch>()).message
+        );
+    }
 }

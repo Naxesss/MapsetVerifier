@@ -278,4 +278,18 @@ public class HitObjectTests
 
         Assert.Equal(expected, hitObject.GetObjectType());
     }
+
+    [Theory]
+    [InlineData(0, false)]
+    [InlineData(1, true)]
+    [InlineData(8, true)]
+    public void HitSound_OfAnyKind(int hitSound, bool expected)
+    {
+        var beatmap = TestBeatmap.Parse(
+            TestBeatmap.Code(hitObjects: [$"256,192,1000,1,{hitSound},0:0:0:0:"])
+        );
+
+        Assert.Equal(expected, beatmap.HitObjects[0].HasHitSound());
+        Assert.Equal(hitSound == 8, beatmap.HitObjects[0].HasHitSound(HitObject.HitSounds.Clap));
+    }
 }

@@ -92,4 +92,36 @@ public class CheckConsecutiveHyperdashTests
             ) ?? "none"
         );
     }
+
+    [Theory]
+    [InlineData(2, false)]
+    [InlineData(3, true)]
+    public void Rain_AllowsFewerWithinSliders(int count, bool expected)
+    {
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Mode(Beatmap.Mode.Catch)
+                .WithDefaultTiming()
+                .HitObjects(
+                    TestHitObjects.Slider(1000, "L", "380:100", 4, 100, 0, 100),
+                    TestHitObjects.Circle(5000, 0)
+                )
+        );
+        CatchObjects.Set(context);
+        var slider = (JuiceStream)context.GetBeatmap("Test").HitObjects[0];
+        var objects = slider.Parts.Cast<ICatchHitObject>().Prepend(slider).ToList();
+        for (var i = 0; i < objects.Count; i++)
+            objects[i].MovementType =
+                i < count ? CatchMovementType.Hyperdash : CatchMovementType.Walk;
+
+        Assert.Equal(
+            expected,
+            Message(
+                context.RunBeatmapCheck<CheckConsecutiveHyperdash>("Test"),
+                Beatmap.Difficulty.Insane
+            )
+                ?.Contains("within a slider")
+                ?? false
+        );
+    }
 }

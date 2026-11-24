@@ -627,4 +627,33 @@ public sealed class ControllerTests : IDisposable
         song.Write("a.osu", "");
         Assert.Null(BeatmapService.GetBeatmapInfo(song.Path)!.Value.BeatmapId);
     }
+
+    [Theory]
+    [InlineData("png", "image/png")]
+    [InlineData("jpg", "image/jpeg")]
+    public void Image_IsShrunk_UnlessAskedForTheOriginal(string extension, string type)
+    {
+        song.Write("one/a.osu", SongFolder.Osu(events: [$"0,0,\"bg.{extension}\",0,0"]));
+        using (
+            var image = new SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgb24>(
+                2000,
+                1500
+            )
+        )
+            SixLabors.ImageSharp.ImageExtensions.Save(image, song.Write($"one/bg.{extension}"));
+
+        int Height(bool original)
+        {
+            var file = Assert.IsType<FileStreamResult>(
+                With(new BeatmapController()).GetBeatmapImage("one", original, song.Path)
+            );
+            Assert.Equal(type, file.ContentType);
+
+            using (file.FileStream)
+                return SixLabors.ImageSharp.Image.Identify(file.FileStream).Height;
+        }
+
+        Assert.Equal(1500, Height(true));
+        Assert.True(Height(false) < 1500);
+    }
 }

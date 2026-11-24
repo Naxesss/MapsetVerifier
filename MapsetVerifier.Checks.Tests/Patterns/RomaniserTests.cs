@@ -83,4 +83,14 @@ public class RomaniserTests
     {
         Assert.Equal(expected, LatinRomaniser.German.Judge(unicode, romanised));
     }
+
+    [Theory]
+    [InlineData("ł", "l")]
+    [InlineData("é", "e")]
+    [InlineData("ı", "i")]
+    [InlineData("đ", "d")]
+    public void OtherLatinLetters_AreTheirNearest(string unicode, string romanised)
+    {
+        Assert.Equal(Matches, LatinRomaniser.German.Judge("ä" + unicode, "ae" + romanised));
+    }
 }

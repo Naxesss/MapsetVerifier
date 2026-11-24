@@ -262,4 +262,10 @@ public sealed class HttpTests : IAsyncLifetime
         );
         Assert.Contains("/health", await client.GetStringAsync("swagger/v1/swagger.json"));
     }
+
+    [Fact]
+    public async Task Queries_AreReadAndLogged()
+    {
+        Assert.Equal("up", await client.GetStringAsync("health?a=b"));
+    }
 }

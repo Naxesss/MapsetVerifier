@@ -42,4 +42,10 @@ public class CheckSilentHitSoundsTests
     {
         Assert.Equal(Issue.Level.Error, Assert.Single(Run([1, 2, 3])).level);
     }
+
+    [Fact]
+    public void EmptyFile_IsLeftToAnotherCheck()
+    {
+        Assert.Empty(Run([]));
+    }
 }

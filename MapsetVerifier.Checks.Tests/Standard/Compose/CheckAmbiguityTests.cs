@@ -53,4 +53,16 @@ public class CheckAmbiguityTests
 
         Assert.Contains("red anchor overlap", issue.message);
     }
+
+    [Fact]
+    public void RedAnchorOnTheHead_IsAWarning()
+    {
+        // Around and back to the head, and on from there.
+        var issue = Assert.Single(
+            Run("B", "200:100|200:100|200:200|200:200|102:100|102:100|50:200", 450)
+        );
+
+        Assert.Contains("Head", issue.message);
+        Assert.Contains("red anchor overlap", issue.message);
+    }
 }

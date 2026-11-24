@@ -174,4 +174,14 @@ public class StoryboardStaticTests
             Assert.Single(Assert.Single(osb.sprites).commands).StartValue
         );
     }
+
+    [Theory]
+    [InlineData(" P,0,0,100,H", 1)]
+    [InlineData(" P,0,0,100, A ", 1)]
+    [InlineData(" P,0,0,100,", 0)]
+    [InlineData(" P,0,0,100,HV", 0)]
+    public void Parameter_IsASingleLetter(string line, int expected)
+    {
+        Assert.Equal(expected, ParseSprite(line).commands.Count);
+    }
 }

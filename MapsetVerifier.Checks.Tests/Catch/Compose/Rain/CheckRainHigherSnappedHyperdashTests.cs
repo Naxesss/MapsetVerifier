@@ -73,4 +73,25 @@ public class CheckRainHigherSnappedHyperdashTests
         Assert.Empty(Run([100, 100, 1000], [0, 300, 0, 0], Hyper, Hyper));
         Assert.Empty(Run([200, 100, 1000], [300, 400, 100, 100], Dash, Hyper));
     }
+
+    [Fact]
+    public void WithinASlider_IsReported()
+    {
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Mode(Beatmap.Mode.Catch)
+                .WithDefaultTiming()
+                .HitObjects(
+                    TestHitObjects.Slider(1000, "L", "380:100", 4, 25, 0, 100),
+                    TestHitObjects.Circle(5000, 0)
+                )
+        );
+        CatchObjects.Set(context);
+        var slider = (JuiceStream)context.GetBeatmap("Test").HitObjects[0];
+        foreach (var part in slider.Parts)
+            part.MovementType = Walk;
+        slider.Parts[0].MovementType = Hyper;
+
+        Assert.Single(context.RunBeatmapCheck<CheckRainHigherSnappedHyperdash>("Test"));
+    }
 }

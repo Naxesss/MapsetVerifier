@@ -188,4 +188,16 @@ public class CheckOffscreenTests
             Assert.Single(context.RunBeatmapCheck<CheckOffscreen>("Test")).message
         );
     }
+
+    [Theory]
+    [InlineData(12, true)] // Stacked up and to the left.
+    [InlineData(3, false)]
+    public void StackedAtTheTop_MayBeOffscreen(int count, bool expected)
+    {
+        using var context = CreateContext([
+            .. Enumerable.Range(0, count).Select(i => TestHitObjects.Circle(1000 + i * 20, 256, 0)),
+        ]);
+
+        Assert.Equal(expected, context.RunBeatmapCheck<CheckOffscreen>("Test").Count > 0);
+    }
 }

@@ -189,4 +189,25 @@ public class StoryboardPatternsTests
             )
         );
     }
+
+    [Theory]
+    [InlineData(500, true)] // Before the only object.
+    [InlineData(1500, false)]
+    [InlineData(2500, true)]
+    public void HitSoundTriggers_NeedAnObject(int time, bool impossible)
+    {
+        var map = Map(
+            [
+                "Sprite,Pass,Centre,\"a.png\",320,240",
+                $" T,HitSoundClap,{time},{time + 1000}",
+                "  F,0,0,100,1",
+            ],
+            TestHitObjects.Circle(2000)
+        );
+
+        Assert.Equal(
+            impossible,
+            StoryboardPatterns.IsImpossibleTrigger(map.Sprites[0].triggers[0], [map])
+        );
+    }
 }

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using MapsetVerifier.Framework;
 using MapsetVerifier.Logging;
@@ -69,9 +70,11 @@ public sealed class RankingCriteriaToolTests : IDisposable
     private readonly RankingCriteriaCheckout checkout = new();
     private readonly TextWriter output = Console.Out;
     private readonly TextWriter errors = Console.Error;
+    private readonly CultureInfo? culture = CultureInfo.DefaultThreadCurrentCulture;
 
     public void Dispose()
     {
+        CultureInfo.DefaultThreadCurrentCulture = culture;
         Console.SetOut(output);
         Console.SetError(errors);
         checkout.Dispose();
@@ -153,6 +156,141 @@ public sealed class RankingCriteriaToolTests : IDisposable
         (code, _, errors) = await Run("review", statement.Id);
         Assert.Equal(1, code);
         Assert.Contains($"{statement.Id} is not waiting for a review.", errors);
+    }
+
+    /// <summary> The wiki with one commit changing a translation after the one changing a page. </summary>
+    private sealed class Wiki : HttpMessageHandler
+    {
+        public const string Translation = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        public const string Page = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+
+        public List<string> Requests { get; } = [];
+        public bool OnlyTranslations { get; init; }
+        public string? Token { get; private set; }
+
+        private static object Commit(string sha, int day) =>
+            new { sha, commit = new { committer = new { date = $"2030-01-{day:00}T12:00:00Z" } } };
+
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken
+        )
+        {
+            var uri = request.RequestUri!;
+            Requests.Add(uri.ToString());
+            Token = request.Headers.Authorization?.Parameter;
+
+            string content;
+            if (uri.Host == "raw.githubusercontent.com")
+                content =
+                    "# Page\n\n## Overall\n\n### General\n\n#### Rules\n\n- **Downloaded text.**\n";
+            else if (uri.Query.Length > 0)
+                content = JsonSerializer.Serialize(
+                    new[] { Commit(Page, 1), Commit(Translation, 2) }
+                );
+            else
+            {
+                var sha = uri.Segments[^1];
+                var file =
+                    sha == Translation || OnlyTranslations
+                        ? "wiki/Ranking_criteria/fr.md"
+                        : RcPages.All[0].SourcePath;
+                content = JsonSerializer.Serialize(
+                    new
+                    {
+                        sha,
+                        commit = new { committer = new { date = "2030-01-01T12:00:00Z" } },
+                        files = new[] { new { filename = file } },
+                    }
+                );
+            }
+
+            return Task.FromResult(
+                new HttpResponseMessage { Content = new StringContent(content) }
+            );
+        }
+    }
+
+    private static async Task<(int Code, string Output, string Errors)> Run(
+        Wiki wiki,
+        params string[] args
+    )
+    {
+        var handler = RankingCriteria.Tool.Program.CreateHttpHandler;
+        RankingCriteria.Tool.Program.CreateHttpHandler = () => wiki;
+
+        try
+        {
+            return await Run(args);
+        }
+        finally
+        {
+            RankingCriteria.Tool.Program.CreateHttpHandler = handler;
+        }
+    }
+
+    private string Commit =>
+        JsonDocument
+            .Parse(File.ReadAllText(Path.Combine(checkout.DataPath, "source.json")))
+            .RootElement.GetProperty("commit")
+            .GetString()!;
+
+    [Fact]
+    public async Task Update_TakesTheLastCommitOfAPage()
+    {
+        var wiki = new Wiki();
+        var (code, _, errors) = await Run(wiki);
+
+        Assert.True(code == 0, errors);
+        Assert.Equal(Wiki.Page, Commit);
+        // Only that one is kept.
+        var snapshots = Path.Combine(checkout.DataPath, "snapshots");
+        var snapshot = Assert.Single(Directory.GetDirectories(snapshots));
+        Assert.Equal(Wiki.Page, Path.GetFileName(snapshot));
+        Assert.Equal(RcPages.All.Count, Directory.GetFiles(snapshot).Length);
+        Assert.Contains(
+            "Downloaded text.",
+            File.ReadAllText(RcCatalogueFiles.PagePath(checkout.DataPath, "catch"))
+        );
+
+        wiki = new Wiki();
+        (code, _, errors) = await Run(wiki, "update", "--commit", Wiki.Page);
+        Assert.True(code == 0, errors);
+        Assert.Contains("nothing to download", errors);
+        Assert.Single(wiki.Requests);
+    }
+
+    [Fact]
+    public async Task Update_TakesTheGivenCommit_WithoutAnEarlierOne()
+    {
+        File.Delete(Path.Combine(checkout.DataPath, "source.json"));
+        var token = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
+        var wiki = new Wiki();
+
+        try
+        {
+            Environment.SetEnvironmentVariable("GITHUB_TOKEN", "test");
+            var (code, _, errors) = await Run(wiki, "update", "--commit", Wiki.Translation);
+            Assert.True(code == 0, errors);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("GITHUB_TOKEN", token);
+        }
+
+        Assert.Equal(Wiki.Translation, Commit);
+        Assert.Equal("test", wiki.Token);
+    }
+
+    [Fact]
+    public async Task Update_NeedsACommitOfAPage()
+    {
+        var before = Commit;
+        var (code, _, errors) = await Run(new Wiki { OnlyTranslations = true });
+
+        Assert.Equal(1, code);
+        Assert.Contains("beyond translations", errors);
+        Assert.Equal(before, Commit);
     }
 
     [Theory]
@@ -264,11 +402,13 @@ public sealed class RankingCriteriaToolTests : IDisposable
 public sealed class ExportTests : IDisposable
 {
     private readonly SongFolder folder = new();
+    private readonly CultureInfo? culture = CultureInfo.DefaultThreadCurrentCulture;
 
     public ExportTests() => CheckerRegistry.ClearChecks();
 
     public void Dispose()
     {
+        CultureInfo.DefaultThreadCurrentCulture = culture;
         Checker.SuppressLoadLogging = false;
         CheckerRegistry.ClearChecks();
         folder.Dispose();

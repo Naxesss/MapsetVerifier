@@ -71,4 +71,25 @@ public class CheckAbnormalSpacingTests
 
         Assert.Empty(context.RunBeatmapCheck<CheckAbnormalSpacing>("Test"));
     }
+
+    [Theory]
+    [InlineData(160, null)] // Within the follow circle.
+    [InlineData(500, Issue.Level.Problem)]
+    public void SlidersFurther_AreGivenLeniency(int x, Issue.Level? expected)
+    {
+        // Sliders of a pixel, 250 ms each.
+        var objects = Enumerable
+            .Range(0, 8)
+            .Select(i => TestHitObjects.Slider(1000 + i * 125, "L", "90:50", 1, 1, i % 2 * 25, 50))
+            .Append(TestHitObjects.Circle(2000, x: x, y: 50));
+
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder().CircleSize(5).WithDefaultTiming().HitObjects(objects)
+        );
+
+        Assert.Equal(
+            expected,
+            context.RunBeatmapCheck<CheckAbnormalSpacing>("Test").SingleOrDefault()?.level
+        );
+    }
 }

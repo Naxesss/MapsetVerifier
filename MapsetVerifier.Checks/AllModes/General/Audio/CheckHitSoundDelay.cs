@@ -135,7 +135,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
                 if (exception == null)
                 {
-                    if (!(peaks.Count > 0) || !(peaks.Sum(peak => peak.Sum()) > 0))
+                    if (!(peaks.Sum(peak => peak.Sum()) > 0))
                         // Muted files don't have anything to be delayed, hence ignore.
                         continue;
 
