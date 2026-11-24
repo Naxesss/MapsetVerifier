@@ -11,7 +11,7 @@ namespace MapsetVerifier.Exports;
 
 internal static class Program
 {
-    private static int Main(string[] args)
+    internal static int Main(string[] args)
     {
         CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 
@@ -186,7 +186,7 @@ internal static class Program
     /// Normalizes check documentation copied from indented C# verbatim strings so markdown
     /// exports without leading blank lines or source-code indentation.
     /// </summary>
-    private static string CleanDocumentationText(string value)
+    internal static string CleanDocumentationText(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
             return string.Empty;
@@ -194,11 +194,11 @@ internal static class Program
         var normalized = value.Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n');
         var lines = normalized.Split('\n');
 
-        var minIndent = lines
-            .Where(line => !string.IsNullOrWhiteSpace(line))
-            .Select(line => line.TakeWhile(char.IsWhiteSpace).Count())
-            .DefaultIfEmpty(0)
-            .Min();
+        // Tables and lists put together in code don't have the indentation of the text around them.
+        var indent = lines
+            .First(line => !string.IsNullOrWhiteSpace(line))
+            .TakeWhile(char.IsWhiteSpace)
+            .Count();
 
         var dedented = lines
             .Select(line =>
@@ -206,8 +206,8 @@ internal static class Program
                 if (string.IsNullOrWhiteSpace(line))
                     return string.Empty;
 
-                var content = line.Length > minIndent ? line[minIndent..] : line.TrimStart();
-                return content.TrimEnd();
+                var ownIndent = line.TakeWhile(char.IsWhiteSpace).Count();
+                return line[Math.Min(ownIndent, indent)..].TrimEnd();
             })
             .ToList();
 

@@ -21,7 +21,7 @@ internal static class Program
 {
     private const string Repository = "ppy/osu-wiki";
 
-    private static async Task<int> Main(string[] args)
+    internal static async Task<int> Main(string[] args)
     {
         CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 

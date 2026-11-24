@@ -19,5 +19,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MapsetVerifier.Server\MapsetVerifier.Server.csproj" />
+    <ProjectReference Include="..\MapsetVerifier.Exports\MapsetVerifier.Exports.csproj" />
+    <ProjectReference Include="..\MapsetVerifier.RankingCriteria.Tool\MapsetVerifier.RankingCriteria.Tool.csproj" />
+    <ProjectReference Include="..\MapsetVerifier.Logging\MapsetVerifier.Logging.csproj" />
   </ItemGroup>
 </Project>

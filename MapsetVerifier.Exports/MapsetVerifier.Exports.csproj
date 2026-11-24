@@ -10,4 +10,7 @@
     <ProjectReference Include="..\MapsetVerifier.Checks\MapsetVerifier.Checks.csproj" />
     <ProjectReference Include="..\MapsetVerifier.Framework\MapsetVerifier.Framework.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="MapsetVerifier.Server.Tests" />
+  </ItemGroup>
 </Project>
