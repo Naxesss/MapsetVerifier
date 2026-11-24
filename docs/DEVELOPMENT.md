@@ -66,6 +66,25 @@ npm --prefix electron-app ci
 
 Checks link their issue templates to ranking criteria statements. The snapshot of the osu-wiki pages they link to is maintained with a tool, see [RANKING_CRITERIA.md](RANKING_CRITERIA.md).
 
+## Backend test coverage
+
+From the repository root:
+
+```bash
+npm run coverage:backend
+```
+
+This runs all backend tests and merges their coverage into the git-ignored `coverage` folder, replacing the last run:
+
+- `coverage/report/index.html`: the report to browse, down to each line
+- `coverage/summary.txt`: line and branch coverage per project, also printed at the end
+
+Every project in the solution is included, so code which no test loads counts as 0%. Left out are the test projects, generated code (`*.g.cs` and build output) and auto-properties. If tests fail there's still a report, but it's incomplete and the command fails.
+
+The tools are part of the .NET tool manifest and restored by the command itself. What is measured is configured in `scripts/coverage.runsettings` and `scripts/coverage.mjs`.
+
+A covered line only means that a test ran it, not that it would notice if the line were wrong. In `MapsetVerifier.Checks` the check documentation counts as well, which runs with any test going through all checks.
+
 ## Building sidecars for other systems
 
 Sidecar binaries are laid out under `bin/server/dist/<runtime>/` and bundled into the Electron app via `extraResources`.
