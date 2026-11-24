@@ -888,8 +888,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
         private static bool ContainsLetterAndDigit(string text) =>
             text.Any(char.IsLetter) && text.Any(char.IsDigit);
 
-        private static string Capitalize(string str) =>
-            str.Length == 0 ? str : char.ToUpper(str[0]) + str[1..];
+        private static string Capitalize(string str) => char.ToUpper(str[0]) + str[1..];
 
         private sealed class Marker(string value)
         {

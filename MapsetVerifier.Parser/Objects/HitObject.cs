@@ -242,7 +242,7 @@ namespace MapsetVerifier.Parser.Objects
 
         /// <summary> Returns whether the hit object has a hit sound, or optionally a certain type of hit sound. </summary>
         public bool HasHitSound(HitSounds? hitSound = null) =>
-            hitSound == null ? this.hitSound > 0 : (this.hitSound & hitSound) != 0;
+            hitSound is { } some ? (this.hitSound & some) != 0 : this.hitSound > 0;
 
         /// <summary>
         /// Returns all hit sounds applied to this hit object.

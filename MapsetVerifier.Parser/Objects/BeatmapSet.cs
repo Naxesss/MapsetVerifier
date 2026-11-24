@@ -296,15 +296,14 @@ namespace MapsetVerifier.Parser.Objects
             return false;
         }
 
-        private bool IsAudioFile(string? parsedPath)
+        private bool IsAudioFile(string parsedPath)
         {
-            return parsedPath != null
-                && Beatmaps.Any(beatmap =>
-                    beatmap.GeneralSettings.audioFileName.ToLower() == parsedPath
-                );
+            return Beatmaps.Any(beatmap =>
+                beatmap.GeneralSettings.audioFileName.ToLower() == parsedPath
+            );
         }
 
-        private bool IsStoryboardFile(string? parsedPath, string? strippedPath)
+        private bool IsStoryboardFile(string parsedPath, string strippedPath)
         {
             return IsExactStoryboardReference(parsedPath)
                 || IsExtensionlessStoryboardReference(parsedPath, strippedPath);
@@ -355,23 +354,16 @@ namespace MapsetVerifier.Parser.Objects
             storyboardPathsIncludingAnimations = [.. excludingAnimations, .. animationsOnly];
         }
 
-        private bool IsExactStoryboardReference(string? parsedPath)
+        private bool IsExactStoryboardReference(string parsedPath)
         {
-            if (parsedPath == null)
-                return false;
-
             EnsureStoryboardPathSets();
 
             return storyboardPathsIncludingAnimations!.Contains(parsedPath);
         }
 
-        private bool IsExtensionlessStoryboardReference(string? parsedPath, string? strippedPath)
+        private bool IsExtensionlessStoryboardReference(string parsedPath, string strippedPath)
         {
-            if (
-                parsedPath == null
-                || strippedPath == null
-                || parsedPath != GetLastMatchingFilePathWithStrippedPath(strippedPath)
-            )
+            if (parsedPath != GetLastMatchingFilePathWithStrippedPath(strippedPath))
                 return false;
 
             EnsureStoryboardPathSets();
@@ -382,11 +374,8 @@ namespace MapsetVerifier.Parser.Objects
         // Built once per instance instead of scanning all SongFilePaths on every call.
         private Dictionary<string, string>? lastMatchingPathByStrippedPath;
 
-        private string? GetLastMatchingFilePathWithStrippedPath(string? strippedPath)
+        private string? GetLastMatchingFilePathWithStrippedPath(string strippedPath)
         {
-            if (strippedPath == null)
-                return null;
-
             if (lastMatchingPathByStrippedPath == null)
             {
                 lastMatchingPathByStrippedPath = new Dictionary<string, string>();
@@ -396,15 +385,9 @@ namespace MapsetVerifier.Parser.Objects
                     var relativePath = PathStatic.RelativePath(path, SongPath);
                     var stripped = PathStatic.ParsePath(relativePath, true);
 
-                    if (stripped == null)
-                        continue;
-
-                    var parsed = PathStatic.ParsePath(relativePath);
-
-                    if (parsed != null)
-                        // Later entries overwrite earlier ones, matching the original
-                        // SongFilePaths.LastOrDefault(...) semantics.
-                        lastMatchingPathByStrippedPath[stripped] = parsed;
+                    // Later entries overwrite earlier ones, matching the original
+                    // SongFilePaths.LastOrDefault(...) semantics.
+                    lastMatchingPathByStrippedPath[stripped] = PathStatic.ParsePath(relativePath);
                 }
             }
 
@@ -413,11 +396,8 @@ namespace MapsetVerifier.Parser.Objects
 
         private HashSet<string>? hitObjectSampleFileNames;
 
-        private bool IsHitObjectSampleFile(string? strippedPath)
+        private bool IsHitObjectSampleFile(string strippedPath)
         {
-            if (strippedPath == null)
-                return false;
-
             // Built once per instance instead of rescanning every beatmap's hit objects on every
             // call - IsFileUsed (and therefore this) gets called once per song file, so without
             // this the whole hit object list gets walked once per file in the folder.
@@ -435,20 +415,14 @@ namespace MapsetVerifier.Parser.Objects
 
         private HashSet<string>? hitSoundFileParsedPaths;
 
-        private bool IsHitSoundFile(string? parsedPath)
+        private bool IsHitSoundFile(string parsedPath)
         {
-            if (parsedPath == null)
-                return false;
-
             // Built once per instance instead of rescanning all HitSoundFiles on every call -
             // IsFileUsed (and therefore this) gets called once per song file, so without this a
             // mapset with N hit sound files does an O(N) scan for every one of those N files.
             hitSoundFileParsedPaths ??=
             [
-                .. HitSoundFiles
-                    .Select(hsPath => PathStatic.ParsePath(hsPath))
-                    .Where(path => path != null)
-                    .Select(path => path!),
+                .. HitSoundFiles.Select(hsPath => PathStatic.ParsePath(hsPath)),
             ];
 
             return hitSoundFileParsedPaths.Contains(parsedPath);
@@ -459,7 +433,7 @@ namespace MapsetVerifier.Parser.Objects
             return Osb != null && fileName == GetOsbFileName()?.ToLower() && Osb.IsUsed();
         }
 
-        private bool IsAnimationFrameFile(string? parsedPath)
+        private bool IsAnimationFrameFile(string parsedPath)
         {
             return Beatmaps.Any(beatmap => IsAnimationPathUsed(parsedPath, beatmap.Animations))
                 || (Osb != null && IsAnimationPathUsed(parsedPath, Osb.animations));
@@ -490,13 +464,8 @@ namespace MapsetVerifier.Parser.Objects
         }
 
         /// <summary> Returns whether the given path (case insensitive) is used by any of the given animations. </summary>
-        private static bool IsAnimationPathUsed(string? filePath, List<Animation> animations)
+        private static bool IsAnimationPathUsed(string filePath, List<Animation> animations)
         {
-            if (filePath == null)
-            {
-                return false;
-            }
-
             foreach (var animation in animations)
             {
                 foreach (var framePath in animation.framePaths)

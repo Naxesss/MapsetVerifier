@@ -99,7 +99,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Resources
                         var suchBeatmaps = beatmapSet
                             .Beatmaps.Where(beatmap =>
                                 (beatmap.Videos.FirstOrDefault()?.path ?? "None") == videoName
-                                || beatmapSet.Osb?.videos.FirstOrDefault()?.path == videoName
+                                || osbVideoPath == videoName
                             )
                             .ToList();
 

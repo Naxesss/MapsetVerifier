@@ -18,7 +18,12 @@ public static class BeatmapService
         RegexOptions.Compiled
     );
 
-    public static string? DetectSongsFolder()
+    /// <summary> Replaced by tests, as what is found depends on what is installed. </summary>
+    internal static Func<string?> SongsFolderDetector { get; set; } = DetectInstalledSongsFolder;
+
+    public static string? DetectSongsFolder() => SongsFolderDetector();
+
+    internal static string? DetectInstalledSongsFolder()
     {
         if (OperatingSystem.IsWindows())
         {
@@ -421,6 +426,10 @@ public static class BeatmapService
     /// .osu file that happens to sort first would otherwise blank out the title/artist for the
     /// whole set. Returns null only if every file is empty.
     /// </summary>
+    /// <summary> Issues without a check, or of one no longer registered, have no id of their own. </summary>
+    internal static int GetCheckId(IReadOnlyDictionary<int, Check> checksById, Issue issue) =>
+        checksById.FirstOrDefault(c => c.Value.GetType() == issue.CheckOrigin?.GetType()).Key;
+
     private static string? ReadFirstNonEmptyOsuHeader(string[] osuFiles)
     {
         foreach (var osuFile in osuFiles)
@@ -743,9 +752,7 @@ public static class BeatmapService
 
                 var beatmapCheckResults = beatmapIssues.Select(issue =>
                 {
-                    var checkId = checksById
-                        .FirstOrDefault(c => c.Value.GetType() == issue.CheckOrigin?.GetType())
-                        .Key;
+                    var checkId = GetCheckId(checksById, issue);
 
                     return new ApiCheckResult(
                         id: checkId,
@@ -775,9 +782,7 @@ public static class BeatmapService
         var generalCheckResults = generalIssues
             .Select(issue =>
             {
-                var checkId = checksById
-                    .FirstOrDefault(c => c.Value.GetType() == issue.CheckOrigin?.GetType())
-                    .Key;
+                var checkId = GetCheckId(checksById, issue);
 
                 return new ApiCheckResult(
                     id: checkId,
@@ -859,9 +864,7 @@ public static class BeatmapService
         var beatmapCheckResults = beatmapIssues
             .Select(issue =>
             {
-                var checkId = checksById
-                    .FirstOrDefault(c => c.Value.GetType() == issue.CheckOrigin?.GetType())
-                    .Key;
+                var checkId = GetCheckId(checksById, issue);
 
                 return new ApiCheckResult(
                     id: checkId,

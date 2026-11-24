@@ -14,24 +14,13 @@ public static class OsuProcessClassifier
 
     public static RunningOsuClients GetRunningClients()
     {
-        var stable = false;
-        var lazer = false;
+        var kinds = new HashSet<OsuClientKind>();
         foreach (var process in Process.GetProcesses())
         {
             try
             {
-                if (!MayBeOsuRelated(process.ProcessName))
-                    continue;
-
-                switch (Classify(process))
-                {
-                    case OsuClientKind.Stable:
-                        stable = true;
-                        break;
-                    case OsuClientKind.Lazer:
-                        lazer = true;
-                        break;
-                }
+                if (MayBeOsuRelated(process.ProcessName))
+                    kinds.Add(Classify(process));
             }
             catch (Exception)
             {
@@ -43,7 +32,10 @@ public static class OsuProcessClassifier
             }
         }
 
-        return new RunningOsuClients(stable, lazer);
+        return new RunningOsuClients(
+            kinds.Contains(OsuClientKind.Stable),
+            kinds.Contains(OsuClientKind.Lazer)
+        );
     }
 
     public static OsuClientKind Classify(Process process)

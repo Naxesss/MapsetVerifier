@@ -113,7 +113,7 @@ public static class BeatmapAnalysisService
     }
 
     // Running in parallel wraps per-diff cancel exceptions in AggregateException.
-    private static bool IsOperationCanceled(Exception exception)
+    internal static bool IsOperationCanceled(Exception exception)
     {
         if (exception is OperationCanceledException)
             return true;
@@ -362,19 +362,11 @@ public static class BeatmapAnalysisService
 
     private static double GetMapEndTimeMs(Beatmap beatmap)
     {
-        if (beatmap.TimingLines.Count == 0 && beatmap.HitObjects.Count == 0)
-            return 0;
-
-        var timingMax =
-            beatmap.TimingLines.Count > 0
-                ? beatmap.TimingLines.Max(timingLine => timingLine.Offset)
-                : 0;
-        var objectsMax =
-            beatmap.HitObjects.Count > 0
-                ? beatmap.HitObjects.Max(hitObject => hitObject.GetEndTime())
-                : 0;
-
-        return Math.Max(timingMax, objectsMax);
+        return beatmap
+            .TimingLines.Select(timingLine => timingLine.Offset)
+            .Concat(beatmap.HitObjects.Select(hitObject => hitObject.GetEndTime()))
+            .DefaultIfEmpty(0)
+            .Max();
     }
 
     private static double GetFinalSampleTimeMs(
@@ -382,12 +374,10 @@ public static class BeatmapAnalysisService
         List<osu.Game.Rulesets.Difficulty.TimedDifficultyAttributes> timedAttributes
     )
     {
-        return Math.Max(
-            timedAttributes[^1].Time,
-            beatmap.HitObjects.Count > 0
-                ? beatmap.HitObjects.Max(hitObject => hitObject.GetEndTime())
-                : 0
-        );
+        return beatmap
+            .HitObjects.Select(hitObject => hitObject.GetEndTime())
+            .Append(timedAttributes[^1].Time)
+            .Max();
     }
 
     private static List<DifficultySamplePoint> GetStarRatingSamples(
@@ -469,7 +459,7 @@ public static class BeatmapAnalysisService
 
         foreach (var line in changes)
         {
-            if (samples.Count > 0 && samples[^1].TimeMs.AlmostEqual(line.Offset))
+            if (samples[^1].TimeMs.AlmostEqual(line.Offset))
             {
                 samples[^1] = new DifficultySamplePoint
                 {
@@ -763,9 +753,6 @@ public static class BeatmapAnalysisService
         {
             var column = ManiaExtensions.GetColumn(hitObject, keys);
 
-            if (column < 0 || column >= keys)
-                continue;
-
             if (hitObject is HoldNote)
                 holdNoteCounts[column]++;
             else
@@ -881,8 +868,7 @@ public static class BeatmapAnalysisService
                                 {
                                     JuiceStream.JuiceStreamPart.PartKind.Repeat => "Slider repeats",
                                     JuiceStream.JuiceStreamPart.PartKind.Tail => "Slider tails",
-                                    JuiceStream.JuiceStreamPart.PartKind.Drop => "Drops",
-                                    _ => part.GetNoteTypeName(),
+                                    _ => "Drops",
                                 };
                                 Add(partLabel, part.time, part.GetNoteTypeName());
                             }
@@ -987,9 +973,6 @@ public static class BeatmapAnalysisService
 
             return 0;
         }
-
-        if (hitObject is Spinner spinner && IsClose(spinner.endTime, edgeTime))
-            return (int)hitObject.hitSound;
 
         return (int)hitObject.hitSound;
     }

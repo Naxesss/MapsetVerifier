@@ -573,4 +573,58 @@ public sealed class ControllerTests : IDisposable
         foreach (var id in CheckerRegistry.GetChecksWithId().Keys)
             Assert.Equal(200, Status(With(new DocumentationController()).GetDetails(id)));
     }
+
+    [Fact]
+    public void SongsFolder_IsTheInstalledOne_UnlessThereIsNone()
+    {
+        song.Write("one/a.osu", SongFolder.Osu(title: "First"));
+        var controller = With(new BeatmapController());
+
+        try
+        {
+            BeatmapService.SongsFolderDetector = () => song.Path;
+            Assert.Equal(200, Status(controller.GetSongsFolder()));
+            var page = (ApiBeatmapPage)
+                ((OkObjectResult)controller.GetBeatmaps(" ", null).Result!).Value!;
+            Assert.Equal("First", Assert.Single(page.Items).Title);
+
+            BeatmapService.SongsFolderDetector = () => null;
+            Assert.Equal(404, Status(controller.GetSongsFolder()));
+            Assert.Equal(404, Status(controller.GetBeatmaps(null, null)));
+            Assert.Contains(
+                "Songs folder",
+                BeatmapService.GetBeatmapImage("one", songsFolderOverride: Missing).ErrorMessage
+            );
+            Assert.Equal(
+                "songs_folder_not_found",
+                Server
+                    .Service.OsuRuntime.CurrentBeatmapLookupService.GetCurrentBeatmap(
+                        Server.Service.OsuRuntime.OsuClientKind.Stable,
+                        null,
+                        [new(1, Server.Service.OsuRuntime.OsuClientKind.Stable, null, null)],
+                        _ => []
+                    )
+                    .Status
+            );
+        }
+        finally
+        {
+            BeatmapService.SongsFolderDetector = BeatmapService.DetectInstalledSongsFolder;
+        }
+    }
+
+    [Fact]
+    public void BeatmapInfo_OfUnreadableIds_HasNone()
+    {
+        song.Write("a.osu", "BeatmapID:one\nBeatmapSetID:two\nTitle:T");
+
+        var info = BeatmapService.GetBeatmapInfo(song.Path)!.Value;
+
+        Assert.Equal("T", info.Title);
+        Assert.Null(info.BeatmapId);
+        Assert.Null(info.BeatmapSetId);
+
+        song.Write("a.osu", "");
+        Assert.Null(BeatmapService.GetBeatmapInfo(song.Path)!.Value.BeatmapId);
+    }
 }

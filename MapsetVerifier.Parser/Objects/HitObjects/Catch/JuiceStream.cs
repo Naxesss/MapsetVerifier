@@ -84,8 +84,7 @@ public class JuiceStream : Slider, ICatchHitObject
             {
                 PartKind.Repeat => "Slider repeat",
                 PartKind.Tail => "Slider tail",
-                PartKind.Drop => "Drop",
-                _ => "Fruit",
+                _ => "Drop",
             };
     }
 }

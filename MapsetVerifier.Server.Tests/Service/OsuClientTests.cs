@@ -385,4 +385,17 @@ public sealed class OsuClientTests : IDisposable
             .FullName;
         Assert.Equal(expected, BeatmapService.FindSongsInProfile(songs.Path));
     }
+
+    [Fact]
+    public void OpenMap_WithoutAName_IsNotFound()
+    {
+        Assert.Equal(
+            "metadata_detected",
+            CurrentBeatmapLookupService.ResolveStableCurrentMap(songs.Path, ["osu! - "]).Status
+        );
+        Assert.Equal(
+            "metadata_detected",
+            CurrentBeatmapLookupService.ResolveStableCurrentMap(songs.Path, ["osu!", " "]).Status
+        );
+    }
 }

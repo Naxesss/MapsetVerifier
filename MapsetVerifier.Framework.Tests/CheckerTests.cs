@@ -374,6 +374,28 @@ public sealed class CheckerTests : IDisposable
         Assert.Equal(plugin.CheckNames.Length, plugin.CheckCount);
     }
 
+    /// <summary> One without the names a build adds. </summary>
+    [Fact]
+    public void APluginWithoutACompany_IsCreditedToNobody()
+    {
+        Checker.ConfigureCustomChecksPath(root, "external");
+        var folder = Path.Combine(root, "external", "CustomChecks");
+        Directory.CreateDirectory(folder);
+
+        var assembly = new System.Reflection.Emit.PersistedAssemblyBuilder(
+            new System.Reflection.AssemblyName("Bare"),
+            typeof(object).Assembly
+        );
+        assembly.DefineDynamicModule("Bare");
+        assembly.Save(Path.Combine(folder, "bare.dll"));
+
+        Checker.LoadCustomChecks();
+
+        var plugin = Assert.Single(Checker.GetCustomCheckPluginReport().LoadedPlugins);
+        Assert.Equal("Bare", plugin.AssemblyName);
+        Assert.Empty(plugin.Authors);
+    }
+
     private sealed class RecordingProgress : IProgress<CheckProgress>
     {
         private readonly List<CheckProgress> reports = [];

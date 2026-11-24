@@ -809,4 +809,154 @@ public sealed class ServiceEdgeTests : IDisposable
                 "check"
             )
         );
+
+    [Theory]
+    [InlineData(ManagedBass.ChannelType.MP3, "MP3", "MPEG Audio Layer III")]
+    [InlineData(ManagedBass.ChannelType.OGG, "OGG", "Ogg Vorbis")]
+    [InlineData(ManagedBass.ChannelType.WavePCM, "WAV", "PCM Wave")]
+    [InlineData(ManagedBass.ChannelType.AIFF, "AIFF", "Audio Interchange File Format")]
+    [InlineData(ManagedBass.ChannelType.FLAC, "FLAC", "Free Lossless Audio Codec")]
+    [InlineData(ManagedBass.ChannelType.Unknown, "Unknown", "Unknown Codec")]
+    public void Formats_AreNamed(ManagedBass.ChannelType format, string name, string codec)
+    {
+        Assert.Equal(name, AudioAnalysisService.GetFormatName(format));
+        Assert.Equal(codec, AudioAnalysisService.GetCodecInfo(format));
+    }
+
+    [Fact]
+    public void Width_IsHowMuchTheChannelsDiffer()
+    {
+        Assert.Equal(0, AudioAnalysisService.CalculateStereoWidth([], 2));
+        Assert.Equal(
+            0,
+            AudioAnalysisService.CalculateStereoWidth(
+                [
+                    [1, 0],
+                ],
+                1
+            )
+        );
+        Assert.Equal(
+            0,
+            AudioAnalysisService.CalculateStereoWidth(
+                [
+                    [0, 0],
+                ],
+                2
+            )
+        );
+        Assert.Equal(
+            0,
+            AudioAnalysisService.CalculateStereoWidth(
+                [
+                    [1],
+                ],
+                2
+            )
+        );
+        Assert.Equal(
+            0,
+            AudioAnalysisService.CalculateStereoWidth(
+                [
+                    [1, 1],
+                ],
+                2
+            )
+        );
+        Assert.Equal(
+            1,
+            AudioAnalysisService.CalculateStereoWidth(
+                [
+                    [1, 0],
+                ],
+                2
+            )
+        );
+        Assert.Equal(
+            0.5,
+            AudioAnalysisService.CalculateStereoWidth(
+                [
+                    [3, 1],
+                ],
+                2
+            )
+        );
+    }
+
+    [Fact]
+    public void Nothing_HasNoPeaksOrHarmonics()
+    {
+        Assert.Empty(
+            AudioAnalysisService.DetectPeakFrequencies(
+                new() { Frames = [], FrequencyBins = [0, 100] },
+                20,
+                20000
+            )
+        );
+        Assert.Empty(AudioAnalysisService.AnalyzeHarmonics([], 0).Harmonics);
+    }
+
+    [Fact]
+    public void Audio_WithoutAnySound_IsStillAnalyzedOrRefused()
+    {
+        song.Write("a.osu", SongFolder.Osu(general: ["AudioFilename: audio.wav"]));
+        song.Write("audio.wav", SongFolder.Wave(0, SongFolder.Sine(1)));
+
+        var result = AudioAnalysisService.AnalyzeAudio(song.Path);
+
+        Assert.True(result.Success || result.ErrorMessage!.Length > 0);
+    }
+
+    [Fact]
+    public void Cancelling_IsNotAnError()
+    {
+        Assert.True(BeatmapAnalysisService.IsOperationCanceled(new OperationCanceledException()));
+        Assert.True(
+            BeatmapAnalysisService.IsOperationCanceled(
+                new AggregateException(new AggregateException(new TaskCanceledException()))
+            )
+        );
+        Assert.False(
+            BeatmapAnalysisService.IsOperationCanceled(
+                new AggregateException(new InvalidOperationException())
+            )
+        );
+        Assert.False(BeatmapAnalysisService.IsOperationCanceled(new InvalidOperationException()));
+    }
+
+    [Fact]
+    public void TimingSegments_NeedABeat()
+    {
+        song.Write(
+            "a.osu",
+            SongFolder.Osu(
+                timingPoints:
+                [
+                    "0,500,4,2,0,100,1,0",
+                    "1500,-500,4,2,0,100,1,0",
+                    "1800,400,4,2,0,100,1,0",
+                ]
+            )
+        );
+
+        var result = BeatmapAnalysisService.AnalyzeObjects(song.Path);
+
+        Assert.True(result.Success, result.ErrorMessage);
+        Assert.DoesNotContain(
+            result.Difficulties.Single().TimingSegments,
+            segment => segment.MsPerBeat <= 0
+        );
+    }
+
+    [Fact]
+    public void Issues_OfAnUnknownCheck_HaveNoId()
+    {
+        Assert.Equal(
+            0,
+            BeatmapService.GetCheckId(
+                new Dictionary<int, MapsetVerifier.Framework.Objects.Check>(),
+                new(new(MapsetVerifier.Framework.Objects.Issue.Level.Problem, "Text."), null)
+            )
+        );
+    }
 }

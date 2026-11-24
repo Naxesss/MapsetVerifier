@@ -344,18 +344,9 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
 
         private IEnumerable<Vector2> GetRedAnchors()
         {
-            if (NodePositions.Count > 0)
-            {
-                var prevPosition = NodePositions[0];
-
-                for (var i = 1; i < NodePositions.Count; ++i)
-                {
-                    if (NodePositions[i] == prevPosition)
-                        yield return NodePositions[i];
-
-                    prevPosition = NodePositions[i];
-                }
-            }
+            for (var i = 1; i < NodePositions.Count; ++i)
+                if (NodePositions[i] == NodePositions[i - 1])
+                    yield return NodePositions[i];
         }
 
         private List<Vector2> GetPathPxPositions()

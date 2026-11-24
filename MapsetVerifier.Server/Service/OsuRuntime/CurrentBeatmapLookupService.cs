@@ -450,11 +450,7 @@ public static class CurrentBeatmapLookupService
 
     private static string? TryFindStableBeatmapSetFolder(string songsFolder, string metadata)
     {
-        if (
-            string.IsNullOrWhiteSpace(songsFolder)
-            || string.IsNullOrWhiteSpace(metadata)
-            || !Directory.Exists(songsFolder)
-        )
+        if (!Directory.Exists(songsFolder))
             return null;
 
         metadata = SanitizeExtractedMetadata(metadata) ?? metadata;
@@ -482,13 +478,8 @@ public static class CurrentBeatmapLookupService
     {
         try
         {
-            if (!Directory.Exists(folderPath))
-                return null;
-
             var folder = new DirectoryInfo(folderPath);
-            var osuFile = Directory.GetFiles(folder.FullName, "*.osu").FirstOrDefault();
-            if (string.IsNullOrWhiteSpace(osuFile))
-                return null;
+            var osuFile = Directory.GetFiles(folder.FullName, "*.osu").First();
 
             var content = File.ReadAllText(osuFile);
             var meta = ParseBeatmapMetadata(folder.FullName, content);
