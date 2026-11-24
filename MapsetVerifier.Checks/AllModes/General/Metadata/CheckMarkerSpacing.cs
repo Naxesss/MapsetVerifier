@@ -79,6 +79,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
+            if (beatmapSet.Beatmaps.Count == 0)
+                yield break;
+
             var refBeatmap = beatmapSet.Beatmaps[0];
 
             var problemTests = new List<Func<string, string?>>
@@ -124,7 +127,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         ? "whitespace before \"&\""
                         : null,
                 field =>
-                    new Regex(@"CV(?!:[ 一-龠]+|[ぁ-ゔ]+|[ァ-ヴー]|：)").IsMatch(field)
+                    new Regex(
+                        @"(?:(?<=\(|（)CV|(?<![a-zA-Z0-9])CV(?![a-zA-Z0-9]))(?!:[ 一-龠]+|[ぁ-ゔ]+|[ァ-ヴー]|：)"
+                    ).IsMatch(field)
                         ? "whitespace after \"CV:\" or full-width colon \"：\""
                         : null,
                 field =>

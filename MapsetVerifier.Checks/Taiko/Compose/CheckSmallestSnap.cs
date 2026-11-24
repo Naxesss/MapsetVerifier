@@ -80,12 +80,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
             for (int i = 0; i < circles.Count - 1; i++)
             {
                 var current = circles[i];
-                var next = circles.SafeGetIndex(i + 1);
-
-                if (next == null)
-                {
-                    continue;
-                }
+                var next = circles[i + 1];
 
                 var timing = beatmap.GetTimingLine<UninheritedLine>(current.time);
                 if (timing == null)
@@ -134,6 +129,15 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                     }
                 }
             }
+
+            // The map may end with one.
+            foreach (var diff in difficulties)
+                if (violatingGroup[diff].Count > 0)
+                    yield return new Issue(
+                        GetTemplate(Warning),
+                        beatmap,
+                        Timestamp.Get(violatingGroup[diff].ToArray())
+                    ).ForDifficulties(diff);
         }
 
         private static void CheckAndHandleIssues(

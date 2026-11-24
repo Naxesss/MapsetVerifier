@@ -57,22 +57,14 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                         "A hit object is snapped 5 ms or less behind a timing line which would otherwise modify its slider velocity. For standard and catch this only looks at slider heads."
                     )
                 },
-                {
-                    "After",
-                    new IssueTemplate(
-                        Issue.Level.Warning,
-                        "{0} {1} is snapped {2} ms after a line which would modify its slider velocity.",
-                        "timestamp -",
-                        "object",
-                        "unsnap"
-                    ).WithCause(
-                        "Same as the other check, except after instead of before. Only applies to taiko."
-                    )
-                },
             };
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
         {
+            // Without any red line there is nothing to snap to.
+            if (!beatmap.TimingLines.OfType<UninheritedLine>().Any())
+                yield break;
+
             foreach (var hitObject in beatmap.HitObjects)
             {
                 var type =
@@ -96,24 +88,18 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             var unsnap = beatmap.GetPracticalUnsnap(time);
 
             var curLine = beatmap.GetTimingLine(time);
-            var nextLine = curLine?.Next(true);
+            var nextLine = beatmap.GetNextTimingLine(time);
 
-            if (curLine == null || nextLine == null)
+            if (curLine == null || Math.Abs(unsnap) > 1)
                 yield break;
 
-            var curEffectiveBPM =
-                curLine.SvMult * beatmap.GetTimingLine<UninheritedLine>(time)!.bpm;
-            var nextEffectiveBPM =
-                nextLine.SvMult * beatmap.GetTimingLine<UninheritedLine>(nextLine.Offset)!.bpm;
-
-            var deltaEffectiveBPM = curEffectiveBPM - nextEffectiveBPM;
-
-            var timeDiff = nextLine.Offset - time;
+            var timeDiff = nextLine?.Offset - time;
 
             if (
                 timeDiff is > 0 and <= 5
-                && Math.Abs(unsnap) <= 1
-                && Math.Abs(deltaEffectiveBPM) > 1
+                && Math.Abs(
+                    GetEffectiveBPM(beatmap, time) - GetEffectiveBPM(beatmap, nextLine!.Offset)
+                ) > 1
             )
                 yield return new Issue(
                     GetTemplate("Before"),
@@ -122,22 +108,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     type,
                     $"{timeDiff:0.##}"
                 );
-
-            // Modes where SV affects AR would be impacted even if the object was right after the line.
-            if (
-                IsSVAffectingAR(beatmap)
-                && timeDiff is < 0 and >= -5
-                && Math.Abs(unsnap) <= 1
-                && Math.Abs(deltaEffectiveBPM) > 1
-            )
-                yield return new Issue(
-                    GetTemplate("After"),
-                    beatmap,
-                    Timestamp.Get(time),
-                    type,
-                    $"{timeDiff:0.##}"
-                );
         }
+
+        /// <summary> Accounts for green lines on the same offset as a red line, which override its slider velocity. </summary>
+        private static double GetEffectiveBPM(Beatmap beatmap, double time) =>
+            beatmap.GetTimingLine(time)!.SvMult * beatmap.GetTimingLine<UninheritedLine>(time)!.bpm;
 
         private static bool IsSVAffectingAR(Beatmap beatmap) =>
             beatmap.GeneralSettings.mode is Beatmap.Mode.Taiko or Beatmap.Mode.Mania;

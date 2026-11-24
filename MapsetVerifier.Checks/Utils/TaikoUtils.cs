@@ -94,17 +94,12 @@ public static class TaikoUtils
         var barlineGap = timing.msPerBeat * timing.Meter;
 
         var offsetFromNextImplicitBarline = ((time - timing.Offset) % barlineGap) - barlineGap;
-        var nextPotentialRedLine = beatmap.GetTimingLine<UninheritedLine>(
-            time + offsetFromNextImplicitBarline
-        );
-        if (nextPotentialRedLine == null)
-        {
-            return 0;
-        }
+        var nextRedLine = beatmap.GetNextTimingLine<UninheritedLine>(time);
 
-        var offsetFromNextPotentialRedline = time - nextPotentialRedLine.Offset;
-
-        return TakeLowerAbsValue(offsetFromNextImplicitBarline, offsetFromNextPotentialRedline);
+        // The next red line has a barline of its own, if it starts before this one's next.
+        return nextRedLine != null
+            ? Math.Max(offsetFromNextImplicitBarline, time - nextRedLine.Offset)
+            : offsetFromNextImplicitBarline;
     }
 
     /// <summary>

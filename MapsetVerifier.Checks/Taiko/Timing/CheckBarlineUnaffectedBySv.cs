@@ -47,7 +47,9 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         "{0} Barline is snapped {1} ms before a line which would modify its slider velocity.",
                         "timestamp -",
                         "unsnap"
-                    ).WithCause("The spinner/slider end is unsnapped 1ms early.")
+                    ).WithCause(
+                        "A barline is 5 ms or less before a line which changes the slider velocity."
+                    )
                 },
                 {
                     RoundingErrorWarning,
@@ -72,7 +74,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         Timestamp.Get(svChange.Offset - unsnapMs)
                     );
                 }
-                else if (unsnapMs < 0d && unsnapMs >= -ThresholdMs)
+                else if (unsnapMs > 0d && unsnapMs <= ThresholdMs)
                 {
                     yield return new Issue(
                         GetTemplate(Warning),

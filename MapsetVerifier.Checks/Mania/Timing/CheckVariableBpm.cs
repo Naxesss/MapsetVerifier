@@ -113,7 +113,7 @@ namespace MapsetVerifier.Checks.Mania.Timing
                 double prevOffset = 0; // RedLine Timestamp
                 double prevBpm = 0; // RedLine beatLength
                 var firstTimingLine = false; // Control bit in charge of turning on once the first GreenLine after a RedLine is parsed
-                for (var i = 0; i < timingLineList.Count - 1; i++)
+                for (var i = 0; i < timingLineList.Count; i++)
                 {
                     if (timingLineList[i].Uninherited == false)
                     {
@@ -157,8 +157,10 @@ namespace MapsetVerifier.Checks.Mania.Timing
 
                         // Check if a RedLine needs to be normalized if it doesn't have any GreenLines on it.
                         if (
-                            timingLineList[i + 1] is UninheritedLine
-                            && !almostEquals(baseBpm, prevUninheritedLine.bpm, 1)
+                            (
+                                i == timingLineList.Count - 1
+                                || timingLineList[i + 1] is UninheritedLine
+                            ) && !almostEquals(baseBpm, prevUninheritedLine.bpm, 1)
                         )
                             yield return new Issue(
                                 GetTemplate("Green Line Not Found"),

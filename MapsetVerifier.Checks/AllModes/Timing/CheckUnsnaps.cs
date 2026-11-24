@@ -77,6 +77,10 @@ namespace MapsetVerifier.Checks.AllModes.Timing
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
         {
+            // Without any red line there is nothing to snap to.
+            if (!beatmap.TimingLines.OfType<UninheritedLine>().Any())
+                yield break;
+
             foreach (var hitObject in beatmap.HitObjects)
             {
                 foreach (var edgeTime in hitObject.GetEdgeTimes())

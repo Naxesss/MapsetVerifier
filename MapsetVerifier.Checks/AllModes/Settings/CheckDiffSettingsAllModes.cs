@@ -80,7 +80,11 @@ namespace MapsetVerifier.Checks.AllModes.Settings
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
         {
-            var issue = GetIssue(beatmap.DifficultySettings.hpDrain, "HP Drain Rate", beatmap);
+            var issue = GetIssue(
+                beatmap.DifficultySettings.unlimited.HpDrain,
+                "HP Drain Rate",
+                beatmap
+            );
 
             if (issue != null)
                 yield return issue;
@@ -90,7 +94,7 @@ namespace MapsetVerifier.Checks.AllModes.Settings
                 case Beatmap.Mode.Mania:
                     // Mania can have CS between 4 and 18
                     issue = GetIssue(
-                        beatmap.DifficultySettings.circleSize,
+                        beatmap.DifficultySettings.unlimited.CircleSize,
                         "Circle Size",
                         beatmap,
                         4,
@@ -100,20 +104,28 @@ namespace MapsetVerifier.Checks.AllModes.Settings
                 default:
                     // Check for all other modes like normal
                     // NOTE: Circle size does nothing in taiko, but needs to be regulated anyway
-                    issue = GetIssue(beatmap.DifficultySettings.circleSize, "Circle Size", beatmap);
+                    issue = GetIssue(
+                        beatmap.DifficultySettings.unlimited.CircleSize,
+                        "Circle Size",
+                        beatmap
+                    );
                     break;
             }
 
             if (issue != null)
                 yield return issue;
 
-            issue = GetIssue(beatmap.DifficultySettings.approachRate, "Approach Rate", beatmap);
+            issue = GetIssue(
+                beatmap.DifficultySettings.unlimited.ApproachRate,
+                "Approach Rate",
+                beatmap
+            );
 
             if (issue != null)
                 yield return issue;
 
             issue = GetIssue(
-                beatmap.DifficultySettings.overallDifficulty,
+                beatmap.DifficultySettings.unlimited.OverallDifficulty,
                 "Overall Difficulty",
                 beatmap
             );

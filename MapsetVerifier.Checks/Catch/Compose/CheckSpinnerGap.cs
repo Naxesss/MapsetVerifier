@@ -91,7 +91,7 @@ namespace MapsetVerifier.Checks.Catch.Compose
                 {
                     var nextGap = Timestamp.Round(next.time) - Timestamp.Round(spinner.endTime);
 
-                    for (var diffIndex = 0; diffIndex < (int)Difficulty.Ultra; ++diffIndex)
+                    for (var diffIndex = 0; diffIndex <= (int)Difficulty.Ultra; ++diffIndex)
                         if (nextGap < ThresholdAfter[diffIndex])
                             yield return new Issue(
                                 GetTemplate("SpinnerAfter"),
@@ -109,7 +109,7 @@ namespace MapsetVerifier.Checks.Catch.Compose
                     var prevGap =
                         Timestamp.Round(spinner.time) - Timestamp.Round(prev.GetEndTime());
 
-                    for (var diffIndex = 0; diffIndex < (int)Difficulty.Ultra; ++diffIndex)
+                    for (var diffIndex = 0; diffIndex <= (int)Difficulty.Ultra; ++diffIndex)
                         if (prevGap < ThresholdBefore[diffIndex])
                             yield return new Issue(
                                 GetTemplate("SpinnerBefore"),

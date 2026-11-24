@@ -70,8 +70,8 @@ namespace MapsetVerifier.Checks.AllModes.Events
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
         {
-            // Breaks are sometimes 1 ms off.
-            const int leniency = 1;
+            // Breaks are sometimes 1 ms off, and so are the slider ends they're measured from.
+            const int leniency = 2;
             const double minStart = 200;
             const double minDuration = 650;
 
@@ -83,8 +83,10 @@ namespace MapsetVerifier.Checks.AllModes.Events
                 double diffEnd = 0;
 
                 // Checking from start of break forwards and end of break backwards ensures nothing is in between.
-                if (@break.time - beatmap.GetHitObject(@break.time)?.time < minStart)
-                    diffStart = minStart - (@break.time - beatmap.GetHitObject(@break.time)!.time);
+                var prevEndTime = beatmap.GetHitObject(@break.time)?.GetEndTime();
+
+                if (@break.time - prevEndTime < minStart)
+                    diffStart = minStart - (@break.time - prevEndTime.Value);
 
                 if (beatmap.GetNextHitObject(@break.time)?.time - @break.endTime < minEnd)
                     diffEnd =

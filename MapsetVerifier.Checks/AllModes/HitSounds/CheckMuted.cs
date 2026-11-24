@@ -96,8 +96,6 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
         {
-            var lineIndex = 0;
-
             foreach (var hitObject in beatmap.HitObjects)
             {
                 if (!(hitObject is Circle || hitObject is Slider || hitObject is HoldNote))
@@ -108,7 +106,7 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
                 var volume =
                     hitObject is not Slider && hitObject.volume > 0 && hitObject.volume != null
                         ? hitObject.volume.GetValueOrDefault()
-                        : GetTimingLine(beatmap, ref lineIndex, hitObject.time).Volume;
+                        : GetVolume(beatmap, hitObject.time);
 
                 foreach (var issue in GetIssue(hitObject, hitObject.time, volume, true))
                     yield return issue;
@@ -127,7 +125,7 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
                         // Necessary to get the exact slider end time, as opposed to a decimal value.
                         time = slider.EndTime;
 
-                    volume = GetTimingLine(beatmap, ref lineIndex, time).Volume;
+                    volume = GetVolume(beatmap, time);
 
                     foreach (var issue in GetIssue(hitObject, time, volume, isReverse))
                         yield return issue;
@@ -135,7 +133,7 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
 
                 foreach (var tickTime in slider.GetSliderTickTimes())
                 {
-                    volume = GetTimingLine(beatmap, ref lineIndex, tickTime).Volume;
+                    volume = GetVolume(beatmap, tickTime, true);
 
                     foreach (var issue in GetIssue(hitObject, tickTime, volume))
                         yield return issue;
@@ -214,21 +212,8 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
         /// <param name="volume"> The volume according to the object/timing line code, in percent (i.e. 20 is 20%). </param>
         private static float GetActualVolume(float volume) => volume < 5 ? 5 : volume;
 
-        /// <summary>
-        ///     Gets the timing line in effect at the given time continuing at the index given.
-        ///     This is more performant than <see cref="Beatmap.GetTimingLine(double,bool,bool)" /> due to not
-        ///     iterating from the beginning for each hit object.
-        /// </summary>
-        private static TimingLine GetTimingLine(Beatmap beatmap, ref int index, double time)
-        {
-            var length = beatmap.TimingLines.Count;
-
-            for (; index < length; ++index)
-                // Uses the 5 ms hit sound leniency.
-                if (index > 0 && beatmap.TimingLines[index].Offset >= time + 5)
-                    return beatmap.TimingLines[index - 1];
-
-            return beatmap.TimingLines[length - 1];
-        }
+        /// <summary> Returns the volume of the timing line in effect, accounting for hit sound leniency. </summary>
+        private static float GetVolume(Beatmap beatmap, double time, bool isSliderTick = false) =>
+            beatmap.GetTimingLine(time, true, isSliderTick)?.Volume ?? 100;
     }
 }

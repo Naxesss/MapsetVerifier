@@ -62,6 +62,9 @@ namespace MapsetVerifier.Checks.AllModes.Timing
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
+            if (beatmapSet.Beatmaps.Count == 0)
+                yield break;
+
             var refBeatmap = beatmapSet.Beatmaps[0];
 
             foreach (var beatmap in beatmapSet.Beatmaps)

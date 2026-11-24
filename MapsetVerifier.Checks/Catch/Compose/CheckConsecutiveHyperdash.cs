@@ -120,7 +120,11 @@ namespace MapsetVerifier.Checks.Catch.Compose
                 else if (trackedHyperdashObjects.Count > 0)
                 {
                     foreach (
-                        var issue in CheckTrackedHyperdashes(beatmap, next, trackedHyperdashObjects)
+                        var issue in CheckTrackedHyperdashes(
+                            beatmap,
+                            current,
+                            trackedHyperdashObjects
+                        )
                     )
                         yield return issue;
 
