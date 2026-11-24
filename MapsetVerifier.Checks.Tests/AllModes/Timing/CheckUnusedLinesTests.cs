@@ -520,4 +520,22 @@ public class CheckUnusedLinesTests
         var issue = Assert.Single(context.RunBeatmapCheck<CheckUnusedLines>("Test"));
         Assert.Contains("corrects the omitted barline at 00:00:000", issue.message);
     }
+
+    [Theory]
+    [InlineData("8000,-399.999999999997,4,2,0,100,0,0", true)] // As in Solar Deity.
+    [InlineData("8000,-399.9,4,2,0,100,0,0", false)]
+    public void InheritedLine_OnlyRoundedDifferently_ChangesNothing(string line, bool expected)
+    {
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Mode(Beatmap.Mode.Taiko)
+                .TimingPoints("0,500,4,2,0,100,1,0", "0,-400,4,2,0,100,0,0", line)
+                .HitObjects("256,192,9000,1,0,0:0:0:0:")
+        );
+
+        var issues = context.RunBeatmapCheck<CheckUnusedLines>("Test");
+
+        Assert.Equal(expected, issues.Count > 0);
+        Assert.All(issues, issue => Assert.Contains("same values", issue.message));
+    }
 }

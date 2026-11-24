@@ -242,6 +242,28 @@ public class BeatmapCalculationTests
         Assert.Equal("ACDC - What (ab) [Easy 3 !].osu", beatmap.GetOsuFileName());
     }
 
+    [Theory]
+    // Rounded differently, as in Solar Deity.
+    [InlineData("5370,-399.999999999997,4,2,0,100,0,0", false)]
+    [InlineData("5370,-390,4,2,0,100,0,0", true)]
+    // A red line with the same slider velocity as before on top of it.
+    [InlineData("5370,400,4,2,0,100,1,0|5370,-400,4,2,0,100,0,0", false)]
+    [InlineData("5370,400,4,2,0,100,1,0|5370,-300,4,2,0,100,0,0", true)]
+    [InlineData("5370,400,4,2,0,100,1,0", true)]
+    public void SvChanges_AreOfWhatIsInEffect(string lines, bool expected)
+    {
+        var beatmap = TestBeatmap.Parse(
+            TestBeatmap.Code(
+                timingPoints: ["36,500,4,2,0,100,1,0", "36,-400,4,2,0,100,0,0", .. lines.Split('|')]
+            )
+        );
+
+        Assert.Equal(
+            expected ? [5370] : [],
+            beatmap.GetSvChanges().Select(line => line.Offset).ToArray()
+        );
+    }
+
     [Fact]
     public void SvChanges_AreLinesWithAnotherSpeedThanTheOneBefore()
     {

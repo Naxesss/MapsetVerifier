@@ -1697,49 +1697,36 @@ namespace MapsetVerifier.Parser.Objects
         /// <summary>
         ///     Returns a list of timing lines where SV (slider velocity) changes occur.
         /// </summary>
-        public List<TimingLine> GetSvChanges()
-        {
-            var svChanges = new List<TimingLine>();
-
-            for (var i = 0; i < TimingLines.Count - 1; i++)
-            {
-                var firstLine = TimingLines[i];
-                var secondLine = TimingLines[i + 1];
-
-                if (
-                    !firstLine.SvMult.AlmostEqual(secondLine.SvMult)
-                    && !firstLine.Offset.AlmostEqual(secondLine.Offset)
-                )
-                {
-                    svChanges.Add(secondLine);
-                }
-            }
-
-            return svChanges;
-        }
+        public List<TimingLine> GetSvChanges() => GetChanges(line => line.SvMult);
 
         /// <summary>
         ///     Returns a list of timing lines where sample volume changes occur.
         /// </summary>
-        public List<TimingLine> GetVolumeChanges()
+        public List<TimingLine> GetVolumeChanges() => GetChanges(line => line.Volume);
+
+        /// <summary>
+        ///     Returns the timing lines which change the given value. The last line on an offset is the one in effect,
+        ///     and values are not exact, since e.g. 0.25x may be written as -399.999999999997.
+        /// </summary>
+        private List<TimingLine> GetChanges(Func<TimingLine, double> valueOf)
         {
-            var volumeChanges = new List<TimingLine>();
+            var changes = new List<TimingLine>();
+            TimingLine? previous = null;
 
-            for (var i = 0; i < TimingLines.Count - 1; i++)
+            for (var i = 0; i < TimingLines.Count; i++)
             {
-                var firstLine = TimingLines[i];
-                var secondLine = TimingLines[i + 1];
+                var line = TimingLines[i];
 
-                if (
-                    !firstLine.Volume.AlmostEqual(secondLine.Volume)
-                    && !firstLine.Offset.AlmostEqual(secondLine.Offset)
-                )
-                {
-                    volumeChanges.Add(secondLine);
-                }
+                if (i + 1 < TimingLines.Count && TimingLines[i + 1].Offset.AlmostEqual(line.Offset))
+                    continue;
+
+                if (previous != null && !valueOf(previous).AlmostEqual(valueOf(line), 6))
+                    changes.Add(line);
+
+                previous = line;
             }
 
-            return volumeChanges;
+            return changes;
         }
 
         /// <summary>

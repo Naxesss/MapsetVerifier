@@ -244,7 +244,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
 
                 // Distinguishes between the line actually changing a value that just doesn't apply to
                 // anything, versus the line not changing anything from the previous line at all.
-                var svChanged = !currentLine.SvMult.AlmostEqual(previousLine.SvMult);
+                var svChanged = ChangesSv(currentLine, previousLine);
                 var samplesChanged = SamplesDiffer(currentLine, previousLine);
 
                 if (!svChanged && !samplesChanged)
@@ -414,7 +414,11 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             Beatmap beatmap,
             TimingLine currentLine,
             TimingLine previousLine
-        ) => CanUseSV(beatmap, currentLine) && !currentLine.SvMult.AlmostEqual(previousLine.SvMult);
+        ) => CanUseSV(beatmap, currentLine) && ChangesSv(currentLine, previousLine);
+
+        /// <summary> Slider velocities are not exact, since e.g. 0.25x may be written as -399.999999999997. </summary>
+        private static bool ChangesSv(TimingLine currentLine, TimingLine previousLine) =>
+            !currentLine.SvMult.AlmostEqual(previousLine.SvMult, 6);
 
         /// <summary> Returns whether changes to SV for the line will be used. </summary>
         private static bool CanUseSV(Beatmap beatmap, TimingLine line) =>
