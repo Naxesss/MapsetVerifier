@@ -1,4 +1,6 @@
-﻿namespace MapsetVerifier.Parser.Statics
+﻿using MapsetVerifier.Parser.Exceptions;
+
+namespace MapsetVerifier.Parser.Statics
 {
     public static class ParserStatic
     {
@@ -20,7 +22,7 @@
                     read = false;
 
                 if (read && !string.IsNullOrWhiteSpace(line))
-                    yield return func(line.Replace("\r", ""));
+                    yield return Read(section, line.Replace("\r", ""), func);
 
                 // "[[TimingLines]]]]" works. Anything that doesn't work will be very obvious (map corrupted warnings etc).
                 if (line.Contains(sectionHeader))
@@ -34,10 +36,53 @@
         /// </summary>
         public static T GetSettings<T>(string[] lines, string section, Func<string[], T> func)
         {
-            var parsedLines = ParseSection(lines, section, line => line);
+            var parsedLines = ParseSection(lines, section, line => line).ToArray();
 
-            return func(parsedLines.ToArray());
+            return Read(section, parsedLines, func);
         }
+
+        /// <summary> Returns the result of the given function, saying what could not be read in case it fails. </summary>
+        public static T Read<T>(string section, string line, Func<string, T> func)
+        {
+            const int maxLength = 100;
+
+            try
+            {
+                return func(line);
+            }
+            catch (Exception exception) when (IsUnreadable(exception))
+            {
+                var shownLine = line.Length > maxLength ? line[..maxLength] + "..." : line;
+
+                throw new InvalidBeatmapDataException(
+                    $"Could not read \"{shownLine}\" in [{section}].",
+                    exception
+                );
+            }
+        }
+
+        private static T Read<T>(string section, string[] lines, Func<string[], T> func)
+        {
+            try
+            {
+                return func(lines);
+            }
+            catch (Exception exception) when (IsUnreadable(exception))
+            {
+                throw new InvalidBeatmapDataException(
+                    $"Could not read the settings in [{section}]. {exception.Message}",
+                    exception
+                );
+            }
+        }
+
+        /// <summary> Whether an exception means that a value is missing or isn't what it should be. </summary>
+        private static bool IsUnreadable(Exception exception) =>
+            exception
+                is FormatException
+                    or OverflowException
+                    or IndexOutOfRangeException
+                    or ArgumentOutOfRangeException;
 
         /// <summary> Same as <see cref="GetSettings{T}" /> except does not return. </summary>
         public static void ApplySettings(string[] lines, string section, Action<string[]> action)

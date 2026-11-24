@@ -36,12 +36,16 @@ namespace MapsetVerifier.Parser.Statics
 
                     if (IsEvent(line, "Sprite,", "4,"))
                     {
-                        element = new Sprite(line.Split(','));
+                        element = ParserStatic.Read("Events", line, l => new Sprite(l.Split(',')));
                         sprites.Add(element);
                     }
                     else if (IsEvent(line, "Animation,", "6,"))
                     {
-                        var animation = new Animation(line.Split(','));
+                        var animation = ParserStatic.Read(
+                            "Events",
+                            line,
+                            l => new Animation(l.Split(','))
+                        );
                         element = animation;
                         animations.Add(animation);
                     }

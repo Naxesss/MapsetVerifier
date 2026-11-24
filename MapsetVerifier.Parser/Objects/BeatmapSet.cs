@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using MapsetVerifier.Parser.Exceptions;
 using MapsetVerifier.Parser.Objects.Events;
 using MapsetVerifier.Parser.Statics;
 
@@ -149,9 +150,19 @@ namespace MapsetVerifier.Parser.Objects
                     beatmapFiles,
                     beatmapFile =>
                     {
-                        concurrentBeatmaps.Add(
-                            new Beatmap(beatmapFile.code, SongPath, beatmapFile.name)
-                        );
+                        try
+                        {
+                            concurrentBeatmaps.Add(
+                                new Beatmap(beatmapFile.code, SongPath, beatmapFile.name)
+                            );
+                        }
+                        catch (InvalidBeatmapDataException ex)
+                        {
+                            throw new InvalidBeatmapDataException(
+                                $"{beatmapFile.name}: {ex.Message}",
+                                ex
+                            );
+                        }
                     }
                 );
             }
@@ -172,7 +183,17 @@ namespace MapsetVerifier.Parser.Objects
 
                 if (filePath.EndsWith(".osb") && currentFileName.ToLower() == expectedOsbFileName)
                 {
-                    Osb = new Osb(File.ReadAllText(filePath));
+                    try
+                    {
+                        Osb = new Osb(File.ReadAllText(filePath));
+                    }
+                    catch (InvalidBeatmapDataException ex)
+                    {
+                        throw new InvalidBeatmapDataException(
+                            $"{currentFileName}: {ex.Message}",
+                            ex
+                        );
+                    }
                 }
             }
         }

@@ -77,7 +77,9 @@ namespace MapsetVerifier.Parser.Objects
                 {
                     foreach (var line in sectionLines)
                         if (types.Any(type => line.StartsWith(type + ",")))
-                            foundTypes.Add(func(line.Split(',')));
+                            foundTypes.Add(
+                                ParserStatic.Read("Events", line, l => func(l.Split(',')))
+                            );
                 }
             );
 

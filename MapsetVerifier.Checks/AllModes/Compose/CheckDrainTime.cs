@@ -58,7 +58,8 @@ namespace MapsetVerifier.Checks.AllModes.Compose
         {
             var drainTime = beatmap.GetDrainTime(beatmap.GeneralSettings.mode);
 
-            if (drainTime >= ThirtySecondsMs)
+            // Invalid (NaN) times too.
+            if (!(drainTime < ThirtySecondsMs))
                 yield break;
 
             var drainTimeSeconds = (int)TimeSpan.FromMilliseconds(drainTime).TotalSeconds;

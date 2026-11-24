@@ -21,6 +21,10 @@ public static class TaikoUtils
     {
         double result = line.msPerBeat;
 
+        // Can't be brought into the range below.
+        if (!(result > 0) || double.IsInfinity(result))
+            return result;
+
         while (result <= 60000.0 / 270.0) // 270 BPM
             result *= 2;
 

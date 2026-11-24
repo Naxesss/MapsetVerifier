@@ -4,6 +4,7 @@ using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Difficulty;
 using MapsetVerifier.Parser.Objects;
+using Serilog;
 
 namespace MapsetVerifier.Checks.AllModes.Settings
 {
@@ -92,7 +93,11 @@ namespace MapsetVerifier.Checks.AllModes.Settings
             if (beatmap.GeneralSettings.mode == Beatmap.Mode.Mania)
                 yield break;
 
-            long maxScore = LegacyScoreHelper.GetMaximumLegacyScore(beatmap);
+            // Neither the combo nor score can be told if the game can't read the beatmap.
+            if (beatmap.DifficultyCalculationError != null)
+                yield break;
+
+            var maxScore = GetMaximumScore(beatmap);
 
             if (maxScore <= MaxStableScore)
                 yield break;
@@ -102,6 +107,21 @@ namespace MapsetVerifier.Checks.AllModes.Settings
                 beatmap,
                 maxScore.ToString("N0", CultureInfo.InvariantCulture)
             );
+        }
+
+        /// <summary> Returns 0 if the score can't be told, as the game itself gives up on some extreme beatmaps. </summary>
+        private static long GetMaximumScore(Beatmap beatmap)
+        {
+            try
+            {
+                return LegacyScoreHelper.GetMaximumLegacyScore(beatmap);
+            }
+            catch (Exception exception)
+            {
+                Log.Error(exception, "Couldn't calculate the maximum score");
+
+                return 0;
+            }
         }
     }
 }

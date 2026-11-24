@@ -1,3 +1,4 @@
+using MapsetVerifier.Parser.Exceptions;
 using MapsetVerifier.Parser.Objects;
 using Xunit;
 
@@ -71,7 +72,12 @@ public sealed class BeatmapSetFileTests : IDisposable
     {
         Write("broken.osu", TestBeatmap.Code(["not,a,hit,object,at all"]));
 
-        Assert.Throws<FormatException>(() => new BeatmapSet(folder));
+        var exception = Assert.Throws<InvalidBeatmapDataException>(() => new BeatmapSet(folder));
+
+        Assert.Equal(
+            "broken.osu: Could not read \"not,a,hit,object,at all\" in [HitObjects].",
+            exception.Message
+        );
     }
 
     [Fact]

@@ -84,8 +84,8 @@ public class CheckDashToBorder : BeatmapCheck
 
             if (
                 current.MovementType == CatchMovementType.Walk
-                || float.IsNaN(current.Position.X)
-                || float.IsNaN(next.Position.X)
+                || !float.IsFinite(current.Position.X)
+                || !float.IsFinite(next.Position.X)
             )
                 continue;
 

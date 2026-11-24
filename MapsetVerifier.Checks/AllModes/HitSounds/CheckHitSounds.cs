@@ -261,7 +261,7 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
                                 ++reverseIndex
                             )
                                 ApplyFeedbackUpdate(
-                                    slider.ReverseHitSounds.ElementAt(reverseIndex),
+                                    slider.ReverseHitSounds.ElementAtOrDefault(reverseIndex),
                                     slider.GetReverseSampleset(reverseIndex),
                                     slider,
                                     Math.Floor(

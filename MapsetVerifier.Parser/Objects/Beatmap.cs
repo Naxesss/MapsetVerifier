@@ -1267,6 +1267,12 @@ namespace MapsetVerifier.Parser.Objects
                 return 0;
             }
 
+            // There are no beats to count then, or so many that it would take forever.
+            const int maxBeats = 1_000_000;
+
+            if (!(line.msPerBeat > 0) || !(line.Offset / line.msPerBeat < maxBeats))
+                return 0;
+
             var firstBeatTime = line.Offset;
 
             while (firstBeatTime - line.msPerBeat > 0)
@@ -1298,7 +1304,7 @@ namespace MapsetVerifier.Parser.Objects
             line ??= GetTimingLine<UninheritedLine>(time);
             if (line == null)
             {
-                throw new Exception($"No uninherited line found at {time}.");
+                throw new InvalidBeatmapDataException($"No uninherited line found at {time}.");
             }
 
             // gets how many miliseconds into a beat we are
@@ -1357,6 +1363,11 @@ namespace MapsetVerifier.Parser.Objects
             // Assume the closest possible snapping & retain signed values.
             var minUnsnap = theoreticalUnsnaps.Min(Math.Abs);
 
+            if (double.IsNaN(minUnsnap))
+                throw new InvalidBeatmapDataException(
+                    $"Beatmap contains NaN timing values at time {time}. This indicates corrupted or intentionally invalid timing data."
+                );
+
             return theoreticalUnsnaps.First(unsnap => Math.Abs(unsnap).AlmostEqual(minUnsnap));
         }
 
@@ -1371,7 +1382,7 @@ namespace MapsetVerifier.Parser.Objects
             line ??= GetTimingLine<UninheritedLine>(time);
             if (line == null)
             {
-                throw new Exception($"No uninherited line found at {time}.");
+                throw new InvalidBeatmapDataException($"No uninherited line found at {time}.");
             }
 
             var beatOffset = GetOffsetIntoBeat(time, line);
@@ -1481,7 +1492,7 @@ namespace MapsetVerifier.Parser.Objects
             line ??= GetTimingLine<UninheritedLine>(time);
             if (line == null)
             {
-                throw new Exception($"No uninherited line found at {time}.");
+                throw new InvalidBeatmapDataException($"No uninherited line found at {time}.");
             }
 
             // The game truncates ms times rather than rounding them, which is exactly why 1 ms unsnaps are so
@@ -1651,7 +1662,7 @@ namespace MapsetVerifier.Parser.Objects
                     line.StartsWith(idPrefix, StringComparison.Ordinal)
                     || line.StartsWith(namePrefix, StringComparison.Ordinal)
                 )
-                    foundTypes.Add(func(line.Split(',')));
+                    foundTypes.Add(ParserStatic.Read("Events", line, l => func(l.Split(','))));
 
             return foundTypes;
         }

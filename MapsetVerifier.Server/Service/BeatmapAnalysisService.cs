@@ -1150,7 +1150,7 @@ public static class BeatmapAnalysisService
                     for (var reverseIndex = 0; reverseIndex < slider.EdgeAmount - 1; reverseIndex++)
                     {
                         ApplyFeedbackUpdate(
-                            slider.ReverseHitSounds.ElementAt(reverseIndex),
+                            slider.ReverseHitSounds.ElementAtOrDefault(reverseIndex),
                             slider.GetReverseSampleset(reverseIndex),
                             Math.Floor(slider.time + slider.GetCurveDuration() * (reverseIndex + 1))
                         );
