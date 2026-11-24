@@ -61,4 +61,29 @@ public class CheckAudioFormatTests
             context.RunGeneralCheck<CheckAudioFormat>().SingleOrDefault()?.level
         );
     }
+
+    [Theory]
+    [InlineData("audio.ogg", null)]
+    [InlineData("audio.mp3", Issue.Level.Warning)]
+    public void Ogg_IsFine_IfNamedAsSuch(string name, Issue.Level? expected)
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles(
+            [
+                (
+                    "test.osu",
+                    new OsuBuilder()
+                        .AudioFilename(name)
+                        .WithDefaultTiming()
+                        .WithDefaultHitObject()
+                        .Build()
+                ),
+            ],
+            extraBinaryFiles: [(name, TestMedia.Ogg(199))]
+        );
+
+        Assert.Equal(
+            expected,
+            context.RunGeneralCheck<CheckAudioFormat>().SingleOrDefault()?.level
+        );
+    }
 }

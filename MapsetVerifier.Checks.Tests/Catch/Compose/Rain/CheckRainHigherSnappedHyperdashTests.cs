@@ -63,4 +63,14 @@ public class CheckRainHigherSnappedHyperdashTests
             Assert.Single(Run([100, 100, 1000], [300, 400, 100, 100], Dash, Hyper)).message
         );
     }
+
+    [Fact]
+    public void WithoutAHigherSnappedDashAround_IsFine()
+    {
+        // The last ones of a map.
+        Assert.Empty(Run([100], [0, 300], Hyper));
+        // Other hyperdashes are up to another check.
+        Assert.Empty(Run([100, 100, 1000], [0, 300, 0, 0], Hyper, Hyper));
+        Assert.Empty(Run([200, 100, 1000], [300, 400, 100, 100], Dash, Hyper));
+    }
 }

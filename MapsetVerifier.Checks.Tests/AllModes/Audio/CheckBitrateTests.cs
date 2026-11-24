@@ -73,4 +73,11 @@ public class CheckBitrateTests
     {
         Assert.Empty(Run(TestMedia.Mp3(400)));
     }
+
+    [Fact]
+    public void Ogg_MayHaveAHigherBitrate()
+    {
+        Assert.Empty(Run(TestMedia.Ogg(199)));
+        Assert.Contains("too high", Assert.Single(Run(TestMedia.Ogg(223))).message);
+    }
 }

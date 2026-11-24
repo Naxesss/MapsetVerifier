@@ -62,4 +62,31 @@ public class CheckHitSoundFormatTests
         Assert.Equal(expected, issues.Count > 0);
         Assert.All(issues, issue => Assert.Contains("00:01:000", issue.message));
     }
+
+    [Theory]
+    [InlineData("soft-hitnormal2.ogg", null)]
+    [InlineData("soft-hitnormal2.wav", null)]
+    [InlineData("soft-hitnormal2.mp3", "doesn't use the .wav or .ogg extension")]
+    public void Ogg_IsFine_IfNamedAsSuch(string name, string? expected)
+    {
+        using var context = HitSoundContext.Create(TestMedia.Ogg(199), name);
+
+        var issue = context.RunGeneralCheck<CheckHitSoundFormat>().SingleOrDefault();
+
+        if (expected == null)
+            Assert.Null(issue);
+        else
+            Assert.Contains(expected, issue!.message);
+    }
+
+    [Fact]
+    public void OtherFormats_AreUnexpected()
+    {
+        using var context = HitSoundContext.Create(TestMedia.Aiff(4410));
+
+        var issue = Assert.Single(context.RunGeneralCheck<CheckHitSoundFormat>());
+
+        Assert.Contains("soft-hitnormal2.wav", issue.message);
+        Assert.Contains("AIFF", issue.message);
+    }
 }

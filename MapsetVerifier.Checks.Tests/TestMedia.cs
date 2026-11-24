@@ -218,4 +218,44 @@ internal static class TestMedia
             List("movi", Chunk("00dc", new byte[32]))
         );
     }
+
+    /// <summary> Noise as Ogg Vorbis, with an average bitrate of 199 or 223 kbps. </summary>
+    public static byte[] Ogg(int bitrate) =>
+        File.ReadAllBytes(
+            Path.Combine(AppContext.BaseDirectory, "TestData", "Audio", $"noise-{bitrate}.ogg")
+        );
+
+    /// <summary> Silent 16 bit mono at 44.1 kHz. </summary>
+    public static byte[] Aiff(int frames)
+    {
+        static byte[] Number(int value) =>
+            [(byte)(value >> 24), (byte)(value >> 16), (byte)(value >> 8), (byte)value];
+
+        // The sample rate is an 80 bit float.
+        byte[] common =
+        [
+            .. "COMM"u8,
+            .. Number(18),
+            0,
+            1,
+            .. Number(frames),
+            0,
+            16,
+            0x40,
+            0x0E,
+            0xAC,
+            0x44,
+            .. new byte[6],
+        ];
+        byte[] sound = [.. "SSND"u8, .. Number(8 + frames * 2), .. new byte[8 + frames * 2]];
+
+        return
+        [
+            .. "FORM"u8,
+            .. Number(4 + common.Length + sound.Length),
+            .. "AIFF"u8,
+            .. common,
+            .. sound,
+        ];
+    }
 }
