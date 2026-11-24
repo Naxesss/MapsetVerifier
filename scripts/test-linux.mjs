@@ -1,5 +1,6 @@
-// Runs all backend tests on Linux, on a copy of the source. Optional: needs Docker, or WSL with the .NET 10 SDK, and
-// does nothing without either. The tests themselves need neither, and CI always runs them on Linux.
+// Runs all backend tests on Linux, on a copy of the source. Optional: needs Docker, or WSL with the .NET 10 SDK and ICU
+// (libicu on Ubuntu), and does nothing without either. The tests themselves need neither, and CI always runs them on
+// Linux.
 // Usage: npm run test:linux
 
 import { spawnSync } from 'node:child_process';
@@ -30,7 +31,7 @@ function findLinux() {
   if (succeeds('docker', ['info']))
     return ['Docker', 'docker', ['run', '--rm', '-i', image, 'sh', '-c', unpackAndTest]];
 
-  const hasSdk = 'PATH="$PATH:$HOME/.dotnet" dotnet --list-sdks | grep -q "^10\\."';
+  const hasSdk = 'PATH="$PATH:$HOME/.dotnet" dotnet --version | grep -q "^10\\."';
 
   if (process.platform === 'win32' && succeeds('wsl.exe', ['-e', 'sh', '-c', hasSdk]))
     return ['WSL', 'wsl.exe', ['-e', 'sh', '-c', unpackAndTest]];

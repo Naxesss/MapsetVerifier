@@ -93,7 +93,7 @@ The tests run on any system, and CI runs them on Linux. To do so before pushing,
 npm run test:linux
 ```
 
-This is optional. It uses Docker, or WSL with the .NET 10 SDK, and is skipped without either. The tests run on a copy of the source, including uncommitted changes.
+This is optional. It uses Docker, or WSL with the .NET 10 SDK and ICU (`libicu` on Ubuntu), and is skipped without either. The tests run on a copy of the source, including uncommitted changes.
 
 ## Building sidecars for other systems
 
