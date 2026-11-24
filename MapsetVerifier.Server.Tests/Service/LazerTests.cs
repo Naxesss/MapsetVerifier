@@ -117,10 +117,14 @@ public sealed class LazerTests : IDisposable
     {
         using var other = new SongFolder();
 
-        Assert.Equal(lazer.DataPath, LazerRealmService.DetectLazerDataDirectory());
-        Assert.Equal(lazer.DataPath, LazerRealmService.ResolveLazerDataDirectory(null));
+        // Only looked for on Windows, elsewhere it has to be given.
+        var usual = OperatingSystem.IsWindows() ? lazer.DataPath : null;
+
+        Assert.Equal(usual, LazerRealmService.DetectLazerDataDirectory());
+        Assert.Equal(usual, LazerRealmService.ResolveLazerDataDirectory(null));
         // Without a database it isn't one.
-        Assert.Equal(lazer.DataPath, LazerRealmService.ResolveLazerDataDirectory(other.Path));
+        Assert.Equal(usual, LazerRealmService.ResolveLazerDataDirectory(other.Path));
+        Assert.Equal(lazer.DataPath, LazerRealmService.ResolveLazerDataDirectory(lazer.DataPath));
 
         other.Write("client.realm");
         Assert.Equal(other.Path, LazerRealmService.ResolveLazerDataDirectory(other.Path));
@@ -238,6 +242,10 @@ public sealed class LazerTests : IDisposable
     [Fact]
     public void Materializing_WhileAFileIsOpen_KeepsTheRest()
     {
+        // Elsewhere, open files can still be replaced and removed.
+        if (!OperatingSystem.IsWindows())
+            return;
+
         lazer.AddFile("aa1", "a");
         lazer.AddFile("bb1", "b");
         var id = lazer.AddSet(files: [("a.osu", "aa1"), ("b.png", "bb1")]);
@@ -430,7 +438,11 @@ public sealed class LazerTests : IDisposable
         Assert.IsType<NotFoundObjectResult>(
             Controller().MaterializeLazerBeatmap(Request("no id")).Result
         );
-        Assert.IsType<OkObjectResult>(Controller().GetLazerDataDir());
+
+        if (OperatingSystem.IsWindows())
+            Assert.IsType<OkObjectResult>(Controller().GetLazerDataDir());
+        else
+            Assert.IsType<NotFoundObjectResult>(Controller().GetLazerDataDir());
     }
 
     private string? Best(string? artist, string? title, string? creator, string? version) =>

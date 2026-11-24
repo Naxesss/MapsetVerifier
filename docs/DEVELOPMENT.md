@@ -85,6 +85,16 @@ The tools are part of the .NET tool manifest and restored by the command itself.
 
 A covered line only means that a test ran it, not that it would notice if the line were wrong. In `MapsetVerifier.Checks` the check documentation counts as well, which runs with any test going through all checks.
 
+## Backend tests on Linux
+
+The tests run on any system, and CI runs them on Linux. To do so before pushing, from the repository root:
+
+```bash
+npm run test:linux
+```
+
+This is optional. It uses Docker, or WSL with the .NET 10 SDK, and is skipped without either. The tests run on a copy of the source, including uncommitted changes.
+
 ## Building sidecars for other systems
 
 Sidecar binaries are laid out under `bin/server/dist/<runtime>/` and bundled into the Electron app via `extraResources`.
