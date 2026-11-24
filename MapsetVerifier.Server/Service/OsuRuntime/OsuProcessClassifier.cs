@@ -48,9 +48,23 @@ public static class OsuProcessClassifier
 
     public static OsuClientKind Classify(Process process)
     {
-        var processName = process.ProcessName ?? string.Empty;
-        var exePath = GetExecutablePath(process);
-        var commandLine = GetCommandLine(process);
+        return Classify(
+            process.ProcessName ?? string.Empty,
+            GetExecutablePath(process),
+            GetCommandLine(process),
+            OperatingSystem.IsWindows(),
+            () => IsLikelyLazerByModules(process)
+        );
+    }
+
+    internal static OsuClientKind Classify(
+        string processName,
+        string? exePath,
+        string? commandLine,
+        bool isWindows,
+        Func<bool> hasLazerModules
+    )
+    {
         var hay = Normalize($"{processName} {exePath} {commandLine}");
 
         if (!hay.Contains("osu", StringComparison.Ordinal))
@@ -83,7 +97,7 @@ public static class OsuProcessClassifier
         if (isWine)
             return OsuClientKind.Stable;
 
-        if (IsLikelyLazerByModules(process))
+        if (hasLazerModules())
             return OsuClientKind.Lazer;
 
         var normalizedPath = Normalize(exePath ?? string.Empty);
@@ -95,7 +109,7 @@ public static class OsuProcessClassifier
             return OsuClientKind.Stable;
         }
 
-        if (!OperatingSystem.IsWindows() && !isWine && NativeOsuBinaryRegex.IsMatch(hay))
+        if (!isWindows && !isWine && NativeOsuBinaryRegex.IsMatch(hay))
         {
             return OsuClientKind.Lazer;
         }

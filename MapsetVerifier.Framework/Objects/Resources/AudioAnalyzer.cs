@@ -100,47 +100,63 @@ public static class AudioAnalyzer
     {
         lock (Locks.GetOrAdd(filePath, new object()))
         {
-            var stream = CreateStream(filePath);
+            var stream = CreateStream(filePath, BassFlags.Decode | BassFlags.Float);
             try
             {
                 Bass.ChannelGetInfo(stream, out var channelInfo);
-                var length = Bass.ChannelGetLength(stream);
-                var seconds = Bass.ChannelBytes2Seconds(stream, length);
 
-                // Calculate estimated samples (rounded up to ensure we don't miss the end)
+                var channels = Math.Max(1, channelInfo.Channels);
+                var framesPerInterval = Math.Max(
+                    1,
+                    (int)Math.Round(channelInfo.Frequency * sampleIntervalMs / 1000d)
+                );
+
                 var peakLeft = 0f;
                 var peakRight = 0f;
                 var sumSquaredLeft = 0.0;
                 var sumSquaredRight = 0.0;
+                var sumProduct = 0.0;
+                var frameCount = 0L;
                 var sampleCount = 0;
                 var clippingCount = 0;
                 var clippingTimestamps = new List<double>();
 
-                var levels = new float[channelInfo.Channels];
-                var intervalSeconds = sampleIntervalMs / 1000f;
+                var buffer = new float[framesPerInterval * channels];
 
                 // Process samples until the stream ends
                 var sampleIndex = 0;
                 while (true)
                 {
-                    if (!Bass.ChannelGetLevel(stream, levels, intervalSeconds, 0))
+                    var bytesRead = Bass.ChannelGetData(
+                        stream,
+                        buffer,
+                        buffer.Length * sizeof(float)
+                    );
+
+                    // Negative once the stream has ended, or can't be read any further.
+                    if (bytesRead <= 0)
+                        break;
+
+                    var left = 0f;
+                    var right = 0f;
+                    var framesRead = bytesRead / sizeof(float) / channels;
+
+                    for (var frame = 0; frame < framesRead; frame++)
                     {
-                        if (Bass.LastError == Errors.Ended)
-                            break;
-                        sampleIndex++;
-                        continue;
+                        var leftSample = buffer[frame * channels];
+                        var rightSample = channels > 1 ? buffer[frame * channels + 1] : leftSample;
+
+                        left = Math.Max(left, Math.Abs(leftSample));
+                        right = Math.Max(right, Math.Abs(rightSample));
+
+                        sumSquaredLeft += leftSample * leftSample;
+                        sumSquaredRight += rightSample * rightSample;
+                        sumProduct += leftSample * rightSample;
                     }
 
-                    var left = levels[0];
-                    var right = channelInfo.Channels > 1 ? levels[1] : levels[0];
-
-                    if (left > peakLeft)
-                        peakLeft = left;
-                    if (right > peakRight)
-                        peakRight = right;
-
-                    sumSquaredLeft += left * left;
-                    sumSquaredRight += right * right;
+                    frameCount += framesRead;
+                    peakLeft = Math.Max(peakLeft, left);
+                    peakRight = Math.Max(peakRight, right);
                     sampleCount++;
 
                     // Detect clipping (level >= 0.99)
@@ -153,8 +169,9 @@ public static class AudioAnalyzer
                     sampleIndex++;
                 }
 
-                var rmsLeft = sampleCount > 0 ? Math.Sqrt(sumSquaredLeft / sampleCount) : 0;
-                var rmsRight = sampleCount > 0 ? Math.Sqrt(sumSquaredRight / sampleCount) : 0;
+                var rmsLeft = frameCount > 0 ? Math.Sqrt(sumSquaredLeft / frameCount) : 0;
+                var rmsRight = frameCount > 0 ? Math.Sqrt(sumSquaredRight / frameCount) : 0;
+                var productOfRoots = Math.Sqrt(sumSquaredLeft * sumSquaredRight);
 
                 return new LevelInfo
                 {
@@ -165,6 +182,7 @@ public static class AudioAnalyzer
                     ClippingCount = clippingCount,
                     ClippingTimestamps = clippingTimestamps,
                     SampleCount = sampleCount,
+                    PhaseCorrelation = productOfRoots > 0 ? sumProduct / productOfRoots : 1,
                 };
             }
             finally
@@ -202,13 +220,9 @@ public static class AudioAnalyzer
                 var sampleIndex = 0;
                 while (true)
                 {
+                    // Fails once the stream has ended, or can't be read any further.
                     if (!Bass.ChannelGetLevel(stream, levels, intervalSeconds, 0))
-                    {
-                        if (Bass.LastError == Errors.Ended)
-                            break;
-                        sampleIndex++;
-                        continue;
-                    }
+                        break;
 
                     samples.Add(
                         new ChannelLevelSample
@@ -387,6 +401,9 @@ public struct LevelInfo
     public int ClippingCount { get; init; }
     public List<double> ClippingTimestamps { get; init; }
     public int SampleCount { get; init; }
+
+    /// <summary> From -1 (opposite phase) to 1 (in phase, as with mono), or 1 with a silent channel. </summary>
+    public double PhaseCorrelation { get; init; }
 }
 
 /// <summary>

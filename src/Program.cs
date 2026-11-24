@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using MapsetVerifier.Framework;
 using MapsetVerifier.Logging;
 using MapsetVerifier.Server;
+using MapsetVerifier.Server.Service;
 using MapsetVerifier.Snapshots.Store;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -47,6 +48,7 @@ namespace MapsetVerifier
 
                 Checker.ConfigureCustomChecksPath(appDataPath, ExternalsFolderName);
                 SnapshotStore.ConfigurePath(appDataPath, ExternalsFolderName);
+                CheckRunHistoryService.ConfigurePath(appDataPath, ExternalsFolderName);
 
                 Log.Information("Loading default checks...");
                 Checker.LoadDefaultChecks();

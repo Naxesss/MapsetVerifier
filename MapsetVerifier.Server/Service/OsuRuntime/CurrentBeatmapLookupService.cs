@@ -189,7 +189,15 @@ public static class CurrentBeatmapLookupService
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        var liveMetadata = metadataCandidates.FirstOrDefault() ?? string.Empty;
+        return ResolveStableCurrentMap(songsFolder, metadataCandidates);
+    }
+
+    internal static ApiLazerLookupResult ResolveStableCurrentMap(
+        string songsFolder,
+        IReadOnlyList<string> metadataCandidates
+    )
+    {
+        var liveMetadata = metadataCandidates.FirstOrDefault();
         var metadata = ResolveStickyMetadata(OsuClientKind.Stable, liveMetadata);
         if (string.IsNullOrWhiteSpace(metadata))
             return new ApiLazerLookupResult(
@@ -218,11 +226,10 @@ public static class CurrentBeatmapLookupService
         if (!string.IsNullOrWhiteSpace(resolvedFolder))
         {
             var beatmap = TryBuildBeatmapFromFolder(resolvedFolder);
-            var displayMetadata = resolvedMetadata ?? metadata;
             return new ApiLazerLookupResult(
                 "folder_found",
                 "Current stable map found.",
-                displayMetadata,
+                resolvedMetadata,
                 resolvedFolder,
                 songsFolder,
                 beatmap
@@ -274,7 +281,7 @@ public static class CurrentBeatmapLookupService
     /// even when the map was opened normally (not externally), and the underlying browse/open
     /// flow no longer depends on it at all.
     /// </summary>
-    private static ApiLazerLookupResult ResolveLazerCurrentMap(
+    internal static ApiLazerLookupResult ResolveLazerCurrentMap(
         string metadata,
         string? liveMetadata,
         string? lazerDataDirOverride = null
@@ -460,9 +467,6 @@ public static class CurrentBeatmapLookupService
 
     private static string NormalizeLookupName(string value)
     {
-        if (string.IsNullOrWhiteSpace(value))
-            return string.Empty;
-
         var sb = new StringBuilder(value.Length);
         foreach (var c in value.ToLowerInvariant())
         {
@@ -541,7 +545,7 @@ public static class CurrentBeatmapLookupService
         return (title, artist, creator, beatmapId, beatmapSetId, backgroundPath);
     }
 
-    private static string? TryExtractEditorMetadata(string windowTitle)
+    internal static string? TryExtractEditorMetadata(string windowTitle)
     {
         if (string.IsNullOrWhiteSpace(windowTitle))
             return null;
@@ -570,7 +574,7 @@ public static class CurrentBeatmapLookupService
         return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
     }
 
-    private static string? ResolveStickyMetadata(OsuClientKind clientKind, string? liveMetadata)
+    internal static string? ResolveStickyMetadata(OsuClientKind clientKind, string? liveMetadata)
     {
         lock (StickyMetadataLock)
         {

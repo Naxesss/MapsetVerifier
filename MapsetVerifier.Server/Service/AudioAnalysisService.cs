@@ -88,9 +88,10 @@ public static class AudioAnalysisService
             }
 
             var bitrateAnalysis = AnalyzeBitrate(audioPath);
-            var channelAnalysis = AnalyzeChannels(audioPath);
+            var levelInfo = AudioAnalyzer.GetLevelInfo(audioPath);
+            var channelAnalysis = AnalyzeChannels(audioPath, levelInfo.PhaseCorrelation);
             var formatAnalysis = AnalyzeFormat(audioPath);
-            var dynamicRangeAnalysis = AnalyzeDynamicRange(audioPath);
+            var dynamicRangeAnalysis = AnalyzeDynamicRange(audioPath, levelInfo);
 
             return AudioAnalysisResult.CreateSuccess(
                 PathStatic.RelativePath(audioPath, beatmapSetFolder),
@@ -129,7 +130,7 @@ public static class AudioAnalysisService
     /// <summary>
     /// Analyzes channel balance and stereo characteristics.
     /// </summary>
-    private static ChannelAnalysisResult AnalyzeChannels(string audioPath)
+    private static ChannelAnalysisResult AnalyzeChannels(string audioPath, double phaseCorrelation)
     {
         var channels = AudioBASS.GetChannels(audioPath);
         var peaks = AudioBASS.GetPeaks(audioPath);
@@ -192,8 +193,7 @@ public static class AudioAnalysisService
 
         var severity = GetImbalanceSeverity(balanceRatio, leftSum, rightSum);
 
-        // Calculate phase correlation and stereo width (simplified)
-        var phaseCorrelation = CalculatePhaseCorrelation(peaks, channels);
+        // Simplified, from the peaks.
         var stereoWidth = isMono ? 0.0 : CalculateStereoWidth(peaks, channels);
 
         return new ChannelAnalysisResult
@@ -239,9 +239,8 @@ public static class AudioAnalysisService
     /// <summary>
     /// Analyzes dynamic range, loudness, and clipping.
     /// </summary>
-    private static DynamicRangeResult AnalyzeDynamicRange(string audioPath)
+    private static DynamicRangeResult AnalyzeDynamicRange(string audioPath, LevelInfo levelInfo)
     {
-        var levelInfo = AudioAnalyzer.GetLevelInfo(audioPath);
         var channelLevels = AudioAnalyzer.GetChannelLevelsOverTime(audioPath, 100);
 
         var peakLevel = Math.Max(levelInfo.PeakLeft, levelInfo.PeakRight);
@@ -476,27 +475,6 @@ public static class AudioAnalysisService
         return ImbalanceSeverity.None;
     }
 
-    private static double CalculatePhaseCorrelation(List<float[]> peaks, int channels)
-    {
-        if (channels < 2 || peaks.Count == 0)
-            return 1.0;
-
-        double sumProduct = 0,
-            sumLeftSq = 0,
-            sumRightSq = 0;
-        foreach (var peak in peaks)
-        {
-            var left = peak[0];
-            var right = peak.Length > 1 ? peak[1] : peak[0];
-            sumProduct += left * right;
-            sumLeftSq += left * left;
-            sumRightSq += right * right;
-        }
-
-        var denominator = Math.Sqrt(sumLeftSq * sumRightSq);
-        return denominator > 0 ? sumProduct / denominator : 1.0;
-    }
-
     private static double CalculateStereoWidth(List<float[]> peaks, int channels)
     {
         if (channels < 2 || peaks.Count == 0)
@@ -521,7 +499,7 @@ public static class AudioAnalysisService
         {
             ChannelType.MP3 => "MP3",
             ChannelType.OGG => "OGG",
-            ChannelType.Wave => "WAV",
+            _ when (format & ChannelType.Wave) != 0 => "WAV",
             ChannelType.AIFF => "AIFF",
             ChannelType.FLAC => "FLAC",
             _ => "Unknown",
@@ -534,7 +512,7 @@ public static class AudioAnalysisService
         {
             ChannelType.MP3 => "MPEG Audio Layer III",
             ChannelType.OGG => "Ogg Vorbis",
-            ChannelType.Wave => "PCM Wave",
+            _ when (format & ChannelType.Wave) != 0 => "PCM Wave",
             ChannelType.AIFF => "Audio Interchange File Format",
             ChannelType.FLAC => "Free Lossless Audio Codec",
             _ => "Unknown Codec",
@@ -584,6 +562,7 @@ public static class AudioAnalysisService
             4096 => DataFlags.FFT4096,
             8192 => DataFlags.FFT8192,
             16384 => DataFlags.FFT16384,
+            32768 => DataFlags.FFT32768,
             _ => DataFlags.FFT4096,
         };
     }
@@ -700,16 +679,18 @@ public static class AudioAnalysisService
             }
         }
 
-        // Calculate energy in frequency bands
-        var bassEnergy = fftPoints
-            .Where(p => p.FrequencyHz is >= 20 and < 250)
-            .Average(p => p.MagnitudeDb);
-        var midEnergy = fftPoints
-            .Where(p => p.FrequencyHz is >= 250 and < 4000)
-            .Average(p => p.MagnitudeDb);
-        var highEnergy = fftPoints
-            .Where(p => p.FrequencyHz is >= 4000 and <= 24000)
-            .Average(p => p.MagnitudeDb);
+        // Calculate energy in frequency bands. A band has no points if the sample rate doesn't reach it, or if
+        // the window is too small to tell it apart from others, and is then as quiet as silence.
+        double GetEnergy(Func<double, bool> isInBand) =>
+            fftPoints
+                .Where(p => isInBand(p.FrequencyHz))
+                .Select(p => p.MagnitudeDb)
+                .DefaultIfEmpty(-100)
+                .Average();
+
+        var bassEnergy = GetEnergy(frequency => frequency is >= 20 and < 250);
+        var midEnergy = GetEnergy(frequency => frequency is >= 250 and < 4000);
+        var highEnergy = GetEnergy(frequency => frequency is >= 4000 and <= 24000);
 
         return new HarmonicAnalysis
         {
@@ -759,20 +740,17 @@ public static class AudioAnalysisService
 
     private static (string NoteName, double Cents) FrequencyToNote(double frequency)
     {
-        if (frequency <= 0)
-            return ("N/A", 0);
-
         var noteNames = new[] { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
         var a4 = 440.0;
         var c0 = a4 * Math.Pow(2, -4.75);
 
         var halfSteps = 12 * Math.Log2(frequency / c0);
-        var octave = (int)(halfSteps / 12);
-        var noteIndex = (int)Math.Round(halfSteps) % 12;
-        if (noteIndex < 0)
-            noteIndex += 12;
+        // Both by the closest note, as e.g. slightly below C4 is closest to C4, rather than C3.
+        var closestNote = (int)Math.Round(halfSteps);
+        var octave = (int)Math.Floor(closestNote / 12.0);
+        var noteIndex = closestNote - octave * 12;
 
-        var exactNote = c0 * Math.Pow(2, Math.Round(halfSteps) / 12.0);
+        var exactNote = c0 * Math.Pow(2, closestNote / 12.0);
         var cents = 1200 * Math.Log2(frequency / exactNote);
 
         return ($"{noteNames[noteIndex]}{octave}", cents);
@@ -780,8 +758,6 @@ public static class AudioAnalysisService
 
     private static int FrequencyToMidi(double frequency)
     {
-        if (frequency <= 0)
-            return 0;
         return (int)Math.Round(69 + 12 * Math.Log2(frequency / 440.0));
     }
 

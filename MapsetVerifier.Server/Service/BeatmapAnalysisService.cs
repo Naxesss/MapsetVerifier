@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Globalization;
 using MapsetVerifier.Parser.Difficulty;
 using MapsetVerifier.Parser.Objects;
@@ -87,22 +86,15 @@ public static class BeatmapAnalysisService
                 return DifficultyOverviewResult.CreateError("No beatmaps found in folder.");
 
             var msPerPeak = ResolveMsPerPeak(beatmapSet.InOverviewOrder());
-            var difficulties = new ConcurrentBag<DifficultyOverviewDifficulty>();
-
-            // Each diff runs one timed calc. Safe to parallelize across beatmaps.
-            Parallel.ForEach(
-                beatmapSet.InOverviewOrder(),
-                beatmap => difficulties.Add(GetDifficultyOverviewDifficulty(beatmap, msPerPeak))
-            );
-
-            // Parallel.ForEach loses the order; restore the Overview's (mode, then star rating).
-            var difficultiesByVersion = difficulties.ToDictionary(difficulty => difficulty.Version);
-            var orderedDifficulties = beatmapSet
+            // Each diff runs one timed calc. Safe to parallelize across beatmaps, which may share names.
+            var difficulties = beatmapSet
                 .InOverviewOrder()
-                .Select(beatmap => difficultiesByVersion[beatmap.MetadataSettings.version])
+                .AsParallel()
+                .AsOrdered()
+                .Select(beatmap => GetDifficultyOverviewDifficulty(beatmap, msPerPeak))
                 .ToList();
 
-            return DifficultyOverviewResult.CreateSuccess(msPerPeak, orderedDifficulties);
+            return DifficultyOverviewResult.CreateSuccess(msPerPeak, difficulties);
         }
         catch (Exception ex) when (IsOperationCanceled(ex))
         {
@@ -120,7 +112,7 @@ public static class BeatmapAnalysisService
         }
     }
 
-    // Parallel.ForEach wraps per-diff cancel exceptions in AggregateException.
+    // Running in parallel wraps per-diff cancel exceptions in AggregateException.
     private static bool IsOperationCanceled(Exception exception)
     {
         if (exception is OperationCanceledException)
@@ -213,7 +205,7 @@ public static class BeatmapAnalysisService
         if (kiaiStart != null && beatmap.HitObjects.Count > 0)
         {
             var lastObjectTime = beatmap.HitObjects.Max(o => o.GetEndTime());
-            totalKiai += lastObjectTime - kiaiStart.Value;
+            totalKiai += Math.Max(lastObjectTime - kiaiStart.Value, 0);
         }
 
         return totalKiai;
@@ -390,29 +382,12 @@ public static class BeatmapAnalysisService
         List<osu.Game.Rulesets.Difficulty.TimedDifficultyAttributes> timedAttributes
     )
     {
-        if (timedAttributes.Count > 0)
-        {
-            return Math.Max(
-                timedAttributes[^1].Time,
-                beatmap.HitObjects.Count > 0
-                    ? beatmap.HitObjects.Max(hitObject => hitObject.GetEndTime())
-                    : 0
-            );
-        }
-
-        if (beatmap.TimingLines.Count == 0 && beatmap.HitObjects.Count == 0)
-            return 0;
-
-        var timingMax =
-            beatmap.TimingLines.Count > 0
-                ? beatmap.TimingLines.Max(timingLine => timingLine.Offset)
-                : 0;
-        var objectsMax =
+        return Math.Max(
+            timedAttributes[^1].Time,
             beatmap.HitObjects.Count > 0
                 ? beatmap.HitObjects.Max(hitObject => hitObject.GetEndTime())
-                : 0;
-
-        return Math.Max(timingMax, objectsMax);
+                : 0
+        );
     }
 
     private static List<DifficultySamplePoint> GetStarRatingSamples(
@@ -704,11 +679,14 @@ public static class BeatmapAnalysisService
         var unsnappedCount = 0;
         var unsnappedEdgeTimes = new List<double>();
 
+        // Without any red line there is nothing to snap to.
+        var hasTiming = beatmap.TimingLines.Any(line => line.Uninherited);
+
         foreach (var hitObject in beatmap.HitObjects)
         {
             foreach (var edgeTime in hitObject.GetEdgeTimes())
             {
-                if (hitObject.type == HitObject.Types.Spinner)
+                if (hitObject is Spinner || !hasTiming)
                 {
                     continue;
                 }
