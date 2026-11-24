@@ -1,0 +1,11 @@
+<Project>
+  <!--
+    osu! needs AutoMapper 13 for calculating star ratings, and there is no fixed version which it works with. The
+    vulnerabilities are about mapping deeply nested objects.
+  -->
+  <ItemGroup>
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-6vhm-j9h7-f9gh" />
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-gpwp-5797-mjff" />
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-rvv3-g6hj-g44x" />
+  </ItemGroup>
+</Project>
