@@ -20,72 +20,7 @@ public static class HostBuilderFactory
             LazerBeatmapMaterializer.SweepOnStartup();
             Log.Information("Lazer materialization temp folder swept");
 
-            var host = Host.CreateDefaultBuilder(args)
-                .UseSerilog()
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    Log.Information("Configuring WebHost...");
-
-                    webBuilder.ConfigureServices(services =>
-                    {
-                        Log.Information("Registering services...");
-
-                        services
-                            .AddControllers(options =>
-                            {
-                                options.Filters.Add<ApiExceptionFilter>();
-                            })
-                            .AddJsonOptions(options =>
-                            {
-                                options.JsonSerializerOptions.Converters.Add(
-                                    new System.Text.Json.Serialization.JsonStringEnumConverter()
-                                );
-                            });
-
-                        Log.Information("Controllers configured");
-
-                        services.AddSwaggerGen();
-                        Log.Information("Swagger registered");
-
-                        services.AddCors(options =>
-                        {
-                            options.AddDefaultPolicy(builder =>
-                            {
-                                builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-                            });
-                        });
-
-                        Log.Information("CORS policy registered");
-                    });
-
-                    webBuilder.Configure(app =>
-                    {
-                        app.UseRequestResponseLogging();
-                        Log.Information("Request/Response logging middleware enabled");
-
-                        app.UseCors();
-                        Log.Information("CORS middleware enabled");
-
-                        app.UseSwagger();
-                        app.UseSwaggerUI(c =>
-                        {
-                            c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
-                        });
-
-                        Log.Information("Swagger middleware enabled");
-
-                        app.UseRouting();
-
-                        app.UseEndpoints(endpoints =>
-                        {
-                            endpoints.MapControllers();
-                            Log.Information("Controllers mapped");
-                        });
-
-                        Log.Information("Middleware pipeline configured");
-                    });
-                })
-                .Build();
+            var host = CreateHost(args);
 
             Log.Information("Host built");
 
@@ -111,4 +46,86 @@ public static class HostBuilderFactory
             throw;
         }
     }
+
+    /// <summary> The server alone, without clearing up after previous runs. </summary>
+    internal static IHost CreateHost(string[] args)
+    {
+        return Host.CreateDefaultBuilder(args)
+            .UseSerilog()
+            .ConfigureWebHostDefaults(webBuilder =>
+            {
+                Log.Information("Configuring WebHost...");
+
+                webBuilder.ConfigureServices(services =>
+                {
+                    Log.Information("Registering services...");
+
+                    services
+                        .AddControllers(options =>
+                        {
+                            options.Filters.Add<ApiExceptionFilter>();
+                        })
+                        .AddJsonOptions(options =>
+                        {
+                            options.JsonSerializerOptions.Converters.Add(
+                                new System.Text.Json.Serialization.JsonStringEnumConverter()
+                            );
+                        });
+
+                    Log.Information("Controllers configured");
+
+                    services.AddSwaggerGen();
+                    Log.Information("Swagger registered");
+
+                    services.AddCors(options =>
+                    {
+                        options.AddDefaultPolicy(builder =>
+                        {
+                            builder
+                                .SetIsOriginAllowed(IsOwnOrigin)
+                                .AllowAnyHeader()
+                                .AllowAnyMethod();
+                        });
+                    });
+
+                    Log.Information("CORS policy registered");
+                });
+
+                webBuilder.Configure(app =>
+                {
+                    app.UseRequestResponseLogging();
+                    Log.Information("Request/Response logging middleware enabled");
+
+                    app.UseCors();
+                    Log.Information("CORS middleware enabled");
+
+                    app.UseSwagger();
+                    app.UseSwaggerUI(c =>
+                    {
+                        c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
+                    });
+
+                    Log.Information("Swagger middleware enabled");
+
+                    app.UseRouting();
+
+                    app.UseEndpoints(endpoints =>
+                    {
+                        endpoints.MapControllers();
+                        Log.Information("Controllers mapped");
+                    });
+
+                    Log.Information("Middleware pipeline configured");
+                });
+            })
+            .Build();
+    }
+
+    /// <summary>
+    ///     Whether a page is the app itself: opened from a file, which has no origin ("null"), or from the development
+    ///     server. Any other website the user has open should not be able to read their files through the server.
+    /// </summary>
+    internal static bool IsOwnOrigin(string origin) =>
+        origin == "null"
+        || (Uri.TryCreate(origin, UriKind.Absolute, out var uri) && uri.IsLoopback);
 }
