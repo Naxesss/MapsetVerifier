@@ -57,7 +57,7 @@ public class CheckPatternScrollSpeed : BeatmapCheck
                 "Abrupt",
                 new IssueTemplate(
                     Issue.Level.Warning,
-                    "{0} Scroll speed abruptly changes to {1}x of what it was, within an overlapping pattern of {2} notes.",
+                    "{0} Scroll speed changes to {1}x within an overlapping pattern of {2} notes.",
                     "timestamp -",
                     "change",
                     "count"

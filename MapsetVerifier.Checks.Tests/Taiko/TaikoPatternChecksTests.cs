@@ -79,7 +79,7 @@ public class TaikoPatternChecksTests
         var issue = Assert.Single(RunColours("Muzukashii", objects));
 
         Assert.Equal(Issue.Level.Minor, issue.level);
-        Assert.Contains("(ddk and kkd) right after each other", issue.message);
+        Assert.Contains("(ddk, kkd) in a row", issue.message);
     }
 
     [Fact]

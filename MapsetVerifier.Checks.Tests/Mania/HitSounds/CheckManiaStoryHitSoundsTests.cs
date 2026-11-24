@@ -40,7 +40,7 @@ public class CheckManiaStoryHitSoundsTests
 
         // The first chord has a single free note, so only one of its samples can be moved.
         Assert.Contains("00:01:000 - 00:02:000 - ", issue.message);
-        Assert.Contains("2 storyboarded hit sounds as loud", issue.message);
+        Assert.Contains("2 storyboarded hit sounds could be on a note", issue.message);
         Assert.Contains("\"crash.wav\"", issue.message);
     }
 

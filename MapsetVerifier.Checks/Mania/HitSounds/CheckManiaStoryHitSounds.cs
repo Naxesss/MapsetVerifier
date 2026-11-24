@@ -57,7 +57,7 @@ public class CheckManiaStoryHitSounds : BeatmapSetCheck
                 "Could Be On Note",
                 new IssueTemplate(
                     Issue.Level.Warning,
-                    "{0} {1} storyboarded hit sound{2} as loud as the notes could be on a note instead, such as \"{3}\".",
+                    "{0} {1} storyboarded hit sound{2} could be on a note, such as \"{3}\".",
                     "timestamps -",
                     "amount",
                     "s",

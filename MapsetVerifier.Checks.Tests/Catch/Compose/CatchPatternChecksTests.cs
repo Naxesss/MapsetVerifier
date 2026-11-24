@@ -22,7 +22,7 @@ public class CatchPatternChecksTests
             issue => issue.message.Contains("from the border")
         );
         Assert.Equal(Issue.Level.Warning, issue.level);
-        Assert.Contains("the fruit is 22 px from the border, 300 ms after", issue.message);
+        Assert.Contains("fruit 22 px from the border after 300 ms", issue.message);
     }
 
     [Theory]
@@ -64,7 +64,7 @@ public class CatchPatternChecksTests
 
         var issue = Assert.Single(Run<CheckSpinnerTrap>(context, Beatmap.Difficulty.Insane));
         Assert.Equal(Issue.Level.Warning, issue.level);
-        Assert.Contains("px too far to reach after catching the most bananas", issue.message);
+        Assert.Contains("px out of reach", issue.message);
     }
 
     [Fact]
@@ -110,7 +110,7 @@ public class CatchPatternChecksTests
         );
         Assert.Equal(Issue.Level.Minor, issue.level);
         Assert.Contains("higher-snapped hyperdash from fruit", issue.message);
-        Assert.Contains("times the trigger distance, more than 1.3", issue.message);
+        Assert.Contains("x the trigger distance (max 1.3x)", issue.message);
     }
 
     [Fact]
@@ -136,7 +136,7 @@ public class CatchPatternChecksTests
             Run<CheckPlatterStrongHyperdash>(context, Beatmap.Difficulty.Hard)
         );
         Assert.Equal(Issue.Level.Warning, issue.level);
-        Assert.Contains("more than 1.5", issue.message);
+        Assert.Contains("(max 1.5x)", issue.message);
     }
 
     [Fact]

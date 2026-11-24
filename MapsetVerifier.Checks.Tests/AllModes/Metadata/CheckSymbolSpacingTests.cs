@@ -26,7 +26,7 @@ public class CheckSymbolSpacingTests
     {
         var warning = Assert.Single(Run("Song *Title*", "Song★Title★"));
 
-        Assert.Contains("\"★Title★\" in the unicode title", warning.message);
+        Assert.Contains("\"★Title★\" in unicode title", warning.message);
     }
 
     [Theory]

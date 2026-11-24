@@ -19,7 +19,7 @@ public class OsuOverlapChecksTests
         using var context = Create("Hard", Line(1000, 100, 240), Line(1000 + Beat * 2, 240, 100));
 
         var issue = Assert.Single(BodyIssues(context, Beatmap.Difficulty.Hard));
-        Assert.Contains("ending 1 beats earlier, should be more than 2 beats", issue.message);
+        Assert.Contains("ending 1 beats earlier (min 2 beats)", issue.message);
         Assert.Equal(Issue.Level.Warning, issue.level);
     }
 

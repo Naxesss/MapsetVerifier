@@ -38,7 +38,9 @@ public class CheckSpecialStyle : BeatmapSetCheck
                     "Reasoning",
                     @"
                     In N+1, the leftmost column is mapped separately from the others. The option marks which difficulties
-                    are made that way, and the tag lets players search for them."
+                    are made that way, and the tag lets players search for them.
+
+                    If the option is on without the tag, add the tag if the difficulty is N+1, or turn the option off otherwise."
                 },
             },
         };
@@ -50,7 +52,7 @@ public class CheckSpecialStyle : BeatmapSetCheck
                 "Not Enabled",
                 new IssueTemplate(
                     Issue.Level.Problem,
-                    "The name says this difficulty is {0}, but the special style option is off.",
+                    "Named {0}, but special style is off.",
                     "playstyle"
                 )
                     .WithCause(
@@ -62,7 +64,7 @@ public class CheckSpecialStyle : BeatmapSetCheck
                 "Missing Tag",
                 new IssueTemplate(
                     Issue.Level.Problem,
-                    "The name says this difficulty is {0}, but the tags don't include \"N+1\".",
+                    "Named {0}, but \"N+1\" isn't in the tags.",
                     "playstyle"
                 )
                     .WithCause(
@@ -77,7 +79,7 @@ public class CheckSpecialStyle : BeatmapSetCheck
                 "Too Many Keys",
                 new IssueTemplate(
                     Issue.Level.Problem,
-                    "The special style option is on with {0} keys, it must be off with 10 keys or more.",
+                    "Special style is on with {0} keys, must be off from 10 keys.",
                     "keys"
                 )
                     .WithCause(
@@ -89,7 +91,7 @@ public class CheckSpecialStyle : BeatmapSetCheck
                 "Enabled Without Tag",
                 new IssueTemplate(
                     Issue.Level.Warning,
-                    "The special style option is on, but the tags don't include \"N+1\". Add the tag if this difficulty is N+1, otherwise turn the option off."
+                    "Special style is on, but \"N+1\" isn't in the tags."
                 )
                     .WithCause(
                         "A difficulty below 10 keys has the special style option enabled, but neither its name nor the tags say N+1."
@@ -100,7 +102,7 @@ public class CheckSpecialStyle : BeatmapSetCheck
                 "Tag Without Enabled",
                 new IssueTemplate(
                     Issue.Level.Warning,
-                    "The tags include \"N+1\", but no difficulty has the special style option on."
+                    "\"N+1\" is in the tags, but special style is off everywhere."
                 )
                     .WithCause(
                         "The tags include \"N+1\", but no difficulty is named as N+1 or has the special style option enabled."

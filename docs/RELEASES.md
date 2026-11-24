@@ -39,7 +39,8 @@ For release builds, **`electron-builder`** receives `--config.extraMetadata.vers
    npm --prefix electron-app ci
    ```
 
-3. **Sidecar binaries** (`bin/server/dist` referenced from root `package.json` `build.extraResources`) are produced as your pipeline expects—the release jobs build/consume them via the workflow.
+3. For stable releases, update the Japanese word list as described under [Romanisation data](DEVELOPMENT.md#romanisation-data). Its licence asks for regular updates.
+4. **Sidecar binaries** (`bin/server/dist` referenced from root `package.json` `build.extraResources`) are produced as your pipeline expects—the release jobs build/consume them via the workflow.
 
 ---
 

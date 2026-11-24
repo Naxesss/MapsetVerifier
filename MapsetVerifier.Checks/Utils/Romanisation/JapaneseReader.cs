@@ -12,8 +12,6 @@ public enum JapaneseWordKind
 
     /// <summary> Particles like の, は and を inside a phrase, which romanisations keep lowercase. </summary>
     Particle,
-    Surname,
-    GivenName,
 }
 
 /// <summary> One word of Japanese text: the text as written, and how it reads in kana. </summary>
@@ -113,8 +111,6 @@ public static class JapaneseReader
             // Sentence-ending particles (ね, よ, かな) are left out: they're rare in titles, and かな is also a common name.
             _ when partOfSpeech.StartsWith("助詞") && !partOfSpeech.Contains("終助詞") =>
                 JapaneseWordKind.Particle,
-            _ when partOfSpeech.EndsWith("人名-姓") => JapaneseWordKind.Surname,
-            _ when partOfSpeech.EndsWith("人名-名") => JapaneseWordKind.GivenName,
             _ => JapaneseWordKind.Other,
         };
 }

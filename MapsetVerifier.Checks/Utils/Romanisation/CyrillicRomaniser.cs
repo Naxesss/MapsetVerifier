@@ -3,8 +3,10 @@ using MapsetVerifier.RankingCriteria;
 namespace MapsetVerifier.Checks.Utils.Romanisation;
 
 /// <summary>
-///     Cyrillic in the BGN/PCGN system. The language isn't known, so the Russian, Ukrainian and Belarusian readings
-///     of shared letters are all accepted (г as g or h, и as i or y).
+///     Cyrillic in the BGN/PCGN system. The language isn't always known, so the Russian, Ukrainian and Belarusian
+///     readings of shared letters are all accepted (г as g or h, и as i or y). Ukrainian, Bulgarian, Serbian and
+///     Macedonian have systems of their own, which are accepted as well if the text has letters or spellings that only
+///     those languages use. Letters those systems write with diacritics are expected as their plain letter.
 /// </summary>
 public sealed class CyrillicRomaniser : LetterTableRomaniser
 {
@@ -65,6 +67,31 @@ public sealed class CyrillicRomaniser : LetterTableRomaniser
         ['ѵ'] = ["i"],
     };
 
+    private const string UkrainianLetters = "іїєґ";
+    private const string NotUkrainianLetters = "ыэёъўѣ";
+    private const string SouthSlavicLetters = "ђјљњћџѓќѕ";
+
+    // Letters which Serbian and Macedonian write differently.
+    private static readonly Dictionary<char, string[]> SouthSlavic = new()
+    {
+        ['ж'] = ["z"],
+        ['х'] = ["h"],
+        ['ц'] = ["c"],
+        ['ч'] = ["c"],
+        ['ш'] = ["s"],
+        ['ђ'] = ["d"],
+        ['ѓ'] = ["g"],
+        ['ќ'] = ["k"],
+    };
+
+    private static readonly Dictionary<char, string[]> Bulgarian = new()
+    {
+        ['х'] = ["h"],
+        ['щ'] = ["sht"],
+        ['ъ'] = ["a"],
+        ['ь'] = ["y"],
+    };
+
     // Spellings from other systems (scientific, ISO 9, German and Polish style), which aren't BGN/PCGN.
     private static readonly Dictionary<char, string[]> OtherSystems = new()
     {
@@ -87,7 +114,6 @@ public sealed class CyrillicRomaniser : LetterTableRomaniser
     };
 
     public override string Name => "Cyrillic";
-    public override string SystemName => "BGN/PCGN";
     public override string[] Rules => [RC.Metadata.Romanisation_CyrillicWritingUseBgnPcgn];
 
     public override string Cause =>
@@ -95,7 +121,7 @@ public sealed class CyrillicRomaniser : LetterTableRomaniser
 
     protected override bool IsAlphabetLetter(char letter) => letter is >= 'Ѐ' and <= 'ӿ';
 
-    protected override string[]? Romanise(char letter, char? previous, bool anySystem)
+    protected override string[]? Romanise(char letter, char? previous, bool anySystem, string text)
     {
         string[]? strict;
         if (letter is 'е' or 'ё')
@@ -109,8 +135,62 @@ public sealed class CyrillicRomaniser : LetterTableRomaniser
         else if (!Bgn.TryGetValue(letter, out strict))
             return null;
 
+        // The spellings of a known language are preferred.
+        strict = [.. RomaniseByLanguage(letter, previous, text).Concat(strict).Distinct()];
+
         return anySystem && OtherSystems.TryGetValue(letter, out var other)
             ? [.. strict, .. other]
             : strict;
+    }
+
+    /// <summary> How a letter is romanised in the language the text is in, as far as that can be told and it differs. </summary>
+    private static string[] RomaniseByLanguage(char letter, char? previous, string text)
+    {
+        if (text.Any(ch => SouthSlavicLetters.Contains(char.ToLowerInvariant(ch))))
+            return SouthSlavic.GetValueOrDefault(letter) ?? [];
+
+        if (IsBulgarian(text))
+            return letter == 'я' && previous == 'и'
+                ? ["ia"]
+                : Bulgarian.GetValueOrDefault(letter) ?? [];
+
+        if (!IsUkrainian(text))
+            return [];
+
+        return letter switch
+        {
+            'г' => previous == 'з' ? ["gh", "h"] : ["h"],
+            'е' => ["e"],
+            'и' => ["y"],
+            'є' => previous == null ? ["ye"] : ["ie"],
+            'ї' => previous == null ? ["yi", "i"] : ["i"],
+            'й' => previous == null ? ["y"] : ["i"],
+            'ю' => previous == null ? ["yu", "iu"] : ["iu"],
+            'я' => previous == null ? ["ya", "ia"] : ["ia"],
+            _ => [],
+        };
+    }
+
+    private static bool IsUkrainian(string text)
+    {
+        var letters = text.ToLowerInvariant();
+
+        return letters.Any(ch => UkrainianLetters.Contains(ch))
+            && !letters.Any(ch => NotUkrainianLetters.Contains(ch));
+    }
+
+    /// <summary> Russian only has the hard sign before some vowels, and at the end of words in old spelling. </summary>
+    private static bool IsBulgarian(string text)
+    {
+        var letters = text.ToLowerInvariant();
+
+        return Enumerable
+            .Range(0, letters.Length)
+            .Any(i =>
+                letters[i] == 'ъ'
+                && i + 1 < letters.Length
+                && char.IsLetter(letters[i + 1])
+                && !"еёюя".Contains(letters[i + 1])
+            );
     }
 }

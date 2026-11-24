@@ -126,7 +126,7 @@ public sealed class LatinRomaniser : LetterTableRomaniser
     }
 
     public override string Name { get; }
-    public override string SystemName { get; }
+    private string SystemName { get; }
     public override string[] Rules { get; }
     public override string[] RequiredTags { get; }
 
@@ -139,7 +139,7 @@ public sealed class LatinRomaniser : LetterTableRomaniser
     protected override bool IsAlphabetLetter(char letter) =>
         char.IsLetter(letter) && (letter is >= 'À' and <= 'ɏ' or >= 'Ḁ' and <= 'ỿ');
 
-    protected override string[]? Romanise(char letter, char? previous, bool anySystem)
+    protected override string[]? Romanise(char letter, char? previous, bool anySystem, string text)
     {
         if (spellings.TryGetValue(letter, out var spelling))
             return anySystem ? [.. spelling.Strict, .. spelling.Other] : spelling.Strict;

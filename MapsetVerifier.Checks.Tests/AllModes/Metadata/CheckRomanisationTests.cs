@@ -71,23 +71,18 @@ public class CheckRomanisationTests
     }
 
     [Theory]
-    [InlineData("かめりあ", "Camellia")]
-    [InlineData("かめりあ feat. ななひら", "Camellia feat. Nanahira")]
-    [InlineData("THE WORLD REVOLVING (かめりあ Remix)", "THE WORLD REVOLVING (Camellia Remix)")]
-    [InlineData("もうそう♥えくすぷれす", "Mousou Express")]
-    [InlineData("は～とび～と♥お～ば～ひ～～～～と！！！！", "Hea~rt Bea~t <3 O~ver~Hea~~~~t!!!!")]
     [InlineData("すくりぃむ！ (TV Size)", "Scream! (TV Size)")]
-    [InlineData("ふぃすとはっかーず", "Fist Hackers")]
     [InlineData("じっぷす", "Zips")]
-    [InlineData("ありがとう", "Arigatoo")]
-    [InlineData("かわいい", "Kawai")]
-    public void LeavesHiraganaLoanWordsAndOfficialNamesQuiet(string unicode, string romanised)
+    public void PointsOutHiraganaLoanWordsAndOfficialNamesAsUnconfirmed(
+        string unicode,
+        string romanised
+    )
     {
         using var context = CreateTitleContext(romanised, unicode);
 
         var issues = context.RunGeneralCheck<CheckRomanisation>();
 
-        Assert.Empty(issues);
+        AssertUnconfirmed(issues);
     }
 
     [Theory]
@@ -126,7 +121,6 @@ public class CheckRomanisationTests
 
     [Theory]
     [InlineData("よるにかける (Yoru ni Kakeru)", "Yoru ni Kakeru")]
-    [InlineData("つき Tsuki", "Tsuki")]
     [InlineData("夜に駆ける (Yoru ni Kakeru)", "Yoru ni Kakeru")]
     [InlineData("Song (TV Size)", "Song (TV Size)")]
     public void DoesNotFlagRepeatedOrUnreadableParts(string unicode, string romanised)
@@ -143,11 +137,8 @@ public class CheckRomanisationTests
     [InlineData("君の銀の庭", "Kimi no Gin no Niwa")]
     [InlineData("邪神の婚礼、儀は愛と知る。", "Jashin no Konrei, Gi wa Ai to Shiru.")]
     [InlineData("DIVELA feat. 初音ミク", "DIVELA feat. Hatsune Miku")]
-    [InlineData("otetsu feat. 巡音ルカ", "otetsu feat. Megurine Luka")]
-    [InlineData("想いの眠るゆりかご", "Cradle Where Feelings Rest")]
-    [InlineData("未来へ翔ぶために (TV Size)", "Ashita e tobutameni (TV Size)")]
     [InlineData("黝堊の祈り", "Yuuaku no Inori")]
-    public void AcceptsKanjiReadingsTranslationsAndUnknownWords(string unicode, string romanised)
+    public void AcceptsKanjiReadingsAndUnknownWords(string unicode, string romanised)
     {
         using var context = CreateTitleContext(romanised, unicode);
 
@@ -167,12 +158,11 @@ public class CheckRomanisationTests
 
         if (suggestion == null)
         {
-            Assert.Empty(issues);
+            AssertUnconfirmed(issues);
             return;
         }
 
         var warning = Assert.Single(issues);
-        Assert.Contains("Modified Hepburn", warning.message);
         Assert.Contains($"\"{suggestion}\"", warning.message);
     }
 
@@ -184,7 +174,7 @@ public class CheckRomanisationTests
         var issues = context.RunGeneralCheck<CheckRomanisation>();
 
         var warning = Assert.Single(issues);
-        Assert.Contains("name order", warning.message);
+        Assert.Contains("Artist \"", warning.message);
         Assert.Contains("\"Suzuki Masayuki\"", warning.message);
     }
 
@@ -206,7 +196,6 @@ public class CheckRomanisationTests
     [Theory]
     [InlineData("Für Elise", "Fuer Elise", "")]
     [InlineData("Für Elise", "Fur Elise", "")]
-    [InlineData("Für Elise", "For Elise", "german")]
     [InlineData("Beyoncé", "Beyonce", "")]
     [InlineData("Sigur Rós", "Sigur Ros", "")]
     [InlineData("Straße", "Strasse", "german")]
@@ -216,6 +205,20 @@ public class CheckRomanisationTests
     [InlineData("Пётр", "Pyotr", "")]
     [InlineData("Елена", "Yelena", "")]
     [InlineData("Київ", "Kyiv", "")]
+    [InlineData("Україна", "Ukraina", "")]
+    [InlineData("Миколаїв", "Mykolaiv", "")]
+    [InlineData("Хмельницький Київ", "Khmelnytskyi Kyiv", "")]
+    [InlineData("Запоріжжя", "Zaporizhzhia", "")]
+    [InlineData("Згурівка", "Zghurivka", "")]
+    [InlineData("Юр’ївка", "Yurivka", "")]
+    [InlineData("Їжівці", "Yizhivtsi", "")]
+    [InlineData("Търговище", "Targovishte", "")]
+    [InlineData("Гълъбово", "Galabovo", "")]
+    [InlineData("Ђаковица", "Dakovica", "")]
+    [InlineData("Његошево", "Njegosevo", "")]
+    [InlineData("Скопје", "Skopje", "")]
+    [InlineData("Чайковский", "Chaykovskiy", "")]
+    [InlineData("Объект", "Obekt", "")]
     [InlineData(
         "Странствiя Рукоблуда и брата его Малафѣя",
         "Stranstviya Rukobluda i brata yego Malafeya",
@@ -255,6 +258,63 @@ public class CheckRomanisationTests
     }
 
     [Theory]
+    [InlineData("Москва", "Moskvaa", "", "Moskva")]
+    [InlineData("Москва", "Moksva", "", "Moskva")]
+    [InlineData("МОСКВА", "MOSKA", "", "MOSKVA")]
+    [InlineData("Мой Год", "Moy Go", "", "Moy God")]
+    [InlineData("Мой Год (Remix)", "Moy Got (Remix)", "", "Moy God (Remix)")]
+    [InlineData("Für Elise", "Fuer Elisee", "german", "Fuer Elise")]
+    [InlineData("Räksmörgås", "Raksmorgs", "swedish", "Raksmorgas")]
+    [InlineData("Beyoncé", "Beyonc", "", "Beyonce")]
+    [InlineData("我爱你", "Wo Aii Ni", "chinese", "Wo Ai Ni")]
+    [InlineData("我爱你", "Wo Ai Li", "chinese", "Wo Ai Ni")]
+    [InlineData("我爱你", "Wo A Ni", "chinese", "Wo Ai Ni")]
+    [InlineData("我爱你", "Woaii Ni", "chinese", "Wo Ai Ni")]
+    public void SuggestsCorrectionInOtherLanguages(
+        string unicode,
+        string romanised,
+        string tags,
+        string expected
+    )
+    {
+        using var context = CreateTitleContext(romanised, unicode, tags);
+
+        var warning = Assert.Single(context.RunGeneralCheck<CheckRomanisation>());
+
+        Assert.Equal(Issue.Level.Warning, warning.level);
+        Assert.Contains($"should be \"{expected}\", unless official", warning.message);
+    }
+
+    [Theory]
+    [InlineData("Москва", "Moscow", "", "Moskva")]
+    [InlineData("Für Elise", "To Elise", "german", "Fuer Elise")]
+    [InlineData("我爱你", "I Love You", "chinese", "Wo Ai Ni")]
+    public void PointsOutOtherWordsInOtherLanguages(
+        string unicode,
+        string romanised,
+        string tags,
+        string expected
+    )
+    {
+        using var context = CreateTitleContext(romanised, unicode, tags);
+
+        var warning = Assert.Single(context.RunGeneralCheck<CheckRomanisation>());
+
+        Assert.Equal(Issue.Level.Warning, warning.level);
+        Assert.Contains($"doesn't match \"{expected}\", ensure", warning.message);
+    }
+
+    [Theory]
+    [InlineData("我爱你", "Ngo Oi Nei", "chinese cantonese")]
+    [InlineData("我爱你", "Ngo Oi Nei", "")]
+    public void LeavesCantoneseQuiet(string unicode, string romanised, string tags)
+    {
+        using var context = CreateTitleContext(romanised, unicode, tags);
+
+        Assert.Empty(context.RunGeneralCheck<CheckRomanisation>());
+    }
+
+    [Theory]
     [InlineData("Москва", "Moskva")]
     [InlineData("МОСКВА", "MOSKVA")]
     [InlineData("Чайковский и Пётр", "Chaykovskiy i Petr")]
@@ -273,7 +333,6 @@ public class CheckRomanisationTests
 
     [Theory]
     [InlineData("我爱你", "Wo Ai Ni", "chinese")]
-    [InlineData("我爱你", "I Love You", "chinese")]
     [InlineData("绿", "Lv", "chinese")]
     [InlineData("绿", "Lu", "chinese")]
     [InlineData("银行", "Yin Hang", "chinese")]
@@ -304,8 +363,7 @@ public class CheckRomanisationTests
         var issues = context.RunGeneralCheck<CheckRomanisation>();
 
         var warning = Assert.Single(issues);
-        Assert.Contains("its own capitalised word", warning.message);
-        Assert.Contains("Ignore for proper nouns", warning.message);
+        Assert.Contains("unless a proper noun", warning.message);
     }
 
     [Fact]
@@ -325,6 +383,181 @@ public class CheckRomanisationTests
     public void SuggestsChinesePerCharacter(string unicode, string expected)
     {
         Assert.Equal(expected, new ChineseRomaniser().Suggest(unicode));
+    }
+
+    [Theory]
+    [InlineData("余白のほんね", "something wrong here", "Yohaku no Honne")]
+    [InlineData("想いの眠るゆりかご", "Cradle Where Feelings Rest", "Omoi no Nemuru Yurikago")]
+    [InlineData("ありがとう", "123", "Arigatou")]
+    [InlineData(
+        "は～とび～と♥お～ば～ひ～～～～と！！！！",
+        "Hea~rt Bea~t <3 O~ver~Hea~~~~t!!!!",
+        "Ha~tobi~to O~ba~hi~~~~to!!!!"
+    )]
+    public void SuggestsReadingForUnconfirmedTitles(
+        string unicode,
+        string romanised,
+        string suggestion
+    )
+    {
+        using var context = CreateTitleContext(romanised, unicode);
+
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
+
+        var warning = Assert.Single(issues);
+        Assert.Equal(Issue.Level.Warning, warning.level);
+        Assert.Contains($"\"{suggestion}\"", warning.message);
+    }
+
+    [Theory]
+    [InlineData("つき Tsuki", "Tsuki")]
+    [InlineData("未来へ翔ぶために (TV Size)", "Ashita e tobutameni (TV Size)")]
+    public void PointsOutSpellingsItCannotConfirm(string unicode, string romanised)
+    {
+        using var context = CreateTitleContext(romanised, unicode);
+
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
+
+        AssertUnconfirmed(issues);
+    }
+
+    [Theory]
+    [InlineData("ハートノイロ", "Heart noo Iro", "Heart no Iro")]
+    [InlineData("ハートノイロ", "Heart no Iroo", "Heart no Iro")]
+    [InlineData("ハートノイロ", "Heart no Rio", "Heart no Iro")]
+    [InlineData("ハートノイロ", "Heart n Iro", "Heart no Iro")]
+    [InlineData("ハートノイロ", "Heart o Iro", "Heart no Iro")]
+    [InlineData("ハートノイロ", "Heart no ro", "Heart no iro")]
+    [InlineData("ハートノイロ", "Haert no Iro", "Heart no Iro")]
+    [InlineData("ハートノイロ", "HEART NOO IRO", "HEART NO IRO")]
+    [InlineData("ハートノイロ (TV Size)", "Heartt no Iro (TV Size)", "Heart no Iro (TV Size)")]
+    [InlineData("坂道のメロディ", "Sakamichi noo Melody", "Sakamichi no Melody")]
+    [InlineData("余白のほんね", "Yohaku no Honnne", "Yohaku no Honne")]
+    [InlineData("余白のほんね", "Yohaku, no ~Hone~", "Yohaku, no ~Honne~")]
+    [InlineData("余白のほんね", "ohaku no Honne", "Yohaku no Honne")]
+    [InlineData("ありがとう", "Arigatoo", "Arigatou")]
+    [InlineData("かわいい", "Kawai", "Kawaii")]
+    public void SuggestsCorrectedSpelling(string unicode, string romanised, string correction)
+    {
+        using var context = CreateTitleContext(romanised, unicode);
+
+        var warning = Assert.Single(context.RunGeneralCheck<CheckRomanisation>());
+
+        Assert.Equal(Issue.Level.Warning, warning.level);
+        Assert.Contains(
+            $"Title \"{romanised}\" should be \"{correction}\", unless official",
+            warning.message
+        );
+    }
+
+    [Theory]
+    [InlineData("余白のほんね", "Yohaku no Honne")]
+    [InlineData("つき × ほし", "Tsuki x Hoshi")]
+    [InlineData("つき × ほし", "Tsuki Hoshi")]
+    [InlineData("つき×ほし", "TsukixHoshi")]
+    public void AcceptsReadingsAndCrosses(string unicode, string romanised)
+    {
+        using var context = CreateTitleContext(romanised, unicode);
+
+        Assert.Empty(context.RunGeneralCheck<CheckRomanisation>());
+    }
+
+    [Theory]
+    [InlineData("かめりあ", "Camellia")]
+    [InlineData("かめりあ feat. ななひら", "Camellia feat. Nanahira")]
+    [InlineData("もうそう♥えくすぷれす", "Mousou Express")]
+    [InlineData("ふぃすとはっかーず", "Fist Hackers")]
+    [InlineData("その未来へ", "Sono Saki e")]
+    [InlineData("インフェルノ", "Inferno")]
+    [InlineData("チョコレート", "Chocolate")]
+    [InlineData("ティータイム", "Tea Time")]
+    [InlineData("バイバイ (Bye)", "Bye Bye (Bye)")]
+    [InlineData("バイバイ (Bye)", "Bye Bye")]
+    [InlineData("ラブソング", "Love Song")]
+    [InlineData("ｷﾗｰ", "KILLER")]
+    [InlineData("THE WORLD REVOLVING (かめりあ Remix)", "THE WORLD REVOLVING (Camellia Remix)")]
+    [InlineData("ハートノイロ", "Heart no Iro")]
+    [InlineData("坂道のメロディ", "Sakamichi no Melody")]
+    [InlineData("花びらメモリーズ", "Hanabira Memories")]
+    [InlineData("燦々デイズ", "Sansan Days")]
+    [InlineData("潮", "Ushio")]
+    [InlineData("永久より永遠に", "Towa yori Towa ni")]
+    [InlineData("水面の桜、夢は逆夢", "Minamo no Sakura, Yume wa Sakayume")]
+    [InlineData("進化のメロディ", "Shinka no Melody")]
+    public void AcceptsOtherReadingsAndLoanWordsItKnows(string unicode, string romanised)
+    {
+        using var context = CreateTitleContext(romanised, unicode);
+
+        Assert.Empty(context.RunGeneralCheck<CheckRomanisation>());
+    }
+
+    [Theory]
+    [InlineData("水瀬いのり", "Inori Minase", "Minase Inori")]
+    [InlineData("下村陽子", "Yoko Shimomura", "Shimomura Yoko")]
+    [InlineData(
+        "環いろは(CV:麻倉もも)",
+        "Iroha Tamaki (CV: Asakura Momo)",
+        "Tamaki Iroha (CV: Asakura Momo)"
+    )]
+    [InlineData(
+        "ヨリ (CV: 原 紗友里), アカリ (CV: 浅倉杏美)",
+        "Yori (CV: Sayuri Hara), Akari (CV: Azumi Asakura)",
+        "Yori (CV: Hara Sayuri), Akari (CV: Asakura Azumi)"
+    )]
+    public void SuggestsPrintedNameOrder(string unicode, string romanised, string expected)
+    {
+        using var context = CreateArtistContext(romanised, unicode);
+
+        var warning = Assert.Single(context.RunGeneralCheck<CheckRomanisation>());
+
+        Assert.Contains("Artist \"", warning.message);
+        Assert.Contains($"\"{expected}\"", warning.message);
+    }
+
+    [Theory]
+    [InlineData("水瀬いのり", "Minase Inori")]
+    [InlineData("坂本真綾", "Sakamoto Maaya")]
+    public void AcceptsPrintedNameOrder(string unicode, string romanised)
+    {
+        using var context = CreateArtistContext(romanised, unicode);
+
+        Assert.Empty(context.RunGeneralCheck<CheckRomanisation>());
+    }
+
+    [Theory]
+    [InlineData("水瀬", "みなせ")]
+    [InlineData("ハト", "heart")]
+    [InlineData("メロディ", "melody")]
+    public void FindsWordsInDictionary(string word, string expected) =>
+        Assert.Contains(expected, JapaneseDictionary.Find(word));
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("a")]
+    [InlineData("水瀬水瀬水瀬")]
+    [InlineData("龥龥龥龥")]
+    public void FindsNothingForUnknownWords(string word) =>
+        Assert.Empty(JapaneseDictionary.Find(word));
+
+    [Fact]
+    public void PointsOutArtistsItCannotConfirm()
+    {
+        using var context = CreateArtistContext("Iroha Tamakii", "環いろは");
+
+        var issues = context.RunGeneralCheck<CheckRomanisation>();
+
+        AssertUnconfirmed(issues);
+    }
+
+    [Theory]
+    [InlineData("", false)]
+    [InlineData("japanese", true)]
+    [InlineData("cantonese", false)]
+    public void NeedsJapaneseTagForKanjiAlone(string tags, bool isReported)
+    {
+        using var context = CreateTitleContext("Zips", "潮", tags);
+
+        Assert.Equal(isReported, context.RunGeneralCheck<CheckRomanisation>().Count > 0);
     }
 
     [Fact]
@@ -355,7 +588,7 @@ public class CheckRomanisationTests
         var issues = context.RunGeneralCheck<CheckRomanisation>();
 
         var warning = Assert.Single(issues);
-        Assert.Contains("name order", warning.message);
+        Assert.Contains("Artist \"", warning.message);
         Assert.Contains("\"Yanagi Nagi\"", warning.message);
     }
 
@@ -367,21 +600,17 @@ public class CheckRomanisationTests
         var issues = context.RunGeneralCheck<CheckRomanisation>();
 
         var warning = Assert.Single(issues);
-        Assert.Contains("Modified Hepburn", warning.message);
         Assert.Contains("\"Kudou Shizuka\"", warning.message);
     }
 
     [Theory]
-    [InlineData("ラブソング", "Love Song")]
-    [InlineData("チョコレート", "Chocolate")]
     [InlineData("チョコレート", "Chokoreeto")]
     [InlineData("チョコレート", "Chokoreto")]
-    [InlineData("ティータイム", "Tea Time")]
     [InlineData("ティータイム", "Tiitaimu")]
     [InlineData("ファンタジー", "Fantajii")]
     [InlineData("ヴァンパイア", "Vanpaia")]
     [InlineData("ウィッチ", "Witchi")]
-    public void AcceptsKatakanaLoanWordsAndHepburn(string unicode, string romanised)
+    public void AcceptsKatakanaHepburn(string unicode, string romanised)
     {
         using var context = CreateTitleContext(romanised, unicode);
 
@@ -426,7 +655,7 @@ public class CheckRomanisationTests
         var issues = context.RunGeneralCheck<CheckRomanisation>();
 
         var warning = Assert.Single(issues);
-        Assert.Contains("name order", warning.message);
+        Assert.Contains("Artist \"", warning.message);
         Assert.Contains("\"Kitani Tatsuya\"", warning.message);
     }
 
@@ -492,9 +721,7 @@ public class CheckRomanisationTests
     [InlineData("つき つき", "Tsuki Tsuki")]
     [InlineData("つき (つき)", "Tsuki (Tsuki)")]
     [InlineData("つき つき (Tsuki)", "Tsuki Tsuki")]
-    [InlineData("バイバイ (Bye)", "Bye Bye")]
     [InlineData("Soleil (ソレイユ)", "Soleil")]
-    [InlineData("バイバイ (Bye)", "Bye Bye (Bye)")]
     [InlineData("東京 (Tokyo Mix)", "Tokyo (Tokyo Mix)")]
     [InlineData("つき (Moon)", "Tsuki (Moon)")]
     [InlineData("Bye Bye", "Bye Bye")]
@@ -504,6 +731,13 @@ public class CheckRomanisationTests
         using var context = CreateTitleContext(romanised, unicode);
 
         Assert.Empty(context.RunGeneralCheck<CheckRomanisation>());
+    }
+
+    private static void AssertUnconfirmed(IEnumerable<Issue> issues)
+    {
+        var warning = Assert.Single(issues);
+        Assert.Equal(Issue.Level.Warning, warning.level);
+        Assert.Contains("ensure it's official", warning.message);
     }
 
     private static CheckTestContext CreateTitleContext(

@@ -64,7 +64,7 @@ public class CheckPlatterStrongHyperdash : BeatmapCheck
                 "Strong",
                 new IssueTemplate(
                     Issue.Level.Warning,
-                    "{0} Strong hyperdash from {1}, {2} times the trigger distance, more than {3}.",
+                    "{0} Strong hyperdash from {1}, {2}x the trigger distance (max {3}x).",
                     "timestamp -",
                     "object",
                     "times",
@@ -77,7 +77,7 @@ public class CheckPlatterStrongHyperdash : BeatmapCheck
                 "StrongHigher",
                 new IssueTemplate(
                     Issue.Level.Minor,
-                    "{0} Strong higher-snapped hyperdash from {1}, {2} times the trigger distance, more than {3}.",
+                    "{0} Strong higher-snapped hyperdash from {1}, {2}x the trigger distance (max {3}x).",
                     "timestamp -",
                     "object",
                     "times",

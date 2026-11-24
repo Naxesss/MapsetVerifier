@@ -70,7 +70,7 @@ public class CheckObjectOverlap : BeatmapCheck
                 "Many",
                 new IssueTemplate(
                     Issue.Level.Minor,
-                    "{0} Circles, slider heads or slider tails overlap in {1} places, starting with these.",
+                    "{0} Objects overlap in {1} places, starting with these.",
                     "timestamps",
                     "count"
                 )

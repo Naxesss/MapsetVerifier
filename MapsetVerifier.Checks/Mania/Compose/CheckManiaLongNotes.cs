@@ -85,7 +85,7 @@ public class CheckManiaLongNotes : BeatmapCheck
                 "Adjacent",
                 new IssueTemplate(
                     Issue.Level.Warning,
-                    "{0} Long notes held together in neighbouring columns are released at different times.",
+                    "{0} Neighbouring long notes are released at different times.",
                     "timestamp -"
                 )
                     .WithCause(

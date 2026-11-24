@@ -30,6 +30,12 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
         private const string MissingTemplate = "Missing";
         private const string RepeatTemplate = "Repeat";
 
+        /// <summary> How many names of an artist field are looked at being the other way around. </summary>
+        private const int MaxNameSwaps = 4;
+
+        /// <summary> Fields with fewer letters than this may well be other words if they're a letter off. </summary>
+        private const int MinLettersToCorrect = 4;
+
         public override CheckMetadata GetMetadata() =>
             new()
             {
@@ -60,21 +66,26 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         "Covered languages",
                         @"
                         - **Japanese**, Modified Hepburn: fields written in kana and kanji, optionally mixed with plain latin
-                          text. Kanji are read with a built-in dictionary. Japanese text is often used for loan words,
-                          translations and official names, which keep their own spelling (*かめりあ* is *Camellia*), so a
-                          field is only reported when its romanisation clearly follows another system like Kunrei-shiki
-                          (e.g. *tyo* instead of *cho*, *tu* instead of *tsu*).
+                          text. Kanji are read with built-in dictionaries, which also know the source spelling of common
+                          loan words and names (*ハート* is *Heart*). Only a romanisation in another system like Kunrei-shiki is
+                          clearly wrong (e.g. *tyo* instead of *cho*, *tu* instead of *tsu*). Any other difference from the
+                          readings and spellings they know is pointed out as well.
                         - **Chinese**, for beatmapsets tagged as Chinese: each character must be its own capitalised word
                           (*Wo Ai Ni*), so a romanised field whose letters follow the pinyin but run characters together is
-                          reported. Proper nouns are exempt, so ignore it for those. A romanised field that doesn't follow
-                          the pinyin at all, like a translation or Cantonese, isn't reported.
-                        - **Cyrillic**, BGN/PCGN: reported when the romanised field clearly follows another system, like
-                          *Jurij* instead of *Yuriy*. Russian, Ukrainian and Belarusian readings of shared letters are all
-                          accepted.
+                          reported. Proper nouns are exempt, so ignore it for those. Any other difference from the pinyin is
+                          pointed out too, unless the beatmapset is also tagged as Cantonese.
+                        - **Cyrillic**, BGN/PCGN: clearly wrong when the romanised field follows another system, like *Jurij*
+                          instead of *Yuriy*. Any other difference is pointed out too. Russian, Ukrainian and Belarusian
+                          readings of shared letters are all accepted, as are the systems for Ukrainian, Bulgarian, Serbian and
+                          Macedonian when the field has letters or spellings that only those languages use.
                         - **German, Swedish, Finnish and Nordic** letters (*ü* as *ue*, *ö* as *o*, *å* as *aa*): the rules of
                           the language the beatmapset is tagged with. Without one of those tags, any of their spellings is
                           accepted, and only ones none of them allow are reported, like *ø* as *o*. Other accented letters
-                          are expected as their plain letter (*é* as *e*)."
+                          are expected as their plain letter (*é* as *e*).
+
+                        Differences are pointed out so that mistakes aren't missed, but they are often correct, such as with
+                        translations, stage names and names with an official spelling. If it's only a letter off, or has two
+                        letters swapped, the corrected field is suggested."
                     },
                     {
                         "Limitations",
@@ -83,13 +94,12 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         that can't be told apart are all accepted, such as long vowels with or without the repeated vowel
                         (*ou* or *o*) and particles (*ha* or *wa*).
 
-                        The dictionary picks one reading per word, and it's often wrong for names and creative readings
-                        (*未来* sung as *ashita*). A wrong reading doesn't fit any romanisation system, so it leaves the
-                        field unreported rather than causing a false warning. Words the dictionary doesn't know at all
-                        leave the field unchecked.
+                        Every reading the dictionaries know for a word or name is accepted, so a wrong one that exists isn't
+                        pointed out. Creative readings (*未来* sung as *ashita*) and official spellings they don't know are
+                        pointed out even if correct. Words that can't be read at all leave the field unchecked, as do fields
+                        in kanji alone without a Japanese tag when they don't match.
 
-                        Name order is checked for artists written with a space between the names, or as a single
-                        surname and given name the dictionary recognises (e.g. *鈴木雅之*).
+                        Name order is checked by putting romanised artist names the other way around.
 
                         A left-out part is found by lining up the latin text both fields share, such as *feat.* or
                         *(TV Size)*. A part that repeats the latin text next to it may be left out, so a part is only
@@ -110,12 +120,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                 romaniser =>
                     new IssueTemplate(
                         Issue.Level.Warning,
-                        "Romanised {0} \"{1}\" doesn't match \"{2}\" in "
-                            + romaniser.SystemName
-                            + ", expected something like \"{3}\". Ignore if this is an official romanisation.",
-                        "artist/title",
+                        "{0} \"{1}\" should be \"{2}\", unless official.",
+                        "Artist/Title",
                         "romanised",
-                        "unicode",
                         "suggestion"
                     )
                         .WithCause(romaniser.Cause)
@@ -128,9 +135,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                 templates[FormatTemplate(romaniser)] = new IssueTemplate(
                     Issue.Level.Warning,
                     romaniser.FormatMessage!,
-                    "artist/title",
+                    "Artist/Title",
                     "romanised",
-                    "unicode",
                     "suggestion"
                 )
                     .WithCause(romaniser.Cause)
@@ -138,9 +144,9 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
 
             templates[NameOrderTemplate] = new IssueTemplate(
                 Issue.Level.Warning,
-                "Romanised artist \"{0}\" swaps the name order of \"{1}\", expected something like \"{2}\". Ignore if this is an official romanisation.",
+                "{0} \"{1}\" should be \"{2}\", unless official.",
+                "Artist/Title",
                 "romanised",
-                "unicode",
                 "suggestion"
             )
                 .WithCause(
@@ -150,27 +156,52 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
 
             templates[MissingTemplate] = new IssueTemplate(
                 Issue.Level.Warning,
-                "Romanised {0} \"{1}\" leaves out \"{2}\" from the unicode {0} \"{3}\".",
-                "artist/title",
+                "{0} \"{1}\" leaves out \"{2}\".",
+                "Artist/Title",
                 "romanised",
-                "missing part",
-                "unicode"
+                "missing part"
             ).WithCause(
                 "Part of the unicode artist or title is written in a non-latin script, and the romanised field has nothing in its place while the latin text around it matches."
             );
 
             templates[RepeatTemplate] = new IssueTemplate(
                 Issue.Level.Warning,
-                "Romanised {0} \"{1}\" has \"{2}\" twice, since \"{3}\" has both the word and its romanisation. It should only be kept once.",
-                "artist/title",
+                "{0} \"{1}\" has \"{2}\" twice.",
+                "Artist/Title",
                 "romanised",
-                "repeated part",
-                "unicode"
+                "repeated part"
             )
                 .WithCause(
                     "The unicode artist or title has both a word and its romanisation, and the romanised field has the romanisation of both."
                 )
                 .WithRule(RC.Metadata.Romanisation_SongUsesRepeatWordsTitle);
+
+            foreach (var romaniser in Romanisers)
+            {
+                templates[MisspelledTemplate(romaniser)] = new IssueTemplate(
+                    Issue.Level.Warning,
+                    "{0} \"{1}\" should be \"{2}\", unless official.",
+                    "Artist/Title",
+                    "romanised",
+                    "correction"
+                )
+                    .WithCause(
+                        $"The romanised field is a single letter off, or has two letters swapped, compared to how the unicode artist or title is romanised ({romaniser.Name})."
+                    )
+                    .WithRule(romaniser.Rules);
+
+                templates[UnconfirmedTemplate(romaniser)] = new IssueTemplate(
+                    Issue.Level.Warning,
+                    "{0} \"{1}\" doesn't match \"{2}\", ensure it's official.",
+                    "Artist/Title",
+                    "romanised",
+                    "suggestion"
+                )
+                    .WithCause(
+                        $"The romanised field neither matches how the unicode artist or title is romanised ({romaniser.Name}) nor clearly follows another system, such as with loan words, translations and names."
+                    )
+                    .WithRule(romaniser.Rules);
+            }
 
             return templates;
         }
@@ -182,12 +213,12 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                     new[]
                     {
                         (
-                            "artist",
+                            "Artist",
                             beatmap.MetadataSettings.artist,
                             beatmap.MetadataSettings.artistUnicode
                         ),
                         (
-                            "title",
+                            "Title",
                             beatmap.MetadataSettings.title,
                             beatmap.MetadataSettings.titleUnicode
                         ),
@@ -225,25 +256,11 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
 
             var repeat = FindRepeatedPart(romanised, unicode, tags);
             if (repeat != null)
-                return new Issue(
-                    GetTemplate(RepeatTemplate),
-                    null,
-                    field,
-                    romanised,
-                    repeat,
-                    unicode
-                );
+                return new Issue(GetTemplate(RepeatTemplate), null, field, romanised, repeat);
 
             var missing = FindMissingPart(romanised, unicode, tags);
             if (missing != null)
-                return new Issue(
-                    GetTemplate(MissingTemplate),
-                    null,
-                    field,
-                    romanised,
-                    missing,
-                    unicode
-                );
+                return new Issue(GetTemplate(MissingTemplate), null, field, romanised, missing);
 
             var romaniser = Romanisers.FirstOrDefault(romaniser =>
                 romaniser.AppliesTo(unicode, tags)
@@ -261,31 +278,58 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                         null,
                         field,
                         romanised,
-                        unicode,
                         romaniser.Suggest(unicode)
                     );
 
             if (verdict == RomanisationVerdict.Unreadable)
                 return null;
 
-            if (field == "artist" && HasSwappedNameOrder(romaniser, unicode, romanised))
+            if (
+                field == "Artist"
+                && FindPrintedOrder(romaniser, unicode, romanised) is { } printedOrder
+            )
                 return new Issue(
                     GetTemplate(NameOrderTemplate),
                     null,
+                    field,
                     romanised,
-                    unicode,
-                    romaniser.Suggest(unicode)
+                    printedOrder
                 );
 
             if (verdict == RomanisationVerdict.Inconclusive)
-                return null;
+            {
+                if (
+                    !romaniser.PointsOutInconclusive(unicode, tags)
+                    || KeepsRepeatOnce(romaniser, unicode, romanised)
+                )
+                    return null;
+
+                if (
+                    romaniser.Correct(unicode, romanised) is { } correction
+                    && IsTypo(correction, romanised)
+                )
+                    return new Issue(
+                        GetTemplate(MisspelledTemplate(romaniser)),
+                        null,
+                        field,
+                        romanised,
+                        correction.Text
+                    );
+
+                return new Issue(
+                    GetTemplate(UnconfirmedTemplate(romaniser)),
+                    null,
+                    field,
+                    romanised,
+                    romaniser.Suggest(unicode)
+                );
+            }
 
             return new Issue(
                 GetTemplate(romaniser.Name),
                 null,
                 field,
                 romanised,
-                unicode,
                 romaniser.Suggest(unicode)
             );
         }
@@ -353,7 +397,8 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
                 var romaniser = Romanisers.FirstOrDefault(romaniser =>
                     romaniser.AppliesTo(run, tags)
                 );
-                if (romaniser == null)
+                // Accented latin letters are only parts of words, which are compared as a whole.
+                if (romaniser is null or LatinRomaniser)
                     continue;
 
                 var neighbours = new[] { i - 1, i + 1 }
@@ -504,6 +549,38 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
 
         private static bool IsScriptLetter(char ch) => ch >= 128 && char.IsLetter(ch);
 
+        /// <summary>
+        ///     Whether the romanised field is only one side of a unicode field that has both a word and its romanisation
+        ///     or translation, like "夜に駆ける (Yoru ni Kakeru)" romanised as "Yoru ni Kakeru".
+        /// </summary>
+        private static bool KeepsRepeatOnce(Romaniser romaniser, string unicode, string romanised)
+        {
+            var text = unicode.Normalize(NormalizationForm.FormKC);
+
+            return SetApartPart()
+                .Matches(text)
+                .SelectMany(match =>
+                    new[]
+                    {
+                        text.Remove(match.Index, match.Length),
+                        text.Remove(match.Index, match.Length)[match.Index..]
+                            .Insert(0, match.Groups["inside"].Value),
+                    }
+                )
+                .Any(side =>
+                    side.Any(IsScriptLetter)
+                        ? romaniser.Judge(side, romanised) == RomanisationVerdict.Matches
+                        : LettersAndDigits(side) == LettersAndDigits(romanised)
+                );
+        }
+
+        /// <summary>
+        ///     Whether only a single letter was changed, or two were swapped. Anything more is likely about different
+        ///     words, for which the closest reading would be a wrong suggestion.
+        /// </summary>
+        private static bool IsTypo(RomanisationCorrection correction, string romanised) =>
+            correction.Edits == 1 && romanised.Count(char.IsAsciiLetter) >= MinLettersToCorrect;
+
         private static string LettersAndDigits(string text) =>
             new(text.ToLowerInvariant().Where(char.IsAsciiLetterOrDigit).ToArray());
 
@@ -564,20 +641,71 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             )
             + "$";
 
+        private static string MisspelledTemplate(Romaniser romaniser) =>
+            $"{romaniser.Name} Misspelled";
+
+        private static string UnconfirmedTemplate(Romaniser romaniser) =>
+            $"{romaniser.Name} Unconfirmed";
+
         private static string FormatTemplate(Romaniser romaniser) => $"{romaniser.Name} Format";
 
-        private static bool HasSwappedNameOrder(
+        /// <summary>
+        ///     The romanised field with as few names as possible put the other way around so that it matches the unicode
+        ///     field, or null if no such order matches.
+        /// </summary>
+        private static string? FindPrintedOrder(
             Romaniser romaniser,
             string unicode,
             string romanised
         )
         {
-            var names = romaniser.SplitNames(unicode);
-            if (names.Length < 2)
-                return false;
+            var pairs = NamePair().Matches(romanised).ToList();
 
-            var reversed = string.Join(" ", names.Reverse());
-            return romaniser.Judge(reversed, romanised) == RomanisationVerdict.Matches;
+            for (var swaps = 1; swaps <= MaxNameSwaps; swaps++)
+                foreach (var chosen in Choose(pairs, 0, swaps))
+                {
+                    var swapped = romanised;
+                    // Swapping a pair keeps its length, so the other pairs stay where they are.
+                    foreach (var pair in chosen)
+                        swapped =
+                            swapped[..pair.Index]
+                            + $"{pair.Groups["second"].Value} {pair.Groups["first"].Value}"
+                            + swapped[(pair.Index + PairLength(pair))..];
+
+                    if (romaniser.Judge(unicode, swapped) == RomanisationVerdict.Matches)
+                        return swapped;
+                }
+
+            return null;
         }
+
+        /// <summary> Every way to pick a number of pairs which don't share a word. </summary>
+        private static IEnumerable<List<Match>> Choose(List<Match> pairs, int from, int count)
+        {
+            if (count == 0)
+            {
+                yield return [];
+                yield break;
+            }
+
+            for (var i = from; i < pairs.Count; i++)
+            {
+                var next = i + 1;
+                while (
+                    next < pairs.Count && pairs[next].Index < pairs[i].Index + PairLength(pairs[i])
+                )
+                    next++;
+
+                foreach (var rest in Choose(pairs, next, count - 1))
+                    yield return [pairs[i], .. rest];
+            }
+        }
+
+        private static int PairLength(Match pair) =>
+            pair.Groups["first"].Length + 1 + pair.Groups["second"].Length;
+
+        // Found at every word, so that pairs can overlap.
+        [GeneratedRegex(@"(?<![A-Za-z'])(?=(?<first>[A-Za-z']+) (?<second>[A-Za-z']+))")]
+        private static partial Regex NamePair();
     }
 }

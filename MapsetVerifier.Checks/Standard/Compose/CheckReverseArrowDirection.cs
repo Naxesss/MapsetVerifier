@@ -54,7 +54,7 @@ public class CheckReverseArrowDirection : BeatmapCheck
                 "Rule",
                 new IssueTemplate(
                     Issue.Level.Problem,
-                    "{0} Reverse arrow points {1} degrees away from the visible slider path.",
+                    "{0} Reverse arrow is {1}° off the slider path.",
                     "timestamp -",
                     "angle"
                 )
@@ -71,7 +71,7 @@ public class CheckReverseArrowDirection : BeatmapCheck
                 "Guideline",
                 new IssueTemplate(
                     Issue.Level.Warning,
-                    "{0} Reverse arrow points {1} degrees away from the visible slider path.",
+                    "{0} Reverse arrow is {1}° off the slider path.",
                     "timestamp -",
                     "angle"
                 )
@@ -87,7 +87,7 @@ public class CheckReverseArrowDirection : BeatmapCheck
                 "Doubtful",
                 new IssueTemplate(
                     Issue.Level.Minor,
-                    "{0} Reverse arrow points {1} degrees away from the visible slider path, ensure it can be followed.",
+                    "{0} Reverse arrow is {1}° off the slider path, ensure it's clear.",
                     "timestamp -",
                     "angle"
                 )

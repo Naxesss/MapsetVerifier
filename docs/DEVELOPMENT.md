@@ -95,7 +95,11 @@ The romanisation check reads Chinese with a table of Mandarin readings from the 
 node scripts/generate-pinyin-table.mjs <path to Unihan_Readings.txt>
 ```
 
-Japanese is read with the dictionary built into the Lucene.Net.Analysis.Kuromoji package.
+Japanese is read with the dictionary built into the Lucene.Net.Analysis.Kuromoji package. Other readings, names and the spellings of loan words come from [JMdict and JMnedict](https://www.edrdg.org/), in `MapsetVerifier.Checks/Utils/Romanisation/japanese-words.txt.br`. Their licence asks for this data to be kept up to date, so it's updated before every stable release. Download `JMdict_e.gz` and `JMnedict.xml.gz` from https://www.edrdg.org/pub/Nihongo/, then:
+
+```sh
+node scripts/generate-japanese-words.mjs <path to JMdict_e.gz> <path to JMnedict.xml.gz>
+```
 
 ## Third-party notices
 

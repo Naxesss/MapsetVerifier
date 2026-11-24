@@ -54,9 +54,6 @@ public abstract class Romaniser
     /// <summary> Short unique name, also used as the issue template key, e.g. "Japanese". </summary>
     public abstract string Name { get; }
 
-    /// <summary> The system as shown to users, e.g. "Modified Hepburn". </summary>
-    public abstract string SystemName { get; }
-
     /// <summary> The Ranking Criteria rule this romaniser enforces. </summary>
     public abstract string[] Rules { get; }
 
@@ -81,7 +78,7 @@ public abstract class Romaniser
     /// <summary>
     ///     For languages whose rule is about how the romanisation is written rather than spelled (Chinese: each
     ///     character its own capitalised word), the warning shown when <see cref="FollowsFormat" /> fails. It takes
-    ///     the field, the romanised text, the unicode text and a suggestion.
+    ///     the field, the romanised text and a suggestion.
     /// </summary>
     public virtual string? FormatMessage => null;
 
@@ -118,9 +115,58 @@ public abstract class Romaniser
     /// </summary>
     protected virtual bool MayUseDifferentWords(string text) => false;
 
-    /// <summary> The separate names in an artist field, in printed order, for checking name order. </summary>
-    public virtual string[] SplitNames(string text) =>
-        text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+    /// <summary> Whether the letters are another accepted romanisation of the already normalised text. </summary>
+    protected virtual bool MatchesOtherwise(string text, string target) => false;
+
+    /// <summary>
+    ///     The romanised field with as few letters as possible changed so that it matches the unicode field, or null if
+    ///     there's no such correction.
+    /// </summary>
+    public virtual RomanisationCorrection? Correct(string unicode, string romanised)
+    {
+        var text = Normalise(unicode);
+        var units = Read(text);
+        var words = ReadWords(text);
+        if (units == null || words == null)
+            return null;
+
+        var swap = RomanisationCorrection
+            .Swaps(romanised)
+            .FirstOrDefault(swap => Matches(units, Letters(swap.Text)));
+        if (swap != null)
+            return swap;
+
+        var graph = words
+            .Select((word, index) => new[] { new RomanisationWord(index + 1, word) })
+            .ToList();
+        return RomanisationSearch.FindClosest(graph, Letters(romanised)) is { } closest
+            ? RomanisationCorrection.Apply(romanised, closest)
+            : null;
+    }
+
+    /// <summary> Same as <see cref="Read" />, but with the units of each word by themselves. </summary>
+    protected virtual List<List<RomanisationUnit>>? ReadWords(string text) => ReadWords(text, Read);
+
+    protected static List<List<RomanisationUnit>>? ReadWords(
+        string text,
+        Func<string, List<RomanisationUnit>?> read
+    )
+    {
+        var words = text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)
+            .Select(read)
+            .ToList();
+
+        return words.Any(word => word == null)
+            ? null
+            : words.OfType<List<RomanisationUnit>>().ToList();
+    }
+
+    /// <summary>
+    ///     Whether a field whose romanisation is inconclusive should still be pointed out, so that mistakes in it
+    ///     aren't missed, even though it may well be an official spelling.
+    /// </summary>
+    public virtual bool PointsOutInconclusive(string unicode, IReadOnlyCollection<string> tags) =>
+        false;
 
     public RomanisationVerdict Judge(string unicode, string romanised)
     {
@@ -136,9 +182,13 @@ public abstract class Romaniser
         if (!MayUseDifferentWords(text))
             return RomanisationVerdict.Mismatch;
 
+        // Before other spellings, since name lists also have names written in other systems.
         var anySystem = ReadAnySystem(text);
-        return anySystem != null && Matches(anySystem, target)
-            ? RomanisationVerdict.Mismatch
+        if (anySystem != null && Matches(anySystem, target))
+            return RomanisationVerdict.Mismatch;
+
+        return MatchesOtherwise(text, target)
+            ? RomanisationVerdict.Matches
             : RomanisationVerdict.Inconclusive;
     }
 
@@ -251,9 +301,13 @@ public abstract class Romaniser
         new(text.ToLowerInvariant().Where(ch => ch is >= 'a' and <= 'z').ToArray());
 
     /// <summary> Whether the letters can be built from the units in order, picking one alternative per unit. </summary>
-    protected static bool Matches(List<RomanisationUnit> units, string target)
+    protected static bool Matches(List<RomanisationUnit> units, string target) =>
+        EndsOf(units, target, 0).Contains(target.Length);
+
+    /// <summary> Where in the letters the units may end, picking one alternative per unit from the given start on. </summary>
+    internal static HashSet<int> EndsOf(List<RomanisationUnit> units, string target, int start)
     {
-        var positions = new HashSet<int> { 0 };
+        var positions = new HashSet<int> { start };
         foreach (var unit in units)
         {
             var next = new HashSet<int>();
@@ -262,11 +316,11 @@ public abstract class Romaniser
                 if (target.AsSpan(position).StartsWith(alternative))
                     next.Add(position + alternative.Length);
 
-            if (next.Count == 0)
-                return false;
             positions = next;
+            if (positions.Count == 0)
+                break;
         }
 
-        return positions.Contains(target.Length);
+        return positions;
     }
 }

@@ -73,7 +73,7 @@ public class CheckStoryboardConflicts : GeneralCheck
                 "Overlap",
                 new IssueTemplate(
                     Issue.Level.Minor,
-                    "{0} storyboard command(s) overlap with another of the same type, see {1}.",
+                    "{0} storyboard command(s) overlap, see {1}.",
                     "amount",
                     "sprites"
                 )
