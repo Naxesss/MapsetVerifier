@@ -267,4 +267,28 @@ public class SnapshotStoreEdgeTests
             SnapshotComparer.Count([], [new SettingChange("General", "Key", op)])
         );
     }
+
+    [Theory]
+    [InlineData("null")]
+    [InlineData("broken")]
+    public void BrokenIndex_IsStartedAnew(string content)
+    {
+        using var context = Create();
+        var path = Path.Combine(context.StoreRoot, "index.json");
+        File.WriteAllText(path, content);
+
+        Assert.Empty(SnapshotStore.ReadIndexFile(path).Folders);
+    }
+
+    [Fact]
+    public void Stars_ThatCannotBeWorkedOut_AreLeftOut()
+    {
+        using var context = Create();
+        context.WriteDifficulty("a.osu", BuildOsu("Easy", Circles(3), beatmapId: 1));
+        var beatmap = Assert.Single(context.Load().Beatmaps);
+
+        Assert.NotNull(SnapshotStore.TryStars(beatmap));
+
+        Assert.Null(SnapshotStore.TryStars(null!));
+    }
 }

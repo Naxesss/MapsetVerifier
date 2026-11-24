@@ -619,30 +619,6 @@ namespace MapsetVerifier.Snapshots.Compare
         }
 
         /// <summary>
-        /// The ticks of a slider: every beat divided by the tick rate, counted again from the start
-        /// of each slide, and left out when they would sit right at the end of a slide.
-        /// </summary>
-        private static List<double>? SliderTicks(HitObject o, Beatmap map)
-        {
-            var line = map.GetTimingLine<UninheritedLine>(o.time);
-            var rate = map.DifficultySettings.sliderTickRate;
-            var end = o.GetEndTime();
-            var slides = o.GetEdgeTimes().Count() - 1;
-            if (line == null || rate <= 0 || slides < 1 || end <= o.time)
-                return null;
-
-            var interval = line.msPerBeat / rate;
-            var span = (end - o.time) / slides;
-            var ticks = new List<double>();
-
-            for (var slide = 0; slide < slides; slide++)
-            for (var k = 1; k * interval < span - 10; k++)
-                ticks.Add(Math.Round(o.time + slide * span + k * interval, 1));
-
-            return ticks.Count > 0 ? ticks : null;
-        }
-
-        /// <summary>
         /// The custom sample index a slider plays at a time: the timing line's there, as the parser
         /// reads a slider's samples (with the usual few milliseconds of leniency before a line).
         /// </summary>
@@ -795,8 +771,9 @@ namespace MapsetVerifier.Snapshots.Compare
                         is { Count: > 0 } drops
                         ? drops
                         : null
-                    : type == "Slider" && map.GeneralSettings.mode == Beatmap.Mode.Standard
-                        ? SliderTicks(o, map)
+                    : map.GeneralSettings.mode == Beatmap.Mode.Standard
+                    && o is Slider { SliderTickTimes.Count: > 0 } withTicks
+                        ? withTicks.SliderTickTimes.Select(time => Math.Round(time, 1)).ToList()
                         : null,
                 o.volume ?? (int?)Math.Round(map.GetTimingLine(o.time, true)?.Volume ?? 0),
                 sounds,

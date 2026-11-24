@@ -322,4 +322,15 @@ public class SnapshotWindowTests
         Assert.DoesNotContain(timing, mark => mark.Offset is 900 or 900000);
         Assert.Contains(timing, mark => mark is { Offset: 800, BeatLength: 400, Meter: 3 });
     }
+
+    [Fact]
+    public void SliderTicks_AreMirroredOnTheWayBack()
+    {
+        // A beat and a half per slide, with a tick after the first beat of the way there.
+        var slider = Assert.Single(
+            Window(0, ["100,100,1000,2,0,L|310:100,2,210"], extra: "SliderTickRate:1").Visual.After
+        );
+
+        Assert.Equal([1500, 2000], slider.Ticks!);
+    }
 }
