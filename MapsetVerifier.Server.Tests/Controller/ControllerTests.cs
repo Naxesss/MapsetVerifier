@@ -536,4 +536,41 @@ public sealed class ControllerTests : IDisposable
         Assert.Equal(200, Status(controller.GetPage(controller.GetOverview().Pages[0].Key)));
         Assert.Empty(controller.GetStatements(["no/such/statement"]));
     }
+
+    /// <summary> Without these, the app runs without any checks and everything looks fine. </summary>
+    [Fact]
+    public void DefaultChecks_AreAllLoaded_Once()
+    {
+        var expected = typeof(MapsetVerifier.Checks.Common)
+            .Assembly.GetTypes()
+            .Where(type =>
+                !type.IsAbstract
+                && type.IsDefined(
+                    typeof(MapsetVerifier.Framework.Objects.Attributes.CheckAttribute),
+                    false
+                )
+            )
+            .Select(type => type.FullName)
+            .Order()
+            .ToList();
+
+        Checker.LoadDefaultChecks();
+        Checker.LoadDefaultChecks();
+
+        Assert.True(expected.Count > 100);
+        Assert.Equal(
+            expected,
+            CheckerRegistry.GetChecks().Select(check => check.GetType().FullName).Order()
+        );
+    }
+
+    /// <summary> The documentation of each can be opened. </summary>
+    [Fact]
+    public void DefaultChecks_AreAllDocumented()
+    {
+        Checker.LoadDefaultChecks();
+
+        foreach (var id in CheckerRegistry.GetChecksWithId().Keys)
+            Assert.Equal(200, Status(With(new DocumentationController()).GetDetails(id)));
+    }
 }

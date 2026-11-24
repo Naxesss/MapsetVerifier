@@ -92,8 +92,14 @@ public static class BeatmapService
     private static bool _inFlightScanReportedSlow;
     private static ConcurrentDictionary<string, DateTime>? _inFlightScanOpenFolders;
     private static readonly TimeSpan FolderScanTtl = TimeSpan.FromSeconds(5);
-    private static readonly TimeSpan FolderScanWaitBudget = TimeSpan.FromSeconds(3);
     private static readonly TimeSpan SlowFolderThreshold = TimeSpan.FromSeconds(1);
+
+    internal static TimeSpan FolderScanWaitBudget { get; set; } = TimeSpan.FromSeconds(3);
+
+    /// <summary> When a mapset was last edited, which reads its folder. </summary>
+    internal static Func<DirectoryInfo, DateTime> ReadLastEdit { get; set; } =
+        GetEffectiveLastWriteTimeUtc;
+
     private const int MaxReportedSlowFolders = 5;
 
     public static ApiBeatmapPage GetBeatmaps(
@@ -280,7 +286,7 @@ public static class BeatmapService
                         openFolders[d.Name] = DateTime.UtcNow;
                         try
                         {
-                            return (Dir: d, Mtime: GetEffectiveLastWriteTimeUtc(d));
+                            return (Dir: d, Mtime: ReadLastEdit(d));
                         }
                         finally
                         {
@@ -339,7 +345,7 @@ public static class BeatmapService
     /// those are what the editor rewrites on every save, and a mapset folder can otherwise contain
     /// far more (audio/video/image/hitsound) files that would multiply the scan cost for no benefit.
     /// </summary>
-    private static DateTime GetEffectiveLastWriteTimeUtc(DirectoryInfo folder)
+    internal static DateTime GetEffectiveLastWriteTimeUtc(DirectoryInfo folder)
     {
         var latest = folder.LastWriteTimeUtc;
         try

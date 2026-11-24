@@ -610,4 +610,102 @@ public sealed class ServiceEdgeTests : IDisposable
         Assert.True(result.Success, result.ErrorMessage);
         Assert.Equal(4, result.Difficulties.Single().ColumnUsage!.Count);
     }
+
+    [Theory]
+    [InlineData(0.5, 0.5, "None", "Balanced")]
+    [InlineData(0.5, 0.35, "None", "Left")] // 1.43 times as loud.
+    [InlineData(0.5, 0.32, "Minor", "Left")] // 1.56 times.
+    [InlineData(0.3, 0.5, "Minor", "Right")]
+    [InlineData(0.5, 0.26, "Minor", "Left")] // 1.92 times.
+    [InlineData(0.5, 0.24, "Warning", "Left")] // 2.08 times.
+    [InlineData(0.5, 0, "Severe", "Left (Right silent)")]
+    [InlineData(0, 0.5, "Severe", "Right (Left silent)")]
+    public void Imbalance_IsRatedByHowMuchLouderOneSideIs(
+        double left,
+        double right,
+        string severity,
+        string louder
+    )
+    {
+        song.Write("a.osu", SongFolder.Osu(general: ["AudioFilename: audio.wav"]));
+        song.Write("audio.wav", SongFolder.Wave(0.5, _ => left, _ => right));
+
+        var channels = AudioAnalysisService.AnalyzeAudio(song.Path).ChannelAnalysis!.Value;
+
+        Assert.Equal(severity, channels.Severity.ToString());
+        Assert.Equal(louder, channels.LouderChannel);
+        Assert.Equal(2, channels.ChannelCount);
+        Assert.True(channels.IsStereo);
+        Assert.False(channels.IsMono);
+    }
+
+    [Fact]
+    public void Mono_HasNoWidth_AndIsBalanced()
+    {
+        song.Write("a.osu", SongFolder.Osu(general: ["AudioFilename: audio.wav"]));
+        song.Write("audio.wav", SongFolder.Wave(0.5, SongFolder.Sine(0.5)));
+
+        var channels = AudioAnalysisService.AnalyzeAudio(song.Path).ChannelAnalysis!.Value;
+
+        Assert.True(channels.IsMono);
+        Assert.Equal(0, channels.StereoWidth);
+        Assert.Equal("None", channels.Severity.ToString());
+    }
+
+    /// <summary> As big endian as everything in it. </summary>
+    private static byte[] Aiff(int frames)
+    {
+        static byte[] U32(int value) =>
+            [(byte)(value >> 24), (byte)(value >> 16), (byte)(value >> 8), (byte)value];
+
+        byte[] common =
+        [
+            .. "COMM"u8,
+            .. U32(18),
+            0,
+            1, // Channels.
+            .. U32(frames),
+            0,
+            16, // Bits.
+            0x40,
+            0x0E,
+            0xAC,
+            0x44,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0, // 44100 as 80 bit float.
+        ];
+        byte[] sound =
+        [
+            .. "SSND"u8,
+            .. U32(8 + frames * 2),
+            .. U32(0),
+            .. U32(0),
+            .. new byte[frames * 2],
+        ];
+
+        return
+        [
+            .. "FORM"u8,
+            .. U32(4 + common.Length + sound.Length),
+            .. "AIFF"u8,
+            .. common,
+            .. sound,
+        ];
+    }
+
+    [Fact]
+    public void OtherFormats_AreNamed()
+    {
+        song.Write("a.osu", SongFolder.Osu(general: ["AudioFilename: audio.aiff"]));
+        song.Write("audio.aiff", Aiff(22050));
+
+        var format = AudioAnalysisService.AnalyzeAudio(song.Path).FormatAnalysis!.Value;
+
+        Assert.Equal("AIFF", format.Format);
+        Assert.Equal("Audio Interchange File Format", format.Codec);
+    }
 }

@@ -8,16 +8,27 @@ namespace MapsetVerifier.Server.Service;
 
 public static partial class RankingCriteriaService
 {
-    private static RcStore Store => RcStore.Embedded;
+    private static RcStore? store;
 
     /// <summary> Nested statements by the id of the statement they are nested in. </summary>
-    private static readonly Lazy<ILookup<string, RcStatement>> Children = new(() =>
+    private static Lazy<ILookup<string, RcStatement>> children = new(GetChildren);
+
+    internal static RcStore Store
+    {
+        get => store ?? RcStore.Embedded;
+        set
+        {
+            store = value;
+            children = new Lazy<ILookup<string, RcStatement>>(GetChildren);
+        }
+    }
+
+    private static ILookup<string, RcStatement> GetChildren() =>
         Store
             .AllStatements()
             .Select(entry => entry.Statement)
             .Where(statement => statement.Upstream.Parent != null && !statement.IsRetired)
-            .ToLookup(statement => statement.Upstream.Parent!)
-    );
+            .ToLookup(statement => statement.Upstream.Parent!);
 
     public static ApiRcOverview GetOverview()
     {
@@ -138,7 +149,7 @@ public static partial class RankingCriteriaService
             return ApiRcCoverage.Informational;
 
         // Statements like "The audio file of a beatmap must..." are enforced through their nested statements.
-        var children = Children
+        var childCoverage = children
             .Value[statement.Id]
             .Select(child => GetCoverage(child, links))
             // An outdated sub-rule still has a check; it is flagged on its own row.
@@ -150,8 +161,8 @@ public static partial class RankingCriteriaService
             )
             .ToList();
 
-        if (children.Count > 0 && children.Any(coverage => coverage != ApiRcCoverage.Uncovered))
-            return children.All(coverage => coverage == ApiRcCoverage.Covered)
+        if (childCoverage.Any(coverage => coverage != ApiRcCoverage.Uncovered))
+            return childCoverage.All(coverage => coverage == ApiRcCoverage.Covered)
                 ? ApiRcCoverage.Covered
                 : ApiRcCoverage.Partial;
 
