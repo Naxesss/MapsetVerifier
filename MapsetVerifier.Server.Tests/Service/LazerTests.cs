@@ -612,4 +612,48 @@ public sealed class LazerTests : IDisposable
 
         Assert.Equal(["Edited", "Added"], Titles(Page()));
     }
+
+    [Fact]
+    public void Sets_WithoutMetadata_AreStillListed()
+    {
+        var id = lazer.AddSet(title: "Removed", editedDay: 5, versions: ["A", "B"]);
+        lazer.Write(realm =>
+        {
+            var set = realm.Find<osu.Game.Beatmaps.BeatmapSetInfo>(id)!;
+            set.Beatmaps[0].Metadata = null!;
+            set.Beatmaps[1].LastLocalUpdate = LazerLibrary.Date(3);
+        });
+
+        var item = Assert.Single(
+            LazerRealmService.GetBeatmapSets(lazer.DataPath, null, 0, 16).Items
+        );
+
+        Assert.Equal(("", "", ""), (item.Title, item.Artist, item.Creator));
+        Assert.EndsWith($"&v={LazerLibrary.Date(5).UtcTicks:x}", item.BackgroundPath);
+        Assert.Null(
+            LazerRealmService.FindBestMatchingBeatmap(lazer.DataPath, "", "", "Nobody", "None")
+        );
+    }
+
+    [Fact]
+    public void Sets_DeletedSinceTheLibraryWasRead_AreNotOpened()
+    {
+        var id = lazer.AddSet(title: "B", artist: "A", versions: ["D"]);
+        var path = Path.Combine(lazer.DataPath, "client.realm");
+
+        Assert.NotNull(
+            LazerRealmService.FindBestMatchingBeatmap(lazer.DataPath, "A", "B", "Creator", "D")
+        );
+
+        // Lazer doesn't always change when its library was written while it runs.
+        var written = File.GetLastWriteTimeUtc(path);
+        lazer.Write(realm =>
+            realm.Find<osu.Game.Beatmaps.BeatmapSetInfo>(id)!.DeletePending = true
+        );
+        File.SetLastWriteTimeUtc(path, written);
+
+        Assert.Null(
+            LazerRealmService.FindBestMatchingBeatmap(lazer.DataPath, "A", "B", "Creator", "D")
+        );
+    }
 }

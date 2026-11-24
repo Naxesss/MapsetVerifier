@@ -708,4 +708,105 @@ public sealed class ServiceEdgeTests : IDisposable
         Assert.Equal("AIFF", format.Format);
         Assert.Equal("Audio Interchange File Format", format.Codec);
     }
+
+    [Theory]
+    [InlineData("MP4", "H.264 / AVC", true)]
+    [InlineData("MP4", "H.265 / HEVC", true)]
+    [InlineData("MP4", "VP8", true)]
+    [InlineData("MP4", "VP9", true)]
+    [InlineData("WEBM", "AV1", true)]
+    [InlineData("MP4", "MPEG-4 Visual", false)]
+    [InlineData("MP4", "", false)]
+    [InlineData("AVI", "H.264 / AVC", false)]
+    [InlineData("", "H.264 / AVC", false)]
+    public void Videos_ThatCanBePreviewed(string container, string codec, bool expected)
+    {
+        Assert.Equal(expected, VideoAnalysisService.CanBrowserPlay(container, codec));
+    }
+
+    [Theory]
+    [InlineData(new[] { -20.0, -22, -24 }, true)]
+    [InlineData(new[] { -10.0, -30, -30 }, false)] // One stands out.
+    [InlineData(new[] { -50.0, -51, -52 }, false)] // Too quiet to be heard.
+    public void Masking_NeedsLoudnessAllOverABand(double[] magnitudes, bool expected)
+    {
+        var points = magnitudes
+            .Select(
+                (magnitude, i) =>
+                    new Model.AudioAnalysis.FftDataPoint
+                    {
+                        FrequencyHz = 100 + i,
+                        MagnitudeDb = magnitude,
+                    }
+            )
+            .ToList();
+
+        var results = AudioAnalysisService.DetectFrequencyMasking(points);
+
+        Assert.Equal(expected, results.Count == 1);
+        Assert.All(results, result => Assert.Contains("Bass", result.Description));
+    }
+
+    [Fact]
+    public void Snapshots_RememberStarsThatWereMissing()
+    {
+        using var store = new SongFolder();
+        SnapshotStore.ConfigurePath(store.Path, "externals");
+
+        for (var i = 0; i < 2; i++)
+        {
+            song.Write(
+                "a.osu",
+                SongFolder.Osu(
+                    title: $"{i}",
+                    beatmapId: 5,
+                    beatmapSetId: 6,
+                    hitObjects: ["0,0,1000,1,0", "500,0,1200,1,0", $"0,{i},1400,1,0"]
+                )
+            );
+            SnapshotService.Capture(song.Path, null);
+        }
+
+        // Like those of older versions.
+        var log = Directory
+            .GetFiles(store.Path, "*.json", SearchOption.AllDirectories)
+            .Single(file =>
+                File.ReadAllText(file).Contains("\"stars\"", StringComparison.OrdinalIgnoreCase)
+            );
+        File.WriteAllText(
+            log,
+            System.Text.RegularExpressions.Regex.Replace(
+                File.ReadAllText(log),
+                "(\"stars\"):\\s*[0-9.]+",
+                "$1: null",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase
+            )
+        );
+
+        double?[] Stars() =>
+            SnapshotStore
+                .Load("set-6")
+                .Entries.SelectMany(entry => entry.Difficulties)
+                .Select(difficulty => difficulty.Stars)
+                .ToArray();
+
+        Assert.Equal([null, null], Stars());
+
+        var entries = SnapshotStore.Load("set-6").Entries;
+        var compared = Assert.Single(
+            SnapshotService.Compare("set-6", entries[0].Id, entries[1].Id).Difficulties
+        );
+
+        Assert.Equal([compared.StarsBefore, compared.StarsAfter], Stars());
+        Assert.All(Stars(), stars => Assert.True(stars > 0));
+    }
+
+    [Fact]
+    public void Snapshots_OfNoDifficulties_AreNotTaken() =>
+        Assert.Null(
+            SnapshotService.CaptureCurrent(
+                new MapsetVerifier.Parser.Objects.BeatmapSet(song.Path),
+                "check"
+            )
+        );
 }

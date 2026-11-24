@@ -26,19 +26,9 @@ public static class BeatmapService
             try
             {
                 var key = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey("osu\\DefaultIcon");
-                var value = key?.GetValue(string.Empty)?.ToString();
-                if (!string.IsNullOrWhiteSpace(value))
-                {
-                    value = value.Trim('"');
-                    var exePath = value;
-                    var dir = Path.GetDirectoryName(exePath);
-                    if (!string.IsNullOrWhiteSpace(dir))
-                    {
-                        var songsPath = Path.Combine(dir, "Songs");
-                        if (Directory.Exists(songsPath))
-                            return songsPath;
-                    }
-                }
+                var songsPath = FindSongsNextTo(key?.GetValue(string.Empty)?.ToString());
+                if (songsPath != null)
+                    return songsPath;
             }
             catch
             { /* ignore registry errors */
@@ -47,19 +37,33 @@ public static class BeatmapService
             // Fallback to %USERPROFILE%\AppData\Local\osu!\Songs
             try
             {
-                var userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
-                if (!string.IsNullOrWhiteSpace(userProfile))
-                {
-                    var fallback = Path.Combine(userProfile, "AppData", "Local", "osu!", "Songs");
-                    if (Directory.Exists(fallback))
-                        return fallback;
-                }
+                return FindSongsInProfile(Environment.GetEnvironmentVariable("USERPROFILE"));
             }
             catch
             { /* ignore */
             }
         }
         return null;
+    }
+
+    /// <summary> The path may be quoted, and followed by the number of its icon. </summary>
+    internal static string? FindSongsNextTo(string? registeredIcon)
+    {
+        var dir = Path.GetDirectoryName(registeredIcon?.Trim('"'));
+        if (string.IsNullOrWhiteSpace(dir))
+            return null;
+
+        var songsPath = Path.Combine(dir, "Songs");
+        return Directory.Exists(songsPath) ? songsPath : null;
+    }
+
+    internal static string? FindSongsInProfile(string? userProfile)
+    {
+        if (string.IsNullOrWhiteSpace(userProfile))
+            return null;
+
+        var songsPath = Path.Combine(userProfile, "AppData", "Local", "osu!", "Songs");
+        return Directory.Exists(songsPath) ? songsPath : null;
     }
 
     /// <summary>

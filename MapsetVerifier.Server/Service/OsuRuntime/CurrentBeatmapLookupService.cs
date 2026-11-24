@@ -57,7 +57,21 @@ public static class CurrentBeatmapLookupService
                 null
             );
 
-        var processes = SnapshotOsuProcesses();
+        return GetCurrentBeatmap(
+            clientKind,
+            pathOverride,
+            SnapshotOsuProcesses(),
+            GetWindowTitleCandidates
+        );
+    }
+
+    internal static ApiLazerLookupResult GetCurrentBeatmap(
+        OsuClientKind clientKind,
+        string? pathOverride,
+        IReadOnlyList<OsuProcessSnapshot> processes,
+        Func<HashSet<int>, IReadOnlyList<OsuWindowTitleCandidate>> getTitles
+    )
+    {
         if (processes.Count == 0)
             return new ApiLazerLookupResult(
                 "no_process",
@@ -69,7 +83,7 @@ public static class CurrentBeatmapLookupService
             );
 
         if (clientKind == OsuClientKind.Stable)
-            return GetCurrentStableBeatmapFromAllOsuProcesses(processes, pathOverride);
+            return GetCurrentStableBeatmapFromAllOsuProcesses(processes, pathOverride, getTitles);
 
         var targetProcesses = processes.Where(p => p.ClientKind == clientKind).ToList();
         if (targetProcesses.Count == 0)
@@ -95,9 +109,7 @@ public static class CurrentBeatmapLookupService
             );
         }
 
-        var titleCandidates = GetWindowTitleCandidates(
-            targetProcesses.Select(p => p.ProcessId).ToHashSet()
-        );
+        var titleCandidates = getTitles(targetProcesses.Select(p => p.ProcessId).ToHashSet());
         var liveMetadata = titleCandidates
             .OrderBy(c => c.ProcessId)
             .ThenBy(c => c.Title, StringComparer.OrdinalIgnoreCase)
@@ -120,7 +132,8 @@ public static class CurrentBeatmapLookupService
 
     private static ApiLazerLookupResult GetCurrentStableBeatmapFromAllOsuProcesses(
         IReadOnlyList<OsuProcessSnapshot> processes,
-        string? songsFolderOverride
+        string? songsFolderOverride,
+        Func<HashSet<int>, IReadOnlyList<OsuWindowTitleCandidate>> getTitles
     )
     {
         var songsFolder = BeatmapService.ResolveSongsFolder(songsFolderOverride);
@@ -179,7 +192,7 @@ public static class CurrentBeatmapLookupService
             );
         }
 
-        var titleCandidates = GetWindowTitleCandidates(stableProcessIds);
+        var titleCandidates = getTitles(stableProcessIds);
         var metadataCandidates = titleCandidates
             .OrderBy(c => c.ProcessId)
             .ThenBy(c => c.Title, StringComparer.OrdinalIgnoreCase)
@@ -465,18 +478,6 @@ public static class CurrentBeatmapLookupService
         return string.IsNullOrWhiteSpace(selected) ? null : Path.GetDirectoryName(selected);
     }
 
-    private static string NormalizeLookupName(string value)
-    {
-        var sb = new StringBuilder(value.Length);
-        foreach (var c in value.ToLowerInvariant())
-        {
-            if (char.IsLetterOrDigit(c))
-                sb.Append(c);
-        }
-
-        return sb.ToString();
-    }
-
     private static ApiBeatmap? TryBuildBeatmapFromFolder(string folderPath)
     {
         try
@@ -581,18 +582,7 @@ public static class CurrentBeatmapLookupService
             if (!string.IsNullOrWhiteSpace(liveMetadata))
             {
                 LastSeenAtByClient[clientKind] = DateTime.UtcNow;
-
-                if (!LastDetectedMetadataByClient.TryGetValue(clientKind, out var oldValue))
-                {
-                    LastDetectedMetadataByClient[clientKind] = liveMetadata;
-                }
-                else
-                {
-                    var normalizedCurrent = NormalizeLookupName(liveMetadata);
-                    var normalizedOld = NormalizeLookupName(oldValue);
-                    if (!string.Equals(normalizedCurrent, normalizedOld, StringComparison.Ordinal))
-                        LastDetectedMetadataByClient[clientKind] = liveMetadata;
-                }
+                LastDetectedMetadataByClient[clientKind] = liveMetadata;
             }
             else if (
                 LastSeenAtByClient.TryGetValue(clientKind, out var lastSeenAt)
@@ -702,14 +692,14 @@ public static class CurrentBeatmapLookupService
         return candidates.Values.ToList();
     }
 
-    private readonly record struct OsuProcessSnapshot(
+    internal readonly record struct OsuProcessSnapshot(
         int ProcessId,
         OsuClientKind ClientKind,
         string? ExecutablePath,
         string? MainWindowTitle
     );
 
-    private readonly record struct OsuWindowTitleCandidate(int ProcessId, string Title);
+    internal readonly record struct OsuWindowTitleCandidate(int ProcessId, string Title);
 
     private delegate bool EnumWindowsProc(IntPtr hwnd, IntPtr lParam);
 

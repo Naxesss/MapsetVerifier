@@ -171,4 +171,25 @@ public sealed class CheckRunHistoryServiceTests : IDisposable
 
         Assert.Contains("Check #3", System.Text.Json.JsonSerializer.Serialize(delta));
     }
+
+    [Theory]
+    [InlineData(Issue.Level.Info, Issue.Level.Minor)]
+    [InlineData(Issue.Level.Check, Issue.Level.Minor)]
+    [InlineData(Issue.Level.Minor, Issue.Level.Warning)]
+    [InlineData(Issue.Level.Warning, Issue.Level.Problem)]
+    [InlineData(Issue.Level.Problem, Issue.Level.Error)]
+    [InlineData(Issue.Level.Info, Issue.Level.Error)]
+    public void Levels_HaveAnOrder(Issue.Level lower, Issue.Level higher)
+    {
+        Run(("a", lower));
+        Edit();
+        var delta = Run(("a", higher))!.Value;
+        Assert.Equal(["a"], Messages(delta.WorsenedIssues));
+        Assert.Empty(delta.ImprovedIssues);
+
+        Edit();
+        delta = Run(("a", lower))!.Value;
+        Assert.Equal(["a"], Messages(delta.ImprovedIssues));
+        Assert.Empty(delta.WorsenedIssues);
+    }
 }

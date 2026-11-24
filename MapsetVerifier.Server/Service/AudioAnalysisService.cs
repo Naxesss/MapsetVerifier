@@ -703,7 +703,9 @@ public static class AudioAnalysisService
         };
     }
 
-    private static List<FrequencyMaskingResult> DetectFrequencyMasking(List<FftDataPoint> fftPoints)
+    internal static List<FrequencyMaskingResult> DetectFrequencyMasking(
+        List<FftDataPoint> fftPoints
+    )
     {
         var results = new List<FrequencyMaskingResult>();
 
