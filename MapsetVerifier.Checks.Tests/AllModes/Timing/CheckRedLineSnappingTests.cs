@@ -67,4 +67,17 @@ public class CheckRedLineSnappingTests
 
         Assert.Empty(issues);
     }
+
+    [Fact]
+    public void DoesNotFlagWhatIsSnappedToBothLines()
+    {
+        // A beat off the downbeats, so the grid is the same.
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .TimingPoints("0,500,4,2,0,100,1,0", "2500,500,4,2,0,100,1,0")
+                .HitObjects("256,192,2437,1,0,0:0:0:0:")
+        );
+
+        Assert.Empty(context.RunBeatmapCheck<CheckRedLineSnapping>("Test"));
+    }
 }

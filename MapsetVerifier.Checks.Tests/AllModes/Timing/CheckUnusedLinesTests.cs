@@ -446,4 +446,78 @@ public class CheckUnusedLinesTests
 
         return context.RunBeatmapCheck<CheckUnusedLines>("Test");
     }
+
+    [Theory]
+    [InlineData(Beatmap.Mode.Taiko)]
+    [InlineData(Beatmap.Mode.Mania)]
+    public void LineOmittingItsBarline_IsUsedWhereBarlinesAreSeen(Beatmap.Mode mode)
+    {
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Mode(mode)
+                .TimingPoints("0,500,4,2,0,100,1,8", "8000,500,4,2,0,100,1,8")
+                .HitObjects("256,192,9000,1,0,0:0:0:0:")
+        );
+
+        Assert.Empty(context.RunBeatmapCheck<CheckUnusedLines>("Test"));
+    }
+
+    [Theory]
+    [InlineData("8000,-100,4,3,0,100,0,0")]
+    [InlineData("8000,-100,4,2,5,100,0,0")]
+    [InlineData("8000,-100,4,2,0,40,0,0")]
+    public void InheritedLine_ChangingAnySample_IsUsed(string line)
+    {
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .TimingPoints("0,500,4,2,0,100,1,0", line)
+                .HitObjects("256,192,9000,1,0,0:0:0:0:")
+        );
+
+        Assert.Empty(context.RunBeatmapCheck<CheckUnusedLines>("Test"));
+    }
+
+    [Theory]
+    [InlineData(8001, true)]
+    [InlineData(8002, false)]
+    public void UninheritedLine_OneMsOffTheDownbeat_IsStillUnused(int offset, bool expected)
+    {
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Mode(Beatmap.Mode.Catch)
+                .TimingPoints("0,500,4,2,0,100,1,0", $"{offset},500,4,2,0,100,1,0")
+                .HitObjects("256,192,9000,1,0,0:0:0:0:")
+        );
+
+        Assert.Equal(expected, context.RunBeatmapCheck<CheckUnusedLines>("Test").Count > 0);
+    }
+
+    [Fact]
+    public void UninheritedLine_InAModeWithoutBarLines_CannotCorrectOne()
+    {
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Mode(Beatmap.Mode.Catch)
+                .TimingPoints("0,500,4,2,0,100,1,8", "8000,500,4,2,0,100,1,0")
+                .HitObjects("256,192,9000,1,0,0:0:0:0:")
+        );
+
+        var issue = Assert.Single(context.RunBeatmapCheck<CheckUnusedLines>("Test"));
+        Assert.Equal(Issue.Level.Problem, issue.level);
+        Assert.Contains("changes nothing.", issue.message);
+    }
+
+    /// <summary> A line after one that omits its barline, with which it doesn't quite align, brings barlines back. </summary>
+    [Fact]
+    public void UninheritedLine_OnlyCorrectingABarLine_InStandard_FlagsWarning()
+    {
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .TimingPoints("0,500,4,2,0,100,1,8", "8001,500,4,2,0,100,1,0")
+                .HitObjects("256,192,9000,1,0,0:0:0:0:")
+        );
+
+        var issue = Assert.Single(context.RunBeatmapCheck<CheckUnusedLines>("Test"));
+        Assert.Contains("corrects the omitted barline at 00:00:000", issue.message);
+    }
 }

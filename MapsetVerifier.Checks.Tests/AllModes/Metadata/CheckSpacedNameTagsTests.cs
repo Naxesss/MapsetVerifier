@@ -35,4 +35,12 @@ public class CheckSpacedNameTagsTests
         using var context = CheckTestContext.CreateFromOsu(new OsuBuilder().Tags(tags));
         return context.RunGeneralCheck<CheckSpacedNameTags>();
     }
+
+    [Theory]
+    [InlineData("aé b c")]
+    [InlineData("a b")]
+    public void OtherLettersOrTooFew_AreNoSpreadOutName(string tags)
+    {
+        Assert.Empty(Run(tags));
+    }
 }

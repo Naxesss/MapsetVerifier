@@ -90,4 +90,33 @@ public class CheckDiffSettingsTaikoTests
                 .OD(od),
             extraFiles: ["audio.mp3"]
         );
+
+    [Theory]
+    [InlineData(60, 9)]
+    [InlineData(61, 8)]
+    [InlineData(224, 8)]
+    [InlineData(225, 7)]
+    [InlineData(284, 7)]
+    [InlineData(285, 6)]
+    public void RecommendedHp_FollowsTheDrainTime(int seconds, float hp)
+    {
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Mode(Beatmap.Mode.Taiko)
+                .HP(hp)
+                .OD(3.5f)
+                .WithDefaultTiming()
+                .HitObjects(
+                    TestHitObjects.Circle(1000),
+                    TestHitObjects.Circle(1000 + seconds * 1000)
+                )
+        );
+        var beatmap = context.GetBeatmap("Test");
+        beatmap.InterpretedDifficultyOverride = Beatmap.Difficulty.Easy;
+
+        var issue = Assert.Single(new CheckDiffSettingsTaiko().GetIssues(beatmap));
+
+        Assert.Equal(Issue.Level.Minor, issue.level);
+        Assert.Contains("OD is different from suggested value 3", issue.message);
+    }
 }

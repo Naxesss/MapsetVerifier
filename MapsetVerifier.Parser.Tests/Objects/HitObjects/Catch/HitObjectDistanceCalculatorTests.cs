@@ -200,4 +200,78 @@ public class HitObjectDistanceCalculatorTests
 
     private static List<ICatchHitObject> CalculateFor(params string[] hitObjects) =>
         CatchTestBeatmap.Create(circleSize: 4, hitObjects).GetCatchHitObjects(true);
+
+    /// <summary> After a dash, the catcher is only as far as dashing took it, which the next walk starts from. </summary>
+    [Fact]
+    public void WalkAfterALongDash_StartsWhereTheDashCouldReach()
+    {
+        var objects = CalculateFor(
+            CatchTestBeatmap.Circle(1000, 400),
+            CatchTestBeatmap.Circle(1125, 225),
+            CatchTestBeatmap.Circle(1250, 125)
+        );
+
+        Assert.Equal(CatchMovementType.Dash, objects[0].MovementType);
+        // 48.68 px of catcher and 60.42 px of walking for 100 px, if the dash had made it there.
+        // It ends up at 400 - 48.68 - 120.83 at best though, 5.49 px short of doing so.
+        Assert.Equal(3.6f, objects[1].DistanceToDash, 0.1f);
+    }
+
+    [Fact]
+    public void WalkAfterALongDashToTheRight_IsTheSame()
+    {
+        var objects = CalculateFor(
+            CatchTestBeatmap.Circle(1000, 100),
+            CatchTestBeatmap.Circle(1125, 275),
+            CatchTestBeatmap.Circle(1250, 375)
+        );
+
+        Assert.Equal(3.6f, objects[1].DistanceToDash, 0.1f);
+    }
+
+    /// <summary> Left and right are the same to the catcher. </summary>
+    [Fact]
+    public void MirroredPatterns_HaveTheSameMovements()
+    {
+        var random = new Random(5);
+
+        for (var pattern = 0; pattern < 50; pattern++)
+        {
+            var time = 1000;
+            var objects = Enumerable
+                .Range(0, 40)
+                .Select(_ => (Time: time += random.Next(1, 5) * 62, X: random.Next(0, 8) * 64 + 32))
+                .ToArray();
+
+            var plain = CalculateFor(
+                objects.Select(o => CatchTestBeatmap.Circle(o.Time, o.X)).ToArray()
+            );
+            var mirrored = CalculateFor(
+                objects.Select(o => CatchTestBeatmap.Circle(o.Time, 512 - o.X)).ToArray()
+            );
+
+            // Nothing follows the last one.
+            for (var i = 0; i < plain.Count - 1; i++)
+            {
+                Assert.Equal(plain[i].MovementType, mirrored[i].MovementType);
+                Assert.Equal(plain[i].DistanceToHyper, mirrored[i].DistanceToHyper, 0.01f);
+                Assert.Equal(plain[i].DistanceToDash, mirrored[i].DistanceToDash, 0.01f);
+            }
+        }
+    }
+
+    /// <summary> A hyperdash ends with the catcher right below the fruit, so the next one has its full width again. </summary>
+    [Fact]
+    public void MovementAfterAHyperdash_HasTheFullCatcher()
+    {
+        var objects = CalculateFor(
+            CatchTestBeatmap.Circle(1000, 0),
+            CatchTestBeatmap.Circle(1062, 300),
+            CatchTestBeatmap.Circle(1312, 400)
+        );
+
+        Assert.Equal(CatchMovementType.Hyperdash, objects[0].MovementType);
+        // 245.83 px of dashing and 60.85 px of catcher for 100 px.
+        Assert.Equal(206.7f, objects[1].DistanceToHyper, 0.1f);
+    }
 }

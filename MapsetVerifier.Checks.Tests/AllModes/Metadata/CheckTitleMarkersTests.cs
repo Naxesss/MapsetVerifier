@@ -417,6 +417,17 @@ public class CheckTitleMarkersTests
         Assert.DoesNotContain(issues, issue => issue.message.Contains("in capitals"));
     }
 
+    /// <summary> Long descriptions are part of the title rather than a marker. </summary>
+    [Theory]
+    [InlineData(40, true)]
+    [InlineData(41, false)]
+    public void VersionsOfUpTo40Characters_AreStandardized(int length, bool expected)
+    {
+        var inner = new string('a', length) + " version";
+
+        Assert.Equal(expected, Messages($"Song ({inner})").Count > 0);
+    }
+
     private static CheckTestContext CreateContextWithUnicodeTitle(
         string title,
         string titleUnicode,
@@ -435,4 +446,145 @@ public class CheckTitleMarkersTests
         CheckTestContext.CreateFromOsu(
             new OsuBuilder().Title(title).Artist("Tests").Creator("Tests").Tags(tags)
         );
+
+    private static List<string> Messages(string title, string? unicode = null, string? tags = null)
+    {
+        var builder = new OsuBuilder()
+            .Title(title)
+            .TitleUnicode(unicode ?? title)
+            .WithDefaultTiming()
+            .WithDefaultHitObject();
+
+        if (tags != null)
+            builder.Tags(tags);
+
+        using var context = CheckTestContext.CreateFromOsu(builder);
+
+        return context.RunGeneralCheck<CheckTitleMarkers>().Select(issue => issue.message).ToList();
+    }
+
+    [Fact]
+    public void WithoutATitle_NothingIsSaid()
+    {
+        Assert.Empty(Messages(""));
+        Assert.Empty(Messages("Song", ""));
+        Assert.Empty(Messages("", "Song"));
+    }
+
+    [Theory]
+    [InlineData("Song (TV Size)", "Uta (TV Size)", false)]
+    [InlineData("Song (TV Size)", "Uta", true)]
+    [InlineData("Song", "Uta (TV Size)", true)]
+    [InlineData("Song (Sped Up & Cut Ver.)", "Uta (Sped Up & Cut Ver.)", false)]
+    [InlineData("Song (Nightcore & Cut Ver.)", "Uta", true)]
+    [InlineData("Song (Live TV Size)", "Uta", false)]
+    public void Marker_IsInBothTitles(string title, string unicode, bool mismatch)
+    {
+        Assert.Equal(
+            mismatch,
+            Messages(title, unicode).Any(message => message.Contains("is missing from"))
+                || Messages(title, unicode)
+                    .Any(message => message.Contains("Unicode") && message.Contains("Romanized"))
+        );
+    }
+
+    [Theory]
+    [InlineData("Song (TV Size)", false)]
+    [InlineData("Song TV Size", true)]
+    [InlineData("Song (TV Size) Remix", false)]
+    [InlineData("Song (TV Size) (Remix)", true)]
+    [InlineData("Song TV Size)", true)]
+    [InlineData("Song )TV Size(", true)]
+    [InlineData("Song (TV Size", true)]
+    [InlineData("Song (tv size)", true)]
+    public void TvSize_IsTheLastParenthetical(string title, bool expected)
+    {
+        Assert.Equal(
+            expected,
+            Messages(title).Any(message => message.Contains("end of the title"))
+        );
+    }
+
+    [Theory]
+    [InlineData("Song (OP Version)", "game", true)]
+    [InlineData("Song (OP Version)", "videogame", true)]
+    [InlineData("Song (OP Version)", "anime", false)]
+    [InlineData("Song (Game Ver.)", "game", false)]
+    [InlineData("Song", "game", false)]
+    public void OpVersions_OfGames_AreGameVersions(string title, string tags, bool expected)
+    {
+        Assert.Equal(
+            expected,
+            Messages(title, tags: tags).Any(message => message.Contains("(Game Ver.)"))
+        );
+    }
+
+    [Theory]
+    [InlineData("Song (Extended Version)", "(Extended Ver.)")]
+    [InlineData("Song (Long)", "(Long Ver.)")]
+    [InlineData("Song (Long Ver.)", null)]
+    [InlineData("Song (A Very Long Name Of Over Forty Characters Here Version)", null)]
+    [InlineData("Song (Some Remix ver)", null)]
+    [InlineData("Song (\"Quoted\" Long version)", "(\"Quoted\" Long Ver.)")]
+    [InlineData("Song (piano version)", "(Piano Ver.)")]
+    [InlineData("12345", null)]
+    public void OtherVersions_AreWrittenInOneWay(string title, string? expected)
+    {
+        var messages = Messages(title);
+
+        if (expected == null)
+            Assert.Empty(messages);
+        else
+            Assert.Contains(messages, message => message.Contains(expected));
+    }
+
+    [Theory]
+    [InlineData("Song (Sped Up Ver.)", "Uta (Sped Up Ver.)", 2)]
+    [InlineData("Song (Sped Up Ver.)", "Song (Sped Up Ver.)", 1)]
+    [InlineData("Song", "Uta (Sped Up Ver.)", 1)]
+    [InlineData("Song (Nightcore Mix)", "Uta (Nightcore Mix)", 0)]
+    public void SpedUpWithNightcoreTags_IsAskedAbout(string title, string unicode, int expected)
+    {
+        Assert.Equal(
+            expected,
+            Messages(title, unicode, "nightcore")
+                .Count(message => message.Contains("\"nightcore\""))
+        );
+    }
+
+    [Theory]
+    [InlineData("12 (TV SIZE)", "(TV SIZE)", 1)]
+    [InlineData("Song (TV SIZE)", "Uta (TV Size)", 1)]
+    [InlineData("Song (TV SIZE)", "", 1)]
+    [InlineData("SONG (TV SIZE)", "", 0)]
+    [InlineData("song (tv size)", "", 0)]
+    [InlineData("song (TV SIZE)", "", 1)]
+    [InlineData("SONG (tv size)", "", 1)]
+    public void CapitalsOfAMarker_FollowTheRestOfTheTitle(
+        string title,
+        string unicode,
+        int expected
+    )
+    {
+        Assert.Equal(
+            expected,
+            Messages(title, unicode)
+                .Count(message =>
+                    message.Contains("incorrect format") || message.Contains("in capitals")
+                )
+        );
+    }
+
+    [Theory]
+    [InlineData("Song (Sped Up & Cut Version)", "(Sped Up & Cut Ver.)")]
+    [InlineData("Song (sped up & cut ver.)", "(Sped Up & Cut Ver.)")]
+    [InlineData("Song (Nightcore & Cut Version)", "(Nightcore & Cut Ver.)")]
+    [InlineData("Song -Sped Up Ver.-", "(Sped Up Ver.)")]
+    public void CombinedMarkers_AreCorrectedAsOne(string title, string expected)
+    {
+        Assert.Contains(
+            Messages(title),
+            message => message.Contains($"incorrect format of \"{expected}\"")
+        );
+    }
 }

@@ -758,4 +758,28 @@ public class CheckRomanisationTests
         CheckTestContext.CreateFromOsu(
             new OsuBuilder().Artist(artist).ArtistUnicode(artistUnicode).Creator("Tests")
         );
+
+    [Theory]
+    [InlineData("", "つき")]
+    [InlineData("Tsuki", "")]
+    public void SkipsEmptyFields(string romanised, string unicode)
+    {
+        using var context = CreateTitleContext(romanised, unicode);
+
+        Assert.Empty(context.RunGeneralCheck<CheckRomanisation>());
+    }
+
+    [Theory]
+    [InlineData("Song ～つき～ Remix", "Song Remix", "つき")]
+    [InlineData("♥つき♥ Song", "Song", "つき")]
+    [InlineData("Song -つき-", "Song", "つき")]
+    public void FlagsMissingPartBetweenSymbols(string unicode, string romanised, string missing)
+    {
+        using var context = CreateTitleContext(romanised, unicode);
+
+        Assert.Contains(
+            $"\"{missing}\"",
+            Assert.Single(context.RunGeneralCheck<CheckRomanisation>()).message
+        );
+    }
 }

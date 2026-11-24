@@ -254,4 +254,48 @@ SliderTickRate:1
 
         return distance;
     }
+
+    /// <summary> The points a Catmull curve goes through, worked out apart from the parser. </summary>
+    private static IEnumerable<Vector2> CatmullCurve(Vector2[] nodes)
+    {
+        for (var i = 0; i < nodes.Length - 1; i++)
+        {
+            var (before, start, end) = (nodes[Math.Max(i - 1, 0)], nodes[i], nodes[i + 1]);
+            var after = nodes[Math.Min(i + 2, nodes.Length - 1)];
+
+            for (var t = 0f; t <= 1; t += 0.005f)
+                yield return 0.5f
+                    * (
+                        2 * start
+                        + (end - before) * t
+                        + (2 * before - 5 * start + 4 * end - after) * t * t
+                        + (3 * start - before - 3 * end + after) * t * t * t
+                    );
+        }
+    }
+
+    [Fact]
+    public void Catmull_FollowsItsCurve()
+    {
+        var slider = (Slider)
+            TestBeatmap
+                .WithObjects("100,100,1000,2,0,C|180:20|260:180|300:40|400:120,1,540")
+                .HitObjects[0];
+        var curve = CatmullCurve([
+                new Vector2(100, 100),
+                new Vector2(180, 20),
+                new Vector2(260, 180),
+                new Vector2(300, 40),
+                new Vector2(400, 120),
+            ])
+            .ToList();
+
+        for (var i = 0; i <= 20; i++)
+        {
+            var position = slider.GetPathPosition(slider.time + slider.GetCurveDuration() * i / 20);
+            var distance = curve.Min(point => Vector2.Distance(point, position));
+
+            Assert.True(distance < 2, $"{position} at {i * 5}% is {distance} px off");
+        }
+    }
 }

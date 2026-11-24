@@ -147,4 +147,45 @@ public class CheckOffscreenTests
 
         Assert.Empty(context.RunBeatmapCheck<CheckOffscreen>("Test"));
     }
+
+    [Theory]
+    [InlineData(256, 0)]
+    [InlineData(0, 192)]
+    [InlineData(512, 192)]
+    public void SpinnersAndHeadsWithinThePlayfield_AreFine(int x, int y)
+    {
+        using var context = CreateContext(
+            TestHitObjects.Spinner(500, 900),
+            TestHitObjects.Circle(1000, x: x, y: y)
+        );
+
+        Assert.Empty(context.RunBeatmapCheck<CheckOffscreen>("Test"));
+    }
+
+    [Theory]
+    [InlineData(-60, 192)]
+    [InlineData(575, 192)]
+    [InlineData(256, -60)]
+    public void HeadsOutsideThePlayfield_AreMovedBackByTheGame(int x, int y)
+    {
+        using var context = CreateContext(TestHitObjects.Circle(1000, x: x, y: y));
+
+        var issue = Assert.Single(context.RunBeatmapCheck<CheckOffscreen>("Test"));
+        Assert.Contains("Circle would be offscreen", issue.message);
+    }
+
+    [Theory]
+    [InlineData("B", "306:560|356:300", 290)]
+    [InlineData("P", "306:396|356:300", 250)]
+    public void CurvedBodyPastTheBottom_IsAProblem(string type, string points, double length)
+    {
+        using var context = CreateContext(
+            TestHitObjects.Slider(1000, type, points, length: length, y: 300)
+        );
+
+        Assert.Contains(
+            "Slider body is",
+            Assert.Single(context.RunBeatmapCheck<CheckOffscreen>("Test")).message
+        );
+    }
 }

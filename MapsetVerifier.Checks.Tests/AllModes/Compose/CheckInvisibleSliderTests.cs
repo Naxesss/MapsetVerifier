@@ -67,4 +67,19 @@ public class CheckInvisibleSliderTests
 
         Assert.Empty(issues);
     }
+
+    [Fact]
+    public void NegativeLength_IsAProblem()
+    {
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .WithDefaultTiming()
+                .HitObjects(TestHitObjects.Slider(1000, length: -10), TestHitObjects.Circle(5000))
+        );
+
+        Assert.Contains(
+            context.RunBeatmapCheck<CheckInvisibleSlider>("Test"),
+            issue => issue.message.Contains("negative")
+        );
+    }
 }

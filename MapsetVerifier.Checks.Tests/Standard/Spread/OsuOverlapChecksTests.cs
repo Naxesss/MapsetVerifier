@@ -60,6 +60,39 @@ public class OsuOverlapChecksTests
         Assert.Single(BodyIssues(context, Beatmap.Difficulty.Hard));
     }
 
+    /// <summary> Ending in the same place isn't a stack, nor is starting there: both have to be. </summary>
+    [Fact]
+    public void SliderStartingInTheSamePlace_ButEndingEarlier_IsReported()
+    {
+        using var context = Create(
+            "Hard",
+            Line(1000, 100, 380, length: 280),
+            Line(1000 + Beat * 3, 100, 240)
+        );
+
+        Assert.Single(BodyIssues(context, Beatmap.Difficulty.Hard));
+    }
+
+    [Fact]
+    public void SliderEndingInTheSamePlace_ButStartingLater_IsReported()
+    {
+        using var context = Create(
+            "Hard",
+            Line(1000, 100, 380, length: 280),
+            Line(1000 + Beat * 3, 240, 380)
+        );
+
+        Assert.Single(BodyIssues(context, Beatmap.Difficulty.Hard));
+    }
+
+    [Fact]
+    public void StackedSliders_AreNotReported()
+    {
+        using var context = Create("Hard", Line(1000, 100, 240), Line(1000 + Beat * 2, 100, 240));
+
+        Assert.Empty(BodyIssues(context, Beatmap.Difficulty.Hard));
+    }
+
     [Theory]
     [InlineData("Easy", Beatmap.Difficulty.Easy, 4, true)]
     [InlineData("Easy", Beatmap.Difficulty.Easy, 5, false)]
@@ -253,6 +286,34 @@ public class OsuOverlapChecksTests
             "Some name",
             TestHitObjects.Circle(1000, 100),
             TestHitObjects.Circle(1000 + Beat, 150)
+        );
+
+        Assert.Empty(EndIssues(context));
+    }
+
+    /// <summary> Reversed sliders end on their head, while their other end stays until then. </summary>
+    [Theory]
+    [InlineData(100, 1)]
+    [InlineData(240, 1)]
+    [InlineData(380, 0)]
+    public void EitherEndOfAReversedSlider_Counts(int x, int expected)
+    {
+        using var context = Create(
+            "Normal",
+            TestHitObjects.Slider(1000, "L", "240:192", slides: 2, length: 140, x: 100),
+            TestHitObjects.Circle(1000 + Beat * 3, x)
+        );
+
+        Assert.Equal(expected, EndIssues(context).Count);
+    }
+
+    [Fact]
+    public void CircleAfterASpinner_IsNotReported()
+    {
+        using var context = Create(
+            "Normal",
+            TestHitObjects.Spinner(1000, 2000),
+            TestHitObjects.Circle(2000 + Beat)
         );
 
         Assert.Empty(EndIssues(context));

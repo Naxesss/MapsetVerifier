@@ -71,4 +71,23 @@ public class ManiaPlaystyleTests
     {
         Assert.Null(ManiaPlaystyle.Of(Beatmap.Mode.Standard, 4, "[4K] Hard"));
     }
+
+    [Theory]
+    [InlineData(1, "1K")]
+    [InlineData(2, "2K")]
+    [InlineData(4, "4K")]
+    public void FewKeys_AreNamedByTheirCount(int keys, string expected)
+    {
+        var code = TestBeatmap.Code(mode: 3, difficulty: $"CircleSize:{keys}");
+
+        Assert.Equal(expected, ManiaPlaystyle.Of(code, "Hard")!.Label);
+        Assert.Equal(expected, ManiaPlaystyle.Of(TestBeatmap.Parse(code))!.Label);
+    }
+
+    [Fact]
+    public void OtherModes_HaveNoPlaystyle()
+    {
+        Assert.Null(ManiaPlaystyle.Of(TestBeatmap.Code(), "4K Hard"));
+        Assert.Null(ManiaPlaystyle.Of(TestBeatmap.Parse(TestBeatmap.Code())));
+    }
 }

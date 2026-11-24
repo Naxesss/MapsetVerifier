@@ -41,4 +41,31 @@ public class CheckDuplicateStoryboardImagesTests
             ],
             extraBinaryFiles: [("sb/a.png", first), ("sb/b.png", second)]
         );
+
+    [Fact]
+    public void ImagesOfTheSetsStoryboard_AreComparedToo()
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles(
+            [
+                (
+                    "test.osu",
+                    new OsuBuilder()
+                        .Events("Sprite,Pass,Centre,\"a.png\",320,240")
+                        .WithDefaultTiming()
+                        .WithDefaultHitObject()
+                        .Build()
+                ),
+            ],
+            extraFileContents:
+            [
+                (
+                    "MapsetVerifier - MapsetVerifier (Tests).osb",
+                    "[Events]\nAnimation,Pass,Centre,\"b.png\",320,240,1,100,LoopForever"
+                ),
+            ],
+            extraBinaryFiles: [("a.png", TestMedia.Png(9, 9)), ("b0.png", TestMedia.Png(9, 9))]
+        );
+
+        Assert.NotEmpty(context.RunGeneralCheck<CheckDuplicateStoryboardImages>());
+    }
 }
