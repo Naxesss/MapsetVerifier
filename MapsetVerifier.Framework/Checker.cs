@@ -244,7 +244,7 @@ namespace MapsetVerifier.Framework
             Action<T> action,
             CheckProgressTracker? tracker,
             ConcurrentBag<CheckTiming>? timings,
-            Func<T, string>? getName = null,
+            Func<T, string> getName,
             Func<T, string?>? getDifficulty = null
         )
             where T : Check =>
@@ -252,7 +252,7 @@ namespace MapsetVerifier.Framework
                 checks,
                 check =>
                 {
-                    var name = getName?.Invoke(check) ?? check.GetMetadata().Message;
+                    var name = getName(check);
                     var difficulty = getDifficulty?.Invoke(check);
                     var label = difficulty != null ? $"{name} [{difficulty}]" : name;
                     var taskId = tracker?.ReportStarted(label);
@@ -271,7 +271,7 @@ namespace MapsetVerifier.Framework
                     finally
                     {
                         if (taskId.HasValue)
-                            tracker?.ReportCompleted(taskId.Value);
+                            tracker!.ReportCompleted(taskId.Value);
 
                         if (stopwatch != null)
                             timings!.Add(

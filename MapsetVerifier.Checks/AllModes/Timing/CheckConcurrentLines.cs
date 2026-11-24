@@ -126,13 +126,8 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     // ReSharper disable twice PossibleNullReferenceException
                     if (greenLine.Kiai != redLine.Kiai)
                     {
-                        conflictingGreenSettings +=
-                            (conflictingGreenSettings.Length > 0 ? ", " : "")
-                            + (greenLine.Kiai ? "kiai" : "no kiai");
-
-                        conflictingRedSettings +=
-                            (conflictingRedSettings.Length > 0 ? ", " : "")
-                            + (redLine.Kiai ? "kiai" : "no kiai");
+                        conflictingGreenSettings += greenLine.Kiai ? "kiai" : "no kiai";
+                        conflictingRedSettings += redLine.Kiai ? "kiai" : "no kiai";
                     }
 
                     if (!greenLine.Volume.AlmostEqual(redLine.Volume))

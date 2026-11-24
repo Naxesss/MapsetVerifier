@@ -108,6 +108,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                 if (rest <= Common.ROUNDING_ERROR_MARGIN)
                     continue;
 
+                // Also leaves out invalid (NaN) timing, which the above does not.
                 if (rest > 0)
                 {
                     var snap = TimingUtils.FormatClosestBeatSnap(rest, current.msPerBeat);

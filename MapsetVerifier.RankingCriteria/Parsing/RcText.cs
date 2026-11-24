@@ -113,7 +113,7 @@ public static partial class RcText
 
         var union = a.Union(b).Count();
 
-        return union == 0 ? 0 : (double)a.Intersect(b).Count() / union;
+        return (double)a.Intersect(b).Count() / union;
     }
 
     /// <summary> Draft slug from the significant words of a lead, e.g. "hit-objects-never-off-screen-4". </summary>
