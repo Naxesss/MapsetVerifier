@@ -671,12 +671,12 @@ namespace MapsetVerifier.Parser.Objects
             int end = int.MaxValue
         )
         {
+            if (sortedList.Count > 0 && targetTime < timeSelector(sortedList[0]))
+                // Given time is before the list starts, so there is no current element.
+                return -1;
+
             while (true)
             {
-                if (start < 0)
-                    // Given time is before the list starts, so there is no current element.
-                    return -1;
-
                 if (end > sortedList.Count - 1)
                     end = sortedList.Count - 1;
 
@@ -828,6 +828,10 @@ namespace MapsetVerifier.Parser.Objects
 
             // Get the index of object starting in front of the specified time.
             var index = BinaryTimeSearch(list, obj => obj.time, time);
+
+            if (index < 0)
+                // Before the first hit object, so there is no previous.
+                return null;
 
             if (list[index].GetEndTime() < time)
                 // Object end doesn't overlap specified time, so we can return it.
@@ -1275,9 +1279,9 @@ namespace MapsetVerifier.Parser.Objects
 
             // Apparently double does not result in the countdown needing half as much time, but rather closer to 0.45 times as much.
             var countdownMultiplier =
-                GeneralSettings.countdown == GeneralSettings.Countdown.None ? 1
-                : GeneralSettings.countdown == GeneralSettings.Countdown.Half ? 2
-                : 0.45;
+                GeneralSettings.countdown == GeneralSettings.Countdown.Half ? 2
+                : GeneralSettings.countdown == GeneralSettings.Countdown.Double ? 0.45
+                : 1;
 
             return firstObjectBeat
                 - ((firstBeatTime > 5 ? 5 : 6) + GeneralSettings.countdownBeatOffset)

@@ -29,12 +29,10 @@ namespace MapsetVerifier.Parser.Objects
                 sectionLines =>
                 {
                     foreach (var line in sectionLines)
-                        if (line.StartsWith("$"))
+                        // Anything without a value can't be substituted.
+                        if (line.StartsWith("$") && line.Split('=', 2) is [var key, var value])
                             substitutions.Add(
-                                new KeyValuePair<string, string>(
-                                    line.Split('=')[0].Trim(),
-                                    line.Split('=')[1].Trim()
-                                )
+                                new KeyValuePair<string, string>(key.Trim(), value.Trim())
                             );
                 }
             );

@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Numerics;
+using MapsetVerifier.Parser.Statics;
 
 namespace MapsetVerifier.Parser.Settings
 {
@@ -48,12 +49,8 @@ namespace MapsetVerifier.Parser.Settings
                     yield return line.Split(':')[1].Trim();
         }
 
-        private static string? GetValue(string[] lines, string key)
-        {
-            var line = lines.FirstOrDefault(otherLine => otherLine.StartsWith(key));
-
-            return line?.Substring(line.IndexOf(':') + 1).Trim();
-        }
+        private static string? GetValue(string[] lines, string key) =>
+            ParserStatic.GetValue(lines, key);
 
         private static Vector3 ParseColour(string colourString)
         {

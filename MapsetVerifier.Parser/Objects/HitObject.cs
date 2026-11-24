@@ -134,7 +134,8 @@ namespace MapsetVerifier.Parser.Objects
             // Hold notes have "endTime:extras" as format.
             var index = HasType(Types.ManiaHoldNote) ? 1 : 0;
 
-            if (extras.Contains(":"))
+            // The sample is optional, in which case a slider ends with its edge sets ("0:0|0:0").
+            if (extras.Contains(":") && !(HasType(Types.Slider) && extras.Contains('|')))
             {
                 var samplesetValue = (HitSample.SamplesetType)int.Parse(extras.Split(':')[index]);
                 var additionsValue = (HitSample.SamplesetType)
@@ -183,17 +184,15 @@ namespace MapsetVerifier.Parser.Objects
         /// </summary>
         public HitObject? Next(bool skipConcurrent = false)
         {
-            HitObject? next = null;
-
             for (var i = hitObjectIndex + 1; i < beatmap.HitObjects.Count; ++i)
             {
-                next = beatmap.HitObjects[i];
+                var next = beatmap.HitObjects[i];
 
                 if (!skipConcurrent || !next.time.AlmostEqual(time))
-                    break;
+                    return next;
             }
 
-            return next;
+            return null;
         }
 
         /// <summary>
@@ -202,17 +201,15 @@ namespace MapsetVerifier.Parser.Objects
         /// </summary>
         public HitObject? Prev(bool skipConcurrent = false)
         {
-            HitObject? prev = null;
-
             for (var i = hitObjectIndex - 1; i >= 0; --i)
             {
-                prev = beatmap.HitObjects[i];
+                var prev = beatmap.HitObjects[i];
 
                 if (!skipConcurrent || !prev.time.AlmostEqual(time))
-                    break;
+                    return prev;
             }
 
-            return prev;
+            return null;
         }
 
         /*

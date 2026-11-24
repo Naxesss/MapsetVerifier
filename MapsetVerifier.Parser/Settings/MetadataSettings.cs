@@ -1,4 +1,6 @@
-﻿namespace MapsetVerifier.Parser.Settings
+﻿using MapsetVerifier.Parser.Statics;
+
+namespace MapsetVerifier.Parser.Settings
 {
     public class MetadataSettings
     {
@@ -50,12 +52,8 @@
             beatmapSetId = GetBeatmapId(lines, "BeatmapSetID");
         }
 
-        private static string? GetValue(string[] lines, string key)
-        {
-            var line = lines.FirstOrDefault(otherLine => otherLine.StartsWith(key));
-
-            return line?.Substring(line.IndexOf(':') + 1).Trim();
-        }
+        private static string? GetValue(string[] lines, string key) =>
+            ParserStatic.GetValue(lines, key);
 
         /// <summary> Returns the same string lowercase and filtered from characters disabled in file names. </summary>
         public string GetFileNameFiltered(string str) =>

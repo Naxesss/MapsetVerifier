@@ -61,18 +61,21 @@ namespace MapsetVerifier.Parser.Objects
             double.Parse(args[0], CultureInfo.InvariantCulture);
 
         /// <summary> Returns the meter (i.e. timing signature) of the line. </summary>
-        private int GetMeter(string[] args) => int.Parse(args[2]);
+        /// <remarks> The oldest file versions only have the offset and beat length, hence all the defaults. </remarks>
+        private int GetMeter(string[] args) => args.Length > 2 ? int.Parse(args[2]) : 4;
 
         /// <summary> Returns the sampleset which this line applies to any sample set to Auto sampleset. </summary>
         private HitSample.SamplesetType GetSampleset(string[] args) =>
-            (HitSample.SamplesetType)int.Parse(args[3]);
+            args.Length > 3
+                ? (HitSample.SamplesetType)int.Parse(args[3])
+                : HitSample.SamplesetType.Normal;
 
         /// <summary> Returns the custom sample index of the line. </summary>
-        private int GetCustomIndex(string[] args) => int.Parse(args[4]);
+        private int GetCustomIndex(string[] args) => args.Length > 4 ? int.Parse(args[4]) : 0;
 
         /// <summary> Returns the sample volume of the line. </summary>
         private float GetVolume(string[] args) =>
-            float.Parse(args[5], CultureInfo.InvariantCulture);
+            args.Length > 5 ? float.Parse(args[5], CultureInfo.InvariantCulture) : 100;
 
         /// <summary> Returns whether a line of code representing a timing line is uninherited or inherited. </summary>
         public static bool IsUninherited(string[] args)
@@ -128,17 +131,15 @@ namespace MapsetVerifier.Parser.Objects
         /// </summary>
         public TimingLine? Next(bool skipConcurrent = false)
         {
-            TimingLine? next = null;
-
             for (var i = TimingLineIndex + 1; i < Beatmap.TimingLines.Count; ++i)
             {
-                next = Beatmap.TimingLines[i];
+                var next = Beatmap.TimingLines[i];
 
                 if (!skipConcurrent || !next.Offset.AlmostEqual(Offset))
-                    break;
+                    return next;
             }
 
-            return next;
+            return null;
         }
 
         /// <summary>
@@ -147,17 +148,15 @@ namespace MapsetVerifier.Parser.Objects
         /// </summary>
         public TimingLine? Prev(bool skipConcurrent = false)
         {
-            TimingLine? prev = null;
-
             for (var i = TimingLineIndex - 1; i >= 0; --i)
             {
-                prev = Beatmap.TimingLines[i];
+                var prev = Beatmap.TimingLines[i];
 
                 if (!skipConcurrent || !prev.Offset.AlmostEqual(Offset))
-                    break;
+                    return prev;
             }
 
-            return prev;
+            return null;
         }
     }
 }

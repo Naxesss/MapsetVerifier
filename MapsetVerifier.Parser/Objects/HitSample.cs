@@ -51,7 +51,7 @@ namespace MapsetVerifier.Parser.Objects
         public HitSample(string fileName)
         {
             var regex = new Regex(
-                @"(?i)^(taiko-)?(soft|normal|drum)-(hit(whistle|normal|finish)|slider(slide|whistle|tick))(\d+)?"
+                @"(?i)^(taiko-)?(soft|normal|drum)-(hit(whistle|normal|finish|clap)|slider(slide|whistle|tick))(\d+)?"
             );
 
             var match = regex.Match(fileName);
@@ -102,7 +102,7 @@ namespace MapsetVerifier.Parser.Objects
 
         /// <summary>
         ///     Returns the hit sound corresponding to the given text representation, e.g. "whistle", "clap" or "finish".
-        ///     Unrecognized representation, or N/A (e.g. sliderslide/tick), returns null.
+        ///     Unrecognized representation, or N/A (e.g. slidertick), returns null.
         /// </summary>
         private HitSounds? ParseHitSound(string text)
         {
@@ -112,6 +112,7 @@ namespace MapsetVerifier.Parser.Objects
                 : lowerText == "clap" ? HitSounds.Clap
                 : lowerText == "whistle" ? HitSounds.Whistle
                 : lowerText == "finish" ? HitSounds.Finish
+                : lowerText == "slide" ? HitSounds.None
                 : null;
         }
 

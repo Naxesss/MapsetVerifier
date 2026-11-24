@@ -204,23 +204,12 @@ namespace MapsetVerifier.Parser.Objects
             return Beatmaps.FirstOrDefault()?.GeneralSettings.audioFileName ?? null;
         }
 
-        /// <summary>
-        ///     Returns the last file path matching the given search pattern, relative to the song folder.
-        ///     The search pattern allows two wildcards: * = 0 or more, ? = 0 or 1.
-        /// </summary>
-        private string? GetLastMatchingFilePath(string? searchPattern)
+        /// <summary> Returns the given path up to the first dot of its file name. </summary>
+        private static string WithoutExtensions(string relativePath)
         {
-            if (searchPattern == null)
-                return null;
+            var dotIndex = relativePath.IndexOf('.', relativePath.LastIndexOf('/') + 1);
 
-            var lastMatchingPath = Directory
-                .EnumerateFiles(SongPath, searchPattern, SearchOption.AllDirectories)
-                .LastOrDefault();
-
-            if (lastMatchingPath == null)
-                return null;
-
-            return PathStatic.RelativePath(lastMatchingPath, SongPath).Replace("\\", "/");
+            return dotIndex < 0 ? relativePath : relativePath[..dotIndex];
         }
 
         /// <summary> Returns all used hit sound files in the folder. </summary>
@@ -230,17 +219,25 @@ namespace MapsetVerifier.Parser.Objects
                 .SelectMany(beatmap =>
                     beatmap.HitObjects.SelectMany(hitObject => hitObject.GetUsedHitSoundFileNames())
                 )
-                .Distinct();
+                .Distinct(StringComparer.OrdinalIgnoreCase);
 
-            foreach (var hsFileName in hsFileNames)
+            // By their name alone, and with the folder they are in for samples which give that.
+            var pathsByName = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var filePath in SongFilePaths)
             {
-                var path = GetLastMatchingFilePath($"*{hsFileName}.*");
+                var path = PathStatic.RelativePath(filePath, SongPath);
+                var name = WithoutExtensions(path);
 
-                if (path == null)
-                    continue;
-
-                yield return path;
+                // The last one counts, if there are several.
+                pathsByName[name] = path;
+                pathsByName[PathStatic.CutPath(name)] = path;
             }
+
+            return hsFileNames
+                .Select(hsFileName => pathsByName.GetValueOrDefault(hsFileName))
+                .OfType<string>()
+                .Distinct();
         }
 
         /// <summary> Returns whether the given full file path is used by the beatmapset. </summary>
@@ -320,7 +317,7 @@ namespace MapsetVerifier.Parser.Objects
 
             foreach (var beatmap in Beatmaps)
             {
-                AddParsedPaths(GetStoryboardPaths(beatmap, false), excludingAnimations);
+                AddParsedPaths(GetStoryboardPaths(beatmap), excludingAnimations);
                 AddParsedPaths(
                     beatmap.Animations.Select(animation => animation.path),
                     animationsOnly
@@ -329,7 +326,7 @@ namespace MapsetVerifier.Parser.Objects
 
             if (Osb != null)
             {
-                AddParsedPaths(GetStoryboardPaths(Osb, false), excludingAnimations);
+                AddParsedPaths(GetStoryboardPaths(Osb), excludingAnimations);
                 AddParsedPaths(Osb.animations.Select(animation => animation.path), animationsOnly);
             }
 
@@ -447,10 +444,7 @@ namespace MapsetVerifier.Parser.Objects
                 || (Osb != null && IsAnimationPathUsed(parsedPath, Osb.animations));
         }
 
-        private static IEnumerable<string?> GetStoryboardPaths(
-            Beatmap beatmap,
-            bool includeAnimations
-        )
+        private static IEnumerable<string?> GetStoryboardPaths(Beatmap beatmap)
         {
             foreach (var sprite in beatmap.Sprites)
                 yield return sprite.path;
@@ -460,15 +454,9 @@ namespace MapsetVerifier.Parser.Objects
                 yield return background.path;
             foreach (var sample in beatmap.Samples)
                 yield return sample.path;
-
-            if (!includeAnimations)
-                yield break;
-
-            foreach (var animation in beatmap.Animations)
-                yield return animation.path;
         }
 
-        private static IEnumerable<string?> GetStoryboardPaths(Osb osb, bool includeAnimations)
+        private static IEnumerable<string?> GetStoryboardPaths(Osb osb)
         {
             foreach (var sprite in osb.sprites)
                 yield return sprite.path;
@@ -478,12 +466,6 @@ namespace MapsetVerifier.Parser.Objects
                 yield return background.path;
             foreach (var sample in osb.samples)
                 yield return sample.path;
-
-            if (!includeAnimations)
-                yield break;
-
-            foreach (var animation in osb.animations)
-                yield return animation.path;
         }
 
         /// <summary> Returns whether the given path (case insensitive) is used by any of the given animations. </summary>

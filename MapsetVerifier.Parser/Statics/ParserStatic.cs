@@ -47,6 +47,20 @@
             action(parsedLines.ToArray());
         }
 
+        /// <summary> Returns the value of the first "key: value" line with exactly this key, if any, otherwise null. </summary>
+        public static string? GetValue(IEnumerable<string> lines, string key)
+        {
+            foreach (var line in lines)
+            {
+                var separatorIndex = line.IndexOf(':');
+
+                if (separatorIndex >= 0 && line.AsSpan(0, separatorIndex).Trim().SequenceEqual(key))
+                    return line[(separatorIndex + 1)..].Trim();
+            }
+
+            return null;
+        }
+
         /// <summary>
         ///     Returns the first enum which has the same name as the given string,
         ///     or null if none match.
