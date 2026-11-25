@@ -64,6 +64,20 @@ public class CheckGuestTagsTests
         Assert.Contains("\"6k enma\"", warning.message);
     }
 
+    [Theory]
+    [InlineData("A Bc's Hard", "a_bc")] // Single letters can't be searched on their own.
+    [InlineData("[A Bc's Hard]", "a_bc")]
+    [InlineData("(Ab (Cd's Hard)", "(ab (cd")] // Not a pair around the name.
+    public void GuestTag_IsWrittenAsItCanBeSearched(string version, string expectedTag)
+    {
+        using var context = CreateContext(version);
+
+        Assert.Contains(
+            expectedTag,
+            Assert.Single(context.RunGeneralCheck<CheckGuestTags>()).message
+        );
+    }
+
     private static CheckTestContext CreateContext(string version, string tags = "") =>
         CheckTestContext.CreateFromOsu(
             new OsuBuilder().Title("Song").Creator("Host").Version(version).Tags(tags)

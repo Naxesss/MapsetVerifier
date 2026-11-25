@@ -1,5 +1,3 @@
-﻿using System.Globalization;
-
 namespace MapsetVerifier.Parser.Objects.HitObjects
 {
     public class Spinner : HitObject
@@ -14,7 +12,6 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             usedHitSamples = GetUsedHitSamples().ToList();
         }
 
-        private double GetEndTime(string[] args) =>
-            double.Parse(args[5], CultureInfo.InvariantCulture);
+        private double GetEndTime(string[] args) => ParseTime(args[5]);
     }
 }

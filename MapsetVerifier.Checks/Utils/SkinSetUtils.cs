@@ -117,7 +117,7 @@ public static class SkinSetUtils
 
         var middle = fileBase[numberedPrefix.Length..^suffix.Length];
 
-        return middle.Length > 0 && middle.All(char.IsDigit);
+        return middle.All(char.IsDigit);
     }
 
     private static string StripExtension(string name)

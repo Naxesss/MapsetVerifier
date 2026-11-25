@@ -1,5 +1,6 @@
 using MapsetVerifier.Parser.Difficulty;
 using MapsetVerifier.Parser.Objects;
+using osu.Game.Rulesets.Difficulty.Skills;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Osu.Difficulty.Skills;
 using Xunit;
@@ -49,6 +50,38 @@ public class SkillNameFormatterTests
                 ),
                 beatmap
             )
+        );
+    }
+
+    private enum Kind
+    {
+        FirstOne,
+    }
+
+    private sealed class CustomSkill() : Skill(Array.Empty<Mod>())
+    {
+        // Read by the formatter.
+#pragma warning disable CA1822
+        public Kind? Missing => null;
+        public bool IsOff => false;
+        public int Number => 3;
+        public string this[int index] => index.ToString();
+#pragma warning restore CA1822
+        public readonly Kind Of = Kind.FirstOne;
+
+        protected override double ProcessInternal(
+            osu.Game.Rulesets.Difficulty.Preprocessing.DifficultyHitObject current
+        ) => 0;
+
+        public override double DifficultyValue() => 0;
+    }
+
+    [Fact]
+    public void OtherSkills_AreNamedByTheirTypeAndOptions()
+    {
+        Assert.Equal(
+            "Custom (Of: First One)",
+            SkillNameFormatter.GetSkillName(new CustomSkill(), CreateBeatmap(Beatmap.Mode.Catch))
         );
     }
 

@@ -228,8 +228,14 @@ namespace MapsetVerifier.Snapshots.Compare
             // Storyboard commands are indented lines under their sprite; the sprite line counts.
             bool IsTop(string line) => line.Length > 0 && line[0] != ' ' && line[0] != '_';
 
-            var oldLines = before.Where(IsTop).ToList();
-            var newLines = after.Where(IsTop).ToList();
+            // Files write these by either their id or their name.
+            string ById(string line) =>
+                line.StartsWith("Background,") ? "0" + line["Background".Length..]
+                : line.StartsWith("Video,") ? "1" + line["Video".Length..]
+                : line;
+
+            var oldLines = before.Where(IsTop).Select(ById).ToList();
+            var newLines = after.Where(IsTop).Select(ById).ToList();
             var removed = oldLines.Except(newLines).ToList();
             var added = newLines.Except(oldLines).ToList();
 

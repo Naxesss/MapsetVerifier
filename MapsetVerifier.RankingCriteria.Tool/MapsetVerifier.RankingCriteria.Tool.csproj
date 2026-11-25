@@ -9,4 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\MapsetVerifier.RankingCriteria\MapsetVerifier.RankingCriteria.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="MapsetVerifier.Server.Tests" />
+  </ItemGroup>
 </Project>

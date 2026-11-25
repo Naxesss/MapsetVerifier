@@ -11,8 +11,18 @@ namespace MapsetVerifier.Server.Service;
 
 public static class CheckRunHistoryService
 {
-    private const string ExternalsFolderName = "Mapset Verifier Externals";
     private const string CheckRunsFolderName = "check-runs";
+
+    private static string? root;
+
+    private static string Root =>
+        root ?? throw new InvalidOperationException("Check run directory not set up");
+
+    public static void ConfigurePath(string appDataPath, string externalFolderName)
+    {
+        root = Path.Combine(appDataPath, externalFolderName, CheckRunsFolderName);
+        Log.Information("Check run directory: {Path}", root);
+    }
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -136,19 +146,8 @@ public static class CheckRunHistoryService
 
     private static string GetHistoryPath(BeatmapSet beatmapSet)
     {
-        var root = GetExternalsPath();
-        var checkRunsPath = Path.Combine(root, CheckRunsFolderName);
         var folderKey = HashString(Path.GetFullPath(beatmapSet.SongPath).ToLowerInvariant());
-        return Path.Combine(checkRunsPath, folderKey + ".json");
-    }
-
-    private static string GetExternalsPath()
-    {
-        var folder = OperatingSystem.IsLinux()
-            ? Environment.SpecialFolder.LocalApplicationData
-            : Environment.SpecialFolder.ApplicationData;
-
-        return Path.Combine(Environment.GetFolderPath(folder), ExternalsFolderName);
+        return Path.Combine(Root, folderKey + ".json");
     }
 
     private static StoredCheckRun? ReadPreviousRun(string path)

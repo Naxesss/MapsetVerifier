@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Used by scripts/coverage.mjs. Keep its filters in step with the ones in there. -->
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <!-- Unlike Cobertura, OpenCover tells branches apart, so those from several test projects merge exactly. -->
+          <Format>opencover</Format>
+          <Include>[MapsetVerifier*]*</Include>
+          <Exclude>[*.Tests]*</Exclude>
+          <ExcludeByFile>**/obj/**,**/*.g.cs</ExcludeByFile>
+          <SkipAutoProps>true</SkipAutoProps>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

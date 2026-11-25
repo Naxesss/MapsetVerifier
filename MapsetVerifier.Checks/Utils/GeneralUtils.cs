@@ -68,7 +68,7 @@ public static class GeneralUtils
     /// <returns>The value with the lower absolute value.</returns>
     public static double TakeLowerAbsValue(double first, double second)
     {
-        return Math.Min(Math.Abs(first), Math.Abs(second));
+        return Math.Abs(first) < Math.Abs(second) ? first : second;
     }
 
     /// <summary>
@@ -79,6 +79,6 @@ public static class GeneralUtils
     /// <returns>The value with the higher absolute value.</returns>
     public static double TakeHigherAbsValue(double first, double second)
     {
-        return Math.Max(Math.Abs(first), Math.Abs(second));
+        return Math.Abs(first) > Math.Abs(second) ? first : second;
     }
 }

@@ -78,9 +78,6 @@ namespace MapsetVerifier.Checks.Mania.HitSounds
                 .Beatmaps.Where(beatmap => beatmap.GeneralSettings.mode == Beatmap.Mode.Mania)
                 .ToList();
 
-            if (maniaBeatmaps.Count == 0)
-                yield break;
-
             var presentFiles = ManiaHitSounds.GetSampleFileNames(beatmapSet);
 
             foreach (var beatmap in maniaBeatmaps)

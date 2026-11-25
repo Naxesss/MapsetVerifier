@@ -67,9 +67,6 @@ namespace MapsetVerifier.Checks.Taiko.Timing
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
         {
-            if (beatmap.GeneralSettings.mode != Beatmap.Mode.Taiko)
-                yield break;
-
             var difficulty = beatmap.GetDifficulty();
             if (difficulty is not Beatmap.Difficulty.Easy and not Beatmap.Difficulty.Normal)
                 yield break;
@@ -82,19 +79,16 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                 yield break;
 
             var dominantScroll = GetDominantEffectiveScroll(segments);
-            if (dominantScroll == null)
-                yield break;
-
             foreach (var segment in segments)
             {
-                if (EffectiveScrollAlmostEqual(segment.EffectiveScroll, dominantScroll.Value))
+                if (EffectiveScrollAlmostEqual(segment.EffectiveScroll, dominantScroll))
                     continue;
 
                 if (segment.Line is not InheritedLine)
                     continue;
 
                 var bpm = beatmap.GetTimingLine<UninheritedLine>(segment.Offset)!.bpm;
-                var dominantMultiplier = dominantScroll.Value / bpm;
+                var dominantMultiplier = dominantScroll / bpm;
 
                 yield return new Issue(
                     GetTemplate("Inconsistent"),
@@ -106,7 +100,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
             }
         }
 
-        private static double? GetDominantEffectiveScroll(List<EffectiveScrollSegment> segments)
+        private static double GetDominantEffectiveScroll(List<EffectiveScrollSegment> segments)
         {
             var durationByScroll = new Dictionary<double, double>();
 
@@ -117,10 +111,7 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                 durationByScroll[key] += segment.DurationMs;
             }
 
-            return durationByScroll
-                .OrderByDescending(pair => pair.Value)
-                .Select(pair => (double?)pair.Key)
-                .FirstOrDefault();
+            return durationByScroll.MaxBy(pair => pair.Value).Key;
         }
 
         private static List<EffectiveScrollSegment> BuildEffectiveScrollSegments(Beatmap beatmap)
@@ -130,9 +121,6 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                 .Distinct()
                 .OrderBy(offset => offset)
                 .ToList();
-
-            if (offsets.Count == 0)
-                return [];
 
             var endTime = beatmap.HitObjects.Last().GetEndTime();
             var segments = new List<EffectiveScrollSegment>();
@@ -146,8 +134,8 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                 if (duration <= 0)
                     continue;
 
-                var line = beatmap.GetTimingLine(offset);
-                if (line == null || !SectionAffectsScrollSpeed(beatmap, line, nextOffset))
+                var line = beatmap.GetTimingLine(offset)!;
+                if (!SectionAffectsScrollSpeed(beatmap, line, nextOffset))
                     continue;
 
                 segments.Add(
@@ -183,9 +171,6 @@ namespace MapsetVerifier.Checks.Taiko.Timing
             double sectionEnd
         )
         {
-            if (sectionEnd <= line.Offset)
-                return false;
-
             if (SectionContainsObject<HitObject>(beatmap, line))
                 return true;
 

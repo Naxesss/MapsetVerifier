@@ -21,6 +21,9 @@
     <ProjectReference Include="..\MapsetVerifier.Checks\MapsetVerifier.Checks.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="TestData\Audio\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="TestData\Beatmaps\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

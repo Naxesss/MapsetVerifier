@@ -72,6 +72,13 @@ namespace MapsetVerifier.Checks.Mania.Compose
                 }
 
                 int keys = (int)beatmap.DifficultySettings.circleSize;
+
+                // There are no columns then.
+                if (keys <= 0)
+                {
+                    continue;
+                }
+
                 int totalNotes = 0;
                 int[] columnDistribution = new int[keys];
                 foreach (var hitObject in beatmap.HitObjects)

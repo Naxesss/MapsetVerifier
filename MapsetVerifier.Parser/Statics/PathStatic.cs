@@ -6,6 +6,7 @@
         ///     Returns the file path in its base form as seen by the game, optionally allowing
         ///     extensions to be stripped or maintaining case.
         /// </summary>
+        [return: System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(filePath))]
         public static string? ParsePath(
             string? filePath,
             bool withoutExtension = false,

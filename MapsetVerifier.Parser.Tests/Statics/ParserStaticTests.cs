@@ -59,4 +59,15 @@ public class ParserStaticTests
         Assert.Equal(2, beatmap.Videos.Count);
         Assert.Equal(2, beatmap.Breaks.Count);
     }
+
+    [Fact]
+    public void LongLines_AreCutOffInTheError()
+    {
+        var exception = Assert.Throws<MapsetVerifier.Parser.Exceptions.InvalidBeatmapDataException>(
+            () =>
+                ParserStatic.Read("Section", new string('a', 300), line => int.Parse(line))
+        );
+
+        Assert.Contains($"\"{new string('a', 100)}...\" in [Section]", exception.Message);
+    }
 }

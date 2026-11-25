@@ -108,7 +108,10 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
             }
 
             if (errorIssue != null)
+            {
                 yield return errorIssue;
+                yield break;
+            }
 
             var upperBitrateLimit = audioFormat == ChannelType.OGG ? 208 : 192;
 

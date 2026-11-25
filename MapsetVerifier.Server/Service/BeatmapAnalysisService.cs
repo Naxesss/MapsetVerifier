@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Globalization;
 using MapsetVerifier.Parser.Difficulty;
 using MapsetVerifier.Parser.Objects;
@@ -87,22 +86,15 @@ public static class BeatmapAnalysisService
                 return DifficultyOverviewResult.CreateError("No beatmaps found in folder.");
 
             var msPerPeak = ResolveMsPerPeak(beatmapSet.InOverviewOrder());
-            var difficulties = new ConcurrentBag<DifficultyOverviewDifficulty>();
-
-            // Each diff runs one timed calc. Safe to parallelize across beatmaps.
-            Parallel.ForEach(
-                beatmapSet.InOverviewOrder(),
-                beatmap => difficulties.Add(GetDifficultyOverviewDifficulty(beatmap, msPerPeak))
-            );
-
-            // Parallel.ForEach loses the order; restore the Overview's (mode, then star rating).
-            var difficultiesByVersion = difficulties.ToDictionary(difficulty => difficulty.Version);
-            var orderedDifficulties = beatmapSet
+            // Each diff runs one timed calc. Safe to parallelize across beatmaps, which may share names.
+            var difficulties = beatmapSet
                 .InOverviewOrder()
-                .Select(beatmap => difficultiesByVersion[beatmap.MetadataSettings.version])
+                .AsParallel()
+                .AsOrdered()
+                .Select(beatmap => GetDifficultyOverviewDifficulty(beatmap, msPerPeak))
                 .ToList();
 
-            return DifficultyOverviewResult.CreateSuccess(msPerPeak, orderedDifficulties);
+            return DifficultyOverviewResult.CreateSuccess(msPerPeak, difficulties);
         }
         catch (Exception ex) when (IsOperationCanceled(ex))
         {
@@ -120,8 +112,8 @@ public static class BeatmapAnalysisService
         }
     }
 
-    // Parallel.ForEach wraps per-diff cancel exceptions in AggregateException.
-    private static bool IsOperationCanceled(Exception exception)
+    // Running in parallel wraps per-diff cancel exceptions in AggregateException.
+    internal static bool IsOperationCanceled(Exception exception)
     {
         if (exception is OperationCanceledException)
             return true;
@@ -213,7 +205,7 @@ public static class BeatmapAnalysisService
         if (kiaiStart != null && beatmap.HitObjects.Count > 0)
         {
             var lastObjectTime = beatmap.HitObjects.Max(o => o.GetEndTime());
-            totalKiai += lastObjectTime - kiaiStart.Value;
+            totalKiai += Math.Max(lastObjectTime - kiaiStart.Value, 0);
         }
 
         return totalKiai;
@@ -370,19 +362,11 @@ public static class BeatmapAnalysisService
 
     private static double GetMapEndTimeMs(Beatmap beatmap)
     {
-        if (beatmap.TimingLines.Count == 0 && beatmap.HitObjects.Count == 0)
-            return 0;
-
-        var timingMax =
-            beatmap.TimingLines.Count > 0
-                ? beatmap.TimingLines.Max(timingLine => timingLine.Offset)
-                : 0;
-        var objectsMax =
-            beatmap.HitObjects.Count > 0
-                ? beatmap.HitObjects.Max(hitObject => hitObject.GetEndTime())
-                : 0;
-
-        return Math.Max(timingMax, objectsMax);
+        return beatmap
+            .TimingLines.Select(timingLine => timingLine.Offset)
+            .Concat(beatmap.HitObjects.Select(hitObject => hitObject.GetEndTime()))
+            .DefaultIfEmpty(0)
+            .Max();
     }
 
     private static double GetFinalSampleTimeMs(
@@ -390,29 +374,10 @@ public static class BeatmapAnalysisService
         List<osu.Game.Rulesets.Difficulty.TimedDifficultyAttributes> timedAttributes
     )
     {
-        if (timedAttributes.Count > 0)
-        {
-            return Math.Max(
-                timedAttributes[^1].Time,
-                beatmap.HitObjects.Count > 0
-                    ? beatmap.HitObjects.Max(hitObject => hitObject.GetEndTime())
-                    : 0
-            );
-        }
-
-        if (beatmap.TimingLines.Count == 0 && beatmap.HitObjects.Count == 0)
-            return 0;
-
-        var timingMax =
-            beatmap.TimingLines.Count > 0
-                ? beatmap.TimingLines.Max(timingLine => timingLine.Offset)
-                : 0;
-        var objectsMax =
-            beatmap.HitObjects.Count > 0
-                ? beatmap.HitObjects.Max(hitObject => hitObject.GetEndTime())
-                : 0;
-
-        return Math.Max(timingMax, objectsMax);
+        return beatmap
+            .HitObjects.Select(hitObject => hitObject.GetEndTime())
+            .Append(timedAttributes[^1].Time)
+            .Max();
     }
 
     private static List<DifficultySamplePoint> GetStarRatingSamples(
@@ -494,7 +459,7 @@ public static class BeatmapAnalysisService
 
         foreach (var line in changes)
         {
-            if (samples.Count > 0 && samples[^1].TimeMs.AlmostEqual(line.Offset))
+            if (samples[^1].TimeMs.AlmostEqual(line.Offset))
             {
                 samples[^1] = new DifficultySamplePoint
                 {
@@ -704,11 +669,14 @@ public static class BeatmapAnalysisService
         var unsnappedCount = 0;
         var unsnappedEdgeTimes = new List<double>();
 
+        // Without any red line there is nothing to snap to.
+        var hasTiming = beatmap.TimingLines.Any(line => line.Uninherited);
+
         foreach (var hitObject in beatmap.HitObjects)
         {
             foreach (var edgeTime in hitObject.GetEdgeTimes())
             {
-                if (hitObject.type == HitObject.Types.Spinner)
+                if (hitObject is Spinner || !hasTiming)
                 {
                     continue;
                 }
@@ -784,9 +752,6 @@ public static class BeatmapAnalysisService
         foreach (var hitObject in beatmap.HitObjects)
         {
             var column = ManiaExtensions.GetColumn(hitObject, keys);
-
-            if (column < 0 || column >= keys)
-                continue;
 
             if (hitObject is HoldNote)
                 holdNoteCounts[column]++;
@@ -903,8 +868,7 @@ public static class BeatmapAnalysisService
                                 {
                                     JuiceStream.JuiceStreamPart.PartKind.Repeat => "Slider repeats",
                                     JuiceStream.JuiceStreamPart.PartKind.Tail => "Slider tails",
-                                    JuiceStream.JuiceStreamPart.PartKind.Drop => "Drops",
-                                    _ => part.GetNoteTypeName(),
+                                    _ => "Drops",
                                 };
                                 Add(partLabel, part.time, part.GetNoteTypeName());
                             }
@@ -1009,9 +973,6 @@ public static class BeatmapAnalysisService
 
             return 0;
         }
-
-        if (hitObject is Spinner spinner && IsClose(spinner.endTime, edgeTime))
-            return (int)hitObject.hitSound;
 
         return (int)hitObject.hitSound;
     }
@@ -1172,7 +1133,7 @@ public static class BeatmapAnalysisService
                     for (var reverseIndex = 0; reverseIndex < slider.EdgeAmount - 1; reverseIndex++)
                     {
                         ApplyFeedbackUpdate(
-                            slider.ReverseHitSounds.ElementAt(reverseIndex),
+                            slider.ReverseHitSounds.ElementAtOrDefault(reverseIndex),
                             slider.GetReverseSampleset(reverseIndex),
                             Math.Floor(slider.time + slider.GetCurveDuration() * (reverseIndex + 1))
                         );

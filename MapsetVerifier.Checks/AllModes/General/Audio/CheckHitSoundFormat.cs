@@ -134,10 +134,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                 }
                 else
                 {
-                    if (
-                        (ChannelType.Wave & actualFormat) == 0
-                        && (ChannelType.OGG & actualFormat) == 0
-                    )
+                    if ((ChannelType.Wave & actualFormat) == 0 && actualFormat != ChannelType.OGG)
                         yield return new Issue(
                             GetTemplate("Unexpected Format"),
                             null,

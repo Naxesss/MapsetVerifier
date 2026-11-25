@@ -163,4 +163,28 @@ public class CheckLowestDiffTests
         Assert.Equal(Issue.Level.Problem, issue.level);
         Assert.Equal("Hard", issue.beatmap?.MetadataSettings.version);
     }
+
+    /// <summary> Exactly as long as a limit is long enough, as "below" it is what needs a lower difficulty. </summary>
+    [Theory]
+    [InlineData(149, "Hard", 1)]
+    [InlineData(150, "Hard", 0)]
+    [InlineData(194, "Insane", 1)]
+    [InlineData(195, "Insane", 0)]
+    [InlineData(239, "Expert", 1)]
+    [InlineData(240, "Expert", 0)]
+    public void ExactLimits_AreLongEnough(int seconds, string version, int expected)
+    {
+        Assert.Equal(expected, Run(new Diff(version, seconds)).Count);
+    }
+
+    /// <summary> Breaks only count in maps with at least 30 seconds of drain time. </summary>
+    [Theory]
+    [InlineData(29, "drain time")]
+    [InlineData(30, "drain + break")]
+    public void BreaksCount_FromExactlyThirtySeconds(int seconds, string expected)
+    {
+        var issue = Assert.Single(Run(new Diff("Hard", seconds)));
+
+        Assert.Contains(expected, issue.message);
+    }
 }

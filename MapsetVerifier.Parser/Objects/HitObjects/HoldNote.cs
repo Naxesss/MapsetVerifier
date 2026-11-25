@@ -1,5 +1,3 @@
-﻿using System.Globalization;
-
 namespace MapsetVerifier.Parser.Objects.HitObjects
 {
     public class HoldNote : HitObject
@@ -12,7 +10,6 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
         public HoldNote(string[] args, Beatmap beatmap)
             : base(args, beatmap) => endTime = GetEndTime(args);
 
-        private double GetEndTime(string[] args) =>
-            double.Parse(args[5].Split(':')[0], CultureInfo.InvariantCulture);
+        private double GetEndTime(string[] args) => ParseTime(args[5].Split(':')[0]);
     }
 }

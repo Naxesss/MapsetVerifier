@@ -150,8 +150,9 @@ public sealed class CyrillicRomaniser : LetterTableRomaniser
             return SouthSlavic.GetValueOrDefault(letter) ?? [];
 
         if (IsBulgarian(text))
+            // Together with the и before it, ия is ia (България → Balgaria).
             return letter == 'я' && previous == 'и'
-                ? ["ia"]
+                ? ["a"]
                 : Bulgarian.GetValueOrDefault(letter) ?? [];
 
         if (!IsUkrainian(text))

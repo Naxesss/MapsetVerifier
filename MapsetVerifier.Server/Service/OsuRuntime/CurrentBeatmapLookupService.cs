@@ -57,7 +57,21 @@ public static class CurrentBeatmapLookupService
                 null
             );
 
-        var processes = SnapshotOsuProcesses();
+        return GetCurrentBeatmap(
+            clientKind,
+            pathOverride,
+            SnapshotOsuProcesses(),
+            GetWindowTitleCandidates
+        );
+    }
+
+    internal static ApiLazerLookupResult GetCurrentBeatmap(
+        OsuClientKind clientKind,
+        string? pathOverride,
+        IReadOnlyList<OsuProcessSnapshot> processes,
+        Func<HashSet<int>, IReadOnlyList<OsuWindowTitleCandidate>> getTitles
+    )
+    {
         if (processes.Count == 0)
             return new ApiLazerLookupResult(
                 "no_process",
@@ -69,7 +83,7 @@ public static class CurrentBeatmapLookupService
             );
 
         if (clientKind == OsuClientKind.Stable)
-            return GetCurrentStableBeatmapFromAllOsuProcesses(processes, pathOverride);
+            return GetCurrentStableBeatmapFromAllOsuProcesses(processes, pathOverride, getTitles);
 
         var targetProcesses = processes.Where(p => p.ClientKind == clientKind).ToList();
         if (targetProcesses.Count == 0)
@@ -95,9 +109,7 @@ public static class CurrentBeatmapLookupService
             );
         }
 
-        var titleCandidates = GetWindowTitleCandidates(
-            targetProcesses.Select(p => p.ProcessId).ToHashSet()
-        );
+        var titleCandidates = getTitles(targetProcesses.Select(p => p.ProcessId).ToHashSet());
         var liveMetadata = titleCandidates
             .OrderBy(c => c.ProcessId)
             .ThenBy(c => c.Title, StringComparer.OrdinalIgnoreCase)
@@ -120,7 +132,8 @@ public static class CurrentBeatmapLookupService
 
     private static ApiLazerLookupResult GetCurrentStableBeatmapFromAllOsuProcesses(
         IReadOnlyList<OsuProcessSnapshot> processes,
-        string? songsFolderOverride
+        string? songsFolderOverride,
+        Func<HashSet<int>, IReadOnlyList<OsuWindowTitleCandidate>> getTitles
     )
     {
         var songsFolder = BeatmapService.ResolveSongsFolder(songsFolderOverride);
@@ -179,7 +192,7 @@ public static class CurrentBeatmapLookupService
             );
         }
 
-        var titleCandidates = GetWindowTitleCandidates(stableProcessIds);
+        var titleCandidates = getTitles(stableProcessIds);
         var metadataCandidates = titleCandidates
             .OrderBy(c => c.ProcessId)
             .ThenBy(c => c.Title, StringComparer.OrdinalIgnoreCase)
@@ -189,7 +202,15 @@ public static class CurrentBeatmapLookupService
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        var liveMetadata = metadataCandidates.FirstOrDefault() ?? string.Empty;
+        return ResolveStableCurrentMap(songsFolder, metadataCandidates);
+    }
+
+    internal static ApiLazerLookupResult ResolveStableCurrentMap(
+        string songsFolder,
+        IReadOnlyList<string> metadataCandidates
+    )
+    {
+        var liveMetadata = metadataCandidates.FirstOrDefault();
         var metadata = ResolveStickyMetadata(OsuClientKind.Stable, liveMetadata);
         if (string.IsNullOrWhiteSpace(metadata))
             return new ApiLazerLookupResult(
@@ -218,11 +239,10 @@ public static class CurrentBeatmapLookupService
         if (!string.IsNullOrWhiteSpace(resolvedFolder))
         {
             var beatmap = TryBuildBeatmapFromFolder(resolvedFolder);
-            var displayMetadata = resolvedMetadata ?? metadata;
             return new ApiLazerLookupResult(
                 "folder_found",
                 "Current stable map found.",
-                displayMetadata,
+                resolvedMetadata,
                 resolvedFolder,
                 songsFolder,
                 beatmap
@@ -274,7 +294,7 @@ public static class CurrentBeatmapLookupService
     /// even when the map was opened normally (not externally), and the underlying browse/open
     /// flow no longer depends on it at all.
     /// </summary>
-    private static ApiLazerLookupResult ResolveLazerCurrentMap(
+    internal static ApiLazerLookupResult ResolveLazerCurrentMap(
         string metadata,
         string? liveMetadata,
         string? lazerDataDirOverride = null
@@ -430,11 +450,7 @@ public static class CurrentBeatmapLookupService
 
     private static string? TryFindStableBeatmapSetFolder(string songsFolder, string metadata)
     {
-        if (
-            string.IsNullOrWhiteSpace(songsFolder)
-            || string.IsNullOrWhiteSpace(metadata)
-            || !Directory.Exists(songsFolder)
-        )
+        if (!Directory.Exists(songsFolder))
             return null;
 
         metadata = SanitizeExtractedMetadata(metadata) ?? metadata;
@@ -458,32 +474,12 @@ public static class CurrentBeatmapLookupService
         return string.IsNullOrWhiteSpace(selected) ? null : Path.GetDirectoryName(selected);
     }
 
-    private static string NormalizeLookupName(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return string.Empty;
-
-        var sb = new StringBuilder(value.Length);
-        foreach (var c in value.ToLowerInvariant())
-        {
-            if (char.IsLetterOrDigit(c))
-                sb.Append(c);
-        }
-
-        return sb.ToString();
-    }
-
     private static ApiBeatmap? TryBuildBeatmapFromFolder(string folderPath)
     {
         try
         {
-            if (!Directory.Exists(folderPath))
-                return null;
-
             var folder = new DirectoryInfo(folderPath);
-            var osuFile = Directory.GetFiles(folder.FullName, "*.osu").FirstOrDefault();
-            if (string.IsNullOrWhiteSpace(osuFile))
-                return null;
+            var osuFile = Directory.GetFiles(folder.FullName, "*.osu").First();
 
             var content = File.ReadAllText(osuFile);
             var meta = ParseBeatmapMetadata(folder.FullName, content);
@@ -541,7 +537,7 @@ public static class CurrentBeatmapLookupService
         return (title, artist, creator, beatmapId, beatmapSetId, backgroundPath);
     }
 
-    private static string? TryExtractEditorMetadata(string windowTitle)
+    internal static string? TryExtractEditorMetadata(string windowTitle)
     {
         if (string.IsNullOrWhiteSpace(windowTitle))
             return null;
@@ -570,25 +566,14 @@ public static class CurrentBeatmapLookupService
         return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
     }
 
-    private static string? ResolveStickyMetadata(OsuClientKind clientKind, string? liveMetadata)
+    internal static string? ResolveStickyMetadata(OsuClientKind clientKind, string? liveMetadata)
     {
         lock (StickyMetadataLock)
         {
             if (!string.IsNullOrWhiteSpace(liveMetadata))
             {
                 LastSeenAtByClient[clientKind] = DateTime.UtcNow;
-
-                if (!LastDetectedMetadataByClient.TryGetValue(clientKind, out var oldValue))
-                {
-                    LastDetectedMetadataByClient[clientKind] = liveMetadata;
-                }
-                else
-                {
-                    var normalizedCurrent = NormalizeLookupName(liveMetadata);
-                    var normalizedOld = NormalizeLookupName(oldValue);
-                    if (!string.Equals(normalizedCurrent, normalizedOld, StringComparison.Ordinal))
-                        LastDetectedMetadataByClient[clientKind] = liveMetadata;
-                }
+                LastDetectedMetadataByClient[clientKind] = liveMetadata;
             }
             else if (
                 LastSeenAtByClient.TryGetValue(clientKind, out var lastSeenAt)
@@ -698,14 +683,14 @@ public static class CurrentBeatmapLookupService
         return candidates.Values.ToList();
     }
 
-    private readonly record struct OsuProcessSnapshot(
+    internal readonly record struct OsuProcessSnapshot(
         int ProcessId,
         OsuClientKind ClientKind,
         string? ExecutablePath,
         string? MainWindowTitle
     );
 
-    private readonly record struct OsuWindowTitleCandidate(int ProcessId, string Title);
+    internal readonly record struct OsuWindowTitleCandidate(int ProcessId, string Title);
 
     private delegate bool EnumWindowsProc(IntPtr hwnd, IntPtr lParam);
 

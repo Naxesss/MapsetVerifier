@@ -3,6 +3,11 @@
     public static class TaikoExtensions
     {
         /// <summary>
+        ///     Gaps differing by less than this are the same snap, since times are rounded to whole milliseconds.
+        /// </summary>
+        private const double GapLeniencyMs = 2;
+
+        /// <summary>
         ///     Returns whether the hit object is a don hit.
         /// </summary>
         public static bool IsDon(this HitObject hitObject) =>
@@ -46,7 +51,7 @@
             var gapAfterMs = next.time - current.time;
 
             // if there are circles both immediately before and after this object, then it's the start if the snap divisor after this note is lower than before it
-            return gapAfterMs < gapBeforeMs;
+            return gapAfterMs < gapBeforeMs - GapLeniencyMs;
         }
 
         /// <summary>
@@ -74,7 +79,7 @@
             var gapAfterMs = next.time - current.time;
 
             // if there are circles both immediately before and after this object, then it's the end if the snap divisor before this note is lower than after it
-            return gapBeforeMs < gapAfterMs;
+            return gapBeforeMs < gapAfterMs - GapLeniencyMs;
         }
 
         /// <summary>

@@ -213,6 +213,9 @@ public sealed class OsuBuilder
         if (countdown != null)
             lines.Add($"Countdown: {countdown.Value}");
 
+        if (stackLeniency != null)
+            lines.Add($"StackLeniency:{stackLeniency.Value.ToString(inv)}");
+
         lines.Add("[Metadata]");
         lines.Add($"Title:{title}");
         if (titleUnicode != null)
@@ -234,8 +237,6 @@ public sealed class OsuBuilder
         lines.Add($"ApproachRate:{approachRate.ToString(inv)}");
         lines.Add($"SliderMultiplier:{sliderMultiplier.ToString(inv)}");
         lines.Add($"SliderTickRate:{sliderTickRate.ToString(inv)}");
-        if (stackLeniency != null)
-            lines.Add($"StackLeniency:{stackLeniency.Value.ToString(inv)}");
 
         lines.Add("[Events]");
         lines.AddRange(events);

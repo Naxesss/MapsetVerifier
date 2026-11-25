@@ -29,6 +29,9 @@ dist
 # Generated checks metadata (regenerate with scripts/export-checks-metadata.*)
 scripts/checks-metadata.json
 
+# Backend coverage report (npm run coverage:backend)
+/coverage/
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/

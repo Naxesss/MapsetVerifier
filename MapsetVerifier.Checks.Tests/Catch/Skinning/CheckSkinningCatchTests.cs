@@ -234,4 +234,71 @@ public class CheckSkinningCatchTests
 
         return tempPath;
     }
+
+    [Theory]
+    [InlineData("Version: latest", true)]
+    [InlineData("Version: 2.5", true)]
+    [InlineData("version:2", true)]
+    [InlineData("Version: 1.9", false)]
+    [InlineData("Version: new", false)]
+    [InlineData("Version", false)]
+    public void CustomCatcher_NeedsASkinVersionOfAtLeastTwo(string line, bool isFine)
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles(
+            [("test.osu", BuildMinimalOsu())],
+            [
+                "audio.mp3",
+                "fruit-catcher-fail.png",
+                "fruit-catcher-idle.png",
+                "fruit-catcher-kiai.png",
+            ],
+            [("skin.ini", "[General]\n" + line)]
+        );
+
+        Assert.Equal(isFine, context.RunBeatmapSetCheck<CheckSkinningCatch>().Count == 0);
+    }
+
+    [Fact]
+    public void DropAndCatcherOfAnotherSize_AreReported()
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles(
+            [("test.osu", BuildMinimalOsu(DropletHitObject))],
+            ["audio.mp3"],
+            [("skin.ini", SkinIniV2)],
+            [
+                ("fruit-drop.png", TestMedia.Png(10, 10)),
+                ("fruit-drop-overlay.png", TestMedia.Png(10, 10)),
+                ("fruit-catcher-fail.png", TestMedia.Png(10, 10)),
+                ("fruit-catcher-idle.png", TestMedia.Png(10, 10)),
+                ("fruit-catcher-kiai.png", TestMedia.Png(10, 10)),
+            ]
+        );
+
+        Assert.Equal(
+            5,
+            context
+                .RunBeatmapSetCheck<CheckSkinningCatch>()
+                .Count(issue => issue.message.Contains("10"))
+        );
+    }
+
+    [Fact]
+    public void OtherImagesThanPng_AreReported()
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles(
+            [("test.osu", BuildMinimalOsu())],
+            [
+                "audio.mp3",
+                "fruit-catcher-fail.png",
+                "fruit-catcher-idle.jpg",
+                "fruit-catcher-kiai.png",
+            ],
+            [("skin.ini", SkinIniV2)]
+        );
+
+        Assert.Contains(
+            "fruit-catcher-idle.jpg",
+            Assert.Single(context.RunBeatmapSetCheck<CheckSkinningCatch>()).message
+        );
+    }
 }

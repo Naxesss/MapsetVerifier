@@ -671,7 +671,7 @@ namespace MapsetVerifier.Parser.Statics
 
             var startIndex = animationName.IndexOf("{n}", StringComparison.Ordinal);
 
-            if (startIndex != -1 && elementName.Length > startIndex)
+            if (elementName.Length > startIndex)
             {
                 // Capture from where {n} is until no digits are left.
                 var animationFrame = Regex.Match(elementName.Substring(startIndex), @"^\d+").Value;
@@ -757,7 +757,7 @@ namespace MapsetVerifier.Parser.Statics
             if (skinCondition == null)
                 return false;
 
-            return skinCondition is { } condition && condition.IsUsedFunc(beatmapSet);
+            return skinCondition.Value.IsUsedFunc(beatmapSet);
         }
 
         /// <summary> Returns whether the given skin name is used in the given beatmapset (including animations). </summary>
@@ -778,7 +778,7 @@ namespace MapsetVerifier.Parser.Statics
                 return false;
 
             // Only check if there is a condition to check, otherwise the element is always used.
-            return skinCondition is { } condition && condition.IsUsedFunc(beatmapSet);
+            return skinCondition.Value.IsUsedFunc(beatmapSet);
         }
 
         // here we do skin elements that aren't necessarily used but can be, given a specific condition

@@ -316,7 +316,7 @@ public class CheckDashPatterns : BeatmapCheck
             yield return chain;
     }
 
-    /// <summary> The three objects around the first change of snap in a chain, if any. </summary>
+    /// <summary> The three objects around the first change of snap in a chain of consecutive ones, if any. </summary>
     private static ICatchHitObject[]? FirstSnapChange(
         List<ICatchHitObject> objects,
         List<int> chain
@@ -330,7 +330,7 @@ public class CheckDashPatterns : BeatmapCheck
                 objects[chain[j] + 1]
             );
 
-            if (chain[j] == chain[j - 1] + 1 && !CatchExtensions.IsSameSnap(first, second, third))
+            if (!CatchExtensions.IsSameSnap(first, second, third))
                 return [first, second, third];
         }
 

@@ -14,24 +14,13 @@ public static class OsuProcessClassifier
 
     public static RunningOsuClients GetRunningClients()
     {
-        var stable = false;
-        var lazer = false;
+        var kinds = new HashSet<OsuClientKind>();
         foreach (var process in Process.GetProcesses())
         {
             try
             {
-                if (!MayBeOsuRelated(process))
-                    continue;
-
-                switch (Classify(process))
-                {
-                    case OsuClientKind.Stable:
-                        stable = true;
-                        break;
-                    case OsuClientKind.Lazer:
-                        lazer = true;
-                        break;
-                }
+                if (MayBeOsuRelated(process.ProcessName))
+                    kinds.Add(Classify(process));
             }
             catch (Exception)
             {
@@ -43,14 +32,31 @@ public static class OsuProcessClassifier
             }
         }
 
-        return new RunningOsuClients(stable, lazer);
+        return new RunningOsuClients(
+            kinds.Contains(OsuClientKind.Stable),
+            kinds.Contains(OsuClientKind.Lazer)
+        );
     }
 
     public static OsuClientKind Classify(Process process)
     {
-        var processName = process.ProcessName ?? string.Empty;
-        var exePath = GetExecutablePath(process);
-        var commandLine = GetCommandLine(process);
+        return Classify(
+            process.ProcessName,
+            GetExecutablePath(process),
+            GetCommandLine(process),
+            OperatingSystem.IsWindows(),
+            () => IsLikelyLazerByModules(process)
+        );
+    }
+
+    internal static OsuClientKind Classify(
+        string processName,
+        string? exePath,
+        string? commandLine,
+        bool isWindows,
+        Func<bool> hasLazerModules
+    )
+    {
         var hay = Normalize($"{processName} {exePath} {commandLine}");
 
         if (!hay.Contains("osu", StringComparison.Ordinal))
@@ -83,7 +89,7 @@ public static class OsuProcessClassifier
         if (isWine)
             return OsuClientKind.Stable;
 
-        if (IsLikelyLazerByModules(process))
+        if (hasLazerModules())
             return OsuClientKind.Lazer;
 
         var normalizedPath = Normalize(exePath ?? string.Empty);
@@ -95,7 +101,7 @@ public static class OsuProcessClassifier
             return OsuClientKind.Stable;
         }
 
-        if (!OperatingSystem.IsWindows() && !isWine && NativeOsuBinaryRegex.IsMatch(hay))
+        if (!isWindows && !isWine && NativeOsuBinaryRegex.IsMatch(hay))
         {
             return OsuClientKind.Lazer;
         }
@@ -103,9 +109,8 @@ public static class OsuProcessClassifier
         return OsuClientKind.Unknown;
     }
 
-    private static bool MayBeOsuRelated(Process process)
+    internal static bool MayBeOsuRelated(string name)
     {
-        var name = process.ProcessName ?? string.Empty;
         return name.Contains("osu", StringComparison.OrdinalIgnoreCase)
             || name.Contains("wine", StringComparison.OrdinalIgnoreCase)
             || name.Contains("yawl", StringComparison.OrdinalIgnoreCase)
@@ -147,25 +152,14 @@ public static class OsuProcessClassifier
         }
     }
 
-    private static bool IsLikelyLazerByModules(Process process)
+    internal static bool IsLikelyLazerByModules(Process process)
     {
         try
         {
             foreach (ProcessModule module in process.Modules)
             {
-                var moduleName = module.ModuleName?.ToLowerInvariant();
-                if (string.IsNullOrWhiteSpace(moduleName))
-                    continue;
-
-                if (
-                    moduleName.Contains("osu.game.dll", StringComparison.Ordinal)
-                    || moduleName.Contains("osu.framework.dll", StringComparison.Ordinal)
-                    || moduleName.Contains("coreclr.dll", StringComparison.Ordinal)
-                    || moduleName.Contains("hostfxr.dll", StringComparison.Ordinal)
-                )
-                {
+                if (IsLazerModule(module.ModuleName))
                     return true;
-                }
             }
         }
         catch (Exception)
@@ -175,4 +169,10 @@ public static class OsuProcessClassifier
 
         return false;
     }
+
+    internal static bool IsLazerModule(string name) =>
+        name.Contains("osu.game.dll", StringComparison.OrdinalIgnoreCase)
+        || name.Contains("osu.framework.dll", StringComparison.OrdinalIgnoreCase)
+        || name.Contains("coreclr.dll", StringComparison.OrdinalIgnoreCase)
+        || name.Contains("hostfxr.dll", StringComparison.OrdinalIgnoreCase);
 }

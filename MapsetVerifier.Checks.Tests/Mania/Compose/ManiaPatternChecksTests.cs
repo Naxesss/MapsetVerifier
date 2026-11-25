@@ -224,4 +224,75 @@ public class ManiaPatternChecksTests
                 )
                 .HitObjects(hitObjects.OrderBy(line => int.Parse(line.Split(',')[2])))
         );
+
+    [Theory]
+    [InlineData(Beatmap.Difficulty.Normal, 6, 3, "1/6")]
+    [InlineData(Beatmap.Difficulty.Normal, 4, 6, "more than 5")]
+    [InlineData(Beatmap.Difficulty.Hard, 8, 5, "1/8")]
+    public void FastRuns_AreReportedPerDifficulty(
+        Beatmap.Difficulty difficulty,
+        int divisor,
+        int notes,
+        string expected
+    )
+    {
+        // 1/8 at 125 bpm is a whole 60 ms.
+        using var context = Create(Stream(960, 480 / divisor, notes), bpm: 125);
+
+        Assert.Contains(
+            Run<CheckManiaRhythmPatterns>(context, difficulty),
+            issue => issue.message.Contains(expected)
+        );
+    }
+
+    [Theory]
+    [InlineData(7, 1)]
+    [InlineData(4, 0)]
+    public void NeighbouringLongNotes_AreReleasedTogether_In7K(int keys, int expected)
+    {
+        string LongNote(int column, int time, int end) =>
+            $"{(int)((column + 0.5) * 512 / keys)},192,{time},128,0,{end}:0:0:0:0:";
+
+        using var context = CheckTestContext.CreateFromOsu(
+            new OsuBuilder()
+                .Mode(Beatmap.Mode.Mania)
+                .CircleSize(keys)
+                .TimingPoints(TestTimingPoints.Uninherited(0, 400))
+                .HitObjects(LongNote(0, 1000, 3000), LongNote(1, 1400, 5000))
+        );
+
+        Assert.Equal(expected, Run<CheckManiaLongNotes>(context, Beatmap.Difficulty.Normal).Count);
+    }
+
+    [Theory]
+    [InlineData(2, 0)]
+    [InlineData(3, 1)]
+    public void LongerQuarterJack_IsReportedInHard(int notes, int expected)
+    {
+        using var context = Create(
+            Enumerable.Range(0, notes).Select(i => Note(1000 + i * Beat / 4))
+        );
+
+        Assert.Equal(
+            expected,
+            Run<CheckManiaColumnPatterns>(context, Beatmap.Difficulty.Hard).Count
+        );
+    }
+
+    [Fact]
+    public void LongQuarterAnchor_IsReportedInHard()
+    {
+        using var context = Create(
+            Enumerable
+                .Range(0, 10)
+                .Select(i =>
+                    Note(1000 + i * Beat / 4, column: i % 2 == 0 ? Column1 : Columns[1 + i / 2 % 3])
+                )
+        );
+
+        Assert.Contains(
+            Run<CheckManiaColumnPatterns>(context, Beatmap.Difficulty.Hard),
+            issue => issue.message.Contains("anchor", StringComparison.OrdinalIgnoreCase)
+        );
+    }
 }

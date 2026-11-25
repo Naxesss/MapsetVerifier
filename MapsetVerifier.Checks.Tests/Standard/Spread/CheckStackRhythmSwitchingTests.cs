@@ -124,4 +124,26 @@ public class CheckStackRhythmSwitchingTests
                 .TimingPoints(TestTimingPoints.Uninherited(1000, 60000d / 180))
                 .HitObjects(hitObjects)
         );
+
+    [Fact]
+    public void SwitchingBeforeAPause_IsReported_AndStartsOver()
+    {
+        using var context = Create([
+            .. Stacks([Half, Beat, Half, Beat]),
+            .. Stacks([Half, Beat, Half, Beat])
+                .Select(line =>
+                {
+                    var parts = line.Split(',');
+                    parts[2] = (int.Parse(parts[2]) + 60000).ToString();
+                    return string.Join(',', parts);
+                }),
+        ]);
+
+        var issues = Run(context);
+
+        Assert.Equal(2, issues.Count);
+        Assert.Contains("00:01:000", issues[0].message);
+        Assert.Contains("01:01:000", issues[1].message);
+        Assert.All(issues, issue => Assert.Contains("3 times", issue.message));
+    }
 }

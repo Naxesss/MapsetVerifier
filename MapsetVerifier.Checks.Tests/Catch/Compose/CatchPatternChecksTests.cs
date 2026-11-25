@@ -213,4 +213,46 @@ public class CatchPatternChecksTests
                 .TimingPoints(TestTimingPoints.Uninherited(0, 60000d / 180))
                 .HitObjects(hitObjects)
         );
+
+    [Fact]
+    public void SpinnersWithoutAFruitAfterThem_AreFine()
+    {
+        using var last = Create(Fruit(500, 256), TestHitObjects.Spinner(1000, 1300));
+        Assert.Empty(Run<CheckSpinnerTrap>(last, Beatmap.Difficulty.Insane));
+
+        using var two = Create(
+            TestHitObjects.Spinner(1000, 1300),
+            TestHitObjects.Spinner(1400, 1700),
+            Fruit(1200, 10)
+        );
+        Assert.Empty(Run<CheckSpinnerTrap>(two, Beatmap.Difficulty.Insane));
+    }
+
+    [Theory]
+    [InlineData("first")]
+    [InlineData("spinner")]
+    [InlineData("slider")]
+    [InlineData("far fruit")]
+    public void TrapAfterABorder_IsFound_WhateverComesBefore(string before)
+    {
+        string[] objects = before switch
+        {
+            "spinner" => [TestHitObjects.Spinner(200, 900)],
+            "slider" => [TestHitObjects.Slider(500, "L", "400:192", 1, 100, 256)],
+            "far fruit" => [Fruit(990, 0)],
+            _ => [],
+        };
+
+        using var context = Create([
+            .. objects,
+            TestHitObjects.Spinner(1000, 1300),
+            Fruit(1350, 500),
+            Fruit(5000, 500),
+        ]);
+
+        Assert.Contains(
+            Run<CheckSpinnerTrap>(context, Beatmap.Difficulty.Insane),
+            issue => issue.message.Contains("from the border")
+        );
+    }
 }

@@ -115,7 +115,7 @@ namespace MapsetVerifier.Parser.Objects.Events
         /// </summary>
         private Vector2 GetOffset(string[] args)
         {
-            if (args.Length > 4)
+            if (args.Length > 5)
                 return new Vector2(
                     float.Parse(args[4], CultureInfo.InvariantCulture),
                     float.Parse(args[5], CultureInfo.InvariantCulture)

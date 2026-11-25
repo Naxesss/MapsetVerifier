@@ -173,12 +173,7 @@ namespace MapsetVerifier.Checks.Taiko.Compose
                         var foundEndOfPattern = false;
                         for (int i = 0; i < objects.Count; i++)
                         {
-                            var current = objects.SafeGetIndex(i);
-                            if (current == null)
-                            {
-                                // End of beatmap
-                                break;
-                            }
+                            var current = objects[i];
 
                             var timing = beatmap.GetTimingLine<UninheritedLine>(current.time);
                             if (timing == null)

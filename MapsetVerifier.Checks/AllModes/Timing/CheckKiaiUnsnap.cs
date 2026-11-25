@@ -2,6 +2,7 @@
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
 using MapsetVerifier.RankingCriteria;
 using MathNet.Numerics;
@@ -75,13 +76,13 @@ namespace MapsetVerifier.Checks.AllModes.Timing
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
         {
+            // Without any red line there is nothing to snap to.
+            if (!beatmap.TimingLines.OfType<UninheritedLine>().Any())
+                yield break;
+
             foreach (var line in beatmap.TimingLines.Where(line => line.Kiai))
             {
-                var previousLine = beatmap.GetTimingLine(line.Offset - 1);
-                if (previousLine == null)
-                {
-                    break;
-                }
+                var previousLine = beatmap.GetTimingLine(line.Offset - 1)!;
 
                 // If we're inside a kiai, a new line with kiai won't cause kiai to start again.
                 if (previousLine.Kiai)
@@ -117,18 +118,24 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                 )
                     continue;
 
-                var nextLine = line.Next(true);
+                // Other lines may be within the kiai, and the last line on an offset is the one in effect.
+                var endLine = beatmap
+                    .TimingLines.Skip(line.GetTimingLineIndex() + 1)
+                    .FirstOrDefault(otherLine =>
+                        otherLine.Offset > line.Offset
+                        && !beatmap.GetTimingLine(otherLine.Offset)!.Kiai
+                    );
 
-                if (nextLine == null || nextLine.Kiai)
+                if (endLine == null)
                     continue;
 
-                unsnap = beatmap.GetPracticalUnsnap(nextLine.Offset);
+                unsnap = beatmap.GetPracticalUnsnap(endLine.Offset);
 
                 if (Math.Abs(unsnap) >= 1)
                     yield return new Issue(
                         GetTemplate("Minor End"),
                         beatmap,
-                        Timestamp.Get(nextLine.Offset),
+                        Timestamp.Get(endLine.Offset),
                         unsnap
                     );
             }

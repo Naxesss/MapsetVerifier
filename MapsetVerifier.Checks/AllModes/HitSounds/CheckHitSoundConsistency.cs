@@ -191,7 +191,11 @@ namespace MapsetVerifier.Checks.AllModes.HitSounds
                 var bestIndex = int.MaxValue;
                 HitSoundEvent? best = null;
 
-                for (var bucket = minBucket; bucket <= maxBucket; ++bucket)
+                for (
+                    var bucket = minBucket;
+                    bucket <= maxBucket && bucket < long.MaxValue;
+                    ++bucket
+                )
                 {
                     if (!_buckets.TryGetValue(bucket, out var candidates))
                         continue;

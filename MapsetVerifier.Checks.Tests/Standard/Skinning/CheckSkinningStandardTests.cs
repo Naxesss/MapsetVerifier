@@ -265,4 +265,28 @@ public class CheckSkinningStandardTests
             issue => issue.level == Issue.Level.Warning && issue.message.Contains("spinner-osu.png")
         );
     }
+
+    [Theory]
+    [InlineData(false, "spinner-background.png", "spinner-circle.png", "spinner-metre.png")]
+    [InlineData(true, "spinner-background.png", "spinner-circle.png")]
+    public void OldSpinnerStyle_NeedsEveryElement(bool incomplete, params string[] elements)
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles(
+            [("test.osu", BuildMinimalOsu("256,192,1000,8,0,2000,0:0:0:0:"))],
+            [
+                "audio.mp3",
+                "spinner-approachcircle.png",
+                "spinner-clear.png",
+                "spinner-spin.png",
+                .. elements,
+            ]
+        );
+
+        Assert.Equal(
+            incomplete,
+            context
+                .RunBeatmapSetCheck<CheckSkinningStandard>()
+                .Any(issue => issue.message.Contains("spinner-metre.png"))
+        );
+    }
 }

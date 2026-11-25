@@ -21,7 +21,11 @@ internal static class Program
 {
     private const string Repository = "ppy/osu-wiki";
 
-    private static async Task<int> Main(string[] args)
+    /// <summary> Replaced by tests, so they don't need the actual wiki. </summary>
+    internal static Func<HttpMessageHandler> CreateHttpHandler { get; set; } =
+        () => new HttpClientHandler();
+
+    internal static async Task<int> Main(string[] args)
     {
         CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 
@@ -61,7 +65,7 @@ internal static class Program
 
     private static async Task Download(string dataDir, string? commit)
     {
-        using var http = new HttpClient();
+        using var http = new HttpClient(CreateHttpHandler());
         http.DefaultRequestHeaders.UserAgent.Add(
             new ProductInfoHeaderValue("MapsetVerifier", "1.0")
         );

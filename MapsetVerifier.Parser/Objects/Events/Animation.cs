@@ -36,7 +36,8 @@ namespace MapsetVerifier.Parser.Objects.Events
         /// <summary> Returns whether the animation loops, by default true. </summary>
         private bool IsLooping(string[] args) =>
             // Does not exist in file version 5.
-            args?[8] != "LoopOnce";
+            args.Length <= 8
+            || args[8] != "LoopOnce";
 
         /// <summary> Returns all relative file paths for all frames used. </summary>
         public IEnumerable<string> GetFramePaths()
@@ -46,9 +47,11 @@ namespace MapsetVerifier.Parser.Objects.Events
                 yield break;
             }
 
+            var extensionIndex = path.LastIndexOf('.');
+
             for (var i = 0; i < frameCount; ++i)
                 yield return path.Insert(
-                    path.LastIndexOf(".", StringComparison.Ordinal),
+                    extensionIndex >= 0 ? extensionIndex : path.Length,
                     i.ToString()
                 );
         }

@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using MapsetVerifier.Parser.Statics;
 
 namespace MapsetVerifier.Parser.Settings
 {
@@ -24,36 +25,47 @@ namespace MapsetVerifier.Parser.Settings
         public float sliderMultiplier;
         public float sliderTickRate;
 
+        /// <summary> The settings as written, rather than limited to what the game plays. </summary>
+        public Unlimited unlimited;
+
+        public readonly record struct Unlimited(
+            float HpDrain,
+            float CircleSize,
+            float OverallDifficulty,
+            float ApproachRate
+        );
+
         public DifficultySettings(string[] lines)
         {
-            hpDrain = GetValue(lines, "HPDrainRate", 0f, 10f);
-            circleSize = GetValue(lines, "CircleSize", 0f, 18f);
-            overallDifficulty = GetValue(lines, "OverallDifficulty", 0f, 10f);
-            approachRate = GetValue(lines, "ApproachRate", 0f, 10f);
+            hpDrain = GetValue(lines, "HPDrainRate", 5, 0f, 10f);
+            circleSize = GetValue(lines, "CircleSize", 5, 0f, 18f);
+            overallDifficulty = GetValue(lines, "OverallDifficulty", 5, 0f, 10f);
+            // Before file version 8, the overall difficulty was the approach rate as well.
+            approachRate = GetValue(lines, "ApproachRate", overallDifficulty, 0f, 10f);
 
-            sliderMultiplier = GetValue(lines, "SliderMultiplier", 0.4f, 3.6f);
-            sliderTickRate = GetValue(lines, "SliderTickRate", 0.5f, 8f);
-        }
-
-        private float GetValue(string[] lines, string key, float? min = null, float? max = null)
-        {
-            var line = lines.FirstOrDefault(otherLine => otherLine.StartsWith(key));
-
-            if (line == null)
-                return 0;
-
-            var value = float.Parse(
-                line.Substring(line.IndexOf(":", StringComparison.Ordinal) + 1).Trim(),
-                CultureInfo.InvariantCulture
+            unlimited = new Unlimited(
+                GetValue(lines, "HPDrainRate") ?? hpDrain,
+                GetValue(lines, "CircleSize") ?? circleSize,
+                GetValue(lines, "OverallDifficulty") ?? overallDifficulty,
+                GetValue(lines, "ApproachRate") ?? approachRate
             );
 
-            if (value < min)
-                value = min.GetValueOrDefault();
-            if (value > max)
-                value = max.GetValueOrDefault();
-
-            return value;
+            sliderMultiplier = GetValue(lines, "SliderMultiplier", 1.4f, 0.4f, 3.6f);
+            sliderTickRate = GetValue(lines, "SliderTickRate", 1, 0.5f, 8f);
         }
+
+        private static float GetValue(
+            string[] lines,
+            string key,
+            float defaultValue,
+            float min,
+            float max
+        ) => GetValue(lines, key) is { } value ? Math.Clamp(value, min, max) : defaultValue;
+
+        private static float? GetValue(string[] lines, string key) =>
+            ParserStatic.GetValue(lines, key) is { } value
+                ? float.Parse(value, CultureInfo.InvariantCulture)
+                : null;
 
         /// <summary> Returns the radius of a circle or slider from the circle size. </summary>
         public float GetCircleRadius() => GetCircleRadius(circleSize);

@@ -171,6 +171,16 @@ public static class LazerRealmService
         );
     }
 
+    /// <summary> Null if it's not there (anymore). </summary>
+    private static dynamic? FindBeatmapSet(Realm realm, Guid id)
+    {
+        if (realm.DynamicApi.Find("BeatmapSet", id) is not { } found)
+            return null;
+
+        dynamic set = found;
+        return (bool)set.DeletePending ? null : set;
+    }
+
     private static string ReadCreator(dynamic? metadata)
     {
         dynamic? author = metadata?.Author;
@@ -309,8 +319,7 @@ public static class LazerRealmService
         try
         {
             using var realm = OpenRealm(dataDirectory);
-            dynamic? set = realm.DynamicApi.Find("BeatmapSet", guid);
-            if (set == null || (bool)set.DeletePending)
+            if (FindBeatmapSet(realm, guid) is not { } set)
                 return null;
 
             return ReadFiles(set);
@@ -450,8 +459,7 @@ public static class LazerRealmService
 
             foreach (var candidate in candidates)
             {
-                dynamic? set = realm.DynamicApi.Find("BeatmapSet", candidate.Id);
-                if (set == null || (bool)set.DeletePending)
+                if (FindBeatmapSet(realm, candidate.Id) is not { } set)
                     continue;
 
                 long setOnlineId = Convert.ToInt64(set.OnlineID);

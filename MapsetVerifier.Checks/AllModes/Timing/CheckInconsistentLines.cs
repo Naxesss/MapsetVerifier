@@ -105,6 +105,9 @@ namespace MapsetVerifier.Checks.AllModes.Timing
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
+            if (beatmapSet.Beatmaps.Count == 0)
+                yield break;
+
             var refBeatmap = beatmapSet.Beatmaps[0];
 
             foreach (var beatmap in beatmapSet.Beatmaps)
@@ -114,9 +117,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                     // Use a consistent tolerance for comparing timestamps
                     var respectiveLine = beatmap
                         .TimingLines.OfType<UninheritedLine>()
-                        .FirstOrDefault(otherLine =>
-                            Math.Abs(otherLine.Offset - line.Offset) < 0.001 // 1ms tolerance
-                        );
+                        .FirstOrDefault(otherLine => Math.Abs(otherLine.Offset - line.Offset) < 1);
 
                     double offset = line.Offset; // Use original offset for reporting
 
@@ -177,9 +178,7 @@ namespace MapsetVerifier.Checks.AllModes.Timing
                 {
                     var respectiveLine = refBeatmap
                         .TimingLines.OfType<UninheritedLine>()
-                        .FirstOrDefault(otherLine =>
-                            Math.Abs(otherLine.Offset - line.Offset) < 0.001 // Same tolerance
-                        );
+                        .FirstOrDefault(otherLine => Math.Abs(otherLine.Offset - line.Offset) < 1);
 
                     double offset = line.Offset; // Use original offset for reporting
 

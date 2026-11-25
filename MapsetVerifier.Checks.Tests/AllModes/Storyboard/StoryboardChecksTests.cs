@@ -312,4 +312,120 @@ public class StoryboardChecksTests
 
         return stream.ToArray();
     }
+
+    [Theory]
+    [InlineData("sb/a.png", 1, "1 sprite is")]
+    [InlineData("sb/a.png", 2, "2 sprites are")]
+    [InlineData("../a.png", 1, null)]
+    [InlineData("", 1, null)]
+    [InlineData("sb/broken.png", 1, null)]
+    public void OffScreen_CountsSpritesWithAReadableImage(string path, int count, string? expected)
+    {
+        using var context = CheckTestContext.CreateFromOsuFiles(
+            [
+                (
+                    "test.osu",
+                    new OsuBuilder()
+                        .Events(
+                            Enumerable
+                                .Range(0, count)
+                                .SelectMany(_ =>
+                                    new[]
+                                    {
+                                        $"Sprite,Foreground,Centre,\"{path}\",2000,2000",
+                                        " F,0,0,1000,1",
+                                    }
+                                )
+                        )
+                        .WithDefaultTiming()
+                        .WithDefaultHitObject()
+                        .Build()
+                ),
+            ],
+            extraFiles: ["sb/placeholder.txt"],
+            extraBinaryFiles: [("sb/a.png", TestMedia.Png(50, 50)), ("sb/broken.png", [1, 2, 3])]
+        );
+
+        var issue = context.RunGeneralCheck<CheckStoryboardOffScreen>().SingleOrDefault();
+
+        if (expected == null)
+            Assert.Null(issue);
+        else
+            Assert.Contains(expected, issue!.message);
+    }
+
+    [Fact]
+    public void OffScreen_LooksAtEveryFrameOfAnAnimation()
+    {
+        bool IsReported(int width)
+        {
+            using var context = CheckTestContext.CreateFromOsuFiles(
+                [
+                    (
+                        "test.osu",
+                        new OsuBuilder()
+                            .Events(
+                                "Animation,Foreground,Centre,\"sb/a.png\",1000,240,2,100,LoopForever",
+                                " F,0,0,1000,1"
+                            )
+                            .WithDefaultTiming()
+                            .WithDefaultHitObject()
+                            .Build()
+                    ),
+                ],
+                extraFiles: ["sb/placeholder.txt"],
+                extraBinaryFiles:
+                [
+                    ("sb/a0.png", TestMedia.Png(50, 50)),
+                    ("sb/a1.png", TestMedia.Png(width, 50)),
+                ]
+            );
+
+            return context.RunGeneralCheck<CheckStoryboardOffScreen>().Count > 0;
+        }
+
+        Assert.True(IsReported(50));
+        Assert.False(IsReported(1000));
+    }
+
+    [Theory]
+    [InlineData(1, "1 sprite is")]
+    [InlineData(2, "2 sprites are")]
+    public void AfterSong_OfTheStoryboard_IsAfterTheLongestSong(int count, string expected)
+    {
+        string Sprites(int end) =>
+            string.Concat(
+                Enumerable.Repeat(
+                    $"\nSprite,Foreground,Centre,\"a.png\",320,240\n F,0,0,{end},1",
+                    count
+                )
+            );
+
+        List<Issue> RunWith(int end)
+        {
+            using var context = CheckTestContext.CreateFromOsuFiles(
+                new[] { ("a", "short.wav"), ("b", "long.wav") }.Select(x =>
+                    (
+                        x.Item1 + ".osu",
+                        new OsuBuilder()
+                            .Version(x.Item1)
+                            .AudioFilename(x.Item2)
+                            .WithDefaultTiming()
+                            .WithDefaultHitObject()
+                            .Build()
+                    )
+                ),
+                extraFileContents:
+                [
+                    ("MapsetVerifier - MapsetVerifier (Tests).osb", "[Events]" + Sprites(end)),
+                ],
+                extraBinaryFiles: [("short.wav", SilentWave(1000)), ("long.wav", SilentWave(3000))]
+            );
+
+            return context.RunGeneralCheck<CheckStoryboardAfterSong>();
+        }
+
+        Assert.Empty(RunWith(7900));
+        Assert.Contains(expected, Assert.Single(RunWith(8600)).message);
+    }
 }

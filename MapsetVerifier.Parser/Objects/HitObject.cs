@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Numerics;
+using MapsetVerifier.Parser.Exceptions;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
@@ -9,6 +10,9 @@ namespace MapsetVerifier.Parser.Objects
 {
     public class HitObject
     {
+        /// <summary> Anything further away (in px) is refused by the game as well, and would take forever to work out. </summary>
+        protected const float MaxCoordinate = 131072;
+
         /// <summary> Determines which sounds will be played as feedback (can be combined, bitflags). </summary>
         [Flags]
         public enum HitSounds
@@ -111,11 +115,25 @@ namespace MapsetVerifier.Parser.Objects
             var x = float.Parse(args[0], CultureInfo.InvariantCulture);
             var y = float.Parse(args[1], CultureInfo.InvariantCulture);
 
+            if (Math.Abs(x) > MaxCoordinate || Math.Abs(y) > MaxCoordinate)
+                throw new FormatException("The position is further away than the game reads.");
+
             return new Vector2(x, y);
         }
 
-        private double GetTime(string[] args) =>
-            double.Parse(args[2], CultureInfo.InvariantCulture);
+        private double GetTime(string[] args) => ParseTime(args[2]);
+
+        /// <summary> The game reads whole numbers here, so anything that isn't a number can't be a time. </summary>
+        protected static double ParseTime(string time)
+        {
+            var parsedTime = double.Parse(time, CultureInfo.InvariantCulture);
+
+            // Not true for NaN either.
+            if (!(Math.Abs(parsedTime) <= int.MaxValue))
+                throw new FormatException($"{time} is not a time.");
+
+            return parsedTime;
+        }
 
         private Types GetTypeFlags(string[] args) => (Types)int.Parse(args[3]);
 
@@ -134,7 +152,8 @@ namespace MapsetVerifier.Parser.Objects
             // Hold notes have "endTime:extras" as format.
             var index = HasType(Types.ManiaHoldNote) ? 1 : 0;
 
-            if (extras.Contains(":"))
+            // The sample is optional, in which case a slider ends with its edge sets ("0:0|0:0").
+            if (extras.Contains(":") && !(HasType(Types.Slider) && extras.Contains('|')))
             {
                 var samplesetValue = (HitSample.SamplesetType)int.Parse(extras.Split(':')[index]);
                 var additionsValue = (HitSample.SamplesetType)
@@ -183,17 +202,15 @@ namespace MapsetVerifier.Parser.Objects
         /// </summary>
         public HitObject? Next(bool skipConcurrent = false)
         {
-            HitObject? next = null;
-
             for (var i = hitObjectIndex + 1; i < beatmap.HitObjects.Count; ++i)
             {
-                next = beatmap.HitObjects[i];
+                var next = beatmap.HitObjects[i];
 
                 if (!skipConcurrent || !next.time.AlmostEqual(time))
-                    break;
+                    return next;
             }
 
-            return next;
+            return null;
         }
 
         /// <summary>
@@ -202,17 +219,15 @@ namespace MapsetVerifier.Parser.Objects
         /// </summary>
         public HitObject? Prev(bool skipConcurrent = false)
         {
-            HitObject? prev = null;
-
             for (var i = hitObjectIndex - 1; i >= 0; --i)
             {
-                prev = beatmap.HitObjects[i];
+                var prev = beatmap.HitObjects[i];
 
                 if (!skipConcurrent || !prev.time.AlmostEqual(time))
-                    break;
+                    return prev;
             }
 
-            return prev;
+            return null;
         }
 
         /*
@@ -227,7 +242,7 @@ namespace MapsetVerifier.Parser.Objects
 
         /// <summary> Returns whether the hit object has a hit sound, or optionally a certain type of hit sound. </summary>
         public bool HasHitSound(HitSounds? hitSound = null) =>
-            hitSound == null ? this.hitSound > 0 : (this.hitSound & hitSound) != 0;
+            hitSound is { } some ? (this.hitSound & some) != 0 : this.hitSound > 0;
 
         /// <summary>
         /// Returns all hit sounds applied to this hit object.
@@ -585,7 +600,7 @@ namespace MapsetVerifier.Parser.Objects
         {
             var line = beatmap.GetTimingLine(time, true);
             if (line == null)
-                throw new Exception("Beatmap has no timing line.");
+                throw new InvalidBeatmapDataException("Beatmap has no timing line.");
 
             yield return new HitSample(
                 line.CustomIndex,

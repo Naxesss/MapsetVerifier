@@ -68,13 +68,16 @@ namespace MapsetVerifier.Checks
 
             foreach (var tagFile in tagFiles)
             {
-                if (tagFile.templateName == "Exception" || tagFile.file == null)
+                if (tagFile.file == null)
                 {
-                    yield return new Issue(getTemplate("Exception"), null, tagFile.templateArgs[0]);
+                    yield return new Issue(
+                        getTemplate(tagFile.templateName),
+                        null,
+                        tagFile.templateArgs[0]
+                    );
                 }
                 else
                 {
-                    // error
                     foreach (var issue in successFunc(tagFile))
                         yield return issue;
                 }

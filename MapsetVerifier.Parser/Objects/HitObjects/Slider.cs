@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using MapsetVerifier.Parser.Exceptions;
 using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
 using MathNet.Numerics;
@@ -29,6 +30,12 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
         // x, y, time, typeFlags, hitsound, (sliderPath, edgeAmount, pixelLength, hitsoundEdges, additionEdges,) extras
 
         private const double STEP_LENGTH = 0.0005;
+
+        /// <summary> Anything beyond is refused by the game as well, and would take forever to work out. </summary>
+        private const int MaxEdgeAmount = 9000;
+
+        /// <summary> As above, for slider ticks, which only extreme timing lines could bring that close to each other. </summary>
+        private const int MaxTicks = 1_000_000;
 
         /// <summary> Increase this to improve performance but lower accuracy. </summary>
         private const double PATH_STEP_SIZE = 1;
@@ -172,14 +179,32 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
                 var x = float.Parse(node[0], CultureInfo.InvariantCulture);
                 var y = float.Parse(node[1], CultureInfo.InvariantCulture);
 
+                if (Math.Abs(x) > MaxCoordinate || Math.Abs(y) > MaxCoordinate)
+                    throw new FormatException("The path goes further away than the game reads.");
+
                 yield return new Vector2(x, y);
             }
         }
 
-        private static int GetEdgeAmount(IReadOnlyList<string> args) => int.Parse(args[6]);
+        private static int GetEdgeAmount(IReadOnlyList<string> args)
+        {
+            var edgeAmount = int.Parse(args[6]);
 
-        private static float GetPixelLength(IReadOnlyList<string> args) =>
-            float.Parse(args[7], CultureInfo.InvariantCulture);
+            if (edgeAmount > MaxEdgeAmount)
+                throw new FormatException($"{edgeAmount} slides are more than the game reads.");
+
+            return edgeAmount;
+        }
+
+        private static float GetPixelLength(IReadOnlyList<string> args)
+        {
+            var pixelLength = float.Parse(args[7], CultureInfo.InvariantCulture);
+
+            if (Math.Abs(pixelLength) > MaxCoordinate)
+                throw new FormatException($"{pixelLength} px are longer than the game reads.");
+
+            return pixelLength;
+        }
 
         private Tuple<HitSounds, HitSounds, List<HitSounds>> GetEdgeHitSounds(
             IReadOnlyList<string> args
@@ -319,18 +344,9 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
 
         private IEnumerable<Vector2> GetRedAnchors()
         {
-            if (NodePositions.Count > 0)
-            {
-                var prevPosition = NodePositions[0];
-
-                for (var i = 1; i < NodePositions.Count; ++i)
-                {
-                    if (NodePositions[i] == prevPosition)
-                        yield return NodePositions[i];
-
-                    prevPosition = NodePositions[i];
-                }
-            }
+            for (var i = 1; i < NodePositions.Count; ++i)
+                if (NodePositions[i] == NodePositions[i - 1])
+                    yield return NodePositions[i];
         }
 
         private List<Vector2> GetPathPxPositions()
@@ -401,7 +417,7 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             var timingLine = beatmap.GetTimingLine<UninheritedLine>(time);
             if (timingLine == null)
             {
-                throw new Exception(
+                throw new InvalidBeatmapDataException(
                     $"No uninherited timing line found at time {this.time} for slider starting at {this.time}."
                 );
             }
@@ -518,7 +534,7 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
             var timingLine = beatmap.GetTimingLine<UninheritedLine>(time);
             if (timingLine == null)
             {
-                throw new Exception(
+                throw new InvalidBeatmapDataException(
                     $"No uninherited timing line found at time for slider starting at {time}."
                 );
             }
@@ -540,6 +556,9 @@ namespace MapsetVerifier.Parser.Objects.HitObjects
                 return tickTimes;
 
             tickDistance = Math.Min(tickDistance, length);
+
+            if (length / tickDistance * EdgeAmount > MaxTicks)
+                return tickTimes;
 
             var minDistanceFromEnd = speed * 10;
             var spanDuration = GetCurveDuration();

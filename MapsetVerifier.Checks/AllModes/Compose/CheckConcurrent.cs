@@ -95,7 +95,7 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                 var msApart = otherHitObject.time - hitObject.GetEndTime();
 
                 // No need to check further if the next object is far apart from the current hit object
-                if (msApart > 30)
+                if (msApart > ManiaConcurrentThresholdMs)
                     break;
 
                 if (beatmap.GeneralSettings.mode == Beatmap.Mode.Mania)
@@ -122,10 +122,7 @@ namespace MapsetVerifier.Checks.AllModes.Compose
                     );
                 // Mania has only 1 input per column, so we need a bigger gap.
                 else if (
-                    (
-                        beatmap.GeneralSettings.mode == Beatmap.Mode.Mania
-                        && msApart <= ManiaConcurrentThresholdMs
-                    )
+                    beatmap.GeneralSettings.mode == Beatmap.Mode.Mania
                     ||
                     // Spinners can be 1 ms or further apart from the previous end time, but not at the same millisecond.
                     (

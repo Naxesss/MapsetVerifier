@@ -1,7 +1,9 @@
-﻿using MapsetVerifier.Framework.Objects;
+﻿using MapsetVerifier.Checks.Utils;
+using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.Parser.Objects.TimingLines;
 using MapsetVerifier.Parser.Statics;
 using MapsetVerifier.RankingCriteria;
 using static MapsetVerifier.Checks.Utils.TaikoUtils;
@@ -47,7 +49,9 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         "{0} Barline is snapped {1} ms before a line which would modify its slider velocity.",
                         "timestamp -",
                         "unsnap"
-                    ).WithCause("The spinner/slider end is unsnapped 1ms early.")
+                    ).WithCause(
+                        "A barline is 5 ms or less before a line which changes the slider velocity by more than 1 effective BPM, without a line of its own."
+                    )
                 },
                 {
                     RoundingErrorWarning,
@@ -61,8 +65,19 @@ namespace MapsetVerifier.Checks.Taiko.Timing
 
         public override IEnumerable<Issue> GetIssues(Beatmap beatmap)
         {
+            // Without any red line there are no barlines.
+            if (!beatmap.TimingLines.OfType<UninheritedLine>().Any())
+                yield break;
+
             foreach (var svChange in beatmap.GetSvChanges())
             {
+                var bpmChange =
+                    TimingUtils.GetEffectiveBpm(beatmap, svChange.Offset)
+                    - TimingUtils.GetEffectiveBpm(beatmap, svChange.Offset - 1);
+
+                if (Math.Abs(bpmChange) <= TimingUtils.NegligibleBpmChange)
+                    continue;
+
                 var unsnapMs = GetOffsetFromNearestBarlineMs(beatmap, svChange.Offset);
                 if (unsnapMs < 0d && unsnapMs > -Common.ROUNDING_ERROR_MARGIN)
                 {
@@ -72,8 +87,12 @@ namespace MapsetVerifier.Checks.Taiko.Timing
                         Timestamp.Get(svChange.Offset - unsnapMs)
                     );
                 }
-                else if (unsnapMs < 0d && unsnapMs >= -ThresholdMs)
+                else if (unsnapMs > 0d && unsnapMs <= ThresholdMs)
                 {
+                    // The line right after is for the notes then.
+                    if (TimingUtils.HasOwnSliderVelocity(beatmap, svChange.Offset - unsnapMs))
+                        continue;
+
                     yield return new Issue(
                         GetTemplate(Warning),
                         beatmap,

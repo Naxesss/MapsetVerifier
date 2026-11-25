@@ -135,7 +135,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
 
                 if (exception == null)
                 {
-                    if (!(peaks.Count > 0) || !(peaks.Sum(peak => peak.Sum()) > 0))
+                    if (!(peaks.Sum(peak => peak.Sum()) > 0))
                         // Muted files don't have anything to be delayed, hence ignore.
                         continue;
 
@@ -145,7 +145,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                     var pureDelay = 0;
                     double strength = 0;
 
-                    while (delay + pureDelay < peaks.Count)
+                    while (delay < peaks.Count)
                     {
                         strength += Math.Abs(peaks[delay].Sum());
 
@@ -171,7 +171,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                             hsFile,
                             $"{pureDelay:0.##}"
                         );
-                    else if (delay + pureDelay >= 5)
+                    else if (delay >= 5)
                         yield return new Issue(
                             GetTemplate("Delay"),
                             null,
@@ -181,7 +181,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Audio
                             Timestamp.Get(hitObjectActiveAt),
                             hitObjectActiveAt.beatmap
                         );
-                    else if (delay + pureDelay >= 1)
+                    else if (delay >= 1)
                         yield return new Issue(
                             GetTemplate("Minor Delay"),
                             null,

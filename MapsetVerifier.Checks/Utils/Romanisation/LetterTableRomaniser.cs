@@ -25,6 +25,9 @@ public abstract class LetterTableRomaniser : Romaniser
     protected override List<RomanisationUnit>? Read(string text) =>
         Read(text, anySystem: false, text);
 
+    protected override List<RomanisationUnit>? ReadPart(string part, string text) =>
+        Read(part, anySystem: false, text);
+
     protected override List<RomanisationUnit>? ReadAnySystem(string text) =>
         Read(text, anySystem: true, text);
 
@@ -34,7 +37,7 @@ public abstract class LetterTableRomaniser : Romaniser
         true;
 
     protected override List<List<RomanisationUnit>>? ReadWords(string text) =>
-        ReadWords(text, word => Read(word, anySystem: false, text));
+        ReadWords(text, word => ReadPart(word, text));
 
     private List<RomanisationUnit>? Read(string part, bool anySystem, string text)
     {

@@ -19,6 +19,8 @@
     "build:frontend": "npm --prefix electron-app run build",
     "build": "npm run build:frontend",
     "build:backend": "dotnet build src/MapsetVerifier.csproj -c Debug",
+    "coverage:backend": "node scripts/coverage.mjs",
+    "test:linux": "node scripts/test-linux.mjs",
     "dist": "npm run build && electron-builder --x64 -w",
     "dist-prerelease": "npm run build && electron-builder --x64 -w --config.win.icon=assets/icons/prerelease/icon.ico --config.mac.icon=assets/icons/prerelease/icon.icns --config.linux.icon=assets/icons/prerelease --config.nsis.installerIcon=assets/icons/prerelease/icon.ico --config.nsis.installerHeaderIcon=assets/icons/prerelease/icon.ico",
     "dist-all": "npm run build && electron-builder -wl",

@@ -102,6 +102,9 @@ public abstract class Romaniser
     /// </summary>
     protected abstract List<RomanisationUnit>? Read(string text);
 
+    /// <summary> Same as <see cref="Read" />, for a part of the text, which the whole may tell the language of. </summary>
+    protected virtual List<RomanisationUnit>? ReadPart(string part, string text) => Read(part);
+
     /// <summary>
     ///     Like <see cref="Read" />, but also accepting other common romanisation systems for the language. Used
     ///     to tell a romanisation in the wrong system apart from different words altogether. Null when the
@@ -199,13 +202,14 @@ public abstract class Romaniser
     /// </summary>
     public virtual string Suggest(string unicode)
     {
+        var normalised = Normalise(unicode);
         var result = new StringBuilder();
         var run = new StringBuilder();
         var runIsLatin = false;
         // Whether the text so far ends in a latin or a romanised run, null after anything else.
         bool? lastRunWasLatin = null;
 
-        foreach (var ch in Normalise(unicode))
+        foreach (var ch in normalised)
         {
             // With letter case, plain letters belong to the same word as the script's letters (Für → Fuer).
             var isLatin = ch < 128 && char.IsLetter(ch) && !HasLetterCase;
@@ -237,7 +241,7 @@ public abstract class Romaniser
             var text = run.ToString();
             run.Clear();
 
-            var piece = runIsLatin ? text : RomaniseRun(text);
+            var piece = runIsLatin ? text : RomaniseRun(text, normalised);
             if (piece.Length == 0)
                 return;
 
@@ -258,9 +262,9 @@ public abstract class Romaniser
     }
 
     /// <summary> The preferred romanisation, with a space before each word and every word but particles capitalised. </summary>
-    private string RomaniseRun(string text)
+    private string RomaniseRun(string run, string text)
     {
-        var units = Read(text);
+        var units = ReadPart(run, text);
         if (units == null)
             return "";
 

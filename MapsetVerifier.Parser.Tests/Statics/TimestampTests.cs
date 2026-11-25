@@ -82,4 +82,13 @@ public class TimestampTests
 
         return new Beatmap(osuCode, tempRoot, mapPath);
     }
+
+    [Theory]
+    [InlineData(599999, "09:59:999")]
+    [InlineData(600000, "10:00:000")]
+    [InlineData(6000000, "100:00:000")]
+    public void Minutes_HaveAtLeastTwoDigits(double time, string expected)
+    {
+        Assert.StartsWith(expected, Timestamp.Get(time));
+    }
 }

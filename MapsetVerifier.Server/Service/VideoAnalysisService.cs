@@ -161,7 +161,7 @@ public static class VideoAnalysisService
         entry.DurationMs = metadata.DurationMs;
         entry.DurationFormatted = DurationFormatter.Format(metadata.DurationMs);
         entry.Warnings = metadata.Warnings.ToList();
-        entry.CanPreview = CanBrowserPlay(metadata);
+        entry.CanPreview = CanBrowserPlay(metadata.Container, metadata.VideoCodec);
 
         return entry;
     }
@@ -170,12 +170,12 @@ public static class VideoAnalysisService
     /// Whether the preview player can be expected to play the file, which is limited to what
     /// Chromium supports.
     /// </summary>
-    private static bool CanBrowserPlay(VideoMetadata metadata)
+    internal static bool CanBrowserPlay(string container, string? videoCodec)
     {
-        if (metadata.Container is not ("MP4" or "WEBM"))
+        if (container is not ("MP4" or "WEBM"))
             return false;
 
-        return metadata.VideoCodec is "H.264 / AVC" or "H.265 / HEVC" or "VP8" or "VP9" or "AV1";
+        return videoCodec is "H.264 / AVC" or "H.265 / HEVC" or "VP8" or "VP9" or "AV1";
     }
 
     private sealed class VideoReference(string path)

@@ -128,4 +128,17 @@ public class CheckBrokenStacksTests
 
         Assert.Empty(issues);
     }
+
+    [Fact]
+    public void BrokenStack_IsReported_WhateverFollows()
+    {
+        var issues = Run(
+            TestHitObjects.Circle(1000, 100, 100),
+            TestHitObjects.Circle(1088, 107, 108),
+            TestHitObjects.Circle(1175, 107, 108),
+            TestHitObjects.Circle(3000, 400, 300)
+        );
+
+        Assert.Single(issues);
+    }
 }

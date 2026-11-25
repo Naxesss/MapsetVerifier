@@ -123,7 +123,23 @@ public static class LazerBeatmapMaterializer
                     continue;
                 }
 
-                var destPath = Path.Combine(targetDir, filename);
+                // Names come from whoever made the mapset, so they must not lead out of the folder.
+                var destPath = Path.GetFullPath(Path.Combine(targetDir, filename));
+                if (
+                    !destPath.StartsWith(
+                        Path.GetFullPath(targetDir) + Path.DirectorySeparatorChar,
+                        StringComparison.OrdinalIgnoreCase
+                    )
+                )
+                {
+                    Log.Warning(
+                        "Skipped file {Filename} outside of the folder of lazer beatmapset {BeatmapSetId}",
+                        filename,
+                        beatmapSetId
+                    );
+                    continue;
+                }
+
                 var destDir = Path.GetDirectoryName(destPath);
                 if (!string.IsNullOrWhiteSpace(destDir))
                     Directory.CreateDirectory(destDir);

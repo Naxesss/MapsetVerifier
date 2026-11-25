@@ -55,5 +55,13 @@ namespace MapsetVerifier.Parser.Tests.Settings
 
             return new MetadataSettings(lines.ToArray());
         }
+
+        [Fact]
+        public void CoveringTag_IsOfASingleWord()
+        {
+            var metadata = Create();
+
+            Assert.Throws<ArgumentException>(() => metadata.GetCoveringTag("two words"));
+        }
     }
 }

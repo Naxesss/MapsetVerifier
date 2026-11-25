@@ -671,12 +671,12 @@ namespace MapsetVerifier.Parser.Objects
             int end = int.MaxValue
         )
         {
+            if (sortedList.Count > 0 && targetTime < timeSelector(sortedList[0]))
+                // Given time is before the list starts, so there is no current element.
+                return -1;
+
             while (true)
             {
-                if (start < 0)
-                    // Given time is before the list starts, so there is no current element.
-                    return -1;
-
                 if (end > sortedList.Count - 1)
                     end = sortedList.Count - 1;
 
@@ -828,6 +828,10 @@ namespace MapsetVerifier.Parser.Objects
 
             // Get the index of object starting in front of the specified time.
             var index = BinaryTimeSearch(list, obj => obj.time, time);
+
+            if (index < 0)
+                // Before the first hit object, so there is no previous.
+                return null;
 
             if (list[index].GetEndTime() < time)
                 // Object end doesn't overlap specified time, so we can return it.
@@ -1263,6 +1267,12 @@ namespace MapsetVerifier.Parser.Objects
                 return 0;
             }
 
+            // There are no beats to count then, or so many that it would take forever.
+            const int maxBeats = 1_000_000;
+
+            if (!(line.msPerBeat > 0) || !(line.Offset / line.msPerBeat < maxBeats))
+                return 0;
+
             var firstBeatTime = line.Offset;
 
             while (firstBeatTime - line.msPerBeat > 0)
@@ -1275,9 +1285,9 @@ namespace MapsetVerifier.Parser.Objects
 
             // Apparently double does not result in the countdown needing half as much time, but rather closer to 0.45 times as much.
             var countdownMultiplier =
-                GeneralSettings.countdown == GeneralSettings.Countdown.None ? 1
-                : GeneralSettings.countdown == GeneralSettings.Countdown.Half ? 2
-                : 0.45;
+                GeneralSettings.countdown == GeneralSettings.Countdown.Half ? 2
+                : GeneralSettings.countdown == GeneralSettings.Countdown.Double ? 0.45
+                : 1;
 
             return firstObjectBeat
                 - ((firstBeatTime > 5 ? 5 : 6) + GeneralSettings.countdownBeatOffset)
@@ -1294,7 +1304,7 @@ namespace MapsetVerifier.Parser.Objects
             line ??= GetTimingLine<UninheritedLine>(time);
             if (line == null)
             {
-                throw new Exception($"No uninherited line found at {time}.");
+                throw new InvalidBeatmapDataException($"No uninherited line found at {time}.");
             }
 
             // gets how many miliseconds into a beat we are
@@ -1353,6 +1363,11 @@ namespace MapsetVerifier.Parser.Objects
             // Assume the closest possible snapping & retain signed values.
             var minUnsnap = theoreticalUnsnaps.Min(Math.Abs);
 
+            if (double.IsNaN(minUnsnap))
+                throw new InvalidBeatmapDataException(
+                    $"Beatmap contains NaN timing values at time {time}. This indicates corrupted or intentionally invalid timing data."
+                );
+
             return theoreticalUnsnaps.First(unsnap => Math.Abs(unsnap).AlmostEqual(minUnsnap));
         }
 
@@ -1367,7 +1382,7 @@ namespace MapsetVerifier.Parser.Objects
             line ??= GetTimingLine<UninheritedLine>(time);
             if (line == null)
             {
-                throw new Exception($"No uninherited line found at {time}.");
+                throw new InvalidBeatmapDataException($"No uninherited line found at {time}.");
             }
 
             var beatOffset = GetOffsetIntoBeat(time, line);
@@ -1477,7 +1492,7 @@ namespace MapsetVerifier.Parser.Objects
             line ??= GetTimingLine<UninheritedLine>(time);
             if (line == null)
             {
-                throw new Exception($"No uninherited line found at {time}.");
+                throw new InvalidBeatmapDataException($"No uninherited line found at {time}.");
             }
 
             // The game truncates ms times rather than rounding them, which is exactly why 1 ms unsnaps are so
@@ -1647,7 +1662,7 @@ namespace MapsetVerifier.Parser.Objects
                     line.StartsWith(idPrefix, StringComparison.Ordinal)
                     || line.StartsWith(namePrefix, StringComparison.Ordinal)
                 )
-                    foundTypes.Add(func(line.Split(',')));
+                    foundTypes.Add(ParserStatic.Read("Events", line, l => func(l.Split(','))));
 
             return foundTypes;
         }
@@ -1682,49 +1697,36 @@ namespace MapsetVerifier.Parser.Objects
         /// <summary>
         ///     Returns a list of timing lines where SV (slider velocity) changes occur.
         /// </summary>
-        public List<TimingLine> GetSvChanges()
-        {
-            var svChanges = new List<TimingLine>();
-
-            for (var i = 0; i < TimingLines.Count - 1; i++)
-            {
-                var firstLine = TimingLines[i];
-                var secondLine = TimingLines[i + 1];
-
-                if (
-                    !firstLine.SvMult.AlmostEqual(secondLine.SvMult)
-                    && !firstLine.Offset.AlmostEqual(secondLine.Offset)
-                )
-                {
-                    svChanges.Add(secondLine);
-                }
-            }
-
-            return svChanges;
-        }
+        public List<TimingLine> GetSvChanges() => GetChanges(line => line.SvMult);
 
         /// <summary>
         ///     Returns a list of timing lines where sample volume changes occur.
         /// </summary>
-        public List<TimingLine> GetVolumeChanges()
+        public List<TimingLine> GetVolumeChanges() => GetChanges(line => line.Volume);
+
+        /// <summary>
+        ///     Returns the timing lines which change the given value. The last line on an offset is the one in effect,
+        ///     and values are not exact, since e.g. 0.25x may be written as -399.999999999997.
+        /// </summary>
+        private List<TimingLine> GetChanges(Func<TimingLine, double> valueOf)
         {
-            var volumeChanges = new List<TimingLine>();
+            var changes = new List<TimingLine>();
+            TimingLine? previous = null;
 
-            for (var i = 0; i < TimingLines.Count - 1; i++)
+            for (var i = 0; i < TimingLines.Count; i++)
             {
-                var firstLine = TimingLines[i];
-                var secondLine = TimingLines[i + 1];
+                var line = TimingLines[i];
 
-                if (
-                    !firstLine.Volume.AlmostEqual(secondLine.Volume)
-                    && !firstLine.Offset.AlmostEqual(secondLine.Offset)
-                )
-                {
-                    volumeChanges.Add(secondLine);
-                }
+                if (i + 1 < TimingLines.Count && TimingLines[i + 1].Offset.AlmostEqual(line.Offset))
+                    continue;
+
+                if (previous != null && !valueOf(previous).AlmostEqual(valueOf(line), 6))
+                    changes.Add(line);
+
+                previous = line;
             }
 
-            return volumeChanges;
+            return changes;
         }
 
         /// <summary>

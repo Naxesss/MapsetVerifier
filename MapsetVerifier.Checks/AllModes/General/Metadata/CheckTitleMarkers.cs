@@ -712,9 +712,6 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
             if (slice.Equals(canonical))
                 return true;
 
-            if (!slice.Equals(canonical, StringComparison.OrdinalIgnoreCase))
-                return false;
-
             return HasUniformStylisedLetterCasing(title, slice);
         }
 
@@ -813,11 +810,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
 
         private static bool IsWithinLiveMarker(string title, Regex approxRegex)
         {
-            var matches = approxRegex.Matches(title);
-            if (matches.Count == 0)
-                return false;
-
-            foreach (Match match in matches)
+            foreach (Match match in approxRegex.Matches(title))
             {
                 if (!IsInsideLiveParenthetical(title, match.Index))
                     return false;
@@ -895,8 +888,7 @@ namespace MapsetVerifier.Checks.AllModes.General.Metadata
         private static bool ContainsLetterAndDigit(string text) =>
             text.Any(char.IsLetter) && text.Any(char.IsDigit);
 
-        private static string Capitalize(string str) =>
-            str.Length == 0 ? str : char.ToUpper(str[0]) + str[1..];
+        private static string Capitalize(string str) => char.ToUpper(str[0]) + str[1..];
 
         private sealed class Marker(string value)
         {

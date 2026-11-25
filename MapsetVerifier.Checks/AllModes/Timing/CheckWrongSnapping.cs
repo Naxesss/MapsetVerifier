@@ -164,13 +164,18 @@ namespace MapsetVerifier.Checks.AllModes.Timing
 
         public override IEnumerable<Issue> GetIssues(BeatmapSet beatmapSet)
         {
-            foreach (var beatmap in beatmapSet.Beatmaps)
+            // Without any red line there is nothing to snap to.
+            var beatmaps = beatmapSet
+                .Beatmaps.Where(beatmap => beatmap.TimingLines.OfType<UninheritedLine>().Any())
+                .ToList();
+
+            foreach (var beatmap in beatmaps)
             {
                 // Phase 1: compare this diff against higher-SR diffs for mismatched snapping nearby in time.
                 // Essentially if our `otherBeatmaps` simplify rhythms from our `beatmap`, then that's an issue.
                 // So the reason `otherBeatmaps` is all higher difficulties is because lower difficulties are expected to simplify rhythms.
-                var otherBeatmaps = beatmapSet
-                    .Beatmaps.Where(otherBeatmap =>
+                var otherBeatmaps = beatmaps
+                    .Where(otherBeatmap =>
                         otherBeatmap.StarRating > beatmap.StarRating
                         && otherBeatmap.GeneralSettings.mode == beatmap.GeneralSettings.mode
                     )
@@ -404,16 +409,6 @@ namespace MapsetVerifier.Checks.AllModes.Timing
             {
                 var otherEdgeTime = sortedOtherEdgeTimes[index];
                 if (otherEdgeTime >= upperBound)
-                    break;
-
-                if (Math.Abs(otherEdgeTime - edgeTime) < EdgeMatchToleranceMs)
-                    return true;
-            }
-
-            for (var index = start - 1; index >= 0; index--)
-            {
-                var otherEdgeTime = sortedOtherEdgeTimes[index];
-                if (otherEdgeTime <= lowerBound)
                     break;
 
                 if (Math.Abs(otherEdgeTime - edgeTime) < EdgeMatchToleranceMs)

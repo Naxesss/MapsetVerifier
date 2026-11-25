@@ -10,6 +10,23 @@ namespace MapsetVerifier.Checks.Utils;
 /// </summary>
 public static class TimingUtils
 {
+    /// <summary> Effective BPM changes up to this are too small to see. </summary>
+    public const double NegligibleBpmChange = 1;
+
+    /// <summary>
+    ///     Returns the BPM times the slider velocity, as in how fast things scroll or slide. Accounts for green lines
+    ///     on the same offset as a red line, which override its slider velocity.
+    /// </summary>
+    public static double GetEffectiveBpm(Beatmap beatmap, double time) =>
+        beatmap.GetTimingLine(time)!.SvMult * beatmap.GetTimingLine<UninheritedLine>(time)!.bpm;
+
+    /// <summary>
+    ///     Returns whether a line at this time, or less than a millisecond before it, changes the slider velocity.
+    ///     What is there then has its own slider velocity on purpose, and any line right after it is for what follows.
+    /// </summary>
+    public static bool HasOwnSliderVelocity(Beatmap beatmap, double time) =>
+        beatmap.GetSvChanges().Any(line => line.Offset <= time && time - line.Offset < 1);
+
     /// <summary>
     ///     Returns the standard snap divisor whose beat length (<paramref name="msPerBeat" /> / divisor)
     ///     is closest to <paramref name="durationMs" />.

@@ -8,7 +8,9 @@ public static class LoggerConfigurator
 {
     private const string ExternalsFolderName = "Mapset Verifier Externals";
 
-    public static void Configure()
+    public static void Configure() => Configure(ResolveAppDataPath());
+
+    internal static void Configure(string appdataPath)
     {
         const string template =
             "[{Timestamp:HH:mm:ss} {Level:u3}] {Application} {ShortSourceContext} {Message:lj}{NewLine}{Exception}";
@@ -16,17 +18,10 @@ public static class LoggerConfigurator
         try
         {
             Log.Information("Initializing logger...");
-            var appdataPath = ResolveAppDataPath();
             Log.Information("Resolved base app data path: {Path}", appdataPath);
 
             var logPath = Path.Combine(appdataPath, ExternalsFolderName, "Logs", "log-.txt");
-            var logDir = Path.GetDirectoryName(logPath);
-
-            if (string.IsNullOrWhiteSpace(logDir))
-            {
-                throw new InvalidOperationException("Log directory path could not be resolved.");
-            }
-
+            var logDir = Path.GetDirectoryName(logPath)!;
             Directory.CreateDirectory(logDir);
 
             Log.Information("Log directory ensured at: {LogDir}", logDir);

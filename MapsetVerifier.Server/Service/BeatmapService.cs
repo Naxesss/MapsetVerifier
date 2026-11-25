@@ -18,7 +18,12 @@ public static class BeatmapService
         RegexOptions.Compiled
     );
 
-    public static string? DetectSongsFolder()
+    /// <summary> Replaced by tests, as what is found depends on what is installed. </summary>
+    internal static Func<string?> SongsFolderDetector { get; set; } = DetectInstalledSongsFolder;
+
+    public static string? DetectSongsFolder() => SongsFolderDetector();
+
+    internal static string? DetectInstalledSongsFolder()
     {
         if (OperatingSystem.IsWindows())
         {
@@ -26,19 +31,9 @@ public static class BeatmapService
             try
             {
                 var key = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey("osu\\DefaultIcon");
-                var value = key?.GetValue(string.Empty)?.ToString();
-                if (!string.IsNullOrWhiteSpace(value))
-                {
-                    value = value.Trim('"');
-                    var exePath = value;
-                    var dir = Path.GetDirectoryName(exePath);
-                    if (!string.IsNullOrWhiteSpace(dir))
-                    {
-                        var songsPath = Path.Combine(dir, "Songs");
-                        if (Directory.Exists(songsPath))
-                            return songsPath;
-                    }
-                }
+                var songsPath = FindSongsNextTo(key?.GetValue(string.Empty)?.ToString());
+                if (songsPath != null)
+                    return songsPath;
             }
             catch
             { /* ignore registry errors */
@@ -47,19 +42,33 @@ public static class BeatmapService
             // Fallback to %USERPROFILE%\AppData\Local\osu!\Songs
             try
             {
-                var userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
-                if (!string.IsNullOrWhiteSpace(userProfile))
-                {
-                    var fallback = Path.Combine(userProfile, "AppData", "Local", "osu!", "Songs");
-                    if (Directory.Exists(fallback))
-                        return fallback;
-                }
+                return FindSongsInProfile(Environment.GetEnvironmentVariable("USERPROFILE"));
             }
             catch
             { /* ignore */
             }
         }
         return null;
+    }
+
+    /// <summary> The path may be quoted, and followed by the number of its icon. </summary>
+    internal static string? FindSongsNextTo(string? registeredIcon)
+    {
+        var dir = Path.GetDirectoryName(registeredIcon?.Trim('"'));
+        if (string.IsNullOrWhiteSpace(dir))
+            return null;
+
+        var songsPath = Path.Combine(dir, "Songs");
+        return Directory.Exists(songsPath) ? songsPath : null;
+    }
+
+    internal static string? FindSongsInProfile(string? userProfile)
+    {
+        if (string.IsNullOrWhiteSpace(userProfile))
+            return null;
+
+        var songsPath = Path.Combine(userProfile, "AppData", "Local", "osu!", "Songs");
+        return Directory.Exists(songsPath) ? songsPath : null;
     }
 
     /// <summary>
@@ -92,8 +101,14 @@ public static class BeatmapService
     private static bool _inFlightScanReportedSlow;
     private static ConcurrentDictionary<string, DateTime>? _inFlightScanOpenFolders;
     private static readonly TimeSpan FolderScanTtl = TimeSpan.FromSeconds(5);
-    private static readonly TimeSpan FolderScanWaitBudget = TimeSpan.FromSeconds(3);
     private static readonly TimeSpan SlowFolderThreshold = TimeSpan.FromSeconds(1);
+
+    internal static TimeSpan FolderScanWaitBudget { get; set; } = TimeSpan.FromSeconds(3);
+
+    /// <summary> When a mapset was last edited, which reads its folder. </summary>
+    internal static Func<DirectoryInfo, DateTime> ReadLastEdit { get; set; } =
+        GetEffectiveLastWriteTimeUtc;
+
     private const int MaxReportedSlowFolders = 5;
 
     public static ApiBeatmapPage GetBeatmaps(
@@ -280,7 +295,7 @@ public static class BeatmapService
                         openFolders[d.Name] = DateTime.UtcNow;
                         try
                         {
-                            return (Dir: d, Mtime: GetEffectiveLastWriteTimeUtc(d));
+                            return (Dir: d, Mtime: ReadLastEdit(d));
                         }
                         finally
                         {
@@ -339,7 +354,7 @@ public static class BeatmapService
     /// those are what the editor rewrites on every save, and a mapset folder can otherwise contain
     /// far more (audio/video/image/hitsound) files that would multiply the scan cost for no benefit.
     /// </summary>
-    private static DateTime GetEffectiveLastWriteTimeUtc(DirectoryInfo folder)
+    internal static DateTime GetEffectiveLastWriteTimeUtc(DirectoryInfo folder)
     {
         var latest = folder.LastWriteTimeUtc;
         try
@@ -411,6 +426,10 @@ public static class BeatmapService
     /// .osu file that happens to sort first would otherwise blank out the title/artist for the
     /// whole set. Returns null only if every file is empty.
     /// </summary>
+    /// <summary> Issues without a check, or of one no longer registered, have no id of their own. </summary>
+    internal static int GetCheckId(IReadOnlyDictionary<int, Check> checksById, Issue issue) =>
+        checksById.FirstOrDefault(c => c.Value.GetType() == issue.CheckOrigin?.GetType()).Key;
+
     private static string? ReadFirstNonEmptyOsuHeader(string[] osuFiles)
     {
         foreach (var osuFile in osuFiles)
@@ -733,9 +752,7 @@ public static class BeatmapService
 
                 var beatmapCheckResults = beatmapIssues.Select(issue =>
                 {
-                    var checkId = checksById
-                        .FirstOrDefault(c => c.Value.GetType() == issue.CheckOrigin?.GetType())
-                        .Key;
+                    var checkId = GetCheckId(checksById, issue);
 
                     return new ApiCheckResult(
                         id: checkId,
@@ -765,9 +782,7 @@ public static class BeatmapService
         var generalCheckResults = generalIssues
             .Select(issue =>
             {
-                var checkId = checksById
-                    .FirstOrDefault(c => c.Value.GetType() == issue.CheckOrigin?.GetType())
-                    .Key;
+                var checkId = GetCheckId(checksById, issue);
 
                 return new ApiCheckResult(
                     id: checkId,
@@ -849,9 +864,7 @@ public static class BeatmapService
         var beatmapCheckResults = beatmapIssues
             .Select(issue =>
             {
-                var checkId = checksById
-                    .FirstOrDefault(c => c.Value.GetType() == issue.CheckOrigin?.GetType())
-                    .Key;
+                var checkId = GetCheckId(checksById, issue);
 
                 return new ApiCheckResult(
                     id: checkId,

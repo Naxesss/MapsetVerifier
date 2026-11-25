@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using MapsetVerifier.Parser.Objects;
+using MapsetVerifier.Parser.Statics;
 
 namespace MapsetVerifier.Parser.Settings
 {
@@ -55,7 +56,7 @@ namespace MapsetVerifier.Parser.Settings
                 GetValue(lines, "PreviewTime") ?? "-1",
                 CultureInfo.InvariantCulture
             );
-            countdown = (Countdown)int.Parse(GetValue(lines, "Countdown") ?? "0");
+            countdown = (Countdown)int.Parse(GetValue(lines, "Countdown") ?? "1");
 
             // don't exist in file version 5
             stackLeniency =
@@ -74,16 +75,7 @@ namespace MapsetVerifier.Parser.Settings
             useSkinSprites = GetValue(lines, "UseSkinSprites") == "1";
         }
 
-        private string? GetValue(string[] lines, string key)
-        {
-            var line = lines.FirstOrDefault(otherLine => otherLine.StartsWith(key));
-            if (line == null)
-            {
-                return null;
-            }
-
-            var valueIndex = line.IndexOf(':') + 1;
-            return line[valueIndex..].Trim();
-        }
+        private static string? GetValue(string[] lines, string key) =>
+            ParserStatic.GetValue(lines, key);
     }
 }
