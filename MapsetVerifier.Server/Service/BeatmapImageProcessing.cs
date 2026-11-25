@@ -1,9 +1,5 @@
+using MapsetVerifier.Framework.Objects.Resources;
 using MapsetVerifier.Server.Model;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.Processing;
 
 namespace MapsetVerifier.Server.Service;
 
@@ -15,15 +11,13 @@ namespace MapsetVerifier.Server.Service;
 /// </summary>
 public static class BeatmapImageProcessing
 {
-    private static readonly string[] SupportedImageExtensions = [".jpg", ".jpeg", ".png", ".gif"];
-
-    /// <summary>
-    /// Desired thumbnail height
-    /// </summary>
-    private const int MaxImageHeight = 126;
+    private const int ThumbnailHeight = 126;
 
     public static bool IsSupportedImageFile(string filePath) =>
-        SupportedImageExtensions.Contains(Path.GetExtension(filePath).ToLowerInvariant());
+        ImageFileFormat.FromExtension(filePath)
+            is ImageFileFormat.Jpeg
+                or ImageFileFormat.Png
+                or ImageFileFormat.Gif;
 
     /// <param name="ifNoneMatch">
     /// The ETag the client already has. When it's still current the thumbnail isn't made, as all the
@@ -36,77 +30,33 @@ public static class BeatmapImageProcessing
         string? ifNoneMatch = null
     )
     {
-        const int maxHeight = MaxImageHeight;
+        var format = ImageFileFormat.FromExtension(extensionOverride ?? imagePath);
 
-        var extLower = (extensionOverride ?? Path.GetExtension(imagePath)).ToLowerInvariant();
+        var file = new FileInfo(imagePath);
+        var version = file.Exists ? $"{file.LastWriteTimeUtc.Ticks:x}-{file.Length:x}" : file.Name;
 
-        var fi = new FileInfo(imagePath);
-        var baseEtagCore = fi.Exists
-            ? $"{fi.LastWriteTimeUtc.Ticks:x}-{fi.Length:x}"
-            : Path.GetFileName(imagePath);
+        if (original || !ImageThumbnail.IsHigherThan(imagePath, ThumbnailHeight))
+            return BeatmapImageResult.SuccessResult(
+                imagePath,
+                ImageFileFormat.GetMimeType(format) ?? "image/jpeg",
+                $"\"{version}\""
+            );
 
-        var originalWidth = 0;
-        var originalHeight = 0;
-        try
-        {
-            var info = Image.Identify(imagePath);
-            originalWidth = info.Width;
-            originalHeight = info.Height;
-        }
-        catch (Exception)
-        {
-            // ignore identify errors
-        }
-
-        var needsResize = !original && originalHeight > maxHeight;
-
-        if (!needsResize)
-        {
-            var mimeOriginal = extLower == ".png" ? "image/png" : "image/jpeg";
-            var etagOriginal = '"' + baseEtagCore + '"';
-            return BeatmapImageResult.SuccessResult(imagePath, mimeOriginal, etagOriginal);
-        }
-
-        var mime = extLower == ".png" ? "image/png" : "image/jpeg";
-        var etag = '"' + baseEtagCore + $"-h{maxHeight}" + '"';
+        var thumbnailFormat =
+            format == ImageFileFormat.Png ? ImageFileFormat.Png : ImageFileFormat.Jpeg;
+        var mimeType = ImageFileFormat.GetMimeType(thumbnailFormat)!;
+        var etag = $"\"{version}-h{ThumbnailHeight}\"";
 
         if (etag == ifNoneMatch)
-            return BeatmapImageResult.SuccessResult(imagePath, mime, etag);
+            return BeatmapImageResult.SuccessResult(imagePath, mimeType, etag);
 
-        // Perform in-memory resize
         try
         {
-            var ratio = (double)maxHeight / originalHeight;
-            var targetSize = new Size(
-                Math.Max(1, (int)Math.Round(originalWidth * ratio)),
-                maxHeight
+            return BeatmapImageResult.SuccessStreamResult(
+                ImageThumbnail.Create(imagePath, ThumbnailHeight, thumbnailFormat),
+                mimeType,
+                etag
             );
-
-            // Decoders can skip most of the work when told the size that's wanted, which for a large
-            // JPEG is the difference between tens of megabytes and a fraction of one.
-            using var img = Image.Load(
-                new DecoderOptions { TargetSize = targetSize, Sampler = KnownResamplers.Lanczos3 },
-                imagePath
-            );
-            img.Mutate(c =>
-                c.Resize(
-                    new ResizeOptions
-                    {
-                        // The decoder's result is only roughly the right shape, so this sets the size
-                        // directly instead of working it out again from that and rounding differently.
-                        Mode = ResizeMode.Stretch,
-                        Size = targetSize,
-                        Sampler = KnownResamplers.Lanczos3,
-                    }
-                )
-            );
-            var ms = new MemoryStream();
-            if (extLower == ".png")
-                img.Save(ms, new PngEncoder());
-            else
-                img.Save(ms, new JpegEncoder { Quality = 85 });
-            ms.Position = 0; // reset for reading
-            return BeatmapImageResult.SuccessStreamResult(ms, mime, etag);
         }
         catch (Exception ex)
         {

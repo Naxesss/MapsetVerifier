@@ -303,19 +303,11 @@ public static class StoryboardDetailService
             previewFound = true;
             image.PreviewPath = filePath;
 
-            try
+            if (ImageSize.Read(fullPath) is { } size)
             {
-                var tagFile = new FileAbstraction(fullPath).GetTagFile();
-                if (tagFile != null)
-                {
-                    image.Width = tagFile.Properties.PhotoWidth;
-                    image.Height = tagFile.Properties.PhotoHeight;
-                    image.Resolution = $"{image.Width} × {image.Height}";
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "Failed to read the resolution of {File}", filePath);
+                image.Width = size.Width;
+                image.Height = size.Height;
+                image.Resolution = $"{size.Width} × {size.Height}";
             }
         }
 

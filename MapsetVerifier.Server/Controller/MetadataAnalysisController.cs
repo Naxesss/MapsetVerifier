@@ -1,4 +1,5 @@
-﻿using MapsetVerifier.Server.Model;
+using MapsetVerifier.Framework.Objects.Resources;
+using MapsetVerifier.Server.Model;
 using MapsetVerifier.Server.Model.MetadataAnalysis;
 using MapsetVerifier.Server.Service;
 using Microsoft.AspNetCore.Mvc;
@@ -109,12 +110,9 @@ public class MetadataAnalysisController : ControllerBase
     }
 
     private static string GetMimeType(string filePath) =>
-        Path.GetExtension(filePath).ToLowerInvariant() switch
+        ImageFileFormat.GetMimeType(ImageFileFormat.FromExtension(filePath))
+        ?? Path.GetExtension(filePath).ToLowerInvariant() switch
         {
-            ".jpg" or ".jpeg" => "image/jpeg",
-            ".png" => "image/png",
-            ".gif" => "image/gif",
-            ".bmp" => "image/bmp",
             ".wav" => "audio/wav",
             ".ogg" => "audio/ogg",
             ".mp3" => "audio/mpeg",

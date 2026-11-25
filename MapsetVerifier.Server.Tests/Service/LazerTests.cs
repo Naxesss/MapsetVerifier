@@ -5,8 +5,6 @@ using MapsetVerifier.Server.Service.OsuRuntime;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using osu.Game.Beatmaps;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using Xunit;
 
 namespace MapsetVerifier.Server.Tests.Service;
@@ -324,22 +322,13 @@ public sealed class LazerTests : IDisposable
         }
     }
 
-    private static byte[] Image(int width, int height)
-    {
-        using var image = new Image<Rgba32>(width, height);
-        using var stream = new MemoryStream();
-        image.SaveAsPng(stream);
-
-        return stream.ToArray();
-    }
-
     private BeatmapImageResult Background(Guid id, bool original = false) =>
         BeatmapService.GetLazerBeatmapImage(id.ToString(), original, lazer.DataPath);
 
     [Fact]
     public void Background_IsReadFromItsHash()
     {
-        lazer.AddFile("bb1", Image(1920, 1080));
+        lazer.AddFile("bb1", SongFolder.Image(1920, 1080));
         var id = lazer.AddSet(background: "BG.png", files: [("bg.png", "bb1")]);
 
         var full = Background(id, true);
@@ -383,7 +372,7 @@ public sealed class LazerTests : IDisposable
     [Fact]
     public void Controller_ServesBackgrounds()
     {
-        lazer.AddFile("bb1", Image(1920, 1080));
+        lazer.AddFile("bb1", SongFolder.Image(1920, 1080));
         var id = lazer.AddSet(background: "bg.png", files: [("bg.png", "bb1")]).ToString();
 
         using (

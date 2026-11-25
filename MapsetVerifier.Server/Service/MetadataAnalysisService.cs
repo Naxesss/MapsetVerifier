@@ -210,11 +210,10 @@ public static class MetadataAnalysisService
                             var fileInfo = new FileInfo(fullPath);
                             bgInfo.FileSizeBytes = fileInfo.Length;
                             bgInfo.FileSizeFormatted = FormatFileSize(fileInfo.Length);
-                            var tagFile = new FileAbstraction(fullPath).GetTagFile();
-                            if (tagFile != null)
+                            if (ImageSize.Read(fullPath) is { } size)
                             {
-                                bgInfo.Width = tagFile.Properties.PhotoWidth;
-                                bgInfo.Height = tagFile.Properties.PhotoHeight;
+                                bgInfo.Width = size.Width;
+                                bgInfo.Height = size.Height;
                                 bgInfo.Resolution = $"{bgInfo.Width} × {bgInfo.Height}";
                             }
                             else

@@ -1,12 +1,12 @@
+using System.Drawing;
 using MapsetVerifier.Checks.Utils;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
+using MapsetVerifier.Framework.Objects.Resources;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.Events;
 using MapsetVerifier.RankingCriteria;
-using Serilog;
-using SixLabors.ImageSharp;
 
 namespace MapsetVerifier.Checks.AllModes.General.Storyboard;
 
@@ -97,7 +97,7 @@ public class CheckStoryboardOffScreen : GeneralCheck
                 return null;
 
             if (!sizes.TryGetValue(path, out var size))
-                sizes[path] = size = ReadSize(Path.Combine(beatmapSet.SongPath, path));
+                sizes[path] = size = ImageSize.Read(Path.Combine(beatmapSet.SongPath, path));
 
             if (size == null)
                 return null;
@@ -109,23 +109,5 @@ public class CheckStoryboardOffScreen : GeneralCheck
         }
 
         return largest.Width > 0 ? largest : null;
-    }
-
-    /// <summary> Missing or unreadable images are reported by other checks, so they are skipped here. </summary>
-    private static Size? ReadSize(string fullPath)
-    {
-        if (!File.Exists(fullPath))
-            return null;
-
-        try
-        {
-            return Image.Identify(fullPath).Size;
-        }
-        catch (Exception exception)
-        {
-            Log.Debug(exception, "Couldn't read storyboard image {Path}", fullPath);
-
-            return null;
-        }
     }
 }
