@@ -1,7 +1,5 @@
 using MapsetVerifier.Server.Model.AudioAnalysis;
 using MapsetVerifier.Server.Service;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using Xunit;
 
 namespace MapsetVerifier.Server.Tests.Service;
@@ -13,14 +11,7 @@ public sealed class ResourceServiceTests : IDisposable
 
     public void Dispose() => song.Dispose();
 
-    private static byte[] Png(int width, int height)
-    {
-        using var image = new Image<Rgba32>(width, height);
-        using var stream = new MemoryStream();
-        image.SaveAsPng(stream);
-
-        return stream.ToArray();
-    }
+    private static byte[] Png(int width, int height) => SongFolder.Image(width, height);
 
     [Fact]
     public void EmptyFolder_IsAnError()

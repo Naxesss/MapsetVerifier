@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Globalization;
 using System.Numerics;
 using MapsetVerifier.Framework.Objects;
@@ -126,9 +127,7 @@ namespace MapsetVerifier.Checks.Taiko.Design
         {
             // Record known offsets for each unique BG file
             var files = new Dictionary<string, Dictionary<Vector2, HashSet<string>>>();
-            var imageSizes = new Dictionary<string, (int Width, int Height)?>(
-                StringComparer.OrdinalIgnoreCase
-            );
+            var imageSizes = new Dictionary<string, Size?>(StringComparer.OrdinalIgnoreCase);
 
             // Filter to osu!taiko beatmaps only
             var taikoBeatmaps = beatmapSet
@@ -157,11 +156,13 @@ namespace MapsetVerifier.Checks.Taiko.Design
 
                     if (!imageSizes.TryGetValue(path, out var imageSize))
                     {
-                        imageSize = ReadImageSize(beatmap, path);
+                        imageSize = ImageSize.Read(
+                            Path.Combine(beatmap.SongPath, path.Replace('\\', '/'))
+                        );
                         imageSizes[path] = imageSize;
                     }
 
-                    if (imageSize is { Width: > 0, Height: > 0 } size)
+                    if (imageSize is { } size)
                     {
                         if (castOffset.Y > 0)
                         {
@@ -228,32 +229,6 @@ namespace MapsetVerifier.Checks.Taiko.Design
                     );
                 }
             }
-        }
-
-        private static (int Width, int Height)? ReadImageSize(Beatmap beatmap, string relativePath)
-        {
-            if (string.IsNullOrWhiteSpace(beatmap.SongPath))
-                return null;
-
-            var fullPath = Path.Combine(
-                beatmap.SongPath,
-                relativePath
-                    .Replace('/', Path.DirectorySeparatorChar)
-                    .Replace('\\', Path.DirectorySeparatorChar)
-            );
-            if (!File.Exists(fullPath))
-                return null;
-
-            var tagFile = new FileAbstraction(fullPath).GetTagFile();
-            if (tagFile == null)
-                return null;
-
-            var width = tagFile.Properties.PhotoWidth;
-            var height = tagFile.Properties.PhotoHeight;
-            if (width <= 0 || height <= 0)
-                return null;
-
-            return (width, height);
         }
     }
 }

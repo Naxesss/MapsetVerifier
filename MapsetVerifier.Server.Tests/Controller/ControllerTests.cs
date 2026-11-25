@@ -12,6 +12,7 @@ using MapsetVerifier.Snapshots.Store;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using SkiaSharp;
 using Xunit;
 
 namespace MapsetVerifier.Server.Tests.Controller;
@@ -634,13 +635,14 @@ public sealed class ControllerTests : IDisposable
     public void Image_IsShrunk_UnlessAskedForTheOriginal(string extension, string type)
     {
         song.Write("one/a.osu", SongFolder.Osu(events: [$"0,0,\"bg.{extension}\",0,0"]));
-        using (
-            var image = new SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgb24>(
+        song.Write(
+            $"one/bg.{extension}",
+            SongFolder.Image(
                 2000,
-                1500
+                1500,
+                extension == "png" ? SKEncodedImageFormat.Png : SKEncodedImageFormat.Jpeg
             )
-        )
-            SixLabors.ImageSharp.ImageExtensions.Save(image, song.Write($"one/bg.{extension}"));
+        );
 
         int Height(bool original)
         {
@@ -650,7 +652,8 @@ public sealed class ControllerTests : IDisposable
             Assert.Equal(type, file.ContentType);
 
             using (file.FileStream)
-                return SixLabors.ImageSharp.Image.Identify(file.FileStream).Height;
+            using (var image = SKBitmap.Decode(file.FileStream))
+                return image.Height;
         }
 
         Assert.Equal(1500, Height(true));

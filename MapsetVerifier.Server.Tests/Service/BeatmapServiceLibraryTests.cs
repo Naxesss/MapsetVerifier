@@ -2,8 +2,7 @@ using MapsetVerifier.Server.Controller;
 using MapsetVerifier.Server.Model;
 using MapsetVerifier.Server.Service;
 using Microsoft.AspNetCore.Mvc;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
+using SkiaSharp;
 using Xunit;
 
 namespace MapsetVerifier.Server.Tests.Service;
@@ -184,17 +183,15 @@ public sealed class BeatmapServiceLibraryTests : IDisposable
         Assert.Equal(usedSize, result.PageSize);
     }
 
-    private void AddImage(string name, int width, int height)
-    {
-        using var image = new Image<Rgba32>(width, height);
-        using var stream = new MemoryStream();
-        if (name.EndsWith(".png"))
-            image.SaveAsPng(stream);
-        else
-            image.SaveAsJpeg(stream);
-
-        songs.Write(name, stream.ToArray());
-    }
+    private void AddImage(string name, int width, int height) =>
+        songs.Write(
+            name,
+            SongFolder.Image(
+                width,
+                height,
+                name.EndsWith(".png") ? SKEncodedImageFormat.Png : SKEncodedImageFormat.Jpeg
+            )
+        );
 
     [Theory]
     [InlineData("bg.png", "image/png")]
@@ -209,9 +206,41 @@ public sealed class BeatmapServiceLibraryTests : IDisposable
 
         Assert.True(result.Success);
         Assert.Equal(mime, result.MimeType);
-        var info = Image.Identify(thumbnail!);
-        Assert.Equal(315, info.Width);
-        Assert.Equal(126, info.Height);
+        using var decoded = SKBitmap.Decode(thumbnail!);
+        Assert.Equal(315, decoded.Width);
+        Assert.Equal(126, decoded.Height);
+    }
+
+    [Theory]
+    [InlineData("bg.png", "image/png")]
+    [InlineData("bg.jpg", "image/jpeg")]
+    [InlineData("bg.gif", "image/gif")]
+    public void Image_InFullSize_HasItsOwnType(string name, string expected)
+    {
+        Add("set", 1, SongFolder.Osu(events: [$"0,0,\"{name}\",0,0"]));
+        AddImage($"set/{name}", 1260, 504);
+
+        Assert.Equal(expected, BeatmapService.GetBeatmapImage("set", true, songs.Path).MimeType);
+    }
+
+    [Fact]
+    public void Image_CutOff_IsStillShown_AndABrokenOneIsServedAsItIs()
+    {
+        Add("set", 1, SongFolder.Osu(events: ["0,0,\"bg.png\",0,0"]));
+        var image = SongFolder.Image(1000, 1000);
+        songs.Write("set/bg.png", image[..(image.Length - 100)]);
+
+        using (
+            var thumbnail = BeatmapService
+                .GetBeatmapImage("set", songsFolderOverride: songs.Path)
+                .DataStream
+        )
+            Assert.NotNull(thumbnail);
+
+        songs.Write("set/bg.png", "not an image");
+        var broken = BeatmapService.GetBeatmapImage("set", songsFolderOverride: songs.Path);
+        Assert.True(broken.Success);
+        Assert.Null(broken.DataStream);
     }
 
     [Fact]

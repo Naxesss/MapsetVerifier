@@ -1,8 +1,6 @@
 using System.Text;
 using MapsetVerifier.Checks.AllModes.General.Storyboard;
 using MapsetVerifier.Framework.Objects;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using Xunit;
 
 namespace MapsetVerifier.Checks.Tests.AllModes.Storyboard;
@@ -179,13 +177,9 @@ public class StoryboardChecksTests
     [InlineData("Centre", 900, 240, " T,HitSound,0,1000|  F,0,0,1000,1", false)]
     public void OffScreen(string origin, int x, int y, string commands, bool isReported)
     {
-        using var stream = new MemoryStream();
-        using var image = new Image<Rgba32>(100, 100);
-        image.SaveAsPng(stream);
-
         using var context = CheckTestContext.CreateFromOsuFiles(
             [("test.osu", Osu(origin, x, y, commands).Build())],
-            extraBinaryFiles: [("sb/a.png", stream.ToArray())]
+            extraBinaryFiles: [("sb/a.png", TestMedia.Png(100, 100))]
         );
 
         AssertReported(

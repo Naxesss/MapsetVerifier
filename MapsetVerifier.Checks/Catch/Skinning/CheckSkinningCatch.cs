@@ -3,11 +3,11 @@ using MapsetVerifier.Checks.Utils;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Framework.Objects.Attributes;
 using MapsetVerifier.Framework.Objects.Metadata;
+using MapsetVerifier.Framework.Objects.Resources;
 using MapsetVerifier.Parser.Objects;
 using MapsetVerifier.Parser.Objects.HitObjects;
 using MapsetVerifier.Parser.Statics;
 using MapsetVerifier.RankingCriteria;
-using SixLabors.ImageSharp;
 
 namespace MapsetVerifier.Checks.Catch.Skinning;
 
@@ -232,7 +232,7 @@ public class CheckSkinningCatch : BeatmapSetCheck
         foreach (var element in elements)
         foreach (var path in SkinSetUtils.GetAllPresentPaths(element, beatmapSet))
         {
-            var size = TryGetImageSize(path);
+            var size = ImageSize.Read(path);
 
             if (
                 size == null
@@ -249,20 +249,6 @@ public class CheckSkinningCatch : BeatmapSetCheck
                 expectedWidth,
                 expectedHeight
             );
-        }
-    }
-
-    private static (int Width, int Height)? TryGetImageSize(string path)
-    {
-        try
-        {
-            var info = Image.Identify(path);
-
-            return info == null ? null : (info.Width, info.Height);
-        }
-        catch (Exception ex) when (ex is IOException or UnknownImageFormatException)
-        {
-            return null;
         }
     }
 

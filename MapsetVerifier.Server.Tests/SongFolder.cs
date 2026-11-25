@@ -1,3 +1,4 @@
+using SkiaSharp;
 using Xunit;
 
 // The check registry, the folder scan cache and the snapshot store are process-wide state.
@@ -109,6 +110,18 @@ public sealed class SongFolder : IDisposable
                 .. hitObjects ?? ["256,192,1000,5,0,0:0:0:0:", "256,192,2000,1,0,0:0:0:0:"],
             ]
         );
+
+    public static byte[] Image(
+        int width,
+        int height,
+        SKEncodedImageFormat format = SKEncodedImageFormat.Png
+    )
+    {
+        using var bitmap = new SKBitmap(width, height);
+        using var data = bitmap.Encode(format, 85);
+
+        return data.ToArray();
+    }
 
     /// <summary> 16 bit PCM, with each channel's sample given by its time in seconds. </summary>
     public static byte[] Wave(double seconds, params Func<double, double>[] channels)

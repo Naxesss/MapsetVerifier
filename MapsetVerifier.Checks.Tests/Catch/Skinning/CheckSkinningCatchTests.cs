@@ -1,8 +1,6 @@
 using MapsetVerifier.Checks.Catch.Skinning;
 using MapsetVerifier.Framework.Objects;
 using MapsetVerifier.Parser.Objects;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using Xunit;
 
 namespace MapsetVerifier.Checks.Tests.Catch.Skinning;
@@ -229,8 +227,7 @@ public class CheckSkinningCatchTests
         File.WriteAllText(Path.Combine(tempPath, "test.osu"), BuildMinimalOsu());
         File.WriteAllText(Path.Combine(tempPath, "audio.mp3"), string.Empty);
 
-        using var image = new Image<Rgba32>(width, height);
-        image.SaveAsPng(Path.Combine(tempPath, imageFileName));
+        File.WriteAllBytes(Path.Combine(tempPath, imageFileName), TestMedia.Png(width, height));
 
         return tempPath;
     }

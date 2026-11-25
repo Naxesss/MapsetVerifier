@@ -65,13 +65,18 @@ namespace MapsetVerifier.Framework.Objects.Resources
             if (actual == null || actual == claimed)
                 return null;
 
-            return actual switch
+            return actual == Bmp ? null : GetMimeType(actual);
+        }
+
+        /// <summary> Returns the mime type of a format, or null if there is none. </summary>
+        public static string? GetMimeType(string? format) =>
+            format switch
             {
                 Jpeg => "image/jpeg",
                 Png => "image/png",
                 Gif => "image/gif",
+                Bmp => "image/bmp",
                 _ => null,
             };
-        }
     }
 }
